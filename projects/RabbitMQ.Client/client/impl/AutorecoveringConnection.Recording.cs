@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void DeleteAutoDeleteExchange(string exchangeName)
+        internal void DeleteAutoDeleteExchange(string exchangeName)
         {
             lock (_recordedEntitiesLock)
             {

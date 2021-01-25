@@ -70,26 +70,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     throw new ChannelAllocationException();
                 }
-                return CreateInternal(channelNumber);
-            }
-        }
 
-        public ISession Create(int channelNumber)
-        {
-            lock (_sessionMap)
-            {
-                if (!_ints.Reserve(channelNumber))
-                {
-                    throw new ChannelAllocationException(channelNumber);
-                }
-                return CreateInternal(channelNumber);
-            }
-        }
-
-        public ISession CreateInternal(int channelNumber)
-        {
-            lock (_sessionMap)
-            {
                 ISession session = new Session(_connection, (ushort)channelNumber);
                 session.SessionShutdown += HandleSessionShutdown;
                 _sessionMap[channelNumber] = session;
@@ -97,7 +78,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleSessionShutdown(object sender, ShutdownEventArgs reason)
+        private void HandleSessionShutdown(object sender, ShutdownEventArgs reason)
         {
             lock (_sessionMap)
             {

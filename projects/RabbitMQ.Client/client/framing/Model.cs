@@ -298,7 +298,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ModelRpc<TxSelectOk>(new TxSelect());
         }
 
-        public override bool DispatchAsynchronous(in IncomingCommand cmd)
+        protected override bool DispatchAsynchronous(in IncomingCommand cmd)
         {
             switch (cmd.Method.ProtocolCommandId)
             {

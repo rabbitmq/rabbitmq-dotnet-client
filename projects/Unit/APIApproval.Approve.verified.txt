@@ -24,7 +24,7 @@ namespace RabbitMQ.Client
         public static RabbitMQ.Client.AmqpTcpEndpoint Parse(string address) { }
         public static RabbitMQ.Client.AmqpTcpEndpoint[] ParseMultiple(string addresses) { }
     }
-    public struct AmqpTimestamp : System.IEquatable<RabbitMQ.Client.AmqpTimestamp>
+    public readonly struct AmqpTimestamp : System.IEquatable<RabbitMQ.Client.AmqpTimestamp>
     {
         public AmqpTimestamp(long unixTime) { }
         public long UnixTime { get; }
@@ -313,7 +313,6 @@ namespace RabbitMQ.Client
         uint FrameMax { get; }
         System.TimeSpan Heartbeat { get; }
         bool IsOpen { get; }
-        RabbitMQ.Client.AmqpTcpEndpoint[] KnownHosts { get; }
         RabbitMQ.Client.IProtocol Protocol { get; }
         System.Collections.Generic.IDictionary<string, object> ServerProperties { get; }
         System.Collections.Generic.IList<RabbitMQ.Client.ShutdownReportEntry> ShutdownReport { get; }
@@ -327,8 +326,6 @@ namespace RabbitMQ.Client
         event System.EventHandler<System.EventArgs> RecoverySucceeded;
         void Close(ushort reasonCode, string reasonText, System.TimeSpan timeout, bool abort);
         RabbitMQ.Client.IModel CreateModel();
-        void HandleConnectionBlocked(string reason);
-        void HandleConnectionUnblocked();
         void UpdateSecret(string newSecret, string reason);
     }
     public static class IConnectionExtensions

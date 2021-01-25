@@ -159,10 +159,10 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                var defunctConnection = _delegate;
+                var defunctConnection = _innerConnection;
                 IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
-                _delegate = new Connection(_factory, fh, ClientProvidedName);
-                _delegate.TakeOver(defunctConnection);
+                _innerConnection = new Connection(_factory, fh, ClientProvidedName);
+                _innerConnection.TakeOver(defunctConnection);
                 return true;
             }
             catch (Exception e)

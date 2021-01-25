@@ -128,9 +128,6 @@ namespace RabbitMQ.Client.Impl
         ///stops or resumes sending the methods that have content.</summary>
         void HandleChannelFlow(bool active);
 
-        ///<summary>Handle an incoming Connection.Blocked.</summary>
-        void HandleConnectionBlocked(string reason);
-
         ///<summary>Handle an incoming Connection.Close. Shuts down the
         ///connection and all sessions and models.</summary>
         void HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId);

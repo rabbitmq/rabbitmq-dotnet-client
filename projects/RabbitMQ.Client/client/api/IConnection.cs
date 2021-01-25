@@ -108,13 +108,6 @@ namespace RabbitMQ.Client
         bool IsOpen { get; }
 
         /// <summary>
-        /// Returns the known hosts that came back from the
-        /// broker in the connection.open-ok method at connection
-        /// startup time. Null until the connection is completely open and ready for use.
-        /// </summary>
-        AmqpTcpEndpoint[] KnownHosts { get; }
-
-        /// <summary>
         /// The <see cref="IProtocol"/> this connection is using to communicate with its peer.
         /// </summary>
         IProtocol Protocol { get; }
@@ -224,15 +217,5 @@ namespace RabbitMQ.Client
         /// Create and return a fresh channel, session, and model.
         /// </summary>
         IModel CreateModel();
-
-        /// <summary>
-        /// Handle incoming Connection.Blocked methods.
-        /// </summary>
-        void HandleConnectionBlocked(string reason);
-
-        /// <summary>
-        /// Handle incoming Connection.Unblocked methods.
-        /// </summary>
-        void HandleConnectionUnblocked();
     }
 }

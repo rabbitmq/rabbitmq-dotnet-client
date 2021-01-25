@@ -32,7 +32,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -191,11 +190,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ushort ChannelMax => _sessionManager.ChannelMax;
 
-        public IDictionary<string, object> ClientProperties { get; set; }
+        public IDictionary<string, object> ClientProperties { get; private set; }
 
         public AmqpTcpEndpoint Endpoint => _frameHandler.Endpoint;
 
-        public uint FrameMax { get; set; }
+        public uint FrameMax { get; private set; }
 
         public TimeSpan Heartbeat
         {
@@ -212,21 +211,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public bool IsOpen => CloseReason is null;
 
-        public AmqpTcpEndpoint[] KnownHosts { get; set; }
-
-        public EndPoint LocalEndPoint => _frameHandler.LocalEndPoint;
-
         public int LocalPort => _frameHandler.LocalPort;
 
         ///<summary>Another overload of a Protocol property, useful
         ///for exposing a tighter type.</summary>
-        public ProtocolBase Protocol => (ProtocolBase)Endpoint.Protocol;
-
-        public EndPoint RemoteEndPoint => _frameHandler.RemoteEndPoint;
+        internal ProtocolBase Protocol => (ProtocolBase)Endpoint.Protocol;
 
         public int RemotePort => _frameHandler.RemotePort;
 
-        public IDictionary<string, object> ServerProperties { get; set; }
+        public IDictionary<string, object> ServerProperties { get; private set; }
 
         public IList<ShutdownReportEntry> ShutdownReport => _shutdownReport;
         private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();
@@ -234,7 +227,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
         IProtocol IConnection.Protocol => Endpoint.Protocol;
 
-        public static IDictionary<string, object> DefaultClientProperties()
+        internal static IDictionary<string, object> DefaultClientProperties()
         {
             var table = new Dictionary<string, object>(5)
             {
@@ -329,10 +322,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        ///<remarks>
-        /// Loop only used while quiescing. Use only to cleanly close connection
-        ///</remarks>
-        public void ClosingLoop()
+        private void ClosingLoop()
         {
             try
             {
@@ -367,23 +357,18 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public OutgoingCommand ConnectionCloseWrapper(ushort reasonCode, string reasonText)
+        private OutgoingCommand ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
             Protocol.CreateConnectionClose(reasonCode, reasonText, out OutgoingCommand request, out _);
             return request;
         }
 
-        public ISession CreateSession()
+        internal ISession CreateSession()
         {
             return _sessionManager.Create();
         }
 
-        public ISession CreateSession(int channelNumber)
-        {
-            return _sessionManager.Create(channelNumber);
-        }
-
-        public void EnsureIsOpen()
+        internal void EnsureIsOpen()
         {
             if (!IsOpen)
             {
@@ -392,7 +377,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         // Only call at the end of the Mainloop or HeartbeatLoop
-        public void FinishClose()
+        private void FinishClose()
         {
             _closed = true;
             MaybeStopHeartbeatTimers();
@@ -402,12 +387,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _model0.FinishClose();
         }
 
-        public void HandleMainLoopException(ShutdownEventArgs reason)
+        private void HandleMainLoopException(ShutdownEventArgs reason)
         {
             if (!SetCloseReason(reason))
             {
-                LogCloseError("Unexpected Main Loop Exception while closing: "
-                              + reason, new Exception(reason.ToString()));
+                LogCloseError("Unexpected Main Loop Exception while closing: " + reason, new Exception(reason.ToString()));
                 return;
             }
 
@@ -415,7 +399,7 @@ namespace RabbitMQ.Client.Framing.Impl
             LogCloseError($"Unexpected connection closure: {reason}", new Exception(reason.ToString()));
         }
 
-        public bool HardProtocolExceptionHandler(HardProtocolException hpe)
+        private bool HardProtocolExceptionHandler(HardProtocolException hpe)
         {
             if (SetCloseReason(hpe.ShutdownReason))
             {
@@ -441,7 +425,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        public void InternalClose(ShutdownEventArgs reason)
+        internal void InternalClose(ShutdownEventArgs reason)
         {
             if (!SetCloseReason(reason))
             {
@@ -457,7 +441,7 @@ namespace RabbitMQ.Client.Framing.Impl
             TerminateMainloop();
         }
 
-        public void LogCloseError(string error, Exception ex)
+        private void LogCloseError(string error, Exception ex)
         {
             ESLog.Error(error, ex);
 
@@ -470,7 +454,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void MainLoop()
+        private void MainLoop()
         {
             bool shutdownCleanly = false;
             try
@@ -530,7 +514,7 @@ namespace RabbitMQ.Client.Framing.Impl
             FinishClose();
         }
 
-        public void MainLoopIteration()
+        private void MainLoopIteration()
         {
             InboundFrame frame = _frameHandler.ReadFrame();
             NotifyHeartbeatListener();
@@ -583,25 +567,25 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeatDetected = true;
         }
 
-        public void NotifyReceivedCloseOk()
+        private void NotifyReceivedCloseOk()
         {
             TerminateMainloop();
             _closed = true;
         }
 
-        public void OnCallbackException(CallbackExceptionEventArgs args)
+        internal void OnCallbackException(CallbackExceptionEventArgs args)
         {
             _callbackExceptionWrapper.Invoke(this, args);
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
-        public void OnShutdown()
+        private void OnShutdown()
         {
             ThrowIfDisposed();
             _connectionShutdownWrapper.Invoke(this, CloseReason);
         }
 
-        public void Open()
+        private void Open()
         {
             StartAndTune();
             _model0.ConnectionOpen(_factory.VirtualHost);
@@ -636,7 +620,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// to do to clean up and shut down the channel.
         ///</para>
         ///</remarks>
-        public void QuiesceChannel(SoftProtocolException pe)
+        private void QuiesceChannel(SoftProtocolException pe)
         {
             // Construct the QuiescingSession that we'll use during
             // the quiesce process.
@@ -670,7 +654,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return System.Threading.Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
-        public void MaybeStartHeartbeatTimers()
+        private void MaybeStartHeartbeatTimers()
         {
             if (Heartbeat != TimeSpan.Zero)
             {
@@ -679,12 +663,12 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void StartMainLoop()
+        private void StartMainLoop()
         {
             _mainLoopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
         }
 
-        public void HeartbeatReadTimerCallback(object state)
+        private void HeartbeatReadTimerCallback(object state)
         {
             if (_heartbeatReadTimer is null)
             {
@@ -725,9 +709,9 @@ namespace RabbitMQ.Client.Framing.Impl
                     TerminateMainloop();
                     FinishClose();
                 }
-                else if (_heartbeatReadTimer != null)
+                else
                 {
-                    _heartbeatReadTimer.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
+                    _heartbeatReadTimer?.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
                 }
             }
             catch (ObjectDisposedException)
@@ -742,7 +726,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void HeartbeatWriteTimerCallback(object state)
+        private void HeartbeatWriteTimerCallback(object state)
         {
             if (_heartbeatWriteTimer is null)
             {
@@ -779,7 +763,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<remarks>
         /// May be called more than once. Should therefore be idempotent.
         ///</remarks>
-        public void TerminateMainloop()
+        private void TerminateMainloop()
         {
             MaybeStopHeartbeatTimers();
             _running = false;
@@ -790,7 +774,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return $"Connection({_id},{Endpoint})";
         }
 
-        public void Write(ReadOnlyMemory<byte> memory)
+        internal void Write(ReadOnlyMemory<byte> memory)
         {
             _frameHandler.Write(memory);
         }
@@ -816,7 +800,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return model;
         }
 
-        public void HandleConnectionBlocked(string reason)
+        internal void HandleConnectionBlocked(string reason)
         {
             if (!_connectionBlockedWrapper.IsEmpty)
             {
@@ -824,7 +808,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void HandleConnectionUnblocked()
+        internal void HandleConnectionUnblocked()
         {
             if (!_connectionUnblockedWrapper.IsEmpty)
             {
@@ -832,40 +816,29 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
-
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
             if (_disposed)
             {
                 return;
             }
 
-            if (disposing)
+            try
             {
-                // dispose managed resources
-                try
-                {
-                    this.Abort();
-                    _mainLoopTask.Wait();
-                }
-                catch (OperationInterruptedException)
-                {
-                    // ignored, see rabbitmq/rabbitmq-dotnet-client#133
-                }
-                finally
-                {
-                    _disposed = true;
-                }
+                this.Abort();
+                _mainLoopTask.Wait();
             }
-
-            // dispose unmanaged resources
+            catch (OperationInterruptedException)
+            {
+                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
+            }
+            finally
+            {
+                _disposed = true;
+            }
         }
 
-        internal OutgoingCommand ChannelCloseWrapper(ushort reasonCode, string reasonText)
+        private OutgoingCommand ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
             Protocol.CreateChannelClose(reasonCode, reasonText, out OutgoingCommand request);
             return request;
@@ -954,17 +927,14 @@ namespace RabbitMQ.Client.Framing.Impl
                     "Possibly caused by authentication failure", e);
             }
 
-            ushort channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax,
-                connectionTune.m_channelMax);
+            ushort channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax, connectionTune.m_channelMax);
             _sessionManager = new SessionManager(this, channelMax);
 
-            uint frameMax = NegotiatedMaxValue(_factory.RequestedFrameMax,
-                connectionTune.m_frameMax);
+            uint frameMax = NegotiatedMaxValue(_factory.RequestedFrameMax, connectionTune.m_frameMax);
             FrameMax = frameMax;
 
             TimeSpan requestedHeartbeat = _factory.RequestedHeartbeat;
-            uint heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds,
-                (uint)connectionTune.m_heartbeatInSeconds);
+            uint heartbeatInSeconds = NegotiatedMaxValue((uint)requestedHeartbeat.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
             _model0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
@@ -989,7 +959,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 Math.Min(clientValue, serverValue);
         }
 
-        public void TakeOver(Connection other)
+        internal void TakeOver(Connection other)
         {
             _callbackExceptionWrapper.Takeover(other._callbackExceptionWrapper);
             _connectionBlockedWrapper.Takeover(other._connectionBlockedWrapper);

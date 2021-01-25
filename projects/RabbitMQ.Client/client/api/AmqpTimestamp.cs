@@ -51,7 +51,7 @@ namespace RabbitMQ.Client
     /// timestamps are signed or unsigned.
     /// </para>
     /// </remarks>
-    public struct AmqpTimestamp : IEquatable<AmqpTimestamp>
+    public readonly struct AmqpTimestamp : IEquatable<AmqpTimestamp>
     {
         /// <summary>
         /// Construct an <see cref="AmqpTimestamp"/>.
