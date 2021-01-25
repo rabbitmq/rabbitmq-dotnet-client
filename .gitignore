@@ -19,7 +19,6 @@ TestResult.xml
 /NuGet
 .vscode/
 *.lock.json
-api/
 
 test.sh
 *.VisualState.xml
