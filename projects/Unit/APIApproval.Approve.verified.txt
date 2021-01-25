@@ -841,12 +841,6 @@ namespace RabbitMQ.Client.Logging
             public Keywords() { }
         }
     }
-    public sealed class RabbitMqConsoleEventListener : System.Diagnostics.Tracing.EventListener, System.IDisposable
-    {
-        public RabbitMqConsoleEventListener() { }
-        public override void Dispose() { }
-        protected override void OnEventWritten(System.Diagnostics.Tracing.EventWrittenEventArgs eventData) { }
-    }
     [System.Diagnostics.Tracing.EventData]
     public class RabbitMqExceptionDetail
     {
