@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -77,8 +78,11 @@ namespace RabbitMQ.Client.Unit
         {
             TestWaitForConfirms(2000, (ch) =>
             {
-                var fullModel = ch as IFullModel;
-                fullModel.HandleBasicNack(10, false, false);
+                IModel actualModel = ((AutorecoveringModel)ch).InnerChannel;
+                actualModel
+                    .GetType()
+                    .GetMethod("HandleAckNack", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(actualModel, new object[] { 10UL, false, true });
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
                 Assert.IsFalse(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());

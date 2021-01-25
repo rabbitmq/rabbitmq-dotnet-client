@@ -39,7 +39,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal sealed class AutorecoveringModel : IFullModel, IRecoverable
+    internal sealed class AutorecoveringModel : IModel, IRecoverable
     {
         private AutorecoveringConnection _connection;
         private RecoveryAwareModel _innerChannel;
@@ -184,146 +184,7 @@ namespace RabbitMQ.Client.Impl
             _disposed = true;
         }
 
-        public void ConnectionTuneOk(ushort channelMax, uint frameMax, ushort heartbeat)
-            => InnerChannel.ConnectionTuneOk(channelMax, frameMax, heartbeat);
-
-        public void HandleBasicAck(ulong deliveryTag, bool multiple)
-            => InnerChannel.HandleBasicAck(deliveryTag, multiple);
-
-        public void HandleBasicCancel(string consumerTag, bool nowait)
-            => InnerChannel.HandleBasicCancel(consumerTag, nowait);
-
-        public void HandleBasicCancelOk(string consumerTag)
-            => InnerChannel.HandleBasicCancelOk(consumerTag);
-
-        public void HandleBasicConsumeOk(string consumerTag)
-            => InnerChannel.HandleBasicConsumeOk(consumerTag);
-
-        public void HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body,
-            byte[] rentedArray)
-            => InnerChannel.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray);
-
-        public void HandleBasicGetEmpty()
-            => InnerChannel.HandleBasicGetEmpty();
-
-        public void HandleBasicGetOk(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, IBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
-            => InnerChannel.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey, messageCount, basicProperties, body, rentedArray);
-
-        public void HandleBasicNack(ulong deliveryTag, bool multiple, bool requeue)
-            => InnerChannel.HandleBasicNack(deliveryTag, multiple, requeue);
-
-        public void HandleBasicRecoverOk()
-            => InnerChannel.HandleBasicRecoverOk();
-
-        public void HandleBasicReturn(ushort replyCode, string replyText, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
-            => InnerChannel.HandleBasicReturn(replyCode, replyText, exchange, routingKey, basicProperties, body, rentedArray);
-
-        public void HandleChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
-            => InnerChannel.HandleChannelClose(replyCode, replyText, classId, methodId);
-
-        public void HandleChannelCloseOk()
-            => InnerChannel.HandleChannelCloseOk();
-
-        public void HandleChannelFlow(bool active)
-            => InnerChannel.HandleChannelFlow(active);
-
-        public void HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
-            => InnerChannel.HandleConnectionClose(replyCode, replyText, classId, methodId);
-
-        public void HandleConnectionSecure(byte[] challenge)
-            => InnerChannel.HandleConnectionSecure(challenge);
-
-        public void HandleConnectionStart(byte versionMajor, byte versionMinor, IDictionary<string, object> serverProperties, byte[] mechanisms, byte[] locales)
-            => InnerChannel.HandleConnectionStart(versionMajor, versionMinor, serverProperties, mechanisms, locales);
-
-        public void HandleConnectionTune(ushort channelMax, uint frameMax, ushort heartbeat)
-            => InnerChannel.HandleConnectionTune(channelMax, frameMax, heartbeat);
-
-        public void HandleConnectionUnblocked()
-            => InnerChannel.HandleConnectionUnblocked();
-
-        public void HandleQueueDeclareOk(string queue, uint messageCount, uint consumerCount)
-            => InnerChannel.HandleQueueDeclareOk(queue, messageCount, consumerCount);
-
-        public void _Private_BasicCancel(string consumerTag, bool nowait)
-            => InnerChannel._Private_BasicCancel(consumerTag, nowait);
-
-        public void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IDictionary<string, object> arguments)
-            => InnerChannel._Private_BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, nowait, arguments);
-
-        public void _Private_BasicGet(string queue, bool autoAck)
-            => InnerChannel._Private_BasicGet(queue, autoAck);
-
-        public void _Private_BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-            => InnerChannel._Private_BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
-
-        public void _Private_BasicRecover(bool requeue)
-            => InnerChannel._Private_BasicRecover(requeue);
-
-        public void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
-            => InnerChannel._Private_ChannelClose(replyCode, replyText, classId, methodId);
-
-        public void _Private_ChannelCloseOk()
-            => InnerChannel._Private_ChannelCloseOk();
-
-        public void _Private_ChannelFlowOk(bool active)
-            => InnerChannel._Private_ChannelFlowOk(active);
-
-        public void _Private_ChannelOpen()
-            => InnerChannel._Private_ChannelOpen();
-
-        public void _Private_ConfirmSelect(bool nowait)
-            => InnerChannel._Private_ConfirmSelect(nowait);
-
-        public void _Private_ConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
-            => InnerChannel._Private_ConnectionClose(replyCode, replyText, classId, methodId);
-
-        public void _Private_ConnectionCloseOk()
-            => InnerChannel._Private_ConnectionCloseOk();
-
-        public void _Private_ConnectionOpen(string virtualHost)
-            => InnerChannel._Private_ConnectionOpen(virtualHost);
-
-        public void _Private_ConnectionSecureOk(byte[] response)
-            => InnerChannel._Private_ConnectionSecureOk(response);
-
-        public void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
-            => InnerChannel._Private_ConnectionStartOk(clientProperties, mechanism, response, locale);
-
-        public void _Private_UpdateSecret(byte[] newSecret, string reason)
-            => InnerChannel._Private_UpdateSecret(newSecret, reason);
-
-        public void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
-            => InnerChannel._Private_ExchangeBind(destination, source, routingKey, nowait, arguments);
-
-        public void _Private_ExchangeDeclare(string exchange, string type, bool passive, bool durable, bool autoDelete, bool @internal, bool nowait, IDictionary<string, object> arguments)
-            => InnerChannel._Private_ExchangeDeclare(exchange, type, passive, durable, autoDelete, @internal, nowait, arguments);
-
-        public void _Private_ExchangeDelete(string exchange, bool ifUnused, bool nowait)
-            => InnerChannel._Private_ExchangeDelete(exchange, ifUnused, nowait);
-
-        public void _Private_ExchangeUnbind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
-            => InnerChannel._Private_ExchangeUnbind(destination, source, routingKey, nowait, arguments);
-
-        public void _Private_QueueBind(string queue, string exchange, string routingKey, bool nowait, IDictionary<string, object> arguments)
-            => InnerChannel._Private_QueueBind(queue, exchange, routingKey, nowait, arguments);
-
-        public void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, IDictionary<string, object> arguments)
-            => InnerChannel._Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, nowait, arguments);
-
-        public uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait)
-            => InnerChannel._Private_QueueDelete(queue, ifUnused, ifEmpty, nowait);
-
-        public uint _Private_QueuePurge(string queue, bool nowait)
-            => InnerChannel._Private_QueuePurge(queue, nowait);
-
-        public void BasicAck(ulong deliveryTag, bool multiple) 
+        public void BasicAck(ulong deliveryTag, bool multiple)
             => InnerChannel.BasicAck(deliveryTag, multiple);
 
         public void BasicCancel(string consumerTag)

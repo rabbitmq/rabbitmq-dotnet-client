@@ -685,10 +685,6 @@ namespace RabbitMQ.Client.Events
         public string NameAfter { get; }
         public string NameBefore { get; }
     }
-    public class RecoveryExceptionEventArgs : RabbitMQ.Client.Events.BaseExceptionEventArgs
-    {
-        public RecoveryExceptionEventArgs(System.Exception e) { }
-    }
 }
 namespace RabbitMQ.Client.Exceptions
 {

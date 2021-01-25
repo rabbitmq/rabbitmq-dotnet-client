@@ -44,7 +44,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class ModelBase : IFullModel, IRecoverable
+    internal abstract class ModelBase : IModel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
@@ -829,8 +829,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_ChannelOpen();
 
         public abstract void _Private_ConfirmSelect(bool nowait);
-
-        public abstract void _Private_ConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
 
         public abstract void _Private_ConnectionCloseOk();
 
