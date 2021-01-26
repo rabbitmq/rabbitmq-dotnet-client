@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -38,7 +37,8 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class QueueDelete : Client.Impl.MethodBase
     {
-        public ushort _reserved1;
+        // deprecated
+        // ushort _reserved1
         public string _queue;
         public bool _ifUnused;
         public bool _ifEmpty;
@@ -48,9 +48,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public QueueDelete(ushort Reserved1, string Queue, bool IfUnused, bool IfEmpty, bool Nowait)
+        public QueueDelete(string Queue, bool IfUnused, bool IfEmpty, bool Nowait)
         {
-            _reserved1 = Reserved1;
             _queue = Queue;
             _ifUnused = IfUnused;
             _ifEmpty = IfEmpty;
@@ -59,7 +58,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public QueueDelete(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            int offset = 2;
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
             WireFormatting.ReadBits(span.Slice(offset), out _ifUnused, out _ifEmpty, out _nowait);
         }
@@ -70,7 +69,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _reserved1);
+            int offset = WireFormatting.WriteShort(span, default);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
             return offset + WireFormatting.WriteBits(span.Slice(offset), _ifUnused, _ifEmpty, _nowait);
         }

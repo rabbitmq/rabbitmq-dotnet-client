@@ -32,7 +32,7 @@ namespace RabbitMQ.Benchmarks
     public class MethodBasicDeliver : MethodSerializationBase
     {
         private const string StringValue = "Exchange_OR_RoutingKey";
-        private readonly BasicPublish _basicPublish = new BasicPublish(default, StringValue, StringValue, false, false);
+        private readonly BasicPublish _basicPublish = new BasicPublish(StringValue, StringValue, false, false);
         private readonly BasicPublishMemory _basicPublishMemory = new BasicPublishMemory(Encoding.UTF8.GetBytes(StringValue), Encoding.UTF8.GetBytes(StringValue), false, false);
 
         public override void SetUp()

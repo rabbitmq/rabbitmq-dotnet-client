@@ -156,7 +156,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             ISession session = Delegate.CreateSession();
             var result = new RecoveryAwareModel(session) { ContinuationTimeout = _factory.ContinuationTimeout };
-            result._Private_ChannelOpen("");
+            result._Private_ChannelOpen();
             return result;
         }
 
@@ -169,7 +169,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ThrowIfDisposed();
             _endpoints = endpoints;
             IFrameHandler fh = endpoints.SelectOne(_factory.CreateFrameHandler);
-            _delegate = new Connection(_factory, false, fh, ClientProvidedName);
+            _delegate = new Connection(_factory, fh, ClientProvidedName);
             ConnectionShutdown += HandleConnectionShutdown;
         }
 

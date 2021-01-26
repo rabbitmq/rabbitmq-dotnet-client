@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Unit
         {
             const int Channel = 3;
 
-            var method = new BasicPublish(0, "E", "R", true, true);
+            var method = new BasicPublish("E", "R", true, true);
             int payloadSize = method.GetRequiredBufferSize();
             byte[] frameBytes = new byte[Impl.Framing.Method.FrameSize + payloadSize];
             Impl.Framing.Method.WriteTo(frameBytes, Channel, method);

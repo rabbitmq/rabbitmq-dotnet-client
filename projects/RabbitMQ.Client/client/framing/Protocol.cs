@@ -69,15 +69,15 @@ namespace RabbitMQ.Client.Framing
                 case ProtocolCommandId.ConnectionTune: return new ConnectionTune(span);
                 case ProtocolCommandId.ConnectionTuneOk: return new ConnectionTuneOk(span);
                 case ProtocolCommandId.ConnectionOpen: return new ConnectionOpen(span);
-                case ProtocolCommandId.ConnectionOpenOk: return new ConnectionOpenOk(span);
+                case ProtocolCommandId.ConnectionOpenOk: return new ConnectionOpenOk();
                 case ProtocolCommandId.ConnectionClose: return new ConnectionClose(span);
                 case ProtocolCommandId.ConnectionCloseOk: return new ConnectionCloseOk();
                 case ProtocolCommandId.ConnectionBlocked: return new ConnectionBlocked(span);
                 case ProtocolCommandId.ConnectionUnblocked: return new ConnectionUnblocked();
                 case ProtocolCommandId.ConnectionUpdateSecret: return new ConnectionUpdateSecret(span);
                 case ProtocolCommandId.ConnectionUpdateSecretOk: return new ConnectionUpdateSecretOk();
-                case ProtocolCommandId.ChannelOpen: return new ChannelOpen(span);
-                case ProtocolCommandId.ChannelOpenOk: return new ChannelOpenOk(span);
+                case ProtocolCommandId.ChannelOpen: return new ChannelOpen();
+                case ProtocolCommandId.ChannelOpenOk: return new ChannelOpenOk();
                 case ProtocolCommandId.ChannelFlow: return new ChannelFlow(span);
                 case ProtocolCommandId.ChannelFlowOk: return new ChannelFlowOk(span);
                 case ProtocolCommandId.ChannelClose: return new ChannelClose(span);
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Framing
                 case ProtocolCommandId.BasicDeliver: return new BasicDeliver(span);
                 case ProtocolCommandId.BasicGet: return new BasicGet(span);
                 case ProtocolCommandId.BasicGetOk: return new BasicGetOk(span);
-                case ProtocolCommandId.BasicGetEmpty: return new BasicGetEmpty(span);
+                case ProtocolCommandId.BasicGetEmpty: return new BasicGetEmpty();
                 case ProtocolCommandId.BasicAck: return new BasicAck(span);
                 case ProtocolCommandId.BasicReject: return new BasicReject(span);
                 case ProtocolCommandId.BasicRecoverAsync: return new BasicRecoverAsync(span);

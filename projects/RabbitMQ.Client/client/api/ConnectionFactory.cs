@@ -495,8 +495,7 @@ namespace RabbitMQ.Client
                 }
                 else
                 {
-                    var protocol = new RabbitMQ.Client.Framing.Protocol();
-                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
+                    conn = ((ProtocolBase)Protocols.AMQP_0_9_1).CreateConnection(this, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
                 }
             }
             catch (Exception e)
