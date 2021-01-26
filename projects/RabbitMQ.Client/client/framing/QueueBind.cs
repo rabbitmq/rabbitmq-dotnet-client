@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -39,7 +38,8 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class QueueBind : MethodBase
     {
-        public ushort _reserved1;
+        // deprecated
+        // ushort _reserved1
         public string _queue;
         public string _exchange;
         public string _routingKey;
@@ -50,9 +50,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public QueueBind(ushort Reserved1, string Queue, string Exchange, string RoutingKey, bool Nowait, IDictionary<string, object> Arguments)
+        public QueueBind(string Queue, string Exchange, string RoutingKey, bool Nowait, IDictionary<string, object> Arguments)
         {
-            _reserved1 = Reserved1;
             _queue = Queue;
             _exchange = Exchange;
             _routingKey = RoutingKey;
@@ -62,7 +61,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public QueueBind(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            int offset = 2;
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
@@ -77,7 +76,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _reserved1);
+            int offset = WireFormatting.WriteShort(span, default);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);

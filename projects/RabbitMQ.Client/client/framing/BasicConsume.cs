@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -39,7 +38,8 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class BasicConsume : MethodBase
     {
-        public ushort _reserved1;
+        // deprecated
+        // ushort _reserved1
         public string _queue;
         public string _consumerTag;
         public bool _noLocal;
@@ -52,9 +52,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public BasicConsume(ushort Reserved1, string Queue, string ConsumerTag, bool NoLocal, bool NoAck, bool Exclusive, bool Nowait, IDictionary<string, object> Arguments)
+        public BasicConsume(string Queue, string ConsumerTag, bool NoLocal, bool NoAck, bool Exclusive, bool Nowait, IDictionary<string, object> Arguments)
         {
-            _reserved1 = Reserved1;
             _queue = Queue;
             _consumerTag = ConsumerTag;
             _noLocal = NoLocal;
@@ -66,7 +65,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicConsume(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            int offset = 2;
             offset += WireFormatting.ReadShortstr(span, out _queue);
             offset += WireFormatting.ReadShortstr(span, out _consumerTag);
             offset += WireFormatting.ReadBits(span.Slice(offset), out _noLocal, out _noAck, out _exclusive, out _nowait);
@@ -80,7 +79,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _reserved1);
+            int offset = WireFormatting.WriteShort(span, default);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _consumerTag);
             offset += WireFormatting.WriteBits(span.Slice(offset), _noLocal, _noAck, _exclusive, _nowait);

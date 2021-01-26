@@ -135,9 +135,6 @@ namespace RabbitMQ.Client.Impl
         ///connection and all sessions and models.</summary>
         void HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
 
-        ///<summary>Handle an incoming Connection.OpenOk.</summary>
-        void HandleConnectionOpenOk(string knownHosts);
-
         ///////////////////////////////////////////////////////////////////////////
         // Connection-related methods, for use in channel 0 during
         // connection startup/shutdown.
@@ -198,7 +195,7 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Used to send a Channel.Open. Called during session
         ///initialisation.</summary>
-        void _Private_ChannelOpen(string outOfBand);
+        void _Private_ChannelOpen();
 
         ///<summary>Used to send a Confirm.Select method. The public
         ///confirm API calls this while also managing internal
@@ -215,7 +212,7 @@ namespace RabbitMQ.Client.Impl
 
         ///<summary>Used to send a Connection.Open. Called during
         ///connection startup.</summary>
-        void _Private_ConnectionOpen(string virtualHost, string capabilities, bool insist);
+        void _Private_ConnectionOpen(string virtualHost);
 
         ///<summary>Used to send a Connection.SecureOk. Again, this is
         ///special, like Basic.Get.</summary>

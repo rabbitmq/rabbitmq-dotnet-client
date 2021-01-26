@@ -37,7 +37,8 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class BasicPublish : Client.Impl.MethodBase
     {
-        public ushort _reserved1;
+        // deprecated
+        // ushort _reserved1
         public string _exchange;
         public string _routingKey;
         public bool _mandatory;
@@ -47,9 +48,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public BasicPublish(ushort Reserved1, string Exchange, string RoutingKey, bool Mandatory, bool Immediate)
+        public BasicPublish(string Exchange, string RoutingKey, bool Mandatory, bool Immediate)
         {
-            _reserved1 = Reserved1;
             _exchange = Exchange;
             _routingKey = RoutingKey;
             _mandatory = Mandatory;
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicPublish(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            int offset = 2;
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
             WireFormatting.ReadBits(span.Slice(offset), out _mandatory, out _immediate);
@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _reserved1);
+            int offset = WireFormatting.WriteShort(span, default);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
             return offset + WireFormatting.WriteBits(span.Slice(offset), _mandatory, _immediate);
@@ -87,9 +87,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
     internal sealed class BasicPublishMemory : Client.Impl.MethodBase
     {
-        /* unused, therefore commented out
-         * public readonly ushort _reserved1;
-         */
+        // deprecated
+        // ushort _reserved1
         public readonly ReadOnlyMemory<byte> _exchange;
         public readonly ReadOnlyMemory<byte> _routingKey;
         public readonly bool _mandatory;
@@ -109,7 +108,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, 0);
+            int offset = WireFormatting.WriteShort(span, default);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange.Span);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey.Span);
             return offset + WireFormatting.WriteBits(span.Slice(offset), _mandatory, _immediate);

@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -39,7 +38,8 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class QueueDeclare : MethodBase
     {
-        public ushort _reserved1;
+        // deprecated
+        // ushort _reserved1
         public string _queue;
         public bool _passive;
         public bool _durable;
@@ -52,9 +52,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public QueueDeclare(ushort Reserved1, string Queue, bool Passive, bool Durable, bool Exclusive, bool AutoDelete, bool Nowait, IDictionary<string, object> Arguments)
+        public QueueDeclare(string Queue, bool Passive, bool Durable, bool Exclusive, bool AutoDelete, bool Nowait, IDictionary<string, object> Arguments)
         {
-            _reserved1 = Reserved1;
             _queue = Queue;
             _passive = Passive;
             _durable = Durable;
@@ -66,7 +65,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public QueueDeclare(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            int offset = 2;
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
             offset += WireFormatting.ReadBits(span.Slice(offset), out _passive,  out _durable, out _exclusive, out _autoDelete, out _nowait);
             WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
@@ -79,7 +78,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _reserved1);
+            int offset = WireFormatting.WriteShort(span, default);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
             offset += WireFormatting.WriteBits(span.Slice(offset), _passive, _durable, _exclusive, _autoDelete, _nowait);
             return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
