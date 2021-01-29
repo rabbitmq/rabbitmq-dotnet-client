@@ -199,14 +199,12 @@ namespace RabbitMQ.Client.Impl
             _recoveryWrapper.Takeover(other._recoveryWrapper);
         }
 
-        public Task Close(ushort replyCode, string replyText, bool abort)
+        public void Close(ushort replyCode, string replyText, bool abort)
         {
-            return Close(new ShutdownEventArgs(ShutdownInitiator.Application,
-                replyCode, replyText),
-                abort);
+            _ = CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText), abort);
         }
 
-        public async Task Close(ShutdownEventArgs reason, bool abort)
+        private async Task CloseAsync(ShutdownEventArgs reason, bool abort)
         {
             var k = new ShutdownContinuation();
             ModelShutdown += k.OnConnectionShutdown;
@@ -464,7 +462,7 @@ namespace RabbitMQ.Client.Impl
             if (disposing)
             {
                 // dispose managed resources
-                Abort();
+                this.Abort();
             }
 
             // dispose unmanaged resources
@@ -784,11 +782,8 @@ namespace RabbitMQ.Client.Impl
         {
             if (m_connectionStartCell is null)
             {
-                var reason =
-                    new ShutdownEventArgs(ShutdownInitiator.Library,
-                        Constants.CommandInvalid,
-                        "Unexpected Connection.Start");
-                ((Connection)Session.Connection).Close(reason);
+                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
+                Session.Connection.Close(reason, false, Timeout.InfiniteTimeSpan);
             }
             var details = new ConnectionStartDetails
             {
@@ -942,16 +937,6 @@ namespace RabbitMQ.Client.Impl
 
         public abstract uint _Private_QueuePurge(string queue,
             bool nowait);
-
-        public void Abort()
-        {
-            Abort(Constants.ReplySuccess, "Goodbye");
-        }
-
-        public void Abort(ushort replyCode, string replyText)
-        {
-            Close(replyCode, replyText, true);
-        }
 
         public abstract void BasicAck(ulong deliveryTag, bool multiple);
 
@@ -1122,16 +1107,6 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicReject(ulong deliveryTag,
             bool requeue);
-
-        public void Close()
-        {
-            Close(Constants.ReplySuccess, "Goodbye");
-        }
-
-        public void Close(ushort replyCode, string replyText)
-        {
-            Close(replyCode, replyText, false);
-        }
 
         public void ConfirmSelect()
         {
@@ -1365,14 +1340,14 @@ namespace RabbitMQ.Client.Impl
                     return;
                 }
 
-                await Close(
+                await CloseAsync(
                     new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "Nacks Received",
                         new IOException("nack received")),
                     false).ConfigureAwait(false);
             }
             catch (TaskCanceledException exception)
             {
-                await Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                await CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application,
                         Constants.ReplySuccess,
                         "Timed out waiting for acks",
                         exception),

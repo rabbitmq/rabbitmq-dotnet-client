@@ -150,8 +150,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         IProtocol IConnection.Protocol => Endpoint.Protocol;
 
-        public void Close(ShutdownEventArgs reason) => Delegate.Close(reason);
-
         public RecoveryAwareModel CreateNonRecoveringModel()
         {
             ISession session = Delegate.CreateSession();
@@ -182,91 +180,14 @@ namespace RabbitMQ.Client.Framing.Impl
             _factory.Password = newSecret;
         }
 
-        ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort()
-        {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_delegate.IsOpen)
-            {
-                _delegate.Abort();
-            }
-        }
-
-        ///<summary>API-side invocation of connection abort.</summary>
-        public void Abort(ushort reasonCode, string reasonText)
-        {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_delegate.IsOpen)
-            {
-                _delegate.Abort(reasonCode, reasonText);
-            }
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(TimeSpan timeout)
-        {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_delegate.IsOpen)
-            {
-                _delegate.Abort(timeout);
-            }
-        }
-
-        ///<summary>API-side invocation of connection abort with timeout.</summary>
-        public void Abort(ushort reasonCode, string reasonText, TimeSpan timeout)
-        {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_delegate.IsOpen)
-            {
-                _delegate.Abort(reasonCode, reasonText, timeout);
-            }
-        }
-
-        ///<summary>API-side invocation of connection.close.</summary>
-        public void Close()
-        {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_delegate.IsOpen)
-            {
-                _delegate.Close();
-            }
-        }
-
-        ///<summary>API-side invocation of connection.close.</summary>
-        public void Close(ushort reasonCode, string reasonText)
-        {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_delegate.IsOpen)
-            {
-                _delegate.Close(reasonCode, reasonText);
-            }
-        }
-
         ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(TimeSpan timeout)
+        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
         {
             ThrowIfDisposed();
             StopRecoveryLoop();
             if (_delegate.IsOpen)
             {
-                _delegate.Close(timeout);
-            }
-        }
-
-        ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout)
-        {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_delegate.IsOpen)
-            {
-                _delegate.Close(reasonCode, reasonText, timeout);
+                _delegate.Close(reasonCode, reasonText, timeout, abort);
             }
         }
 
@@ -295,7 +216,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    Abort();
+                    this.Abort();
                 }
                 catch (Exception)
                 {
