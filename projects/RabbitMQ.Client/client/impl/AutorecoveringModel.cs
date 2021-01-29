@@ -167,7 +167,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override string ToString() 
+        public override string ToString()
             => InnerChannel.ToString();
 
         public void Dispose()
@@ -250,32 +250,6 @@ namespace RabbitMQ.Client.Impl
 
         public void BasicReject(ulong deliveryTag, bool requeue)
             => InnerChannel.BasicReject(deliveryTag, requeue);
-
-        public void Close()
-        {
-            ThrowIfDisposed();
-            try
-            {
-                _innerChannel.Close();
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this);
-            }
-        }
-
-        public void Close(ushort replyCode, string replyText)
-        {
-            ThrowIfDisposed();
-            try
-            {
-                _innerChannel.Close(replyCode, replyText);
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this);
-            }
-        }
 
         public void ConfirmSelect()
         {
