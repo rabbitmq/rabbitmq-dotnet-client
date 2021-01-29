@@ -30,29 +30,14 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
 using RabbitMQ.Client.client.framing;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ConnectionOpenOk : Client.Impl.MethodBase
     {
-        public string _reserved1;
-
-        public ConnectionOpenOk()
-        {
-        }
-
-        public ConnectionOpenOk(string Reserved1)
-        {
-            _reserved1 = Reserved1;
-        }
-
-        public ConnectionOpenOk(ReadOnlySpan<byte> span)
-        {
-            WireFormatting.ReadShortstr(span, out _reserved1);
-        }
+        //deprecated
+        // string _reserved1
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpenOk;
         public override string ProtocolMethodName => "connection.open-ok";
@@ -60,14 +45,13 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteShortstr(span, _reserved1);
+            span[0] = 0; // _reserved1
+            return 1;
         }
 
         public override int GetRequiredBufferSize()
         {
-            int bufferSize = 1; // bytes for length of _reserved1
-            bufferSize += WireFormatting.GetByteCount(_reserved1); // _reserved1 in bytes
-            return bufferSize;
+            return 1; // bytes for length of _reserved1
         }
     }
 }

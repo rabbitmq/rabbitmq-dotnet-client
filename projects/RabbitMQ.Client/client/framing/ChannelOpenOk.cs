@@ -31,27 +31,13 @@
 
 using System;
 using RabbitMQ.Client.client.framing;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ChannelOpenOk : Client.Impl.MethodBase
     {
-        public byte[] _reserved1;
-
-        public ChannelOpenOk()
-        {
-        }
-
-        public ChannelOpenOk(byte[] Reserved1)
-        {
-            _reserved1 = Reserved1;
-        }
-
-        public ChannelOpenOk(ReadOnlySpan<byte> span)
-        {
-            WireFormatting.ReadLongstr(span, out _reserved1);
-        }
+        // deprecated
+        // byte[] _reserved1
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpenOk;
         public override string ProtocolMethodName => "channel.open-ok";
@@ -59,14 +45,13 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteLongstr(span, _reserved1);
+            span[0] = 0; // _reserved1
+            return 1;
         }
 
         public override int GetRequiredBufferSize()
         {
-            int bufferSize = 4; // bytes for length of _reserved1
-            bufferSize += _reserved1.Length; // _reserved1 in bytes
-            return bufferSize;
+            return 4; // bytes for length of _reserved1
         }
     }
 }

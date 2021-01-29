@@ -101,35 +101,12 @@ namespace RabbitMQ.Client.Framing.Impl
             return Version.ToString();
         }
 
-        public IConnection CreateConnection(IConnectionFactory factory,
-            bool insist,
-            IFrameHandler frameHandler)
+        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName = null)
         {
-            return new Connection(factory, insist, frameHandler, null);
+            return new Connection(factory, frameHandler, clientProvidedName);
         }
 
-
-        public IConnection CreateConnection(IConnectionFactory factory,
-            bool insist,
-            IFrameHandler frameHandler,
-            string clientProvidedName)
-        {
-            return new Connection(factory, insist, frameHandler, clientProvidedName);
-        }
-
-        public IConnection CreateConnection(ConnectionFactory factory,
-            IFrameHandler frameHandler,
-            bool automaticRecoveryEnabled)
-        {
-            var ac = new AutorecoveringConnection(factory, null);
-            ac.Init();
-            return ac;
-        }
-
-        public IConnection CreateConnection(ConnectionFactory factory,
-            IFrameHandler frameHandler,
-            bool automaticRecoveryEnabled,
-            string clientProvidedName)
+        public IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName = null)
         {
             var ac = new AutorecoveringConnection(factory, clientProvidedName);
             ac.Init();

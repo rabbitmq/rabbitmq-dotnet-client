@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Framing.Impl
         // errors, otherwise as read timeouts
         public ConsumerWorkService ConsumerWorkService { get; }
 
-        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, string clientProvidedName = null)
+        public Connection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName = null)
         {
             ClientProvidedName = clientProvidedName;
             _factory = factory;
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _model0 = (ModelBase)Protocol.CreateModel(_session0);
 
             StartMainLoop();
-            Open(insist);
+            Open();
         }
 
         public Guid Id => _id;
@@ -601,10 +601,10 @@ namespace RabbitMQ.Client.Framing.Impl
             _connectionShutdownWrapper.Invoke(this, CloseReason);
         }
 
-        public void Open(bool insist)
+        public void Open()
         {
             StartAndTune();
-            _model0.ConnectionOpen(_factory.VirtualHost, string.Empty, false);
+            _model0.ConnectionOpen(_factory.VirtualHost);
         }
 
         ///<summary>
@@ -812,7 +812,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ISession session = CreateSession();
             var model = (IFullModel)Protocol.CreateModel(session, ConsumerWorkService);
             model.ContinuationTimeout = _factory.ContinuationTimeout;
-            model._Private_ChannelOpen("");
+            model._Private_ChannelOpen();
             return model;
         }
 

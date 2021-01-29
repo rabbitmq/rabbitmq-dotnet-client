@@ -247,17 +247,15 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public string ConnectionOpen(string virtualHost,
-            string capabilities,
-            bool insist)
+        public void ConnectionOpen(string virtualHost)
         {
-            var k = new ConnectionOpenContinuation();
+            var k = new SimpleBlockingRpcContinuation();
             lock (_rpcLock)
             {
                 Enqueue(k);
                 try
                 {
-                    _Private_ConnectionOpen(virtualHost, capabilities, insist);
+                    _Private_ConnectionOpen(virtualHost);
                 }
                 catch (AlreadyClosedException)
                 {
@@ -267,8 +265,6 @@ namespace RabbitMQ.Client.Impl
                 }
                 k.GetReply(HandshakeContinuationTimeout);
             }
-
-            return k.m_knownHosts;
         }
 
         public ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
@@ -768,15 +764,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleConnectionOpenOk(string knownHosts)
-        {
-            var k = (ConnectionOpenContinuation)_continuationQueue.Next();
-            k.m_redirect = false;
-            k.m_host = null;
-            k.m_knownHosts = knownHosts;
-            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
-        }
-
         public void HandleConnectionSecure(byte[] challenge)
         {
             var k = (ConnectionStartRpcContinuation)_continuationQueue.Next();
@@ -880,7 +867,7 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void _Private_ChannelFlowOk(bool active);
 
-        public abstract void _Private_ChannelOpen(string outOfBand);
+        public abstract void _Private_ChannelOpen();
 
         public abstract void _Private_ConfirmSelect(bool nowait);
 
@@ -891,9 +878,7 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void _Private_ConnectionCloseOk();
 
-        public abstract void _Private_ConnectionOpen(string virtualHost,
-            string capabilities,
-            bool insist);
+        public abstract void _Private_ConnectionOpen(string virtualHost);
 
         public abstract void _Private_ConnectionSecureOk(byte[] response);
 
@@ -1403,13 +1388,6 @@ namespace RabbitMQ.Client.Impl
         public class BasicGetRpcContinuation : SimpleBlockingRpcContinuation
         {
             public BasicGetResult m_result;
-        }
-
-        public class ConnectionOpenContinuation : SimpleBlockingRpcContinuation
-        {
-            public string m_host;
-            public string m_knownHosts;
-            public bool m_redirect;
         }
 
         public class ConnectionStartRpcContinuation : SimpleBlockingRpcContinuation

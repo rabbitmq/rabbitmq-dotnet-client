@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -38,7 +37,8 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed class ExchangeDelete : Client.Impl.MethodBase
     {
-        public ushort _reserved1;
+        // deprecated
+        // ushort _reserved1
         public string _exchange;
         public bool _ifUnused;
         public bool _nowait;
@@ -47,9 +47,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public ExchangeDelete(ushort Reserved1, string Exchange, bool IfUnused, bool Nowait)
+        public ExchangeDelete(string Exchange, bool IfUnused, bool Nowait)
         {
-            _reserved1 = Reserved1;
             _exchange = Exchange;
             _ifUnused = IfUnused;
             _nowait = Nowait;
@@ -57,7 +56,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ExchangeDelete(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _reserved1);
+            int offset = 2;
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
             WireFormatting.ReadBits(span.Slice(offset), out _ifUnused, out _nowait);
         }
@@ -68,7 +67,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _reserved1);
+            int offset = WireFormatting.WriteShort(span, default);
             offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
             return offset + WireFormatting.WriteBits(span.Slice(offset), _ifUnused, _nowait);
         }

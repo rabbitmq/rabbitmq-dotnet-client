@@ -161,7 +161,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 var defunctConnection = _delegate;
                 IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
-                _delegate = new Connection(_factory, false, fh, ClientProvidedName);
+                _delegate = new Connection(_factory, fh, ClientProvidedName);
                 _delegate.TakeOver(defunctConnection);
                 return true;
             }

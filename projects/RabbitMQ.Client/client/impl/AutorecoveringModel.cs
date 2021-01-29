@@ -308,12 +308,6 @@ namespace RabbitMQ.Client.Impl
             _delegate.HandleConnectionClose(replyCode, replyText, classId, methodId);
         }
 
-        public void HandleConnectionOpenOk(string knownHosts)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionOpenOk(knownHosts);
-        }
-
         public void HandleConnectionSecure(byte[] challenge)
         {
             ThrowIfDisposed();
@@ -428,10 +422,10 @@ namespace RabbitMQ.Client.Impl
             _delegate._Private_ChannelFlowOk(active);
         }
 
-        public void _Private_ChannelOpen(string outOfBand)
+        public void _Private_ChannelOpen()
         {
             ThrowIfDisposed();
-            _delegate._Private_ChannelOpen(outOfBand);
+            _delegate._Private_ChannelOpen();
         }
 
         public void _Private_ConfirmSelect(bool nowait)
@@ -456,12 +450,10 @@ namespace RabbitMQ.Client.Impl
             _delegate._Private_ConnectionCloseOk();
         }
 
-        public void _Private_ConnectionOpen(string virtualHost,
-            string capabilities,
-            bool insist)
+        public void _Private_ConnectionOpen(string virtualHost)
         {
             ThrowIfDisposed();
-            _delegate._Private_ConnectionOpen(virtualHost, capabilities, insist);
+            _delegate._Private_ConnectionOpen(virtualHost);
         }
 
         public void _Private_ConnectionSecureOk(byte[] response)
