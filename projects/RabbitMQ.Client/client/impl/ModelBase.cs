@@ -425,7 +425,7 @@ namespace RabbitMQ.Client.Impl
             SetCloseReason(reason);
             OnModelShutdown(reason);
             BroadcastShutdownToConsumers(_consumers, reason);
-            ConsumerDispatcher.Shutdown(this).GetAwaiter().GetResult();;
+            ConsumerDispatcher.Shutdown(this).GetAwaiter().GetResult(); ;
         }
 
         protected void BroadcastShutdownToConsumers(Dictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
@@ -553,8 +553,10 @@ namespace RabbitMQ.Client.Impl
             IBasicConsumer consumer;
             lock (_consumers)
             {
-                consumer = _consumers[consumerTag];
-                _consumers.Remove(consumerTag);
+                if (_consumers.TryGetValue(consumerTag, out consumer))
+                {
+                    _consumers.Remove(consumerTag);
+                }
             }
             if (consumer is null)
             {
@@ -574,12 +576,24 @@ namespace RabbitMQ.Client.Impl
                             consumerTag
                             ));
             */
+            IBasicConsumer consumer;
+
             lock (_consumers)
             {
-                k.m_consumer = _consumers[consumerTag];
-                _consumers.Remove(consumerTag);
+                if (_consumers.TryGetValue(consumerTag, out consumer))
+                {
+                    k.m_consumer = consumer;
+                    _consumers.Remove(consumerTag);
+                }
             }
+
+            if (consumer == null)
+            {
+                k.m_consumer = DefaultConsumer;
+            }
+
             ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
+
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
@@ -608,7 +622,7 @@ namespace RabbitMQ.Client.Impl
             IBasicConsumer consumer;
             lock (_consumers)
             {
-                consumer = _consumers[consumerTag];
+                _consumers.TryGetValue(consumerTag, out consumer);
             }
             if (consumer is null)
             {
