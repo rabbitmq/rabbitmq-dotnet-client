@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     while (await _channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        while (_channel.Reader.TryRead(out Work work))
+                        while (_channel.Reader.TryRead(out Work work) && !cancellationToken.IsCancellationRequested)
                         {
                             // Do a quick synchronous check before we resort to async/await with the state-machine overhead.
                             if (!_limiter.Wait(0))
