@@ -36,7 +36,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Client.client.impl.ConsumerDispatching;
+using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Impl
         protected ModelBase(bool dispatchAsync, int concurrency, ISession session)
         {
             ConsumerDispatcher = dispatchAsync ?
-                (IConsumerDispatcher)new client.impl.ConsumerDispatching.AsyncConsumerDispatcher(this, concurrency) :
+                (IConsumerDispatcher)new AsyncConsumerDispatcher(this, concurrency) :
                 new ConsumerDispatcher(this, concurrency);
 
             _emptyBasicProperties = CreateBasicProperties();

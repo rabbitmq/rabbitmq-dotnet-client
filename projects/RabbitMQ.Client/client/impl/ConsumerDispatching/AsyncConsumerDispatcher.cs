@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.client.impl.ConsumerDispatching
+namespace RabbitMQ.Client.ConsumerDispatching
 {
+    #nullable enable
     internal sealed class AsyncConsumerDispatcher : ConsumerDispatcherChannelBase
     {
         public AsyncConsumerDispatcher(ModelBase model, int concurrency)

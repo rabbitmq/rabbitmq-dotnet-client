@@ -32,11 +32,12 @@
 using System;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.client.impl.ConsumerDispatching
+namespace RabbitMQ.Client.ConsumerDispatching
 {
+    #nullable enable
     internal interface IConsumerDispatcher
     {
-        IBasicConsumer DefaultConsumer { get; set; }
+        IBasicConsumer? DefaultConsumer { get; set; }
 
         bool IsShutdown { get; }
 

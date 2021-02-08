@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
-using RabbitMQ.Client.client.impl.ConsumerDispatching;
+using RabbitMQ.Client.ConsumerDispatching;
 
 namespace RabbitMQ.Benchmarks
 {

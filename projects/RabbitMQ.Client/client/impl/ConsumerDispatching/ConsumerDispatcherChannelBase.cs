@@ -3,8 +3,9 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.client.impl.ConsumerDispatching
+namespace RabbitMQ.Client.ConsumerDispatching
 {
+    #nullable enable
     internal abstract class ConsumerDispatcherChannelBase : ConsumerDispatcherBase, IConsumerDispatcher
     {
         protected readonly ModelBase _model;
@@ -26,13 +27,13 @@ namespace RabbitMQ.Client.client.impl.ConsumerDispatching
             _reader = channel.Reader;
             _writer = channel.Writer;
 
+            Func<Task> loopStart = ProcessChannelAsync;
             if (concurrency == 1)
             {
-                _worker = Task.Run(ProcessChannelAsync);
+                _worker = Task.Run(loopStart);
             }
             else
             {
-                Func<Task> loopStart = ProcessChannelAsync;
                 var tasks = new Task[concurrency];
                 for (int i = 0; i < concurrency; i++)
                 {
@@ -110,8 +111,8 @@ namespace RabbitMQ.Client.client.impl.ConsumerDispatching
             public readonly string RoutingKey;
             public readonly IBasicProperties BasicProperties;
             public readonly ReadOnlyMemory<byte> Body;
-            public readonly byte[] RentedArray;
-            public readonly ShutdownEventArgs Reason;
+            public readonly byte[]? RentedArray;
+            public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
 
             public WorkStruct(WorkType type, IBasicConsumer consumer, string consumerTag)

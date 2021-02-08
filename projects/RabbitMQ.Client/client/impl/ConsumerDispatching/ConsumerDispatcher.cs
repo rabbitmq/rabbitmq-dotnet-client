@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.client.impl.ConsumerDispatching
+namespace RabbitMQ.Client.ConsumerDispatching
 {
+    #nullable enable
     internal sealed class ConsumerDispatcher : ConsumerDispatcherChannelBase
     {
         public ConsumerDispatcher(ModelBase model, int concurrency)

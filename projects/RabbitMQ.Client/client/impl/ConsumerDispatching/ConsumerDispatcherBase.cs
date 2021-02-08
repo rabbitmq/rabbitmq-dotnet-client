@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.client.impl.ConsumerDispatching
+namespace RabbitMQ.Client.ConsumerDispatching
 {
+    #nullable enable
     internal abstract class ConsumerDispatcherBase
     {
+        private static readonly FallbackConsumer fallbackConsumer = new FallbackConsumer();
         private readonly Dictionary<string, IBasicConsumer> _consumers;
 
-        public IBasicConsumer DefaultConsumer { get; set; }
+        public IBasicConsumer? DefaultConsumer { get; set; }
 
         protected ConsumerDispatcherBase()
         {
@@ -27,7 +29,7 @@ namespace RabbitMQ.Client.client.impl.ConsumerDispatching
         {
             lock (_consumers)
             {
-                return _consumers.TryGetValue(tag, out var consumer) ? consumer : GetDefaultConsumerOrThrow();
+                return _consumers.TryGetValue(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
             }
         }
 
@@ -35,14 +37,7 @@ namespace RabbitMQ.Client.client.impl.ConsumerDispatching
         {
             lock (_consumers)
             {
-#if NETSTANDARD
-                var consumer = _consumers[tag];
-                _consumers.Remove(tag);
-                return consumer;
-#else
-                _consumers.Remove(tag, out var consumer);
-                return consumer;
-#endif
+                return _consumers.Remove(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
             }
         }
 
@@ -64,9 +59,11 @@ namespace RabbitMQ.Client.client.impl.ConsumerDispatching
 
         protected abstract Task InternalShutdownAsync();
 
-        private IBasicConsumer GetDefaultConsumerOrThrow()
+        // Do not inline as it's not the default case on a hot path
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private IBasicConsumer GetDefaultOrFallbackConsumer()
         {
-            return DefaultConsumer ?? throw new InvalidOperationException("Unsolicited delivery - see IModel.DefaultConsumer to handle this case.");
+            return DefaultConsumer ?? fallbackConsumer;
         }
     }
 }
