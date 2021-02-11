@@ -31,49 +31,74 @@
 
 using System;
 using System.Buffers;
-using RabbitMQ.Client.Framing.Impl;
+using System.Runtime.CompilerServices;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal readonly struct OutgoingCommand
+    internal interface IOutgoingCommand
     {
-        // EmptyFrameSize, 8 = 1 + 2 + 4 + 1
-        // - 1 byte of frame type
-        // - 2 bytes of channel number
-        // - 4 bytes of frame payload length
-        // - 1 byte of payload trailer FrameEnd byte
-        private const int EmptyFrameSize = 8;
+        MethodBase Method { get; }
+        ReadOnlyMemory<byte> SerializeToFrames(ushort channelNumber, uint frameMax);
+    }
 
-        public readonly MethodBase Method;
+    internal readonly struct OutgoingCommand : IOutgoingCommand
+    {
+        private readonly MethodBase _method;
+        public MethodBase Method => _method;
+
+        public OutgoingCommand(MethodBase method)
+        {
+            _method = method;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlyMemory<byte> SerializeToFrames(ushort channelNumber, uint frameMax)
+        {
+            int size = Method.GetRequiredBufferSize() + Framing.Method.FrameSize;
+
+            // Will be returned by SocketFrameWriter.WriteLoop
+            byte[] rentedArray = ArrayPool<byte>.Shared.Rent(size);
+            int offset = Framing.Method.WriteTo(rentedArray, channelNumber, Method);
+#if DEBUG
+            System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
+#endif
+
+            return new ReadOnlyMemory<byte>(rentedArray, 0, size);
+        }
+    }
+
+    internal readonly struct OutgoingContentCommand : IOutgoingCommand
+    {
+        public MethodBase Method => _method;
+        private readonly MethodBase _method;
         private readonly ContentHeaderBase _header;
         private readonly ReadOnlyMemory<byte> _body;
 
-        public OutgoingCommand(MethodBase method)
-            : this(method, null, ReadOnlyMemory<byte>.Empty)
+        public OutgoingContentCommand(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
         {
-        }
-
-        public OutgoingCommand(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
-        {
-            Method = method;
+            _method = method;
             _header = header;
             _body = body;
         }
 
-        internal void Transmit(ushort channelNumber, Connection connection)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlyMemory<byte> SerializeToFrames(ushort channelNumber, uint frameMax)
         {
-            int maxBodyPayloadBytes = (int)(connection.FrameMax == 0 ? int.MaxValue : connection.FrameMax - EmptyFrameSize);
-            int size = GetMaxSize(maxBodyPayloadBytes);
+            int maxBodyPayloadBytes = (int)(frameMax == 0 ? int.MaxValue : frameMax - Framing.BaseFrameSize);
+            int size = Method.GetRequiredBufferSize() +
+                _header.GetRequiredPayloadBufferSize() +
+                Framing.BodySegment.FrameSize * (maxBodyPayloadBytes == int.MaxValue ? 1 : (_body.Length + maxBodyPayloadBytes - 1) / maxBodyPayloadBytes) + _body.Length
+                + Framing.Method.FrameSize + Framing.Header.FrameSize;
 
             // Will be returned by SocketFrameWriter.WriteLoop
             byte[] rentedArray = ArrayPool<byte>.Shared.Rent(size);
             Span<byte> span = rentedArray.AsSpan(0, size);
 
             int offset = Framing.Method.WriteTo(span, channelNumber, Method);
-            if (Method.HasContent)
+            int remainingBodyBytes = _body.Length;
+            offset += Framing.Header.WriteTo(span.Slice(offset), channelNumber, _header, remainingBodyBytes);
+            if (remainingBodyBytes > 0)
             {
-                int remainingBodyBytes = _body.Length;
-                offset += Framing.Header.WriteTo(span.Slice(offset), channelNumber, _header, remainingBodyBytes);
                 ReadOnlySpan<byte> bodySpan = _body.Span;
                 while (remainingBodyBytes > 0)
                 {
@@ -83,34 +108,11 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            if (offset != size)
-            {
-                throw new InvalidOperationException($"Serialized to wrong size, expect {size}, offset {offset}");
-            }
+#if DEBUG
+            System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
+#endif
 
-            connection.Write(new ReadOnlyMemory<byte>(rentedArray, 0, size));
-        }
-
-        private int GetMaxSize(int maxPayloadBytes)
-        {
-            if (!Method.HasContent)
-            {
-                return Framing.Method.FrameSize + Method.GetRequiredBufferSize();
-            }
-
-            return Framing.Method.FrameSize + Method.GetRequiredBufferSize() +
-                   Framing.Header.FrameSize + _header.GetRequiredPayloadBufferSize() +
-                   Framing.BodySegment.FrameSize * GetBodyFrameCount(maxPayloadBytes) + _body.Length;
-        }
-
-        private int GetBodyFrameCount(int maxPayloadBytes)
-        {
-            if (maxPayloadBytes == int.MaxValue)
-            {
-                return 1;
-            }
-
-            return (_body.Length + maxPayloadBytes - 1) / maxPayloadBytes;
+            return new ReadOnlyMemory<byte>(rentedArray, 0, size);
         }
     }
 }

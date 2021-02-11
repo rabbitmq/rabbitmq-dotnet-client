@@ -35,6 +35,7 @@
 // that ever changes.
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -108,7 +109,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override void Transmit(in OutgoingCommand cmd)
+        public override void Transmit<T>(in T cmd)
         {
             lock (_closingLock)
             {

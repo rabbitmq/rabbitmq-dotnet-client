@@ -31,25 +31,26 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     internal sealed class BasicPublishBatch : IBasicPublishBatch
     {
-        private readonly List<OutgoingCommand> _commands;
+        private readonly List<OutgoingContentCommand> _commands;
         private readonly ModelBase _model;
 
-        internal BasicPublishBatch (ModelBase model)
+        internal BasicPublishBatch(ModelBase model)
         {
             _model = model;
-            _commands = new List<OutgoingCommand>();
+            _commands = new List<OutgoingContentCommand>();
         }
 
-        internal BasicPublishBatch (ModelBase model, int sizeHint)
+        internal BasicPublishBatch(ModelBase model, int sizeHint)
         {
             _model = model;
-            _commands = new List<OutgoingCommand>(sizeHint);
+            _commands = new List<OutgoingContentCommand>(sizeHint);
         }
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
@@ -60,13 +61,13 @@ namespace RabbitMQ.Client.Impl
                 _routingKey = routingKey,
                 _mandatory = mandatory
             };
-            _commands.Add(new OutgoingCommand(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body));
+            _commands.Add(new OutgoingContentCommand(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body));
         }
 
         public void Add(CachedString exchange, CachedString routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             var method = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            _commands.Add(new OutgoingCommand(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body));
+            _commands.Add(new OutgoingContentCommand(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body));
         }
 
         public void Publish()
