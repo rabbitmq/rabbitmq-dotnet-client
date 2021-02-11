@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Unit
 
     public int ModelNumber(IModel model)
     {
-      return ((ModelBase)((AutorecoveringModel)model).Delegate).Session.ChannelNumber;
+      return ((AutorecoveringModel)model).ChannelNumber;
     }
 
     [SetUp] public void Connect()

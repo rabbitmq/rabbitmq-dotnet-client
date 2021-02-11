@@ -42,27 +42,34 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         private readonly ConnectionFactory _factory;
 
+        private Connection _innerConnection;
         private bool _disposed;
-        private Connection _delegate;
 
         // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
         // IHostnameSelector
         private IEndpointResolver _endpoints;
 
+        private Connection InnerConnection
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _innerConnection;
+            }
+        }
+
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
         {
             _factory = factory;
             ClientProvidedName = clientProvidedName;
 
-            Action<Exception, string> onException = (exception, context) => _delegate.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+            Action<Exception, string> onException = (exception, context) => _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _recoverySucceededWrapper = new EventingWrapper<EventArgs>("OnConnectionRecovery", onException);
             _connectionRecoveryErrorWrapper = new EventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onException);
             _consumerTagChangeAfterRecoveryWrapper = new EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onException);
             _queueNameChangeAfterRecoveryWrapper = new EventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onException);
         }
-
-        private Connection Delegate => !_disposed ? _delegate : throw new ObjectDisposedException(GetType().FullName);
 
         public event EventHandler<EventArgs> RecoverySucceeded
         {
@@ -80,26 +87,26 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
-            add => Delegate.CallbackException += value;
-            remove => Delegate.CallbackException -= value;
+            add => InnerConnection.CallbackException += value;
+            remove => InnerConnection.CallbackException -= value;
         }
 
         public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
         {
-            add => Delegate.ConnectionBlocked += value;
-            remove => Delegate.ConnectionBlocked -= value;
+            add => InnerConnection.ConnectionBlocked += value;
+            remove => InnerConnection.ConnectionBlocked -= value;
         }
 
         public event EventHandler<ShutdownEventArgs> ConnectionShutdown
         {
-            add => Delegate.ConnectionShutdown += value;
-            remove => Delegate.ConnectionShutdown -= value;
+            add => InnerConnection.ConnectionShutdown += value;
+            remove => InnerConnection.ConnectionShutdown -= value;
         }
 
         public event EventHandler<EventArgs> ConnectionUnblocked
         {
-            add => Delegate.ConnectionUnblocked += value;
-            remove => Delegate.ConnectionUnblocked -= value;
+            add => InnerConnection.ConnectionUnblocked += value;
+            remove => InnerConnection.ConnectionUnblocked -= value;
         }
 
         public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
@@ -118,56 +125,52 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public string ClientProvidedName { get; }
 
-        public ushort ChannelMax => Delegate.ChannelMax;
+        public ushort ChannelMax => InnerConnection.ChannelMax;
 
-        public IDictionary<string, object> ClientProperties => Delegate.ClientProperties;
+        public IDictionary<string, object> ClientProperties => InnerConnection.ClientProperties;
 
-        public ShutdownEventArgs CloseReason => Delegate.CloseReason;
+        public ShutdownEventArgs CloseReason => InnerConnection.CloseReason;
 
-        public AmqpTcpEndpoint Endpoint => Delegate.Endpoint;
+        public AmqpTcpEndpoint Endpoint => InnerConnection.Endpoint;
 
-        public uint FrameMax => Delegate.FrameMax;
+        public uint FrameMax => InnerConnection.FrameMax;
 
-        public TimeSpan Heartbeat => Delegate.Heartbeat;
+        public TimeSpan Heartbeat => InnerConnection.Heartbeat;
 
-        public bool IsOpen => _delegate?.IsOpen ?? false;
+        public bool IsOpen => _innerConnection?.IsOpen ?? false;
 
-        public AmqpTcpEndpoint[] KnownHosts
-        {
-            get => Delegate.KnownHosts;
-            set => Delegate.KnownHosts = value;
-        }
+        public int LocalPort => InnerConnection.LocalPort;
 
-        public int LocalPort => Delegate.LocalPort;
+        public int RemotePort => InnerConnection.RemotePort;
 
-        public ProtocolBase Protocol => Delegate.Protocol;
+        public IDictionary<string, object> ServerProperties => InnerConnection.ServerProperties;
 
-        public int RemotePort => Delegate.RemotePort;
+        public IList<ShutdownReportEntry> ShutdownReport => InnerConnection.ShutdownReport;
 
-        public IDictionary<string, object> ServerProperties => Delegate.ServerProperties;
-
-        public IList<ShutdownReportEntry> ShutdownReport => Delegate.ShutdownReport;
-
-        IProtocol IConnection.Protocol => Endpoint.Protocol;
+        public IProtocol Protocol => Endpoint.Protocol;
 
         public RecoveryAwareModel CreateNonRecoveringModel()
         {
-            ISession session = Delegate.CreateSession();
+            ISession session = InnerConnection.CreateSession();
             var result = new RecoveryAwareModel(session) { ContinuationTimeout = _factory.ContinuationTimeout };
             result._Private_ChannelOpen();
             return result;
         }
 
-        public override string ToString() => $"AutorecoveringConnection({Delegate.Id},{Endpoint},{GetHashCode()})";
+        public override string ToString()
+            => $"AutorecoveringConnection({InnerConnection.Id},{Endpoint},{GetHashCode()})";
 
-        public void Init() => Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
+        internal void Init()
+        {
+            Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
+        }
 
-        public void Init(IEndpointResolver endpoints)
+        internal void Init(IEndpointResolver endpoints)
         {
             ThrowIfDisposed();
             _endpoints = endpoints;
             IFrameHandler fh = endpoints.SelectOne(_factory.CreateFrameHandler);
-            _delegate = new Connection(_factory, fh, ClientProvidedName);
+            _innerConnection = new Connection(_factory, fh, ClientProvidedName);
             ConnectionShutdown += HandleConnectionShutdown;
         }
 
@@ -176,7 +179,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             ThrowIfDisposed();
             EnsureIsOpen();
-            _delegate.UpdateSecret(newSecret, reason);
+            _innerConnection.UpdateSecret(newSecret, reason);
             _factory.Password = newSecret;
         }
 
@@ -185,9 +188,9 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             ThrowIfDisposed();
             StopRecoveryLoop();
-            if (_delegate.IsOpen)
+            if (_innerConnection.IsOpen)
             {
-                _delegate.Close(reasonCode, reasonText, timeout, abort);
+                _innerConnection.Close(reasonCode, reasonText, timeout, abort);
             }
         }
 
@@ -199,47 +202,41 @@ namespace RabbitMQ.Client.Framing.Impl
             return m;
         }
 
-        void IDisposable.Dispose() => Dispose(true);
-
-        public void HandleConnectionBlocked(string reason) => Delegate.HandleConnectionBlocked(reason);
-
-        public void HandleConnectionUnblocked() => Delegate.HandleConnectionUnblocked();
-
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
             if (_disposed)
             {
                 return;
             }
 
-            if (disposing)
+            try
             {
-                try
-                {
-                    this.Abort();
-                }
-                catch (Exception)
-                {
-                    // TODO: log
-                }
-                finally
-                {
-                    _models.Clear();
-                    _delegate = null;
-                    _disposed = true;
-                }
+                this.Abort();
+            }
+            catch (Exception)
+            {
+                // TODO: log
+            }
+            finally
+            {
+                _models.Clear();
+                _innerConnection = null;
+                _disposed = true;
             }
         }
 
-        private void EnsureIsOpen() => Delegate.EnsureIsOpen();
+        private void EnsureIsOpen()
+            => InnerConnection.EnsureIsOpen();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(GetType().FullName);
+                ThrowDisposed();
             }
+
+            static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringConnection).FullName);
         }
     }
 }

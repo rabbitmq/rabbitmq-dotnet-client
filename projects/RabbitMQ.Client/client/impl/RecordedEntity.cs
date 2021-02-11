@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Impl
 
         protected IModel ModelDelegate
         {
-            get { return _channel.Delegate; }
+            get { return _channel.InnerChannel; }
         }
 
         public abstract void Recover();

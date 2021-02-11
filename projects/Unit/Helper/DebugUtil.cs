@@ -34,7 +34,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 
-namespace RabbitMQ.Util
+namespace RabbitMQ.Client.Unit
 {
     ///<summary>Miscellaneous debugging and development utilities.</summary>
     ///<remarks>

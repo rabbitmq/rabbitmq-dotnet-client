@@ -59,11 +59,6 @@ namespace RabbitMQ.Client.Impl
             m_cell.ContinueWithValue(reason);
         }
 
-        public virtual void OnModelShutdown(IModel sender, ShutdownEventArgs reason)
-        {
-            m_cell.ContinueWithValue(reason);
-        }
-
         public virtual ShutdownEventArgs Wait()
         {
             return m_cell.WaitForValue();

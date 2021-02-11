@@ -39,20 +39,6 @@ namespace RabbitMQ.Client.Impl
     {
         public readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();
 
-        public virtual IncomingCommand GetReply()
-        {
-            Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue();
-            switch (result.Alternative)
-            {
-                case EitherAlternative.Left:
-                    return result.LeftValue;
-                case EitherAlternative.Right:
-                    throw new OperationInterruptedException(result.RightValue);
-                default:
-                    return default;
-            }
-        }
-
         public virtual IncomingCommand GetReply(TimeSpan timeout)
         {
             Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);

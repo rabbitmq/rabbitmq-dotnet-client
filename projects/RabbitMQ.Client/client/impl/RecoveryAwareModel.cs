@@ -34,7 +34,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecoveryAwareModel : Model, IFullModel, IRecoverable
+    internal sealed class RecoveryAwareModel : Model
     {
         public RecoveryAwareModel(ISession session) : base(session)
         {
@@ -95,8 +95,7 @@ namespace RabbitMQ.Client.Impl
                 rentedArray);
         }
 
-        public override void BasicAck(ulong deliveryTag,
-            bool multiple)
+        public override void BasicAck(ulong deliveryTag, bool multiple)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
@@ -105,9 +104,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override void BasicNack(ulong deliveryTag,
-            bool multiple,
-            bool requeue)
+        public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
@@ -116,8 +113,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override void BasicReject(ulong deliveryTag,
-            bool requeue)
+        public override void BasicReject(ulong deliveryTag, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
@@ -126,7 +122,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected ulong OffsetDeliveryTag(ulong deliveryTag)
+        private ulong OffsetDeliveryTag(ulong deliveryTag)
         {
             return deliveryTag + ActiveDeliveryTagOffset;
         }

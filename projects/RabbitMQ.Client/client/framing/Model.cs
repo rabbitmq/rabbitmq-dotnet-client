@@ -116,11 +116,6 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public override void _Private_ConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
-        {
-            ModelRpc<ConnectionCloseOk>(new ConnectionClose(replyCode, replyText, classId, methodId));
-        }
-
         public override void _Private_ConnectionCloseOk()
         {
             ModelSend(new ConnectionCloseOk());
@@ -298,7 +293,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ModelRpc<TxSelectOk>(new TxSelect());
         }
 
-        public override bool DispatchAsynchronous(in IncomingCommand cmd)
+        protected override bool DispatchAsynchronous(in IncomingCommand cmd)
         {
             switch (cmd.Method.ProtocolCommandId)
             {

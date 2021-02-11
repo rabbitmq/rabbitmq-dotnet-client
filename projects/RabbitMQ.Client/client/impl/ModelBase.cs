@@ -44,11 +44,11 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class ModelBase : IFullModel, IRecoverable
+    internal abstract class ModelBase : IModel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
-        public BlockingCell<ConnectionStartDetails> m_connectionStartCell;
+        internal BlockingCell<ConnectionStartDetails> m_connectionStartCell;
         internal readonly IBasicProperties _emptyBasicProperties;
 
         private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
@@ -64,12 +64,12 @@ namespace RabbitMQ.Client.Impl
         private ShutdownEventArgs _closeReason;
         public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
 
-        public IConsumerDispatcher ConsumerDispatcher { get; }
+        internal IConsumerDispatcher ConsumerDispatcher { get; }
 
-        public ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
+        protected ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
         { }
 
-        public ModelBase(ISession session, ConsumerWorkService workService)
+        protected ModelBase(ISession session, ConsumerWorkService workService)
         {
             if (workService is AsyncConsumerWorkService asyncConsumerWorkService)
             {
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client.Impl
             Session.SessionShutdown += OnSessionShutdown;
         }
 
-        public TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
+        internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan ContinuationTimeout { get; set; } = TimeSpan.FromSeconds(20);
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
@@ -247,7 +247,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void ConnectionOpen(string virtualHost)
+        internal void ConnectionOpen(string virtualHost)
         {
             var k = new SimpleBlockingRpcContinuation();
             lock (_rpcLock)
@@ -267,7 +267,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
+        internal ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
         {
             var k = new ConnectionStartRpcContinuation();
             lock (_rpcLock)
@@ -288,10 +288,7 @@ namespace RabbitMQ.Client.Impl
             return k.m_result;
         }
 
-        public ConnectionSecureOrTune ConnectionStartOk(IDictionary<string, object> clientProperties,
-            string mechanism,
-            byte[] response,
-            string locale)
+        internal ConnectionSecureOrTune ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
         {
             var k = new ConnectionStartRpcContinuation();
             lock (_rpcLock)
@@ -313,9 +310,9 @@ namespace RabbitMQ.Client.Impl
             return k.m_result;
         }
 
-        public abstract bool DispatchAsynchronous(in IncomingCommand cmd);
+        protected abstract bool DispatchAsynchronous(in IncomingCommand cmd);
 
-        public void Enqueue(IRpcContinuation k)
+        protected void Enqueue(IRpcContinuation k)
         {
             if (CloseReason is null)
             {
@@ -327,7 +324,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void FinishClose()
+        internal void FinishClose()
         {
             var reason = CloseReason;
             if (reason != null)
@@ -338,7 +335,7 @@ namespace RabbitMQ.Client.Impl
             m_connectionStartCell?.ContinueWithValue(null);
         }
 
-        public void HandleCommand(in IncomingCommand cmd)
+        private void HandleCommand(in IncomingCommand cmd)
         {
             if (!DispatchAsynchronous(in cmd)) // Was asynchronous. Already processed. No need to process further.
             {
@@ -346,7 +343,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public T ModelRpc<T>(MethodBase method) where T : MethodBase
+        protected T ModelRpc<T>(MethodBase method) where T : MethodBase
         {
             var k = new SimpleBlockingRpcContinuation();
             var outgoingCommand = new OutgoingCommand(method);
@@ -365,12 +362,12 @@ namespace RabbitMQ.Client.Impl
             throw new UnexpectedMethodException(baseResult.ProtocolClassId, baseResult.ProtocolMethodId, baseResult.ProtocolMethodName);
         }
 
-        public void ModelSend(MethodBase method)
+        protected void ModelSend(MethodBase method)
         {
             ModelSend(method, null, ReadOnlyMemory<byte>.Empty);
         }
 
-        public void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
+        protected void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
         {
             if (method.HasContent)
             {
@@ -383,7 +380,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void OnCallbackException(CallbackExceptionEventArgs args)
+        internal void OnCallbackException(CallbackExceptionEventArgs args)
         {
             _callbackExceptionWrapper.Invoke(this, args);
         }
@@ -400,7 +397,7 @@ namespace RabbitMQ.Client.Impl
         ///shutdown event. See the definition of Enqueue() above.
         ///</para>
         ///</remarks>
-        public virtual void OnModelShutdown(ShutdownEventArgs reason)
+        private void OnModelShutdown(ShutdownEventArgs reason)
         {
             _continuationQueue.HandleModelShutdown(reason);
             _modelShutdownWrapper.Invoke(this, reason);
@@ -419,7 +416,7 @@ namespace RabbitMQ.Client.Impl
             _flowControlBlock.Set();
         }
 
-        public void OnSessionShutdown(object sender, ShutdownEventArgs reason)
+        private void OnSessionShutdown(object sender, ShutdownEventArgs reason)
         {
             ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
@@ -442,11 +439,9 @@ namespace RabbitMQ.Client.Impl
         }
 
         public override string ToString()
-        {
-            return Session.ToString();
-        }
+            => Session.ToString();
 
-        public void TransmitAndEnqueue(in OutgoingCommand cmd, IRpcContinuation k)
+        private void TransmitAndEnqueue(in OutgoingCommand cmd, IRpcContinuation k)
         {
             Enqueue(k);
             Session.Transmit(cmd);
@@ -468,9 +463,7 @@ namespace RabbitMQ.Client.Impl
             // dispose unmanaged resources
         }
 
-        public abstract void ConnectionTuneOk(ushort channelMax,
-            uint frameMax,
-            ushort heartbeat);
+        public abstract void ConnectionTuneOk(ushort channelMax, uint frameMax, ushort heartbeat);
 
         public void HandleBasicAck(ulong deliveryTag, bool multiple)
         {
@@ -745,24 +738,17 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleConnectionBlocked(string reason)
+        internal void HandleConnectionBlocked(string reason)
         {
             Session.Connection.HandleConnectionBlocked(reason);
         }
 
-        public void HandleConnectionClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId)
+        public void HandleConnectionClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer,
-                replyCode,
-                replyText,
-                classId,
-                methodId);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, replyCode, replyText, classId, methodId);
             try
             {
-                ((Connection)Session.Connection).InternalClose(reason);
+                Session.Connection.InternalClose(reason);
                 _Private_ConnectionCloseOk();
                 SetCloseReason(Session.Connection.CloseReason);
             }
@@ -788,11 +774,7 @@ namespace RabbitMQ.Client.Impl
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
-        public void HandleConnectionStart(byte versionMajor,
-            byte versionMinor,
-            IDictionary<string, object> serverProperties,
-            byte[] mechanisms,
-            byte[] locales)
+        public void HandleConnectionStart(byte versionMajor, byte versionMinor, IDictionary<string, object> serverProperties, byte[] mechanisms, byte[] locales)
         {
             if (m_connectionStartCell is null)
             {
@@ -830,52 +812,29 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleConnectionUnblocked()
         {
-            var cb = (Connection)Session.Connection;
-
-            cb.HandleConnectionUnblocked();
+            Session.Connection.HandleConnectionUnblocked();
         }
 
-        public void HandleQueueDeclareOk(string queue,
-            uint messageCount,
-            uint consumerCount)
+        public void HandleQueueDeclareOk(string queue, uint messageCount, uint consumerCount)
         {
             var k = (QueueDeclareRpcContinuation)_continuationQueue.Next();
             k.m_result = new QueueDeclareOk(queue, messageCount, consumerCount);
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
-        public abstract void _Private_BasicCancel(string consumerTag,
-            bool nowait);
+        public abstract void _Private_BasicCancel(string consumerTag, bool nowait);
 
-        public abstract void _Private_BasicConsume(string queue,
-            string consumerTag,
-            bool noLocal,
-            bool autoAck,
-            bool exclusive,
-            bool nowait,
-            IDictionary<string, object> arguments);
+        public abstract void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IDictionary<string, object> arguments);
 
-        public abstract void _Private_BasicGet(string queue,
-            bool autoAck);
+        public abstract void _Private_BasicGet(string queue, bool autoAck);
 
-        public abstract void _Private_BasicPublish(string exchange,
-            string routingKey,
-            bool mandatory,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body);
+        public abstract void _Private_BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body);
 
-        public abstract void _Private_BasicPublishMemory(ReadOnlyMemory<byte> exchange,
-            ReadOnlyMemory<byte> routingKey,
-            bool mandatory,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body);
+        public abstract void _Private_BasicPublishMemory(ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body);
 
         public abstract void _Private_BasicRecover(bool requeue);
 
-        public abstract void _Private_ChannelClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId);
+        public abstract void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
 
         public abstract void _Private_ChannelCloseOk();
 
@@ -885,72 +844,31 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void _Private_ConfirmSelect(bool nowait);
 
-        public abstract void _Private_ConnectionClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId);
-
         public abstract void _Private_ConnectionCloseOk();
 
         public abstract void _Private_ConnectionOpen(string virtualHost);
 
         public abstract void _Private_ConnectionSecureOk(byte[] response);
 
-        public abstract void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
-            string mechanism,
-            byte[] response,
-            string locale);
+        public abstract void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale);
 
-        public abstract void _Private_UpdateSecret(
-            byte[] @newSecret,
-            string @reason);
+        public abstract void _Private_UpdateSecret(byte[] @newSecret, string @reason);
 
-        public abstract void _Private_ExchangeBind(string destination,
-            string source,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments);
+        public abstract void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments);
 
-        public abstract void _Private_ExchangeDeclare(string exchange,
-            string type,
-            bool passive,
-            bool durable,
-            bool autoDelete,
-            bool @internal,
-            bool nowait,
-            IDictionary<string, object> arguments);
+        public abstract void _Private_ExchangeDeclare(string exchange, string type, bool passive, bool durable, bool autoDelete, bool @internal, bool nowait, IDictionary<string, object> arguments);
 
-        public abstract void _Private_ExchangeDelete(string exchange,
-            bool ifUnused,
-            bool nowait);
+        public abstract void _Private_ExchangeDelete(string exchange, bool ifUnused, bool nowait);
 
-        public abstract void _Private_ExchangeUnbind(string destination,
-            string source,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments);
+        public abstract void _Private_ExchangeUnbind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments);
 
-        public abstract void _Private_QueueBind(string queue,
-            string exchange,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments);
+        public abstract void _Private_QueueBind(string queue, string exchange, string routingKey, bool nowait, IDictionary<string, object> arguments);
 
-        public abstract void _Private_QueueDeclare(string queue,
-            bool passive,
-            bool durable,
-            bool exclusive,
-            bool autoDelete,
-            bool nowait,
-            IDictionary<string, object> arguments);
+        public abstract void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, IDictionary<string, object> arguments);
 
-        public abstract uint _Private_QueueDelete(string queue,
-            bool ifUnused,
-            bool ifEmpty,
-            bool nowait);
+        public abstract uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait);
 
-        public abstract uint _Private_QueuePurge(string queue,
-            bool nowait);
+        public abstract uint _Private_QueuePurge(string queue, bool nowait);
 
         public abstract void BasicAck(ulong deliveryTag, bool multiple);
 
@@ -981,13 +899,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public string BasicConsume(string queue,
-            bool autoAck,
-            string consumerTag,
-            bool noLocal,
-            bool exclusive,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer)
+        public string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer)
         {
             // TODO: Replace with flag
             if (ConsumerDispatcher is AsyncConsumerDispatcher)
@@ -1028,9 +940,7 @@ namespace RabbitMQ.Client.Impl
             return k.m_result;
         }
 
-        public abstract void BasicNack(ulong deliveryTag,
-            bool multiple,
-            bool requeue);
+        public abstract void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
 
         private void AllocatePublishSeqNos(int count)
         {
@@ -1043,11 +953,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void BasicPublish(string exchange,
-            string routingKey,
-            bool mandatory,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+        public void BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             if (routingKey is null)
             {
@@ -1069,11 +975,7 @@ namespace RabbitMQ.Client.Impl
                 body);
         }
 
-        public void BasicPublish(CachedString exchange,
-            CachedString routingKey,
-            bool mandatory,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
+        public void BasicPublish(CachedString exchange, CachedString routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             if (NextPublishSeqNo > 0)
             {
@@ -1101,9 +1003,7 @@ namespace RabbitMQ.Client.Impl
             _Private_UpdateSecret(Encoding.UTF8.GetBytes(newSecret), reason);
         }
 
-        public abstract void BasicQos(uint prefetchSize,
-            ushort prefetchCount,
-            bool global);
+        public abstract void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
 
         public void BasicRecover(bool requeue)
         {
@@ -1119,8 +1019,7 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicRecoverAsync(bool requeue);
 
-        public abstract void BasicReject(ulong deliveryTag,
-            bool requeue);
+        public abstract void BasicReject(ulong deliveryTag, bool requeue);
 
         public void ConfirmSelect()
         {
@@ -1147,18 +1046,12 @@ namespace RabbitMQ.Client.Impl
         }
 
 
-        public void ExchangeBind(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             _Private_ExchangeBind(destination, source, routingKey, false, arguments);
         }
 
-        public void ExchangeBindNoWait(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             _Private_ExchangeBind(destination, source, routingKey, true, arguments);
         }
@@ -1168,11 +1061,7 @@ namespace RabbitMQ.Client.Impl
             _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, false, arguments);
         }
 
-        public void ExchangeDeclareNoWait(string exchange,
-            string type,
-            bool durable,
-            bool autoDelete,
-            IDictionary<string, object> arguments)
+        public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, true, arguments);
         }
@@ -1182,59 +1071,42 @@ namespace RabbitMQ.Client.Impl
             _Private_ExchangeDeclare(exchange, "", true, false, false, false, false, null);
         }
 
-        public void ExchangeDelete(string exchange,
-            bool ifUnused)
+        public void ExchangeDelete(string exchange, bool ifUnused)
         {
             _Private_ExchangeDelete(exchange, ifUnused, false);
         }
 
-        public void ExchangeDeleteNoWait(string exchange,
-            bool ifUnused)
+        public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
         {
             _Private_ExchangeDelete(exchange, ifUnused, true);
         }
 
-        public void ExchangeUnbind(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             _Private_ExchangeUnbind(destination, source, routingKey, false, arguments);
         }
 
-        public void ExchangeUnbindNoWait(string destination,
-            string source,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             _Private_ExchangeUnbind(destination, source, routingKey, true, arguments);
         }
 
-        public void QueueBind(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             _Private_QueueBind(queue, exchange, routingKey, false, arguments);
         }
 
-        public void QueueBindNoWait(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments)
+        public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             _Private_QueueBind(queue, exchange, routingKey, true, arguments);
         }
 
-        public QueueDeclareOk QueueDeclare(string queue, bool durable,
-                                           bool exclusive, bool autoDelete,
-                                           IDictionary<string, object> arguments)
+        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
         }
 
-        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive,
-            bool autoDelete, IDictionary<string, object> arguments)
+        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, true, arguments);
         }
@@ -1256,16 +1128,12 @@ namespace RabbitMQ.Client.Impl
             return ok.ConsumerCount;
         }
 
-        public uint QueueDelete(string queue,
-            bool ifUnused,
-            bool ifEmpty)
+        public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
         {
             return _Private_QueueDelete(queue, ifUnused, ifEmpty, false);
         }
 
-        public void QueueDeleteNoWait(string queue,
-            bool ifUnused,
-            bool ifEmpty)
+        public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
             _Private_QueueDelete(queue, ifUnused, ifEmpty, true);
         }
@@ -1275,10 +1143,7 @@ namespace RabbitMQ.Client.Impl
             return _Private_QueuePurge(queue, false);
         }
 
-        public abstract void QueueUnbind(string queue,
-            string exchange,
-            string routingKey,
-            IDictionary<string, object> arguments);
+        public abstract void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         public abstract void TxCommit();
 
@@ -1379,8 +1244,7 @@ namespace RabbitMQ.Client.Impl
             Session.Transmit(commands);
         }
 
-        private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive,
-            bool autoDelete, IDictionary<string, object> arguments)
+        private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             var k = new QueueDeclareRpcContinuation();
             lock (_rpcLock)

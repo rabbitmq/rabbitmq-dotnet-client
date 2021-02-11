@@ -29,18 +29,25 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-
-namespace RabbitMQ.Client.Events
+namespace RabbitMQ.Client.Impl
 {
-    ///<summary>
-    ///Describes an exception that was thrown during
-    ///automatic connection recovery performed by the library.
-    ///</summary>
-    public class RecoveryExceptionEventArgs : BaseExceptionEventArgs
+    ///<summary>Essential information from an incoming Connection.Tune
+    ///method.</summary>
+    internal struct ConnectionTuneDetails
     {
-        public RecoveryExceptionEventArgs(Exception e) : base(e)
-        {
-        }
+        ///<summary>The peer's suggested channel-max parameter.</summary>
+        public ushort m_channelMax;
+
+        ///<summary>The peer's suggested frame-max parameter.</summary>
+        public uint m_frameMax;
+
+        ///<summary>The peer's suggested heartbeat parameter.</summary>
+        public ushort m_heartbeatInSeconds;
+    }
+
+    internal class ConnectionSecureOrTune
+    {
+        public byte[] m_challenge;
+        public ConnectionTuneDetails m_tuneDetails;
     }
 }

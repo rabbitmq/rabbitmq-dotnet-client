@@ -112,51 +112,6 @@ namespace RabbitMQ.Util
             _unsorted[_unsortedCount++] = id;
         }
 
-        public bool Reserve(int id)
-        {
-            // We always flush before reserving because the only way to determine
-            // if an ID is in the unsorted array is through a linear scan. This leads
-            // us to the potentially expensive situation where there is a large unsorted
-            // array and we reserve several IDs, incurring the cost of the scan each time.
-            // Flushing makes sure the array is always empty and does no additional work if
-            // reserve is called twice.
-            Flush();
-
-            IntervalList current = _base;
-
-            while (current != null)
-            {
-                if (current.End < id)
-                {
-                    current = current.Next;
-                    continue;
-                }
-                else if (current.Start > id)
-                {
-                    return false;
-                }
-                else if (current.End == id)
-                {
-                    current.End--;
-                }
-                else if (current.Start == id)
-                {
-                    current.Start++;
-                }
-                else
-                {
-                    // The ID is in the middle of this interval.
-                    // We need to split the interval into two.
-                    var rest = new IntervalList(id + 1, current.End);
-                    current.End = id - 1;
-                    rest.Next = current.Next;
-                    current.Next = rest;
-                }
-                return true;
-            }
-            return false;
-        }
-
         private void Flush()
         {
             if (_unsortedCount > 0)

@@ -39,121 +39,127 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal sealed class AutorecoveringModel : IFullModel, IRecoverable
+    internal sealed class AutorecoveringModel : IModel, IRecoverable
     {
-        private bool _disposed;
         private AutorecoveringConnection _connection;
-        private RecoveryAwareModel _delegate;
+        private RecoveryAwareModel _innerChannel;
+        private bool _disposed;
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
         private bool _usesPublisherConfirms;
         private bool _usesTransactions;
 
-        public IConsumerDispatcher ConsumerDispatcher => !_disposed ? _delegate.ConsumerDispatcher : throw new ObjectDisposedException(GetType().FullName);
+        internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
+
+        internal RecoveryAwareModel InnerChannel
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _innerChannel;
+            }
+        }
 
         public TimeSpan ContinuationTimeout
         {
-            get => Delegate.ContinuationTimeout;
-            set => Delegate.ContinuationTimeout = value;
+            get => InnerChannel.ContinuationTimeout;
+            set => InnerChannel.ContinuationTimeout = value;
         }
 
-        public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel _delegate)
+        public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel innerChannel)
         {
             _connection = conn;
-            this._delegate = _delegate;
+            _innerChannel = innerChannel;
         }
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
         {
-            add => Delegate.BasicAcks += value;
-            remove => Delegate.BasicAcks -= value;
+            add => InnerChannel.BasicAcks += value;
+            remove => InnerChannel.BasicAcks -= value;
         }
 
         public event EventHandler<BasicNackEventArgs> BasicNacks
         {
-            add => Delegate.BasicNacks += value;
-            remove => Delegate.BasicNacks -= value;
+            add => InnerChannel.BasicNacks += value;
+            remove => InnerChannel.BasicNacks -= value;
         }
 
         public event EventHandler<EventArgs> BasicRecoverOk
         {
-            add => Delegate.BasicRecoverOk += value;
-            remove => Delegate.BasicRecoverOk -= value;
+            add => InnerChannel.BasicRecoverOk += value;
+            remove => InnerChannel.BasicRecoverOk -= value;
         }
 
         public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
-            add => Delegate.BasicReturn += value;
-            remove => Delegate.BasicReturn -= value;
+            add => InnerChannel.BasicReturn += value;
+            remove => InnerChannel.BasicReturn -= value;
         }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
-            add => Delegate.CallbackException += value;
-            remove => Delegate.CallbackException -= value;
+            add => InnerChannel.CallbackException += value;
+            remove => InnerChannel.CallbackException -= value;
         }
 
         public event EventHandler<FlowControlEventArgs> FlowControl
         {
-            add { Delegate.FlowControl += value; }
-            remove { Delegate.FlowControl -= value; }
+            add { InnerChannel.FlowControl += value; }
+            remove { InnerChannel.FlowControl -= value; }
         }
 
         public event EventHandler<ShutdownEventArgs> ModelShutdown
         {
-            add => Delegate.ModelShutdown += value;
-            remove => Delegate.ModelShutdown -= value;
+            add => InnerChannel.ModelShutdown += value;
+            remove => InnerChannel.ModelShutdown -= value;
         }
 
         public event EventHandler<EventArgs> Recovery
         {
-            add { RecoveryAwareDelegate.Recovery += value; }
-            remove { RecoveryAwareDelegate.Recovery -= value; }
+            add { InnerChannel.Recovery += value; }
+            remove { InnerChannel.Recovery -= value; }
         }
 
-        public int ChannelNumber => Delegate.ChannelNumber;
+        public int ChannelNumber => InnerChannel.ChannelNumber;
 
-        public ShutdownEventArgs CloseReason => Delegate.CloseReason;
+        public ShutdownEventArgs CloseReason => InnerChannel.CloseReason;
 
         public IBasicConsumer DefaultConsumer
         {
-            get => Delegate.DefaultConsumer;
-            set => Delegate.DefaultConsumer = value;
+            get => InnerChannel.DefaultConsumer;
+            set => InnerChannel.DefaultConsumer = value;
         }
 
-        public IModel Delegate => RecoveryAwareDelegate;
-        private RecoveryAwareModel RecoveryAwareDelegate => !_disposed ? _delegate : throw new ObjectDisposedException(GetType().FullName);
+        public bool IsClosed => _innerChannel != null && _innerChannel.IsClosed;
 
-        public bool IsClosed => _delegate != null && _delegate.IsClosed;
+        public bool IsOpen => _innerChannel != null && _innerChannel.IsOpen;
 
-        public bool IsOpen => _delegate != null && _delegate.IsOpen;
+        public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
 
-        public ulong NextPublishSeqNo => Delegate.NextPublishSeqNo;
-
-        public void AutomaticallyRecover(AutorecoveringConnection conn)
+        internal void AutomaticallyRecover(AutorecoveringConnection conn)
         {
             ThrowIfDisposed();
             _connection = conn;
-            RecoveryAwareModel defunctModel = _delegate;
+            RecoveryAwareModel defunctModel = _innerChannel;
 
-            _delegate = conn.CreateNonRecoveringModel();
-            _delegate.TakeOver(defunctModel);
+            _innerChannel = conn.CreateNonRecoveringModel();
+            _innerChannel.TakeOver(defunctModel);
 
             RecoverState();
 
-            RecoveryAwareDelegate.RunRecoveryEventHandlers(this);
+            InnerChannel.RunRecoveryEventHandlers(this);
         }
 
-        public void BasicQos(ushort prefetchCount,
-            bool global) => Delegate.BasicQos(0, prefetchCount, global);
+        public void BasicQos(ushort prefetchCount, bool global)
+            => InnerChannel.BasicQos(0, prefetchCount, global);
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
             ThrowIfDisposed();
             try
             {
-                _delegate.Close(replyCode, replyText, abort);
+                _innerChannel.Close(replyCode, replyText, abort);
             }
             finally
             {
@@ -161,406 +167,38 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override string ToString() => Delegate.ToString();
+        public override string ToString()
+            => InnerChannel.ToString();
 
-        void IDisposable.Dispose() => Dispose(true);
-
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
             if (_disposed)
             {
                 return;
             }
 
-            if (disposing)
-            {
-                this.Abort();
+            this.Abort();
 
-                _connection = null;
-                _delegate = null;
-                _disposed = true;
-            }
+            _connection = null;
+            _innerChannel = null;
+            _disposed = true;
         }
 
-        public void ConnectionTuneOk(ushort channelMax,
-            uint frameMax,
-            ushort heartbeat)
-        {
-            ThrowIfDisposed();
-            _delegate.ConnectionTuneOk(channelMax, frameMax, heartbeat);
-        }
-
-        public void HandleBasicAck(ulong deliveryTag, bool multiple)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicAck(deliveryTag, multiple);
-        }
-
-        public void HandleBasicCancel(string consumerTag, bool nowait)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicCancel(consumerTag, nowait);
-        }
-
-        public void HandleBasicCancelOk(string consumerTag)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicCancelOk(consumerTag);
-        }
-
-        public void HandleBasicConsumeOk(string consumerTag)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicConsumeOk(consumerTag);
-        }
-
-        public void HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body,
-            byte[] rentedArray)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray);
-        }
-
-        public void HandleBasicGetEmpty()
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicGetEmpty();
-        }
-
-        public void HandleBasicGetOk(ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            uint messageCount,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body,
-            byte[] rentedArray)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicGetOk(deliveryTag, redelivered, exchange, routingKey, messageCount, basicProperties, body, rentedArray);
-        }
-
-        public void HandleBasicNack(ulong deliveryTag,
-            bool multiple,
-            bool requeue)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicNack(deliveryTag, multiple, requeue);
-        }
-
-        public void HandleBasicRecoverOk()
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicRecoverOk();
-        }
-
-        public void HandleBasicReturn(ushort replyCode,
-            string replyText,
-            string exchange,
-            string routingKey,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body,
-            byte[] rentedArray)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleBasicReturn(replyCode, replyText, exchange, routingKey, basicProperties, body, rentedArray);
-        }
-
-        public void HandleChannelClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleChannelClose(replyCode, replyText, classId, methodId);
-        }
-
-        public void HandleChannelCloseOk()
-        {
-            ThrowIfDisposed();
-            _delegate.HandleChannelCloseOk();
-        }
-
-        public void HandleChannelFlow(bool active)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleChannelFlow(active);
-        }
-
-        public void HandleConnectionBlocked(string reason)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionBlocked(reason);
-        }
-
-        public void HandleConnectionClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionClose(replyCode, replyText, classId, methodId);
-        }
-
-        public void HandleConnectionSecure(byte[] challenge)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionSecure(challenge);
-        }
-
-        public void HandleConnectionStart(byte versionMajor,
-            byte versionMinor,
-            IDictionary<string, object> serverProperties,
-            byte[] mechanisms,
-            byte[] locales)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionStart(versionMajor, versionMinor, serverProperties,
-                mechanisms, locales);
-        }
-
-        public void HandleConnectionTune(ushort channelMax,
-            uint frameMax,
-            ushort heartbeat)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionTune(channelMax, frameMax, heartbeat);
-        }
-
-        public void HandleConnectionUnblocked()
-        {
-            ThrowIfDisposed();
-            _delegate.HandleConnectionUnblocked();
-        }
-
-        public void HandleQueueDeclareOk(string queue,
-            uint messageCount,
-            uint consumerCount)
-        {
-            ThrowIfDisposed();
-            _delegate.HandleQueueDeclareOk(queue, messageCount, consumerCount);
-        }
-
-        public void _Private_BasicCancel(string consumerTag,
-            bool nowait)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_BasicCancel(consumerTag, nowait);
-        }
-
-        public void _Private_BasicConsume(string queue,
-            string consumerTag,
-            bool noLocal,
-            bool autoAck,
-            bool exclusive,
-            bool nowait,
-            IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_BasicConsume(queue,
-                consumerTag,
-                noLocal,
-                autoAck,
-                exclusive,
-                nowait,
-                arguments);
-        }
-
-        public void _Private_BasicGet(string queue, bool autoAck)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_BasicGet(queue, autoAck);
-        }
-
-        public void _Private_BasicPublish(string exchange,
-            string routingKey,
-            bool mandatory,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
-        {
-            if (routingKey is null)
-            {
-                throw new ArgumentNullException(nameof(routingKey));
-            }
-
-            ThrowIfDisposed();
-            _delegate._Private_BasicPublish(exchange, routingKey, mandatory,
-                basicProperties, body);
-        }
-
-        public void _Private_BasicRecover(bool requeue)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_BasicRecover(requeue);
-        }
-
-        public void _Private_ChannelClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ChannelClose(replyCode, replyText,
-                classId, methodId);
-        }
-
-        public void _Private_ChannelCloseOk()
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ChannelCloseOk();
-        }
-
-        public void _Private_ChannelFlowOk(bool active)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ChannelFlowOk(active);
-        }
-
-        public void _Private_ChannelOpen()
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ChannelOpen();
-        }
-
-        public void _Private_ConfirmSelect(bool nowait)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ConfirmSelect(nowait);
-        }
-
-        public void _Private_ConnectionClose(ushort replyCode,
-            string replyText,
-            ushort classId,
-            ushort methodId)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ConnectionClose(replyCode, replyText,
-                classId, methodId);
-        }
-
-        public void _Private_ConnectionCloseOk()
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ConnectionCloseOk();
-        }
-
-        public void _Private_ConnectionOpen(string virtualHost)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ConnectionOpen(virtualHost);
-        }
-
-        public void _Private_ConnectionSecureOk(byte[] response)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ConnectionSecureOk(response);
-        }
-
-        public void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties,
-            string mechanism, byte[] response, string locale)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ConnectionStartOk(clientProperties, mechanism,
-                response, locale);
-        }
-
-        public void _Private_UpdateSecret(byte[] newSecret, string reason)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_UpdateSecret(newSecret, reason);
-        }
-
-        public void _Private_ExchangeBind(string destination,
-            string source,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ExchangeBind(destination, source, routingKey,
-                nowait, arguments);
-        }
-
-        public void _Private_ExchangeDeclare(string exchange,
-            string type,
-            bool passive,
-            bool durable,
-            bool autoDelete,
-            bool @internal,
-            bool nowait,
-            IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ExchangeDeclare(exchange, type, passive,
-                durable, autoDelete, @internal,
-                nowait, arguments);
-        }
-
-        public void _Private_ExchangeDelete(string exchange,
-            bool ifUnused,
-            bool nowait)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ExchangeDelete(exchange, ifUnused, nowait);
-        }
-
-        public void _Private_ExchangeUnbind(string destination,
-            string source,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_ExchangeUnbind(destination, source, routingKey,
-                nowait, arguments);
-        }
-
-        public void _Private_QueueBind(string queue,
-            string exchange,
-            string routingKey,
-            bool nowait,
-            IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _delegate._Private_QueueBind(queue, exchange, routingKey,
-                nowait, arguments);
-        }
-
-        public void _Private_QueueDeclare(string queue,
-            bool passive,
-            bool durable,
-            bool exclusive,
-            bool autoDelete,
-            bool nowait,
-            IDictionary<string, object> arguments) => RecoveryAwareDelegate._Private_QueueDeclare(queue, passive,
-                durable, exclusive, autoDelete,
-                nowait, arguments);
-
-        public uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait) => RecoveryAwareDelegate._Private_QueueDelete(queue, ifUnused, ifEmpty, nowait);
-
-        public uint _Private_QueuePurge(string queue, bool nowait) => RecoveryAwareDelegate._Private_QueuePurge(queue, nowait);
-
-        public void BasicAck(ulong deliveryTag,
-            bool multiple) => Delegate.BasicAck(deliveryTag, multiple);
+        public void BasicAck(ulong deliveryTag, bool multiple)
+            => InnerChannel.BasicAck(deliveryTag, multiple);
 
         public void BasicCancel(string consumerTag)
         {
             ThrowIfDisposed();
             _connection.DeleteRecordedConsumer(consumerTag);
-            _delegate.BasicCancel(consumerTag);
+            _innerChannel.BasicCancel(consumerTag);
         }
 
         public void BasicCancelNoWait(string consumerTag)
         {
             ThrowIfDisposed();
             _connection.DeleteRecordedConsumer(consumerTag);
-            _delegate.BasicCancelNoWait(consumerTag);
+            _innerChannel.BasicCancelNoWait(consumerTag);
         }
 
         public string BasicConsume(
@@ -572,42 +210,25 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            string result = Delegate.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            string result = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
             RecordedConsumer rc = new RecordedConsumer(this, consumer, queue, autoAck, result, exclusive, arguments);
             _connection.RecordConsumer(result, rc);
             return result;
         }
 
         public BasicGetResult BasicGet(string queue, bool autoAck)
-            => Delegate.BasicGet(queue, autoAck);
+            => InnerChannel.BasicGet(queue, autoAck);
 
         public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
-            => Delegate.BasicNack(deliveryTag, multiple, requeue);
+            => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
 
-        public void BasicPublish(string exchange,
-            string routingKey,
-            bool mandatory,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body)
-        {
-            if (routingKey is null)
-            {
-                throw new ArgumentNullException(nameof(routingKey));
-            }
-
-            Delegate.BasicPublish(exchange,
-                routingKey,
-                mandatory,
-                basicProperties,
-                body);
-        }
+        public void BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+            => InnerChannel.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
 
         public void BasicPublish(CachedString exchange, CachedString routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-            => Delegate.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
+            => InnerChannel.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
 
-        public void BasicQos(uint prefetchSize,
-            ushort prefetchCount,
-            bool global)
+        public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
             ThrowIfDisposed();
             if (global)
@@ -618,66 +239,42 @@ namespace RabbitMQ.Client.Impl
             {
                 _prefetchCountConsumer = prefetchCount;
             }
-            _delegate.BasicQos(prefetchSize, prefetchCount, global);
+            _innerChannel.BasicQos(prefetchSize, prefetchCount, global);
         }
 
-        public void BasicRecover(bool requeue) => Delegate.BasicRecover(requeue);
+        public void BasicRecover(bool requeue)
+            => InnerChannel.BasicRecover(requeue);
 
-        public void BasicRecoverAsync(bool requeue) => Delegate.BasicRecoverAsync(requeue);
+        public void BasicRecoverAsync(bool requeue)
+            => InnerChannel.BasicRecoverAsync(requeue);
 
-        public void BasicReject(ulong deliveryTag,
-            bool requeue) => Delegate.BasicReject(deliveryTag, requeue);
-
-        public void Close()
-        {
-            ThrowIfDisposed();
-            try
-            {
-                _delegate.Close();
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this);
-            }
-        }
-
-        public void Close(ushort replyCode, string replyText)
-        {
-            ThrowIfDisposed();
-            try
-            {
-                _delegate.Close(replyCode, replyText);
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this);
-            }
-        }
+        public void BasicReject(ulong deliveryTag, bool requeue)
+            => InnerChannel.BasicReject(deliveryTag, requeue);
 
         public void ConfirmSelect()
         {
-            Delegate.ConfirmSelect();
+            InnerChannel.ConfirmSelect();
             _usesPublisherConfirms = true;
         }
 
         public IBasicProperties CreateBasicProperties()
-            => Delegate.CreateBasicProperties();
+            => InnerChannel.CreateBasicProperties();
 
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             RecordedBinding eb = new RecordedExchangeBinding(this, destination, source, routingKey, arguments);
             _connection.RecordBinding(eb);
-            _delegate.ExchangeBind(destination, source, routingKey, arguments);
+            _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
         }
 
         public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-            => Delegate.ExchangeBindNoWait(destination, source, routingKey, arguments);
+            => InnerChannel.ExchangeBindNoWait(destination, source, routingKey, arguments);
 
         public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            _delegate.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+            _innerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
             RecordedExchange rx = new RecordedExchange(this, exchange, type, durable, autoDelete, arguments);
             _connection.RecordExchange(rx);
         }
@@ -685,23 +282,23 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            _delegate.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+            _innerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
             RecordedExchange rx = new RecordedExchange(this, exchange, type, durable, autoDelete, arguments);
             _connection.RecordExchange(rx);
         }
 
         public void ExchangeDeclarePassive(string exchange)
-            => Delegate.ExchangeDeclarePassive(exchange);
+            => InnerChannel.ExchangeDeclarePassive(exchange);
 
         public void ExchangeDelete(string exchange, bool ifUnused)
         {
-            Delegate.ExchangeDelete(exchange, ifUnused);
+            InnerChannel.ExchangeDelete(exchange, ifUnused);
             _connection.DeleteRecordedExchange(exchange);
         }
 
         public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
         {
-            Delegate.ExchangeDeleteNoWait(exchange, ifUnused);
+            InnerChannel.ExchangeDeleteNoWait(exchange, ifUnused);
             _connection.DeleteRecordedExchange(exchange);
         }
 
@@ -710,28 +307,28 @@ namespace RabbitMQ.Client.Impl
             ThrowIfDisposed();
             RecordedBinding eb = new RecordedExchangeBinding(this, destination, source, routingKey, arguments);
             _connection.DeleteRecordedBinding(eb);
-            _delegate.ExchangeUnbind(destination, source, routingKey, arguments);
+            _innerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
             _connection.DeleteAutoDeleteExchange(source);
         }
 
         public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-            => Delegate.ExchangeUnbind(destination, source, routingKey, arguments);
+            => InnerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
 
         public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             RecordedBinding qb = new RecordedQueueBinding(this, queue, exchange, routingKey, arguments);
             _connection.RecordBinding(qb);
-            _delegate.QueueBind(queue, exchange, routingKey, arguments);
+            _innerChannel.QueueBind(queue, exchange, routingKey, arguments);
         }
 
         public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-            => Delegate.QueueBind(queue, exchange, routingKey, arguments);
+            => InnerChannel.QueueBind(queue, exchange, routingKey, arguments);
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            QueueDeclareOk result = _delegate.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            QueueDeclareOk result = _innerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(this, result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
             _connection.RecordQueue(rq);
             return result;
@@ -740,60 +337,64 @@ namespace RabbitMQ.Client.Impl
         public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            _delegate.QueueDeclareNoWait(queue, durable, exclusive,
+            _innerChannel.QueueDeclareNoWait(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(this, queue, queue.Length == 0, durable, exclusive, autoDelete, arguments);
             _connection.RecordQueue(rq);
         }
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
-            => Delegate.QueueDeclarePassive(queue);
+            => InnerChannel.QueueDeclarePassive(queue);
 
         public uint MessageCount(string queue)
-            => Delegate.MessageCount(queue);
+            => InnerChannel.MessageCount(queue);
 
         public uint ConsumerCount(string queue)
-            => Delegate.ConsumerCount(queue);
+            => InnerChannel.ConsumerCount(queue);
 
         public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
         {
             ThrowIfDisposed();
-            uint result = _delegate.QueueDelete(queue, ifUnused, ifEmpty);
+            uint result = _innerChannel.QueueDelete(queue, ifUnused, ifEmpty);
             _connection.DeleteRecordedQueue(queue);
             return result;
         }
 
         public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
-            Delegate.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            InnerChannel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
             _connection.DeleteRecordedQueue(queue);
         }
 
         public uint QueuePurge(string queue)
-            => Delegate.QueuePurge(queue);
+            => InnerChannel.QueuePurge(queue);
 
         public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             RecordedBinding qb = new RecordedQueueBinding(this, queue, exchange, routingKey, arguments);
             _connection.DeleteRecordedBinding(qb);
-            _delegate.QueueUnbind(queue, exchange, routingKey, arguments);
+            _innerChannel.QueueUnbind(queue, exchange, routingKey, arguments);
             _connection.DeleteAutoDeleteExchange(exchange);
         }
 
-        public void TxCommit() => Delegate.TxCommit();
+        public void TxCommit()
+            => InnerChannel.TxCommit();
 
-        public void TxRollback() => Delegate.TxRollback();
+        public void TxRollback()
+            => InnerChannel.TxRollback();
 
         public void TxSelect()
         {
-            Delegate.TxSelect();
+            InnerChannel.TxSelect();
             _usesTransactions = true;
         }
 
-        public Task<bool> WaitForConfirmsAsync(CancellationToken token = default) => Delegate.WaitForConfirmsAsync(token);
+        public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
+            => InnerChannel.WaitForConfirmsAsync(token);
 
-        public Task WaitForConfirmsOrDieAsync(CancellationToken token = default) => Delegate.WaitForConfirmsOrDieAsync(token);
+        public Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
+            => InnerChannel.WaitForConfirmsOrDieAsync(token);
 
         private void RecoverState()
         {
@@ -818,17 +419,21 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IBasicPublishBatch CreateBasicPublishBatch() => Delegate.CreateBasicPublishBatch();
+        public IBasicPublishBatch CreateBasicPublishBatch()
+            => InnerChannel.CreateBasicPublishBatch();
 
-        public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint) => Delegate.CreateBasicPublishBatch(sizeHint);
+        public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint)
+            => InnerChannel.CreateBasicPublishBatch(sizeHint);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(GetType().FullName);
+                ThrowDisposed();
             }
+
+            static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringModel).FullName);
         }
     }
 }
