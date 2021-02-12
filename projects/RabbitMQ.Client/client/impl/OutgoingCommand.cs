@@ -92,18 +92,16 @@ namespace RabbitMQ.Client.Impl
 
             // Will be returned by SocketFrameWriter.WriteLoop
             byte[] rentedArray = ArrayPool<byte>.Shared.Rent(size);
-            Span<byte> span = rentedArray.AsSpan(0, size);
-
-            int offset = Framing.Method.WriteTo(span, channelNumber, Method);
+            int offset = Framing.Method.WriteTo(rentedArray, channelNumber, Method);
             int remainingBodyBytes = _body.Length;
-            offset += Framing.Header.WriteTo(span.Slice(offset), channelNumber, _header, remainingBodyBytes);
+            offset += Framing.Header.WriteTo(rentedArray.AsSpan(offset), channelNumber, _header, remainingBodyBytes);
             if (remainingBodyBytes > 0)
             {
                 ReadOnlySpan<byte> bodySpan = _body.Span;
                 while (remainingBodyBytes > 0)
                 {
                     int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
-                    offset += Framing.BodySegment.WriteTo(span.Slice(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
+                    offset += Framing.BodySegment.WriteTo(rentedArray.AsSpan(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
                     remainingBodyBytes -= frameSize;
                 }
             }
