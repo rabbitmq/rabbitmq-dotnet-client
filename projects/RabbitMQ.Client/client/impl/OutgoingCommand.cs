@@ -59,10 +59,7 @@ namespace RabbitMQ.Client.Impl
             // Will be returned by SocketFrameWriter.WriteLoop
             byte[] rentedArray = ArrayPool<byte>.Shared.Rent(size);
             int offset = Framing.Method.WriteTo(rentedArray, channelNumber, Method);
-#if DEBUG
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-#endif
-
             return new ReadOnlyMemory<byte>(rentedArray, 0, size);
         }
     }
@@ -106,10 +103,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-#if DEBUG
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-#endif
-
             return new ReadOnlyMemory<byte>(rentedArray, 0, size);
         }
     }
