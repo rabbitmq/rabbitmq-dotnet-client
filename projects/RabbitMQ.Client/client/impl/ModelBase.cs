@@ -150,7 +150,7 @@ namespace RabbitMQ.Client.Impl
         {
             add
             {
-                if (CloseReason is null)
+                if (IsOpen)
                 {
                     _modelShutdownWrapper.AddHandler(value);
                 }
@@ -314,7 +314,7 @@ namespace RabbitMQ.Client.Impl
 
         protected void Enqueue(IRpcContinuation k)
         {
-            if (CloseReason is null)
+            if (IsOpen)
             {
                 _continuationQueue.Enqueue(k);
             }
@@ -369,7 +369,11 @@ namespace RabbitMQ.Client.Impl
 
         protected void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
         {
-            _flowControlBlock.Wait();
+            if (!_flowControlBlock.IsSet)
+            {
+                _flowControlBlock.Wait();
+            }
+
             Session.Transmit(new OutgoingContentCommand(method, header, body));
         }
 

@@ -165,23 +165,22 @@ namespace RabbitMQ.Client.Impl
             _rentedArray = rentedArray;
         }
 
-        private static void ProcessProtocolHeader(Stream reader)
+        private static void ProcessProtocolHeader(Stream reader, ReadOnlySpan<byte> frameHeader)
         {
             try
             {
-                byte b1 = (byte)reader.ReadByte();
-                byte b2 = (byte)reader.ReadByte();
-                byte b3 = (byte)reader.ReadByte();
-                if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
+                if (frameHeader[0] != 'M' || frameHeader[1] != 'Q' || frameHeader[2] != 'P')
                 {
                     throw new MalformedFrameException("Invalid AMQP protocol header from server");
                 }
 
-                int transportHigh = reader.ReadByte();
-                int transportLow = reader.ReadByte();
-                int serverMajor = reader.ReadByte();
                 int serverMinor = reader.ReadByte();
-                throw new PacketNotRecognizedException(transportHigh, transportLow, serverMajor, serverMinor);
+                if (serverMinor == -1)
+                {
+                    throw new EndOfStreamException();
+                }
+
+                throw new PacketNotRecognizedException(frameHeader[3], frameHeader[4], frameHeader[5], reader.ReadByte());
             }
             catch (EndOfStreamException)
             {
@@ -198,39 +197,37 @@ namespace RabbitMQ.Client.Impl
 
         internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer)
         {
-            int type = default;
             try
             {
-                type = reader.ReadByte();
+                if (reader.Read(frameHeaderBuffer, 0, 7) == 0)
+                {
+                    throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
+                }
             }
             catch (IOException ioe)
             {
                 // If it's a WSAETIMEDOUT SocketException, unwrap it.
                 // This might happen when the limit of half-open connections is
                 // reached.
-                if (ioe.InnerException is null ||
-                    !(ioe.InnerException is SocketException exception) ||
-                    exception.SocketErrorCode != SocketError.TimedOut)
+                if (ioe?.InnerException is SocketException exception && exception.SocketErrorCode == SocketError.TimedOut)
+                {
+                    ExceptionDispatchInfo.Capture(exception).Throw();
+                }
+                else
                 {
                     throw;
                 }
-
-                ExceptionDispatchInfo.Capture(ioe.InnerException).Throw();
             }
 
-            switch (type)
+            if (frameHeaderBuffer[0] == 'A')
             {
-                case -1:
-                    throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
-                case 'A':
-                    // Probably an AMQP protocol header, otherwise meaningless
-                    ProcessProtocolHeader(reader);
-                    break;
+                // Probably an AMQP protocol header, otherwise meaningless
+                ProcessProtocolHeader(reader, frameHeaderBuffer.AsSpan(1, 6));
             }
 
-            reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length);
-            int channel = NetworkOrderDeserializer.ReadUInt16(new ReadOnlySpan<byte>(frameHeaderBuffer));
-            int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 2, 4)); // FIXME - throw exn on unreasonable value
+            FrameType type = (FrameType)frameHeaderBuffer[0];
+            int channel = NetworkOrderDeserializer.ReadUInt16(new ReadOnlySpan<byte>(frameHeaderBuffer, 1, 2));
+            int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 3, 4)); // FIXME - throw exn on unreasonable value
 
             const int EndMarkerLength = 1;
             // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
@@ -257,7 +254,7 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
             }
 
-            return new InboundFrame((FrameType)type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
+            return new InboundFrame(type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
         }
 
         public byte[] TakeoverPayload()

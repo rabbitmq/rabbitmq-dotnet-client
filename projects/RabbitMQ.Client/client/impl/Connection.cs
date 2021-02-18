@@ -38,6 +38,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
@@ -137,7 +138,7 @@ namespace RabbitMQ.Client.Framing.Impl
             add
             {
                 ThrowIfDisposed();
-                if (CloseReason is null)
+                if (IsOpen)
                 {
                     _connectionShutdownWrapper.AddHandler(value);
                 }
@@ -157,7 +158,8 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
         /// </summary>
-        public event EventHandler<EventArgs> RecoverySucceeded {
+        public event EventHandler<EventArgs> RecoverySucceeded
+        {
             add { }
             remove { }
         }
@@ -165,7 +167,8 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
         /// </summary>
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError {
+        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
+        {
             add { }
             remove { }
         }
@@ -173,7 +176,8 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
         /// </summary>
-        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery {
+        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
+        {
             add { }
             remove { }
         }
@@ -181,7 +185,8 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
         /// </summary>
-        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery {
+        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery
+        {
             add { }
             remove { }
         }
@@ -273,7 +278,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     // Try to send connection.close
                     // Wait for CloseOk in the MainLoop
-                    _session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode, reason.ReplyText));
+                    _session0.Transmit(new OutgoingCommand(new Impl.ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0)));
                 }
                 catch (AlreadyClosedException)
                 {
@@ -357,12 +362,6 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private OutgoingCommand ConnectionCloseWrapper(ushort reasonCode, string reasonText)
-        {
-            Protocol.CreateConnectionClose(reasonCode, reasonText, out OutgoingCommand request, out _);
-            return request;
-        }
-
         internal ISession CreateSession()
         {
             return _sessionManager.Create();
@@ -407,9 +406,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 _session0.SetSessionClosing(false);
                 try
                 {
-                    _session0.Transmit(ConnectionCloseWrapper(
-                        hpe.ShutdownReason.ReplyCode,
-                        hpe.ShutdownReason.ReplyText));
+                    _session0.Transmit(new OutgoingCommand(new ConnectionClose(hpe.ShutdownReason.ReplyCode, hpe.ShutdownReason.ReplyText, 0, 0)));
                     return true;
                 }
                 catch (IOException ioe)
@@ -646,12 +643,12 @@ namespace RabbitMQ.Client.Framing.Impl
             // our peer. The peer will respond through the lower
             // layers - specifically, through the QuiescingSession we
             // installed above.
-            newSession.Transmit(ChannelCloseWrapper(pe.ReplyCode, pe.Message));
+            newSession.Transmit(new OutgoingCommand(new Impl.ChannelClose(pe.ReplyCode, pe.Message, 0, 0)));
         }
 
         private bool SetCloseReason(ShutdownEventArgs reason)
         {
-            return System.Threading.Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
         private void MaybeStartHeartbeatTimers()
@@ -836,12 +833,6 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 _disposed = true;
             }
-        }
-
-        private OutgoingCommand ChannelCloseWrapper(ushort reasonCode, string reasonText)
-        {
-            Protocol.CreateChannelClose(reasonCode, reasonText, out OutgoingCommand request);
-            return request;
         }
 
         private void StartAndTune()

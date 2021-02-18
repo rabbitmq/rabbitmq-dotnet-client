@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Runtime.CompilerServices;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -54,9 +56,12 @@ namespace RabbitMQ.Client.Framing
 
         internal override Client.Impl.MethodBase DecodeMethodFrom(ReadOnlySpan<byte> span)
         {
-            var commandId = (ProtocolCommandId)Util.NetworkOrderDeserializer.ReadUInt32(span);
+            ProtocolCommandId commandId = ReadCommandId(span);
             return DecodeMethodFrom(commandId, span.Slice(4));
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ProtocolCommandId ReadCommandId(ReadOnlySpan<byte> span) => (ProtocolCommandId)Util.NetworkOrderDeserializer.ReadUInt32(span);
 
         private static Client.Impl.MethodBase DecodeMethodFrom(ProtocolCommandId commandId, ReadOnlySpan<byte> span)
         {
