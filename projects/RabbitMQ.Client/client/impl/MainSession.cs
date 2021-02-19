@@ -45,7 +45,6 @@ namespace RabbitMQ.Client.Impl
     ///<summary>Small ISession implementation used only for channel 0.</summary>
     internal sealed class MainSession : Session
     {
-        private readonly object _closingLock = new object();
         private volatile bool _closeServerInitiated;
         private volatile bool _closing;
 
@@ -94,7 +93,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (!_closing)
             {
-                lock (_closingLock)
+                lock (this)
                 {
                     if (!_closing)
                     {
