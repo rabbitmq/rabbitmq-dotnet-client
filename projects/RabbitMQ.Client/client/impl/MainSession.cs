@@ -92,12 +92,15 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void SetSessionClosing(bool closeServerInitiated)
         {
-            lock (_closingLock)
+            if (!_closing)
             {
-                if (!_closing)
+                lock (_closingLock)
                 {
-                    _closing = true;
-                    _closeServerInitiated = closeServerInitiated;
+                    if (!_closing)
+                    {
+                        _closing = true;
+                        _closeServerInitiated = closeServerInitiated;
+                    }
                 }
             }
         }

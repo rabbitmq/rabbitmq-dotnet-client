@@ -127,7 +127,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingCommand
         {
-            if (cmd.Method.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk && !IsOpen)
+            if (!IsOpen && cmd.Method.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
             {
                 throw new AlreadyClosedException(CloseReason);
             }

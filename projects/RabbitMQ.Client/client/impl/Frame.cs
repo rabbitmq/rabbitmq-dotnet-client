@@ -180,7 +180,7 @@ namespace RabbitMQ.Client.Impl
                     throw new EndOfStreamException();
                 }
 
-                throw new PacketNotRecognizedException(frameHeader[3], frameHeader[4], frameHeader[5], reader.ReadByte());
+                throw new PacketNotRecognizedException(frameHeader[3], frameHeader[4], frameHeader[5], serverMinor);
             }
             catch (EndOfStreamException)
             {
@@ -199,7 +199,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                if (reader.Read(frameHeaderBuffer, 0, 7) == 0)
+                if (reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length) == 0)
                 {
                     throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
                 }
@@ -219,13 +219,14 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            if (frameHeaderBuffer[0] == 'A')
+            byte firstByte = frameHeaderBuffer[0];
+            if (firstByte == 'A')
             {
                 // Probably an AMQP protocol header, otherwise meaningless
                 ProcessProtocolHeader(reader, frameHeaderBuffer.AsSpan(1, 6));
             }
 
-            FrameType type = (FrameType)frameHeaderBuffer[0];
+            FrameType type = (FrameType)firstByte;
             int channel = NetworkOrderDeserializer.ReadUInt16(new ReadOnlySpan<byte>(frameHeaderBuffer, 1, 2));
             int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 3, 4)); // FIXME - throw exn on unreasonable value
 
