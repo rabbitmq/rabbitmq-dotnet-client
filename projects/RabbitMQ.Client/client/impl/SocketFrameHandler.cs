@@ -35,7 +35,6 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -62,11 +61,6 @@ namespace RabbitMQ.Client.Impl
 
     internal class SocketFrameHandler : IFrameHandler
     {
-        // Socket poll timeout in ms. If the socket does not
-        // become writeable in this amount of time, we throw
-        // an exception.
-        private TimeSpan _writeableStateTimeout = TimeSpan.FromSeconds(30);
-        private int _writeableStateTimeoutMicroSeconds;
         private readonly ITcpClient _socket;
         private readonly Stream _reader;
         private readonly Stream _writer;
@@ -149,7 +143,7 @@ namespace RabbitMQ.Client.Impl
             _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
 
             WriteTimeout = writeTimeout;
-            _writerTask = Task.Run(WriteLoop, CancellationToken.None);
+            _writerTask = Task.Run(WriteLoop);
         }
         public AmqpTcpEndpoint Endpoint { get; set; }
 
@@ -195,9 +189,7 @@ namespace RabbitMQ.Client.Impl
         {
             set
             {
-                _writeableStateTimeout = value;
-                _socket.Client.SendTimeout = (int)_writeableStateTimeout.TotalMilliseconds;
-                _writeableStateTimeoutMicroSeconds = _socket.Client.SendTimeout * 1000;
+                _socket.Client.SendTimeout = (int)value.TotalMilliseconds;
             }
         }
 
@@ -282,7 +274,6 @@ namespace RabbitMQ.Client.Impl
         {
             while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
             {
-                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
                 while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
                 {
                     MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
