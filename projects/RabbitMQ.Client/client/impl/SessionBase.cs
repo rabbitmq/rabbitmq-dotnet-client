@@ -117,12 +117,12 @@ namespace RabbitMQ.Client.Impl
             // Ensure that we notify only when session is already closed
             // If not, throw exception, since this is a serious bug in the library
             var reason = CloseReason;
-            if (reason != null)
+            if (reason is null)
             {
-                OnSessionShutdown(reason);
+                throw new Exception("Internal Error in Session.Close");
             }
 
-            throw new Exception("Internal Error in Session.Close");
+            OnSessionShutdown(reason);
         }
 
         public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingCommand
