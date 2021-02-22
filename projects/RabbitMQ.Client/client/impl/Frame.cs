@@ -35,6 +35,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
@@ -47,22 +48,11 @@ namespace RabbitMQ.Client.Impl
          * +------------+---------+----------------+---------+------------------+
          * | 1 byte     | 2 bytes | 4 bytes        | x bytes | 1 byte           |
          * +------------+---------+----------------+---------+------------------+ */
-        private const int BaseFrameSize = 1 + 2 + 4 + 1;
+        internal const int BaseFrameSize = 1 + 2 + 4 + 1;
+        internal const int StartFrameType = 0;
+        internal const int StartChannel = 1;
+        internal const int StartPayloadSize = 3;
         private const int StartPayload = 7;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int WriteBaseFrame(Span<byte> span, FrameType type, ushort channel, int payloadLength)
-        {
-            const int StartFrameType = 0;
-            const int StartChannel = 1;
-            const int StartPayloadSize = 3;
-
-            span[StartFrameType] = (byte)type;
-            NetworkOrderSerializer.WriteUInt16(span.Slice(StartChannel), channel);
-            NetworkOrderSerializer.WriteUInt32(span.Slice(StartPayloadSize), (uint)payloadLength);
-            span[StartPayload + payloadLength] = Constants.FrameEnd;
-            return StartPayload + 1 + payloadLength;
-        }
 
         internal static class Method
         {
@@ -75,14 +65,17 @@ namespace RabbitMQ.Client.Impl
              * +----------+-----------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2;
 
-            public static int WriteTo(Span<byte> span, ushort channel, MethodBase method)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static int WriteTo<T>(Span<byte> span, ushort channel, T method) where T : MethodBase
             {
                 const int StartClassId = StartPayload;
-                const int StartMethodArguments = StartPayload + 4;
+                const int StartMethodArguments = StartClassId + 4;
 
+                int payloadLength = method.WriteArgumentsTo(span.Slice(StartMethodArguments)) + 4;
+                NetworkOrderSerializer.WriteUInt64(span, ((ulong)Constants.FrameMethod << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
                 NetworkOrderSerializer.WriteUInt32(span.Slice(StartClassId), (uint)method.ProtocolCommandId);
-                int offset = method.WriteArgumentsTo(span.Slice(StartMethodArguments));
-                return WriteBaseFrame(span, FrameType.FrameMethod, channel, StartMethodArguments - StartPayload + offset);
+                span[payloadLength + StartPayload] = Constants.FrameEnd;
+                return payloadLength + BaseFrameSize;
             }
         }
 
@@ -95,18 +88,19 @@ namespace RabbitMQ.Client.Impl
              * +----------+----------+-------------------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2 + 8;
 
-            public static int WriteTo(Span<byte> span, ushort channel, ContentHeaderBase header, int bodyLength)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static int WriteTo<T>(Span<byte> span, ushort channel, T header, int bodyLength) where T : ContentHeaderBase
             {
                 const int StartClassId = StartPayload;
-                const int StartWeight = StartPayload + 2;
                 const int StartBodyLength = StartPayload + 4;
                 const int StartHeaderArguments = StartPayload + 12;
 
-                NetworkOrderSerializer.WriteUInt16(span.Slice(StartClassId), header.ProtocolClassId);
-                NetworkOrderSerializer.WriteUInt16(span.Slice(StartWeight), 0); // Weight - not used
+                int payloadLength = 12 + header.WritePropertiesTo(span.Slice(StartHeaderArguments));
+                NetworkOrderSerializer.WriteUInt64(span, ((ulong)Constants.FrameHeader << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
+                NetworkOrderSerializer.WriteUInt32(span.Slice(StartClassId), (uint)header.ProtocolClassId << 16); // The last 16 bytes (Weight) aren't used
                 NetworkOrderSerializer.WriteUInt64(span.Slice(StartBodyLength), (ulong)bodyLength);
-                int offset = header.WritePropertiesTo(span.Slice(StartHeaderArguments));
-                return WriteBaseFrame(span, FrameType.FrameHeader, channel, StartHeaderArguments - StartPayload + offset);
+                span[payloadLength + StartPayload] = Constants.FrameEnd;
+                return payloadLength + BaseFrameSize;
             }
         }
 
@@ -119,12 +113,14 @@ namespace RabbitMQ.Client.Impl
              * +--------------+ */
             public const int FrameSize = BaseFrameSize;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo(Span<byte> span, ushort channel, ReadOnlySpan<byte> body)
             {
                 const int StartBodyArgument = StartPayload;
-
+                NetworkOrderSerializer.WriteUInt64(span, ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)body.Length << 8));
                 body.CopyTo(span.Slice(StartBodyArgument));
-                return WriteBaseFrame(span, FrameType.FrameBody, channel, StartBodyArgument - StartPayload + body.Length);
+                span[StartPayload + body.Length] = Constants.FrameEnd;
+                return body.Length + BaseFrameSize;
             }
         }
 

@@ -316,7 +316,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (CloseReason is null)
             {
-                 _continuationQueue.Enqueue(k);
+                _continuationQueue.Enqueue(k);
             }
             else
             {
@@ -364,20 +364,13 @@ namespace RabbitMQ.Client.Impl
 
         protected void ModelSend(MethodBase method)
         {
-            ModelSend(method, null, ReadOnlyMemory<byte>.Empty);
+            Session.Transmit(new OutgoingCommand(method));
         }
 
         protected void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
         {
-            if (method.HasContent)
-            {
-                _flowControlBlock.Wait();
-                Session.Transmit(new OutgoingCommand(method, header, body));
-            }
-            else
-            {
-                Session.Transmit(new OutgoingCommand(method, header, body));
-            }
+            _flowControlBlock.Wait();
+            Session.Transmit(new OutgoingContentCommand(method, header, body));
         }
 
         internal void OnCallbackException(CallbackExceptionEventArgs args)
@@ -1234,7 +1227,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal void SendCommands(IList<OutgoingCommand> commands)
+        internal void SendCommands(List<OutgoingContentCommand> commands)
         {
             _flowControlBlock.Wait();
             if (NextPublishSeqNo > 0)

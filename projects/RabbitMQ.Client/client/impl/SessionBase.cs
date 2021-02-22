@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -124,7 +125,7 @@ namespace RabbitMQ.Client.Impl
             OnSessionShutdown(reason);
         }
 
-        public virtual void Transmit(in OutgoingCommand cmd)
+        public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingCommand
         {
             if (CloseReason != null)
             {
@@ -135,14 +136,15 @@ namespace RabbitMQ.Client.Impl
             }
             // We used to transmit *inside* the lock to avoid interleaving
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
-            cmd.Transmit(ChannelNumber, Connection);
+            Connection.Write(cmd.SerializeToFrames(ChannelNumber, Connection.FrameMax));
         }
 
-        public virtual void Transmit(IList<OutgoingCommand> cmds)
+        public virtual void Transmit<T>(List<T> cmds) where T : struct, IOutgoingCommand
         {
+            uint frameMax = Connection.FrameMax;
             for (int i = 0; i < cmds.Count; i++)
             {
-                cmds[i].Transmit(ChannelNumber, Connection);
+                Connection.Write(cmds[i].SerializeToFrames(ChannelNumber, frameMax));
             }
         }
     }
