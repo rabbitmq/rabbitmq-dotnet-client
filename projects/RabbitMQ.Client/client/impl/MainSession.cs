@@ -47,6 +47,7 @@ namespace RabbitMQ.Client.Impl
     {
         private volatile bool _closeServerInitiated;
         private volatile bool _closing;
+        private readonly object _lock = new object();
 
         public MainSession(Connection connection) : base(connection, 0)
         {
@@ -93,7 +94,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (!_closing)
             {
-                lock (this)
+                lock (_lock)
                 {
                     if (!_closing)
                     {
