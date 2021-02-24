@@ -34,8 +34,6 @@
 // the versions we support*. Obviously we may need to revisit this if
 // that ever changes.
 
-using System;
-
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
@@ -53,8 +51,6 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public Action Handler { get; set; }
-
         public override bool HandleFrame(in InboundFrame frame)
         {
             if (_closing)
@@ -71,7 +67,7 @@ namespace RabbitMQ.Client.Impl
                         case ProtocolCommandId.ConnectionCloseOk:
                             // This is the reply (CloseOk) we were looking for
                             // Call any listener attached to this session
-                            Handler();
+                            Connection.NotifyReceivedCloseOk();
                             break;
                     }
                 }
