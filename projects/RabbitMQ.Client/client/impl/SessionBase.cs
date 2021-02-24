@@ -127,13 +127,11 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingCommand
         {
-            if (CloseReason != null)
+            if (!IsOpen && cmd.Method.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
             {
-                if (!Connection.Protocol.CanSendWhileClosed(cmd.Method))
-                {
-                    throw new AlreadyClosedException(CloseReason);
-                }
+                throw new AlreadyClosedException(CloseReason);
             }
+
             // We used to transmit *inside* the lock to avoid interleaving
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
             Connection.Write(cmd.SerializeToFrames(ChannelNumber, Connection.FrameMax));

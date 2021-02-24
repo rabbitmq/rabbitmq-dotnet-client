@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -67,6 +67,7 @@ namespace RabbitMQ.Client.Impl
             Schedule(new ModelShutdown(consumer, reason, _model));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ScheduleUnlessShuttingDown(Work work)
         {
             if (!IsShutdown)
@@ -75,6 +76,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Schedule(Work work)
         {
             _workService.Schedule(_model, work);

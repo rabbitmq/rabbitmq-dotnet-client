@@ -37,6 +37,7 @@
 using System;
 
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -44,51 +45,43 @@ namespace RabbitMQ.Client.Impl
     ///<summary>Small ISession implementation used only for channel 0.</summary>
     internal sealed class MainSession : Session
     {
-        private readonly object _closingLock = new object();
-
-        private readonly ProtocolCommandId _closeProtocolId;
-        private readonly ProtocolCommandId _closeOkProtocolId;
-
-        private bool _closeServerInitiated;
-        private bool _closing;
+        private volatile bool _closeServerInitiated;
+        private volatile bool _closing;
+        private readonly object _lock = new object();
 
         public MainSession(Connection connection) : base(connection, 0)
         {
-            connection.Protocol.CreateConnectionClose(0, string.Empty, out OutgoingCommand request, out _closeOkProtocolId);
-            _closeProtocolId = request.Method.ProtocolCommandId;
         }
 
         public Action Handler { get; set; }
 
         public override bool HandleFrame(in InboundFrame frame)
         {
-            lock (_closingLock)
+            if (_closing)
             {
-                if (!_closing)
+                // We are closing
+                if (!_closeServerInitiated && frame.Type == FrameType.FrameMethod)
                 {
-                    return base.HandleFrame(in frame);
+                    // This isn't a server initiated close and we have a method frame
+                    ProtocolCommandId commandId = Protocol.ReadCommandId(frame.Payload.Span);
+                    switch (commandId)
+                    {
+                        case ProtocolCommandId.ConnectionClose:
+                            return base.HandleFrame(in frame);
+                        case ProtocolCommandId.ConnectionCloseOk:
+                            // This is the reply (CloseOk) we were looking for
+                            // Call any listener attached to this session
+                            Handler();
+                            break;
+                    }
                 }
+
+                // Either a non-method frame, or not what we were looking
+                // for. Ignore it - we're quiescing.
+                return true;
             }
 
-            if (!_closeServerInitiated && frame.Type == FrameType.FrameMethod)
-            {
-                MethodBase method = Connection.Protocol.DecodeMethodFrom(frame.Payload.Span);
-                if (method.ProtocolCommandId == _closeProtocolId)
-                {
-                    return base.HandleFrame(in frame);
-                }
-
-                if (method.ProtocolCommandId == _closeOkProtocolId)
-                {
-                    // This is the reply (CloseOk) we were looking for
-                    // Call any listener attached to this session
-                    Handler();
-                }
-            }
-
-            // Either a non-method frame, or not what we were looking
-            // for. Ignore it - we're quiescing.
-            return true;
+            return base.HandleFrame(in frame);
         }
 
         ///<summary> Set channel 0 as quiescing </summary>
@@ -99,35 +92,31 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void SetSessionClosing(bool closeServerInitiated)
         {
-            lock (_closingLock)
+            if (!_closing)
             {
-                if (!_closing)
+                lock (_lock)
                 {
-                    _closing = true;
-                    _closeServerInitiated = closeServerInitiated;
+                    if (!_closing)
+                    {
+                        _closing = true;
+                        _closeServerInitiated = closeServerInitiated;
+                    }
                 }
             }
         }
 
         public override void Transmit<T>(in T cmd)
         {
-            lock (_closingLock)
+            if (_closing && // Are we closing?
+                cmd.Method.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk && // is this not a close-ok?
+                (_closeServerInitiated || cmd.Method.ProtocolCommandId != ProtocolCommandId.ConnectionClose)) // is this either server initiated or not a close?
             {
-                if (!_closing)
-                {
-                    base.Transmit(in cmd);
-                    return;
-                }
+                // We shouldn't do anything since we are closing, not sending a connection-close-ok command
+                // and this is either a server-initiated close or not a connection-close command.
+                return;
             }
 
-            // Allow always for sending close ok
-            // Or if application initiated, allow also for sending close
-            MethodBase method = cmd.Method;
-            if (method.ProtocolCommandId == _closeOkProtocolId ||
-                (!_closeServerInitiated && method.ProtocolCommandId == _closeProtocolId))
-            {
-                base.Transmit(cmd);
-            }
+            base.Transmit(in cmd);
         }
     }
 }

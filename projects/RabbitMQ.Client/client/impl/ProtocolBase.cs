@@ -31,7 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-using RabbitMQ.Client.client.framing;
+
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -63,24 +63,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public AmqpVersion Version
         {
             get { return new AmqpVersion(MajorVersion, MinorVersion); }
-        }
-
-        public bool CanSendWhileClosed(MethodBase method)
-        {
-            return method is Impl.ChannelCloseOk;
-        }
-
-        public void CreateChannelClose(ushort reasonCode,
-            string reasonText,
-            out OutgoingCommand request)
-        {
-            request = new OutgoingCommand(new Impl.ChannelClose(reasonCode, reasonText, 0, 0));
-        }
-
-        public void CreateConnectionClose(ushort reasonCode, string reasonText, out OutgoingCommand request, out ProtocolCommandId replyProtocolCommandId)
-        {
-            request = new OutgoingCommand(new Impl.ConnectionClose(reasonCode, reasonText, 0, 0));
-            replyProtocolCommandId = ProtocolCommandId.ConnectionCloseOk;
         }
 
         internal abstract ContentHeaderBase DecodeContentHeaderFrom(ushort classId, ReadOnlySpan<byte> span);

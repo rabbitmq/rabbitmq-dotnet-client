@@ -38,8 +38,7 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly CommandAssembler _assembler;
 
-        public Session(Connection connection, ushort channelNumber)
-            : base(connection, channelNumber)
+        public Session(Connection connection, ushort channelNumber) : base(connection, channelNumber)
         {
             _assembler = new CommandAssembler(connection.Protocol);
         }

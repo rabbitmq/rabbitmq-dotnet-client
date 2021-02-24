@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Impl
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             Endpoint = endpoint;
-            _frameHeaderBuffer = new byte[6];
+            _frameHeaderBuffer = new byte[7];
             var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
                 new UnboundedChannelOptions
                 {
@@ -204,7 +204,7 @@ namespace RabbitMQ.Client.Impl
                         _channelWriter.Complete();
                         _writerTask.GetAwaiter().GetResult();
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                     }
 

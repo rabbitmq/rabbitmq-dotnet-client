@@ -31,6 +31,7 @@
 
 using System;
 using System.Buffers;
+
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
@@ -126,7 +127,7 @@ namespace RabbitMQ.Client.Impl
                 _bodyBytes = Array.Empty<byte>();
             }
 
-            _remainingBodyBytes = (int) totalBodyBytes;
+            _remainingBodyBytes = (int)totalBodyBytes;
             UpdateContentBodyState();
         }
 
