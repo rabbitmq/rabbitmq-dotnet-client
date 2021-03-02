@@ -38,13 +38,7 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal class Model: ModelBase
     {
-        public Model(ISession session)
-            : base(session)
-        {
-        }
-
-        public Model(ISession session, ConsumerWorkService workService)
-            : base(session, workService)
+        public Model(bool dispatchAsync, int concurrency, ISession session) : base(dispatchAsync, concurrency, session)
         {
         }
 
@@ -312,7 +306,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 case ProtocolCommandId.BasicCancel:
                 {
                     var __impl = (BasicCancel)cmd.Method;
-                    HandleBasicCancel(__impl._consumerTag, __impl._nowait);
+                    HandleBasicCancel(__impl._consumerTag);
                     return true;
                 }
                 case ProtocolCommandId.BasicCancelOk:

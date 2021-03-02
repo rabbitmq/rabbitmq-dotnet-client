@@ -36,7 +36,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -51,7 +51,6 @@ namespace RabbitMQ.Client.Impl
         internal BlockingCell<ConnectionStartDetails> m_connectionStartCell;
         internal readonly IBasicProperties _emptyBasicProperties;
 
-        private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
@@ -66,19 +65,11 @@ namespace RabbitMQ.Client.Impl
 
         internal IConsumerDispatcher ConsumerDispatcher { get; }
 
-        protected ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
-        { }
-
-        protected ModelBase(ISession session, ConsumerWorkService workService)
+        protected ModelBase(bool dispatchAsync, int concurrency, ISession session)
         {
-            if (workService is AsyncConsumerWorkService asyncConsumerWorkService)
-            {
-                ConsumerDispatcher = new AsyncConsumerDispatcher(this, asyncConsumerWorkService);
-            }
-            else
-            {
-                ConsumerDispatcher = new ConcurrentConsumerDispatcher(this, workService);
-            }
+            ConsumerDispatcher = dispatchAsync ?
+                (IConsumerDispatcher)new AsyncConsumerDispatcher(this, concurrency) :
+                new ConsumerDispatcher(this, concurrency);
 
             _emptyBasicProperties = CreateBasicProperties();
             Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
@@ -90,15 +81,9 @@ namespace RabbitMQ.Client.Impl
             _flowControlWrapper = new EventingWrapper<FlowControlEventArgs>("OnFlowControl", onException);
             _modelShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnModelShutdown", onException);
             _recoveryWrapper = new EventingWrapper<EventArgs>("OnModelRecovery", onException);
-            Initialise(session);
-        }
-
-        protected void Initialise(ISession session)
-        {
-            NextPublishSeqNo = 0;
+            session.CommandReceived = HandleCommand;
+            session.SessionShutdown += OnSessionShutdown;
             Session = session;
-            Session.CommandReceived = HandleCommand;
-            Session.SessionShutdown += OnSessionShutdown;
         }
 
         internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
@@ -177,7 +162,11 @@ namespace RabbitMQ.Client.Impl
 
         public int ChannelNumber => ((Session)Session).ChannelNumber;
 
-        public IBasicConsumer DefaultConsumer { get; set; }
+        public IBasicConsumer DefaultConsumer
+        {
+            get => ConsumerDispatcher.DefaultConsumer;
+            set => ConsumerDispatcher.DefaultConsumer = value;
+        }
 
         public bool IsClosed => !IsOpen;
 
@@ -218,7 +207,7 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 k.Wait(TimeSpan.FromMilliseconds(10000));
-                await ConsumerDispatcher.Shutdown(this).ConfigureAwait(false);
+                await ConsumerDispatcher.WaitForShutdownAsync().ConfigureAwait(false);
             }
             catch (AlreadyClosedException)
             {
@@ -418,16 +407,7 @@ namespace RabbitMQ.Client.Impl
             ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnModelShutdown(reason);
-            BroadcastShutdownToConsumers(_consumers, reason);
-            ConsumerDispatcher.Shutdown(this).GetAwaiter().GetResult(); ;
-        }
-
-        protected void BroadcastShutdownToConsumers(Dictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
-        {
-            foreach (KeyValuePair<string, IBasicConsumer> c in cs)
-            {
-                ConsumerDispatcher.HandleModelShutdown(c.Value, reason);
-            }
+            ConsumerDispatcher.ShutdownAsync(reason).GetAwaiter().GetResult();
         }
 
         internal bool SetCloseReason(ShutdownEventArgs reason)
@@ -538,64 +518,22 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void HandleBasicCancel(string consumerTag, bool nowait)
+        public void HandleBasicCancel(string consumerTag)
         {
-            IBasicConsumer consumer;
-            lock (_consumers)
-            {
-                if (_consumers.TryGetValue(consumerTag, out consumer))
-                {
-                    _consumers.Remove(consumerTag);
-                }
-            }
-            if (consumer is null)
-            {
-                consumer = DefaultConsumer;
-            }
-            ConsumerDispatcher.HandleBasicCancel(consumer, consumerTag);
+            ConsumerDispatcher.HandleBasicCancel(consumerTag);
         }
 
         public void HandleBasicCancelOk(string consumerTag)
         {
-            var k =
-                (BasicConsumerRpcContinuation)_continuationQueue.Next();
-            /*
-                        Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
-                            "Consumer tag mismatch during cancel: {0} != {1}",
-                            k.m_consumerTag,
-                            consumerTag
-                            ));
-            */
-            IBasicConsumer consumer;
-
-            lock (_consumers)
-            {
-                if (_consumers.TryGetValue(consumerTag, out consumer))
-                {
-                    k.m_consumer = consumer;
-                    _consumers.Remove(consumerTag);
-                }
-            }
-
-            if (consumer == null)
-            {
-                k.m_consumer = DefaultConsumer;
-            }
-
-            ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
-
+            var k = (BasicConsumerRpcContinuation)_continuationQueue.Next();
+            ConsumerDispatcher.HandleBasicCancelOk(consumerTag);
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
         public void HandleBasicConsumeOk(string consumerTag)
         {
-            var k =
-                (BasicConsumerRpcContinuation)_continuationQueue.Next();
+            var k = (BasicConsumerRpcContinuation)_continuationQueue.Next();
             k.m_consumerTag = consumerTag;
-            lock (_consumers)
-            {
-                _consumers[consumerTag] = k.m_consumer;
-            }
             ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
@@ -609,24 +547,7 @@ namespace RabbitMQ.Client.Impl
             ReadOnlyMemory<byte> body,
             byte[] rentedArray)
         {
-            IBasicConsumer consumer;
-            lock (_consumers)
-            {
-                _consumers.TryGetValue(consumerTag, out consumer);
-            }
-            if (consumer is null)
-            {
-                if (DefaultConsumer is null)
-                {
-                    throw new InvalidOperationException("Unsolicited delivery - see IModel.DefaultConsumer to handle this case.");
-                }
-                else
-                {
-                    consumer = DefaultConsumer;
-                }
-            }
-
-            ConsumerDispatcher.HandleBasicDeliver(consumer,
+            ConsumerDispatcher.HandleBasicDeliver(
                     consumerTag,
                     deliveryTag,
                     redelivered,
@@ -879,21 +800,12 @@ namespace RabbitMQ.Client.Impl
                 _Private_BasicCancel(consumerTag, false);
                 k.GetReply(ContinuationTimeout);
             }
-
-            lock (_consumers)
-            {
-                _consumers.Remove(consumerTag);
-            }
         }
 
         public void BasicCancelNoWait(string consumerTag)
         {
             _Private_BasicCancel(consumerTag, true);
-
-            lock (_consumers)
-            {
-                _consumers.Remove(consumerTag);
-            }
+            ConsumerDispatcher.GetAndRemoveConsumer(consumerTag);
         }
 
         public string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer)

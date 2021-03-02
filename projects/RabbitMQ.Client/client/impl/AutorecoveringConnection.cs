@@ -152,7 +152,10 @@ namespace RabbitMQ.Client.Framing.Impl
         public RecoveryAwareModel CreateNonRecoveringModel()
         {
             ISession session = InnerConnection.CreateSession();
-            var result = new RecoveryAwareModel(session) { ContinuationTimeout = _factory.ContinuationTimeout };
+            var result = new RecoveryAwareModel(_factory.DispatchConsumersAsync, _factory.ConsumerDispatchConcurrency, session)
+            {
+                ContinuationTimeout = _factory.ContinuationTimeout
+            };
             result._Private_ChannelOpen();
             return result;
         }

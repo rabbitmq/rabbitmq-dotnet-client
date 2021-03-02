@@ -36,7 +36,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class RecoveryAwareModel : Model
     {
-        public RecoveryAwareModel(ISession session) : base(session)
+        public RecoveryAwareModel(bool dispatchAsync, int concurrency, ISession session) : base(dispatchAsync, concurrency, session)
         {
             ActiveDeliveryTagOffset = 0;
             MaxSeenDeliveryTag = 0;

@@ -595,10 +595,9 @@ namespace RabbitMQ.Client.Events
     }
     public abstract class BaseExceptionEventArgs : System.EventArgs
     {
-        public BaseExceptionEventArgs(System.Exception exception) { }
+        protected BaseExceptionEventArgs(System.Collections.Generic.IDictionary<string, object> detail, System.Exception exception) { }
         public System.Collections.Generic.IDictionary<string, object> Detail { get; }
         public System.Exception Exception { get; }
-        public System.Collections.Generic.IDictionary<string, object> UpdateDetails(System.Collections.Generic.IDictionary<string, object> other) { }
     }
     public class BasicAckEventArgs : System.EventArgs
     {
@@ -637,9 +636,9 @@ namespace RabbitMQ.Client.Events
     }
     public class CallbackExceptionEventArgs : RabbitMQ.Client.Events.BaseExceptionEventArgs
     {
-        public CallbackExceptionEventArgs(System.Exception e) { }
-        public static RabbitMQ.Client.Events.CallbackExceptionEventArgs Build(System.Exception e, System.Collections.Generic.IDictionary<string, object> details) { }
+        public CallbackExceptionEventArgs(System.Collections.Generic.IDictionary<string, object> detail, System.Exception exception) { }
         public static RabbitMQ.Client.Events.CallbackExceptionEventArgs Build(System.Exception e, string context) { }
+        public static RabbitMQ.Client.Events.CallbackExceptionEventArgs Build(System.Exception e, string context, object consumer) { }
     }
     public class ConnectionBlockedEventArgs : System.EventArgs
     {

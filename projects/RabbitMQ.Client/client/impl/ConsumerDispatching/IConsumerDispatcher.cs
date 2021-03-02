@@ -32,17 +32,20 @@
 using System;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.ConsumerDispatching
 {
+    #nullable enable
     internal interface IConsumerDispatcher
     {
+        IBasicConsumer? DefaultConsumer { get; set; }
+
         bool IsShutdown { get; }
 
-        void HandleBasicConsumeOk(IBasicConsumer consumer,
-                             string consumerTag);
+        IBasicConsumer GetAndRemoveConsumer(string tag);
 
-        void HandleBasicDeliver(IBasicConsumer consumer,
-                            string consumerTag,
+        void HandleBasicConsumeOk(IBasicConsumer consumer, string consumerTag);
+
+        void HandleBasicDeliver(string consumerTag,
                             ulong deliveryTag,
                             bool redelivered,
                             string exchange,
@@ -51,17 +54,14 @@ namespace RabbitMQ.Client.Impl
                             ReadOnlyMemory<byte> body,
                             byte[] rentedArray);
 
-        void HandleBasicCancelOk(IBasicConsumer consumer,
-                            string consumerTag);
+        void HandleBasicCancelOk(string consumerTag);
 
-        void HandleBasicCancel(IBasicConsumer consumer,
-                          string consumerTag);
-
-        void HandleModelShutdown(IBasicConsumer consumer,
-            ShutdownEventArgs reason);
+        void HandleBasicCancel(string consumerTag);
 
         void Quiesce();
 
-        Task Shutdown(IModel model);
+        Task ShutdownAsync(ShutdownEventArgs reason);
+
+        Task WaitForShutdownAsync();
     }
 }

@@ -95,15 +95,9 @@ namespace RabbitMQ.Client.Framing.Impl
             return ac;
         }
 
-
-        public IModel CreateModel(ISession session)
+        public IModel CreateModel(IConnectionFactory factory, ISession session)
         {
-            return new Model(session);
-        }
-
-        public IModel CreateModel(ISession session, ConsumerWorkService workService)
-        {
-            return new Model(session, workService);
+            return new Model(factory.DispatchConsumersAsync, factory.ConsumerDispatchConcurrency, session);
         }
     }
 }
