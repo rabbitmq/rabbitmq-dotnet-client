@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Impl
                     case ProtocolCommandId.ChannelClose:
                         // We're already shutting down the channel, so
                         // just send back an ok.
-                        Transmit(new OutgoingCommand(new ConnectionCloseOk()));
+                        Transmit(new ConnectionCloseOk());
                         break;
                 }
             }

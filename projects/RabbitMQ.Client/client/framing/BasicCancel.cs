@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -53,8 +53,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicCancel(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShortstr(span, out _consumerTag);
-            WireFormatting.ReadBits(span.Slice(offset), out _nowait);
+            int offset = WireFormatting.ReadShortstr(span, 0, out _consumerTag);
+            WireFormatting.ReadBits(span, offset, out _nowait);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
@@ -63,8 +63,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShortstr(span, _consumerTag);
-            return offset + WireFormatting.WriteBits(span.Slice(offset), _nowait);
+            int offset = WireFormatting.WriteShortstr(span, 0, _consumerTag);
+            return offset + WireFormatting.WriteBits(ref span[offset], _nowait);
         }
 
         public override int GetRequiredBufferSize()

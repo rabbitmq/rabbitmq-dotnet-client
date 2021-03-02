@@ -269,7 +269,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     // Try to send connection.close
                     // Wait for CloseOk in the MainLoop
-                    _session0.Transmit(new OutgoingCommand(new Impl.ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0)));
+                    _session0.Transmit(new Impl.ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0));
                 }
                 catch (AlreadyClosedException)
                 {
@@ -397,7 +397,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 _session0.SetSessionClosing(false);
                 try
                 {
-                    _session0.Transmit(new OutgoingCommand(new ConnectionClose(hpe.ShutdownReason.ReplyCode, hpe.ShutdownReason.ReplyText, 0, 0)));
+                    _session0.Transmit(new ConnectionClose(hpe.ShutdownReason.ReplyCode, hpe.ShutdownReason.ReplyText, 0, 0));
                     return true;
                 }
                 catch (IOException ioe)
@@ -634,7 +634,7 @@ namespace RabbitMQ.Client.Framing.Impl
             // our peer. The peer will respond through the lower
             // layers - specifically, through the QuiescingSession we
             // installed above.
-            newSession.Transmit(new OutgoingCommand(new Impl.ChannelClose(pe.ReplyCode, pe.Message, 0, 0)));
+            newSession.Transmit(new Impl.ChannelClose(pe.ReplyCode, pe.Message, 0, 0));
         }
 
         private bool SetCloseReason(ShutdownEventArgs reason)
@@ -925,7 +925,7 @@ namespace RabbitMQ.Client.Framing.Impl
             MaybeStartHeartbeatTimers();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
         private void ThrowIfDisposed()
         {
             if (_disposed)

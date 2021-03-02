@@ -125,19 +125,31 @@ namespace RabbitMQ.Client.Impl
             OnSessionShutdown(reason);
         }
 
-        public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingCommand
+        public virtual void Transmit<T>(T cmd) where T : MethodBase
         {
-            if (!IsOpen && cmd.Method.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
+            if (!IsOpen && cmd.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
             {
                 throw new AlreadyClosedException(CloseReason);
             }
 
             // We used to transmit *inside* the lock to avoid interleaving
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
-            Connection.Write(cmd.SerializeToFrames(ChannelNumber, Connection.FrameMax));
+            Connection.Write(cmd.SerializeToFrames(ChannelNumber));
         }
 
-        public virtual void Transmit<T>(List<T> cmds) where T : struct, IOutgoingCommand
+        public virtual void Transmit<TMethod, THeader>(TMethod cmd, THeader header, ReadOnlyMemory<byte> body) where TMethod : MethodBase where THeader : ContentHeaderBase
+        {
+            if (!IsOpen)
+            {
+                throw new AlreadyClosedException(CloseReason);
+            }
+
+            // We used to transmit *inside* the lock to avoid interleaving
+            // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
+            Connection.Write(cmd.SerializeToFrames<TMethod, THeader>(header, body, ChannelNumber, Connection.FrameMax));
+        }
+
+        public virtual void Transmit(List<OutgoingContentCommand> cmds)
         {
             uint frameMax = Connection.FrameMax;
             for (int i = 0; i < cmds.Count; i++)

@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConnectionSecure(ReadOnlySpan<byte> span)
         {
-            WireFormatting.ReadLongstr(span, out _challenge);
+            WireFormatting.ReadLongstr(span, 0, out _challenge);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecure;
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteLongstr(span, _challenge);
+            return WireFormatting.WriteLongstr(span, 0, _challenge);
         }
 
         public override int GetRequiredBufferSize()

@@ -60,10 +60,10 @@ namespace RabbitMQ.Client.Framing.Impl
         public QueueUnbind(ReadOnlySpan<byte> span)
         {
             int offset = 2;
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
-            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            offset += WireFormatting.ReadShortstr(span, offset, out _queue);
+            offset += WireFormatting.ReadShortstr(span, offset, out _exchange);
+            offset += WireFormatting.ReadShortstr(span, offset, out _routingKey);
+            WireFormatting.ReadDictionary(span, offset, out var tmpDictionary);
             _arguments = tmpDictionary;
         }
 
@@ -73,11 +73,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, default);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
-            return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
+            int offset = WireFormatting.WriteShort(span, 0, default);
+            offset += WireFormatting.WriteShortstr(span, offset, _queue);
+            offset += WireFormatting.WriteShortstr(span, offset, _exchange);
+            offset += WireFormatting.WriteShortstr(span, offset, _routingKey);
+            return offset + WireFormatting.WriteTable(span, offset, _arguments);
         }
 
         public override int GetRequiredBufferSize()

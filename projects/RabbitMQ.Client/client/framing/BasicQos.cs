@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -54,9 +55,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicQos(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadLong(span, out _prefetchSize);
-            offset += WireFormatting.ReadShort(span.Slice(offset), out _prefetchCount);
-            WireFormatting.ReadBits(span.Slice(offset), out _global);
+            int offset = WireFormatting.ReadLong(span, 0, out _prefetchSize);
+            offset += WireFormatting.ReadShort(span, offset, out _prefetchCount);
+            WireFormatting.ReadBits(span, offset, out _global);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicQos;
@@ -65,9 +66,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteLong(span, _prefetchSize);
-            offset += WireFormatting.WriteShort(span.Slice(offset), _prefetchCount);
-            return offset + WireFormatting.WriteBits(span.Slice(offset), _global);
+            int offset = WireFormatting.WriteLong(span, 0, _prefetchSize);
+            offset += WireFormatting.WriteShort(span, offset, _prefetchCount);
+            return offset + WireFormatting.WriteBits(ref span[offset], _global);
         }
 
         public override int GetRequiredBufferSize()

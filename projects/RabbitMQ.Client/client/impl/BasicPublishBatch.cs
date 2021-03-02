@@ -61,6 +61,7 @@ namespace RabbitMQ.Client.Impl
                 _routingKey = routingKey,
                 _mandatory = mandatory
             };
+
             _commands.Add(new OutgoingContentCommand(method, (ContentHeaderBase)(basicProperties ?? _model._emptyBasicProperties), body));
         }
 

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -55,8 +56,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public BasicGet(ReadOnlySpan<byte> span)
         {
             int offset = 2;
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
-            WireFormatting.ReadBits(span.Slice(offset), out _noAck);
+            offset += WireFormatting.ReadShortstr(span, offset, out _queue);
+            WireFormatting.ReadBits(span, offset, out _noAck);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGet;
@@ -65,9 +66,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, default);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
-            return offset + WireFormatting.WriteBits(span.Slice(offset), _noAck);
+            int offset = WireFormatting.WriteShort(span, 0, default);
+            offset += WireFormatting.WriteShortstr(span, offset, _queue);
+            return offset + WireFormatting.WriteBits(ref span[offset], _noAck);
         }
 
         public override int GetRequiredBufferSize()

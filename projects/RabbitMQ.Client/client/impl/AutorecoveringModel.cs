@@ -426,7 +426,7 @@ namespace RabbitMQ.Client.Impl
         public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint)
             => InnerChannel.CreateBasicPublishBatch(sizeHint);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
         private void ThrowIfDisposed()
         {
             if (_disposed)

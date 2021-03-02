@@ -65,15 +65,15 @@ namespace RabbitMQ.Client.Impl
              * +----------+-----------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2;
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
             public static int WriteTo<T>(Span<byte> span, ushort channel, T method) where T : MethodBase
             {
                 const int StartClassId = StartPayload;
                 const int StartMethodArguments = StartClassId + 4;
 
                 int payloadLength = method.WriteArgumentsTo(span.Slice(StartMethodArguments)) + 4;
-                NetworkOrderSerializer.WriteUInt64(span, ((ulong)Constants.FrameMethod << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
-                NetworkOrderSerializer.WriteUInt32(span.Slice(StartClassId), (uint)method.ProtocolCommandId);
+                NetworkOrderSerializer.WriteUInt64(ref span[0], ((ulong)Constants.FrameMethod << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
+                NetworkOrderSerializer.WriteUInt32(ref span[StartClassId], (uint)method.ProtocolCommandId);
                 span[payloadLength + StartPayload] = Constants.FrameEnd;
                 return payloadLength + BaseFrameSize;
             }
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Impl
              * +----------+----------+-------------------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2 + 8;
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
             public static int WriteTo<T>(Span<byte> span, ushort channel, T header, int bodyLength) where T : ContentHeaderBase
             {
                 const int StartClassId = StartPayload;
@@ -96,9 +96,9 @@ namespace RabbitMQ.Client.Impl
                 const int StartHeaderArguments = StartPayload + 12;
 
                 int payloadLength = 12 + header.WritePropertiesTo(span.Slice(StartHeaderArguments));
-                NetworkOrderSerializer.WriteUInt64(span, ((ulong)Constants.FrameHeader << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
-                NetworkOrderSerializer.WriteUInt32(span.Slice(StartClassId), (uint)header.ProtocolClassId << 16); // The last 16 bytes (Weight) aren't used
-                NetworkOrderSerializer.WriteUInt64(span.Slice(StartBodyLength), (ulong)bodyLength);
+                NetworkOrderSerializer.WriteUInt64(ref span[0], ((ulong)Constants.FrameHeader << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
+                NetworkOrderSerializer.WriteUInt32(ref span[StartClassId], (uint)header.ProtocolClassId << 16); // The last 16 bytes (Weight) aren't used
+                NetworkOrderSerializer.WriteUInt64(ref span[StartBodyLength], (ulong)bodyLength);
                 span[payloadLength + StartPayload] = Constants.FrameEnd;
                 return payloadLength + BaseFrameSize;
             }
@@ -113,11 +113,11 @@ namespace RabbitMQ.Client.Impl
              * +--------------+ */
             public const int FrameSize = BaseFrameSize;
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
             public static int WriteTo(Span<byte> span, ushort channel, ReadOnlySpan<byte> body)
             {
                 const int StartBodyArgument = StartPayload;
-                NetworkOrderSerializer.WriteUInt64(span, ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)body.Length << 8));
+                NetworkOrderSerializer.WriteUInt64(ref span[0], ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)body.Length << 8));
                 body.CopyTo(span.Slice(StartBodyArgument));
                 span[StartPayload + body.Length] = Constants.FrameEnd;
                 return body.Length + BaseFrameSize;
@@ -227,8 +227,8 @@ namespace RabbitMQ.Client.Impl
             }
 
             FrameType type = (FrameType)firstByte;
-            int channel = NetworkOrderDeserializer.ReadUInt16(new ReadOnlySpan<byte>(frameHeaderBuffer, 1, 2));
-            int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 3, 4)); // FIXME - throw exn on unreasonable value
+            int channel = NetworkOrderDeserializer.ReadUInt16(frameHeaderBuffer, 1);
+            int payloadSize = NetworkOrderDeserializer.ReadInt32(frameHeaderBuffer, 3); // FIXME - throw exn on unreasonable value
 
             const int EndMarkerLength = 1;
             // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration

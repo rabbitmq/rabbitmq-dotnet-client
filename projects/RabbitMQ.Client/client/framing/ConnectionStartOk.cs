@@ -31,7 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -58,11 +58,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConnectionStartOk(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadDictionary(span, out var tmpDictionary);
+            int offset = WireFormatting.ReadDictionary(span, 0, out var tmpDictionary);
             _clientProperties = tmpDictionary;
-            offset += WireFormatting.ReadShortstr(span, out _mechanism);
-            offset += WireFormatting.ReadLongstr(span, out _response);
-            WireFormatting.ReadShortstr(span.Slice(offset), out _locale);
+            offset += WireFormatting.ReadShortstr(span, offset, out _mechanism);
+            offset += WireFormatting.ReadLongstr(span, offset, out _response);
+            WireFormatting.ReadShortstr(span, offset, out _locale);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStartOk;
@@ -71,15 +71,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteTable(span, _clientProperties);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _mechanism);
-            offset += WireFormatting.WriteLongstr(span.Slice(offset), _response);
-            return offset + WireFormatting.WriteShortstr(span.Slice(offset), _locale);
+            int offset = WireFormatting.WriteTable(span, 0, _clientProperties);
+            offset += WireFormatting.WriteShortstr(span, offset, _mechanism);
+            offset += WireFormatting.WriteLongstr(span, offset, _response);
+            return offset + WireFormatting.WriteShortstr(span, offset, _locale);
         }
 
         public override int GetRequiredBufferSize()
         {
-            int bufferSize = 1 + 4 +1; // bytes for length of _mechanism, length of _response, length of _locale
+            int bufferSize = 1 + 4 + 1; // bytes for length of _mechanism, length of _response, length of _locale
             bufferSize += WireFormatting.GetTableByteCount(_clientProperties); // _clientProperties in bytes
             bufferSize += WireFormatting.GetByteCount(_mechanism); // _mechanism in bytes
             bufferSize += _response.Length; // _response in bytes

@@ -6,53 +6,65 @@ namespace RabbitMQ.Util
 {
     internal static class NetworkOrderDeserializer
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static double ReadDouble(ReadOnlySpan<byte> span)
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        internal static double ReadDouble(ReadOnlySpan<byte> span, int offset)
         {
-            return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64BigEndian(span));
+            long result = Unsafe.ReadUnaligned<long>(ref Unsafe.AsRef(span[offset]));
+            return BitConverter.Int64BitsToDouble(BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(result) : result);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static short ReadInt16(ReadOnlySpan<byte> span)
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        internal static short ReadInt16(ReadOnlySpan<byte> span, int offset)
         {
-            return BinaryPrimitives.ReadInt16BigEndian(span);
+            short result = Unsafe.ReadUnaligned<short>(ref Unsafe.AsRef(span[offset]));
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(result) : result;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int ReadInt32(ReadOnlySpan<byte> span)
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        internal static int ReadInt32(ReadOnlySpan<byte> span, int offset)
         {
-            return BinaryPrimitives.ReadInt32BigEndian(span);
+            int result = Unsafe.ReadUnaligned<int>(ref Unsafe.AsRef(span[offset]));
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(result) : result;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static long ReadInt64(ReadOnlySpan<byte> span)
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        internal static long ReadInt64(ReadOnlySpan<byte> span, int offset)
         {
-            return BinaryPrimitives.ReadInt64BigEndian(span);
+            long result = Unsafe.ReadUnaligned<long>(ref Unsafe.AsRef(span[offset]));
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(result) : result;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static float ReadSingle(ReadOnlySpan<byte> span)
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        internal static float ReadSingle(ReadOnlySpan<byte> span, int offset)
         {
-            uint num = BinaryPrimitives.ReadUInt32BigEndian(span);
-            return Unsafe.As<uint, float>(ref num);
+            uint result = Unsafe.ReadUnaligned<uint>(ref Unsafe.AsRef(span[offset]));
+            if (BitConverter.IsLittleEndian)
+            {
+                result = BinaryPrimitives.ReverseEndianness(result);
+            }
+
+            return Unsafe.As<uint, float>(ref result);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ushort ReadUInt16(ReadOnlySpan<byte> span)
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        internal static ushort ReadUInt16(ReadOnlySpan<byte> span, int offset)
         {
-            return BinaryPrimitives.ReadUInt16BigEndian(span);
+            ushort result = Unsafe.ReadUnaligned<ushort>(ref Unsafe.AsRef(span[offset]));
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(result) : result;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static uint ReadUInt32(ReadOnlySpan<byte> span)
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        internal static uint ReadUInt32(ReadOnlySpan<byte> span, int offset)
         {
-            return BinaryPrimitives.ReadUInt32BigEndian(span);
+            uint result = Unsafe.ReadUnaligned<uint>(ref Unsafe.AsRef(span[offset]));
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(result) : result;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ulong ReadUInt64(ReadOnlySpan<byte> span)
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        internal static ulong ReadUInt64(ReadOnlySpan<byte> span, int offset)
         {
-            return BinaryPrimitives.ReadUInt64BigEndian(span);
+            ulong result = Unsafe.ReadUnaligned<ulong>(ref Unsafe.AsRef(span[offset]));
+            return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(result) : result;
         }
     }
 }

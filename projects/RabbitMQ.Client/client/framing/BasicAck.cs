@@ -30,8 +30,10 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Runtime.CompilerServices;
+
 using RabbitMQ.Client.client.framing;
-using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -40,35 +42,27 @@ namespace RabbitMQ.Client.Framing.Impl
         public ulong _deliveryTag;
         public bool _multiple;
 
-        public BasicAck()
-        {
-        }
-
         public BasicAck(ulong DeliveryTag, bool Multiple)
         {
             _deliveryTag = DeliveryTag;
             _multiple = Multiple;
         }
 
-        public BasicAck(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
-            WireFormatting.ReadBits(span.Slice(offset), out _multiple);
-        }
+        public BasicAck(ReadOnlySpan<byte> span) : this(NetworkOrderDeserializer.ReadUInt64(span, 0), (span[8] & 1) > 0) { }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicAck;
         public override string ProtocolMethodName => "basic.ack";
         public override bool HasContent => false;
 
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
-            return offset + WireFormatting.WriteBits(span.Slice(offset), _multiple);
+            NetworkOrderSerializer.WriteUInt64(ref span[0], _deliveryTag);
+            span[8] = (byte)(_multiple ? 1 : 0);
+            return 9;
         }
 
-        public override int GetRequiredBufferSize()
-        {
-            return 8 + 1;
-        }
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        public override int GetRequiredBufferSize() => 9;
     }
 }

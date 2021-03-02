@@ -53,8 +53,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConnectionUpdateSecret(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadLongstr(span, out _newSecret);
-            WireFormatting.ReadShortstr(span.Slice(offset), out _reason);
+            int offset = WireFormatting.ReadLongstr(span, 0, out _newSecret);
+            WireFormatting.ReadShortstr(span, offset, out _reason);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
@@ -63,8 +63,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteLongstr(span, _newSecret);
-            return offset + WireFormatting.WriteShortstr(span.Slice(offset), _reason);
+            int offset = WireFormatting.WriteLongstr(span, 0, _newSecret);
+            return offset + WireFormatting.WriteShortstr(span, offset, _reason);
         }
 
         public override int GetRequiredBufferSize()

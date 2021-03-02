@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -50,7 +51,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public QueuePurgeOk(ReadOnlySpan<byte> span)
         {
-            WireFormatting.ReadLong(span, out _messageCount);
+            WireFormatting.ReadLong(span, 0, out _messageCount);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurgeOk;
@@ -59,7 +60,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteLong(span, _messageCount);
+            return WireFormatting.WriteLong(span, 0, _messageCount);
         }
 
         public override int GetRequiredBufferSize()

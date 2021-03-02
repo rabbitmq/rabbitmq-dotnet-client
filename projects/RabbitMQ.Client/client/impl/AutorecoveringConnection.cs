@@ -231,7 +231,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private void EnsureIsOpen()
             => InnerConnection.EnsureIsOpen();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
         private void ThrowIfDisposed()
         {
             if (_disposed)

@@ -74,7 +74,8 @@ namespace RabbitMQ.Client.Impl
         void Close(ShutdownEventArgs reason, bool notify);
         bool HandleFrame(in InboundFrame frame);
         void Notify();
-        void Transmit<T>(in T cmd) where T : struct, IOutgoingCommand;
-        void Transmit<T>(List<T> cmds) where T : struct, IOutgoingCommand;
+        void Transmit<T>(T cmd) where T : MethodBase;
+        void Transmit<TMethod, THeader>(TMethod cmd, THeader header, ReadOnlyMemory<byte> body) where TMethod : MethodBase where THeader : ContentHeaderBase;
+        void Transmit(List<OutgoingContentCommand> cmds);
     }
 }

@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -61,9 +62,9 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             _versionMajor = span[0];
             _versionMinor = span[1];
-            int offset = 2 + WireFormatting.ReadDictionary(span.Slice(2), out _serverProperties);
-            offset += WireFormatting.ReadLongstr(span.Slice(offset), out _mechanisms);
-            WireFormatting.ReadLongstr(span.Slice(offset), out _locales);
+            int offset = 2 + WireFormatting.ReadDictionary(span, 2, out _serverProperties);
+            offset += WireFormatting.ReadLongstr(span, offset, out _mechanisms);
+            WireFormatting.ReadLongstr(span, offset, out _locales);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStart;
@@ -74,9 +75,9 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             span[0] = _versionMajor;
             span[1] = _versionMinor;
-            int offset = 2 + WireFormatting.WriteTable(span.Slice(2), (IDictionary<string, object>)_serverProperties);
-            offset += WireFormatting.WriteLongstr(span.Slice(offset), _mechanisms);
-            return offset + WireFormatting.WriteLongstr(span.Slice(offset), _locales);
+            int offset = 2 + WireFormatting.WriteTable(span, 2, (IDictionary<string, object>)_serverProperties);
+            offset += WireFormatting.WriteLongstr(span, offset, _mechanisms);
+            return offset + WireFormatting.WriteLongstr(span, offset, _locales);
         }
 
         public override int GetRequiredBufferSize()

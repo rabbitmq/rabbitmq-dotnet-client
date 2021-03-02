@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -50,7 +51,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicRecover(ReadOnlySpan<byte> span)
         {
-            WireFormatting.ReadBits(span, out _requeue);
+            WireFormatting.ReadBits(span, 0, out _requeue);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicRecover;
@@ -59,7 +60,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteBits(span, _requeue);
+            return WireFormatting.WriteBits(ref span[0], _requeue);
         }
 
         public override int GetRequiredBufferSize()

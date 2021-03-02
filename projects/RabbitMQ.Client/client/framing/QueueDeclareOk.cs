@@ -55,9 +55,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public QueueDeclareOk(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShortstr(span, out _queue);
-            offset += WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
-            WireFormatting.ReadLong(span.Slice(offset), out _consumerCount);
+            int offset = WireFormatting.ReadShortstr(span, 0, out _queue);
+            offset += WireFormatting.ReadLong(span, offset, out _messageCount);
+            WireFormatting.ReadLong(span, offset, out _consumerCount);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
@@ -66,9 +66,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShortstr(span, _queue);
-            offset += WireFormatting.WriteLong(span.Slice(offset), _messageCount);
-            return offset + WireFormatting.WriteLong(span.Slice(offset), _consumerCount);
+            int offset = WireFormatting.WriteShortstr(span, 0, _queue);
+            offset += WireFormatting.WriteLong(span, offset, _messageCount);
+            return offset + WireFormatting.WriteLong(span, offset, _consumerCount);
         }
 
         public override int GetRequiredBufferSize()

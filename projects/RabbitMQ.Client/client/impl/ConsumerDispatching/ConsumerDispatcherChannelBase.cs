@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-    #nullable enable
+#nullable enable
     internal abstract class ConsumerDispatcherChannelBase : ConsumerDispatcherBase, IConsumerDispatcher
     {
         protected readonly ModelBase _model;
@@ -48,7 +49,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             if (!IsShutdown)
             {
                 AddConsumer(consumer, consumerTag);
-               _writer.TryWrite(new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag));
+                _writer.TryWrite(new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag));
             }
         }
 
@@ -104,12 +105,12 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             public readonly IBasicConsumer Consumer;
             public IAsyncBasicConsumer AsyncConsumer => (IAsyncBasicConsumer)Consumer;
-            public readonly string ConsumerTag;
+            public readonly string? ConsumerTag;
             public readonly ulong DeliveryTag;
             public readonly bool Redelivered;
-            public readonly string Exchange;
-            public readonly string RoutingKey;
-            public readonly IBasicProperties BasicProperties;
+            public readonly string? Exchange;
+            public readonly string? RoutingKey;
+            public readonly IBasicProperties? BasicProperties;
             public readonly ReadOnlyMemory<byte> Body;
             public readonly byte[]? RentedArray;
             public readonly ShutdownEventArgs? Reason;

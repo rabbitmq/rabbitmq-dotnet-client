@@ -57,10 +57,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConnectionClose(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _replyCode);
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
-            offset += WireFormatting.ReadShort(span.Slice(offset), out _classId);
-            WireFormatting.ReadShort(span.Slice(offset), out _methodId);
+            int offset = WireFormatting.ReadShort(span, 0, out _replyCode);
+            offset += WireFormatting.ReadShortstr(span, offset, out _replyText);
+            offset += WireFormatting.ReadShort(span, offset, out _classId);
+            WireFormatting.ReadShort(span, offset, out _methodId);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionClose;
@@ -69,10 +69,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _replyCode);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _replyText);
-            offset += WireFormatting.WriteShort(span.Slice(offset), _classId);
-            return offset + WireFormatting.WriteShort(span.Slice(offset), _methodId);
+            int offset = WireFormatting.WriteShort(span, 0, _replyCode);
+            offset += WireFormatting.WriteShortstr(span, offset, _replyText);
+            offset += WireFormatting.WriteShort(span, offset, _classId);
+            return offset + WireFormatting.WriteShort(span, offset, _methodId);
         }
 
         public override int GetRequiredBufferSize()

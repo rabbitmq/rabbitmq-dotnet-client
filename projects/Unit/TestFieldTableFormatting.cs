@@ -64,8 +64,8 @@ namespace RabbitMQ.Client.Unit
             t["fieldarray"] = array;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(bytes, t);
-            int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
+            WireFormatting.WriteTable(bytes, 0, t);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, 0, out var nt);
             Assert.AreEqual(bytesNeeded, bytesRead);
             Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
             Assert.AreEqual(1234, nt["int"]);
@@ -88,8 +88,8 @@ namespace RabbitMQ.Client.Unit
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(bytes, t);
-            int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
+            WireFormatting.WriteTable(bytes, 0, t);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, 0, out _);
             Assert.AreEqual(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
                     0,0,0,9, // table length
@@ -108,8 +108,8 @@ namespace RabbitMQ.Client.Unit
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(bytes, t);
-            int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
+            WireFormatting.WriteTable(bytes, 0, t);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, 0, out _);
             Assert.AreEqual(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
                     0,0,0,9, // table length
@@ -130,7 +130,7 @@ namespace RabbitMQ.Client.Unit
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => WireFormatting.WriteTable(bytes, t));
+            Assert.Throws<ArgumentOutOfRangeException>(() => WireFormatting.WriteTable(bytes, 0, t));
         }
 
         [Test]
@@ -151,8 +151,8 @@ namespace RabbitMQ.Client.Unit
             t["V"] = null; // 2+1
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(bytes, t);
-            int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
+            WireFormatting.WriteTable(bytes, 0, t);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, 0, out var nt);
             Assert.AreEqual(bytesNeeded, bytesRead);
             Assert.AreEqual(typeof(byte), nt["B"].GetType()); Assert.AreEqual((byte)255, nt["B"]);
             Assert.AreEqual(typeof(sbyte), nt["b"].GetType()); Assert.AreEqual((sbyte)-128, nt["b"]);

@@ -105,18 +105,18 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override void Transmit<T>(in T cmd)
+        public override void Transmit<T>(T cmd)
         {
             if (_closing && // Are we closing?
-                cmd.Method.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk && // is this not a close-ok?
-                (_closeServerInitiated || cmd.Method.ProtocolCommandId != ProtocolCommandId.ConnectionClose)) // is this either server initiated or not a close?
+                cmd.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk && // is this not a close-ok?
+                (_closeServerInitiated || cmd.ProtocolCommandId != ProtocolCommandId.ConnectionClose)) // is this either server initiated or not a close?
             {
                 // We shouldn't do anything since we are closing, not sending a connection-close-ok command
                 // and this is either a server-initiated close or not a connection-close command.
                 return;
             }
 
-            base.Transmit(in cmd);
+            base.Transmit(cmd);
         }
     }
 }

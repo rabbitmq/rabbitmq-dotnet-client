@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConnectionOpen(ReadOnlySpan<byte> span)
         {
-            WireFormatting.ReadShortstr(span, out _virtualHost);
+            WireFormatting.ReadShortstr(span, 0, out _virtualHost);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShortstr(span, _virtualHost);
+            int offset = WireFormatting.WriteShortstr(span, 0, _virtualHost);
             span[offset++] = 0; // _reserved1
             span[offset++] = 0; // _reserved2
             return offset;

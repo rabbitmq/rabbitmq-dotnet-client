@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConnectionBlocked(ReadOnlySpan<byte> span)
         {
-            WireFormatting.ReadShortstr(span, out _reason);
+            WireFormatting.ReadShortstr(span, 0, out _reason);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionBlocked;
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteShortstr(span, _reason);
+            return WireFormatting.WriteShortstr(span, 0, _reason);
         }
 
         public override int GetRequiredBufferSize()

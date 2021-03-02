@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -59,11 +59,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicGetOk(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
-            offset += WireFormatting.ReadBits(span.Slice(offset), out _redelivered);
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
-            WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
+            int offset = WireFormatting.ReadLonglong(span, 0, out _deliveryTag);
+            offset += WireFormatting.ReadBits(span, offset, out _redelivered);
+            offset += WireFormatting.ReadShortstr(span, offset, out _exchange);
+            offset += WireFormatting.ReadShortstr(span, offset, out _routingKey);
+            WireFormatting.ReadLong(span, offset, out _messageCount);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetOk;
@@ -72,11 +72,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
-            offset += WireFormatting.WriteBits(span.Slice(offset), _redelivered);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
-            return offset + WireFormatting.WriteLong(span.Slice(offset), _messageCount);
+            int offset = WireFormatting.WriteLonglong(span, 0, _deliveryTag);
+            offset += WireFormatting.WriteBits(ref span[offset], _redelivered);
+            offset += WireFormatting.WriteShortstr(span, offset, _exchange);
+            offset += WireFormatting.WriteShortstr(span, offset, _routingKey);
+            return offset + WireFormatting.WriteLong(span, offset, _messageCount);
         }
 
         public override int GetRequiredBufferSize()

@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicConsumeOk(ReadOnlySpan<byte> span)
         {
-            WireFormatting.ReadShortstr(span, out _consumerTag);
+            WireFormatting.ReadShortstr(span, 0, out _consumerTag);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsumeOk;
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteShortstr(span, _consumerTag);
+            return WireFormatting.WriteShortstr(span, 0, _consumerTag);
         }
 
         public override int GetRequiredBufferSize()

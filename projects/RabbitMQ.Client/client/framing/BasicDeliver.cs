@@ -30,8 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers.Binary;
-using System.Text;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -60,11 +59,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicDeliver(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShortstr(span, out _consumerTag);
-            offset += WireFormatting.ReadLonglong(span.Slice(offset), out _deliveryTag);
-            offset += WireFormatting.ReadBits(span.Slice(offset), out _redelivered);
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
-            WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+            int offset = WireFormatting.ReadShortstr(span, 0, out _consumerTag);
+            offset += WireFormatting.ReadLonglong(span, offset, out _deliveryTag);
+            offset += WireFormatting.ReadBits(span, offset, out _redelivered);
+            offset += WireFormatting.ReadShortstr(span, offset, out _exchange);
+            WireFormatting.ReadShortstr(span, offset, out _routingKey);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicDeliver;
@@ -73,11 +72,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShortstr(span, _consumerTag);
-            offset += WireFormatting.WriteLonglong(span.Slice(offset), _deliveryTag);
-            offset += WireFormatting.WriteBits(span.Slice(offset), _redelivered);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
-            return offset + WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
+            int offset = WireFormatting.WriteShortstr(span, 0, _consumerTag);
+            offset += WireFormatting.WriteLonglong(span, offset, _deliveryTag);
+            offset += WireFormatting.WriteBits(ref span[offset], _redelivered);
+            offset += WireFormatting.WriteShortstr(span, offset, _exchange);
+            return offset + WireFormatting.WriteShortstr(span, offset, _routingKey);
         }
 
         public override int GetRequiredBufferSize()

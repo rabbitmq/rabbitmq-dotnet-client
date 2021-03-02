@@ -30,9 +30,11 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
+using System.Runtime.CompilerServices;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -40,46 +42,51 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         public ushort _replyCode;
         public string _replyText;
-        public ushort _classId;
-        public ushort _methodId;
+        public ProtocolCommandId _protocolCommandId;
 
         public ChannelClose()
         {
         }
 
-        public ChannelClose(ushort ReplyCode, string ReplyText, ushort ClassId, ushort MethodId)
+        public ChannelClose(ushort ReplyCode, string ReplyText, ushort classId, ushort methodId)
         {
             _replyCode = ReplyCode;
             _replyText = ReplyText;
-            _classId = ClassId;
-            _methodId = MethodId;
+            _protocolCommandId = (ProtocolCommandId)((uint)(classId << 16) | methodId);
+        }
+
+        public ChannelClose(ushort ReplyCode, string ReplyText, ProtocolCommandId protocolCommandId)
+        {
+            _replyCode = ReplyCode;
+            _replyText = ReplyText;
+            _protocolCommandId = protocolCommandId;
         }
 
         public ChannelClose(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _replyCode);
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
-            offset += WireFormatting.ReadShort(span.Slice(offset), out _classId);
-            WireFormatting.ReadShort(span.Slice(offset), out _methodId);
+            int offset = WireFormatting.ReadShort(span, 0, out _replyCode);
+            offset += WireFormatting.ReadShortstr(span, offset, out _replyText);
+            offset += WireFormatting.ReadLong(span, offset, out uint _protocolCommand);
+            _protocolCommandId = (ProtocolCommandId)_protocolCommand;
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelClose;
         public override string ProtocolMethodName => "channel.close";
         public override bool HasContent => false;
 
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _replyCode);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _replyText);
-            offset += WireFormatting.WriteShort(span.Slice(offset), _classId);
-            return offset + WireFormatting.WriteShort(span.Slice(offset), _methodId);
+            NetworkOrderSerializer.WriteUInt16(ref span[0], _replyCode);
+            int offset = WireFormatting.WriteShortstr(span, 2, _replyText);
+            NetworkOrderSerializer.WriteUInt32(ref span[2 + offset], (uint)_protocolCommandId);
+            return 6 + offset;
         }
 
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
         public override int GetRequiredBufferSize()
         {
-            int bufferSize = 2 + 1 + 2 + 2; // bytes for _replyCode, length of _replyText, _classId, _methodId
-            bufferSize += WireFormatting.GetByteCount(_replyText); // _replyText in bytes
-            return bufferSize;
+            return WireFormatting.GetByteCount(_replyText) + 2 + 1 + 2 + 2; // _replyText in bytes
         }
     }
 }

@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -68,10 +69,10 @@ namespace RabbitMQ.Client.Framing.Impl
         public ExchangeDeclare(ReadOnlySpan<byte> span)
         {
             int offset = 2;
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _type);
-            offset += WireFormatting.ReadBits(span.Slice(offset), out _passive, out _durable, out _autoDelete, out _internal, out _nowait);
-            WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
+            offset += WireFormatting.ReadShortstr(span, offset, out _exchange);
+            offset += WireFormatting.ReadShortstr(span, offset, out _type);
+            offset += WireFormatting.ReadBits(span, offset, out _passive, out _durable, out _autoDelete, out _internal, out _nowait);
+            WireFormatting.ReadDictionary(span, offset, out var tmpDictionary);
             _arguments = tmpDictionary;
         }
 
@@ -81,11 +82,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, default);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _exchange);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _type);
-            offset += WireFormatting.WriteBits(span.Slice(offset), _passive, _durable, _autoDelete, _internal, _nowait);
-            return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
+            int offset = WireFormatting.WriteShort(span, 0, default);
+            offset += WireFormatting.WriteShortstr(span, offset, _exchange);
+            offset += WireFormatting.WriteShortstr(span, offset, _type);
+            offset += WireFormatting.WriteBits(ref span[offset], _passive, _durable, _autoDelete, _internal, _nowait);
+            return offset + WireFormatting.WriteTable(span, offset, _arguments);
         }
 
         public override int GetRequiredBufferSize()

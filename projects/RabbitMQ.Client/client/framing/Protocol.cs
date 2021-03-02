@@ -60,8 +60,8 @@ namespace RabbitMQ.Client.Framing
             return DecodeMethodFrom(commandId, span.Slice(4));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ProtocolCommandId ReadCommandId(ReadOnlySpan<byte> span) => (ProtocolCommandId)Util.NetworkOrderDeserializer.ReadUInt32(span);
+        [MethodImpl(RabbitMQMethodImplOptions.Optimized)]
+        public static ProtocolCommandId ReadCommandId(ReadOnlySpan<byte> span) => (ProtocolCommandId)Util.NetworkOrderDeserializer.ReadUInt32(span, 0);
 
         private static Client.Impl.MethodBase DecodeMethodFrom(ProtocolCommandId commandId, ReadOnlySpan<byte> span)
         {

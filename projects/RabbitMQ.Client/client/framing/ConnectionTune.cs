@@ -54,9 +54,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ConnectionTune(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadShort(span, out _channelMax);
-            offset += WireFormatting.ReadLong(span.Slice(offset), out _frameMax);
-            WireFormatting.ReadShort(span.Slice(offset), out _heartbeat);
+            int offset = WireFormatting.ReadShort(span, 0, out _channelMax);
+            offset += WireFormatting.ReadLong(span, offset, out _frameMax);
+            WireFormatting.ReadShort(span, offset, out _heartbeat);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTune;
@@ -65,9 +65,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _channelMax);
-            offset += WireFormatting.WriteLong(span.Slice(offset), _frameMax);
-            return offset + WireFormatting.WriteShort(span.Slice(offset), _heartbeat);
+            int offset = WireFormatting.WriteShort(span, 0, _channelMax);
+            offset += WireFormatting.WriteLong(span, offset, _frameMax);
+            return offset + WireFormatting.WriteShort(span, offset, _heartbeat);
         }
 
         public override int GetRequiredBufferSize()

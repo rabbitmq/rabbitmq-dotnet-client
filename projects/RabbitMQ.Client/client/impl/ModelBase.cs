@@ -36,6 +36,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -332,18 +334,17 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected T ModelRpc<T>(MethodBase method) where T : MethodBase
+        protected TOut ModelRpc<TIn, TOut>(TIn method) where TIn : MethodBase where TOut : MethodBase
         {
             var k = new SimpleBlockingRpcContinuation();
-            var outgoingCommand = new OutgoingCommand(method);
             MethodBase baseResult;
             lock (_rpcLock)
             {
-                TransmitAndEnqueue(outgoingCommand, k);
+                TransmitAndEnqueue(method, k);
                 baseResult = k.GetReply(ContinuationTimeout).Method;
             }
 
-            if (baseResult is T result)
+            if (baseResult is TOut result)
             {
                 return result;
             }
@@ -351,19 +352,19 @@ namespace RabbitMQ.Client.Impl
             throw new UnexpectedMethodException(baseResult.ProtocolClassId, baseResult.ProtocolMethodId, baseResult.ProtocolMethodName);
         }
 
-        protected void ModelSend(MethodBase method)
+        protected void ModelSend<T>(T method) where T : MethodBase
         {
-            Session.Transmit(new OutgoingCommand(method));
+            Session.Transmit(method);
         }
 
-        protected void ModelSend(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body)
+        protected void ModelSend<T>(T method, ContentHeaderBase header, ReadOnlyMemory<byte> body) where T : MethodBase
         {
             if (!_flowControlBlock.IsSet)
             {
                 _flowControlBlock.Wait();
             }
 
-            Session.Transmit(new OutgoingContentCommand(method, header, body));
+            Session.Transmit(method, header, body);
         }
 
         internal void OnCallbackException(CallbackExceptionEventArgs args)
@@ -418,7 +419,7 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
             => Session.ToString();
 
-        private void TransmitAndEnqueue(in OutgoingCommand cmd, IRpcContinuation k)
+        private void TransmitAndEnqueue<T>(T cmd, IRpcContinuation k) where T : MethodBase
         {
             Enqueue(k);
             Session.Transmit(cmd);
@@ -612,14 +613,13 @@ namespace RabbitMQ.Client.Impl
 
         public void HandleChannelClose(ushort replyCode,
             string replyText,
-            ushort classId,
-            ushort methodId)
+            ProtocolCommandId protocolCommandId)
         {
             SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
                 replyCode,
                 replyText,
-                classId,
-                methodId));
+                (ushort)((uint)protocolCommandId & 0xFF00 >> 16),
+                (ushort)((uint)protocolCommandId & 0x00FF)));
 
             Session.Close(CloseReason, false);
             try

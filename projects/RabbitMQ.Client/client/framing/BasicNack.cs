@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -54,8 +55,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicNack(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
-            WireFormatting.ReadBits(span.Slice(offset), out _multiple, out _requeue);
+            int offset = WireFormatting.ReadLonglong(span, 0, out _deliveryTag);
+            WireFormatting.ReadBits(span, offset, out _multiple, out _requeue);
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
@@ -64,8 +65,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
-            return offset + WireFormatting.WriteBits(span.Slice(offset), _multiple, _requeue);
+            int offset = WireFormatting.WriteLonglong(span, 0, _deliveryTag);
+            return offset + WireFormatting.WriteBits(ref span[offset], _multiple, _requeue);
         }
 
         public override int GetRequiredBufferSize()
