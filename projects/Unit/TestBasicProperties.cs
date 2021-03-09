@@ -70,6 +70,12 @@ namespace RabbitMQ.Client.Unit
 
         [Theory]
         [InlineData(null, null, null)]
+        [InlineData(null, null, "7D221C7E-1788-4D11-9CA5-AC41425047CF")]
+        [InlineData(null, "732E39DC-AF56-46E8-B8A9-079C4B991B2E", null)]
+        [InlineData(null, "732E39DC-AF56-46E8-B8A9-079C4B991B2E", "7D221C7E-1788-4D11-9CA5-AC41425047CF")]
+        [InlineData("cluster1", null, null)]
+        [InlineData("cluster1", null, "7D221C7E-1788-4D11-9CA5-AC41425047CF")]
+        [InlineData("cluster1", "732E39DC-AF56-46E8-B8A9-079C4B991B2E", null)]
         [InlineData("cluster1", "732E39DC-AF56-46E8-B8A9-079C4B991B2E", "7D221C7E-1788-4D11-9CA5-AC41425047CF")]
         public void TestNullableProperties_CanWrite(string clusterId, string correlationId, string messageId)
         {
