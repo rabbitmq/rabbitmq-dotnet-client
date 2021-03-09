@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
+
 using Ductus.FluentDocker.Builders;
 using Ductus.FluentDocker.Services;
 using Ductus.FluentDocker.Services.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Benchmarks.Networking
 {

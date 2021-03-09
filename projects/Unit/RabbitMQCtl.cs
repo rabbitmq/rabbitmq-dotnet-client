@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Unit
         //
         // Shelling Out
         //
-        public static Process ExecRabbitMQCtl(string args)
+        private static Process ExecRabbitMQCtl(string args)
         {
             // Allow the path to the rabbitmqctl.bat to be set per machine
             string envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Unit
             return ExecCommand(rabbitmqctlPath, args);
         }
 
-        public static Process ExecRabbitMQCtlUsingDocker(string args, string dockerMachineName)
+        private static Process ExecRabbitMQCtlUsingDocker(string args, string dockerMachineName)
         {
             var proc = new Process
             {
@@ -134,17 +134,12 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public static Process ExecCommand(string command)
-        {
-            return ExecCommand(command, "");
-        }
-
-        public static Process ExecCommand(string command, string args)
+        private static Process ExecCommand(string command, string args)
         {
             return ExecCommand(command, args, null);
         }
 
-        public static Process ExecCommand(string ctl, string args, string changeDirTo)
+        private static Process ExecCommand(string ctl, string args, string changeDirTo)
         {
             var proc = new Process
             {
@@ -195,12 +190,12 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public static void ReportExecFailure(string cmd, string args, string msg)
+        private static void ReportExecFailure(string cmd, string args, string msg)
         {
             Console.WriteLine($"Failure while running {cmd} {args}:\n{msg}");
         }
 
-        public static bool IsRunningOnMonoOrDotNetCore()
+        private static bool IsRunningOnMonoOrDotNetCore()
         {
 #if NETCOREAPP
             return true;

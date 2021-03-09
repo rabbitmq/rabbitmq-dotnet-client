@@ -29,72 +29,74 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
+using System;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestPublicationAddress
     {
-        [Test]
+        [Fact]
         public void TestParseOk()
         {
             string uriLike = "fanout://name/key";
             PublicationAddress addr = PublicationAddress.Parse(uriLike);
-            Assert.AreEqual(ExchangeType.Fanout, addr.ExchangeType);
-            Assert.AreEqual("name", addr.ExchangeName);
-            Assert.AreEqual("key", addr.RoutingKey);
-            Assert.AreEqual(uriLike, addr.ToString());
+            Assert.Equal(ExchangeType.Fanout, addr.ExchangeType);
+            Assert.Equal("name", addr.ExchangeName);
+            Assert.Equal("key", addr.RoutingKey);
+            Assert.Equal(uriLike, addr.ToString());
         }
 
-        [Test]
+        [Fact]
         public void TestParseFailWithANE()
         {
-            Assert.That(()=> PublicationAddress.Parse(null), Throws.ArgumentNullException);
+            Assert.Throws<ArgumentNullException>(() => PublicationAddress.Parse(null));
         }
 
-        [Test]
+        [Fact]
         public void TestParseFailWithUnparseableInput()
         {
-            Assert.IsNull(PublicationAddress.Parse("not a valid URI"));
+            Assert.Null(PublicationAddress.Parse("not a valid URI"));
         }
 
-        [Test]
+        [Fact]
         public void TestTryParseFail()
         {
             PublicationAddress.TryParse(null, out PublicationAddress result);
-            Assert.IsNull(result);
+            Assert.Null(result);
 
             PublicationAddress.TryParse("not a valid URI", out result);
-            Assert.IsNull(result);
+            Assert.Null(result);
 
             PublicationAddress.TryParse("}}}}}}}}", out result);
-            Assert.IsNull(result);
+            Assert.Null(result);
         }
 
-        [Test]
+        [Fact]
         public void TestEmptyExchangeName()
         {
             string uriLike = "direct:///key";
             PublicationAddress addr = PublicationAddress.Parse(uriLike);
-            Assert.AreEqual(ExchangeType.Direct, addr.ExchangeType);
-            Assert.AreEqual("", addr.ExchangeName);
-            Assert.AreEqual("key", addr.RoutingKey);
-            Assert.AreEqual(uriLike, addr.ToString());
+            Assert.Equal(ExchangeType.Direct, addr.ExchangeType);
+            Assert.Equal("", addr.ExchangeName);
+            Assert.Equal("key", addr.RoutingKey);
+            Assert.Equal(uriLike, addr.ToString());
         }
 
-        [Test]
+        [Fact]
         public void TestEmptyRoutingKey()
         {
             string uriLike = "direct://exch/";
             PublicationAddress addr = PublicationAddress.Parse(uriLike);
-            Assert.AreEqual(ExchangeType.Direct, addr.ExchangeType);
-            Assert.AreEqual("exch", addr.ExchangeName);
-            Assert.AreEqual("", addr.RoutingKey);
-            Assert.AreEqual(uriLike, addr.ToString());
+            Assert.Equal(ExchangeType.Direct, addr.ExchangeType);
+            Assert.Equal("exch", addr.ExchangeName);
+            Assert.Equal("", addr.RoutingKey);
+            Assert.Equal(uriLike, addr.ToString());
         }
 
-        [Test]
+        [Fact]
         public void TestExchangeTypeValidation()
         {
             string uriLike = "direct:///";
@@ -107,13 +109,13 @@ namespace RabbitMQ.Client.Unit
                     found++;
                 }
             }
-            Assert.AreEqual(1, found);
+            Assert.Equal(1, found);
         }
 
-        [Test]
+        [Fact]
         public void TestMissingExchangeType()
         {
-            Assert.IsNull(PublicationAddress.Parse("://exch/key"));
+            Assert.Null(PublicationAddress.Parse("://exch/key"));
         }
     }
 }

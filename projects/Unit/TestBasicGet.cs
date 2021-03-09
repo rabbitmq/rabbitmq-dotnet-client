@@ -29,45 +29,45 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Exceptions;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestBasicGet : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public void TestBasicGetWithClosedChannel()
         {
-            WithNonEmptyQueue( (_, q) =>
-                {
-                    WithClosedModel(cm =>
-                    {
-                        Assert.Throws(Is.InstanceOf<AlreadyClosedException>(), () => cm.BasicGet(q, true));
-                    });
-                });
+            WithNonEmptyQueue((_, q) =>
+               {
+                   WithClosedModel(cm =>
+                   {
+                       Assert.Throws<AlreadyClosedException>(() => cm.BasicGet(q, true));
+                   });
+               });
         }
 
-        [Test]
+        [Fact]
         public void TestBasicGetWithEmptyResponse()
         {
             WithEmptyQueue((model, queue) =>
             {
                 BasicGetResult res = model.BasicGet(queue, false);
-                Assert.IsNull(res);
+                Assert.Null(res);
             });
         }
 
-        [Test]
+        [Fact]
         public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
             const string msg = "for basic.get";
             WithNonEmptyQueue((model, queue) =>
             {
                 BasicGetResult res = model.BasicGet(queue, true);
-                Assert.AreEqual(msg, _encoding.GetString(res.Body.ToArray()));
+                Assert.Equal(msg, _encoding.GetString(res.Body.ToArray()));
                 AssertMessageCount(queue, 0);
             }, msg);
         }

@@ -32,13 +32,13 @@
 using System;
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestMainLoop : IntegrationFixture {
 
         private class FaultyConsumer : DefaultBasicConsumer
@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test]
+        [Fact]
         public void TestCloseWithFaultyConsumer()
         {
             ConnectionFactory connFactory = new ConnectionFactory();
@@ -77,9 +77,9 @@ namespace RabbitMQ.Client.Unit
             m.BasicPublish("", q, null, _encoding.GetBytes("message"));
             WaitOn(o);
 
-            Assert.IsNotNull(ea);
-            Assert.AreEqual(c.IsOpen, false);
-            Assert.AreEqual(c.CloseReason.ReplyCode, 200);
+            Assert.NotNull(ea);
+            Assert.False(c.IsOpen);
+            Assert.Equal(200, c.CloseReason.ReplyCode);
         }
     }
 }

@@ -31,19 +31,19 @@
 
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestPublishValidation : IntegrationFixture
     {
 
-        [Test]
+        [Fact]
         public void TestNullRoutingKeyIsRejected()
         {
             IModel ch = _conn.CreateModel();
-            Assert.Throws(typeof(ArgumentNullException), () => ch.BasicPublish("", null, null, _encoding.GetBytes("msg")));
+            Assert.Throws<ArgumentNullException>(() => ch.BasicPublish("", null, null, _encoding.GetBytes("msg")));
         }
     }
 }

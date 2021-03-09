@@ -2,15 +2,17 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
+
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestConsumer
     {
-        [Test]
+        [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
             var cf = new ConnectionFactory{ ConsumerDispatchConcurrency = 2 };
@@ -57,8 +59,8 @@ namespace RabbitMQ.Client.Unit
 
                 await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 
-                Assert.IsTrue(publish1SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
-                Assert.IsTrue(publish2SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                Assert.True(publish1SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                Assert.True(publish2SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
             }
         }
     }

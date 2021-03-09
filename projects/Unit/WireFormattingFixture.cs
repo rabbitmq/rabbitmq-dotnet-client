@@ -31,17 +31,17 @@
 
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    class WireFormattingFixture
+    public class WireFormattingFixture
     {
         public void Check(byte[] actual, byte[] expected)
         {
             try
             {
-                Assert.AreEqual(expected, actual);
+                Assert.Equal(expected, actual);
             }
             catch
             {

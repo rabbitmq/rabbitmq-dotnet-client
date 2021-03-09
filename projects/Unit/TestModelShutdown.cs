@@ -32,16 +32,16 @@
 using System;
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Impl;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    internal class TestModelShutdown : IntegrationFixture
+
+    public class TestModelShutdown : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public void TestConsumerDispatcherShutdown()
         {
             var m = (AutorecoveringModel)_model;
@@ -51,10 +51,10 @@ namespace RabbitMQ.Client.Unit
             {
                 latch.Set();
             };
-            Assert.IsFalse(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
+            Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
             _model.Close();
             Wait(latch, TimeSpan.FromSeconds(3));
-            Assert.IsTrue(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
+            Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }
     }
 }

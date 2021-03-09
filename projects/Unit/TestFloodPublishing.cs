@@ -29,24 +29,25 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-using RabbitMQ.Client.Events;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using RabbitMQ.Client.Events;
+
+using Xunit;
+
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestFloodPublishing
     {
         private readonly byte[] _body = new byte[2048];
         private readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
 
-        [Test]
+        [Fact]
         public void TestUnthrottledFloodPublishing()
         {
             var connFactory = new ConnectionFactory()
@@ -64,7 +65,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         if (args.Initiator != ShutdownInitiator.Application)
                         {
-                            Assert.Fail("Unexpected connection shutdown!");
+                            Assert.True(false, "Unexpected connection shutdown!");
                         }
                     };
 
@@ -91,7 +92,7 @@ namespace RabbitMQ.Client.Unit
                         Console.WriteLine($"sent {i}, done in {stopwatch.Elapsed.TotalMilliseconds} ms");
                     }
 
-                    Assert.IsTrue(conn.IsOpen);
+                    Assert.True(conn.IsOpen);
                     closeWatch.Start();
                 }
             }
@@ -99,11 +100,10 @@ namespace RabbitMQ.Client.Unit
             Console.WriteLine($"Closing took {closeWatch.Elapsed.TotalMilliseconds} ms");
         }
 
-        [Test]
+        [Fact]
         public void TestMultithreadFloodPublishing()
         {
-            string testName = TestContext.CurrentContext.Test.FullName;
-            string message = string.Format("Hello from test {0}", testName);
+            string message = "Hello from test TestMultithreadFloodPublishing";
             byte[] sendBody = Encoding.UTF8.GetBytes(message);
             int publishCount = 4096;
             int receivedCount = 0;
@@ -142,7 +142,7 @@ namespace RabbitMQ.Client.Unit
                     consumer.Received += (o, a) =>
                     {
                         string receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
-                        Assert.AreEqual(message, receivedMessage);
+                        Assert.Equal(message, receivedMessage);
                         Interlocked.Increment(ref receivedCount);
                         if (receivedCount == publishCount)
                         {
@@ -150,11 +150,11 @@ namespace RabbitMQ.Client.Unit
                         }
                     };
                     consumerModel.BasicConsume(queueName, true, consumer);
-                    Assert.IsTrue(pub.Wait(_tenSeconds));
-                    Assert.IsTrue(autoResetEvent.WaitOne(_tenSeconds));
+                    Assert.True(pub.Wait(_tenSeconds));
+                    Assert.True(autoResetEvent.WaitOne(_tenSeconds));
                 }
 
-                Assert.AreEqual(publishCount, receivedCount);
+                Assert.Equal(publishCount, receivedCount);
             }
         }
     }

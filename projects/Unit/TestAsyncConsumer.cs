@@ -34,16 +34,16 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestAsyncConsumer
     {
-        [Test]
+        [Fact]
         public void TestBasicRoundtrip()
         {
             var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
@@ -64,16 +64,16 @@ namespace RabbitMQ.Client.Unit
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
                 // ensure we get a delivery
                 bool waitRes = are.WaitOne(2000);
-                Assert.IsTrue(waitRes);
+                Assert.True(waitRes);
                 // unsubscribe and ensure no further deliveries
                 m.BasicCancel(tag);
                 m.BasicPublish("", q.QueueName, bp, body);
                 bool waitResFalse = are.WaitOne(2000);
-                Assert.IsFalse(waitResFalse);
+                Assert.False(waitResFalse);
             }
         }
 
-        [Test]
+        [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
             var cf = new ConnectionFactory{ DispatchConsumersAsync = true, ConsumerDispatchConcurrency = 2 };
@@ -121,12 +121,12 @@ namespace RabbitMQ.Client.Unit
 
                 await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 
-                Assert.IsTrue(publish1SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
-                Assert.IsTrue(publish2SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                Assert.True(publish1SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                Assert.True(publish2SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
             }
         }
 
-        [Test]
+        [Fact]
         public void TestBasicRoundtripNoWait()
         {
             var cf = new ConnectionFactory{ DispatchConsumersAsync = true };
@@ -148,17 +148,17 @@ namespace RabbitMQ.Client.Unit
                     string tag = m.BasicConsume(q.QueueName, true, consumer);
                     // ensure we get a delivery
                     bool waitRes = are.WaitOne(2000);
-                    Assert.IsTrue(waitRes);
+                    Assert.True(waitRes);
                     // unsubscribe and ensure no further deliveries
                     m.BasicCancelNoWait(tag);
                     m.BasicPublish("", q.QueueName, bp, body);
                     bool waitResFalse = are.WaitOne(2000);
-                    Assert.IsFalse(waitResFalse);
+                    Assert.False(waitResFalse);
                 }
             }
         }
 
-        [Test]
+        [Fact]
         public void ConcurrentEventingTestForReceived()
         {
             const int NumberOfThreads = 4;
@@ -212,10 +212,10 @@ namespace RabbitMQ.Client.Unit
             }
 
             // Check received messages
-            Assert.AreEqual(-1, called.AsSpan().IndexOf((byte)0));
+            Assert.Equal(-1, called.AsSpan().IndexOf((byte)0));
         }
 
-        [Test]
+        [Fact]
         public void NonAsyncConsumerShouldThrowInvalidOperationException()
         {
             var cf = new ConnectionFactory{ DispatchConsumersAsync = true };

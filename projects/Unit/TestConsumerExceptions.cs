@@ -32,11 +32,11 @@
 using System;
 using System.Threading;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestConsumerExceptions : IntegrationFixture
     {
         private class ConsumerFailingOnDelivery : DefaultBasicConsumer
@@ -123,38 +123,38 @@ namespace RabbitMQ.Client.Unit
             action(_model, q, consumer, tag);
             WaitOn(o);
 
-            Assert.IsTrue(notified);
+            Assert.True(notified);
         }
 
-        [Test]
+        [Fact]
         public void TestCancelNotificationExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancel(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.QueueDelete(q));
         }
 
-        [Test]
+        [Fact]
         public void TestConsumerCancelOkExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancelOk(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicCancel(ct));
         }
 
-        [Test]
+        [Fact]
         public void TestConsumerConsumeOkExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => { });
         }
 
-        [Test]
+        [Fact]
         public void TestConsumerShutdownExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnShutdown(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.Close());
         }
 
-        [Test]
+        [Fact]
         public void TestDeliveryExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(_model);

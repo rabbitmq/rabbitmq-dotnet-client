@@ -32,16 +32,16 @@
 using System;
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Impl;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestConnectionShutdown : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public void TestShutdownSignalPropagationToChannels()
         {
             var latch = new ManualResetEventSlim(false);
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit
             Wait(latch, TimeSpan.FromSeconds(3));
         }
 
-        [Test]
+        [Fact]
         public void TestConsumerDispatcherShutdown()
         {
             var m = (AutorecoveringModel)_model;
@@ -64,10 +64,10 @@ namespace RabbitMQ.Client.Unit
             {
                 latch.Set();
             };
-            Assert.IsFalse(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
+            Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
             _conn.Close();
             Wait(latch, TimeSpan.FromSeconds(3));
-            Assert.IsTrue(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
+            Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }
     }
 }

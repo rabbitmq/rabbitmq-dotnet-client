@@ -29,26 +29,26 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    internal class TestConsumerCount : IntegrationFixture
+    public class TestConsumerCount : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public void TestConsumerCountMethod()
         {
             string q = GenerateQueueName();
             _model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.AreEqual(0, _model.ConsumerCount(q));
+            Assert.Equal(0u, _model.ConsumerCount(q));
 
             string tag = _model.BasicConsume(q, true, new EventingBasicConsumer(_model));
-            Assert.AreEqual(1, _model.ConsumerCount(q));
+            Assert.Equal(1u, _model.ConsumerCount(q));
 
             _model.BasicCancel(tag);
-            Assert.AreEqual(0, _model.ConsumerCount(q));
+            Assert.Equal(0u, _model.ConsumerCount(q));
         }
     }
 }

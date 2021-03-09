@@ -31,45 +31,45 @@
 
 using System;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Impl;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestRpcContinuationQueue
     {
-        [Test]
+        [Fact]
         public void TestRpcContinuationQueueEnqueueAndRelease()
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
             var inputContinuation = new SimpleBlockingRpcContinuation();
             queue.Enqueue(inputContinuation);
             IRpcContinuation outputContinuation = queue.Next();
-            Assert.AreEqual(outputContinuation, inputContinuation);
+            Assert.Equal(outputContinuation, inputContinuation);
         }
 
-        [Test]
+        [Fact]
         public void TestRpcContinuationQueueEnqueueAndRelease2()
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
             var inputContinuation = new SimpleBlockingRpcContinuation();
             queue.Enqueue(inputContinuation);
             IRpcContinuation outputContinuation = queue.Next();
-            Assert.AreEqual(outputContinuation, inputContinuation);
+            Assert.Equal(outputContinuation, inputContinuation);
             IRpcContinuation outputContinuation1 = queue.Next();
-            Assert.AreNotEqual(outputContinuation1, inputContinuation);
+            Assert.NotEqual(outputContinuation1, inputContinuation);
         }
 
-        [Test]
+        [Fact]
         public void TestRpcContinuationQueueEnqueue2()
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
             var inputContinuation = new SimpleBlockingRpcContinuation();
             var inputContinuation1 = new SimpleBlockingRpcContinuation();
             queue.Enqueue(inputContinuation);
-            Assert.Throws(typeof(NotSupportedException), () => 
+            Assert.Throws<NotSupportedException>(() => 
             {
                 queue.Enqueue(inputContinuation1);
             });

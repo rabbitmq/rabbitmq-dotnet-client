@@ -30,23 +30,24 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using NUnit.Framework;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    internal class TestMessageCount : IntegrationFixture
+    public class TestMessageCount : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public async Task TestMessageCountMethod()
         {
             _model.ConfirmSelect();
             string q = GenerateQueueName();
             _model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.AreEqual(0, _model.MessageCount(q));
+            Assert.Equal(0u, _model.MessageCount(q));
 
             _model.BasicPublish(exchange: "", routingKey: q, basicProperties: null, body: _encoding.GetBytes("msg"));
             await _model.WaitForConfirmsAsync().ConfigureAwait(false);
-            Assert.AreEqual(1, _model.MessageCount(q));
+            Assert.Equal(1u, _model.MessageCount(q));
         }
     }
 }

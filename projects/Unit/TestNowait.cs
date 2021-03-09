@@ -29,13 +29,13 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestNoWait : IntegrationFixture {
-        [Test]
+        [Fact]
         public void TestQueueDeclareNoWait()
         {
             string q = GenerateQueueName();
@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Unit
             _model.QueueDeclarePassive(q);
         }
 
-        [Test]
+        [Fact]
         public void TestQueueBindNoWait()
         {
             string q = GenerateQueueName();
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Unit
             _model.QueueBindNoWait(q, "amq.fanout", "", null);
         }
 
-        [Test]
+        [Fact]
         public void TestQueueDeleteNoWait()
         {
             string q = GenerateQueueName();
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Unit
             _model.QueueDeleteNoWait(q, false, false);
         }
 
-        [Test]
+        [Fact]
         public void TestExchangeDeclareNoWait()
         {
             string x = GenerateExchangeName();
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test]
+        [Fact]
         public void TestExchangeBindNoWait()
         {
             string x = GenerateExchangeName();
@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test]
+        [Fact]
         public void TestExchangeUnbindNoWait()
         {
             string x = GenerateExchangeName();
@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test]
+        [Fact]
         public void TestExchangeDeleteNoWait()
         {
             string x = GenerateExchangeName();

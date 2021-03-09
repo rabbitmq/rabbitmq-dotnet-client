@@ -29,14 +29,15 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Xunit;
+
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestPublishSharedModel
     {
         private const string QueueName = "TestPublishSharedModel_Queue";
@@ -49,7 +50,7 @@ namespace RabbitMQ.Client.Unit
 
         private Exception _raisedException;
 
-        [Test]
+        [Fact]
         public async Task MultiThreadPublishOnSharedModel()
         {
             // Arrange
@@ -65,7 +66,7 @@ namespace RabbitMQ.Client.Unit
                 {
                     if (args.Initiator != ShutdownInitiator.Application)
                     {
-                        Assert.Fail("Unexpected connection shutdown!");
+                        Assert.True(false, "Unexpected connection shutdown!");
                     }
                 };
 

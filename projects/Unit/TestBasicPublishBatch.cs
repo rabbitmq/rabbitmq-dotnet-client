@@ -32,13 +32,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    internal class TestBasicPublishBatch : IntegrationFixture
+    public class TestBasicPublishBatch : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public async Task TestBasicPublishBatchSend()
         {
             _model.ConfirmSelect();
@@ -56,7 +57,7 @@ namespace RabbitMQ.Client.Unit
             Assert.NotNull(resultB);
         }
 
-        [Test]
+        [Fact]
         public async Task TestBasicPublishBatchSendWithSizeHint()
         {
             _model.ConfirmSelect();
@@ -75,7 +76,7 @@ namespace RabbitMQ.Client.Unit
             Assert.NotNull(resultB);
         }
 
-        [Test]
+        [Fact]
         public async Task TestBasicPublishBatchSendWithWrongSizeHint()
         {
             _model.ConfirmSelect();

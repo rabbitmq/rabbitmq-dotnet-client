@@ -33,16 +33,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    internal class TestHeartbeats : IntegrationFixture
+    public class TestHeartbeats : IntegrationFixture
     {
         private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(2);
 
-        [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
+        [Fact(Timeout = 35000)]
+        [Trait("Category", "LongRunning")]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()
         {
             var cf = new ConnectionFactory()
@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Unit
             RunSingleConnectionTest(cf);
         }
 
-        [Test]
+        [Fact]
         public void TestThatHeartbeatWriterWithTLSEnabled()
         {
             if (!LongRunningTestsEnabled())
@@ -75,17 +75,18 @@ namespace RabbitMQ.Client.Unit
                 return;
             }
             cf.Ssl.ServerName = System.Net.Dns.GetHostName();
-            Assert.IsNotNull(sslDir);
+            Assert.NotNull(sslDir);
             cf.Ssl.CertPath = $"{sslDir}/client/keycert.p12";
             string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
-            Assert.IsNotNull(p12Password, "missing PASSWORD env var");
+            Assert.NotNull(p12Password);
             cf.Ssl.CertPassphrase = p12Password;
             cf.Ssl.Enabled = true;
 
             RunSingleConnectionTest(cf);
         }
 
-        [Test, Category("LongRunning"), MaxTimeAttribute(90000)]
+        [Fact(Timeout = 90000)]
+        [Trait("Category", "LongRunning")]
         public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             var rnd = new Random();
@@ -137,8 +138,8 @@ namespace RabbitMQ.Client.Unit
             };
             SleepFor(30);
 
-            Assert.IsFalse(wasShutdown, "shutdown event should not have been fired");
-            Assert.IsTrue(conn.IsOpen, "connection should be open");
+            Assert.False(wasShutdown, "shutdown event should not have been fired");
+            Assert.True(conn.IsOpen, "connection should be open");
 
             conn.Close();
         }
@@ -151,7 +152,7 @@ namespace RabbitMQ.Client.Unit
                 string s = string.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
                 Console.WriteLine(s);
-                Assert.Fail(s);
+                Assert.True(false, s);
             }
         }
 

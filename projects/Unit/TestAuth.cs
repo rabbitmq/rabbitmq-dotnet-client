@@ -29,17 +29,17 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Exceptions;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestAuth
     {
 
-        [Test]
+        [Fact]
         public void TestAuthFailure()
         {
             ConnectionFactory connFactory = new ConnectionFactory
@@ -51,11 +51,11 @@ namespace RabbitMQ.Client.Unit
             try
             {
                 connFactory.CreateConnection();
-                Assert.Fail("Exception caused by authentication failure expected");
+                Assert.True(false, "Exception caused by authentication failure expected");
             }
             catch (BrokerUnreachableException bue)
             {
-                Assert.IsInstanceOf<AuthenticationFailureException>(bue.InnerException);
+                Assert.IsType<AuthenticationFailureException>(bue.InnerException);
             }
         }
     }

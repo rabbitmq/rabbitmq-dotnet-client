@@ -31,26 +31,25 @@
 
 using System.Collections.Generic;
 
-using NUnit.Framework;
-
-using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestPropertiesClone
     {
-        [Test]
+        [Fact]
         public void TestBasicPropertiesCloneV0_9_1()
         {
-            TestBasicPropertiesClone(new RabbitMQ.Client.Framing.BasicProperties());
+            TestBasicPropertiesClone(new Framing.BasicProperties());
         }
 
-        [Test]
+        [Fact]
         public void TestBasicPropertiesNoneCloneV0_9_1()
         {
-            TestBasicPropertiesNoneClone(new RabbitMQ.Client.Framing.BasicProperties());
+            TestBasicPropertiesNoneClone(new Framing.BasicProperties());
         }
 
         private void TestBasicPropertiesClone(BasicProperties bp)
@@ -102,26 +101,26 @@ namespace RabbitMQ.Client.Unit
             bp.ClusterId = "foo_28";
 
             // Make sure values have not changed in clone
-            Assert.AreEqual("foo_1", bpClone.ContentType);
-            Assert.AreEqual("foo_2", bpClone.ContentEncoding);
-            Assert.AreEqual(2, bpClone.Headers.Count);
-            Assert.AreEqual(true, bpClone.Headers.ContainsKey("foo_3"));
-            Assert.AreEqual("foo_4", bpClone.Headers["foo_3"]);
-            Assert.AreEqual(true, bpClone.Headers.ContainsKey("foo_5"));
-            Assert.AreEqual("foo_6", bpClone.Headers["foo_5"]);
-            Assert.AreEqual(2, bpClone.DeliveryMode);
-            Assert.AreEqual(true, bpClone.Persistent);
-            Assert.AreEqual(12, bpClone.Priority);
-            Assert.AreEqual("foo_7", bpClone.CorrelationId);
-            Assert.AreEqual("foo_8", bpClone.ReplyTo);
-            Assert.AreEqual(null, bpClone.ReplyToAddress);
-            Assert.AreEqual("foo_9", bpClone.Expiration);
-            Assert.AreEqual("foo_10", bpClone.MessageId);
-            Assert.AreEqual(new AmqpTimestamp(123), bpClone.Timestamp);
-            Assert.AreEqual("foo_11", bpClone.Type);
-            Assert.AreEqual("foo_12", bpClone.UserId);
-            Assert.AreEqual("foo_13", bpClone.AppId);
-            Assert.AreEqual("foo_14", bpClone.ClusterId);
+            Assert.Equal("foo_1", bpClone.ContentType);
+            Assert.Equal("foo_2", bpClone.ContentEncoding);
+            Assert.Equal(2, bpClone.Headers.Count);
+            Assert.True(bpClone.Headers.ContainsKey("foo_3"));
+            Assert.Equal("foo_4", bpClone.Headers["foo_3"]);
+            Assert.True(bpClone.Headers.ContainsKey("foo_5"));
+            Assert.Equal("foo_6", bpClone.Headers["foo_5"]);
+            Assert.Equal(2, bpClone.DeliveryMode);
+            Assert.True(bpClone.Persistent);
+            Assert.Equal(12, bpClone.Priority);
+            Assert.Equal("foo_7", bpClone.CorrelationId);
+            Assert.Equal("foo_8", bpClone.ReplyTo);
+            Assert.Null(bpClone.ReplyToAddress);
+            Assert.Equal("foo_9", bpClone.Expiration);
+            Assert.Equal("foo_10", bpClone.MessageId);
+            Assert.Equal(new AmqpTimestamp(123), bpClone.Timestamp);
+            Assert.Equal("foo_11", bpClone.Type);
+            Assert.Equal("foo_12", bpClone.UserId);
+            Assert.Equal("foo_13", bpClone.AppId);
+            Assert.Equal("foo_14", bpClone.ClusterId);
         }
 
         private void TestBasicPropertiesNoneClone(BasicProperties bp)
@@ -152,20 +151,20 @@ namespace RabbitMQ.Client.Unit
             bp.ClusterId = "foo_14";
 
             // Check that no member is present in clone
-            Assert.AreEqual(false, bpClone.IsContentTypePresent());
-            Assert.AreEqual(false, bpClone.IsContentEncodingPresent());
-            Assert.AreEqual(false, bpClone.IsHeadersPresent());
-            Assert.AreEqual(false, bpClone.IsDeliveryModePresent());
-            Assert.AreEqual(false, bpClone.IsPriorityPresent());
-            Assert.AreEqual(false, bpClone.IsCorrelationIdPresent());
-            Assert.AreEqual(false, bpClone.IsReplyToPresent());
-            Assert.AreEqual(false, bpClone.IsExpirationPresent());
-            Assert.AreEqual(false, bpClone.IsMessageIdPresent());
-            Assert.AreEqual(false, bpClone.IsTimestampPresent());
-            Assert.AreEqual(false, bpClone.IsTypePresent());
-            Assert.AreEqual(false, bpClone.IsUserIdPresent());
-            Assert.AreEqual(false, bpClone.IsAppIdPresent());
-            Assert.AreEqual(false, bpClone.IsClusterIdPresent());
+            Assert.False(bpClone.IsContentTypePresent());
+            Assert.False(bpClone.IsContentEncodingPresent());
+            Assert.False(bpClone.IsHeadersPresent());
+            Assert.False(bpClone.IsDeliveryModePresent());
+            Assert.False(bpClone.IsPriorityPresent());
+            Assert.False(bpClone.IsCorrelationIdPresent());
+            Assert.False(bpClone.IsReplyToPresent());
+            Assert.False(bpClone.IsExpirationPresent());
+            Assert.False(bpClone.IsMessageIdPresent());
+            Assert.False(bpClone.IsTimestampPresent());
+            Assert.False(bpClone.IsTypePresent());
+            Assert.False(bpClone.IsUserIdPresent());
+            Assert.False(bpClone.IsAppIdPresent());
+            Assert.False(bpClone.IsClusterIdPresent());
         }
     }
 }

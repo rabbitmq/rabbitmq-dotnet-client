@@ -31,27 +31,25 @@
 
 using System;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Exceptions;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestPassiveDeclare : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
         {
-            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
-                () => _model.ExchangeDeclarePassive(Guid.NewGuid().ToString()));
+            Assert.Throws<OperationInterruptedException>(() => _model.ExchangeDeclarePassive(Guid.NewGuid().ToString()));
         }
 
-        [Test]
+        [Fact]
         public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
         {
-            Assert.Throws(Is.InstanceOf<OperationInterruptedException>(),
-                () => _model.QueueDeclarePassive(Guid.NewGuid().ToString()));
+            Assert.Throws<OperationInterruptedException>(() => _model.QueueDeclarePassive(Guid.NewGuid().ToString()));
         }
     }
 }

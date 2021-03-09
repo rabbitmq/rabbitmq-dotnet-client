@@ -30,15 +30,14 @@
 //---------------------------------------------------------------------------
 
 using System;
-using NUnit.Framework;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
-    [TestFixture]
-    class TestBasicProperties
+    public class TestBasicProperties
     {
-        [Test]
+        [Fact]
         public void TestPersistentPropertyChangesDeliveryMode_PersistentTrueDelivery2()
         {
             // Arrange
@@ -49,11 +48,11 @@ namespace RabbitMQ.Client.Unit
             };
 
             // Assert
-            Assert.AreEqual(2, subject.DeliveryMode);
-            Assert.AreEqual(true, subject.Persistent);
+            Assert.Equal(2, subject.DeliveryMode);
+            Assert.True(subject.Persistent);
         }
 
-        [Test]
+        [Fact]
         public void TestPersistentPropertyChangesDeliveryMode_PersistentFalseDelivery1()
         {
             // Arrange
@@ -65,16 +64,14 @@ namespace RabbitMQ.Client.Unit
             };
 
             // Assert
-            Assert.AreEqual(1, subject.DeliveryMode);
-            Assert.AreEqual(false, subject.Persistent);
+            Assert.Equal(1, subject.DeliveryMode);
+            Assert.False(subject.Persistent);
         }
 
-        [Test]
-        public void TestNullableProperties_CanWrite(
-            [Values(null, "cluster1")] string clusterId,
-            [Values(null, "732E39DC-AF56-46E8-B8A9-079C4B991B2E")] string correlationId,
-            [Values(null, "7D221C7E-1788-4D11-9CA5-AC41425047CF")] string messageId
-            )
+        [Theory]
+        [InlineData(null, null, null)]
+        [InlineData("cluster1", "732E39DC-AF56-46E8-B8A9-079C4B991B2E", "7D221C7E-1788-4D11-9CA5-AC41425047CF")]
+        public void TestNullableProperties_CanWrite(string clusterId, string correlationId, string messageId)
         {
             // Arrange
             var subject = new Framing.BasicProperties
@@ -87,13 +84,13 @@ namespace RabbitMQ.Client.Unit
 
             // Assert
             bool isClusterIdPresent = clusterId != null;
-            Assert.AreEqual(isClusterIdPresent, subject.IsClusterIdPresent());
+            Assert.Equal(isClusterIdPresent, subject.IsClusterIdPresent());
 
             bool isCorrelationIdPresent = correlationId != null;
-            Assert.AreEqual(isCorrelationIdPresent, subject.IsCorrelationIdPresent());
+            Assert.Equal(isCorrelationIdPresent, subject.IsCorrelationIdPresent());
 
             bool isMessageIdPresent = messageId != null;
-            Assert.AreEqual(isMessageIdPresent, subject.IsMessageIdPresent());
+            Assert.Equal(isMessageIdPresent, subject.IsMessageIdPresent());
 
             Span<byte> span = new byte[1024];
             int offset = subject.WritePropertiesTo(span);
@@ -101,16 +98,19 @@ namespace RabbitMQ.Client.Unit
             // Read from Stream
             var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset));
 
-            Assert.AreEqual(clusterId, propertiesFromStream.ClusterId);
-            Assert.AreEqual(correlationId, propertiesFromStream.CorrelationId);
-            Assert.AreEqual(messageId, propertiesFromStream.MessageId);
-            Assert.AreEqual(isClusterIdPresent, propertiesFromStream.IsClusterIdPresent());
-            Assert.AreEqual(isCorrelationIdPresent, propertiesFromStream.IsCorrelationIdPresent());
-            Assert.AreEqual(isMessageIdPresent, propertiesFromStream.IsMessageIdPresent());
+            Assert.Equal(clusterId, propertiesFromStream.ClusterId);
+            Assert.Equal(correlationId, propertiesFromStream.CorrelationId);
+            Assert.Equal(messageId, propertiesFromStream.MessageId);
+            Assert.Equal(isClusterIdPresent, propertiesFromStream.IsClusterIdPresent());
+            Assert.Equal(isCorrelationIdPresent, propertiesFromStream.IsCorrelationIdPresent());
+            Assert.Equal(isMessageIdPresent, propertiesFromStream.IsMessageIdPresent());
         }
 
-        [Test]
-        public void TestProperties_ReplyTo([Values(null, "foo_1", "fanout://name/key")] string replyTo)
+        [Theory]
+        [InlineData(null)]
+        [InlineData("foo_1")]
+        [InlineData("fanout://name/key")]
+        public void TestProperties_ReplyTo(string replyTo)
         {
             // Arrange
             var subject = new Framing.BasicProperties
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Unit
             bool isReplyToPresent = replyTo != null;
             PublicationAddress.TryParse(replyTo, out PublicationAddress result);
             string replyToAddress = result?.ToString();
-            Assert.AreEqual(isReplyToPresent, subject.IsReplyToPresent());
+            Assert.Equal(isReplyToPresent, subject.IsReplyToPresent());
 
             Span<byte> span = new byte[1024];
             int offset = subject.WritePropertiesTo(span);
@@ -131,9 +131,9 @@ namespace RabbitMQ.Client.Unit
             // Read from Stream
             var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset));
 
-            Assert.AreEqual(replyTo, propertiesFromStream.ReplyTo);
-            Assert.AreEqual(isReplyToPresent, propertiesFromStream.IsReplyToPresent());
-            Assert.AreEqual(replyToAddress, propertiesFromStream.ReplyToAddress?.ToString());
+            Assert.Equal(replyTo, propertiesFromStream.ReplyTo);
+            Assert.Equal(isReplyToPresent, propertiesFromStream.IsReplyToPresent());
+            Assert.Equal(replyToAddress, propertiesFromStream.ReplyToAddress?.ToString());
         }
     }
 }

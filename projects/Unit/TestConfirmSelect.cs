@@ -29,30 +29,31 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
 
-        [Test]
+    public class TestConfirmSelect : IntegrationFixture
+    {
+
+        [Fact]
         public void TestConfirmSelectIdempotency()
         {
             _model.ConfirmSelect();
-            Assert.AreEqual(1, _model.NextPublishSeqNo);
+            Assert.Equal(1ul, _model.NextPublishSeqNo);
             Publish();
-            Assert.AreEqual(2, _model.NextPublishSeqNo);
+            Assert.Equal(2ul, _model.NextPublishSeqNo);
             Publish();
-            Assert.AreEqual(3, _model.NextPublishSeqNo);
+            Assert.Equal(3ul, _model.NextPublishSeqNo);
 
             _model.ConfirmSelect();
             Publish();
-            Assert.AreEqual(4, _model.NextPublishSeqNo);
+            Assert.Equal(4ul, _model.NextPublishSeqNo);
             Publish();
-            Assert.AreEqual(5, _model.NextPublishSeqNo);
+            Assert.Equal(5ul, _model.NextPublishSeqNo);
             Publish();
-            Assert.AreEqual(6, _model.NextPublishSeqNo);
+            Assert.Equal(6ul, _model.NextPublishSeqNo);
         }
 
         protected void Publish()

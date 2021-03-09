@@ -33,22 +33,21 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestExchangeDeclare : IntegrationFixture {
 
-        [Test]
-        [Category("RequireSMP")]
+        [Fact]
         public void TestConcurrentExchangeDeclare()
         {
             string x = GenerateExchangeName();
             Random rnd = new Random();
 
             List<Thread> ts = new List<Thread>();
-            System.NotSupportedException nse = null;
+            NotSupportedException nse = null;
             for(int i = 0; i < 256; i++)
             {
                 Thread t = new Thread(() =>
@@ -59,7 +58,7 @@ namespace RabbitMQ.Client.Unit
                                 // of thread interleaving. MK.
                                 Thread.Sleep(rnd.Next(5, 500));
                                 _model.ExchangeDeclare(x, "fanout", false, false, null);
-                            } catch (System.NotSupportedException e)
+                            } catch (NotSupportedException e)
                             {
                                 nse = e;
                             }
@@ -73,7 +72,7 @@ namespace RabbitMQ.Client.Unit
                 t.Join();
             }
 
-            Assert.IsNull(nse);
+            Assert.Null(nse);
             _model.ExchangeDelete(x);
         }
     }

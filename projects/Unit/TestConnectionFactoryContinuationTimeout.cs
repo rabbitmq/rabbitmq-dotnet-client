@@ -30,30 +30,31 @@
 //---------------------------------------------------------------------------
 
 using System;
-using NUnit.Framework;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    internal class TestConnectionFactoryContinuationTimeout : IntegrationFixture
+
+    public class TestConnectionFactoryContinuationTimeout : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public void TestConnectionFactoryContinuationTimeoutOnRecoveringConnection()
         {
             var continuationTimeout = TimeSpan.FromSeconds(777);
             using (IConnection c = CreateConnectionWithContinuationTimeout(true, continuationTimeout))
             {
-                Assert.AreEqual(continuationTimeout, c.CreateModel().ContinuationTimeout);
+                Assert.Equal(continuationTimeout, c.CreateModel().ContinuationTimeout);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestConnectionFactoryContinuationTimeoutOnNonRecoveringConnection()
         {
             var continuationTimeout = TimeSpan.FromSeconds(777);
             using (IConnection c = CreateConnectionWithContinuationTimeout(false, continuationTimeout))
             {
-                Assert.AreEqual(continuationTimeout, c.CreateModel().ContinuationTimeout);
+                Assert.Equal(continuationTimeout, c.CreateModel().ContinuationTimeout);
             }
         }
     }

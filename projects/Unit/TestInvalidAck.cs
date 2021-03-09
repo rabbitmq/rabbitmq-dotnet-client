@@ -31,14 +31,14 @@
 
 using System.Threading;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestInvalidAck : IntegrationFixture {
 
-        [Test]
+        [Fact]
         public void TestAckWithUnknownConsumerTagAndMultipleFalse()
         {
             object o = new object();
@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Unit
 
             _model.BasicAck(123456, false);
             WaitOn(o);
-            Assert.IsTrue(shutdownFired);
+            Assert.True(shutdownFired);
             AssertPreconditionFailed(shutdownArgs);
         }
     }
