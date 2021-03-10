@@ -45,15 +45,15 @@ namespace RabbitMQ.Client.Unit
             _model.ConfirmSelect();
             for (int i = 0; i < 10; i++)
             {
-                _model.BasicPublish("", string.Empty, null, new byte[] {});
+                _model.BasicPublish("", string.Empty, null, new byte[] { });
             }
             Assert.True(await _model.WaitForConfirmsAsync().ConfigureAwait(false));
         }
 
         [Fact]
-        public void TestConfirmBeforeWait()
+        public async Task TestConfirmBeforeWait()
         {
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await _model.WaitForConfirmsAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _model.WaitForConfirmsAsync());
         }
 
         [Fact]
@@ -69,12 +69,12 @@ namespace RabbitMQ.Client.Unit
             _model.ExchangeBind("dest", "src", string.Empty);
             _model.QueueBind(queue, "dest", string.Empty);
 
-            _model.BasicPublish("src", string.Empty, null, new byte[] {});
+            _model.BasicPublish("src", string.Empty, null, new byte[] { });
             await _model.WaitForConfirmsAsync().ConfigureAwait(false);
             Assert.NotNull(_model.BasicGet(queue, true));
 
             _model.ExchangeUnbind("dest", "src", string.Empty);
-            _model.BasicPublish("src", string.Empty, null, new byte[] {});
+            _model.BasicPublish("src", string.Empty, null, new byte[] { });
             await _model.WaitForConfirmsAsync().ConfigureAwait(false);
             Assert.Null(_model.BasicGet(queue, true));
 
