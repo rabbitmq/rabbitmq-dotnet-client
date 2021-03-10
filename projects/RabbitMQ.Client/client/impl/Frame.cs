@@ -199,10 +199,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                if (reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length) == 0)
-                {
-                    throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
-                }
+                ReadFromStream(reader, frameHeaderBuffer, frameHeaderBuffer.Length);
             }
             catch (IOException ioe)
             {
@@ -234,19 +231,15 @@ namespace RabbitMQ.Client.Impl
             // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
             int readSize = payloadSize + EndMarkerLength;
             byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
-            int bytesRead = 0;
             try
             {
-                while (bytesRead < readSize)
-                {
-                    bytesRead += reader.Read(payloadBytes, bytesRead, readSize - bytesRead);
-                }
+                ReadFromStream(reader, payloadBytes, readSize);
             }
             catch (Exception)
             {
                 // Early EOF.
                 ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException($"Short frame - expected to read {readSize} bytes, only got {bytesRead} bytes");
+                throw new MalformedFrameException($"Short frame - expected to read {readSize} bytes");
             }
 
             if (payloadBytes[payloadSize] != Constants.FrameEnd)
@@ -256,6 +249,27 @@ namespace RabbitMQ.Client.Impl
             }
 
             return new InboundFrame(type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ReadFromStream(Stream reader, byte[] buffer, int toRead)
+        {
+            int bytesRead = 0;
+            do
+            {
+                int read = reader.Read(buffer, bytesRead, toRead - bytesRead);
+                if (read == 0)
+                {
+                    ThrowEndOfStream();
+                }
+
+                bytesRead += read;
+            } while (bytesRead != toRead);
+
+            static void ThrowEndOfStream()
+            {
+                throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
+            }
         }
 
         public byte[] TakeoverPayload()
