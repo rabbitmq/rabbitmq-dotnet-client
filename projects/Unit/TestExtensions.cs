@@ -31,31 +31,32 @@
 
 using System;
 using System.Threading.Tasks;
-using NUnit.Framework;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestExtensions : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public async Task TestConfirmBarrier()
         {
             _model.ConfirmSelect();
             for (int i = 0; i < 10; i++)
             {
-                _model.BasicPublish("", string.Empty, null, new byte[] {});
+                _model.BasicPublish("", string.Empty, null, new byte[] { });
             }
             Assert.True(await _model.WaitForConfirmsAsync().ConfigureAwait(false));
         }
 
-        [Test]
-        public void TestConfirmBeforeWait()
+        [Fact]
+        public async Task TestConfirmBeforeWait()
         {
-            Assert.Throws(typeof (InvalidOperationException), () => _model.WaitForConfirmsAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _model.WaitForConfirmsAsync());
         }
 
-        [Test]
+        [Fact]
         public async Task TestExchangeBinding()
         {
             _model.ConfirmSelect();
@@ -68,14 +69,14 @@ namespace RabbitMQ.Client.Unit
             _model.ExchangeBind("dest", "src", string.Empty);
             _model.QueueBind(queue, "dest", string.Empty);
 
-            _model.BasicPublish("src", string.Empty, null, new byte[] {});
+            _model.BasicPublish("src", string.Empty, null, new byte[] { });
             await _model.WaitForConfirmsAsync().ConfigureAwait(false);
-            Assert.IsNotNull(_model.BasicGet(queue, true));
+            Assert.NotNull(_model.BasicGet(queue, true));
 
             _model.ExchangeUnbind("dest", "src", string.Empty);
-            _model.BasicPublish("src", string.Empty, null, new byte[] {});
+            _model.BasicPublish("src", string.Empty, null, new byte[] { });
             await _model.WaitForConfirmsAsync().ConfigureAwait(false);
-            Assert.IsNull(_model.BasicGet(queue, true));
+            Assert.Null(_model.BasicGet(queue, true));
 
             _model.ExchangeDelete("src");
             _model.ExchangeDelete("dest");

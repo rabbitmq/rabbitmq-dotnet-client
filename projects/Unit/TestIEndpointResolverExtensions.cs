@@ -32,14 +32,14 @@
 using System;
 using System.Collections.Generic;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
     public class TestEndpointResolver : IEndpointResolver
     {
         private readonly IEnumerable<AmqpTcpEndpoint> _endpoints;
-        public TestEndpointResolver (IEnumerable<AmqpTcpEndpoint> endpoints)
+        public TestEndpointResolver(IEnumerable<AmqpTcpEndpoint> endpoints)
         {
             _endpoints = endpoints;
         }
@@ -59,26 +59,27 @@ namespace RabbitMQ.Client.Unit
 
     public class TestIEndpointResolverExtensions
     {
-        [Test]
+        [Fact]
         public void SelectOneShouldReturnDefaultWhenThereAreNoEndpoints()
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint>());
-            Assert.IsNull(ep.SelectOne<AmqpTcpEndpoint>((x) => null));
+            Assert.Null(ep.SelectOne<AmqpTcpEndpoint>((x) => null));
         }
 
-        [Test]
+        [Fact]
         public void SelectOneShouldRaiseThrownExceptionWhenThereAreOnlyInaccessibleEndpoints()
         {
-            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint()});
+            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint() });
             AggregateException thrown = Assert.Throws<AggregateException>(() => ep.SelectOne<AmqpTcpEndpoint>((x) => { throw new TestEndpointException("bananas"); }));
-            Assert.That(thrown.InnerExceptions, Has.Exactly(1).TypeOf<TestEndpointException>());
+            Assert.Single(thrown.InnerExceptions);
+            Assert.All(thrown.InnerExceptions, e => Assert.IsType<TestEndpointException>(e));
         }
 
-        [Test]
+        [Fact]
         public void SelectOneShouldReturnFoundEndpoint()
         {
-            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint()});
-            Assert.IsNotNull(ep.SelectOne<AmqpTcpEndpoint>((e) => e));
+            var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint() });
+            Assert.NotNull(ep.SelectOne((e) => e));
         }
     }
 }

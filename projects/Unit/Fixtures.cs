@@ -36,15 +36,16 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Framing.Impl;
+
+using Xunit;
+
 using static RabbitMQ.Client.Unit.RabbitMQCtl;
 
 namespace RabbitMQ.Client.Unit
 {
 
-    public class IntegrationFixture
+    public class IntegrationFixture : IDisposable
     {
         internal IConnectionFactory _connFactory;
         internal IConnection _conn;
@@ -52,22 +53,25 @@ namespace RabbitMQ.Client.Unit
         internal Encoding _encoding = new UTF8Encoding();
         public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
 
-        [SetUp]
-        public virtual void Init()
+        protected IntegrationFixture()
+        {
+            SetUp();
+        }
+
+        protected virtual void SetUp()
         {
             _connFactory = new ConnectionFactory();
             _conn = _connFactory.CreateConnection();
             _model = _conn.CreateModel();
         }
 
-        [TearDown]
-        public void Dispose()
+        public virtual void Dispose()
         {
-            if(_model.IsOpen)
+            if (_model.IsOpen)
             {
                 _model.Close();
             }
-            if(_conn.IsOpen)
+            if (_conn.IsOpen)
             {
                 _conn.Close();
             }
@@ -141,16 +145,6 @@ namespace RabbitMQ.Client.Unit
             return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
         }
 
-        internal IConnection CreateNonRecoveringConnection()
-        {
-            var cf = new ConnectionFactory
-            {
-                AutomaticRecoveryEnabled = false,
-                TopologyRecoveryEnabled = false
-            };
-            return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
-        }
-
         internal IConnection CreateConnectionWithContinuationTimeout(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)
         {
             var cf = new ConnectionFactory
@@ -164,38 +158,6 @@ namespace RabbitMQ.Client.Unit
         //
         // Channels
         //
-
-        internal void WithTemporaryAutorecoveringConnection(Action<AutorecoveringConnection> action)
-        {
-            var factory = new ConnectionFactory
-            {
-                AutomaticRecoveryEnabled = true
-            };
-
-            var connection = (AutorecoveringConnection)factory.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
-            try
-            {
-                action(connection);
-            }
-            finally
-            {
-                connection.Abort();
-            }
-        }
-
-        internal void WithTemporaryModel(IConnection connection, Action<IModel> action)
-        {
-            IModel model = connection.CreateModel();
-
-            try
-            {
-                action(model);
-            }
-            finally
-            {
-                model.Abort();
-            }
-        }
 
         internal void WithTemporaryModel(Action<IModel> action)
         {
@@ -260,41 +222,14 @@ namespace RabbitMQ.Client.Unit
             return $"queue{Guid.NewGuid()}";
         }
 
-        internal void WithTemporaryQueue(Action<IModel, string> action)
-        {
-            WithTemporaryQueue(_model, action);
-        }
-
         internal void WithTemporaryNonExclusiveQueue(Action<IModel, string> action)
         {
             WithTemporaryNonExclusiveQueue(_model, action);
         }
 
-        internal void WithTemporaryQueue(IModel model, Action<IModel, string> action)
-        {
-            WithTemporaryQueue(model, action, GenerateQueueName());
-        }
-
         internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action)
         {
             WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
-        }
-
-        internal void WithTemporaryQueue(Action<IModel, string> action, string q)
-        {
-            WithTemporaryQueue(_model, action, q);
-        }
-
-        internal void WithTemporaryQueue(IModel model, Action<IModel, string> action, string queue)
-        {
-            try
-            {
-                model.QueueDeclare(queue, false, true, false, null);
-                action(model, queue);
-            } finally
-            {
-                WithTemporaryModel(x => x.QueueDelete(queue));
-            }
         }
 
         internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action, string queue)
@@ -303,7 +238,8 @@ namespace RabbitMQ.Client.Unit
             {
                 model.QueueDeclare(queue, false, false, false, null);
                 action(model, queue);
-            } finally
+            }
+            finally
             {
                 WithTemporaryModel(tm => tm.QueueDelete(queue));
             }
@@ -315,15 +251,11 @@ namespace RabbitMQ.Client.Unit
             {
                 model.QueueDeclareNoWait(queue, false, true, false, null);
                 action(model, queue);
-            } finally
+            }
+            finally
             {
                 WithTemporaryModel(x => x.QueueDelete(queue));
             }
-        }
-
-        internal void EnsureNotEmpty(string q)
-        {
-            EnsureNotEmpty(q, "msg");
         }
 
         internal void EnsureNotEmpty(string q, string body)
@@ -354,26 +286,28 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        internal void AssertMessageCount(string q, int count)
+        internal void AssertMessageCount(string q, uint count)
         {
-            WithTemporaryModel((m) => {
+            WithTemporaryModel((m) =>
+            {
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
-                Assert.AreEqual(count, ok.MessageCount);
+                Assert.Equal(count, ok.MessageCount);
             });
         }
 
         internal void AssertConsumerCount(string q, int count)
         {
-            WithTemporaryModel((m) => {
+            WithTemporaryModel((m) =>
+            {
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
-                Assert.AreEqual(count, ok.ConsumerCount);
+                Assert.Equal((uint)count, ok.ConsumerCount);
             });
         }
 
-        internal void AssertConsumerCount(IModel m, string q, int count)
+        internal void AssertConsumerCount(IModel m, string q, uint count)
         {
             QueueDeclareOk ok = m.QueueDeclarePassive(q);
-            Assert.AreEqual(count, ok.ConsumerCount);
+            Assert.Equal(count, ok.ConsumerCount);
         }
 
         //
@@ -382,7 +316,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void AssertShutdownError(ShutdownEventArgs args, int code)
         {
-            Assert.AreEqual(args.ReplyCode, code);
+            Assert.Equal(args.ReplyCode, code);
         }
 
         internal void AssertPreconditionFailed(ShutdownEventArgs args)
@@ -401,7 +335,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void WaitOn(object o)
         {
-            lock(o)
+            lock (o)
             {
                 Monitor.Wait(o, TimingFixture.TestTimeout);
             }
@@ -421,19 +355,9 @@ namespace RabbitMQ.Client.Unit
             RabbitMQCtl.Unblock();
         }
 
-        internal void Publish(IConnection conn)
-        {
-            RabbitMQCtl.Publish(conn, _encoding);
-        }
-
         //
         // Connection Closure
         //
-
-        internal List<ConnectionInfo> ListConnections()
-        {
-            return RabbitMQCtl.ListConnections();
-        }
 
         internal void CloseConnection(IConnection conn)
         {
@@ -443,11 +367,6 @@ namespace RabbitMQ.Client.Unit
         internal void CloseAllConnections()
         {
             RabbitMQCtl.CloseAllConnections();
-        }
-
-        internal void CloseConnection(string pid)
-        {
-            RabbitMQCtl.CloseConnection(pid);
         }
 
         internal void RestartRabbitMQ()
@@ -471,12 +390,12 @@ namespace RabbitMQ.Client.Unit
 
         internal void Wait(ManualResetEventSlim latch)
         {
-            Assert.IsTrue(latch.Wait(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
+            Assert.True(latch.Wait(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
         }
 
         internal void Wait(ManualResetEventSlim latch, TimeSpan timeSpan)
         {
-            Assert.IsTrue(latch.Wait(timeSpan), "waiting on a latch timed out");
+            Assert.True(latch.Wait(timeSpan), "waiting on a latch timed out");
         }
 
         //

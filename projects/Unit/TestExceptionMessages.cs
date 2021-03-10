@@ -31,16 +31,16 @@
 
 using System;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Exceptions;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestExceptionMessages : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public void TestAlreadyClosedExceptionMessage()
         {
             string uuid = System.Guid.NewGuid().ToString();
@@ -50,10 +50,10 @@ namespace RabbitMQ.Client.Unit
             }
             catch (Exception e)
             {
-                Assert.That(e, Is.TypeOf(typeof(OperationInterruptedException)));
+                Assert.IsType<OperationInterruptedException>(e);
             }
 
-            Assert.IsFalse(_model.IsOpen);
+            Assert.False(_model.IsOpen);
 
             try
             {
@@ -61,8 +61,7 @@ namespace RabbitMQ.Client.Unit
             }
             catch (AlreadyClosedException e)
             {
-                Assert.That(e, Is.TypeOf(typeof(AlreadyClosedException)));
-                Assert.IsTrue(e.Message.StartsWith("Already closed"));
+                Assert.StartsWith("Already closed", e.Message);
             }
         }
     }

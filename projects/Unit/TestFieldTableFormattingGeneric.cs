@@ -34,16 +34,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Impl;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    class TestFieldTableFormattingGeneric : WireFormattingFixture
+
+    public class TestFieldTableFormattingGeneric : WireFormattingFixture
     {
-        [Test]
+        [Fact]
         public void TestStandardTypes()
         {
             IDictionary<string, object> t = new Dictionary<string, object>
@@ -67,20 +67,20 @@ namespace RabbitMQ.Client.Unit
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(bytes, t);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
-            Assert.AreEqual(bytesNeeded, bytesRead);
-            Assert.AreEqual(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
-            Assert.AreEqual(1234, nt["int"]);
-            Assert.AreEqual(1234u, nt["uint"]);
-            Assert.AreEqual(12.34m, nt["decimal"]);
-            Assert.AreEqual(0, ((AmqpTimestamp)nt["timestamp"]).UnixTime);
+            Assert.Equal(bytesNeeded, bytesRead);
+            Assert.Equal(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
+            Assert.Equal(1234, nt["int"]);
+            Assert.Equal(1234u, nt["uint"]);
+            Assert.Equal(12.34m, nt["decimal"]);
+            Assert.Equal(0, ((AmqpTimestamp)nt["timestamp"]).UnixTime);
             IDictionary<string, object> nt2 = (IDictionary<string, object>)nt["fieldtable"];
-            Assert.AreEqual(Encoding.UTF8.GetBytes("test"), nt2["test"]);
+            Assert.Equal(Encoding.UTF8.GetBytes("test"), nt2["test"]);
             IList<object> narray = (IList<object>)nt["fieldarray"];
-            Assert.AreEqual(Encoding.UTF8.GetBytes("longstring"), narray[0]);
-            Assert.AreEqual(1234, narray[1]);
+            Assert.Equal(Encoding.UTF8.GetBytes("longstring"), narray[0]);
+            Assert.Equal(1234, narray[1]);
         }
 
-        [Test]
+        [Fact]
         public void TestTableEncoding_S()
         {
             IDictionary<string, object> t = new Dictionary<string, object>
@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Unit
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(bytes, t);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
-            Assert.AreEqual(bytesNeeded, bytesRead);
+            Assert.Equal(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
                     0,0,0,9, // table length
                     1,(byte)'a', // key
@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Unit
                 });
         }
 
-        [Test]
+        [Fact]
         public void TestTableEncoding_x()
         {
             IDictionary<string, object> t = new Dictionary<string, object>
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Unit
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(bytes, t);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
-            Assert.AreEqual(bytesNeeded, bytesRead);
+            Assert.Equal(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
                     0,0,0,9, // table length
                     1,(byte)'a', // key
@@ -120,7 +120,7 @@ namespace RabbitMQ.Client.Unit
                 });
         }
 
-        [Test]
+        [Fact]
         public void TestQpidJmsTypes()
         {
             IDictionary<string, object> t = new Dictionary<string, object>
@@ -140,16 +140,16 @@ namespace RabbitMQ.Client.Unit
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(bytes, t);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
-            Assert.AreEqual(bytesNeeded, bytesRead);
-            Assert.AreEqual(typeof(byte), nt["B"].GetType()); Assert.AreEqual((byte)255, nt["B"]);
-            Assert.AreEqual(typeof(sbyte), nt["b"].GetType()); Assert.AreEqual((sbyte)-128, nt["b"]);
-            Assert.AreEqual(typeof(double), nt["d"].GetType()); Assert.AreEqual((double)123, nt["d"]);
-            Assert.AreEqual(typeof(float), nt["f"].GetType()); Assert.AreEqual((float)123, nt["f"]);
-            Assert.AreEqual(typeof(long), nt["l"].GetType()); Assert.AreEqual((long)123, nt["l"]);
-            Assert.AreEqual(typeof(short), nt["s"].GetType()); Assert.AreEqual((short)123, nt["s"]);
-            Assert.AreEqual(true, nt["t"]);
-            Assert.AreEqual(xbytes, ((BinaryTableValue)nt["x"]).Bytes);
-            Assert.AreEqual(null, nt["V"]);
+            Assert.Equal(bytesNeeded, bytesRead);
+            Assert.Equal(typeof(byte), nt["B"].GetType()); Assert.Equal((byte)255, nt["B"]);
+            Assert.Equal(typeof(sbyte), nt["b"].GetType()); Assert.Equal((sbyte)-128, nt["b"]);
+            Assert.Equal(typeof(double), nt["d"].GetType()); Assert.Equal((double)123, nt["d"]);
+            Assert.Equal(typeof(float), nt["f"].GetType()); Assert.Equal((float)123, nt["f"]);
+            Assert.Equal(typeof(long), nt["l"].GetType()); Assert.Equal((long)123, nt["l"]);
+            Assert.Equal(typeof(short), nt["s"].GetType()); Assert.Equal((short)123, nt["s"]);
+            Assert.Equal(true, nt["t"]);
+            Assert.Equal(xbytes, ((BinaryTableValue)nt["x"]).Bytes);
+            Assert.Null(nt["V"]);
         }
     }
 }

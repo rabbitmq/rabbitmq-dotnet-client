@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Unit
         //
         // Shelling Out
         //
-        public static Process ExecRabbitMQCtl(string args)
+        private static Process ExecRabbitMQCtl(string args)
         {
             // Allow the path to the rabbitmqctl.bat to be set per machine
             string envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Unit
             return ExecCommand(rabbitmqctlPath, args);
         }
 
-        public static Process ExecRabbitMQCtlUsingDocker(string args, string dockerMachineName)
+        private static Process ExecRabbitMQCtlUsingDocker(string args, string dockerMachineName)
         {
             var proc = new Process
             {
@@ -134,17 +134,12 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public static Process ExecCommand(string command)
-        {
-            return ExecCommand(command, "");
-        }
-
-        public static Process ExecCommand(string command, string args)
+        private static Process ExecCommand(string command, string args)
         {
             return ExecCommand(command, args, null);
         }
 
-        public static Process ExecCommand(string ctl, string args, string changeDirTo)
+        private static Process ExecCommand(string ctl, string args, string changeDirTo)
         {
             var proc = new Process
             {
@@ -195,12 +190,12 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public static void ReportExecFailure(string cmd, string args, string msg)
+        private static void ReportExecFailure(string cmd, string args, string msg)
         {
             Console.WriteLine($"Failure while running {cmd} {args}:\n{msg}");
         }
 
-        public static bool IsRunningOnMonoOrDotNetCore()
+        private static bool IsRunningOnMonoOrDotNetCore()
         {
 #if NETCOREAPP
             return true;
@@ -233,7 +228,7 @@ namespace RabbitMQ.Client.Unit
             ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
         }
 
-        private static readonly Regex s_getConnectionName = new Regex(@"\{""connection_name"",""(?<connection_name>[^""]+)""\}");
+        private static readonly Regex s_getConnectionProperties = new Regex(@"(?<pid>.*)\s\[.*\""connection_name\"",\""(?<connection_name>.*?)\"".*\]", RegexOptions.Compiled);
         public class ConnectionInfo
         {
             public string Pid
@@ -257,6 +252,7 @@ namespace RabbitMQ.Client.Unit
                 return $"pid = {Pid}, name: {Name}";
             }
         }
+
         public static List<ConnectionInfo> ListConnections()
         {
             Process proc = ExecRabbitMQCtl("list_connections --silent pid client_properties");
@@ -265,18 +261,23 @@ namespace RabbitMQ.Client.Unit
             try
             {
                 // {Environment.NewLine} is not sufficient
-                string[] splitOn = new string[] { "\r\n", "\n" };
-                string[] lines = stdout.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
-                // line: <rabbit@mercurio.1.11491.0>	{.../*client_properties*/...}
-                return lines.Select(s =>
+                var matches = s_getConnectionProperties.Matches(stdout);
+                if (matches.Count > 0)
                 {
-                    string[] columns = s.Split('\t');
-                    Debug.Assert(!string.IsNullOrEmpty(columns[0]), "columns[0] is null or empty!");
-                    Debug.Assert(!string.IsNullOrEmpty(columns[1]), "columns[1] is null or empty!");
-                    Match match = s_getConnectionName.Match(columns[1]);
-                    Debug.Assert(match.Success, "columns[1] is not in expected format.");
-                    return new ConnectionInfo(columns[0], match.Groups["connection_name"].Value);
-                }).ToList();
+                    var list = new List<ConnectionInfo>(matches.Count);
+                    for (int i = 0; i < matches.Count; i++)
+                    {
+                        var s = matches[i];
+                        Debug.Assert(s.Success, "Unable to parse connection list.");
+                        Debug.Assert(s.Groups.ContainsKey("pid"), "Unable to parse pid from {stdout}");
+                        Debug.Assert(s.Groups.ContainsKey("connection_name"), "Unable to parse connection_name from {stdout}");
+                        list.Add(new ConnectionInfo(s.Groups["pid"].Value, s.Groups["connection_name"].Value));
+                    }
+
+                    return list;
+                }
+
+                return null;
             }
             catch (Exception)
             {

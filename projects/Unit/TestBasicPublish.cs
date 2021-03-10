@@ -1,15 +1,17 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
+
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestBasicPublish
     {
-        [Test]
+        [Fact]
         public void TestBasicRoundtripArray()
         {
             var cf = new ConnectionFactory();
@@ -34,12 +36,12 @@ namespace RabbitMQ.Client.Unit
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
-                Assert.IsTrue(waitResFalse);
-                CollectionAssert.AreEqual(sendBody, consumeBody);
+                Assert.True(waitResFalse);
+                Assert.Equal(sendBody, consumeBody);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestBasicRoundtripCachedString()
         {
             var cf = new ConnectionFactory();
@@ -65,12 +67,12 @@ namespace RabbitMQ.Client.Unit
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
-                Assert.IsTrue(waitResFalse);
-                CollectionAssert.AreEqual(sendBody, consumeBody);
+                Assert.True(waitResFalse);
+                Assert.Equal(sendBody, consumeBody);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestBasicRoundtripReadOnlyMemory()
         {
             var cf = new ConnectionFactory();
@@ -95,12 +97,12 @@ namespace RabbitMQ.Client.Unit
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
-                Assert.IsTrue(waitResFalse);
-                CollectionAssert.AreEqual(sendBody, consumeBody);
+                Assert.True(waitResFalse);
+                Assert.Equal(sendBody, consumeBody);
             }
         }
 
-        [Test]
+        [Fact]
         public void CanNotModifyPayloadAfterPublish()
         {
             var cf = new ConnectionFactory();
@@ -126,8 +128,8 @@ namespace RabbitMQ.Client.Unit
                 m.BasicPublish("", q.QueueName, bp, sendBody);
                 sendBody.AsSpan().Fill(1);
 
-                Assert.IsTrue(are.WaitOne(2000));
-                Assert.IsFalse(modified, "Payload was modified after the return of BasicPublish");
+                Assert.True(are.WaitOne(2000));
+                Assert.False(modified, "Payload was modified after the return of BasicPublish");
 
                 m.BasicCancel(tag);
             }

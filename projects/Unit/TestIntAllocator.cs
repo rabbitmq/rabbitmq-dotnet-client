@@ -32,16 +32,16 @@
 using System;
 using System.Collections.Generic;
 
-using NUnit.Framework;
-
 using RabbitMQ.Util;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestIntAllocator
     {
-        [Test]
+        [Fact]
         public void TestRandomAllocation()
         {
             int repeatCount = 10000;
@@ -69,16 +69,16 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test]
+        [Fact]
         public void TestAllocateAll()
         {
             int range = 100;
             IList<int> allocated = new List<int>();
             IntAllocator intAllocator = new IntAllocator(0, range);
-            for (int i=0; i <= range; i++)
+            for (int i = 0; i <= range; i++)
             {
                 int a = intAllocator.Allocate();
-                Assert.AreNotEqual(-1, a);
+                Assert.NotEqual(-1, a);
                 Assert.False(allocated.Contains(a));
                 allocated.Add(a);
             }

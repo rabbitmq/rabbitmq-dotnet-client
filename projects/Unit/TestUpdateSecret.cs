@@ -32,14 +32,14 @@
 using System;
 using System.Text;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestUpdateSecret : IntegrationFixture {
 
-        [Test]
+        [Fact]
         public void TestUpdatingConnectionSecret()
         {
             if (!RabbitMQ380OrHigher())
@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
 
             _conn.UpdateSecret("new-secret", "Test Case");
 
-            Assert.AreEqual("new-secret", _connFactory.Password);
+            Assert.Equal("new-secret", _connFactory.Password);
         }
 
         private bool RabbitMQ380OrHigher()

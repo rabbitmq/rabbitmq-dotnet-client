@@ -31,16 +31,16 @@
 
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestEventingConsumer : IntegrationFixture {
 
-        [Test]
+        [Fact]
         public void TestEventingConsumerRegistrationEvents()
         {
             string q = _model.QueueDeclare();
@@ -66,18 +66,18 @@ namespace RabbitMQ.Client.Unit
             string tag = _model.BasicConsume(q, false, ec);
             Wait(registeredLatch);
 
-            Assert.IsNotNull(registeredSender);
-            Assert.AreEqual(ec, registeredSender);
-            Assert.AreEqual(_model, ((EventingBasicConsumer)registeredSender).Model);
+            Assert.NotNull(registeredSender);
+            Assert.Equal(ec, registeredSender);
+            Assert.Equal(_model, ((EventingBasicConsumer)registeredSender).Model);
 
             _model.BasicCancel(tag);
             Wait(unregisteredLatch);
-            Assert.IsNotNull(unregisteredSender);
-            Assert.AreEqual(ec, unregisteredSender);
-            Assert.AreEqual(_model, ((EventingBasicConsumer)unregisteredSender).Model);
+            Assert.NotNull(unregisteredSender);
+            Assert.Equal(ec, unregisteredSender);
+            Assert.Equal(_model, ((EventingBasicConsumer)unregisteredSender).Model);
         }
 
-        [Test]
+        [Fact]
         public void TestEventingConsumerDeliveryEvents()
         {
             string q = _model.QueueDeclare();
@@ -99,10 +99,10 @@ namespace RabbitMQ.Client.Unit
             _model.BasicPublish("", q, null, _encoding.GetBytes("msg"));
 
             WaitOn(o);
-            Assert.IsTrue(receivedInvoked);
-            Assert.IsNotNull(receivedSender);
-            Assert.AreEqual(ec, receivedSender);
-            Assert.AreEqual(_model, ((EventingBasicConsumer)receivedSender).Model);
+            Assert.True(receivedInvoked);
+            Assert.NotNull(receivedSender);
+            Assert.Equal(ec, receivedSender);
+            Assert.Equal(_model, ((EventingBasicConsumer)receivedSender).Model);
 
             bool shutdownInvoked = false;
             object shutdownSender = null;
@@ -118,10 +118,10 @@ namespace RabbitMQ.Client.Unit
             _model.Close();
             WaitOn(o);
 
-            Assert.IsTrue(shutdownInvoked);
-            Assert.IsNotNull(shutdownSender);
-            Assert.AreEqual(ec, shutdownSender);
-            Assert.AreEqual(_model, ((EventingBasicConsumer)shutdownSender).Model);
+            Assert.True(shutdownInvoked);
+            Assert.NotNull(shutdownSender);
+            Assert.Equal(ec, shutdownSender);
+            Assert.Equal(_model, ((EventingBasicConsumer)shutdownSender).Model);
         }
     }
 }

@@ -32,12 +32,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
+
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestAsyncConsumerExceptions : IntegrationFixture
     {
         private static readonly Exception TestException = new Exception("oops");
@@ -61,11 +63,10 @@ namespace RabbitMQ.Client.Unit
             action(_model, q, consumer, tag);
             resetEvent.WaitOne(2000);
 
-            Assert.IsTrue(notified);
+            Assert.True(notified);
         }
 
-        [SetUp]
-        public override void Init()
+        protected override void SetUp()
         {
             _connFactory = new ConnectionFactory
             {
@@ -76,35 +77,35 @@ namespace RabbitMQ.Client.Unit
             _model = _conn.CreateModel();
         }
 
-        [Test]
+        [Fact]
         public void TestCancelNotificationExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancel(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.QueueDelete(q));
         }
 
-        [Test]
+        [Fact]
         public void TestConsumerCancelOkExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancelOk(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicCancel(ct));
         }
 
-        [Test]
+        [Fact]
         public void TestConsumerConsumeOkExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => { });
         }
 
-        [Test]
+        [Fact]
         public void TestConsumerShutdownExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnShutdown(_model);
             TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.Close());
         }
 
-        [Test]
+        [Fact]
         public void TestDeliveryExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(_model);

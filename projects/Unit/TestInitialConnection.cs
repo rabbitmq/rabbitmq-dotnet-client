@@ -31,32 +31,32 @@
 
 using System.Collections.Generic;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Exceptions;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestInitialConnection : IntegrationFixture
     {
-        [Test]
+        [Fact]
         public void TestBasicConnectionRecoveryWithHostnameList()
         {
             Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
-            Assert.IsTrue(c.IsOpen);
+            Assert.True(c.IsOpen);
             c.Close();
         }
 
-        [Test]
+        [Fact]
         public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
         {
             Framing.Impl.AutorecoveringConnection c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
-            Assert.IsTrue(c.IsOpen);
+            Assert.True(c.IsOpen);
             c.Close();
         }
 
-        [Test]
+        [Fact]
         public void TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
         {
             Assert.Throws<BrokerUnreachableException>(() => {

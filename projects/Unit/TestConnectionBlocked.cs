@@ -32,25 +32,26 @@
 using System;
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
+    [Collection("NoParallelization")]
     public class TestConnectionBlocked : IntegrationFixture
     {
         private readonly object _lockObject = new object();
         private bool _notified;
 
-        public void HandleBlocked(object sender, ConnectionBlockedEventArgs args)
+        private void HandleBlocked(object sender, ConnectionBlockedEventArgs args)
         {
             Unblock();
         }
 
 
-        public void HandleUnblocked(object sender, EventArgs ea)
+        private void HandleUnblocked(object sender, EventArgs ea)
         {
             lock (_lockObject)
             {
@@ -64,7 +65,7 @@ namespace RabbitMQ.Client.Unit
             Unblock();
         }
 
-        [Test]
+        [Fact]
         public void TestConnectionBlockedNotification()
         {
             _conn.ConnectionBlocked += HandleBlocked;
@@ -81,7 +82,7 @@ namespace RabbitMQ.Client.Unit
             if (!_notified)
             {
                 Unblock();
-                Assert.Fail("Unblock notification not received.");
+                Assert.True(false, "Unblock notification not received.");
             }
         }
     }

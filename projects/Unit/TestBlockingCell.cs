@@ -32,16 +32,16 @@
 using System;
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Util;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    class TestBlockingCell : TimingFixture
+
+    public class TestBlockingCell : TimingFixture
     {
-        public class DelayedSetter<T>
+        internal class DelayedSetter<T>
         {
             public BlockingCell<T> m_k;
             public TimeSpan m_delay;
@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public static void SetAfter<T>(TimeSpan delay, BlockingCell<T> k, T v)
+        internal static void SetAfter<T>(TimeSpan delay, BlockingCell<T> k, T v)
         {
             var ds = new DelayedSetter<T>
             {
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit
 
         public DateTime m_startTime;
 
-        public void ResetTimer()
+        private void ResetTimer()
         {
             m_startTime = DateTime.Now;
         }
@@ -76,15 +76,15 @@ namespace RabbitMQ.Client.Unit
             return DateTime.Now - m_startTime;
         }
 
-        [Test]
+        [Fact]
         public void TestSetBeforeGet()
         {
             var k = new BlockingCell<int>();
             k.ContinueWithValue(123);
-            Assert.AreEqual(123, k.WaitForValue());
+            Assert.Equal(123, k.WaitForValue());
         }
 
-        [Test]
+        [Fact]
         public void TestGetValueWhichDoesNotTimeOut()
         {
             var k = new BlockingCell<int>();
@@ -92,11 +92,11 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             int v = k.WaitForValue(TimingInterval);
-            Assert.Greater(SafetyMargin, ElapsedMs());
-            Assert.AreEqual(123, v);
+            Assert.True(SafetyMargin > ElapsedMs());
+            Assert.Equal(123, v);
         }
 
-        [Test]
+        [Fact]
         public void TestGetValueWhichDoesTimeOut()
         {
             var k = new BlockingCell<int>();
@@ -104,7 +104,7 @@ namespace RabbitMQ.Client.Unit
             Assert.Throws<TimeoutException>(() => k.WaitForValue(TimingInterval));
         }
 
-        [Test]
+        [Fact]
         public void TestGetValueWhichDoesTimeOutWithTimeSpan()
         {
             var k = new BlockingCell<int>();
@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Unit
             Assert.Throws<TimeoutException>(() => k.WaitForValue(TimingInterval));
         }
 
-        [Test]
+        [Fact]
         public void TestGetValueWithTimeoutInfinite()
         {
             var k = new BlockingCell<int>();
@@ -120,11 +120,11 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             int v = k.WaitForValue(Timeout.InfiniteTimeSpan);
-            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
-            Assert.AreEqual(123, v);
+            Assert.True(TimingInterval - SafetyMargin < ElapsedMs());
+            Assert.Equal(123, v);
         }
 
-        [Test]
+        [Fact]
         public void TestBackgroundUpdateSucceeds()
         {
             var k = new BlockingCell<int>();
@@ -132,11 +132,11 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             int v = k.WaitForValue(TimingInterval_2X);
-            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
-            Assert.AreEqual(123, v);
+            Assert.True(TimingInterval - SafetyMargin < ElapsedMs());
+            Assert.Equal(123, v);
         }
 
-        [Test]
+        [Fact]
         public void TestBackgroundUpdateSucceedsWithTimeSpan()
         {
             var k = new BlockingCell<int>();
@@ -144,11 +144,11 @@ namespace RabbitMQ.Client.Unit
 
             ResetTimer();
             int v = k.WaitForValue(TimingInterval_2X);
-            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
-            Assert.AreEqual(123, v);
+            Assert.True(TimingInterval - SafetyMargin < ElapsedMs());
+            Assert.Equal(123, v);
         }
 
-        [Test]
+        [Fact]
         public void TestBackgroundUpdateSucceedsWithInfiniteTimeoutTimeSpan()
         {
             var k = new BlockingCell<int>();
@@ -157,11 +157,11 @@ namespace RabbitMQ.Client.Unit
             ResetTimer();
             TimeSpan infiniteTimeSpan = Timeout.InfiniteTimeSpan;
             int v = k.WaitForValue(infiniteTimeSpan);
-            Assert.Less(TimingInterval - SafetyMargin, ElapsedMs());
-            Assert.AreEqual(123, v);
+            Assert.True(TimingInterval - SafetyMargin < ElapsedMs());
+            Assert.Equal(123, v);
         }
 
-        [Test]
+        [Fact]
         public void TestBackgroundUpdateFails()
         {
             var k = new BlockingCell<int>();

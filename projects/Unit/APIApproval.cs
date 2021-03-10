@@ -30,18 +30,22 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using NUnit.Framework;
+
 using PublicApiGenerator;
-using VerifyNUnit;
+
 using VerifyTests;
+
+using VerifyXunit;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    [Platform(Exclude="Mono")]
+
+    [UsesVerify]
     public class APIApproval
     {
-        [Test]
+        [Fact]
         public Task Approve()
         {
             string publicApi = typeof(ConnectionFactory).Assembly.GeneratePublicApi(new ApiGeneratorOptions

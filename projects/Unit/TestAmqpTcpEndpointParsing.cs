@@ -31,126 +31,118 @@
 
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestAmqpTcpEndpointParsing
     {
-        [Test]
+        [Fact]
         public void TestHostWithPort()
         {
             AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("host:1234");
 
-            Assert.AreEqual("host", e.HostName);
-            Assert.AreEqual(1234, e.Port);
+            Assert.Equal("host", e.HostName);
+            Assert.Equal(1234, e.Port);
         }
 
-        [Test]
+        [Fact]
         public void TestHostWithoutPort()
         {
             AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("host");
 
-            Assert.AreEqual("host", e.HostName);
-            Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
+            Assert.Equal("host", e.HostName);
+            Assert.Equal(Protocols.DefaultProtocol.DefaultPort, e.Port);
         }
 
-        [Test]
+        [Fact]
         public void TestEmptyHostWithPort()
         {
             AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(":1234");
 
-            Assert.AreEqual("", e.HostName);
-            Assert.AreEqual(1234, e.Port);
+            Assert.Equal("", e.HostName);
+            Assert.Equal(1234, e.Port);
         }
 
-        [Test]
+        [Fact]
         public void TestEmptyHostWithoutPort()
         {
             AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse(":");
 
-            Assert.AreEqual("", e.HostName);
-            Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
+            Assert.Equal("", e.HostName);
+            Assert.Equal(Protocols.DefaultProtocol.DefaultPort, e.Port);
         }
 
-        [Test]
+        [Fact]
         public void TestCompletelyEmptyString()
         {
             AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("");
 
-            Assert.AreEqual("", e.HostName);
-            Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
+            Assert.Equal("", e.HostName);
+            Assert.Equal(Protocols.DefaultProtocol.DefaultPort, e.Port);
         }
 
-        [Test]
+        [Fact]
         public void TestInvalidPort()
         {
-            try
-            {
-                AmqpTcpEndpoint.Parse("host:port");
-                Assert.Fail("Expected FormatException");
-            }
-            catch (FormatException)
-            {
-                // OK.
-            }
+            Assert.Throws<FormatException>(() => AmqpTcpEndpoint.Parse("host:port"));
         }
 
-        [Test]
+        [Fact]
         public void TestMultipleNone()
         {
             AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple("  ");
-            Assert.AreEqual(0, es.Length);
+            Assert.Empty(es);
         }
 
-        [Test]
+        [Fact]
         public void TestMultipleOne()
         {
             AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(" host:1234 ");
-            Assert.AreEqual(1, es.Length);
-            Assert.AreEqual("host", es[0].HostName);
-            Assert.AreEqual(1234, es[0].Port);
+            Assert.Single(es);
+            Assert.Equal("host", es[0].HostName);
+            Assert.Equal(1234, es[0].Port);
         }
 
-        [Test]
+        [Fact]
         public void TestMultipleTwo()
         {
             AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(" host:1234, other:2345 ");
-            Assert.AreEqual(2, es.Length);
-            Assert.AreEqual("host", es[0].HostName);
-            Assert.AreEqual(1234, es[0].Port);
-            Assert.AreEqual("other", es[1].HostName);
-            Assert.AreEqual(2345, es[1].Port);
+            Assert.Equal(2, es.Length);
+            Assert.Equal("host", es[0].HostName);
+            Assert.Equal(1234, es[0].Port);
+            Assert.Equal("other", es[1].HostName);
+            Assert.Equal(2345, es[1].Port);
         }
 
-        [Test]
+        [Fact]
         public void TestMultipleTwoMultipleCommas()
         {
             AmqpTcpEndpoint[] es = AmqpTcpEndpoint.ParseMultiple(", host:1234,, ,,, other:2345,, ");
-            Assert.AreEqual(2, es.Length);
-            Assert.AreEqual("host", es[0].HostName);
-            Assert.AreEqual(1234, es[0].Port);
-            Assert.AreEqual("other", es[1].HostName);
-            Assert.AreEqual(2345, es[1].Port);
+            Assert.Equal(2, es.Length);
+            Assert.Equal("host", es[0].HostName);
+            Assert.Equal(1234, es[0].Port);
+            Assert.Equal("other", es[1].HostName);
+            Assert.Equal(2345, es[1].Port);
         }
 
-        [Test]
+        [Fact]
         public void TestIpv6WithPort()
         {
             AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("[::1]:1234");
 
-            Assert.AreEqual("::1", e.HostName);
-            Assert.AreEqual(1234, e.Port);
+            Assert.Equal("::1", e.HostName);
+            Assert.Equal(1234, e.Port);
         }
 
-        [Test]
+        [Fact]
         public void TestIpv6WithoutPort()
         {
             AmqpTcpEndpoint e = AmqpTcpEndpoint.Parse("[::1]");
 
-            Assert.AreEqual("::1", e.HostName);
-            Assert.AreEqual(Protocols.DefaultProtocol.DefaultPort, e.Port);
+            Assert.Equal("::1", e.HostName);
+            Assert.Equal(Protocols.DefaultProtocol.DefaultPort, e.Port);
         }
     }
 }

@@ -33,42 +33,41 @@ using System;
 using System.Collections.Concurrent;
 using System.Text;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Util;
+
+using Xunit;
 
 #pragma warning disable 0618
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    public class TestRecoverAfterCancel
+
+    public class TestRecoverAfterCancel : IDisposable
     {
         IConnection _connection;
         IModel _channel;
         string _queue;
         int _callbackCount;
 
-        public int ModelNumber(IModel model)
-        {
-            return ((ModelBase)model).Session.ChannelNumber;
-        }
-
-        [SetUp] public void Connect()
+        public TestRecoverAfterCancel()
         {
             _connection = new ConnectionFactory().CreateConnection();
             _channel = _connection.CreateModel();
             _queue = _channel.QueueDeclare("", false, true, false, null);
         }
 
-        [TearDown] public void Disconnect()
+        public int ModelNumber(IModel model)
+        {
+            return ((ModelBase)model).Session.ChannelNumber;
+        }
+
+        public void Dispose()
         {
             _connection.Abort();
         }
 
-        [Test]
+        [Fact]
         public void TestRecoverAfterCancel_()
         {
             UTF8Encoding enc = new UTF8Encoding();
@@ -90,24 +89,23 @@ namespace RabbitMQ.Client.Unit
             _channel.BasicConsume(_queue, false, Consumer2);
             (bool Redelivered, byte[] Body) Event2 = EventQueue2.Take();
 
-            CollectionAssert.AreEqual(Event.Body, Event2.Body);
-            Assert.IsFalse(Event.Redelivered);
-            Assert.IsTrue(Event2.Redelivered);
+            Assert.Equal(Event.Body, Event2.Body);
+            Assert.False(Event.Redelivered);
+            Assert.True(Event2.Redelivered);
         }
 
-        [Test]
+        [Fact]
         public void TestRecoverCallback()
         {
             _callbackCount = 0;
             _channel.BasicRecoverOk += IncrCallback;
             _channel.BasicRecover(true);
-            Assert.AreEqual(1, _callbackCount);
+            Assert.Equal(1, _callbackCount);
         }
 
         void IncrCallback(object sender, EventArgs args)
         {
             _callbackCount++;
         }
-
     }
 }

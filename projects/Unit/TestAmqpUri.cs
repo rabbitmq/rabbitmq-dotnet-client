@@ -31,19 +31,20 @@
 
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestAmqpUri
     {
         private readonly string[] _iPv6Loopbacks = { "[0000:0000:0000:0000:0000:0000:0000:0001]", "[::1]" };
 
-        [Test, Category("MonoBug")]
+        [Fact]
+        [Trait("Category", "MonoBug")]
         public void TestAmqpUriParseFail()
         {
-            if(IsRunningOnMono() == false)
+            if (IsRunningOnMono() == false)
             {
                 /* Various failure cases */
                 ParseFailWith<ArgumentException>("https://www.rabbitmq.com");
@@ -64,10 +65,11 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test, Category("MonoBug")]
+        [Fact]
+        [Trait("Category", "MonoBug")]
         public void TestAmqpUriParseSucceed()
         {
-            if(IsRunningOnMono() == false)
+            if (IsRunningOnMono() == false)
             {
                 /* From the spec */
                 ParseSuccess("amqp://user:pass@host:10000/vhost",
@@ -159,20 +161,20 @@ namespace RabbitMQ.Client.Unit
 
         private static void AssertUriPartEquivalence(ConnectionFactory cf, string user, string password, int port, string vhost, bool tlsEnabled = false)
         {
-            Assert.AreEqual(user, cf.UserName);
-            Assert.AreEqual(password, cf.Password);
-            Assert.AreEqual(port, cf.Port);
-            Assert.AreEqual(vhost, cf.VirtualHost);
-            Assert.AreEqual(tlsEnabled, cf.Ssl.Enabled);
+            Assert.Equal(user, cf.UserName);
+            Assert.Equal(password, cf.Password);
+            Assert.Equal(port, cf.Port);
+            Assert.Equal(vhost, cf.VirtualHost);
+            Assert.Equal(tlsEnabled, cf.Ssl.Enabled);
 
-            Assert.AreEqual(port, cf.Endpoint.Port);
-            Assert.AreEqual(tlsEnabled, cf.Endpoint.Ssl.Enabled);
+            Assert.Equal(port, cf.Endpoint.Port);
+            Assert.Equal(tlsEnabled, cf.Endpoint.Ssl.Enabled);
         }
 
         private void ParseFailWith<T>(string uri) where T : Exception
         {
             var cf = new ConnectionFactory();
-            Assert.That(() => cf.Uri = new Uri(uri), Throws.TypeOf<T>());
+            Assert.Throws<T>(() => cf.Uri = new Uri(uri));
         }
 
         private void ParseSuccess(string uri, string user, string password, string host, int port, string vhost, bool tlsEnabled = false)
@@ -182,7 +184,7 @@ namespace RabbitMQ.Client.Unit
                 Uri = new Uri(uri)
             };
             AssertUriPartEquivalence(factory, user, password, port, vhost, tlsEnabled);
-            Assert.AreEqual(host, factory.HostName);
+            Assert.Equal(host, factory.HostName);
         }
 
         private void ParseSuccess(string uri, string user, string password,
@@ -193,16 +195,16 @@ namespace RabbitMQ.Client.Unit
                 Uri = new Uri(uri)
             };
             AssertUriPartEquivalence(factory, user, password, port, vhost, tlsEnabled);
-            Assert.IsTrue(Array.IndexOf(hosts, factory.HostName) != -1);
+            Assert.True(Array.IndexOf(hosts, factory.HostName) != -1);
         }
 
         public static bool IsRunningOnMono()
         {
-            #if NETCOREAPP
+#if NETCOREAPP
             return false;
-            #else
+#else
             return Type.GetType("Mono.Runtime") != null;
-            #endif
+#endif
         }
     }
 }

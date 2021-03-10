@@ -33,15 +33,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing;
 
+using Xunit;
+
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    internal class TestConsumerOperationDispatch : IntegrationFixture
+
+    public class TestConsumerOperationDispatch : IntegrationFixture
     {
         private readonly string _x = "dotnet.tests.consumer-operation-dispatch.fanout";
         private readonly List<IModel> _channels = new List<IModel>();
@@ -56,8 +56,7 @@ namespace RabbitMQ.Client.Unit
 
         public static CountdownEvent counter = new CountdownEvent(Y);
 
-        [TearDown]
-        protected override void ReleaseResources()
+        public override void Dispose()
         {
             foreach (IModel ch in _channels)
             {
@@ -66,6 +65,7 @@ namespace RabbitMQ.Client.Unit
                     ch.Close();
                 }
             }
+
             _queues.Clear();
             _consumers.Clear();
             counter.Reset();
@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test]
+        [Fact]
         public void TestDeliveryOrderingWithSingleChannel()
         {
             IModel Ch = _conn.CreateModel();
@@ -128,22 +128,22 @@ namespace RabbitMQ.Client.Unit
 
             foreach (CollectingConsumer cons in _consumers)
             {
-                Assert.That(cons.DeliveryTags, Has.Count.EqualTo(N));
+                Assert.Equal(N, cons.DeliveryTags.Count);
                 ulong[] ary = cons.DeliveryTags.ToArray();
-                Assert.AreEqual(ary[0], 1);
-                Assert.AreEqual(ary[N - 1], N);
+                Assert.Equal(1u, ary[0]);
+                Assert.Equal((ulong)N, ary[N - 1]);
                 for (int i = 0; i < (N - 1); i++)
                 {
                     ulong a = ary[i];
                     ulong b = ary[i + 1];
 
-                    Assert.IsTrue(a < b);
+                    Assert.True(a < b);
                 }
             }
         }
 
         // see rabbitmq/rabbitmq-dotnet-client#61
-        [Test]
+        [Fact]
         public void TestChannelShutdownDoesNotShutDownDispatcher()
         {
             IModel ch1 = _conn.CreateModel();
@@ -183,15 +183,18 @@ namespace RabbitMQ.Client.Unit
             public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
-                if (Latch.Wait(0)){
+                if (Latch.Wait(0))
+                {
                     DuplicateLatch.Set();
-                } else {
+                }
+                else
+                {
                     Latch.Set();
                 }
             }
         }
 
-        [Test]
+        [Fact]
         public void TestModelShutdownHandler()
         {
             var latch = new ManualResetEventSlim(false);
@@ -202,7 +205,7 @@ namespace RabbitMQ.Client.Unit
             _model.BasicConsume(queue: q, autoAck: true, consumer: c);
             _model.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
-            Assert.IsFalse(duplicateLatch.Wait(TimeSpan.FromSeconds(5)),
+            Assert.False(duplicateLatch.Wait(TimeSpan.FromSeconds(5)),
                            "event handler fired more than once");
         }
     }

@@ -33,37 +33,38 @@ using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
 
+using Xunit;
+
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestPublisherConfirms : IntegrationFixture
     {
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
 
-        [Test]
+        [Fact]
         public void TestWaitForConfirmsWithoutTimeout()
         {
             TestWaitForConfirms(200, (ch) =>
             {
-                Assert.IsTrue(ch.WaitForConfirmsAsync().GetAwaiter().GetResult());
+                Assert.True(ch.WaitForConfirmsAsync().GetAwaiter().GetResult());
             });
         }
 
-        [Test]
+        [Fact]
         public void TestWaitForConfirmsWithTimeout()
         {
             TestWaitForConfirms(200, (ch) =>
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-                Assert.IsTrue(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                Assert.True(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
             });
         }
 
-        [Test]
+        [Fact]
         public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
         {
             TestWaitForConfirms(2000, (ch) =>
@@ -73,7 +74,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        [Test]
+        [Fact]
         public void TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
         {
             TestWaitForConfirms(2000, (ch) =>
@@ -85,11 +86,11 @@ namespace RabbitMQ.Client.Unit
                     .Invoke(actualModel, new object[] { 10UL, false, true });
 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-                Assert.IsFalse(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                Assert.False(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
             });
         }
 
-        [Test]
+        [Fact]
         public async Task TestWaitForConfirmsWithEvents()
         {
             IModel ch = _conn.CreateModel();
@@ -116,7 +117,7 @@ namespace RabbitMQ.Client.Unit
                 // to be equal to N because acks can be batched,
                 // so we primarily care about event handlers being invoked
                 // in this test
-                Assert.IsTrue(c > 20);
+                Assert.True(c > 20);
             }
             finally
             {

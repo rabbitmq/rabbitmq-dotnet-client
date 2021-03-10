@@ -31,18 +31,19 @@
 
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    class TestContentHeaderCodec
+
+    public class TestContentHeaderCodec
     {
-        public void Check(ReadOnlyMemory<byte> actual, ReadOnlyMemory<byte> expected)
+        private void Check(ReadOnlyMemory<byte> actual, ReadOnlyMemory<byte> expected)
         {
             try
             {
-                Assert.AreEqual(expected.ToArray(), actual.ToArray());
+                Assert.Equal(expected.ToArray(), actual.ToArray());
             }
             catch
             {
@@ -56,7 +57,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleProperties()
         {
             Framing.BasicProperties prop = new Framing.BasicProperties
@@ -73,7 +74,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        [Test]
+        [Fact]
         public void TestFullProperties()
         {
             Framing.BasicProperties prop = new Framing.BasicProperties

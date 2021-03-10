@@ -33,23 +33,24 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
-    public class TestQueueDeclare : IntegrationFixture {
 
-        [Test]
-        [Category("RequireSMP")]
+    public class TestQueueDeclare : IntegrationFixture
+    {
+
+        [Fact]
+        [Trait("Category", "RequireSMP")]
         public void TestConcurrentQueueDeclare()
         {
             string q = GenerateQueueName();
             Random rnd = new Random();
 
             List<Thread> ts = new List<Thread>();
-            System.NotSupportedException nse = null;
-            for(int i = 0; i < 256; i++)
+            NotSupportedException nse = null;
+            for (int i = 0; i < 256; i++)
             {
                 Thread t = new Thread(() =>
                         {
@@ -59,7 +60,8 @@ namespace RabbitMQ.Client.Unit
                                 // of thread interleaving. MK.
                                 Thread.Sleep(rnd.Next(5, 50));
                                 _model.QueueDeclare(q, false, false, false, null);
-                            } catch (System.NotSupportedException e)
+                            }
+                            catch (NotSupportedException e)
                             {
                                 nse = e;
                             }
@@ -73,7 +75,7 @@ namespace RabbitMQ.Client.Unit
                 t.Join();
             }
 
-            Assert.IsNull(nse);
+            Assert.Null(nse);
             _model.QueueDelete(q);
         }
     }

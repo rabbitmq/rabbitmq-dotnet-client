@@ -34,56 +34,55 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
     {
         internal const int Threads = 32;
         internal CountdownEvent _latch;
         internal TimeSpan _completionTimeout = TimeSpan.FromSeconds(90);
 
-        [SetUp]
-        public override void Init()
+        protected override void SetUp()
         {
-            base.Init();
+            base.SetUp();
             ThreadPool.SetMinThreads(Threads, Threads);
             _latch = new CountdownEvent(Threads);
         }
 
-        [TearDown]
-        protected override void ReleaseResources()
+        public override void Dispose()
         {
+            base.Dispose();
             _latch.Dispose();
         }
 
-        [Test]
+        [Fact]
         public void TestConcurrentChannelOpenAndPublishingWithBlankMessages()
         {
             TestConcurrentChannelOpenAndPublishingWithBody(Array.Empty<byte>(), 30);
         }
 
-        [Test]
+        [Fact]
         public void TestConcurrentChannelOpenAndPublishingSize64()
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(64);
         }
 
-        [Test]
+        [Fact]
         public void TestConcurrentChannelOpenAndPublishingSize256()
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(256);
         }
 
-        [Test]
+        [Fact]
         public void TestConcurrentChannelOpenAndPublishingSize1024()
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
         }
 
-        [Test]
+        [Fact]
         public void TestConcurrentChannelOpenCloseLoop()
         {
             TestConcurrentChannelOperations((conn) =>
@@ -106,7 +105,7 @@ namespace RabbitMQ.Client.Unit
                 // and would missing the point of this test anyway
                 IModel ch = _conn.CreateModel();
                 ch.ConfirmSelect();
-                for(int j = 0; j < 200; j++)
+                for (int j = 0; j < 200; j++)
                 {
                     ch.BasicPublish("", "_______", null, body);
                 }
@@ -128,7 +127,7 @@ namespace RabbitMQ.Client.Unit
             {
                 return Task.Run(() =>
                 {
-                    for(int j = 0; j < iterations; j++)
+                    for (int j = 0; j < iterations; j++)
                     {
                         actions(_conn);
                     }
@@ -137,11 +136,11 @@ namespace RabbitMQ.Client.Unit
                 });
             }).ToArray();
 
-            Assert.IsTrue(_latch.Wait(timeout));
+            Assert.True(_latch.Wait(timeout));
             // incorrect frame interleaving in these tests will result
             // in an unrecoverable connection-level exception, thus
             // closing the connection
-            Assert.IsTrue(_conn.IsOpen);
+            Assert.True(_conn.IsOpen);
         }
     }
 }

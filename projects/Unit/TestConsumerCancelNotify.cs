@@ -32,13 +32,13 @@
 using System.Linq;
 using System.Threading;
 
-using NUnit.Framework;
-
 using RabbitMQ.Client.Events;
+
+using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    [TestFixture]
+
     public class TestConsumerCancelNotify : IntegrationFixture
     {
         protected readonly object lockObject = new object();
@@ -46,19 +46,19 @@ namespace RabbitMQ.Client.Unit
         protected bool notifiedEvent;
         protected string consumerTag;
 
-        [Test]
+        [Fact]
         public void TestConsumerCancelNotification()
         {
             TestConsumerCancel("queue_consumer_cancel_notify", false, ref notifiedCallback);
         }
 
-        [Test]
+        [Fact]
         public void TestConsumerCancelEvent()
         {
             TestConsumerCancel("queue_consumer_cancel_event", true, ref notifiedEvent);
         }
 
-        [Test]
+        [Fact]
         public void TestCorrectConsumerTag()
         {
             string q1 = GenerateQueueName();
@@ -83,12 +83,12 @@ namespace RabbitMQ.Client.Unit
 
             _model.QueueDelete(q1);
             WaitOn(lockObject);
-            Assert.AreEqual(consumerTag1, notifiedConsumerTag);
+            Assert.Equal(consumerTag1, notifiedConsumerTag);
 
             _model.QueueDelete(q2);
         }
 
-        public void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
+        private void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
         {
             _model.QueueDeclare(queue, false, true, false, null);
             IBasicConsumer consumer = new CancelNotificationConsumer(_model, this, EventMode);
@@ -96,8 +96,8 @@ namespace RabbitMQ.Client.Unit
 
             _model.QueueDelete(queue);
             WaitOn(lockObject);
-            Assert.IsTrue(notified);
-            Assert.AreEqual(actualConsumerTag, consumerTag);
+            Assert.True(notified);
+            Assert.Equal(actualConsumerTag, consumerTag);
         }
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
