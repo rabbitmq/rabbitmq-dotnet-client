@@ -34,25 +34,20 @@ using System.Diagnostics.Tracing;
 
 namespace RabbitMQ.Client.Logging
 {
-    [EventSource(Name="rabbitmq-dotnet-client")]
-    public sealed class RabbitMqClientEventSource : EventSource
+    #nullable enable
+    internal sealed partial class RabbitMqClientEventSource : EventSource
     {
+        public static readonly RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
+
+        public RabbitMqClientEventSource()
+            : base("rabbitmq-client")
+        {
+        }
+
         public class Keywords
         {
             public const EventKeywords Log = (EventKeywords)1;
         }
-#if NET452
-        public RabbitMqClientEventSource() : base()
-        {
-
-        }
-#else
-        public RabbitMqClientEventSource() : base(EventSourceSettings.EtwSelfDescribingEventFormat)
-        {
-        }
-#endif
-
-        public static RabbitMqClientEventSource Log = new RabbitMqClientEventSource ();
 
         [Event(1, Message = "INFO", Keywords = Keywords.Log, Level = EventLevel.Informational)]
         public void Info(string message)

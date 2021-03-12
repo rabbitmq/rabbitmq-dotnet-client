@@ -35,6 +35,7 @@ using System.Text;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Logging;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -71,6 +72,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void Open()
         {
+            RabbitMqClientEventSource.Log.ConnectionOpened();
             StartAndTune();
             _model0.ConnectionOpen(_factory.VirtualHost);
         }

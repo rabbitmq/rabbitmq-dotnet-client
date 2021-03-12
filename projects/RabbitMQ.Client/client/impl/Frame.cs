@@ -37,6 +37,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Logging;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -49,9 +50,6 @@ namespace RabbitMQ.Client.Impl
          * | 1 byte     | 2 bytes | 4 bytes        | x bytes | 1 byte           |
          * +------------+---------+----------------+---------+------------------+ */
         internal const int BaseFrameSize = 1 + 2 + 4 + 1;
-        internal const int StartFrameType = 0;
-        internal const int StartChannel = 1;
-        internal const int StartPayloadSize = 3;
         private const int StartPayload = 7;
 
         internal static class Method
@@ -248,6 +246,7 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
             }
 
+            RabbitMqClientEventSource.Log.DataReceived(payloadSize + Framing.BaseFrameSize);
             return new InboundFrame(type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
         }
 

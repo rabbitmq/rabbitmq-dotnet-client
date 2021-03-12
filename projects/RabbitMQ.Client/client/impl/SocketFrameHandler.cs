@@ -40,6 +40,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -59,7 +60,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class SocketFrameHandler : IFrameHandler
+    internal sealed class SocketFrameHandler : IFrameHandler
     {
         private readonly ITcpClient _socket;
         private readonly Stream _reader;
@@ -282,6 +283,7 @@ namespace RabbitMQ.Client.Impl
 #else
                     await _writer.WriteAsync(memory).ConfigureAwait(false);
 #endif
+                    RabbitMqClientEventSource.Log.CommandSent(segment.Count);
                     ArrayPool<byte>.Shared.Return(segment.Array);
                 }
 
