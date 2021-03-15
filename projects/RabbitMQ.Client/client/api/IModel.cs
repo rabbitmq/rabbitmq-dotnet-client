@@ -230,16 +230,6 @@ namespace RabbitMQ.Client
         void ConfirmSelect();
 
         /// <summary>
-        ///  Creates a BasicPublishBatch instance
-        /// </summary>
-        IBasicPublishBatch CreateBasicPublishBatch();
-
-        /// <summary>
-        ///  Creates a BasicPublishBatch instance
-        /// </summary>
-        IBasicPublishBatch CreateBasicPublishBatch(int sizeHint);
-
-        /// <summary>
         /// Construct a completely empty content header for use with the Basic content class.
         /// </summary>
         IBasicProperties CreateBasicProperties();

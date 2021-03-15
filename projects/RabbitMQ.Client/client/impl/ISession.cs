@@ -30,8 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -75,6 +73,5 @@ namespace RabbitMQ.Client.Impl
         bool HandleFrame(in InboundFrame frame);
         void Notify();
         void Transmit<T>(in T cmd) where T : struct, IOutgoingCommand;
-        void Transmit<T>(List<T> cmds) where T : struct, IOutgoingCommand;
     }
 }

@@ -297,12 +297,6 @@ namespace RabbitMQ.Client
         bool IsTypePresent();
         bool IsUserIdPresent();
     }
-    public interface IBasicPublishBatch
-    {
-        void Add(RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties basicProperties, System.ReadOnlyMemory<byte> body);
-        void Add(string exchange, string routingKey, bool mandatory, RabbitMQ.Client.IBasicProperties properties, System.ReadOnlyMemory<byte> body);
-        void Publish();
-    }
     public interface IConnection : RabbitMQ.Client.INetworkConnection, System.IDisposable
     {
         ushort ChannelMax { get; }
@@ -403,8 +397,6 @@ namespace RabbitMQ.Client
         void ConfirmSelect();
         uint ConsumerCount(string queue);
         RabbitMQ.Client.IBasicProperties CreateBasicProperties();
-        RabbitMQ.Client.IBasicPublishBatch CreateBasicPublishBatch();
-        RabbitMQ.Client.IBasicPublishBatch CreateBasicPublishBatch(int sizeHint);
         void ExchangeBind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeBindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);

@@ -420,12 +420,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public IBasicPublishBatch CreateBasicPublishBatch()
-            => InnerChannel.CreateBasicPublishBatch();
-
-        public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint)
-            => InnerChannel.CreateBasicPublishBatch(sizeHint);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()
         {
