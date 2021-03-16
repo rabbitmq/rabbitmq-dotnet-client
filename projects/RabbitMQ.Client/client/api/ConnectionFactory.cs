@@ -33,8 +33,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
+using System.Reflection;
 using System.Security.Authentication;
-
+using System.Text;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -106,7 +107,7 @@ namespace RabbitMQ.Client
         /// Default value for desired heartbeat interval. Default is 60 seconds,
         /// TimeSpan.Zero means "heartbeats are disabled".
         /// </summary>
-        public static readonly TimeSpan DefaultHeartbeat = TimeSpan.FromSeconds(60); //
+        public static readonly TimeSpan DefaultHeartbeat = TimeSpan.FromSeconds(60);
 
         /// <summary>
         /// Default password (value: "guest").
@@ -126,20 +127,17 @@ namespace RabbitMQ.Client
         /// <summary>
         /// TLS versions enabled by default: TLSv1.2, v1.1, v1.0.
         /// </summary>
-        public static SslProtocols DefaultAmqpUriSslProtocols { get; set; } =
-            SslProtocols.None;
+        public static SslProtocols DefaultAmqpUriSslProtocols { get; set; } = SslProtocols.None;
 
         /// <summary>
         /// The AMQP URI SSL protocols.
         /// </summary>
-        public SslProtocols AmqpUriSslProtocols { get; set; } =
-            DefaultAmqpUriSslProtocols;
+        public SslProtocols AmqpUriSslProtocols { get; set; } = DefaultAmqpUriSslProtocols;
 
         /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
-        public static readonly IList<IAuthMechanismFactory> DefaultAuthMechanisms =
-            new List<IAuthMechanismFactory>() { new PlainMechanismFactory() };
+        public static readonly IList<IAuthMechanismFactory> DefaultAuthMechanisms = new List<IAuthMechanismFactory>(1) { new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
@@ -183,6 +181,7 @@ namespace RabbitMQ.Client
         /// Amount of time client will wait for before re-trying  to recover connection.
         /// </summary>
         public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
+
         private TimeSpan _handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
         private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
 
@@ -257,7 +256,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public ConnectionFactory()
         {
-            ClientProperties = Connection.DefaultClientProperties();
+            ClientProperties = new Dictionary<string, object>(DefaultClientProperties);
         }
 
         /// <summary>
@@ -278,6 +277,15 @@ namespace RabbitMQ.Client
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
         public IDictionary<string, object> ClientProperties { get; set; }
+
+        private static readonly Dictionary<string, object> DefaultClientProperties = new Dictionary<string, object>(5)
+        {
+            ["product"] = Encoding.UTF8.GetBytes("RabbitMQ"),
+            ["version"] = Encoding.UTF8.GetBytes(typeof(ConnectionFactory).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion),
+            ["platform"] = Encoding.UTF8.GetBytes(".NET"),
+            ["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2020 VMware, Inc."),
+            ["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL. See https://www.rabbitmq.com/")
+        };
 
         /// <summary>
         /// Password to use when authenticating to the server.

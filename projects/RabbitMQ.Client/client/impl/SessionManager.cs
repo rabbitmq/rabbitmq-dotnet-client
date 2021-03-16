@@ -95,24 +95,5 @@ namespace RabbitMQ.Client.Impl
                 return _sessionMap[number];
             }
         }
-
-        ///<summary>Replace an active session slot with a new ISession
-        ///implementation. Used during channel quiescing.</summary>
-        ///<remarks>
-        /// Make sure you pass in a channelNumber that's currently in
-        /// use, as if the slot is unused, you'll get a null pointer
-        /// exception.
-        ///</remarks>
-        public ISession Swap(int channelNumber, ISession replacement)
-        {
-            lock (_sessionMap)
-            {
-                ISession previous = _sessionMap[channelNumber];
-                previous.SessionShutdown -= HandleSessionShutdown;
-                _sessionMap[channelNumber] = replacement;
-                replacement.SessionShutdown += HandleSessionShutdown;
-                return previous;
-            }
-        }
     }
 }
