@@ -56,11 +56,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancelOk;
         public override string ProtocolMethodName => "basic.cancel-ok";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteShortstr(span, _consumerTag);
+            return WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag, span.Length);
         }
 
         public override int GetRequiredBufferSize()

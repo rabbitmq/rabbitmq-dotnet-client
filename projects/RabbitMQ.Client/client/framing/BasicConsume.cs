@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -75,15 +76,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsume;
         public override string ProtocolMethodName => "basic.consume";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, default);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _consumerTag);
-            offset += WireFormatting.WriteBits(span.Slice(offset), _noLocal, _noAck, _exclusive, _nowait);
-            return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
+            int length = span.Length;
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue, length - offset);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _consumerTag, length - offset);
+            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _noLocal, _noAck, _exclusive, _nowait);
+            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments, length - offset);
         }
 
         public override int GetRequiredBufferSize()

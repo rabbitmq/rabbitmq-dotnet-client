@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -72,16 +73,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeUnbind;
         public override string ProtocolMethodName => "exchange.unbind";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, default);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _destination);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _source);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _routingKey);
-            offset += WireFormatting.WriteBits(span.Slice(offset), _nowait);
-            return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _destination, span.Length - offset);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _source, span.Length - offset);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey, span.Length - offset);
+            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
+            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments, span.Length - offset);
         }
 
         public override int GetRequiredBufferSize()

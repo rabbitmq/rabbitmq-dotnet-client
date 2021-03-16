@@ -104,7 +104,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             _method = _protocol.DecodeMethodFrom(frame.Payload.Span);
-            _state = _method.HasContent ? AssemblyState.ExpectingContentHeader : AssemblyState.Complete;
+            _state = _method.ProtocolCommandId.HasContent() ? AssemblyState.ExpectingContentHeader : AssemblyState.Complete;
         }
 
         private void ParseHeaderFrame(in InboundFrame frame)

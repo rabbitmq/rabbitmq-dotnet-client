@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -56,11 +56,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionBlocked;
         public override string ProtocolMethodName => "connection.blocked";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteShortstr(span, _reason);
+            return WireFormatting.WriteShortstr(ref span.GetStart(), _reason, span.Length);
         }
 
         public override int GetRequiredBufferSize()

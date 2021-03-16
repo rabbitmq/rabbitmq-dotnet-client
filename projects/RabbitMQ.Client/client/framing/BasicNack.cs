@@ -60,12 +60,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
         public override string ProtocolMethodName => "basic.nack";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
-            return offset + WireFormatting.WriteBits(span.Slice(offset), _multiple, _requeue);
+            int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _multiple, _requeue);
         }
 
         public override int GetRequiredBufferSize()

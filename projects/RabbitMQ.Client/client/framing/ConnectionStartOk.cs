@@ -31,7 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -67,19 +67,19 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStartOk;
         public override string ProtocolMethodName => "connection.start-ok";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteTable(span, _clientProperties);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _mechanism);
-            offset += WireFormatting.WriteLongstr(span.Slice(offset), _response);
-            return offset + WireFormatting.WriteShortstr(span.Slice(offset), _locale);
+            int length = span.Length;
+            int offset = WireFormatting.WriteTable(ref span.GetStart(), _clientProperties, length);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _mechanism, length - offset);
+            offset += WireFormatting.WriteLongstr(ref span.GetOffset(offset), _response);
+            return offset + WireFormatting.WriteShortstr(ref span.GetOffset(offset), _locale, length - offset);
         }
 
         public override int GetRequiredBufferSize()
         {
-            int bufferSize = 1 + 4 +1; // bytes for length of _mechanism, length of _response, length of _locale
+            int bufferSize = 1 + 4 + 1; // bytes for length of _mechanism, length of _response, length of _locale
             bufferSize += WireFormatting.GetTableByteCount(_clientProperties); // _clientProperties in bytes
             bufferSize += WireFormatting.GetByteCount(_mechanism); // _mechanism in bytes
             bufferSize += _response.Length; // _response in bytes

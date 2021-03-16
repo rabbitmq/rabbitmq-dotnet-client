@@ -55,11 +55,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicRecover;
         public override string ProtocolMethodName => "basic.recover";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteBits(span, _requeue);
+            return WireFormatting.WriteBits(ref span.GetStart(), _requeue);
         }
 
         public override int GetRequiredBufferSize()

@@ -21,7 +21,7 @@ namespace RabbitMQ.Benchmarks
         {
             AddJob(Job.Default.WithRuntime(CoreRuntime.Core31));
             AddJob(Job.Default.WithRuntime(ClrRuntime.Net48));
-            AddExporter(DefaultExporters.Markdown, DefaultExporters.Csv);
+            AddExporter(DefaultExporters.Markdown, DefaultExporters.JsonFull).KeepBenchmarkFiles(true).DontOverwriteResults(true);
             AddDiagnoser(new DisassemblyDiagnoser(new DisassemblyDiagnoserConfig()), MemoryDiagnoser.Default);
         }
     }

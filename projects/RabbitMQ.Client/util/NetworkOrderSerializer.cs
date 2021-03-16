@@ -7,52 +7,53 @@ namespace RabbitMQ.Util
     internal static class NetworkOrderSerializer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteDouble(Span<byte> span, double val)
+        internal static void WriteDouble(ref byte destination, double val)
         {
-            BinaryPrimitives.WriteInt64BigEndian(span, BitConverter.DoubleToInt64Bits(val));
+            long tempVal = Unsafe.As<double, long>(ref val);
+            Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(tempVal) : tempVal);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteInt16(Span<byte> span, short val)
+        internal static void WriteInt16(ref byte destination, short val)
         {
-            BinaryPrimitives.WriteInt16BigEndian(span, val);
+            Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(val) : val);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteInt32(Span<byte> span, int val)
+        internal static void WriteInt32(ref byte destination, int val)
         {
-            BinaryPrimitives.WriteInt32BigEndian(span, val);
+            Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(val) : val);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteInt64(Span<byte> span, long val)
+        internal static void WriteInt64(ref byte destination, long val)
         {
-            BinaryPrimitives.WriteInt64BigEndian(span, val);
+            Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(val) : val);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteSingle(Span<byte> span, float val)
+        internal static void WriteSingle(ref byte destination, float val)
         {
             int tempVal = Unsafe.As<float, int>(ref val);
-            BinaryPrimitives.WriteInt32BigEndian(span, tempVal);
+            Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(tempVal) : tempVal);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteUInt16(Span<byte> span, ushort val)
+        internal static void WriteUInt16(ref byte destination, ushort val)
         {
-            BinaryPrimitives.WriteUInt16BigEndian(span, val);
+            Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(val) : val);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteUInt32(Span<byte> span, uint val)
+        internal static void WriteUInt32(ref byte destination, uint val)
         {
-            BinaryPrimitives.WriteUInt32BigEndian(span, val);
+            Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(val) : val);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void WriteUInt64(Span<byte> span, ulong val)
+        internal static void WriteUInt64(ref byte destination, ulong val)
         {
-            BinaryPrimitives.WriteUInt64BigEndian(span, val);
+            Unsafe.WriteUnaligned(ref destination, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(val) : val);
         }
     }
 }

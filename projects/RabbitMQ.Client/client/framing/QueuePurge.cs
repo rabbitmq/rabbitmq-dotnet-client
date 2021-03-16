@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -61,13 +62,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurge;
         public override string ProtocolMethodName => "queue.purge";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, default);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
-            return offset + WireFormatting.WriteBits(span.Slice(offset), _nowait);
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue, span.Length - offset);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
         }
 
         public override int GetRequiredBufferSize()

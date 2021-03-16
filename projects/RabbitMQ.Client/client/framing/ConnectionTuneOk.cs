@@ -61,13 +61,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTuneOk;
         public override string ProtocolMethodName => "connection.tune-ok";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, _channelMax);
-            offset += WireFormatting.WriteLong(span.Slice(offset), _frameMax);
-            return offset + WireFormatting.WriteShort(span.Slice(offset), _heartbeat);
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), _channelMax);
+            offset += WireFormatting.WriteLong(ref span.GetOffset(offset), _frameMax);
+            return offset + WireFormatting.WriteShort(ref span.GetOffset(offset), _heartbeat);
         }
 
         public override int GetRequiredBufferSize()
