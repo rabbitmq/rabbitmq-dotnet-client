@@ -851,17 +851,6 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
 
-        private void AllocatePublishSeqNos(int count)
-        {
-            lock (_confirmLock)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
-                }
-            }
-        }
-
         public void BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             if (routingKey is null)
@@ -941,19 +930,7 @@ namespace RabbitMQ.Client.Impl
             _Private_ConfirmSelect(false);
         }
 
-        ///////////////////////////////////////////////////////////////////////////
-
         public abstract IBasicProperties CreateBasicProperties();
-        public IBasicPublishBatch CreateBasicPublishBatch()
-        {
-            return new BasicPublishBatch(this);
-        }
-
-        public IBasicPublishBatch CreateBasicPublishBatch(int sizeHint)
-        {
-            return new BasicPublishBatch(this, sizeHint);
-        }
-
 
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
@@ -1141,16 +1118,6 @@ namespace RabbitMQ.Client.Impl
                         exception),
                     false).ConfigureAwait(false);
             }
-        }
-
-        internal void SendCommands(List<OutgoingContentCommand> commands)
-        {
-            _flowControlBlock.Wait();
-            if (NextPublishSeqNo > 0)
-            {
-                AllocatePublishSeqNos(commands.Count);
-            }
-            Session.Transmit(commands);
         }
 
         private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)

@@ -42,15 +42,13 @@ namespace MassPublish
             {
                 while (messagesSent < BatchesToSend * ItemsPerBatch)
                 {
-                    var batch = publisher.CreateBasicPublishBatch();
                     for (int i = 0; i < ItemsPerBatch; i++)
                     {
                         var properties = publisher.CreateBasicProperties();
                         properties.AppId = "testapp";
                         properties.CorrelationId = Guid.NewGuid().ToString();
-                        batch.Add("test", "myawesome.routing.key", false, properties, payload);
+                        publisher.BasicPublish("test", "myawesome.routing.key", false, properties, payload);
                     }
-                    batch.Publish();
                     messagesSent += ItemsPerBatch;
                     await publisher.WaitForConfirmsOrDieAsync().ConfigureAwait(false);
                 }

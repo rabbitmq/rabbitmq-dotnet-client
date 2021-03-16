@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 
 using RabbitMQ.Client.Exceptions;
@@ -135,15 +134,6 @@ namespace RabbitMQ.Client.Impl
             // We used to transmit *inside* the lock to avoid interleaving
             // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
             Connection.Write(cmd.SerializeToFrames(ChannelNumber, Connection.FrameMax));
-        }
-
-        public virtual void Transmit<T>(List<T> cmds) where T : struct, IOutgoingCommand
-        {
-            uint frameMax = Connection.FrameMax;
-            for (int i = 0; i < cmds.Count; i++)
-            {
-                Connection.Write(cmds[i].SerializeToFrames(ChannelNumber, frameMax));
-            }
         }
     }
 }
