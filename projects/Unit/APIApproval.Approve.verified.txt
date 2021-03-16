@@ -769,11 +769,6 @@ namespace RabbitMQ.Client.Exceptions
         protected RabbitMQClientException(string message) { }
         protected RabbitMQClientException(string message, System.Exception innerException) { }
     }
-    public abstract class SoftProtocolException : RabbitMQ.Client.Exceptions.ProtocolException
-    {
-        protected SoftProtocolException(int channelNumber, string message) { }
-        public int Channel { get; }
-    }
     public class SyntaxErrorException : RabbitMQ.Client.Exceptions.HardProtocolException
     {
         public SyntaxErrorException(string message) { }
