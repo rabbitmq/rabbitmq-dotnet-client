@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteShortstr(ref span.GetStart(), _reason, span.Length);
+            return WireFormatting.WriteShortstr(ref span.GetStart(), _reason);
         }
 
         public override int GetRequiredBufferSize()

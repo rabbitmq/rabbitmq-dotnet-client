@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             span[0] = _versionMajor;
             span[1] = _versionMinor;
-            int offset = 2 + WireFormatting.WriteTable(ref span.GetOffset(2), (IDictionary<string, object>)_serverProperties, span.Length - 2);
+            int offset = 2 + WireFormatting.WriteTable(ref span.GetOffset(2), (IDictionary<string, object>)_serverProperties);
             offset += WireFormatting.WriteLongstr(ref span.GetOffset(offset), _mechanisms);
             return offset + WireFormatting.WriteLongstr(ref span.GetOffset(offset), _locales);
         }

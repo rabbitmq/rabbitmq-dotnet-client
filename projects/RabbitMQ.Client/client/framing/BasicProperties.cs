@@ -241,20 +241,20 @@ namespace RabbitMQ.Client.Framing
                 IsContentTypePresent(), IsContentEncodingPresent(), IsHeadersPresent(), IsDeliveryModePresent(), IsPriorityPresent(),
                 IsCorrelationIdPresent(), IsReplyToPresent(), IsExpirationPresent(), IsMessageIdPresent(), IsTimestampPresent(),
                 IsTypePresent(), IsUserIdPresent(), IsAppIdPresent(), IsClusterIdPresent());
-            if (IsContentTypePresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _contentType, length - offset); }
-            if (IsContentEncodingPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _contentEncoding, length - offset); }
-            if (IsHeadersPresent()) { offset += WireFormatting.WriteTable(ref span.GetOffset(offset), _headers, length - offset); }
+            if (IsContentTypePresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _contentType); }
+            if (IsContentEncodingPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _contentEncoding); }
+            if (IsHeadersPresent()) { offset += WireFormatting.WriteTable(ref span.GetOffset(offset), _headers); }
             if (IsDeliveryModePresent()) { span[offset++] = _deliveryMode; }
             if (IsPriorityPresent()) { span[offset++] = _priority; }
-            if (IsCorrelationIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _correlationId, length - offset); }
-            if (IsReplyToPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _replyTo, length - offset); }
-            if (IsExpirationPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _expiration, length - offset); }
-            if (IsMessageIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _messageId, length - offset); }
+            if (IsCorrelationIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _correlationId); }
+            if (IsReplyToPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _replyTo); }
+            if (IsExpirationPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _expiration); }
+            if (IsMessageIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _messageId); }
             if (IsTimestampPresent()) { offset += WireFormatting.WriteTimestamp(ref span.GetOffset(offset), _timestamp); }
-            if (IsTypePresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _type, length - offset); }
-            if (IsUserIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _userId, length - offset); }
-            if (IsAppIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _appId, length - offset); }
-            if (IsClusterIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _clusterId, length - offset); }
+            if (IsTypePresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _type); }
+            if (IsUserIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _userId); }
+            if (IsAppIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _appId); }
+            if (IsClusterIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _clusterId); }
             return offset;
         }
 

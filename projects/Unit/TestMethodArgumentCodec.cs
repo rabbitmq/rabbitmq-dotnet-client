@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Unit
 
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] memory = new byte[bytesNeeded];
-            int offset = WireFormatting.WriteTable(ref memory.GetStart(), t, memory.Length);
+            int offset = WireFormatting.WriteTable(ref memory.GetStart(), t);
             Assert.Equal(bytesNeeded, offset);
             Check(memory, new byte[] { 0x00, 0x00, 0x00, 0x0C,
                                    0x03, 0x61, 0x62, 0x63,
@@ -102,7 +102,7 @@ namespace RabbitMQ.Client.Unit
             t["x"] = x;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] memory = new byte[bytesNeeded];
-            int offset = WireFormatting.WriteTable(ref memory.GetStart(), t, memory.Length);
+            int offset = WireFormatting.WriteTable(ref memory.GetStart(), t);
             Assert.Equal(bytesNeeded, offset);
             Check(memory, new byte[] { 0x00, 0x00, 0x00, 0x0E,
                                    0x01, 0x78, 0x46, 0x00,

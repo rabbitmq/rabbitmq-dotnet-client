@@ -39,11 +39,11 @@ namespace RabbitMQ.Benchmarks
         public override void SetUp()
         {
             int length = _buffer.Length;
-            int offset = Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetStart(), string.Empty, length);
+            int offset = Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetStart(), string.Empty);
             offset += Client.Impl.WireFormatting.WriteLonglong(ref _buffer.Span.GetOffset(offset), 0);
             offset += Client.Impl.WireFormatting.WriteBits(ref _buffer.Span.GetOffset(offset), false);
-            offset += Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetOffset(offset), string.Empty, length - offset);
-            Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetOffset(offset), string.Empty, length - offset);
+            offset += Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetOffset(offset), string.Empty);
+            Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetOffset(offset), string.Empty);
         }
 
         [Benchmark]

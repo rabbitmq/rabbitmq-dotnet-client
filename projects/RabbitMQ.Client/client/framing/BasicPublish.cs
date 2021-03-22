@@ -72,8 +72,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             int length = span.Length;
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange, length - offset);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey, length - offset);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _mandatory, _immediate);
         }
 

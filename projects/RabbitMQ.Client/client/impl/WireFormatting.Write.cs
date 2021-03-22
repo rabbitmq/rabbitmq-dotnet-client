@@ -41,7 +41,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal static partial class WireFormatting
     {
-        public static int WriteArray(ref byte destination, IList val, int bytesRemaining)
+        public static int WriteArray(ref byte destination, IList val)
         {
             if (val is null || val.Count == 0)
             {
@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Impl
             int bytesWritten = 4;
             for (int index = 0; index < val.Count; index++)
             {
-                bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), val[index], bytesRemaining - bytesWritten);
+                bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), val[index]);
             }
 
             NetworkOrderSerializer.WriteUInt32(ref destination, (uint)bytesWritten - 4u);
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Impl
             return 5;
         }
 
-        public static int WriteFieldValue(ref byte destination, object value, int bytesRemaining)
+        public static int WriteFieldValue(ref byte destination, object value)
         {
             if (value == null)
             {
@@ -132,7 +132,7 @@ namespace RabbitMQ.Client.Impl
             {
                 case string val:
                     destination = (byte)'S';
-                    return 1 + WriteLongstr(ref fieldValue, val, bytesRemaining - 1);
+                    return 1 + WriteLongstr(ref fieldValue, val);
                 case bool val:
                     destination = (byte)'t';
                     fieldValue = val.ToByte();
@@ -145,11 +145,11 @@ namespace RabbitMQ.Client.Impl
                     destination = (byte)'S';
                     return 1 + WriteLongstr(ref fieldValue, val);
                 default:
-                    return WriteFieldValueSlow(ref destination, ref fieldValue, value, bytesRemaining);
+                    return WriteFieldValueSlow(ref destination, ref fieldValue, value);
             }
 
             // Moved out of outer switch to have a shorter main method (improves performance)
-            static int WriteFieldValueSlow(ref byte destination, ref byte fieldValue, object value, int bytesRemaining)
+            static int WriteFieldValueSlow(ref byte destination, ref byte fieldValue, object value)
             {
                 // Order by likelihood of occurrence
                 switch (value)
@@ -160,10 +160,10 @@ namespace RabbitMQ.Client.Impl
                         return 5;
                     case IDictionary<string, object> val:
                         destination = (byte)'F';
-                        return 1 + WriteTable(ref fieldValue, val, bytesRemaining - 1);
+                        return 1 + WriteTable(ref fieldValue, val);
                     case IList val:
                         destination = (byte)'A';
-                        return 1 + WriteArray(ref fieldValue, val, bytesRemaining - 1);
+                        return 1 + WriteArray(ref fieldValue, val);
                     case AmqpTimestamp val:
                         destination = (byte)'T';
                         return 1 + WriteTimestamp(ref fieldValue, val);
@@ -196,7 +196,7 @@ namespace RabbitMQ.Client.Impl
                         return 1 + WriteDecimal(ref fieldValue, val);
                     case IDictionary val:
                         destination = (byte)'F';
-                        return 1 + WriteTable(ref fieldValue, val, bytesRemaining - 1);
+                        return 1 + WriteTable(ref fieldValue, val);
                     case BinaryTableValue val:
                         destination = (byte)'x';
                         return 1 + WriteLongstr(ref fieldValue, val.Bytes);
@@ -272,28 +272,33 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(ref byte destination, bool val1, bool val2)
         {
-            destination = (byte)(val1.ToByte() + val2.ToByte() * 2);
+            int a = val1.ToByte() + val2.ToByte() * 2;
+            destination = (byte)a;
             return 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(ref byte destination, bool val1, bool val2, bool val3)
         {
-            destination = (byte)(val1.ToByte() + val2.ToByte() * 2 + val3.ToByte() * 4);
+            int a = val1.ToByte() + val2.ToByte() * 2 + val3.ToByte() * 4;
+            destination = (byte)a;
             return 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(ref byte destination, bool val1, bool val2, bool val3, bool val4)
         {
-            destination = (byte)(val1.ToByte() + val2.ToByte() * 2 + val3.ToByte() * 4 + val4.ToByte() * 8);
+            int a = val1.ToByte() + val2.ToByte() * 2 + val3.ToByte() * 4 + val4.ToByte() * 8;
+            destination = (byte)a;
             return 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBits(ref byte destination, bool val1, bool val2, bool val3, bool val4, bool val5)
         {
-            destination = (byte)(val1.ToByte() + val2.ToByte() * 2 + val3.ToByte() * 4 + val4.ToByte() * 8 + val5.ToByte() * 16);
+            int a = val1.ToByte() + val2.ToByte() * 2 + val3.ToByte() * 4 + val4.ToByte() * 8;
+            int b = val5.ToByte();
+            destination = (byte)(a | (b << 4));
             return 1;
         }
 
@@ -303,8 +308,14 @@ namespace RabbitMQ.Client.Impl
             bool val6, bool val7, bool val8, bool val9, bool val10,
             bool val11, bool val12, bool val13, bool val14)
         {
-            destination = (byte)(val8.ToByte() + val7.ToByte() * 2 + val6.ToByte() * 4 + val5.ToByte() * 8 + val4.ToByte() * 16 + val3.ToByte() * 32 + val2.ToByte() * 64 + val1.ToByte() * 128);
-            destination.GetOffset(1) = (byte)(val14.ToByte() * 4 + val13.ToByte() * 8 + val12.ToByte() * 16 + val11.ToByte() * 32 + val10.ToByte() * 64 + val9.ToByte() * 128);
+            int a = val8.ToByte() + val7.ToByte() * 2 + val6.ToByte() * 4 + val5.ToByte() * 8;
+            int b = val4.ToByte() + val3.ToByte() * 2 + val2.ToByte() * 4 + val1.ToByte() * 8;
+            destination = (byte)(a | (b << 4));
+
+            a = val14.ToByte() * 4 + val13.ToByte() * 8;
+            b = val12.ToByte() + val11.ToByte() * 2 + val10.ToByte() * 4 + val9.ToByte() * 8;
+
+            destination.GetOffset(1) = (byte)(a | (b << 4));
             return 2;
         }
 
@@ -338,33 +349,19 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteShortstr(ref byte destination, string val, int remainingBytes)
+        public static int WriteShortstr(ref byte destination, string val)
         {
             int bytesWritten = 0;
             if (!string.IsNullOrEmpty(val))
             {
-                int maxLength = remainingBytes - 1;
-                if (maxLength > byte.MaxValue)
-                {
-                    maxLength = byte.MaxValue;
-                }
-
                 unsafe
                 {
+
+                    ref byte valDestination = ref destination.GetOffset(1);
                     fixed (char* chars = val)
+                    fixed (byte* bytes = &valDestination)
                     {
-                        try
-                        {
-                            ref byte valDestination = ref destination.GetOffset(1);
-                            fixed (byte* bytes = &valDestination)
-                            {
-                                bytesWritten = UTF8.GetBytes(chars, val.Length, bytes, maxLength);
-                            }
-                        }
-                        catch (ArgumentException)
-                        {
-                            return ThrowArgumentOutOfRangeException(val, maxLength);
-                        }
+                        bytesWritten = UTF8.GetBytes(chars, val.Length, bytes, byte.MaxValue);
                     }
                 }
             }
@@ -374,26 +371,26 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteLongstr(ref byte destination, string val, int bytesRemaining)
+        public static int WriteLongstr(ref byte destination, string val)
         {
-            static int GetBytes(ref byte destination, string val, int bytesRemaining)
+            static int GetBytes(ref byte destination, string val)
             {
                 unsafe
                 {
                     fixed (char* chars = val)
                     fixed (byte* bytes = &destination)
                     {
-                        return UTF8.GetBytes(chars, val.Length, bytes, bytesRemaining);
+                        return UTF8.GetBytes(chars, val.Length, bytes, int.MaxValue);
                     }
                 }
             }
 
-            int bytesWritten = string.IsNullOrEmpty(val) ? 0 : GetBytes(ref destination.GetOffset(4), val, bytesRemaining - 4);
+            int bytesWritten = string.IsNullOrEmpty(val) ? 0 : GetBytes(ref destination.GetOffset(4), val);
             NetworkOrderSerializer.WriteUInt32(ref destination, (uint)bytesWritten);
             return bytesWritten + 4;
         }
 
-        public static int WriteTable(ref byte destination, IDictionary val, int bytesRemaining)
+        public static int WriteTable(ref byte destination, IDictionary val)
         {
             if (val is null || val.Count == 0)
             {
@@ -405,15 +402,15 @@ namespace RabbitMQ.Client.Impl
             int bytesWritten = 4;
             foreach (DictionaryEntry entry in val)
             {
-                bytesWritten += WriteShortstr(ref destination.GetOffset(bytesWritten), entry.Key.ToString(), bytesRemaining - bytesWritten);
-                bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), entry.Value, bytesRemaining - bytesWritten);
+                bytesWritten += WriteShortstr(ref destination.GetOffset(bytesWritten), entry.Key.ToString());
+                bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), entry.Value);
             }
 
             NetworkOrderSerializer.WriteUInt32(ref destination, (uint)(bytesWritten - 4));
             return bytesWritten;
         }
 
-        public static int WriteTable(ref byte destination, IDictionary<string, object> val, int bytesRemaining)
+        public static int WriteTable(ref byte destination, IDictionary<string, object> val)
         {
             if (val is null || val.Count == 0)
             {
@@ -427,16 +424,16 @@ namespace RabbitMQ.Client.Impl
             {
                 foreach (KeyValuePair<string, object> entry in dict)
                 {
-                    bytesWritten += WriteShortstr(ref destination.GetOffset(bytesWritten), entry.Key, bytesRemaining - bytesWritten);
-                    bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), entry.Value, bytesRemaining - bytesWritten);
+                    bytesWritten += WriteShortstr(ref destination.GetOffset(bytesWritten), entry.Key);
+                    bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), entry.Value);
                 }
             }
             else
             {
                 foreach (KeyValuePair<string, object> entry in val)
                 {
-                    bytesWritten += WriteShortstr(ref destination.GetOffset(bytesWritten), entry.Key, bytesRemaining - bytesWritten);
-                    bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), entry.Value, bytesRemaining - bytesWritten);
+                    bytesWritten += WriteShortstr(ref destination.GetOffset(bytesWritten), entry.Key);
+                    bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), entry.Value);
                 }
             }
 

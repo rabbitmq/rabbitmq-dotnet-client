@@ -79,12 +79,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int length = span.Length;
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue, length - offset);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _consumerTag, length - offset);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _consumerTag);
             offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _noLocal, _noAck, _exclusive, _nowait);
-            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments, length - offset);
+            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
         }
 
         public override int GetRequiredBufferSize()

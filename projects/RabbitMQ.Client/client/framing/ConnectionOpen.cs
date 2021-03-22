@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _virtualHost, span.Length);
+            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _virtualHost);
             span[offset++] = 0; // _reserved1
             span[offset++] = 0; // _reserved2
             return offset;
