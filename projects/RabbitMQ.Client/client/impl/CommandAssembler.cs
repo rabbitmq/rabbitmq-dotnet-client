@@ -34,6 +34,7 @@ using System.Buffers;
 
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Logging;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
@@ -91,6 +92,7 @@ namespace RabbitMQ.Client.Impl
                 return true;
             }
 
+            RabbitMqClientEventSource.Log.CommandReceived();
             command = new IncomingCommand(_method, _header, _body, _bodyBytes);
             Reset();
             return shallReturn;

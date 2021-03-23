@@ -339,6 +339,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _frameHandler.Close();
             _model0.SetCloseReason(CloseReason);
             _model0.FinishClose();
+            RabbitMqClientEventSource.Log.ConnectionClosed();
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
