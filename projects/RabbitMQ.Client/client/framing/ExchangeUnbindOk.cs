@@ -42,7 +42,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeUnbindOk;
         public override string ProtocolMethodName => "exchange.unbind-ok";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {

@@ -41,7 +41,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetEmpty;
         public override string ProtocolMethodName => "basic.get-empty";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {

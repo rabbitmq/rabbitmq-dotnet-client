@@ -55,11 +55,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlowOk;
         public override string ProtocolMethodName => "channel.flow-ok";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteBits(span, _active);
+            return WireFormatting.WriteBits(ref span.GetStart(), _active);
         }
 
         public override int GetRequiredBufferSize()

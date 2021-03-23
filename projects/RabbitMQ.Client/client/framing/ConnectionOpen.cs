@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -58,11 +59,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
         public override string ProtocolMethodName => "connection.open";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShortstr(span, _virtualHost);
+            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _virtualHost);
             span[offset++] = 0; // _reserved1
             span[offset++] = 0; // _reserved2
             return offset;

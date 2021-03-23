@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -59,12 +59,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
         public override string ProtocolMethodName => "connection.update-secret";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteLongstr(span, _newSecret);
-            return offset + WireFormatting.WriteShortstr(span.Slice(offset), _reason);
+            int offset = WireFormatting.WriteLongstr(ref span.GetStart(), _newSecret);
+            return offset + WireFormatting.WriteShortstr(ref span.GetOffset(offset), _reason);
         }
 
         public override int GetRequiredBufferSize()

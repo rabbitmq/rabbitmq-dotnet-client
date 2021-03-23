@@ -55,11 +55,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConfirmSelect;
         public override string ProtocolMethodName => "confirm.select";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteBits(span, _nowait);
+            return WireFormatting.WriteBits(ref span.GetStart(), _nowait);
         }
 
         public override int GetRequiredBufferSize()

@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Text;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -62,13 +62,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
         public override string ProtocolMethodName => "queue.declare-ok";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShortstr(span, _queue);
-            offset += WireFormatting.WriteLong(span.Slice(offset), _messageCount);
-            return offset + WireFormatting.WriteLong(span.Slice(offset), _consumerCount);
+            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _queue);
+            offset += WireFormatting.WriteLong(ref span.GetOffset(offset), _messageCount);
+            return offset + WireFormatting.WriteLong(ref span.GetOffset(offset), _consumerCount);
         }
 
         public override int GetRequiredBufferSize()

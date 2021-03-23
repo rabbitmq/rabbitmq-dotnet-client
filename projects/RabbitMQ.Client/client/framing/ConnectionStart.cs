@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -68,15 +69,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStart;
         public override string ProtocolMethodName => "connection.start";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
             span[0] = _versionMajor;
             span[1] = _versionMinor;
-            int offset = 2 + WireFormatting.WriteTable(span.Slice(2), (IDictionary<string, object>)_serverProperties);
-            offset += WireFormatting.WriteLongstr(span.Slice(offset), _mechanisms);
-            return offset + WireFormatting.WriteLongstr(span.Slice(offset), _locales);
+            int offset = 2 + WireFormatting.WriteTable(ref span.GetOffset(2), (IDictionary<string, object>)_serverProperties);
+            offset += WireFormatting.WriteLongstr(ref span.GetOffset(offset), _mechanisms);
+            return offset + WireFormatting.WriteLongstr(ref span.GetOffset(offset), _locales);
         }
 
         public override int GetRequiredBufferSize()

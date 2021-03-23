@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Runtime.CompilerServices;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -40,16 +42,13 @@ namespace RabbitMQ.Client.Framing.Impl
         public ulong _deliveryTag;
         public bool _multiple;
 
-        public BasicAck()
-        {
-        }
-
         public BasicAck(ulong DeliveryTag, bool Multiple)
         {
             _deliveryTag = DeliveryTag;
             _multiple = Multiple;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public BasicAck(ReadOnlySpan<byte> span)
         {
             int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
@@ -58,17 +57,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicAck;
         public override string ProtocolMethodName => "basic.ack";
-        public override bool HasContent => false;
-
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteLonglong(span, _deliveryTag);
-            return offset + WireFormatting.WriteBits(span.Slice(offset), _multiple);
+            int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
+            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _multiple);
+            return offset;
         }
-
-        public override int GetRequiredBufferSize()
-        {
-            return 8 + 1;
-        }
+        public override int GetRequiredBufferSize() => 9;
     }
 }

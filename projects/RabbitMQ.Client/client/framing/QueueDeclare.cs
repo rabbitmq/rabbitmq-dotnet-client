@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -67,21 +68,20 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             int offset = 2;
             offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
-            offset += WireFormatting.ReadBits(span.Slice(offset), out _passive,  out _durable, out _exclusive, out _autoDelete, out _nowait);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _passive, out _durable, out _exclusive, out _autoDelete, out _nowait);
             WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDictionary);
             _arguments = tmpDictionary;
         }
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclare;
         public override string ProtocolMethodName => "queue.declare";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShort(span, default);
-            offset += WireFormatting.WriteShortstr(span.Slice(offset), _queue);
-            offset += WireFormatting.WriteBits(span.Slice(offset), _passive, _durable, _exclusive, _autoDelete, _nowait);
-            return offset + WireFormatting.WriteTable(span.Slice(offset), _arguments);
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
+            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _passive, _durable, _exclusive, _autoDelete, _nowait);
+            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
         }
 
         public override int GetRequiredBufferSize()

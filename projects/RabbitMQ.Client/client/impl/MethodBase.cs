@@ -30,14 +30,13 @@
 //---------------------------------------------------------------------------
 
 using System;
+
 using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Impl
 {
     internal abstract class MethodBase
     {
-        public abstract bool HasContent { get; }
-
         public abstract ProtocolCommandId ProtocolCommandId { get; }
 
         /// <summary>
@@ -57,5 +56,21 @@ namespace RabbitMQ.Client.Impl
 
         public abstract int WriteArgumentsTo(Span<byte> span);
         public abstract int GetRequiredBufferSize();
+    }
+
+    internal static class ProtocolCommandIdExtensions
+    {
+        public static bool HasContent(this ProtocolCommandId commandId)
+        {
+            switch (commandId)
+            {
+                case ProtocolCommandId.BasicDeliver:
+                case ProtocolCommandId.BasicGetOk:
+                case ProtocolCommandId.BasicReturn:
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
 }

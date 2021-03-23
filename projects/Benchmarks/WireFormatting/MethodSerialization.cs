@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+
 using BenchmarkDotNet.Attributes;
 
 using RabbitMQ.Client.Framing;
@@ -37,11 +38,12 @@ namespace RabbitMQ.Benchmarks
 
         public override void SetUp()
         {
-            int offset = RabbitMQ.Client.Impl.WireFormatting.WriteShortstr(_buffer.Span, string.Empty);
-            offset += RabbitMQ.Client.Impl.WireFormatting.WriteLonglong(_buffer.Slice(offset).Span, 0);
-            offset += RabbitMQ.Client.Impl.WireFormatting.WriteBits(_buffer.Slice(offset).Span, false);
-            offset += RabbitMQ.Client.Impl.WireFormatting.WriteShortstr(_buffer.Slice(offset).Span, string.Empty);
-            RabbitMQ.Client.Impl.WireFormatting.WriteShortstr(_buffer.Slice(offset).Span, string.Empty);
+            int length = _buffer.Length;
+            int offset = Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetStart(), string.Empty);
+            offset += Client.Impl.WireFormatting.WriteLonglong(ref _buffer.Span.GetOffset(offset), 0);
+            offset += Client.Impl.WireFormatting.WriteBits(ref _buffer.Span.GetOffset(offset), false);
+            offset += Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetOffset(offset), string.Empty);
+            Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetOffset(offset), string.Empty);
         }
 
         [Benchmark]

@@ -55,11 +55,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
         public override string ProtocolMethodName => "connection.secure-ok";
-        public override bool HasContent => false;
 
         public override int WriteArgumentsTo(Span<byte> span)
         {
-            return WireFormatting.WriteLongstr(span, _response);
+            return WireFormatting.WriteLongstr(ref span.GetStart(), _response);
         }
 
         public override int GetRequiredBufferSize()

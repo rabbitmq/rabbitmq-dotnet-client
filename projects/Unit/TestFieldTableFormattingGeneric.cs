@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Unit
             t["fieldarray"] = array;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(bytes, t);
+            WireFormatting.WriteTable(ref bytes.GetStart(), t);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
             Assert.Equal(bytesNeeded, bytesRead);
             Assert.Equal(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Unit
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(bytes, t);
+            WireFormatting.WriteTable(ref bytes.GetStart(), t);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
             Assert.Equal(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Unit
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(bytes, t);
+            WireFormatting.WriteTable(ref bytes.GetStart(), t);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
             Assert.Equal(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client.Unit
             t["V"] = null;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(bytes, t);
+            WireFormatting.WriteTable(ref bytes.GetStart(), t);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
             Assert.Equal(bytesNeeded, bytesRead);
             Assert.Equal(typeof(byte), nt["B"].GetType()); Assert.Equal((byte)255, nt["B"]);
