@@ -159,7 +159,7 @@ namespace RabbitMQ.Client
         public bool AutomaticRecoveryEnabled { get; set; } = true;
 
         /// <summary>
-        /// Set to true will enable a asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/>.
+        /// Set to true will enable an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/>.
         /// Defaults to false.
         /// </summary>
         public bool DispatchConsumersAsync { get; set; } = false;
