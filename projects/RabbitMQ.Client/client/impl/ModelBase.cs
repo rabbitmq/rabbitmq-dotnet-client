@@ -1447,7 +1447,7 @@ namespace RabbitMQ.Client.Impl
             bool onlyAcksReceived = WaitForConfirms(timeout, out bool timedOut);
             if (!onlyAcksReceived)
             {
-                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                Close(new ShutdownEventArgs(ShutdownInitiator.Library,
                     Constants.ReplySuccess,
                     "Nacks Received", new IOException("nack received")),
                     false).GetAwaiter().GetResult();
@@ -1455,7 +1455,7 @@ namespace RabbitMQ.Client.Impl
             }
             if (timedOut)
             {
-                Close(new ShutdownEventArgs(ShutdownInitiator.Application,
+                Close(new ShutdownEventArgs(ShutdownInitiator.Library,
                     Constants.ReplySuccess,
                     "Timed out waiting for acks",
                     new IOException("timed out waiting for acks")),
