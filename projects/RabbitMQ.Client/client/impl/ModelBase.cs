@@ -1150,13 +1150,13 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 await CloseAsync(
-                    new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "Nacks Received",
+                    new ShutdownEventArgs(ShutdownInitiator.Library, Constants.ReplySuccess, "Nacks Received",
                         new IOException("nack received")),
                     false).ConfigureAwait(false);
             }
             catch (TaskCanceledException exception)
             {
-                await CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application,
+                await CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Library,
                         Constants.ReplySuccess,
                         "Timed out waiting for acks",
                         exception),

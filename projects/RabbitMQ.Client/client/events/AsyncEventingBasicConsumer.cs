@@ -26,7 +26,7 @@ namespace RabbitMQ.Client.Events
         }
         private AsyncEventingWrapper<BasicDeliverEventArgs> _receivedWrapper;
 
-        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
+        ///<summary>Fires when the server confirms successful consumer registration.</summary>
         public event AsyncEventHandler<ConsumerEventArgs> Registered
         {
             add => _registeredWrapper.AddHandler(value);
