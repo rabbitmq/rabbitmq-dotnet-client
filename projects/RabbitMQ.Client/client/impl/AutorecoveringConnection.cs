@@ -896,7 +896,12 @@ namespace RabbitMQ.Client.Framing.Impl
         private void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
             ESLog.Error("Topology recovery exception", e);
-            throw e;
+            if (e.InnerException is AlreadyClosedException || e.InnerException is OperationInterruptedException || e.InnerException is TimeoutException)
+            {
+                throw e;
+            }
+            ESLog.Error($"Will not throw Topology Exception {e.InnerException?.GetType().FullName}.", e);
+
         }
 
         private void PropagateQueueNameChangeToBindings(string oldName, string newName)
