@@ -120,7 +120,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw e;
             }
 
-            ESLog.Error($"Will not throw Topology Exception {e.GetType().FullName}.", e);
+            ESLog.Error($"Will not throw Topology Exception {e.InnerException?.GetType().FullName}.", e);
         }
 
         private bool TryPerformAutomaticRecovery()
