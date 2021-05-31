@@ -900,7 +900,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 throw e;
             }
-            ESLog.Error($"Will not throw Topology Exception {e.InnerException?.GetType().FullName}.", e);
+            ESLog.Info($"Exception {e.InnerException?.GetType().FullName} is ignored because of it's not a known connection problem.", e);
 
         }
 
