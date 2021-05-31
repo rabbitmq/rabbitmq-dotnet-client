@@ -900,7 +900,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 throw e;
             }
-            ESLog.Info($"Exception {e.InnerException?.GetType().FullName} is ignored because of it's not a known connection problem.", e);
+            ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivty, ignoring it", e);
 
         }
 
