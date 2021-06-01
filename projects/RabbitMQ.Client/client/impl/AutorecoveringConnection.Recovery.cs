@@ -111,16 +111,15 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private static void HandleTopologyRecoveryException(TopologyRecoveryException e)
+        private void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
             ESLog.Error("Topology recovery exception", e);
-
             if (e.InnerException is AlreadyClosedException || e.InnerException is OperationInterruptedException || e.InnerException is TimeoutException)
             {
                 throw e;
             }
+            ESLog.Info($"Exception {e.InnerException?.GetType().FullName} is ignored because of it's not a known connection problem.", e);
 
-            ESLog.Error($"Will not throw Topology Exception {e.InnerException?.GetType().FullName}.", e);
         }
 
         private bool TryPerformAutomaticRecovery()
