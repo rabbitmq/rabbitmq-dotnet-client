@@ -58,7 +58,6 @@ namespace RabbitMQ.Client.Unit
             });
 
             var settings = new VerifySettings();
-            settings.DisableClipboard();
             settings.DisableDiff();
 
             return Verifier.Verify(publicApi, settings);
