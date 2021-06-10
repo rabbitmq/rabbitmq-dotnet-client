@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -53,46 +52,13 @@ namespace RabbitMQ.Client.Impl
             MaxSeenDeliveryTag = 0;
         }
 
-        public override void HandleBasicGetOk(ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            uint messageCount,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body,
-            byte[] rentedArray)
+        protected override ulong AdjustDeliveryTag(ulong deliveryTag)
         {
             if (deliveryTag > MaxSeenDeliveryTag)
             {
                 MaxSeenDeliveryTag = deliveryTag;
             }
-
-            base.HandleBasicGetOk(OffsetDeliveryTag(deliveryTag), redelivered, exchange,
-                routingKey, messageCount, basicProperties, body, rentedArray);
-        }
-
-        public override void HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body,
-            byte[] rentedArray)
-        {
-            if (deliveryTag > MaxSeenDeliveryTag)
-            {
-                MaxSeenDeliveryTag = deliveryTag;
-            }
-
-            base.HandleBasicDeliver(consumerTag,
-                OffsetDeliveryTag(deliveryTag),
-                redelivered,
-                exchange,
-                routingKey,
-                basicProperties,
-                body,
-                rentedArray);
+            return deliveryTag + ActiveDeliveryTagOffset;
         }
 
         public override void BasicAck(ulong deliveryTag, bool multiple)
@@ -120,11 +86,6 @@ namespace RabbitMQ.Client.Impl
             {
                 base.BasicReject(realTag, requeue);
             }
-        }
-
-        private ulong OffsetDeliveryTag(ulong deliveryTag)
-        {
-            return deliveryTag + ActiveDeliveryTagOffset;
         }
     }
 }

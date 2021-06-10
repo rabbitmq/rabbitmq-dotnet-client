@@ -35,37 +35,15 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionSecure : Client.Impl.MethodBase
+    internal readonly struct ConnectionSecure : IAmqpMethod
     {
-        public byte[] _challenge;
-
-        public ConnectionSecure()
-        {
-        }
-
-        public ConnectionSecure(byte[] Challenge)
-        {
-            _challenge = Challenge;
-        }
+        public readonly byte[] _challenge;
 
         public ConnectionSecure(ReadOnlySpan<byte> span)
         {
             WireFormatting.ReadLongstr(span, out _challenge);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecure;
-        public override string ProtocolMethodName => "connection.secure";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            return WireFormatting.WriteLongstr(ref span.GetStart(), _challenge);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            int bufferSize = 4; // bytes for length of _challenge
-            bufferSize += _challenge.Length; // _challenge in bytes
-            return bufferSize;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecure;
     }
 }

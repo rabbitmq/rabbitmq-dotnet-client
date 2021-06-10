@@ -236,7 +236,6 @@ namespace RabbitMQ.Client.Framing
 
         internal override int WritePropertiesTo(Span<byte> span)
         {
-            int length = span.Length;
             int offset = WireFormatting.WriteBits(ref span.GetStart(),
                 IsContentTypePresent(), IsContentEncodingPresent(), IsHeadersPresent(), IsDeliveryModePresent(), IsPriorityPresent(),
                 IsCorrelationIdPresent(), IsReplyToPresent(), IsExpirationPresent(), IsMessageIdPresent(), IsTimestampPresent(),

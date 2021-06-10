@@ -36,22 +36,11 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class QueueDeclareOk : Client.Impl.MethodBase
+    internal readonly struct QueueDeclareOk : IAmqpMethod
     {
-        public string _queue;
-        public uint _messageCount;
-        public uint _consumerCount;
-
-        public QueueDeclareOk()
-        {
-        }
-
-        public QueueDeclareOk(string Queue, uint MessageCount, uint ConsumerCount)
-        {
-            _queue = Queue;
-            _messageCount = MessageCount;
-            _consumerCount = ConsumerCount;
-        }
+        public readonly string _queue;
+        public readonly uint _messageCount;
+        public readonly uint _consumerCount;
 
         public QueueDeclareOk(ReadOnlySpan<byte> span)
         {
@@ -60,21 +49,6 @@ namespace RabbitMQ.Client.Framing.Impl
             WireFormatting.ReadLong(span.Slice(offset), out _consumerCount);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
-        public override string ProtocolMethodName => "queue.declare-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _queue);
-            offset += WireFormatting.WriteLong(ref span.GetOffset(offset), _messageCount);
-            return offset + WireFormatting.WriteLong(ref span.GetOffset(offset), _consumerCount);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            int bufferSize = 1 + 4 + 4; // bytes for length of _queue, _messageCount, _consumerCount
-            bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
-            return bufferSize;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
     }
 }

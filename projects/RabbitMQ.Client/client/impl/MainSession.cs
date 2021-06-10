@@ -35,7 +35,6 @@
 // that ever changes.
 
 using RabbitMQ.Client.client.framing;
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -59,8 +58,7 @@ namespace RabbitMQ.Client.Impl
                 if (!_closeServerInitiated && frame.Type == FrameType.FrameMethod)
                 {
                     // This isn't a server initiated close and we have a method frame
-                    ProtocolCommandId commandId = Protocol.ReadCommandId(frame.Payload.Span);
-                    switch (commandId)
+                    switch (Connection.Protocol.DecodeCommandIdFrom(frame.Payload.Span))
                     {
                         case ProtocolCommandId.ConnectionClose:
                             return base.HandleFrame(in frame);
@@ -104,8 +102,8 @@ namespace RabbitMQ.Client.Impl
         public override void Transmit<T>(in T cmd)
         {
             if (_closing && // Are we closing?
-                cmd.Method.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk && // is this not a close-ok?
-                (_closeServerInitiated || cmd.Method.ProtocolCommandId != ProtocolCommandId.ConnectionClose)) // is this either server initiated or not a close?
+                cmd.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk && // is this not a close-ok?
+                (_closeServerInitiated || cmd.ProtocolCommandId != ProtocolCommandId.ConnectionClose)) // is this either server initiated or not a close?
             {
                 // We shouldn't do anything since we are closing, not sending a connection-close-ok command
                 // and this is either a server-initiated close or not a connection-close command.

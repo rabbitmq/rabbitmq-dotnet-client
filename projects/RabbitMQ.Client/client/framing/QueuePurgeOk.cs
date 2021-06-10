@@ -35,35 +35,15 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class QueuePurgeOk : Client.Impl.MethodBase
+    internal readonly struct QueuePurgeOk : IAmqpMethod
     {
-        public uint _messageCount;
-
-        public QueuePurgeOk()
-        {
-        }
-
-        public QueuePurgeOk(uint MessageCount)
-        {
-            _messageCount = MessageCount;
-        }
+        public readonly uint _messageCount;
 
         public QueuePurgeOk(ReadOnlySpan<byte> span)
         {
             WireFormatting.ReadLong(span, out _messageCount);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurgeOk;
-        public override string ProtocolMethodName => "queue.purge-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            return WireFormatting.WriteLong(ref span.GetStart(), _messageCount);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            return 4; // bytes for _messageCount
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurgeOk;
     }
 }

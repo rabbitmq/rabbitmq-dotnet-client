@@ -37,28 +37,40 @@ namespace RabbitMQ.Client.Impl
 {
     internal class SimpleBlockingRpcContinuation : IRpcContinuation
     {
-        public readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();
+        private readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();
 
-        public virtual IncomingCommand GetReply(TimeSpan timeout)
+        public void GetReply(TimeSpan timeout)
         {
             Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
-            switch (result.Alternative)
+            if (result.Alternative == EitherAlternative.Left)
             {
-                case EitherAlternative.Left:
-                    return result.LeftValue;
-                case EitherAlternative.Right:
-                    throw new OperationInterruptedException(result.RightValue);
-                default:
-                    return default;
+                return;
             }
+            ThrowOperationInterruptedException(result.RightValue);
         }
 
-        public virtual void HandleCommand(in IncomingCommand cmd)
+        public void GetReply(TimeSpan timeout, out IncomingCommand reply)
+        {
+            Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
+            if (result.Alternative == EitherAlternative.Left)
+            {
+                reply = result.LeftValue;
+                return;
+            }
+
+            reply = IncomingCommand.Empty;
+            ThrowOperationInterruptedException(result.RightValue);
+        }
+
+        private static void ThrowOperationInterruptedException(ShutdownEventArgs shutdownEventArgs)
+            => throw new OperationInterruptedException(shutdownEventArgs);
+
+        public void HandleCommand(in IncomingCommand cmd)
         {
             m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Left(cmd));
         }
 
-        public virtual void HandleModelShutdown(ShutdownEventArgs reason)
+        public void HandleModelShutdown(ShutdownEventArgs reason)
         {
             m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Right(reason));
         }

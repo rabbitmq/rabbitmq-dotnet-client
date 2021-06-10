@@ -35,33 +35,23 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ChannelFlowOk : Client.Impl.MethodBase
+    internal readonly struct ChannelFlowOk : IOutgoingAmqpMethod
     {
-        public bool _active;
-
-        public ChannelFlowOk()
-        {
-        }
+        public readonly bool _active;
 
         public ChannelFlowOk(bool Active)
         {
             _active = Active;
         }
 
-        public ChannelFlowOk(ReadOnlySpan<byte> span)
-        {
-            WireFormatting.ReadBits(span, out _active);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlowOk;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlowOk;
-        public override string ProtocolMethodName => "channel.flow-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             return WireFormatting.WriteBits(ref span.GetStart(), _active);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 1; // bytes for bit fields
         }

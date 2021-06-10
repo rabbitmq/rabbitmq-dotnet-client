@@ -35,14 +35,10 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class BasicReject : Client.Impl.MethodBase
+    internal readonly struct BasicReject : IOutgoingAmqpMethod
     {
-        public ulong _deliveryTag;
-        public bool _requeue;
-
-        public BasicReject()
-        {
-        }
+        public readonly ulong _deliveryTag;
+        public readonly bool _requeue;
 
         public BasicReject(ulong DeliveryTag, bool Requeue)
         {
@@ -50,22 +46,15 @@ namespace RabbitMQ.Client.Framing.Impl
             _requeue = Requeue;
         }
 
-        public BasicReject(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
-            WireFormatting.ReadBits(span.Slice(offset), out _requeue);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReject;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReject;
-        public override string ProtocolMethodName => "basic.reject";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _requeue);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 8 + 1; // bytes for _deliveryTag, bit fields
         }

@@ -37,26 +37,13 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionStart : MethodBase
+    internal readonly struct ConnectionStart : IAmqpMethod
     {
-        public byte _versionMajor;
-        public byte _versionMinor;
-        public Dictionary<string, object> _serverProperties;
-        public byte[] _mechanisms;
-        public byte[] _locales;
-
-        public ConnectionStart()
-        {
-        }
-
-        public ConnectionStart(byte VersionMajor, byte VersionMinor, Dictionary<string, object> ServerProperties, byte[] Mechanisms, byte[] Locales)
-        {
-            _versionMajor = VersionMajor;
-            _versionMinor = VersionMinor;
-            _serverProperties = ServerProperties;
-            _mechanisms = Mechanisms;
-            _locales = Locales;
-        }
+        public readonly byte _versionMajor;
+        public readonly byte _versionMinor;
+        public readonly Dictionary<string, object> _serverProperties;
+        public readonly byte[] _mechanisms;
+        public readonly byte[] _locales;
 
         public ConnectionStart(ReadOnlySpan<byte> span)
         {
@@ -67,25 +54,6 @@ namespace RabbitMQ.Client.Framing.Impl
             WireFormatting.ReadLongstr(span.Slice(offset), out _locales);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStart;
-        public override string ProtocolMethodName => "connection.start";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            span[0] = _versionMajor;
-            span[1] = _versionMinor;
-            int offset = 2 + WireFormatting.WriteTable(ref span.GetOffset(2), (IDictionary<string, object>)_serverProperties);
-            offset += WireFormatting.WriteLongstr(ref span.GetOffset(offset), _mechanisms);
-            return offset + WireFormatting.WriteLongstr(ref span.GetOffset(offset), _locales);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            int bufferSize = 1 + 1 + 4 + 4; // bytes for _versionMajor, _versionMinor, length of _mechanisms, length of _locales
-            bufferSize += WireFormatting.GetTableByteCount((IDictionary<string, object>)_serverProperties); // _serverProperties in bytes
-            bufferSize += _mechanisms.Length; // _mechanisms in bytes
-            bufferSize += _locales.Length; // _locales in bytes
-            return bufferSize;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStart;
     }
 }

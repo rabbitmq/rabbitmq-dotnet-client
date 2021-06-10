@@ -35,33 +35,23 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionSecureOk : Client.Impl.MethodBase
+    internal readonly struct ConnectionSecureOk : IOutgoingAmqpMethod
     {
-        public byte[] _response;
-
-        public ConnectionSecureOk()
-        {
-        }
+        public readonly byte[] _response;
 
         public ConnectionSecureOk(byte[] Response)
         {
             _response = Response;
         }
 
-        public ConnectionSecureOk(ReadOnlySpan<byte> span)
-        {
-            WireFormatting.ReadLongstr(span, out _response);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
-        public override string ProtocolMethodName => "connection.secure-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             return WireFormatting.WriteLongstr(ref span.GetStart(), _response);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             int bufferSize = 4; // bytes for length of _response
             bufferSize += _response.Length; // _response in bytes

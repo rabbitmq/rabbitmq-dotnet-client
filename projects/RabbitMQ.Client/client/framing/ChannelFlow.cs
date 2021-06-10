@@ -35,35 +35,15 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ChannelFlow : Client.Impl.MethodBase
+    internal readonly struct ChannelFlow : IAmqpMethod
     {
-        public bool _active;
-
-        public ChannelFlow()
-        {
-        }
-
-        public ChannelFlow(bool Active)
-        {
-            _active = Active;
-        }
+        public readonly bool _active;
 
         public ChannelFlow(ReadOnlySpan<byte> span)
         {
             WireFormatting.ReadBits(span, out _active);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlow;
-        public override string ProtocolMethodName => "channel.flow";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            return WireFormatting.WriteBits(ref span.GetStart(), _active);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            return 1; // bytes for bit fields
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlow;
     }
 }

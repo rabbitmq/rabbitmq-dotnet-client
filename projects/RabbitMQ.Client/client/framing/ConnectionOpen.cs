@@ -36,31 +36,21 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionOpen : Client.Impl.MethodBase
+    internal readonly struct ConnectionOpen : IOutgoingAmqpMethod
     {
-        public string _virtualHost;
+        public readonly string _virtualHost;
         // deprecated
         // string _reserved1
         // bool _reserved2
-
-        public ConnectionOpen()
-        {
-        }
 
         public ConnectionOpen(string VirtualHost)
         {
             _virtualHost = VirtualHost;
         }
 
-        public ConnectionOpen(ReadOnlySpan<byte> span)
-        {
-            WireFormatting.ReadShortstr(span, out _virtualHost);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
-        public override string ProtocolMethodName => "connection.open";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _virtualHost);
             span[offset++] = 0; // _reserved1
@@ -68,9 +58,9 @@ namespace RabbitMQ.Client.Framing.Impl
             return offset;
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
-            int bufferSize = 1 + 1 + 1; // bytes for length of _virtualHost, length of _reserved1, bit fields
+            int bufferSize = 1 + 1 + 1; // bytes for length of _virtualHost, length of _capabilities, bit fields
             bufferSize += WireFormatting.GetByteCount(_virtualHost); // _virtualHost in bytes
             return bufferSize;
         }

@@ -36,17 +36,13 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ExchangeDelete : Client.Impl.MethodBase
+    internal readonly struct ExchangeDelete : IOutgoingAmqpMethod
     {
         // deprecated
         // ushort _reserved1
-        public string _exchange;
-        public bool _ifUnused;
-        public bool _nowait;
-
-        public ExchangeDelete()
-        {
-        }
+        public readonly string _exchange;
+        public readonly bool _ifUnused;
+        public readonly bool _nowait;
 
         public ExchangeDelete(string Exchange, bool IfUnused, bool Nowait)
         {
@@ -55,24 +51,16 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
-        public ExchangeDelete(ReadOnlySpan<byte> span)
-        {
-            int offset = 2;
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
-            WireFormatting.ReadBits(span.Slice(offset), out _ifUnused, out _nowait);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDelete;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDelete;
-        public override string ProtocolMethodName => "exchange.delete";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
             offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _ifUnused, _nowait);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _exchange, bit fields
             bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes

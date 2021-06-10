@@ -36,37 +36,15 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class BasicConsumeOk : Client.Impl.MethodBase
+    internal readonly struct BasicConsumeOk : IAmqpMethod
     {
-        public string _consumerTag;
-
-        public BasicConsumeOk()
-        {
-        }
-
-        public BasicConsumeOk(string ConsumerTag)
-        {
-            _consumerTag = ConsumerTag;
-        }
+        public readonly string _consumerTag;
 
         public BasicConsumeOk(ReadOnlySpan<byte> span)
         {
             WireFormatting.ReadShortstr(span, out _consumerTag);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsumeOk;
-        public override string ProtocolMethodName => "basic.consume-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            return WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            int bufferSize = 1; // bytes for length of _consumerTag
-            bufferSize += WireFormatting.GetByteCount(_consumerTag); // _consumerTag in bytes
-            return bufferSize;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsumeOk;
     }
 }

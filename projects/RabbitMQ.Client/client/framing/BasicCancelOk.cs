@@ -36,37 +36,15 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class BasicCancelOk : Client.Impl.MethodBase
+    internal readonly struct BasicCancelOk : IAmqpMethod
     {
-        public string _consumerTag;
-
-        public BasicCancelOk()
-        {
-        }
-
-        public BasicCancelOk(string ConsumerTag)
-        {
-            _consumerTag = ConsumerTag;
-        }
+        public readonly string _consumerTag;
 
         public BasicCancelOk(ReadOnlySpan<byte> span)
         {
             WireFormatting.ReadShortstr(span, out _consumerTag);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancelOk;
-        public override string ProtocolMethodName => "basic.cancel-ok";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            return WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            int bufferSize = 1; // bytes for length of _consumerTag
-            bufferSize += WireFormatting.GetByteCount(_consumerTag); // _consumerTag in bytes
-            return bufferSize;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancelOk;
     }
 }

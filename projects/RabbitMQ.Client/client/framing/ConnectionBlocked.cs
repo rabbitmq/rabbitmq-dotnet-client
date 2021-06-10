@@ -36,37 +36,15 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionBlocked : Client.Impl.MethodBase
+    internal readonly struct ConnectionBlocked : IAmqpMethod
     {
-        public string _reason;
-
-        public ConnectionBlocked()
-        {
-        }
-
-        public ConnectionBlocked(string Reason)
-        {
-            _reason = Reason;
-        }
+        public readonly string _reason;
 
         public ConnectionBlocked(ReadOnlySpan<byte> span)
         {
             WireFormatting.ReadShortstr(span, out _reason);
         }
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionBlocked;
-        public override string ProtocolMethodName => "connection.blocked";
-
-        public override int WriteArgumentsTo(Span<byte> span)
-        {
-            return WireFormatting.WriteShortstr(ref span.GetStart(), _reason);
-        }
-
-        public override int GetRequiredBufferSize()
-        {
-            int bufferSize = 1; // bytes for length of _reason
-            bufferSize += WireFormatting.GetByteCount(_reason); // _reason in bytes
-            return bufferSize;
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionBlocked;
     }
 }

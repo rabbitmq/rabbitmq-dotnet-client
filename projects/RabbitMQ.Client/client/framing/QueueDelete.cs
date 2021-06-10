@@ -36,18 +36,14 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class QueueDelete : Client.Impl.MethodBase
+    internal readonly struct QueueDelete : IOutgoingAmqpMethod
     {
         // deprecated
         // ushort _reserved1
-        public string _queue;
-        public bool _ifUnused;
-        public bool _ifEmpty;
-        public bool _nowait;
-
-        public QueueDelete()
-        {
-        }
+        public readonly string _queue;
+        public readonly bool _ifUnused;
+        public readonly bool _ifEmpty;
+        public readonly bool _nowait;
 
         public QueueDelete(string Queue, bool IfUnused, bool IfEmpty, bool Nowait)
         {
@@ -57,24 +53,16 @@ namespace RabbitMQ.Client.Framing.Impl
             _nowait = Nowait;
         }
 
-        public QueueDelete(ReadOnlySpan<byte> span)
-        {
-            int offset = 2;
-            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _queue);
-            WireFormatting.ReadBits(span.Slice(offset), out _ifUnused, out _ifEmpty, out _nowait);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDelete;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDelete;
-        public override string ProtocolMethodName => "queue.delete";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
             offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _ifUnused, _ifEmpty, _nowait);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _queue, bit fields
             bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes

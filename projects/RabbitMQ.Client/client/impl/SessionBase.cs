@@ -129,16 +129,27 @@ namespace RabbitMQ.Client.Impl
             OnSessionShutdown(reason);
         }
 
-        public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingCommand
+        public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingAmqpMethod
         {
-            if (!IsOpen && cmd.Method.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
+            if (!IsOpen && cmd.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
             {
-                throw new AlreadyClosedException(CloseReason);
+                ThrowAlreadyClosedException();
             }
 
-            // We used to transmit *inside* the lock to avoid interleaving
-            // of frames within a channel.  But that is fixed in socket frame handler instead, so no need to lock.
-            Connection.Write(cmd.SerializeToFrames(ChannelNumber, Connection.FrameMax));
+            Connection.Write(Framing.SerializeToFrames(cmd, ChannelNumber));
         }
+
+        public void Transmit<T>(in T cmd, ContentHeaderBase header, ReadOnlyMemory<byte> body) where T : struct, IOutgoingAmqpMethod
+        {
+            if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
+            {
+                ThrowAlreadyClosedException();
+            }
+
+            Connection.Write(Framing.SerializeToFrames(cmd, header, body, ChannelNumber, Connection.MaxPayloadSize));
+        }
+
+        private void ThrowAlreadyClosedException()
+            => throw new AlreadyClosedException(CloseReason);
     }
 }

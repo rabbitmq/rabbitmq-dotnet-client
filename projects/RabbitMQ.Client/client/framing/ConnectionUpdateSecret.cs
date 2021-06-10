@@ -36,14 +36,10 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class ConnectionUpdateSecret : Client.Impl.MethodBase
+    internal readonly struct ConnectionUpdateSecret : IOutgoingAmqpMethod
     {
-        public byte[] _newSecret;
-        public string _reason;
-
-        public ConnectionUpdateSecret()
-        {
-        }
+        public readonly byte[] _newSecret;
+        public readonly string _reason;
 
         public ConnectionUpdateSecret(byte[] NewSecret, string Reason)
         {
@@ -51,22 +47,15 @@ namespace RabbitMQ.Client.Framing.Impl
             _reason = Reason;
         }
 
-        public ConnectionUpdateSecret(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadLongstr(span, out _newSecret);
-            WireFormatting.ReadShortstr(span.Slice(offset), out _reason);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
-        public override string ProtocolMethodName => "connection.update-secret";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLongstr(ref span.GetStart(), _newSecret);
             return offset + WireFormatting.WriteShortstr(ref span.GetOffset(offset), _reason);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             int bufferSize = 4 + 1; // bytes for length of _newSecret, length of _reason
             bufferSize += _newSecret.Length; // _newSecret in bytes

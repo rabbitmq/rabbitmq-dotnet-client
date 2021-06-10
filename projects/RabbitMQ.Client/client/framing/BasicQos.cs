@@ -35,15 +35,11 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal sealed class BasicQos : Client.Impl.MethodBase
+    internal readonly struct BasicQos : IOutgoingAmqpMethod
     {
-        public uint _prefetchSize;
-        public ushort _prefetchCount;
-        public bool _global;
-
-        public BasicQos()
-        {
-        }
+        public readonly uint _prefetchSize;
+        public readonly ushort _prefetchCount;
+        public readonly bool _global;
 
         public BasicQos(uint PrefetchSize, ushort PrefetchCount, bool Global)
         {
@@ -52,24 +48,16 @@ namespace RabbitMQ.Client.Framing.Impl
             _global = Global;
         }
 
-        public BasicQos(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadLong(span, out _prefetchSize);
-            offset += WireFormatting.ReadShort(span.Slice(offset), out _prefetchCount);
-            WireFormatting.ReadBits(span.Slice(offset), out _global);
-        }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicQos;
 
-        public override ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicQos;
-        public override string ProtocolMethodName => "basic.qos";
-
-        public override int WriteArgumentsTo(Span<byte> span)
+        public int WriteArgumentsTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLong(ref span.GetStart(), _prefetchSize);
             offset += WireFormatting.WriteShort(ref span.GetOffset(offset), _prefetchCount);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _global);
         }
 
-        public override int GetRequiredBufferSize()
+        public int GetRequiredBufferSize()
         {
             return 4 + 2 + 1; // bytes for _prefetchSize, _prefetchCount, bit fields
         }
