@@ -331,7 +331,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// This method performs a "passive declare" on an exchange,
-        /// which verifies whether .
+        /// which checks whether an exchange exists.
         /// It will do nothing if the exchange already exists and result
         /// in a channel-level protocol exception (channel closure) if not.
         /// </remarks>
@@ -552,7 +552,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Waits until all messages published since the last call have
         /// been ack'd by the broker.  If a nack is received or the timeout
-        /// elapses, throws an OperationInterrupedException exception immediately.
+        /// elapses, throws an OperationInterruptedException exception immediately.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie(TimeSpan timeout);
