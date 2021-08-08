@@ -44,7 +44,7 @@ namespace RabbitMQ.Client
         private readonly string? _contentType;
         private readonly string? _contentEncoding;
         private readonly IDictionary<string, object?>? _headers;
-        private readonly byte _deliveryMode;
+        private readonly DeliveryModes _deliveryMode;
         private readonly byte _priority;
         private readonly string? _correlationId;
         private readonly string? _replyTo;
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
         public string? ContentType => _contentType;
         public string? ContentEncoding => _contentEncoding;
         public IDictionary<string, object?>? Headers => _headers;
-        public byte DeliveryMode => _deliveryMode;
+        public DeliveryModes DeliveryMode => _deliveryMode;
         public byte Priority => _priority;
         public string? CorrelationId => _correlationId;
         public string? ReplyTo => _replyTo;
@@ -71,7 +71,7 @@ namespace RabbitMQ.Client
         public string? AppId => _appId;
         public string? ClusterId => _clusterId;
 
-        public bool Persistent => DeliveryMode == 2;
+        public bool Persistent => DeliveryMode == DeliveryModes.Persistent;
 
         public PublicationAddress? ReplyToAddress
         {
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client
             if (bits.IsBitSet(BasicProperties.ContentTypeBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentType); }
             if (bits.IsBitSet(BasicProperties.ContentEncodingBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentEncoding); }
             if (bits.IsBitSet(BasicProperties.HeaderBit)) { offset += WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDirectory); _headers = tmpDirectory; }
-            if (bits.IsBitSet(BasicProperties.DeliveryModeBit)) { _deliveryMode = span[offset++]; }
+            if (bits.IsBitSet(BasicProperties.DeliveryModeBit)) { _deliveryMode = (DeliveryModes)span[offset++]; }
             if (bits.IsBitSet(BasicProperties.PriorityBit)) { _priority = span[offset++]; }
             if (bits.IsBitSet(BasicProperties.CorrelationIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _correlationId); }
             if (bits.IsBitSet(BasicProperties.ReplyToBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyTo); }

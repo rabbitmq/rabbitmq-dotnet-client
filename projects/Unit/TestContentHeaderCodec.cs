@@ -84,7 +84,7 @@ namespace RabbitMQ.Client.Unit
                     ContentEncoding = "C",
                     ClusterId = "D",
                     CorrelationId = "E",
-                    DeliveryMode = 1,
+                    DeliveryMode = DeliveryModes.Transient,
                     Expiration = "F",
                     MessageId = "G",
                     Priority = 2,

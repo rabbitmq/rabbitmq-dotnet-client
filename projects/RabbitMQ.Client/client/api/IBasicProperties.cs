@@ -69,7 +69,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Non-persistent (1) or persistent (2).
         /// </summary>
-        byte DeliveryMode { get; }
+        DeliveryModes DeliveryMode { get; }
 
         /// <summary>
         /// Message expiration specification.
@@ -236,7 +236,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Non-persistent (1) or persistent (2).
         /// </summary>
-        new byte DeliveryMode { get; set; }
+        new DeliveryModes DeliveryMode { get; set; }
 
         /// <summary>
         /// Message expiration specification.

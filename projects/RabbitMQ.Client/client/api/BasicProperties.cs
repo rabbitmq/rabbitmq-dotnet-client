@@ -45,7 +45,7 @@ namespace RabbitMQ.Client
         public string? ContentType { get; set; }
         public string? ContentEncoding { get; set; }
         public IDictionary<string, object?>? Headers { get; set; }
-        public byte DeliveryMode { get; set; }
+        public DeliveryModes DeliveryMode { get; set; }
         public byte Priority { get; set; }
         public string? CorrelationId { get; set; }
         public string? ReplyTo { get; set; }
@@ -59,8 +59,15 @@ namespace RabbitMQ.Client
 
         public bool Persistent
         {
-            readonly get { return DeliveryMode == 2; }
-            set { DeliveryMode = value ? (byte)2 : (byte)1; }
+            get
+            {
+                return DeliveryMode == DeliveryModes.Persistent;
+            }
+
+            set
+            {
+                DeliveryMode = value ? DeliveryModes.Persistent : DeliveryModes.Transient;
+            }
         }
 
         public PublicationAddress? ReplyToAddress
@@ -171,7 +178,7 @@ namespace RabbitMQ.Client
             if (IsDeliveryModePresent())
             {
                 bitValue.SetBit(DeliveryModeBit);
-                span.GetOffset(offset++) = DeliveryMode;
+                span.GetOffset(offset++) = (byte)DeliveryMode;
             }
 
             if (IsPriorityPresent())
