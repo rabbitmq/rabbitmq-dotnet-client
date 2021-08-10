@@ -48,4 +48,22 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void Recover(IModel model);
     }
+
+    #nullable enable
+    internal abstract class RecordedConsumerEntity
+    {
+        private readonly AutorecoveringModel _channel;
+
+        protected RecordedConsumerEntity(AutorecoveringModel channel)
+        {
+            _channel = channel;
+        }
+
+        protected IModel ModelDelegate
+        {
+            get { return _channel.InnerChannel; }
+        }
+
+        public abstract void Recover();
+    }
 }

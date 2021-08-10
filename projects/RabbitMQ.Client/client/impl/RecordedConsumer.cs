@@ -34,7 +34,7 @@ using System.Collections.Generic;
 namespace RabbitMQ.Client.Impl
 {
     #nullable enable
-    internal sealed class RecordedConsumer : RecordedEntity
+    internal sealed class RecordedConsumer : RecordedConsumerEntity
     {
         public RecordedConsumer(AutorecoveringModel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IDictionary<string, object>? arguments)
             : base(channel)
@@ -54,9 +54,9 @@ namespace RabbitMQ.Client.Impl
         public bool Exclusive { get; }
         public IDictionary<string, object>? Arguments { get; }
 
-        public override void Recover(IModel model)
+        public override void Recover()
         {
-            ConsumerTag = model.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
+            ConsumerTag = ModelDelegate.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
         }
     }
 }

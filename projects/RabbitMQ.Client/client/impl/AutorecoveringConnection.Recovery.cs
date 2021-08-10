@@ -146,7 +146,7 @@ namespace RabbitMQ.Client.Framing.Impl
                             RecoverExchanges(model);
                             RecoverQueues(model);
                             RecoverBindings(model);
-                            RecoverConsumers(model);
+                            RecoverConsumers();
                         }
                     }
 
@@ -278,7 +278,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverConsumers(IModel model)
+        private void RecoverConsumers()
         {
             Dictionary<string, RecordedConsumer> recordedConsumersCopy;
             lock (_recordedEntitiesLock)
@@ -293,7 +293,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    cons.Recover(model);
+                    cons.Recover();
                     string newTag = cons.ConsumerTag;
                     UpdateConsumer(oldTag, newTag, cons);
 
