@@ -46,6 +46,6 @@ namespace RabbitMQ.Client.Impl
             get { return _channel.InnerChannel; }
         }
 
-        public abstract void Recover();
+        public abstract void Recover(IModel model);
     }
 }

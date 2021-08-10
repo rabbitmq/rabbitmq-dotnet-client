@@ -54,9 +54,9 @@ namespace RabbitMQ.Client.Impl
         public bool Exclusive { get; }
         public IDictionary<string, object>? Arguments { get; }
 
-        public override void Recover()
+        public override void Recover(IModel model)
         {
-            ConsumerTag = ModelDelegate.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
+            ConsumerTag = model.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
         }
     }
 }

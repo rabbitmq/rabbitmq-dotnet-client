@@ -53,10 +53,10 @@ namespace RabbitMQ.Client.Impl
             IsServerNamed = isServerNamed;
         }
 
-        public override void Recover()
+        public override void Recover(IModel model)
         {
             var queueName = IsServerNamed ? string.Empty : Name;
-            var result = ModelDelegate.QueueDeclare(queueName, _durable, _exclusive, IsAutoDelete, _arguments);
+            var result = model.QueueDeclare(queueName, _durable, _exclusive, IsAutoDelete, _arguments);
             Name = result.QueueName;
         }
 

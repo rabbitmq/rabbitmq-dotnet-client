@@ -105,9 +105,9 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void Recover()
+        public override void Recover(IModel model)
         {
-            ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
+            model.QueueBind(Destination, Source, RoutingKey, Arguments);
         }
     }
 
@@ -118,9 +118,9 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void Recover()
+        public override void Recover(IModel model)
         {
-            ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
+            model.ExchangeBind(Destination, Source, RoutingKey, Arguments);
         }
     }
 }
