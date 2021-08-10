@@ -264,7 +264,7 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding eb = new RecordedExchangeBinding(this, destination, source, routingKey, arguments);
+            RecordedBinding eb = new RecordedExchangeBinding(destination, source, routingKey, arguments);
             _connection.RecordBinding(eb);
             _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
         }
@@ -276,7 +276,7 @@ namespace RabbitMQ.Client.Impl
         {
             ThrowIfDisposed();
             _innerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
-            RecordedExchange rx = new RecordedExchange(this, exchange, type, durable, autoDelete, arguments);
+            RecordedExchange rx = new RecordedExchange(exchange, type, durable, autoDelete, arguments);
             _connection.RecordExchange(rx);
         }
 
@@ -284,7 +284,7 @@ namespace RabbitMQ.Client.Impl
         {
             ThrowIfDisposed();
             _innerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
-            RecordedExchange rx = new RecordedExchange(this, exchange, type, durable, autoDelete, arguments);
+            RecordedExchange rx = new RecordedExchange(exchange, type, durable, autoDelete, arguments);
             _connection.RecordExchange(rx);
         }
 
@@ -306,7 +306,7 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding eb = new RecordedExchangeBinding(this, destination, source, routingKey, arguments);
+            RecordedBinding eb = new RecordedExchangeBinding(destination, source, routingKey, arguments);
             _connection.DeleteRecordedBinding(eb);
             _innerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
             _connection.DeleteAutoDeleteExchange(source);
@@ -318,7 +318,7 @@ namespace RabbitMQ.Client.Impl
         public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding qb = new RecordedQueueBinding(this, queue, exchange, routingKey, arguments);
+            RecordedBinding qb = new RecordedQueueBinding(queue, exchange, routingKey, arguments);
             _connection.RecordBinding(qb);
             _innerChannel.QueueBind(queue, exchange, routingKey, arguments);
         }
@@ -330,7 +330,7 @@ namespace RabbitMQ.Client.Impl
         {
             ThrowIfDisposed();
             QueueDeclareOk result = _innerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            RecordedQueue rq = new RecordedQueue(this, result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+            RecordedQueue rq = new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
             _connection.RecordQueue(rq);
             return result;
         }
@@ -340,7 +340,7 @@ namespace RabbitMQ.Client.Impl
             ThrowIfDisposed();
             _innerChannel.QueueDeclareNoWait(queue, durable, exclusive,
                 autoDelete, arguments);
-            RecordedQueue rq = new RecordedQueue(this, queue, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+            RecordedQueue rq = new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments);
             _connection.RecordQueue(rq);
         }
 
@@ -373,7 +373,7 @@ namespace RabbitMQ.Client.Impl
         public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding qb = new RecordedQueueBinding(this, queue, exchange, routingKey, arguments);
+            RecordedBinding qb = new RecordedQueueBinding(queue, exchange, routingKey, arguments);
             _connection.DeleteRecordedBinding(qb);
             _innerChannel.QueueUnbind(queue, exchange, routingKey, arguments);
             _connection.DeleteAutoDeleteExchange(exchange);

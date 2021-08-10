@@ -42,8 +42,8 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsAutoDelete { get; }
 
-        public RecordedExchange(AutorecoveringModel channel, string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
-            : base(channel, name)
+        public RecordedExchange(string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
+            : base(name)
         {
             _type = type;
             _durable = durable;

@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -32,8 +32,20 @@
 namespace RabbitMQ.Client.Impl
 {
     #nullable enable
-    internal abstract class RecordedEntity
+    internal abstract class RecordedConsumerEntity
     {
-        public abstract void Recover(IModel model);
+        private readonly AutorecoveringModel _channel;
+
+        protected RecordedConsumerEntity(AutorecoveringModel channel)
+        {
+            _channel = channel;
+        }
+
+        protected IModel ModelDelegate
+        {
+            get { return _channel.InnerChannel; }
+        }
+
+        public abstract void Recover();
     }
 }

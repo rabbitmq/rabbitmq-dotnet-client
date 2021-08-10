@@ -37,8 +37,8 @@ namespace RabbitMQ.Client.Impl
     #nullable enable
     internal abstract class RecordedBinding : RecordedEntity
     {
-        protected RecordedBinding(AutorecoveringModel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
-            : base(channel)
+        protected RecordedBinding(string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+            : base()
         {
             Destination = destination;
             Source = source;
@@ -100,8 +100,8 @@ namespace RabbitMQ.Client.Impl
 
     internal sealed class RecordedQueueBinding : RecordedBinding
     {
-        public RecordedQueueBinding(AutorecoveringModel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
-            : base(channel, destination,  source, routingKey, arguments)
+        public RecordedQueueBinding(string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+            : base(destination,  source, routingKey, arguments)
         {
         }
 
@@ -113,8 +113,8 @@ namespace RabbitMQ.Client.Impl
 
     internal sealed class RecordedExchangeBinding : RecordedBinding
     {
-        public RecordedExchangeBinding(AutorecoveringModel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
-            : base(channel, destination,  source, routingKey, arguments)
+        public RecordedExchangeBinding(string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+            : base(destination,  source, routingKey, arguments)
         {
         }
 

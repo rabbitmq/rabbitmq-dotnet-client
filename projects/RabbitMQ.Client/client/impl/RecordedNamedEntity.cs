@@ -34,7 +34,7 @@ namespace RabbitMQ.Client.Impl
     #nullable enable
     internal abstract class RecordedNamedEntity : RecordedEntity
     {
-        protected RecordedNamedEntity(AutorecoveringModel channel, string name) : base(channel)
+        protected RecordedNamedEntity(string name) : base()
         {
             Name = name;
         }

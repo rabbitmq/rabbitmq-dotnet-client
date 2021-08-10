@@ -43,8 +43,8 @@ namespace RabbitMQ.Client.Impl
         public bool IsAutoDelete { get; }
         public bool IsServerNamed { get; }
 
-        public RecordedQueue(AutorecoveringModel channel, string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
-            : base(channel, name)
+        public RecordedQueue(string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
+            : base(name)
         {
             _arguments = arguments;
             _durable = durable;
