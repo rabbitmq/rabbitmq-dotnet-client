@@ -358,6 +358,49 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
+        public void TestConsumerRecoveryOnClientNamedQueueWithDeclarationOnOneChannelAndConsumersOnTheSecondChannel()
+        {
+            string q0 = "dotnet-client.recovery.queue1";
+            using (AutorecoveringConnection c = CreateAutorecoveringConnection())
+            {
+                using (IModel m = c.CreateModel())
+                {
+                    string q1 = m.QueueDeclare(q0, false, false, false, null).QueueName;
+                    Assert.Equal(q0, q1);
+                }
+                IModel m1 = c.CreateModel();
+
+                var cons = new EventingBasicConsumer(m1);
+                m1.BasicConsume(q0, true, cons);
+                AssertConsumerCount(m1, q0, 1);
+
+                bool queueNameChangeAfterRecoveryCalled = false;
+
+                c.QueueNameChangeAfterRecovery += (source, ea) => { queueNameChangeAfterRecoveryCalled = true; };
+
+                CloseAndWaitForRecovery(c);
+                AssertConsumerCount(m1, q0, 1);
+                Assert.False(queueNameChangeAfterRecoveryCalled);
+
+                CloseAndWaitForRecovery(c);
+                AssertConsumerCount(m1, q0, 1);
+                Assert.False(queueNameChangeAfterRecoveryCalled);
+
+                CloseAndWaitForRecovery(c);
+                AssertConsumerCount(m1, q0, 1);
+                Assert.False(queueNameChangeAfterRecoveryCalled);
+
+                var latch = new ManualResetEventSlim(false);
+                cons.Received += (s, args) => latch.Set();
+
+                m1.BasicPublish("", q0, null, _encoding.GetBytes("msg"));
+                Wait(latch);
+
+                m1.QueueDelete(q0);
+            }
+        }
+
+        [Fact]
         public void TestConsumerRecoveryWithManyConsumers()
         {
             string q = _model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
