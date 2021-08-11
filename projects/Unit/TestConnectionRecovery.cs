@@ -358,45 +358,41 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestConsumerRecoveryOnClientNamedQueueWithDeclarationOnOneChannelAndConsumersOnTheSecondChannel()
+        public void TestConsumerRecoveryOnClientWithDeclarationOnOneChannelAndConsumersOnTheSecondChannel()
         {
-            string q0 = "dotnet-client.recovery.queue1";
+            string q = "dotnet-client.recovery.queue1";
+            string x = "tmp-fanout";
+            string rk = "tmp-routingkey";
+
             using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
                 using (IModel m = c.CreateModel())
                 {
-                    string q1 = m.QueueDeclare(q0, false, false, false, null).QueueName;
-                    Assert.Equal(q0, q1);
+                    m.ExchangeDeclare(exchange: x, type: "fanout");
+                    m.QueueDeclare(q, false, false, false, null);
+                    m.QueueBind(q, x, rk);
                 }
                 IModel m1 = c.CreateModel();
 
                 var cons = new EventingBasicConsumer(m1);
-                m1.BasicConsume(q0, true, cons);
-                AssertConsumerCount(m1, q0, 1);
-
-                bool queueNameChangeAfterRecoveryCalled = false;
-
-                c.QueueNameChangeAfterRecovery += (source, ea) => { queueNameChangeAfterRecoveryCalled = true; };
+                m1.BasicConsume(q, true, cons);
+                AssertConsumerCount(m1, q, 1);
 
                 CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m1, q0, 1);
-                Assert.False(queueNameChangeAfterRecoveryCalled);
+                AssertConsumerCount(m1, q, 1);
 
-                CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m1, q0, 1);
-                Assert.False(queueNameChangeAfterRecoveryCalled);
-
-                CloseAndWaitForRecovery(c);
-                AssertConsumerCount(m1, q0, 1);
-                Assert.False(queueNameChangeAfterRecoveryCalled);
+                m1.ExchangeDeclarePassive(x);
+                m1.QueueDeclarePassive(q);
 
                 var latch = new ManualResetEventSlim(false);
                 cons.Received += (s, args) => latch.Set();
 
-                m1.BasicPublish("", q0, null, _encoding.GetBytes("msg"));
+                m1.BasicPublish("", q, null, _encoding.GetBytes("msg"));
                 Wait(latch);
 
-                m1.QueueDelete(q0);
+                m1.QueueUnbind(q, x, rk);
+                m1.ExchangeDelete(x);
+                m1.QueueDelete(q);
             }
         }
 

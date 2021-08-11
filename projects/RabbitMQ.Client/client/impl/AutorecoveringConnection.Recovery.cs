@@ -135,7 +135,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     RecoverModels();
                     if (_factory.TopologyRecoveryEnabled)
                     {
-                        using (var model = _innerConnection.CreateModel())
+                        using (IModel model = _innerConnection.CreateModel())
                         {
                             // The recovery sequence is the following:
                             //
@@ -143,11 +143,15 @@ namespace RabbitMQ.Client.Framing.Impl
                             // 2. Recover queues
                             // 3. Recover bindings
                             // 4. Recover consumers
+                            //
+                            // New IModel is used to recover the steps 1, 2 and 3 in case the original channel is closed. 
                             RecoverExchanges(model);
                             RecoverQueues(model);
                             RecoverBindings(model);
-                            RecoverConsumers();
                         }
+
+                        // Original IModel is used to recover and take over the original consumers.
+                        RecoverConsumers();
                     }
 
                     ESLog.Info("Connection recovery completed");
