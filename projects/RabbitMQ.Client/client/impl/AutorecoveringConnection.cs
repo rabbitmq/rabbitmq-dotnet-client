@@ -189,8 +189,17 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
         {
+            Close(reasonCode, reasonText, timeout, abort, false);
+        }
+
+        internal void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort, bool recoveryFailed)
+        {
             ThrowIfDisposed();
-            StopRecoveryLoop();
+            if (!recoveryFailed)
+            {
+                StopRecoveryLoop();
+            }
+
             if (_innerConnection.IsOpen)
             {
                 _innerConnection.Close(reasonCode, reasonText, timeout, abort);
