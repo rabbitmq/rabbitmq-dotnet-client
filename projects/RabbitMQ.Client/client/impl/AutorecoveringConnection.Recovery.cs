@@ -126,11 +126,14 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             ESLog.Info("Performing automatic recovery");
 
+            bool connectionRecoverySucceeded = false;
+
             try
             {
                 ThrowIfDisposed();
                 if (TryRecoverConnectionDelegate())
                 {
+                    connectionRecoverySucceeded = true;
                     ThrowIfDisposed();
                     RecoverModels();
                     if (_factory.TopologyRecoveryEnabled)
@@ -158,6 +161,11 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (Exception e)
             {
+                if(connectionRecoverySucceeded)
+                {
+                    this.Close(506, "Recovery failed.", true);
+                }
+
                 ESLog.Error("Exception when recovering connection. Will try again after retry interval.", e);
             }
 
@@ -172,6 +180,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
                 _innerConnection = new Connection(_factory, fh, ClientProvidedName);
                 _innerConnection.TakeOver(defunctConnection);
+
                 return true;
             }
             catch (Exception e)
