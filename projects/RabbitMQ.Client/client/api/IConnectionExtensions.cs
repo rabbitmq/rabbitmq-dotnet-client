@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -80,6 +81,28 @@ namespace RabbitMQ.Client
         public static void Close(this IConnection connection, ushort reasonCode, string reasonText, TimeSpan timeout)
         {
             connection.Close(reasonCode, reasonText, timeout, false);
+        }
+
+        /// <summary>
+        /// Close this connection and all its channels
+        /// and wait with a timeout for all the in-progress close operations to complete.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="Close(IConnection,TimeSpan)"/>, with the only
+        /// differences that the connection is closed with the given connection close code and message without stopping the recovery loop.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the connection.
+        /// </para>
+        /// <para>
+        /// Recovery loop should continue.
+        /// </para>
+        /// </remarks>
+        internal static void Close(this AutorecoveringConnection connection, ushort reasonCode, string reasonText, bool recoveryFailed)
+        {
+            connection.Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan, false, recoveryFailed);
         }
 
         /// <summary>
