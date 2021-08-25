@@ -95,10 +95,10 @@ namespace RabbitMQ.Client.Unit
             Block();
             Task.Factory.StartNew(DisposeConnection);
 
-            if (!_connDisposed.Wait(TimeSpan.FromSeconds(15)))
+            if (!_connDisposed.Wait(TimeSpan.FromSeconds(20)))
             {
                 Unblock();
-                Assert.True(false, "Dispose must have finished within 15 seconds after starting");
+                Assert.True(false, "Dispose must have finished within 20 seconds after starting");
             }
         }
 

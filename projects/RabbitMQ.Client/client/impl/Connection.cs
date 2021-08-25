@@ -392,7 +392,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                this.Abort(TimeSpan.FromSeconds(1));
+                this.Abort(TimeSpan.FromSeconds(15));
                 _mainLoopTask.Wait();
             }
             catch (OperationInterruptedException)
