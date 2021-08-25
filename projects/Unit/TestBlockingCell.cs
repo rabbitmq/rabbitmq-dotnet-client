@@ -38,7 +38,6 @@ using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestBlockingCell : TimingFixture
     {
         internal class DelayedSetter<T>

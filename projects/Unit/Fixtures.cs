@@ -33,28 +33,37 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Reflection;
 using System.Threading;
-using RabbitMQ.Client.Framing;
+using System.Text;
 using RabbitMQ.Client.Framing.Impl;
 
 using Xunit;
-
-using static RabbitMQ.Client.Unit.RabbitMQCtl;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
+    [Collection("IntegrationFixture")]
     public class IntegrationFixture : IDisposable
     {
         internal IConnectionFactory _connFactory;
         internal IConnection _conn;
         internal IModel _model;
         internal Encoding _encoding = new UTF8Encoding();
+
         public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
 
-        protected IntegrationFixture()
+        protected readonly ITestOutputHelper _output;
+        protected readonly string _testDisplayName;
+
+        public IntegrationFixture(ITestOutputHelper output)
         {
+            _output = output;
+            var type = _output.GetType();
+            var testMember = type.GetField("test", BindingFlags.Instance | BindingFlags.NonPublic);
+            var test = (ITest)testMember.GetValue(output);
+            _testDisplayName = test.DisplayName;
+
             SetUp();
         }
 
@@ -71,6 +80,7 @@ namespace RabbitMQ.Client.Unit
             {
                 _model.Close();
             }
+
             if (_conn.IsOpen)
             {
                 _conn.Close();
@@ -105,7 +115,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = interval
             };
-            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
@@ -118,7 +128,7 @@ namespace RabbitMQ.Client.Unit
                 RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
                 NetworkRecoveryInterval = interval
             };
-            return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
@@ -131,7 +141,7 @@ namespace RabbitMQ.Client.Unit
                 RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
                 NetworkRecoveryInterval = RECOVERY_INTERVAL
             };
-            return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
@@ -142,7 +152,7 @@ namespace RabbitMQ.Client.Unit
                 TopologyRecoveryEnabled = false,
                 NetworkRecoveryInterval = RECOVERY_INTERVAL
             };
-            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal IConnection CreateConnectionWithContinuationTimeout(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)
@@ -152,7 +162,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = automaticRecoveryEnabled,
                 ContinuationTimeout = continuationTimeout
             };
-            return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         //

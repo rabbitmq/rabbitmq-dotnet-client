@@ -216,7 +216,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                this.Abort();
+                this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
             }
             catch (Exception)
             {

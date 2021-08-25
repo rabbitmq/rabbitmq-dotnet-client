@@ -30,11 +30,17 @@
 //---------------------------------------------------------------------------
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
-    public class TestNoWait : IntegrationFixture {
+    public class TestNoWait : IntegrationFixture
+    {
+        public TestNoWait(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestQueueDeclareNoWait()
         {

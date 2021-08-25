@@ -34,11 +34,16 @@ using System.Collections.Generic;
 using System.Threading;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
     public class TestHeartbeats : IntegrationFixture
     {
+        public TestHeartbeats(ITestOutputHelper output) : base(output)
+        {
+        }
+
         private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(2);
 
         [Fact(Timeout = 35000)]

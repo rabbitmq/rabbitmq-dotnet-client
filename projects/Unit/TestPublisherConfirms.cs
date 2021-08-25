@@ -37,6 +37,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -44,6 +45,10 @@ namespace RabbitMQ.Client.Unit
     public class TestPublisherConfirms : IntegrationFixture
     {
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
+
+        public TestPublisherConfirms(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void TestWaitForConfirmsWithoutTimeout()

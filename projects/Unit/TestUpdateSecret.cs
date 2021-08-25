@@ -33,11 +33,16 @@ using System;
 using System.Text;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
-    public class TestUpdateSecret : IntegrationFixture {
+    public class TestUpdateSecret : IntegrationFixture
+    {
+        public TestUpdateSecret(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void TestUpdatingConnectionSecret()

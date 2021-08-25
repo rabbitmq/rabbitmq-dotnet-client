@@ -33,12 +33,16 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestChannelSoftErrors : IntegrationFixture
     {
+        public TestChannelSoftErrors(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestBindOnNonExistingQueue()
         {

@@ -35,6 +35,7 @@ using System.Threading;
 using RabbitMQ.Client.Events;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -45,6 +46,10 @@ namespace RabbitMQ.Client.Unit
         protected bool notifiedCallback;
         protected bool notifiedEvent;
         protected string consumerTag;
+
+        public TestConsumerCancelNotify(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void TestConsumerCancelNotification()

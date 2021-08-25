@@ -33,12 +33,17 @@ using System;
 using System.Threading.Tasks;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
     public class TestExtensions : IntegrationFixture
     {
+        public TestExtensions(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public async Task TestConfirmBarrier()
         {

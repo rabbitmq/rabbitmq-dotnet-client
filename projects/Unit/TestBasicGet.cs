@@ -32,12 +32,16 @@
 using RabbitMQ.Client.Exceptions;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestBasicGet : IntegrationFixture
     {
+        public TestBasicGet(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestBasicGetWithClosedChannel()
         {

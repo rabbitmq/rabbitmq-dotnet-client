@@ -35,11 +35,16 @@ using System.Threading;
 using RabbitMQ.Client.Events;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
-    public class TestMainLoop : IntegrationFixture {
+    public class TestMainLoop : IntegrationFixture
+    {
+        public TestMainLoop(ITestOutputHelper output) : base(output)
+        {
+        }
 
         private sealed class FaultyConsumer : DefaultBasicConsumer
         {
