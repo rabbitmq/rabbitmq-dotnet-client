@@ -214,7 +214,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                this.Abort();
+                this.Abort(TimeSpan.FromSeconds(1));
             }
             catch (Exception)
             {

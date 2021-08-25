@@ -42,7 +42,7 @@ using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    #nullable enable
+#nullable enable
     internal sealed partial class Connection : IConnection
     {
         private bool _disposed;
@@ -392,7 +392,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                this.Abort();
+                this.Abort(TimeSpan.FromSeconds(1));
                 _mainLoopTask.Wait();
             }
             catch (OperationInterruptedException)
