@@ -31,7 +31,7 @@
 
 using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 using Xunit;
@@ -42,6 +42,7 @@ namespace RabbitMQ.Client.Unit
     [Collection("NoParallelization")]
     public class TestConnectionBlocked : IntegrationFixture
     {
+        private readonly ManualResetEventSlim _connDisposed = new ManualResetEventSlim(false);
         private readonly object _lockObject = new object();
         private bool _notified;
 
@@ -68,6 +69,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestConnectionBlockedNotification()
         {
+            _notified = false;
             _conn.ConnectionBlocked += HandleBlocked;
             _conn.ConnectionUnblocked += HandleUnblocked;
 
@@ -84,6 +86,26 @@ namespace RabbitMQ.Client.Unit
                 Unblock();
                 Assert.True(false, "Unblock notification not received.");
             }
+        }
+
+        [Fact]
+        public void TestDisposeOnBlockedConnectionDoesNotHang()
+        {
+            _notified = false;
+            Block();
+            Task.Factory.StartNew(DisposeConnection);
+
+            if (!_connDisposed.Wait(TimeSpan.FromSeconds(15)))
+            {
+                Unblock();
+                Assert.True(false, "Dispose must have finished within 15 seconds after starting");
+            }
+        }
+
+        private void DisposeConnection()
+        {
+            _conn.Dispose();
+            _connDisposed.Set();
         }
     }
 }
