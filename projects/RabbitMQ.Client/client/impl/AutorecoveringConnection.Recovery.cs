@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 throw e;
             }
-            ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivty, ignoring it", e);
+            ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivity, ignoring it", e);
 
         }
 
