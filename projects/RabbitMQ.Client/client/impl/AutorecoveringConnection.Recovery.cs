@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -114,12 +114,11 @@ namespace RabbitMQ.Client.Framing.Impl
         private static void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
             ESLog.Error("Topology recovery exception", e);
-            if (e.InnerException is AlreadyClosedException || e.InnerException is OperationInterruptedException || e.InnerException is TimeoutException)
+            if (e.InnerException is AlreadyClosedException or OperationInterruptedException or TimeoutException)
             {
                 throw e;
             }
-            ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivty, ignoring it", e);
-
+            ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivity, ignoring it", e);
         }
 
         private bool TryPerformAutomaticRecovery()
@@ -131,20 +130,23 @@ namespace RabbitMQ.Client.Framing.Impl
                 ThrowIfDisposed();
                 if (TryRecoverConnectionDelegate())
                 {
-                    ThrowIfDisposed();
-                    RecoverModels();
-                    if (_factory.TopologyRecoveryEnabled)
+                    lock (_recordedEntitiesLock)
                     {
-                        // The recovery sequence is the following:
-                        //
-                        // 1. Recover exchanges
-                        // 2. Recover queues
-                        // 3. Recover bindings
-                        // 4. Recover consumers
-                        RecoverExchanges();
-                        RecoverQueues();
-                        RecoverBindings();
-                        RecoverConsumers();
+                        ThrowIfDisposed();
+                        if (_factory.TopologyRecoveryEnabled)
+                        {
+                            // The recovery sequence is the following:
+                            //
+                            // 1. Recover exchanges
+                            // 2. Recover queues
+                            // 3. Recover bindings
+                            // 4. Recover consumers
+                            using var recoveryChannel = _innerConnection.CreateModel();
+                            RecoverExchanges(recoveryChannel);
+                            RecoverQueues(recoveryChannel);
+                            RecoverBindings(recoveryChannel);
+                        }
+                        RecoverModelsAndItsConsumers();
                     }
 
                     ESLog.Info("Connection recovery completed");
@@ -187,44 +189,29 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private void RecoverExchanges()
+        private void RecoverExchanges(IModel channel)
         {
-            Dictionary<string, RecordedExchange> recordedExchangesCopy;
-            lock (_recordedEntitiesLock)
-            {
-                recordedExchangesCopy = new Dictionary<string, RecordedExchange>(_recordedExchanges);
-            }
-
-            foreach (RecordedExchange rx in recordedExchangesCopy.Values)
+            foreach (var recordedExchange in _recordedExchanges.Values)
             {
                 try
                 {
-                    rx.Recover();
+                    recordedExchange.Recover(channel);
                 }
                 catch (Exception ex)
                 {
-                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering exchange {rx.Name}", ex));
+                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering exchange '{recordedExchange}'", ex));
                 }
             }
         }
 
-        private void RecoverQueues()
+        private void RecoverQueues(IModel channel)
         {
-            Dictionary<string, RecordedQueue> recordedQueuesCopy;
-            lock (_recordedEntitiesLock)
+            foreach (var recordedQueue in _recordedQueues.Values.ToArray())
             {
-                recordedQueuesCopy = new Dictionary<string, RecordedQueue>(_recordedQueues);
-            }
-
-            foreach (KeyValuePair<string, RecordedQueue> pair in recordedQueuesCopy)
-            {
-                string oldName = pair.Key;
-                RecordedQueue rq = pair.Value;
-
                 try
                 {
-                    rq.Recover();
-                    string newName = rq.Name;
+                    var newName = recordedQueue.Recover(channel);
+                    var oldName = recordedQueue.Name;
 
                     if (oldName != newName)
                     {
@@ -234,12 +221,13 @@ namespace RabbitMQ.Client.Framing.Impl
                         // anything to recover. MK.
                         UpdateBindingsDestination(oldName, newName);
                         UpdateConsumerQueue(oldName, newName);
+
                         // see rabbitmq/rabbitmq-dotnet-client#43
-                        if (rq.IsServerNamed)
+                        if (recordedQueue.IsServerNamed)
                         {
                             DeleteRecordedQueue(oldName);
                         }
-                        RecordQueue(rq);
+                        RecordQueue(new RecordedQueue(newName, recordedQueue));
 
                         if (!_queueNameChangeAfterRecoveryWrapper.IsEmpty)
                         {
@@ -249,50 +237,40 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception ex)
                 {
-                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering queue {oldName}", ex));
+                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering queue '{recordedQueue}'", ex));
                 }
             }
         }
 
-        private void RecoverBindings()
+        private void RecoverBindings(IModel channel)
         {
-            HashSet<RecordedBinding> recordedBindingsCopy;
-            lock (_recordedEntitiesLock)
-            {
-                recordedBindingsCopy = new HashSet<RecordedBinding>(_recordedBindings);
-            }
-
-            foreach (RecordedBinding b in recordedBindingsCopy)
+            foreach (var binding in _recordedBindings)
             {
                 try
                 {
-                    b.Recover();
+                    binding.Recover(channel);
                 }
                 catch (Exception ex)
                 {
-                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering binding between {b.Source} and {b.Destination}", ex));
+                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering binding between {binding.Source} and {binding.Destination}", ex));
                 }
             }
         }
 
-        private void RecoverConsumers()
+        internal void RecoverConsumers(AutorecoveringModel channelToRecover, IModel channelToUse)
         {
-            Dictionary<string, RecordedConsumer> recordedConsumersCopy;
-            lock (_recordedEntitiesLock)
+            foreach (var consumer in _recordedConsumers.Values.ToArray())
             {
-                recordedConsumersCopy = new Dictionary<string, RecordedConsumer>(_recordedConsumers);
-            }
+                if (consumer.Channel != channelToRecover)
+                {
+                    continue;
+                }
 
-            foreach (KeyValuePair<string, RecordedConsumer> pair in recordedConsumersCopy)
-            {
-                string oldTag = pair.Key;
-                RecordedConsumer cons = pair.Value;
-
+                var oldTag = consumer.ConsumerTag;
                 try
                 {
-                    cons.Recover();
-                    string newTag = cons.ConsumerTag;
-                    UpdateConsumer(oldTag, newTag, cons);
+                    var newTag = consumer.Recover(channelToUse);
+                    UpdateConsumer(oldTag, newTag, RecordedConsumer.WithNewConsumerTag(newTag, consumer));
 
                     if (!_consumerTagChangeAfterRecoveryWrapper.IsEmpty)
                     {
@@ -301,18 +279,18 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception ex)
                 {
-                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering consumer {oldTag} on queue {cons.Queue}", ex));
+                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering consumer {oldTag} on queue {consumer.Queue}", ex));
                 }
             }
         }
 
-        private void RecoverModels()
+        private void RecoverModelsAndItsConsumers()
         {
             lock (_models)
             {
                 foreach (AutorecoveringModel m in _models)
                 {
-                    m.AutomaticallyRecover(this);
+                    m.AutomaticallyRecover(this, _factory.TopologyRecoveryEnabled);
                 }
             }
         }

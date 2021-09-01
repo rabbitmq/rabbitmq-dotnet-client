@@ -34,35 +34,48 @@ using System.Collections.Generic;
 namespace RabbitMQ.Client.Impl
 {
     #nullable enable
-    internal sealed class RecordedQueue : RecordedNamedEntity
+    internal readonly struct RecordedQueue
     {
+        private readonly string _name;
         private readonly IDictionary<string, object>? _arguments;
         private readonly bool _durable;
         private readonly bool _exclusive;
+        private readonly bool _isAutoDelete;
+        private readonly bool _isServerNamed;
 
-        public bool IsAutoDelete { get; }
-        public bool IsServerNamed { get; }
+        public string Name => _name;
+        public bool IsAutoDelete => _isAutoDelete;
+        public bool IsServerNamed => _isServerNamed;
 
-        public RecordedQueue(AutorecoveringModel channel, string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
-            : base(channel, name)
+        public RecordedQueue(string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
         {
-            _arguments = arguments;
+            _name = name;
+            _isServerNamed = isServerNamed;
             _durable = durable;
             _exclusive = exclusive;
-            IsAutoDelete = autoDelete;
-            IsServerNamed = isServerNamed;
+            _isAutoDelete = autoDelete;
+            _arguments = arguments;
         }
 
-        public override void Recover()
+        public RecordedQueue(string newName, in RecordedQueue old)
+        {
+            _name = newName;
+            _isServerNamed = old._isServerNamed;
+            _durable = old._durable;
+            _exclusive = old._exclusive;
+            _isAutoDelete = old._isAutoDelete;
+            _arguments = old._arguments;
+        }
+
+        public string Recover(IModel channel)
         {
             var queueName = IsServerNamed ? string.Empty : Name;
-            var result = ModelDelegate.QueueDeclare(queueName, _durable, _exclusive, IsAutoDelete, _arguments);
-            Name = result.QueueName;
+            return channel.QueueDeclare(queueName, _durable, _exclusive, IsAutoDelete, _arguments).QueueName;
         }
 
         public override string ToString()
         {
-            return $"{GetType().Name}: name = '{Name}', durable = {_durable}, exclusive = {_exclusive}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
+            return $"{nameof(RecordedQueue)}: name = '{Name}', durable = {_durable}, exclusive = {_exclusive}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
         }
     }
 }

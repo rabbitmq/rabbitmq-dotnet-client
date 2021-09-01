@@ -32,7 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -91,8 +91,7 @@ namespace RabbitMQ.Client.Unit
             string q = GenerateQueueName();
             _model.QueueDeclare(q, false, false, false, null);
             // create an offset
-            IBasicProperties bp = _model.CreateBasicProperties();
-            _model.BasicPublish("", q, bp, new byte[] { });
+            _model.BasicPublish("", q, null, ReadOnlyMemory<byte>.Empty);
             Thread.Sleep(50);
             BasicGetResult g = _model.BasicGet(q, false);
             CloseAndWaitForRecovery();
@@ -758,6 +757,81 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
+        public void TestRecoverTopologyOnDisposedChannel()
+        {
+            string x = GenerateExchangeName();
+            string q = GenerateQueueName();
+            const string rk = "routing-key";
+
+            using (IModel m = _conn.CreateModel())
+            {
+                m.ExchangeDeclare(exchange: x, type: "fanout");
+                m.QueueDeclare(q, false, false, false, null);
+                m.QueueBind(q, x, rk);
+            }
+
+            var cons = new EventingBasicConsumer(_model);
+            _model.BasicConsume(q, true, cons);
+            AssertConsumerCount(_model, q, 1);
+
+            CloseAndWaitForRecovery();
+            AssertConsumerCount(_model, q, 1);
+
+            var latch = new ManualResetEventSlim(false);
+            cons.Received += (s, args) => latch.Set();
+
+            _model.BasicPublish("", q, null, ReadOnlyMemory<byte>.Empty);
+            Wait(latch);
+
+            _model.QueueUnbind(q, x, rk);
+            _model.ExchangeDelete(x);
+            _model.QueueDelete(q);
+        }
+
+        [Fact]
+        public void TestPublishRpcRightAfterReconnect()
+        {
+            string testQueueName = $"dotnet-client.test.{nameof(TestPublishRpcRightAfterReconnect)}";
+            _model.QueueDeclare(testQueueName, false, false, false, null);
+            var replyConsumer = new EventingBasicConsumer(_model);
+            _model.BasicConsume("amq.rabbitmq.reply-to", true, replyConsumer);
+            var properties = _model.CreateBasicProperties();
+            properties.ReplyTo = "amq.rabbitmq.reply-to";
+
+            bool done = false;
+            Task.Run(() =>
+            {
+                try
+                {
+
+                    CloseAndWaitForRecovery();
+                    Thread.Sleep(100);
+                }
+                finally
+                {
+                    done = true;
+                }
+            });
+
+            while (!done)
+            {
+                try
+                {
+                    _model.BasicPublish(string.Empty, testQueueName, false, properties, ReadOnlyMemory<byte>.Empty);
+                }
+                catch (Exception e)
+                {
+                    if (e is AlreadyClosedException a)
+                    {
+                        // 406 is received, when the reply consumer isn't yet recovered
+                        Assert.NotEqual(406, a.ShutdownReason.ReplyCode);
+                    }
+                }
+                Thread.Sleep(1);
+            }
+        }
+
+        [Fact]
         public void TestThatCancelledConsumerDoesNotReappearOnRecovery()
         {
             string q = _model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
@@ -943,7 +1017,7 @@ namespace RabbitMQ.Client.Unit
             Wait(rl);
         }
 
-        internal ManualResetEventSlim PrepareForRecovery(AutorecoveringConnection conn)
+        internal static ManualResetEventSlim PrepareForRecovery(AutorecoveringConnection conn)
         {
             var latch = new ManualResetEventSlim(false);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
@@ -951,7 +1025,7 @@ namespace RabbitMQ.Client.Unit
             return latch;
         }
 
-        internal ManualResetEventSlim PrepareForShutdown(IConnection conn)
+        internal static ManualResetEventSlim PrepareForShutdown(IConnection conn)
         {
             var latch = new ManualResetEventSlim(false);
             conn.ConnectionShutdown += (c, args) => latch.Set();
