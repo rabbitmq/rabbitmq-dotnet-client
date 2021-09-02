@@ -161,7 +161,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (Exception e)
             {
-                if(connectionRecoverySucceeded)
+                if (connectionRecoverySucceeded)
                 {
                     this.Close(506, "Recovery failed.", true);
                 }
