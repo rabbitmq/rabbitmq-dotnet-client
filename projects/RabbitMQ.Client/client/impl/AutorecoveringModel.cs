@@ -399,7 +399,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void AutomaticallyRecover(AutorecoveringConnection conn)
+        public void AutomaticallyRecover(AutorecoveringConnection conn, bool recoverConsumers)
         {
             if (_disposed)
             {
@@ -409,29 +409,45 @@ namespace RabbitMQ.Client.Impl
             _connection = conn;
             RecoveryAwareModel defunctModel = _delegate;
 
-            _delegate = conn.CreateNonRecoveringModel();
-            _delegate.InheritOffsetFrom(defunctModel);
+            var newModel = conn.CreateNonRecoveringModel();
+            newModel.InheritOffsetFrom(defunctModel);
 
-            RecoverModelShutdownHandlers();
-            RecoverState();
-
-            RecoverBasicReturnHandlers();
-            RecoverBasicAckHandlers();
-            RecoverBasicNackHandlers();
-            RecoverCallbackExceptionHandlers();
-
-            RunRecoveryEventHandlers();
-        }
-
-        public void BasicQos(ushort prefetchCount,
-            bool global)
-        {
-            if (_disposed)
+            lock (_eventLock)
             {
-                throw new ObjectDisposedException(GetType().FullName);
+                newModel.ModelShutdown += _recordedShutdownEventHandlers;
+                newModel.BasicReturn += _recordedBasicReturnEventHandlers;
+                newModel.BasicAcks += _recordedBasicAckEventHandlers;
+                newModel.BasicNacks += _recordedBasicNackEventHandlers;
+                newModel.CallbackException += _recordedCallbackExceptionEventHandlers;
             }
 
-            _delegate.BasicQos(0, prefetchCount, global);
+            if (_prefetchCountConsumer != 0)
+            {
+                newModel.BasicQos(0, _prefetchCountConsumer, false);
+            }
+
+            if (_prefetchCountGlobal != 0)
+            {
+                newModel.BasicQos(0, _prefetchCountGlobal, true);
+            }
+
+            if (_usesPublisherConfirms)
+            {
+                newModel.ConfirmSelect();
+            }
+
+            if (_usesTransactions)
+            {
+                newModel.TxSelect();
+            }
+
+            if (recoverConsumers)
+            {
+                _connection.RecoverConsumers(this, newModel);
+            }
+
+            _delegate = newModel;
+            RunRecoveryEventHandlers();
         }
 
         public void Close(ushort replyCode, string replyText, bool abort)
@@ -1342,7 +1358,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            RecordedBinding eb = new RecordedExchangeBinding(this).
+            RecordedBinding eb = new RecordedExchangeBinding().
                 WithSource(source).
                 WithDestination(destination).
                 WithRoutingKey(routingKey).
@@ -1372,7 +1388,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            RecordedExchange rx = new RecordedExchange(this, exchange).
+            RecordedExchange rx = new RecordedExchange(exchange).
                 WithType(type).
                 WithDurable(durable).
                 WithAutoDelete(autoDelete).
@@ -1393,7 +1409,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            RecordedExchange rx = new RecordedExchange(this, exchange).
+            RecordedExchange rx = new RecordedExchange(exchange).
                 WithType(type).
                 WithDurable(durable).
                 WithAutoDelete(autoDelete).
@@ -1447,7 +1463,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            RecordedBinding eb = new RecordedExchangeBinding(this).
+            RecordedBinding eb = new RecordedExchangeBinding().
                 WithSource(source).
                 WithDestination(destination).
                 WithRoutingKey(routingKey).
@@ -1480,7 +1496,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            RecordedBinding qb = new RecordedQueueBinding(this).
+            RecordedBinding qb = new RecordedQueueBinding().
                 WithSource(exchange).
                 WithDestination(queue).
                 WithRoutingKey(routingKey).
@@ -1513,7 +1529,7 @@ namespace RabbitMQ.Client.Impl
 
             QueueDeclareOk result = _delegate.QueueDeclare(queue, durable, exclusive,
                 autoDelete, arguments);
-            RecordedQueue rq = new RecordedQueue(this, result.QueueName).
+            RecordedQueue rq = new RecordedQueue(result.QueueName).
                 Durable(durable).
                 Exclusive(exclusive).
                 AutoDelete(autoDelete).
@@ -1534,7 +1550,7 @@ namespace RabbitMQ.Client.Impl
 
             _delegate.QueueDeclareNoWait(queue, durable, exclusive,
                 autoDelete, arguments);
-            RecordedQueue rq = new RecordedQueue(this, queue).
+            RecordedQueue rq = new RecordedQueue(queue).
                 Durable(durable).
                 Exclusive(exclusive).
                 AutoDelete(autoDelete).
@@ -1620,7 +1636,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            RecordedBinding qb = new RecordedQueueBinding(this).
+            RecordedBinding qb = new RecordedQueueBinding().
                 WithSource(exchange).
                 WithDestination(queue).
                 WithRoutingKey(routingKey).
@@ -1760,42 +1776,6 @@ namespace RabbitMQ.Client.Impl
             lock (_eventLock)
             {
                 _delegate.CallbackException += _recordedCallbackExceptionEventHandlers;
-            }
-        }
-
-        private void RecoverModelShutdownHandlers()
-        {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-
-            lock (_eventLock)
-            {
-                _delegate.ModelShutdown += _recordedShutdownEventHandlers;
-            }
-        }
-
-        private void RecoverState()
-        {
-            if (_prefetchCountConsumer != 0)
-            {
-                BasicQos(_prefetchCountConsumer, false);
-            }
-
-            if (_prefetchCountGlobal != 0)
-            {
-                BasicQos(_prefetchCountGlobal, true);
-            }
-
-            if (_usesPublisherConfirms)
-            {
-                ConfirmSelect();
-            }
-
-            if (_usesTransactions)
-            {
-                TxSelect();
             }
         }
 

@@ -756,6 +756,84 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestRecoverTopologyOnDisposedChannel()
+        {
+            string x = GenerateExchangeName();
+            string q = GenerateQueueName();
+            const string rk = "routing-key";
+
+            using (IModel m = Conn.CreateModel())
+            {
+                m.ExchangeDeclare(exchange: x, type: "fanout");
+                m.QueueDeclare(q, false, false, false, null);
+                m.QueueBind(q, x, rk);
+            }
+
+            var cons = new EventingBasicConsumer(Model);
+            Model.BasicConsume(q, true, cons);
+            AssertConsumerCount(Model, q, 1);
+
+            CloseAndWaitForRecovery();
+            AssertConsumerCount(Model, q, 1);
+
+            var latch = new ManualResetEventSlim(false);
+            cons.Received += (s, args) => latch.Set();
+
+            Model.BasicPublish("", q, null, ReadOnlyMemory<byte>.Empty);
+            Wait(latch);
+
+            Model.QueueUnbind(q, x, rk);
+            Model.ExchangeDelete(x);
+            Model.QueueDelete(q);
+        }
+
+        [Test]
+        public void TestPublishRpcRightAfterReconnect()
+        {
+            string testQueueName = $"dotnet-client.test.{nameof(TestPublishRpcRightAfterReconnect)}";
+            Model.QueueDeclare(testQueueName, false, false, false, null);
+            var replyConsumer = new EventingBasicConsumer(Model);
+            Model.BasicConsume("amq.rabbitmq.reply-to", true, replyConsumer);
+            var properties = Model.CreateBasicProperties();
+            properties.ReplyTo = "amq.rabbitmq.reply-to";
+
+            bool done = false;
+            var t = new Thread(() =>
+            {
+                try
+                {
+
+                    CloseAndWaitForRecovery();
+                    Thread.Sleep(100);
+                }
+                finally
+                {
+                    done = true;
+                }
+            });
+            t.Start();
+
+            while (!done)
+            {
+                try
+                {
+                    Model.BasicPublish(string.Empty, testQueueName, false, properties, ReadOnlyMemory<byte>.Empty);
+                }
+                catch (Exception e)
+                {
+                    if (e is AlreadyClosedException a)
+                    {
+                        // 406 is received, when the reply consumer isn't yet recovered
+                        Assert.AreNotEqual(406, a.ShutdownReason.ReplyCode);
+                    }
+                }
+                Thread.Sleep(1);
+            }
+
+            t.Join();
+        }
+
+        [Test]
         public void TestThatCancelledConsumerDoesNotReappearOnRecovery()
         {
             string q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;

@@ -33,12 +33,8 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class RecordedBinding : RecordedEntity
+    internal abstract class RecordedBinding
     {
-        public RecordedBinding(AutorecoveringModel model) : base(model)
-        {
-        }
-
         public IDictionary<string, object> Arguments { get; protected set; }
         public string Destination { get; set; }
         public string RoutingKey { get; protected set; }
@@ -78,7 +74,7 @@ namespace RabbitMQ.Client.Impl
                    (Arguments != null ? Arguments.GetHashCode() : 0);
         }
 
-        public virtual void Recover()
+        public virtual void Recover(IModel model)
         {
         }
 
@@ -112,29 +108,20 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-
     internal sealed class RecordedQueueBinding : RecordedBinding
     {
-        public RecordedQueueBinding(AutorecoveringModel model) : base(model)
+        public override void Recover(IModel model)
         {
-        }
-
-        public override void Recover()
-        {
-            ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
+            model.QueueBind(Destination, Source, RoutingKey, Arguments);
         }
     }
 
 
     internal sealed class RecordedExchangeBinding : RecordedBinding
     {
-        public RecordedExchangeBinding(AutorecoveringModel model) : base(model)
+        public override void Recover(IModel model)
         {
-        }
-
-        public override void Recover()
-        {
-            ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
+            model.ExchangeBind(Destination, Source, RoutingKey, Arguments);
         }
     }
 }
