@@ -120,7 +120,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// This method, behaves in a similar way as method <see cref="Abort(IConnection)"/> with the
-        /// only difference that it explictly specifies a timeout given
+        /// only difference that it explicitly specifies a timeout given
         /// for all the in-progress close operations to complete.
         /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
         /// <para>
