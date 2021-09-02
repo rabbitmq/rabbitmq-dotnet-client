@@ -8,7 +8,7 @@ namespace RabbitMQ.Client
     /// <summary>
     /// Wrapper interface for standard TCP-client. Provides socket for socket frame handler class.
     /// </summary>
-    /// <remarks>Contains all methods that are currenty in use in rabbitmq client.</remarks>
+    /// <remarks>Contains all methods that are currently in use in rabbitmq client.</remarks>
     public interface ITcpClient : IDisposable
     {
         bool Connected { get; }

@@ -59,17 +59,17 @@ namespace RabbitMQ.Client.Events
         ///<summary>Fires on model (channel) shutdown, both client and server initiated.</summary>
         public event EventHandler<ShutdownEventArgs> Shutdown;
 
-        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
+        ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
         public event EventHandler<ConsumerEventArgs> Unregistered;
 
-        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
+        ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
         public override void HandleBasicCancelOk(string consumerTag)
         {
             base.HandleBasicCancelOk(consumerTag);
             Unregistered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag }));
         }
 
-        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
+        ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
         public override void HandleBasicConsumeOk(string consumerTag)
         {
             base.HandleBasicConsumeOk(consumerTag);

@@ -42,7 +42,7 @@ namespace RabbitMQ.Client.Events
         }
         private AsyncEventingWrapper<ShutdownEventArgs> _shutdownWrapper;
 
-        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
+        ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
         public event AsyncEventHandler<ConsumerEventArgs> Unregistered
         {
             add => _unregisteredWrapper.AddHandler(value);
@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Events
         }
         private AsyncEventingWrapper<ConsumerEventArgs> _unregisteredWrapper;
 
-        ///<summary>Fires when the server confirms successful consumer cancelation.</summary>
+        ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
         public override async Task HandleBasicCancelOk(string consumerTag)
         {
             await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
