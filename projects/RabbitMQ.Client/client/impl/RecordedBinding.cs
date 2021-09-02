@@ -35,45 +35,56 @@ using System.Collections.Generic;
 namespace RabbitMQ.Client.Impl
 {
     #nullable enable
-    internal abstract class RecordedBinding : RecordedEntity
+    internal readonly struct RecordedBinding : IEquatable<RecordedBinding>
     {
-        protected RecordedBinding(AutorecoveringModel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
-            : base(channel)
+        private readonly bool _isQueueBinding;
+        private readonly string _destination;
+        private readonly string _source;
+        private readonly string _routingKey;
+        private readonly IDictionary<string, object>? _arguments;
+
+        public string Destination => _destination;
+        public string Source => _source;
+
+        public RecordedBinding(bool isQueueBinding, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
         {
-            Destination = destination;
-            Source = source;
-            RoutingKey = routingKey;
-            Arguments = arguments;
+            _isQueueBinding = isQueueBinding;
+            _destination = destination;
+            _source = source;
+            _routingKey = routingKey;
+            _arguments = arguments;
         }
 
-        public string Destination { get; set; }
-        public string Source { get; }
-        public string RoutingKey { get; }
-        public IDictionary<string, object>? Arguments { get; }
-
-        protected bool Equals(RecordedBinding other)
+        public RecordedBinding(string destination, in RecordedBinding old)
         {
-            return Source == other.Source && Destination == other.Destination && RoutingKey == other.RoutingKey && Equals(Arguments, other.Arguments);
+            _isQueueBinding = old._isQueueBinding;
+            _destination = destination;
+            _source = old._source;
+            _routingKey = old._routingKey;
+            _arguments = old._arguments;
+        }
+
+        public void Recover(IModel channel)
+        {
+            if (_isQueueBinding)
+            {
+                channel.QueueBind(_destination, _source, _routingKey, _arguments);
+            }
+            else
+            {
+                channel.ExchangeBind(_destination, _source, _routingKey, _arguments);
+            }
+        }
+
+        public bool Equals(RecordedBinding other)
+        {
+            return _isQueueBinding == other._isQueueBinding && _destination == other._destination && _source == other._source &&
+                   _routingKey == other._routingKey && _arguments == other._arguments;
         }
 
         public override bool Equals(object? obj)
         {
-            if (obj is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((RecordedBinding) obj);
+            return obj is RecordedBinding other && Equals(other);
         }
 
         public override int GetHashCode()
@@ -81,46 +92,21 @@ namespace RabbitMQ.Client.Impl
 #if NETSTANDARD
             unchecked
             {
-                int hashCode = (Arguments != null ? Arguments.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ Destination.GetHashCode();
-                hashCode = (hashCode * 397) ^ RoutingKey.GetHashCode();
-                hashCode = (hashCode * 397) ^ Source.GetHashCode();
+                int hashCode = _isQueueBinding.GetHashCode();
+                hashCode = (hashCode * 397) ^ _destination.GetHashCode();
+                hashCode = (hashCode * 397) ^ _source.GetHashCode();
+                hashCode = (hashCode * 397) ^ _routingKey.GetHashCode();
+                hashCode = (hashCode * 397) ^ (_arguments != null ? _arguments.GetHashCode() : 0);
                 return hashCode;
             }
 #else
-            return HashCode.Combine(Arguments, Destination, RoutingKey, Source);
+            return HashCode.Combine(_isQueueBinding, _destination, _source, _routingKey, _arguments);
 #endif
         }
 
         public override string ToString()
         {
-            return $"{GetType().Name}: source = '{Source}', destination = '{Destination}', routingKey = '{RoutingKey}', arguments = '{Arguments}'";
-        }
-    }
-
-    internal sealed class RecordedQueueBinding : RecordedBinding
-    {
-        public RecordedQueueBinding(AutorecoveringModel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
-            : base(channel, destination,  source, routingKey, arguments)
-        {
-        }
-
-        public override void Recover()
-        {
-            ModelDelegate.QueueBind(Destination, Source, RoutingKey, Arguments);
-        }
-    }
-
-    internal sealed class RecordedExchangeBinding : RecordedBinding
-    {
-        public RecordedExchangeBinding(AutorecoveringModel channel, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
-            : base(channel, destination,  source, routingKey, arguments)
-        {
-        }
-
-        public override void Recover()
-        {
-            ModelDelegate.ExchangeBind(Destination, Source, RoutingKey, Arguments);
+            return $"{nameof(RecordedBinding)}: isQueueBinding = '{_isQueueBinding}', source = '{_isQueueBinding}', destination = '{_destination}', routingKey = '{_routingKey}', arguments = '{_arguments}'";
         }
     }
 }
