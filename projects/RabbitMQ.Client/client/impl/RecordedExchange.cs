@@ -35,7 +35,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal class RecordedExchange : RecordedNamedEntity
     {
-        public RecordedExchange(AutorecoveringModel model, string name) : base(model, name)
+        public RecordedExchange(string name) : base(name)
         {
         }
 
@@ -45,9 +45,9 @@ namespace RabbitMQ.Client.Impl
 
         public string Type { get; private set; }
 
-        public void Recover()
+        public void Recover(IModel model)
         {
-            ModelDelegate.ExchangeDeclare(Name, Type, Durable, IsAutoDelete, Arguments);
+            model.ExchangeDeclare(Name, Type, Durable, IsAutoDelete, Arguments);
         }
 
         public override string ToString()

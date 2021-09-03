@@ -33,13 +33,15 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecordedConsumer : RecordedEntity
+    internal class RecordedConsumer
     {
-        public RecordedConsumer(AutorecoveringModel model, string queue) : base(model)
+        public RecordedConsumer(AutorecoveringModel model, string queue)
         {
+            Model = model;
             Queue = queue;
         }
 
+        public AutorecoveringModel Model { get; }
         public IDictionary<string, object> Arguments { get; set; }
         public bool AutoAck { get; set; }
         public IBasicConsumer Consumer { get; set; }
@@ -47,9 +49,9 @@ namespace RabbitMQ.Client.Impl
         public bool Exclusive { get; set; }
         public string Queue { get; set; }
 
-        public string Recover()
+        public string Recover(IModel channelToUse)
         {
-            ConsumerTag = ModelDelegate.BasicConsume(Queue, AutoAck,
+            ConsumerTag = channelToUse.BasicConsume(Queue, AutoAck,
                 ConsumerTag, false, Exclusive,
                 Arguments, Consumer);
 

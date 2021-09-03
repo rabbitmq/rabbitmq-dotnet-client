@@ -413,15 +413,29 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (TryRecoverConnectionDelegate())
                 {
-                    RecoverConnectionShutdownHandlers();
-                    RecoverConnectionBlockedHandlers();
-                    RecoverConnectionUnblockedHandlers();
-
-                    RecoverModels();
-                    if (_factory.TopologyRecoveryEnabled)
+                    lock (_recordedEntitiesLock)
                     {
-                        RecoverEntities();
-                        RecoverConsumers();
+                        RecoverConnectionShutdownHandlers();
+                        RecoverConnectionBlockedHandlers();
+                        RecoverConnectionUnblockedHandlers();
+
+                        if (_factory.TopologyRecoveryEnabled)
+                        {
+                            // The recovery sequence is the following:
+                            //
+                            // 1. Recover exchanges
+                            // 2. Recover queues
+                            // 3. Recover bindings
+                            // 4. Recover consumers
+                            using (var recoveryModel = _delegate.CreateModel())
+                            {
+                                RecoverExchanges(recoveryModel);
+                                RecoverQueues(recoveryModel);
+                                RecoverBindings(recoveryModel);
+                            }
+                        }
+
+                        RecoverModelsAndItsConsumers();
                     }
 
                     ESLog.Info("Connection recovery completed");
@@ -932,7 +946,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverBindings()
+        private void RecoverBindings(IModel model)
         {
             Dictionary<RecordedBinding, byte> recordedBindingsCopy;
             lock (_recordedBindings)
@@ -944,7 +958,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    b.Recover();
+                    b.Recover(model);
                 }
                 catch (Exception cause)
                 {
@@ -1023,7 +1037,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _delegate.ConnectionUnblocked += _recordedUnblockedEventHandlers;
         }
 
-        private void RecoverConsumers()
+        internal void RecoverConsumers(AutorecoveringModel modelToRecover, IModel channelToUse)
         {
             if (_disposed)
             {
@@ -1038,12 +1052,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
             foreach (KeyValuePair<string, RecordedConsumer> pair in recordedConsumersCopy)
             {
-                string tag = pair.Key;
                 RecordedConsumer cons = pair.Value;
+                if (cons.Model != modelToRecover)
+                {
+                    continue;
+                }
 
+                string tag = pair.Key;
                 try
                 {
-                    string newTag = cons.Recover();
+                    string newTag = cons.Recover(channelToUse);
                     lock (_recordedConsumers)
                     {
                         // make sure server-generated tags are re-added
@@ -1075,20 +1093,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverEntities()
-        {
-            // The recovery sequence is the following:
-            //
-            // 1. Recover exchanges
-            // 2. Recover queues
-            // 3. Recover bindings
-            // 4. Recover consumers
-            RecoverExchanges();
-            RecoverQueues();
-            RecoverBindings();
-        }
-
-        private void RecoverExchanges()
+        private void RecoverExchanges(IModel model)
         {
             Dictionary<string, RecordedExchange> recordedExchangesCopy;
             lock (_recordedEntitiesLock)
@@ -1100,7 +1105,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    rx.Recover();
+                    rx.Recover(model);
                 }
                 catch (Exception cause)
                 {
@@ -1111,18 +1116,18 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverModels()
+        private void RecoverModelsAndItsConsumers()
         {
             lock (_models)
             {
                 foreach (AutorecoveringModel m in _models)
                 {
-                    m.AutomaticallyRecover(this);
+                    m.AutomaticallyRecover(this, _factory.TopologyRecoveryEnabled);
                 }
             }
         }
 
-        private void RecoverQueues()
+        private void RecoverQueues(IModel model)
         {
             Dictionary<string, RecordedQueue> recordedQueuesCopy;
             lock (_recordedEntitiesLock)
@@ -1137,7 +1142,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    rq.Recover();
+                    rq.Recover(model);
                     string newName = rq.Name;
 
                     if (!oldName.Equals(newName))

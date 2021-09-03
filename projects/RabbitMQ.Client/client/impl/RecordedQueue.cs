@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.Impl
         private bool _durable;
         private bool _exclusive;
 
-        public RecordedQueue(AutorecoveringModel model, string name) : base(model, name)
+        public RecordedQueue(string name) : base(name)
         {
         }
 
@@ -85,9 +85,9 @@ namespace RabbitMQ.Client.Impl
             return this;
         }
 
-        public void Recover()
+        public void Recover(IModel model)
         {
-            QueueDeclareOk ok = ModelDelegate.QueueDeclare(NameToUseForRecovery, _durable,
+            QueueDeclareOk ok = model.QueueDeclare(NameToUseForRecovery, _durable,
                 _exclusive, IsAutoDelete,
                 _arguments);
             Name = ok.QueueName;
