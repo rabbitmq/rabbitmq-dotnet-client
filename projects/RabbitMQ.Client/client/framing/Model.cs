@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
@@ -64,18 +63,6 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             var cmd = new BasicGet(queue, autoAck);
             ModelSend(ref cmd);
-        }
-
-        public override void _Private_BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-        {
-            var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            ModelSend(ref cmd, (BasicProperties) basicProperties, body);
-        }
-
-        public override void _Private_BasicPublishMemory(ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-        {
-            var cmd = new BasicPublishMemory(exchange, routingKey, mandatory, default);
-            ModelSend(ref cmd, (BasicProperties) basicProperties, body);
         }
 
         public override void _Private_BasicRecover(bool requeue)
@@ -281,11 +268,6 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             var cmd = new BasicReject(deliveryTag, requeue);
             ModelSend(ref cmd);
-        }
-
-        public override IBasicProperties CreateBasicProperties()
-        {
-            return new BasicProperties();
         }
 
         public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)

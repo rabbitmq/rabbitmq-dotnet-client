@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTuneOk;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), _channelMax);
             offset += WireFormatting.WriteLong(ref span.GetOffset(offset), _frameMax);

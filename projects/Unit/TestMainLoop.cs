@@ -41,7 +41,7 @@ namespace RabbitMQ.Client.Unit
 
     public class TestMainLoop : IntegrationFixture {
 
-        private class FaultyConsumer : DefaultBasicConsumer
+        private sealed class FaultyConsumer : DefaultBasicConsumer
         {
             public FaultyConsumer(IModel model) : base(model) {}
 
@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
                                                bool redelivered,
                                                string exchange,
                                                string routingKey,
-                                               IBasicProperties properties,
+                                               in ReadOnlyBasicProperties properties,
                                                ReadOnlyMemory<byte> body)
             {
                 throw new Exception("I am a bad consumer");
@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Unit
                 Monitor.PulseAll(o);
             };
             m.BasicConsume(q, true, new FaultyConsumer(_model));
-            m.BasicPublish("", q, null, _encoding.GetBytes("message"));
+            m.BasicPublish("", q, _encoding.GetBytes("message"));
             WaitOn(o);
 
             Assert.NotNull(ea);

@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             return WireFormatting.WriteLongstr(ref span.GetStart(), _response);
         }

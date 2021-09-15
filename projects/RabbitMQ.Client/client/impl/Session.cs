@@ -40,7 +40,7 @@ namespace RabbitMQ.Client.Impl
 
         public Session(Connection connection, ushort channelNumber) : base(connection, channelNumber)
         {
-            _assembler = new CommandAssembler(connection.Protocol);
+            _assembler = new CommandAssembler();
         }
 
         public override bool HandleFrame(in InboundFrame frame)

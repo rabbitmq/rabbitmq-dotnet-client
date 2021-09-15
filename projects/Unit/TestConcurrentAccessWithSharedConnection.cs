@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Unit
                 ch.ConfirmSelect();
                 for (int j = 0; j < 200; j++)
                 {
-                    ch.BasicPublish("", "_______", null, body);
+                    ch.BasicPublish("", "_______", body);
                 }
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40));
                 ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult();

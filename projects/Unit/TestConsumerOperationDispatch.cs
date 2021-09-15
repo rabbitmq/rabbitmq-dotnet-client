@@ -84,7 +84,7 @@ namespace RabbitMQ.Client.Unit
 
             public override void HandleBasicDeliver(string consumerTag,
                 ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-                IBasicProperties properties, ReadOnlyMemory<byte> body)
+                in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
             {
                 // we test concurrent dispatch from the moment basic.delivery is returned.
                 // delivery tags have guaranteed ordering and we verify that it is preserved
@@ -120,9 +120,7 @@ namespace RabbitMQ.Client.Unit
 
             for (int i = 0; i < N; i++)
             {
-                Ch.BasicPublish(exchange: _x, routingKey: "",
-                    basicProperties: new BasicProperties(),
-                    body: _encoding.GetBytes("msg"));
+                Ch.BasicPublish(_x, "", _encoding.GetBytes("msg"));
             }
             counter.Wait(TimeSpan.FromSeconds(120));
 
@@ -165,7 +163,7 @@ namespace RabbitMQ.Client.Unit
             // closing this channel must not affect ch2
             ch1.Close();
 
-            ch2.BasicPublish(exchange: _x, basicProperties: null, body: _encoding.GetBytes("msg"), routingKey: "");
+            ch2.BasicPublish(_x, "", _encoding.GetBytes("msg"));
             Wait(latch);
         }
 

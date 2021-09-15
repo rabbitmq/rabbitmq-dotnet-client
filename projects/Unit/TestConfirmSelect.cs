@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Unit
 
         protected void Publish()
         {
-            _model.BasicPublish("", "amq.fanout", null, _encoding.GetBytes("message"));
+            _model.BasicPublish("", "amq.fanout", _encoding.GetBytes("message"));
         }
     }
 }

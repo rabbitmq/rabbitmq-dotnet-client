@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Unit
         public void TestRecoverAfterCancel_()
         {
             UTF8Encoding enc = new UTF8Encoding();
-            _channel.BasicPublish("", _queue, null, enc.GetBytes("message"));
+            _channel.BasicPublish("", _queue, enc.GetBytes("message"));
             EventingBasicConsumer Consumer = new EventingBasicConsumer(_channel);
             BlockingCollection<(bool Redelivered, byte[] Body)> EventQueue = new BlockingCollection<(bool Redelivered, byte[] Body)>();
             // Making sure we copy the delivery body since it could be disposed at any time.

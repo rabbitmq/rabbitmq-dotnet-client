@@ -32,9 +32,9 @@ namespace Benchmarks.Networking
         }
 
         [Benchmark(Baseline = true)]
-        public async Task Publish_Hello_World()
+        public Task Publish_Hello_World()
         {
-            await Networking_BasicDeliver_Commons.Publish_Hello_World(_connection, messageCount, _body);
+            return Networking_BasicDeliver_Commons.Publish_Hello_World(_connection, messageCount, _body);
         }
     }
 }

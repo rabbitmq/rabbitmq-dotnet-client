@@ -112,7 +112,7 @@ namespace RabbitMQ.Client
             bool redelivered,
             string exchange,
             string routingKey,
-            IBasicProperties properties,
+            in ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
             // Nothing to do here.
@@ -165,7 +165,7 @@ namespace RabbitMQ.Client
             throw new InvalidOperationException("Should never be called.");
         }
 
-        void IBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> body)
+        void IBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             throw new InvalidOperationException("Should never be called.");
         }

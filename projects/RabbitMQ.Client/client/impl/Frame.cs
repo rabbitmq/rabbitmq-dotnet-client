@@ -63,14 +63,14 @@ namespace RabbitMQ.Client.Impl
              * | 2 bytes  | 2 bytes   |           |
              * +----------+-----------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2;
-
+            
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo<T>(Span<byte> span, ushort channel, ref T method) where T : struct, IOutgoingAmqpMethod
             {
                 const int StartClassId = StartPayload;
                 const int StartMethodArguments = StartClassId + 4;
 
-                int payloadLength = method.WriteArgumentsTo(span.Slice(StartMethodArguments)) + 4;
+                int payloadLength = method.WriteTo(span.Slice(StartMethodArguments)) + 4;
                 NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameMethod << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
                 NetworkOrderSerializer.WriteUInt32(ref span.GetOffset(StartClassId), (uint)method.ProtocolCommandId);
                 span[payloadLength + StartPayload] = Constants.FrameEnd;
@@ -86,15 +86,15 @@ namespace RabbitMQ.Client.Impl
              * | 2 bytes  | 2 bytes  | 8 bytes           | x bytes   |
              * +----------+----------+-------------------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2 + 8;
-
+            
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int WriteTo<T>(Span<byte> span, ushort channel, T header, int bodyLength) where T : ContentHeaderBase
+            public static int WriteTo<T>(Span<byte> span, ushort channel, ref T header, int bodyLength) where T : IAmqpHeader
             {
                 const int StartClassId = StartPayload;
                 const int StartBodyLength = StartPayload + 4;
                 const int StartHeaderArguments = StartPayload + 12;
 
-                int payloadLength = 12 + header.WritePropertiesTo(span.Slice(StartHeaderArguments));
+                int payloadLength = 12 + header.WriteTo(span.Slice(StartHeaderArguments));
                 NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameHeader << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
                 NetworkOrderSerializer.WriteUInt32(ref span.GetOffset(StartClassId), (uint)header.ProtocolClassId << 16); // The last 16 bytes (Weight) aren't used
                 NetworkOrderSerializer.WriteUInt64(ref span.GetOffset(StartBodyLength), (ulong)bodyLength);
@@ -163,19 +163,20 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlyMemory<byte> SerializeToFrames<T>(ref T method, ContentHeaderBase header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
-            where T : struct, IOutgoingAmqpMethod
+        public static ReadOnlyMemory<byte> SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
         {
             int remainingBodyBytes = body.Length;
             int size = Method.FrameSize + Header.FrameSize +
-                       method.GetRequiredBufferSize() + header.GetRequiredPayloadBufferSize() +
+                       method.GetRequiredBufferSize() + header.GetRequiredBufferSize() +
                        BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes) + remainingBodyBytes;
 
             // Will be returned by SocketFrameWriter.WriteLoop
             var array = ArrayPool<byte>.Shared.Rent(size);
 
             int offset = Method.WriteTo(array, channelNumber, ref method);
-            offset += Header.WriteTo(array.AsSpan(offset), channelNumber, header, remainingBodyBytes);
+            offset += Header.WriteTo(array.AsSpan(offset), channelNumber, ref header, remainingBodyBytes);
             var bodySpan = body.Span;
             while (remainingBodyBytes > 0)
             {

@@ -29,21 +29,27 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
+#nullable enable
     /// <summary>
-    /// A decoded AMQP content header frame.
+    /// A AMQP writeable.
     /// </summary>
-    public interface IContentHeader// : ICloneable
+    public interface IAmqpWriteable
     {
         /// <summary>
-        /// Retrieve the AMQP class ID of this content header.
+        /// Gets the minimum required buffer size.
         /// </summary>
-        ushort ProtocolClassId { get; }
+        /// <returns>The minimum required buffer size.</returns>
+        int GetRequiredBufferSize();
 
         /// <summary>
-        /// Retrieve the AMQP class name of this content header.
+        /// Write this instance to the provided span.
         /// </summary>
-        string ProtocolClassName { get; }
+        /// <param name="span">The span to write it to.</param>
+        /// <returns>The amount of bytes written.</returns>
+        int WriteTo(Span<byte> span);
     }
 }

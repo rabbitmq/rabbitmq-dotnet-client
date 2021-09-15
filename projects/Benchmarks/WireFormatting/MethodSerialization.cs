@@ -2,8 +2,7 @@
 using System.Text;
 
 using BenchmarkDotNet.Attributes;
-
-using RabbitMQ.Client.Framing;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Benchmarks
@@ -21,13 +20,13 @@ namespace RabbitMQ.Benchmarks
     public class MethodBasicAck : MethodSerializationBase
     {
         private readonly BasicAck _basicAck = new BasicAck(ulong.MaxValue, true);
-        public override void SetUp() => _basicAck.WriteArgumentsTo(_buffer.Span);
+        public override void SetUp() => _basicAck.WriteTo(_buffer.Span);
 
         [Benchmark]
         public ulong BasicAckRead() => new BasicAck(_buffer.Span)._deliveryTag; // return one property to not box when returning an object instead
 
         [Benchmark]
-        public int BasicAckWrite() => _basicAck.WriteArgumentsTo(_buffer.Span);
+        public int BasicAckWrite() => _basicAck.WriteTo(_buffer.Span);
     }
 
     public class MethodBasicDeliver : MethodSerializationBase
@@ -38,7 +37,6 @@ namespace RabbitMQ.Benchmarks
 
         public override void SetUp()
         {
-            int length = _buffer.Length;
             int offset = Client.Impl.WireFormatting.WriteShortstr(ref _buffer.Span.GetStart(), string.Empty);
             offset += Client.Impl.WireFormatting.WriteLonglong(ref _buffer.Span.GetOffset(offset), 0);
             offset += Client.Impl.WireFormatting.WriteBits(ref _buffer.Span.GetOffset(offset), false);
@@ -50,10 +48,10 @@ namespace RabbitMQ.Benchmarks
         public object BasicDeliverRead() => new BasicDeliver(_buffer.Span)._consumerTag; // return one property to not box when returning an object instead
 
         [Benchmark]
-        public int BasicPublishWrite() => _basicPublish.WriteArgumentsTo(_buffer.Span);
+        public int BasicPublishWrite() => _basicPublish.WriteTo(_buffer.Span);
 
         [Benchmark]
-        public int BasicPublishMemoryWrite() => _basicPublishMemory.WriteArgumentsTo(_buffer.Span);
+        public int BasicPublishMemoryWrite() => _basicPublishMemory.WriteTo(_buffer.Span);
 
         [Benchmark]
         public int BasicPublishSize() => _basicPublish.GetRequiredBufferSize();
@@ -66,27 +64,27 @@ namespace RabbitMQ.Benchmarks
     {
         private readonly ChannelClose _channelClose = new ChannelClose(333, string.Empty, 0099, 2999);
 
-        public override void SetUp() => _channelClose.WriteArgumentsTo(_buffer.Span);
+        public override void SetUp() => _channelClose.WriteTo(_buffer.Span);
 
         [Benchmark]
         public object ChannelCloseRead() => new ChannelClose(_buffer.Span)._replyText; // return one property to not box when returning an object instead
 
         [Benchmark]
-        public int ChannelCloseWrite() => _channelClose.WriteArgumentsTo(_buffer.Span);
+        public int ChannelCloseWrite() => _channelClose.WriteTo(_buffer.Span);
     }
 
     public class MethodBasicProperties : MethodSerializationBase
     {
-        private readonly BasicProperties _basicProperties = new BasicProperties { Persistent = true, AppId = "AppId", ContentEncoding = "content", };
-        public override void SetUp() => _basicProperties.WritePropertiesTo(_buffer.Span);
+        private readonly IAmqpWriteable _basicProperties = new BasicProperties { Persistent = true, AppId = "AppId", ContentEncoding = "content", };
+        public override void SetUp() => _basicProperties.WriteTo(_buffer.Span);
 
         [Benchmark]
-        public object BasicPropertiesRead() => new BasicProperties(_buffer.Span);
+        public ReadOnlyBasicProperties BasicPropertiesRead() => new ReadOnlyBasicProperties(_buffer.Span);
 
         [Benchmark]
-        public int BasicPropertiesWrite() => _basicProperties.WritePropertiesTo(_buffer.Span);
+        public int BasicPropertiesWrite() => _basicProperties.WriteTo(_buffer.Span);
 
         [Benchmark]
-        public int BasicDeliverSize() => _basicProperties.GetRequiredPayloadBufferSize();
+        public int BasicDeliverSize() => _basicProperties.GetRequiredBufferSize();
     }
 }

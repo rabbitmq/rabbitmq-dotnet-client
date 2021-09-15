@@ -219,7 +219,7 @@ namespace RabbitMQ.Client.Unit
         public static void Publish(IConnection conn, Encoding encoding)
         {
             IModel ch = conn.CreateModel();
-            ch.BasicPublish("amq.fanout", "", null, encoding.GetBytes("message"));
+            ch.BasicPublish("amq.fanout", "", encoding.GetBytes("message"));
         }
 
 

@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit
 
                 string message = "Hello C# SSL Client World";
                 byte[] msgBytes = System.Text.Encoding.UTF8.GetBytes(message);
-                ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null, msgBytes);
+                ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", msgBytes);
 
                 bool autoAck = false;
                 BasicGetResult result = ch.BasicGet(qName, autoAck);

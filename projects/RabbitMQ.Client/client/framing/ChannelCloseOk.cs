@@ -38,7 +38,7 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelCloseOk;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             return 0;
         }

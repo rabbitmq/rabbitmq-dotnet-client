@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _multiple, _requeue);

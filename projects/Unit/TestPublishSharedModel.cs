@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         for (int j = 0; j < Repeats; j++)
                         {
-                            model.BasicPublish(ExchangeName, PublishKey, false, null, _body);
+                            model.BasicPublish(ExchangeName, PublishKey, _body, false);
                         }
 
                         Thread.Sleep(1);

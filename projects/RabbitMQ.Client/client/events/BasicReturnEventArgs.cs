@@ -38,7 +38,7 @@ namespace RabbitMQ.Client.Events
     public class BasicReturnEventArgs : EventArgs
     {
         ///<summary>The content header of the message.</summary>
-        public IBasicProperties BasicProperties { get; set; }
+        public ReadOnlyBasicProperties BasicProperties { get; set; }
 
         ///<summary>The message body.</summary>
         public ReadOnlyMemory<byte> Body { get; set; }

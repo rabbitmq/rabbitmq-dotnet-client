@@ -242,11 +242,13 @@ namespace RabbitMQ.Client.Impl
         public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
             => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
 
-        public void BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-            => InnerChannel.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
+        public void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+            => InnerChannel.BasicPublish(exchange, routingKey, basicProperties, body, mandatory);
 
-        public void BasicPublish(CachedString exchange, CachedString routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-            => InnerChannel.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
+        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+            => InnerChannel.BasicPublish(exchange, routingKey, basicProperties, body, mandatory);
 
         public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
@@ -276,9 +278,6 @@ namespace RabbitMQ.Client.Impl
             InnerChannel.ConfirmSelect();
             _usesPublisherConfirms = true;
         }
-
-        public IBasicProperties CreateBasicProperties()
-            => InnerChannel.CreateBasicProperties();
 
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
