@@ -72,7 +72,7 @@ namespace RabbitMQ.Client
     /// </para>
     /// <example><code>
     ///     ConnectionFactory factory = new ConnectionFactory();
-    ///     factory.SetUri("amqp://localhost");
+    ///     factory.Uri = new Uri("amqp://localhost");
     ///     IConnection conn = factory.CreateConnection();
     ///     ...
     /// </code></example>
