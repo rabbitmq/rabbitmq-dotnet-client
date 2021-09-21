@@ -165,7 +165,7 @@ namespace RabbitMQ.Client.Impl
 
         public int RemotePort
         {
-            get { return ((IPEndPoint)LocalEndPoint).Port; }
+            get { return ((IPEndPoint)RemoteEndPoint).Port; }
         }
 
         public TimeSpan ReadTimeout
