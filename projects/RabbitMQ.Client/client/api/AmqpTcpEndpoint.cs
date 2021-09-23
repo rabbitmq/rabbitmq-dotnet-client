@@ -38,14 +38,16 @@ namespace RabbitMQ.Client
     /// <summary>
     /// Represents a TCP-addressable AMQP peer: a host name and port number.
     /// </summary>
+    /// <remarks>
     /// <para>
-    /// Some of the constructors take, as a convenience, a System.Uri
+    /// Some of the constructors take, as a convenience, a <see cref="System.Uri"/>
     /// instance representing an AMQP server address. The use of Uri
     /// here is not standardised - Uri is simply a convenient
     /// container for internet-address-like components. In particular,
     /// the Uri "Scheme" property is ignored: only the "Host" and
     /// "Port" properties are extracted.
     /// </para>
+    /// </remarks>
     public class AmqpTcpEndpoint// : ICloneable
     {
         /// <summary>
