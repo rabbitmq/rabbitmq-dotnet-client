@@ -373,7 +373,6 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         ///Returns the number of messages purged during queue deletion.
-        /// <code>uint.MaxValue</code>.
         /// </remarks>
         uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
 
