@@ -47,7 +47,7 @@ namespace RabbitMQ.Client
         private X509CertificateCollection _certificateCollection;
 
         /// <summary>
-        /// Constructs an SslOption specifying both the server cannonical name and the client's certificate path.
+        /// Constructs an <see cref="SslOption"/> specifying both the server canonical name and the client's certificate path.
         /// </summary>
         public SslOption(string serverName, string certificatePath = "", bool enabled = false)
         {
