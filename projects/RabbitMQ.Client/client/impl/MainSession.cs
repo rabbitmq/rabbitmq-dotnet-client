@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override void Transmit<T>(in T cmd)
+        public override void Transmit<T>(ref T cmd)
         {
             if (_closing && // Are we closing?
                 cmd.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk && // is this not a close-ok?
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
-            base.Transmit(in cmd);
+            base.Transmit(ref cmd);
         }
     }
 }
