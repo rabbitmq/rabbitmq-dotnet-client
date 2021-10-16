@@ -188,7 +188,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        void BasicPublish<TProperties>(string exchange, string routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
         /// <summary>
         /// Publishes a message.
@@ -198,7 +198,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 #nullable disable
 

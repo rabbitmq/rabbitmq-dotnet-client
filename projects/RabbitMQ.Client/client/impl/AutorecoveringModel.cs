@@ -242,13 +242,13 @@ namespace RabbitMQ.Client.Impl
         public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
             => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
 
-        public void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public void BasicPublish<TProperties>(string exchange, string routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublish(exchange, routingKey, basicProperties, body, mandatory);
+            => InnerChannel.BasicPublish(exchange, routingKey, ref basicProperties, body, mandatory);
 
-        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublish(exchange, routingKey, basicProperties, body, mandatory);
+            => InnerChannel.BasicPublish(exchange, routingKey, ref basicProperties, body, mandatory);
 
         public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {

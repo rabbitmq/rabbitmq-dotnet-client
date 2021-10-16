@@ -82,17 +82,17 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
-        public static void BasicPublish<T>(this IModel model, PublicationAddress addr, in T basicProperties, ReadOnlyMemory<byte> body)
+        public static void BasicPublish<T>(this IModel model, PublicationAddress addr, ref T basicProperties, ReadOnlyMemory<byte> body)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
-            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, basicProperties, body);
+            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, ref basicProperties, body);
         }
 
         public static void BasicPublish(this IModel model, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => model.BasicPublish(exchange, routingKey, default(EmptyBasicProperty), body, mandatory);
+            => model.BasicPublish(exchange, routingKey, ref EmptyBasicProperty.Empty, body, mandatory);
 
         public static void BasicPublish(this IModel model, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => model.BasicPublish(exchange, routingKey, default(EmptyBasicProperty), body, mandatory);
+            => model.BasicPublish(exchange, routingKey, ref EmptyBasicProperty.Empty, body, mandatory);
 #nullable disable
 
         /// <summary>

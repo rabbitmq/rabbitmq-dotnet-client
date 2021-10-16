@@ -817,7 +817,7 @@ namespace RabbitMQ.Client.Unit
             {
                 try
                 {
-                    _model.BasicPublish(string.Empty, testQueueName, properties, ReadOnlyMemory<byte>.Empty);
+                    _model.BasicPublish(string.Empty, testQueueName, ref properties, ReadOnlyMemory<byte>.Empty);
                 }
                 catch (Exception e)
                 {

@@ -897,7 +897,7 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
 
-        public void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public void BasicPublish<TProperties>(string exchange, string routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (NextPublishSeqNo > 0)
@@ -909,11 +909,10 @@ namespace RabbitMQ.Client.Impl
             }
 
             var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            var props = basicProperties;
-            ModelSend(ref cmd, ref props, body);
+            ModelSend(ref cmd, ref basicProperties, body);
         }
 
-        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (NextPublishSeqNo > 0)
@@ -925,8 +924,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            var props = basicProperties;
-            ModelSend(ref cmd, ref props, body);
+            ModelSend(ref cmd, ref basicProperties, body);
         }
 
         public void UpdateSecret(string newSecret, string reason)

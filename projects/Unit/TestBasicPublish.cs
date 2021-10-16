@@ -32,7 +32,7 @@ namespace RabbitMQ.Client.Unit
                 };
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
 
-                m.BasicPublish("", q.QueueName, bp, sendBody);
+                m.BasicPublish("", q.QueueName, ref bp, sendBody);
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
