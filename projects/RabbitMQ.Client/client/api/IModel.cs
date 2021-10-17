@@ -435,7 +435,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Waits until all messages published since the last call have
         /// been ack'd by the broker.  If a nack is received or the timeout
-        /// elapses, throws an OperationInterruptedException exception immediately.
+        /// elapses, throws an IOException exception immediately.
         /// </remarks>
         Task WaitForConfirmsOrDieAsync(CancellationToken token = default);
 
