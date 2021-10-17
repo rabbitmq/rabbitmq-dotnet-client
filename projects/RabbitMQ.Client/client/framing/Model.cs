@@ -44,57 +44,68 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override void ConnectionTuneOk(ushort channelMax, uint frameMax, ushort heartbeat)
         {
-            ModelSend(new ConnectionTuneOk(channelMax, frameMax, heartbeat));
+            var cmd = new ConnectionTuneOk(channelMax, frameMax, heartbeat);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_BasicCancel(string consumerTag, bool nowait)
         {
-            ModelSend(new BasicCancel(consumerTag, nowait));
+            var cmd = new BasicCancel(consumerTag, nowait);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IDictionary<string, object> arguments)
         {
-            ModelSend(new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, nowait, arguments));
+            var cmd = new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, nowait, arguments);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_BasicGet(string queue, bool autoAck)
         {
-            ModelSend(new BasicGet(queue, autoAck));
+            var cmd = new BasicGet(queue, autoAck);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_BasicPublish(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
-            ModelSend(new BasicPublish(exchange, routingKey, mandatory, default), (BasicProperties) basicProperties, body);
+            var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+            ModelSend(ref cmd, (BasicProperties) basicProperties, body);
         }
 
         public override void _Private_BasicPublishMemory(ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, bool mandatory, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
-            ModelSend(new BasicPublishMemory(exchange, routingKey, mandatory, default), (BasicProperties) basicProperties, body);
+            var cmd = new BasicPublishMemory(exchange, routingKey, mandatory, default);
+            ModelSend(ref cmd, (BasicProperties) basicProperties, body);
         }
 
         public override void _Private_BasicRecover(bool requeue)
         {
-            ModelSend(new BasicRecover(requeue));
+            var cmd = new BasicRecover(requeue);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
-            ModelSend(new ChannelClose(replyCode, replyText, classId, methodId));
+            var cmd = new ChannelClose(replyCode, replyText, classId, methodId);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_ChannelCloseOk()
         {
-            ModelSend(new ChannelCloseOk());
+            var cmd = new ChannelCloseOk();
+            ModelSend(ref cmd);
         }
 
         public override void _Private_ChannelFlowOk(bool active)
         {
-            ModelSend(new ChannelFlowOk(active));
+            var cmd = new ChannelFlowOk(active);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_ChannelOpen()
         {
-            ModelRpc(new ChannelOpen(), ProtocolCommandId.ChannelOpenOk);
+            var cmd = new ChannelOpen();
+            ModelRpc(ref cmd, ProtocolCommandId.ChannelOpenOk);
         }
 
         public override void _Private_ConfirmSelect(bool nowait)
@@ -102,37 +113,42 @@ namespace RabbitMQ.Client.Framing.Impl
             var method = new ConfirmSelect(nowait);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
             }
             else
             {
-                ModelRpc(method, ProtocolCommandId.ConfirmSelectOk);
+                ModelRpc(ref method, ProtocolCommandId.ConfirmSelectOk);
             }
         }
 
         public override void _Private_ConnectionCloseOk()
         {
-            ModelSend(new ConnectionCloseOk());
+            var cmd = new ConnectionCloseOk();
+            ModelSend(ref cmd);
         }
 
         public override void _Private_ConnectionOpen(string virtualHost)
         {
-            ModelSend(new ConnectionOpen(virtualHost));
+            var cmd = new ConnectionOpen(virtualHost);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_ConnectionSecureOk(byte[] response)
         {
-            ModelSend(new ConnectionSecureOk(response));
+            var cmd = new ConnectionSecureOk(response);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
         {
-            ModelSend(new ConnectionStartOk(clientProperties, mechanism, response, locale));
+            var cmd = new ConnectionStartOk(clientProperties, mechanism, response, locale);
+            ModelSend(ref cmd);
         }
 
         public override void _Private_UpdateSecret(byte[] newSecret, string reason)
         {
-            ModelRpc(new ConnectionUpdateSecret(newSecret, reason), ProtocolCommandId.ConnectionUpdateSecretOk);
+            var cmd = new ConnectionUpdateSecret(newSecret, reason);
+            ModelRpc(ref cmd, ProtocolCommandId.ConnectionUpdateSecretOk);
         }
 
         public override void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
@@ -140,11 +156,11 @@ namespace RabbitMQ.Client.Framing.Impl
             ExchangeBind method = new ExchangeBind(destination, source, routingKey, nowait, arguments);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
             }
             else
             {
-                ModelRpc(method, ProtocolCommandId.ExchangeBindOk);
+                ModelRpc(ref method, ProtocolCommandId.ExchangeBindOk);
             }
         }
 
@@ -153,11 +169,11 @@ namespace RabbitMQ.Client.Framing.Impl
             ExchangeDeclare method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, @internal, nowait, arguments);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
             }
             else
             {
-                ModelRpc(method, ProtocolCommandId.ExchangeDeclareOk);
+                ModelRpc(ref method, ProtocolCommandId.ExchangeDeclareOk);
             }
         }
 
@@ -166,11 +182,11 @@ namespace RabbitMQ.Client.Framing.Impl
             ExchangeDelete method = new ExchangeDelete(exchange, ifUnused, nowait);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
             }
             else
             {
-                ModelRpc(method, ProtocolCommandId.ExchangeDeleteOk);
+                ModelRpc(ref method, ProtocolCommandId.ExchangeDeleteOk);
             }
         }
 
@@ -179,11 +195,11 @@ namespace RabbitMQ.Client.Framing.Impl
             ExchangeUnbind method = new ExchangeUnbind(destination, source, routingKey, nowait, arguments);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
             }
             else
             {
-                ModelRpc(method, ProtocolCommandId.ExchangeUnbindOk);
+                ModelRpc(ref method, ProtocolCommandId.ExchangeUnbindOk);
             }
         }
 
@@ -192,11 +208,11 @@ namespace RabbitMQ.Client.Framing.Impl
             QueueBind method = new QueueBind(queue, exchange, routingKey, nowait, arguments);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
             }
             else
             {
-                ModelRpc(method, ProtocolCommandId.QueueBindOk);
+                ModelRpc(ref method, ProtocolCommandId.QueueBindOk);
             }
         }
 
@@ -205,11 +221,11 @@ namespace RabbitMQ.Client.Framing.Impl
             QueueDeclare method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, nowait, arguments);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
             }
             else
             {
-                ModelSend(method);
+                ModelSend(ref method);
             }
         }
 
@@ -218,11 +234,11 @@ namespace RabbitMQ.Client.Framing.Impl
             QueueDelete method = new QueueDelete(queue, ifUnused, ifEmpty, nowait);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
                 return 0xFFFFFFFF;
             }
 
-            return ModelRpc(method, ProtocolCommandId.QueueDeleteOk, memory => new QueueDeleteOk(memory.Span)._messageCount);
+            return ModelRpc(ref method, ProtocolCommandId.QueueDeleteOk, memory => new QueueDeleteOk(memory.Span)._messageCount);
         }
 
         public override uint _Private_QueuePurge(string queue, bool nowait)
@@ -230,36 +246,41 @@ namespace RabbitMQ.Client.Framing.Impl
             QueuePurge method = new QueuePurge(queue, nowait);
             if (nowait)
             {
-                ModelSend(method);
+                ModelSend(ref method);
                 return 0xFFFFFFFF;
             }
 
-            return ModelRpc(method, ProtocolCommandId.QueuePurgeOk, memory => new QueuePurgeOk(memory.Span)._messageCount);
+            return ModelRpc(ref method, ProtocolCommandId.QueuePurgeOk, memory => new QueuePurgeOk(memory.Span)._messageCount);
         }
 
         public override void BasicAck(ulong deliveryTag, bool multiple)
         {
-            ModelSend(new BasicAck(deliveryTag, multiple));
+            var cmd = new BasicAck(deliveryTag, multiple);
+            ModelSend(ref cmd);
         }
 
         public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
-            ModelSend(new BasicNack(deliveryTag, multiple, requeue));
+            var cmd = new BasicNack(deliveryTag, multiple, requeue);
+            ModelSend(ref cmd);
         }
 
         public override void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
-            ModelRpc(new BasicQos(prefetchSize, prefetchCount, global), ProtocolCommandId.BasicQosOk);
+            var cmd = new BasicQos(prefetchSize, prefetchCount, global);
+            ModelRpc(ref cmd, ProtocolCommandId.BasicQosOk);
         }
 
         public override void BasicRecoverAsync(bool requeue)
         {
-            ModelSend(new BasicRecoverAsync(requeue));
+            var cmd = new BasicRecoverAsync(requeue);
+            ModelSend(ref cmd);
         }
 
         public override void BasicReject(ulong deliveryTag, bool requeue)
         {
-            ModelSend(new BasicReject(deliveryTag, requeue));
+            var cmd = new BasicReject(deliveryTag, requeue);
+            ModelSend(ref cmd);
         }
 
         public override IBasicProperties CreateBasicProperties()
@@ -269,22 +290,26 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
-            ModelRpc(new QueueUnbind(queue, exchange, routingKey, arguments), ProtocolCommandId.QueueUnbindOk);
+            var cmd = new QueueUnbind(queue, exchange, routingKey, arguments);
+            ModelRpc(ref cmd, ProtocolCommandId.QueueUnbindOk);
         }
 
         public override void TxCommit()
         {
-            ModelRpc(new TxCommit(), ProtocolCommandId.TxCommitOk);
+            var cmd = new TxCommit();
+            ModelRpc(ref cmd, ProtocolCommandId.TxCommitOk);
         }
 
         public override void TxRollback()
         {
-            ModelRpc(new TxRollback(), ProtocolCommandId.TxRollbackOk);
+            var cmd = new TxRollback();
+            ModelRpc(ref cmd, ProtocolCommandId.TxRollbackOk);
         }
 
         public override void TxSelect()
         {
-            ModelRpc(new TxSelect(), ProtocolCommandId.TxSelectOk);
+            var cmd = new TxSelect();
+            ModelRpc(ref cmd, ProtocolCommandId.TxSelectOk);
         }
 
         protected override bool DispatchAsynchronous(in IncomingCommand cmd)

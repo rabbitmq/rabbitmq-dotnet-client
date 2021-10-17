@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Impl
             public const int FrameSize = BaseFrameSize + 2 + 2;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int WriteTo<T>(Span<byte> span, ushort channel, in T method) where T : struct, IOutgoingAmqpMethod
+            public static int WriteTo<T>(Span<byte> span, ushort channel, ref T method) where T : struct, IOutgoingAmqpMethod
             {
                 const int StartClassId = StartPayload;
                 const int StartMethodArguments = StartClassId + 4;
@@ -149,21 +149,21 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlyMemory<byte> SerializeToFrames<T>(in T method, ushort channelNumber)
+        public static ReadOnlyMemory<byte> SerializeToFrames<T>(ref T method, ushort channelNumber)
             where T : struct, IOutgoingAmqpMethod
         {
             int size = Method.FrameSize + method.GetRequiredBufferSize();
 
             // Will be returned by SocketFrameWriter.WriteLoop
             var array = ArrayPool<byte>.Shared.Rent(size);
-            int offset = Method.WriteTo(array, channelNumber, method);
+            int offset = Method.WriteTo(array, channelNumber, ref method);
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
             return new ReadOnlyMemory<byte>(array, 0, size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlyMemory<byte> SerializeToFrames<T>(in T method, ContentHeaderBase header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+        public static ReadOnlyMemory<byte> SerializeToFrames<T>(ref T method, ContentHeaderBase header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
             where T : struct, IOutgoingAmqpMethod
         {
             int remainingBodyBytes = body.Length;
@@ -174,7 +174,7 @@ namespace RabbitMQ.Client.Impl
             // Will be returned by SocketFrameWriter.WriteLoop
             var array = ArrayPool<byte>.Shared.Rent(size);
 
-            int offset = Method.WriteTo(array, channelNumber, method);
+            int offset = Method.WriteTo(array, channelNumber, ref method);
             offset += Header.WriteTo(array.AsSpan(offset), channelNumber, header, remainingBodyBytes);
             var bodySpan = body.Span;
             while (remainingBodyBytes > 0)

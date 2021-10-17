@@ -114,7 +114,7 @@ namespace RabbitMQ.Client.Unit
             var method = new BasicPublish("E", "R", true, true);
             int payloadSize = method.GetRequiredBufferSize();
             byte[] frameBytes = new byte[Impl.Framing.Method.FrameSize + payloadSize];
-            Impl.Framing.Method.WriteTo(frameBytes, Channel, method);
+            Impl.Framing.Method.WriteTo(frameBytes, Channel, ref method);
 
             Assert.Equal(12, Impl.Framing.Method.FrameSize);
             Assert.Equal(Constants.FrameMethod, frameBytes[0]);
