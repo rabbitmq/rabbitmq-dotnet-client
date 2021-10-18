@@ -200,60 +200,142 @@ namespace RabbitMQ.Client.Framing
 
         public BasicProperties(ReadOnlySpan<byte> span)
         {
-            int offset = WireFormatting.ReadBits(span,
-                out bool contentType_present,
-                out bool contentEncoding_present,
-                out bool headers_present,
-                out bool deliveryMode_present,
-                out bool priority_present,
-                out bool correlationId_present,
-                out bool replyTo_present,
-                out bool expiration_present,
-                out bool messageId_present,
-                out bool timestamp_present,
-                out bool type_present,
-                out bool userId_present,
-                out bool appId_present,
-                out bool clusterId_present);
-            if (contentType_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentType); }
-            if (contentEncoding_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentEncoding); }
-            if (headers_present) { offset += WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDirectory); _headers = tmpDirectory; }
-            if (deliveryMode_present) { _deliveryMode = span[offset++]; }
-            if (priority_present) { _priority = span[offset++]; }
-            if (correlationId_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _correlationId); }
-            if (replyTo_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyTo); }
-            if (expiration_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _expiration); }
-            if (messageId_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _messageId); }
-            if (timestamp_present) { offset += WireFormatting.ReadTimestamp(span.Slice(offset), out _timestamp); }
-            if (type_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _type); }
-            if (userId_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _userId); }
-            if (appId_present) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _appId); }
-            if (clusterId_present) { WireFormatting.ReadShortstr(span.Slice(offset), out _clusterId); }
+            int offset = 2;
+            ref readonly byte bits = ref span[0];
+            if (bits.IsBitSet(ContentTypeBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentType); }
+            if (bits.IsBitSet(ContentEncodingBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentEncoding); }
+            if (bits.IsBitSet(HeaderBit)) { offset += WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDirectory); _headers = tmpDirectory; }
+            if (bits.IsBitSet(DeliveryModeBit)) { _deliveryMode = span[offset++]; }
+            if (bits.IsBitSet(PriorityBit)) { _priority = span[offset++]; }
+            if (bits.IsBitSet(CorrelationIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _correlationId); }
+            if (bits.IsBitSet(ReplyToBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyTo); }
+            if (bits.IsBitSet(ExpirationBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _expiration); }
+
+            bits = ref span[1];
+            if (bits.IsBitSet(MessageIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _messageId); }
+            if (bits.IsBitSet(TimestampBit)) { offset += WireFormatting.ReadTimestamp(span.Slice(offset), out _timestamp); }
+            if (bits.IsBitSet(TypeBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _type); }
+            if (bits.IsBitSet(UserIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _userId); }
+            if (bits.IsBitSet(AppIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _appId); }
+            if (bits.IsBitSet(ClusterIdBit)) { WireFormatting.ReadShortstr(span.Slice(offset), out _clusterId); }
         }
 
         public override ushort ProtocolClassId => 60;
         public override string ProtocolClassName => "basic";
 
+        //----------------------------------
+        // First byte
+        //----------------------------------
+        private const byte ContentTypeBit = 7;
+        private const byte ContentEncodingBit = 6;
+        private const byte HeaderBit = 5;
+        private const byte DeliveryModeBit = 4;
+        private const byte PriorityBit = 3;
+        private const byte CorrelationIdBit = 2;
+        private const byte ReplyToBit = 1;
+        private const byte ExpirationBit = 0;
+
+        //----------------------------------
+        // Second byte
+        //----------------------------------
+        private const byte MessageIdBit = 7;
+        private const byte TimestampBit = 6;
+        private const byte TypeBit = 5;
+        private const byte UserIdBit = 4;
+        private const byte AppIdBit = 3;
+        private const byte ClusterIdBit = 2;
+
         internal override int WritePropertiesTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteBits(ref span.GetStart(),
-                IsContentTypePresent(), IsContentEncodingPresent(), IsHeadersPresent(), IsDeliveryModePresent(), IsPriorityPresent(),
-                IsCorrelationIdPresent(), IsReplyToPresent(), IsExpirationPresent(), IsMessageIdPresent(), IsTimestampPresent(),
-                IsTypePresent(), IsUserIdPresent(), IsAppIdPresent(), IsClusterIdPresent());
-            if (IsContentTypePresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _contentType); }
-            if (IsContentEncodingPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _contentEncoding); }
-            if (IsHeadersPresent()) { offset += WireFormatting.WriteTable(ref span.GetOffset(offset), _headers); }
-            if (IsDeliveryModePresent()) { span[offset++] = _deliveryMode; }
-            if (IsPriorityPresent()) { span[offset++] = _priority; }
-            if (IsCorrelationIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _correlationId); }
-            if (IsReplyToPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _replyTo); }
-            if (IsExpirationPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _expiration); }
-            if (IsMessageIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _messageId); }
-            if (IsTimestampPresent()) { offset += WireFormatting.WriteTimestamp(ref span.GetOffset(offset), _timestamp); }
-            if (IsTypePresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _type); }
-            if (IsUserIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _userId); }
-            if (IsAppIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _appId); }
-            if (IsClusterIdPresent()) { offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _clusterId); }
+            int offset = 2;
+            ref byte bitValue = ref span.GetStart();
+            bitValue = 0;
+            if (IsContentTypePresent())
+            {
+                bitValue.SetBit(ContentTypeBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _contentType);
+            }
+
+            if (IsContentEncodingPresent())
+            {
+                bitValue.SetBit(ContentEncodingBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _contentEncoding);
+            }
+
+            if (IsHeadersPresent())
+            {
+                bitValue.SetBit(HeaderBit);
+                offset += WireFormatting.WriteTable(ref span.GetOffset(offset), _headers);
+            }
+
+            if (IsDeliveryModePresent())
+            {
+                bitValue.SetBit(DeliveryModeBit);
+                span.GetOffset(offset++) = _deliveryMode;
+            }
+
+            if (IsPriorityPresent())
+            {
+                bitValue.SetBit(PriorityBit);
+                span.GetOffset(offset++) = _priority;
+            }
+
+            if (IsCorrelationIdPresent())
+            {
+                bitValue.SetBit(CorrelationIdBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _correlationId);
+            }
+
+            if (IsReplyToPresent())
+            {
+                bitValue.SetBit(ReplyToBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _replyTo);
+            }
+
+            if (IsExpirationPresent())
+            {
+                bitValue.SetBit(ExpirationBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _expiration);
+            }
+
+            bitValue = ref span.GetOffset(1);
+            bitValue = 0;
+            if (IsMessageIdPresent())
+            {
+                bitValue.SetBit(MessageIdBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _messageId);
+            }
+
+            if (IsTimestampPresent())
+            {
+                bitValue.SetBit(TimestampBit);
+                offset += WireFormatting.WriteTimestamp(ref span.GetOffset(offset), _timestamp);
+            }
+
+            if (IsTypePresent())
+            {
+                bitValue.SetBit(TypeBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _type);
+            }
+
+            if (IsUserIdPresent())
+            {
+                bitValue.SetBit(UserIdBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _userId);
+            }
+
+            if (IsAppIdPresent())
+            {
+                bitValue.SetBit(AppIdBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _appId);
+            }
+
+            if (IsClusterIdPresent())
+            {
+                bitValue.SetBit(ClusterIdBit);
+                offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _clusterId);
+            }
+
             return offset;
         }
 

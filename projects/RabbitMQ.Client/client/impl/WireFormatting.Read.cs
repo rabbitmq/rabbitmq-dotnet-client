@@ -239,31 +239,6 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ReadBits(ReadOnlySpan<byte> span,
-            out bool val1, out bool val2, out bool val3, out bool val4, out bool val5,
-            out bool val6, out bool val7, out bool val8, out bool val9, out bool val10,
-            out bool val11, out bool val12, out bool val13, out bool val14)
-        {
-            byte bits = span[0];
-            val1 = (bits & 0b1000_0000) != 0;
-            val2 = (bits & 0b0100_0000) != 0;
-            val3 = (bits & 0b0010_0000) != 0;
-            val4 = (bits & 0b0001_0000) != 0;
-            val5 = (bits & 0b0000_1000) != 0;
-            val6 = (bits & 0b0000_0100) != 0;
-            val7 = (bits & 0b0000_0010) != 0;
-            val8 = (bits & 0b0000_0001) != 0;
-            bits = span[1];
-            val9 = (bits & 0b1000_0000) != 0;
-            val10 = (bits & 0b0100_0000) != 0;
-            val11 = (bits & 0b0010_0000) != 0;
-            val12 = (bits & 0b0001_0000) != 0;
-            val13 = (bits & 0b0000_1000) != 0;
-            val14 = (bits & 0b0000_0100) != 0;
-            return 2;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadShort(ReadOnlySpan<byte> span, out ushort value)
         {
             value = NetworkOrderDeserializer.ReadUInt16(span);
@@ -328,7 +303,7 @@ namespace RabbitMQ.Client.Impl
         private static int ThrowInvalidTableValue(char type)
             => throw new SyntaxErrorException($"Unrecognised type in table: {type}");
 
-        private static decimal ThrowInvalidDecimalScale(int scale)
-                    => throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
+        private static void ThrowInvalidDecimalScale(int scale)
+            => throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
     }
 }
