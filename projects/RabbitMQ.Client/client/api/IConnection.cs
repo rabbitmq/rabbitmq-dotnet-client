@@ -49,7 +49,7 @@ namespace RabbitMQ.Client
     /// </para>
     /// <para>
     /// Extends the <see cref="IDisposable"/> interface, so that the "using"
-    /// statement can be used to scope the lifetime of a channel when
+    /// statement can be used to scope the lifetime of a connection when
     /// appropriate.
     /// </para>
     /// </remarks>
