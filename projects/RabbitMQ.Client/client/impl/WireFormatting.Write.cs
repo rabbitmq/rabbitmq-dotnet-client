@@ -303,23 +303,6 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteBits(ref byte destination,
-            bool val1, bool val2, bool val3, bool val4, bool val5,
-            bool val6, bool val7, bool val8, bool val9, bool val10,
-            bool val11, bool val12, bool val13, bool val14)
-        {
-            int a = val8.ToByte() + val7.ToByte() * 2 + val6.ToByte() * 4 + val5.ToByte() * 8;
-            int b = val4.ToByte() + val3.ToByte() * 2 + val2.ToByte() * 4 + val1.ToByte() * 8;
-            destination = (byte)(a | (b << 4));
-
-            a = val14.ToByte() * 4 + val13.ToByte() * 8;
-            b = val12.ToByte() + val11.ToByte() * 2 + val10.ToByte() * 4 + val9.ToByte() * 8;
-
-            destination.GetOffset(1) = (byte)(a | (b << 4));
-            return 2;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteLongstr(ref byte destination, ReadOnlySpan<byte> val)
         {
             WriteLong(ref destination, (uint)val.Length);
@@ -499,9 +482,6 @@ namespace RabbitMQ.Client.Impl
 
         public static int ThrowArgumentOutOfRangeException(int orig, int expected)
             => throw new ArgumentOutOfRangeException("span", $"Span has not enough space ({orig} instead of {expected})");
-
-        public static int ThrowArgumentOutOfRangeException(string val, int maxLength)
-            => throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
 
         private static int ThrowWireFormattingException(decimal value)
             => throw new WireFormattingException("Decimal overflow in AMQP encoding", value);
