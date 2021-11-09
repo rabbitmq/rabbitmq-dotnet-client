@@ -11,7 +11,7 @@ namespace RabbitMQ.Benchmarks
     [BenchmarkCategory("Primitives")]
     public class PrimitivesBase
     {
-        protected Memory<byte> _buffer = new byte[16];
+        protected readonly Memory<byte> _buffer = new byte[16];
 
         [GlobalSetup]
         public virtual void Setup() { }
@@ -22,10 +22,18 @@ namespace RabbitMQ.Benchmarks
         public override void Setup() => WireFormatting.WriteBits(ref _buffer.Span.GetStart(), true, false, true, false, true);
 
         [Benchmark]
-        public int BoolRead2() => WireFormatting.ReadBits(_buffer.Span, out bool _, out bool _);
+        public (bool, bool) BoolRead2()
+        {
+            WireFormatting.ReadBits(_buffer.Span, out bool v1, out bool v2);
+            return (v1, v2);
+        }
 
         [Benchmark]
-        public int BoolRead5() => WireFormatting.ReadBits(_buffer.Span, out bool _, out bool _, out bool _, out bool _, out bool _);
+        public (bool, bool, bool, bool, bool) BoolRead5()
+        {
+            WireFormatting.ReadBits(_buffer.Span, out bool v1, out bool v2, out bool v3, out bool v4, out bool v5);
+            return (v1, v2, v3, v4, v5);
+        }
 
         [Benchmark]
         [Arguments(true, false)]
@@ -52,7 +60,11 @@ namespace RabbitMQ.Benchmarks
         public override void Setup() => WireFormatting.WriteLong(ref _buffer.Span.GetStart(), 12345u);
 
         [Benchmark]
-        public int LongRead() => WireFormatting.ReadLong(_buffer.Span, out _);
+        public uint LongRead()
+        {
+            WireFormatting.ReadLong(_buffer.Span, out uint v1);
+            return v1;
+        }
 
         [Benchmark]
         [Arguments(12345u)]
@@ -64,7 +76,11 @@ namespace RabbitMQ.Benchmarks
         public override void Setup() => WireFormatting.WriteLonglong(ref _buffer.Span.GetStart(), 12345ul);
 
         [Benchmark]
-        public int LonglongRead() => WireFormatting.ReadLonglong(_buffer.Span, out _);
+        public ulong LonglongRead()
+        {
+            WireFormatting.ReadLonglong(_buffer.Span, out ulong v1);
+            return v1;
+        }
 
         [Benchmark]
         [Arguments(12345ul)]
@@ -76,7 +92,11 @@ namespace RabbitMQ.Benchmarks
         public override void Setup() => WireFormatting.WriteShort(ref _buffer.Span.GetStart(), 12345);
 
         [Benchmark]
-        public int ShortRead() => WireFormatting.ReadShort(_buffer.Span, out _);
+        public ushort ShortRead()
+        {
+            WireFormatting.ReadShort(_buffer.Span, out ushort v1);
+            return v1;
+        }
 
         [Benchmark]
         [Arguments(12345)]
@@ -85,12 +105,16 @@ namespace RabbitMQ.Benchmarks
 
     public class PrimitivesTimestamp : PrimitivesBase
     {
-        AmqpTimestamp _timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        private AmqpTimestamp _timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
         public override void Setup() => WireFormatting.WriteTimestamp(ref _buffer.Span.GetStart(), _timestamp);
 
         [Benchmark]
-        public int TimestampRead() => WireFormatting.ReadTimestamp(_buffer.Span, out _);
+        public AmqpTimestamp TimestampRead()
+        {
+            WireFormatting.ReadTimestamp(_buffer.Span, out AmqpTimestamp v1);
+            return v1;
+        }
 
         [Benchmark]
         public int TimestampWrite() => WireFormatting.WriteTimestamp(ref _buffer.Span.GetStart(), _timestamp);

@@ -138,22 +138,42 @@ namespace RabbitMQ.Client.Impl
 
         public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
 
-        internal void AutomaticallyRecover(AutorecoveringConnection conn)
+        internal void AutomaticallyRecover(AutorecoveringConnection conn, bool recoverConsumers)
         {
             ThrowIfDisposed();
             _connection = conn;
-            RecoveryAwareModel defunctModel = _innerChannel;
 
-            _innerChannel = conn.CreateNonRecoveringModel();
-            _innerChannel.TakeOver(defunctModel);
+            var newChannel = conn.CreateNonRecoveringModel();
+            newChannel.TakeOver(_innerChannel);
 
-            RecoverState();
+            if (_prefetchCountConsumer != 0)
+            {
+                newChannel.BasicQos(0, _prefetchCountConsumer, false);
+            }
 
-            InnerChannel.RunRecoveryEventHandlers(this);
+            if (_prefetchCountGlobal != 0)
+            {
+                newChannel.BasicQos(0, _prefetchCountGlobal, true);
+            }
+
+            if (_usesPublisherConfirms)
+            {
+                newChannel.ConfirmSelect();
+            }
+
+            if (_usesTransactions)
+            {
+                newChannel.TxSelect();
+            }
+
+            if (recoverConsumers)
+            {
+                _connection.RecoverConsumers(this, newChannel);
+            }
+
+            _innerChannel = newChannel;
+            _innerChannel.RunRecoveryEventHandlers(this);
         }
-
-        public void BasicQos(ushort prefetchCount, bool global)
-            => InnerChannel.BasicQos(0, prefetchCount, global);
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
@@ -212,8 +232,7 @@ namespace RabbitMQ.Client.Impl
             IBasicConsumer consumer)
         {
             string result = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
-            RecordedConsumer rc = new RecordedConsumer(this, consumer, queue, autoAck, result, exclusive, arguments);
-            _connection.RecordConsumer(result, rc);
+            _connection.RecordConsumer(new RecordedConsumer(this, consumer, queue, autoAck, result, exclusive, arguments));
             return result;
         }
 
@@ -264,8 +283,7 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding eb = new RecordedExchangeBinding(this, destination, source, routingKey, arguments);
-            _connection.RecordBinding(eb);
+            _connection.RecordBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
             _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
         }
 
@@ -276,16 +294,14 @@ namespace RabbitMQ.Client.Impl
         {
             ThrowIfDisposed();
             _innerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
-            RecordedExchange rx = new RecordedExchange(this, exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(rx);
+            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
         }
 
         public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _innerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
-            RecordedExchange rx = new RecordedExchange(this, exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(rx);
+            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
         }
 
         public void ExchangeDeclarePassive(string exchange)
@@ -306,8 +322,7 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding eb = new RecordedExchangeBinding(this, destination, source, routingKey, arguments);
-            _connection.DeleteRecordedBinding(eb);
+            _connection.DeleteRecordedBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
             _innerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
             _connection.DeleteAutoDeleteExchange(source);
         }
@@ -318,8 +333,7 @@ namespace RabbitMQ.Client.Impl
         public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding qb = new RecordedQueueBinding(this, queue, exchange, routingKey, arguments);
-            _connection.RecordBinding(qb);
+            _connection.RecordBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
             _innerChannel.QueueBind(queue, exchange, routingKey, arguments);
         }
 
@@ -330,18 +344,15 @@ namespace RabbitMQ.Client.Impl
         {
             ThrowIfDisposed();
             QueueDeclareOk result = _innerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            RecordedQueue rq = new RecordedQueue(this, result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(rq);
+            _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
             return result;
         }
 
         public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            _innerChannel.QueueDeclareNoWait(queue, durable, exclusive,
-                autoDelete, arguments);
-            RecordedQueue rq = new RecordedQueue(this, queue, queue.Length == 0, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(rq);
+            _innerChannel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
+            _connection.RecordQueue(new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments));
         }
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
@@ -373,8 +384,7 @@ namespace RabbitMQ.Client.Impl
         public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            RecordedBinding qb = new RecordedQueueBinding(this, queue, exchange, routingKey, arguments);
-            _connection.DeleteRecordedBinding(qb);
+            _connection.DeleteRecordedBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
             _innerChannel.QueueUnbind(queue, exchange, routingKey, arguments);
             _connection.DeleteAutoDeleteExchange(exchange);
         }
@@ -396,29 +406,6 @@ namespace RabbitMQ.Client.Impl
 
         public Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
             => InnerChannel.WaitForConfirmsOrDieAsync(token);
-
-        private void RecoverState()
-        {
-            if (_prefetchCountConsumer != 0)
-            {
-                BasicQos(_prefetchCountConsumer, false);
-            }
-
-            if (_prefetchCountGlobal != 0)
-            {
-                BasicQos(_prefetchCountGlobal, true);
-            }
-
-            if (_usesPublisherConfirms)
-            {
-                ConfirmSelect();
-            }
-
-            if (_usesTransactions)
-            {
-                TxSelect();
-            }
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()

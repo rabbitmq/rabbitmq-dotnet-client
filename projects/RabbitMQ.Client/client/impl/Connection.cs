@@ -270,7 +270,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     // Try to send connection.close wait for CloseOk in the MainLoop
-                    _session0.Transmit(new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0));
+                    var cmd = new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0);
+                    _session0.Transmit(ref cmd);
                 }
                 catch (AlreadyClosedException)
                 {

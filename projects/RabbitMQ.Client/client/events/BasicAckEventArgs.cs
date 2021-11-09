@@ -42,7 +42,7 @@ namespace RabbitMQ.Client.Events
         ///is true.</summary>
         public ulong DeliveryTag { get; set; }
 
-        ///<summary>Whether this acknoledgement applies to one message
+        ///<summary>Whether this acknowledgement applies to one message
         ///or multiple messages.</summary>
         public bool Multiple { get; set; }
     }

@@ -34,31 +34,34 @@ using System.Collections.Generic;
 namespace RabbitMQ.Client.Impl
 {
     #nullable enable
-    internal sealed class RecordedExchange : RecordedNamedEntity
+    internal readonly struct RecordedExchange
     {
-        private readonly IDictionary<string, object>? _arguments;
-        private readonly bool _durable;
+        private readonly string _name;
         private readonly string _type;
+        private readonly bool _durable;
+        private readonly bool _isAutoDelete;
+        private readonly IDictionary<string, object>? _arguments;
 
-        public bool IsAutoDelete { get; }
+        public string Name => _name;
+        public bool IsAutoDelete => _isAutoDelete;
 
-        public RecordedExchange(AutorecoveringModel channel, string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
-            : base(channel, name)
+        public RecordedExchange(string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
         {
+            _name = name;
             _type = type;
             _durable = durable;
-            IsAutoDelete = isAutoDelete;
+            _isAutoDelete = isAutoDelete;
             _arguments = arguments;
         }
 
-        public override void Recover()
+        public void Recover(IModel model)
         {
-            ModelDelegate.ExchangeDeclare(Name, _type, _durable, IsAutoDelete, _arguments);
+            model.ExchangeDeclare(Name, _type, _durable, IsAutoDelete, _arguments);
         }
 
         public override string ToString()
         {
-            return $"{GetType().Name}: name = '{Name}', type = '{_type}', durable = {_durable}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
+            return $"{nameof(RecordedExchange)}: name = '{Name}', type = '{_type}', durable = {_durable}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
         }
     }
 }

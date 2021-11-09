@@ -51,7 +51,7 @@ namespace RabbitMQ.Client
     /// <example><code>
     ///     ConnectionFactory factory = new ConnectionFactory();
     ///     //
-    ///     // The next six lines are optional:
+    ///     // The next five lines are optional:
     ///     factory.UserName = ConnectionFactory.DefaultUser;
     ///     factory.Password = ConnectionFactory.DefaultPass;
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client
     /// </para>
     /// <example><code>
     ///     ConnectionFactory factory = new ConnectionFactory();
-    ///     factory.SetUri("amqp://localhost");
+    ///     factory.Uri = new Uri("amqp://localhost");
     ///     IConnection conn = factory.CreateConnection();
     ///     ...
     /// </code></example>

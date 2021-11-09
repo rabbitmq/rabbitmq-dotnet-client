@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal int RecordedExchangesCount => _recordedExchanges.Count;
 
-        internal void RecordExchange(RecordedExchange exchange)
+        internal void RecordExchange(in RecordedExchange exchange)
         {
             lock (_recordedEntitiesLock)
             {
@@ -103,11 +103,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal int RecordedQueuesCount => _recordedQueues.Count;
 
-        internal void RecordQueue(RecordedQueue q)
+        internal void RecordQueue(in RecordedQueue queue)
         {
             lock (_recordedEntitiesLock)
             {
-                _recordedQueues[q.Name] = q;
+                _recordedQueues[queue.Name] = queue;
             }
         }
 
@@ -116,9 +116,9 @@ namespace RabbitMQ.Client.Framing.Impl
             lock (_recordedEntitiesLock)
             {
                 _recordedQueues.Remove(queueName);
-                // find bindings that need removal, check if some auto-delete exchanges might need the same
 
-                foreach (RecordedBinding binding in _recordedBindings.ToArray())
+                // find bindings that need removal, check if some auto-delete exchanges might need the same
+                foreach (var binding in _recordedBindings.ToArray())
                 {
                     if (binding.Destination == queueName)
                     {
@@ -138,8 +138,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (b.Destination == oldName)
                     {
                         _recordedBindings.Remove(b);
-                        b.Destination = newName;
-                        _recordedBindings.Add(b);
+                        _recordedBindings.Add(new RecordedBinding(newName, b));
                     }
                 }
             }
@@ -149,17 +148,17 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedEntitiesLock)
             {
-                foreach (KeyValuePair<string, RecordedConsumer> c in _recordedConsumers)
+                foreach (RecordedConsumer consumer in _recordedConsumers.Values.ToArray())
                 {
-                    if (c.Value.Queue == oldName)
+                    if (consumer.Queue == oldName)
                     {
-                        c.Value.Queue = newName;
+                        _recordedConsumers[consumer.ConsumerTag] = RecordedConsumer.WithNewQueueNameTag(newName, consumer);
                     }
                 }
             }
         }
 
-        internal void RecordBinding(RecordedBinding rb)
+        internal void RecordBinding(in RecordedBinding rb)
         {
             lock (_recordedEntitiesLock)
             {
@@ -167,7 +166,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal void DeleteRecordedBinding(RecordedBinding rb)
+        internal void DeleteRecordedBinding(in RecordedBinding rb)
         {
             lock (_recordedEntitiesLock)
             {
@@ -175,16 +174,26 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal void RecordConsumer(string consumerTag, RecordedConsumer consumer)
+        internal void RecordConsumer(in RecordedConsumer consumer)
         {
+            if (!_factory.TopologyRecoveryEnabled)
+            {
+                return;
+            }
+
             lock (_recordedEntitiesLock)
             {
-                _recordedConsumers[consumerTag] = consumer;
+                _recordedConsumers[consumer.ConsumerTag] = consumer;
             }
         }
 
         internal void DeleteRecordedConsumer(string consumerTag)
         {
+            if (!_factory.TopologyRecoveryEnabled)
+            {
+                return;
+            }
+
             lock (_recordedEntitiesLock)
             {
                 if (_recordedConsumers.Remove(consumerTag, out var recordedConsumer))
@@ -219,7 +228,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void UpdateConsumer(string oldTag, string newTag, RecordedConsumer consumer)
+        private void UpdateConsumer(string oldTag, string newTag, in RecordedConsumer consumer)
         {
             lock (_recordedEntitiesLock)
             {

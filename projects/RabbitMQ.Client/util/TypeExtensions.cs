@@ -43,6 +43,18 @@ namespace RabbitMQ
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsBitSet(this in byte value, byte bitPosition)
+        {
+            return (value & (1 << bitPosition)) != 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetBit(this ref byte value, byte bitPosition)
+        {
+            value |= (byte)(1 << bitPosition);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte ToByte(this ref bool source)
         {
             return Unsafe.As<bool, byte>(ref source);

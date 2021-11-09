@@ -98,7 +98,7 @@ On MacOS, Linux, BSD use:
 run-test.sh
 ```
 
-## Running Individual Suites or Test Casess
+## Running Individual Suites or Test Cases
 
 Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
 To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests to be run:
