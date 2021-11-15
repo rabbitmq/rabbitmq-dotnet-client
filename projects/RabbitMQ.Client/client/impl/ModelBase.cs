@@ -66,11 +66,12 @@ namespace RabbitMQ.Client.Impl
 
         internal IConsumerDispatcher ConsumerDispatcher { get; }
 
-        protected ModelBase(bool dispatchAsync, int concurrency, ISession session)
+        protected ModelBase(ConnectionConfig config, ISession session)
         {
-            ConsumerDispatcher = dispatchAsync ?
-                (IConsumerDispatcher)new AsyncConsumerDispatcher(this, concurrency) :
-                new ConsumerDispatcher(this, concurrency);
+            ContinuationTimeout = config.ContinuationTimeout;
+            ConsumerDispatcher = config.DispatchConsumersAsync ?
+                (IConsumerDispatcher)new AsyncConsumerDispatcher(this, config.DispatchConsumerConcurrency) :
+                new ConsumerDispatcher(this, config.DispatchConsumerConcurrency);
 
             Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);
@@ -87,7 +88,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
-        public TimeSpan ContinuationTimeout { get; set; } = TimeSpan.FromSeconds(20);
+        public TimeSpan ContinuationTimeout { get; set; }
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
         {

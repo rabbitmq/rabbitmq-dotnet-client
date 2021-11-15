@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private bool _disposed;
         private volatile bool _closed;
 
-        private readonly IConnectionFactory _factory;
+        private readonly ConnectionConfig _config;
         private readonly ModelBase _model0;
         private readonly MainSession _session0;
 
@@ -58,10 +58,9 @@ namespace RabbitMQ.Client.Framing.Impl
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
-        public Connection(IConnectionFactory factory, IFrameHandler frameHandler, string? clientProvidedName = null)
+        public Connection(ConnectionConfig config, IFrameHandler frameHandler)
         {
-            ClientProvidedName = clientProvidedName;
-            _factory = factory;
+            _config = config;
             _frameHandler = frameHandler;
 
             Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
@@ -72,9 +71,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this);
-            _model0 = (ModelBase)Protocol.CreateModel(factory, _session0);
+            _model0 = new Model(_config, _session0);;
 
-            ClientProperties = new Dictionary<string, object?>(factory.ClientProperties)
+            ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)
             {
                 ["capabilities"] = Protocol.Capabilities,
                 ["connection_name"] = ClientProvidedName
@@ -95,7 +94,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Guid Id => _id;
 
-        public string? ClientProvidedName { get; }
+        public string? ClientProvidedName => _config.ClientProvidedName;
 
         public ushort ChannelMax => _sessionManager.ChannelMax;
 
@@ -220,8 +219,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = (ModelBase)Protocol.CreateModel(_factory, session);
-            model.ContinuationTimeout = _factory.ContinuationTimeout;
+            var model = new Model(_config, session);
             model._Private_ChannelOpen();
             return model;
         }

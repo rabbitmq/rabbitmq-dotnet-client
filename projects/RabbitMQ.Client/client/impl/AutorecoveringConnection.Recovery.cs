@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 bool success;
                 do
                 {
-                    await Task.Delay(_factory.NetworkRecoveryInterval, token).ConfigureAwait(false);
+                    await Task.Delay(_config.NetworkRecoveryInterval, token).ConfigureAwait(false);
                     success = TryPerformAutomaticRecovery();
                 } while (!success && !token.IsCancellationRequested);
             }
@@ -104,7 +104,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             RecoveryCancellationTokenSource.Cancel();
 
-            Task timeout = Task.Delay(_factory.RequestedConnectionTimeout);
+            Task timeout = Task.Delay(_config.RequestedConnectionTimeout);
             if (Task.WhenAny(task, timeout).Result == timeout)
             {
                 ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
@@ -135,7 +135,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     lock (_recordedEntitiesLock)
                     {
                         ThrowIfDisposed();
-                        if (_factory.TopologyRecoveryEnabled)
+                        if (_config.TopologyRecoveryEnabled)
                         {
                             // The recovery sequence is the following:
                             //
@@ -176,7 +176,7 @@ namespace RabbitMQ.Client.Framing.Impl
                      */
                     if (_innerConnection?.IsOpen == true)
                     {
-                        _innerConnection.Abort(Constants.InternalError, "FailedAutoRecovery", _factory.RequestedConnectionTimeout);
+                        _innerConnection.Abort(Constants.InternalError, "FailedAutoRecovery", _config.RequestedConnectionTimeout);
                     }
                 }
                 catch (Exception e2)
@@ -193,8 +193,8 @@ namespace RabbitMQ.Client.Framing.Impl
             try
             {
                 var defunctConnection = _innerConnection;
-                IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
-                _innerConnection = new Connection(_factory, fh, ClientProvidedName);
+                IFrameHandler fh = _endpoints.SelectOne(_config.FrameHandlerFactory);
+                _innerConnection = new Connection(_config, fh);
                 _innerConnection.TakeOver(defunctConnection);
                 return true;
             }
@@ -312,7 +312,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 foreach (AutorecoveringModel m in _models)
                 {
-                    m.AutomaticallyRecover(this, _factory.TopologyRecoveryEnabled);
+                    m.AutomaticallyRecover(this, _config.TopologyRecoveryEnabled);
                 }
             }
         }

@@ -31,13 +31,14 @@
 
 using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
     internal class Model: ModelBase
     {
-        public Model(bool dispatchAsync, int concurrency, ISession session) : base(dispatchAsync, concurrency, session)
+        public Model(ConnectionConfig config, ISession session) : base(config, session)
         {
         }
 

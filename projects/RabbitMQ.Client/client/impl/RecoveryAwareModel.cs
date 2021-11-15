@@ -29,13 +29,14 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
     internal sealed class RecoveryAwareModel : Model
     {
-        public RecoveryAwareModel(bool dispatchAsync, int concurrency, ISession session) : base(dispatchAsync, concurrency, session)
+        public RecoveryAwareModel(ConnectionConfig config, ISession session) : base(config, session)
         {
             ActiveDeliveryTagOffset = 0;
             MaxSeenDeliveryTag = 0;

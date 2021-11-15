@@ -81,22 +81,5 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             return Version.ToString();
         }
-
-        public IConnection CreateConnection(IConnectionFactory factory, IFrameHandler frameHandler, string clientProvidedName = null)
-        {
-            return new Connection(factory, frameHandler, clientProvidedName);
-        }
-
-        public IConnection CreateConnection(ConnectionFactory factory, IFrameHandler frameHandler, bool automaticRecoveryEnabled, string clientProvidedName = null)
-        {
-            var ac = new AutorecoveringConnection(factory, clientProvidedName);
-            ac.Init();
-            return ac;
-        }
-
-        public IModel CreateModel(IConnectionFactory factory, ISession session)
-        {
-            return new Model(factory.DispatchConsumersAsync, factory.ConsumerDispatchConcurrency, session);
-        }
     }
 }

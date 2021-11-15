@@ -199,7 +199,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
+        /// Amount of time protocol operations (e.g. <code>queue.declare</code>) are allowed to take before
         /// timing out.
         /// </summary>
         public TimeSpan ContinuationTimeout
@@ -492,32 +492,47 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
         {
-            IConnection conn;
+            ConnectionConfig config = CreateConfig(clientProvidedName);
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
-                    var autorecoveringConnection = new AutorecoveringConnection(this, clientProvidedName);
-                    autorecoveringConnection.Init(endpointResolver);
-                    conn = autorecoveringConnection;
+                    return new AutorecoveringConnection(config, endpointResolver);
                 }
-                else
-                {
-                    conn = ((ProtocolBase)Protocols.AMQP_0_9_1).CreateConnection(this, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
-                }
+
+                return new Connection(config, endpointResolver.SelectOne(CreateFrameHandler));
             }
             catch (Exception e)
             {
                 throw new BrokerUnreachableException(e);
             }
+        }
 
-            return conn;
+        private ConnectionConfig CreateConfig(string clientProvidedName)
+        {
+            return new ConnectionConfig(
+                VirtualHost,
+                UserName,
+                Password,
+                AuthMechanisms,
+                ClientProperties,
+                clientProvidedName,
+                RequestedChannelMax,
+                RequestedFrameMax,
+                TopologyRecoveryEnabled,
+                NetworkRecoveryInterval,
+                RequestedHeartbeat,
+                ContinuationTimeout,
+                HandshakeContinuationTimeout,
+                RequestedConnectionTimeout,
+                DispatchConsumersAsync,
+                ConsumerDispatchConcurrency,
+                CreateFrameHandler);
         }
 
         internal IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
         {
-            IFrameHandler fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory,
-                RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
+            IFrameHandler fh = new SocketFrameHandler(endpoint, SocketFactory, RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
         }
 
