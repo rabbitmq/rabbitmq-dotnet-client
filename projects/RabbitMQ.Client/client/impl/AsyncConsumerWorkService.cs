@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     while (await _channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        while (_channel.Reader.TryRead(out Work work) && !cancellationToken.IsCancellationRequested)
+                        while (_channel.Reader.TryRead(out Work work))
                         {
                             // Do a quick synchronous check before we resort to async/await with the state-machine overhead.
                             if (!_limiter.Wait(0))
@@ -143,6 +143,10 @@ namespace RabbitMQ.Client.Impl
                 catch (OperationCanceledException)
                 {
                     // ignored
+                }
+                finally
+                {
+                    _limiter?.Dispose();
                 }
             }
 
@@ -186,7 +190,6 @@ namespace RabbitMQ.Client.Impl
             {
                 _channel.Writer.Complete();
                 _tokenSource?.Cancel();
-                _limiter?.Dispose();
                 return _worker;
             }
         }
