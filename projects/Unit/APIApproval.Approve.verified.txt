@@ -1,4 +1,4 @@
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"Benchmarks, PublicKey=00240000048000009400000006020000002400005253413100040000010001008d20ec856aeeb8c3153a77faa2d80e6e43b5db93224a20cc7ae384f65f142e89730e2ff0fcc5d578bbe96fa98a7196c77329efdee4579b3814c0789e5a39b51df6edd75b602a33ceabdfcf19a3feb832f31d8254168cd7ba5700dfbca301fbf8db614ba41ba18474de0a5f4c2d51c995bc3636c641c8cbe76f45717bfcb943b5")]
+﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"Benchmarks, PublicKey=00240000048000009400000006020000002400005253413100040000010001008d20ec856aeeb8c3153a77faa2d80e6e43b5db93224a20cc7ae384f65f142e89730e2ff0fcc5d578bbe96fa98a7196c77329efdee4579b3814c0789e5a39b51df6edd75b602a33ceabdfcf19a3feb832f31d8254168cd7ba5700dfbca301fbf8db614ba41ba18474de0a5f4c2d51c995bc3636c641c8cbe76f45717bfcb943b5")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(@"Unit, PublicKey=00240000048000009400000006020000002400005253413100040000010001008d20ec856aeeb8c3153a77faa2d80e6e43b5db93224a20cc7ae384f65f142e89730e2ff0fcc5d578bbe96fa98a7196c77329efdee4579b3814c0789e5a39b51df6edd75b602a33ceabdfcf19a3feb832f31d8254168cd7ba5700dfbca301fbf8db614ba41ba18474de0a5f4c2d51c995bc3636c641c8cbe76f45717bfcb943b5")]
 namespace RabbitMQ.Client
 {
@@ -425,9 +425,9 @@ namespace RabbitMQ.Client
         string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer);
         RabbitMQ.Client.BasicGetResult BasicGet(string queue, bool autoAck);
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
-        void BasicPublish<TProperties>(RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        void BasicPublish<TProperties>(RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, ref TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader;
-        void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        void BasicPublish<TProperties>(string exchange, string routingKey, ref TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader;
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
         void BasicRecover(bool requeue);
@@ -471,7 +471,7 @@ namespace RabbitMQ.Client
         public static string BasicConsume(this RabbitMQ.Client.IModel model, RabbitMQ.Client.IBasicConsumer consumer, string queue, bool autoAck = false, string consumerTag = "", bool noLocal = false, bool exclusive = false, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
         public static void BasicPublish(this RabbitMQ.Client.IModel model, RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, System.ReadOnlyMemory<byte> body = default, bool mandatory = false) { }
         public static void BasicPublish(this RabbitMQ.Client.IModel model, string exchange, string routingKey, System.ReadOnlyMemory<byte> body = default, bool mandatory = false) { }
-        public static void BasicPublish<T>(this RabbitMQ.Client.IModel model, RabbitMQ.Client.PublicationAddress addr, in T basicProperties, System.ReadOnlyMemory<byte> body)
+        public static void BasicPublish<T>(this RabbitMQ.Client.IModel model, RabbitMQ.Client.PublicationAddress addr, ref T basicProperties, System.ReadOnlyMemory<byte> body)
             where T : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader { }
         public static void Close(this RabbitMQ.Client.IModel model) { }
         public static void Close(this RabbitMQ.Client.IModel model, ushort replyCode, string replyText) { }
