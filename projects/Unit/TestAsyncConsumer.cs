@@ -35,7 +35,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
@@ -51,9 +50,8 @@ namespace RabbitMQ.Client.Unit
             using(IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
                 byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
-                m.BasicPublish("", q.QueueName, bp, body);
+                m.BasicPublish("", q.QueueName, body);
                 var consumer = new AsyncEventingBasicConsumer(m);
                 var are = new AutoResetEvent(false);
                 consumer.Received += async (o, a) =>
@@ -67,7 +65,7 @@ namespace RabbitMQ.Client.Unit
                 Assert.True(waitRes);
                 // unsubscribe and ensure no further deliveries
                 m.BasicCancel(tag);
-                m.BasicPublish("", q.QueueName, bp, body);
+                m.BasicPublish("", q.QueueName, body);
                 bool waitResFalse = are.WaitOne(2000);
                 Assert.False(waitResFalse);
             }
@@ -81,13 +79,12 @@ namespace RabbitMQ.Client.Unit
             using(IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
                 const string publish1 = "async-hi-1";
                 byte[] body = Encoding.UTF8.GetBytes(publish1);
-                m.BasicPublish("", q.QueueName, bp, body);
+                m.BasicPublish("", q.QueueName, body);
                 const string publish2 = "async-hi-2";
                 body = Encoding.UTF8.GetBytes(publish2);
-                m.BasicPublish("", q.QueueName, bp, body);
+                m.BasicPublish("", q.QueueName, body);
 
                 var consumer = new AsyncEventingBasicConsumer(m);
 
@@ -135,9 +132,8 @@ namespace RabbitMQ.Client.Unit
                 using (IModel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
-                    IBasicProperties bp = m.CreateBasicProperties();
                     byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
-                    m.BasicPublish("", q.QueueName, bp, body);
+                    m.BasicPublish("", q.QueueName, body);
                     var consumer = new AsyncEventingBasicConsumer(m);
                     var are = new AutoResetEvent(false);
                     consumer.Received += async (o, a) =>
@@ -151,7 +147,7 @@ namespace RabbitMQ.Client.Unit
                     Assert.True(waitRes);
                     // unsubscribe and ensure no further deliveries
                     m.BasicCancelNoWait(tag);
-                    m.BasicPublish("", q.QueueName, bp, body);
+                    m.BasicPublish("", q.QueueName, body);
                     bool waitResFalse = are.WaitOne(2000);
                     Assert.False(waitResFalse);
                 }
@@ -207,7 +203,7 @@ namespace RabbitMQ.Client.Unit
                 };
 
                 // Send message
-                m.BasicPublish("", q.QueueName, null, ReadOnlyMemory<byte>.Empty);
+                m.BasicPublish("", q.QueueName, ReadOnlyMemory<byte>.Empty);
                 are.WaitOne(TimingFixture.TestTimeout);
             }
 
@@ -223,9 +219,8 @@ namespace RabbitMQ.Client.Unit
             using(IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
                 byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
-                m.BasicPublish("", q.QueueName, bp, body);
+                m.BasicPublish("", q.QueueName, body);
                 var consumer = new EventingBasicConsumer(m);
                 Assert.Throws<InvalidOperationException>(() => m.BasicConsume(q.QueueName, false, consumer));
             }

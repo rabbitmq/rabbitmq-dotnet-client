@@ -60,13 +60,13 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestSimpleProperties()
         {
-            Framing.BasicProperties prop = new Framing.BasicProperties
+            IAmqpWriteable prop = new BasicProperties
                 {
                     ContentType = "text/plain"
                 };
-            int bytesNeeded = prop.GetRequiredPayloadBufferSize();
+            int bytesNeeded = prop.GetRequiredBufferSize();
             byte[] bytes = new byte[bytesNeeded];
-            int offset = prop.WritePropertiesTo(bytes);
+            int offset = prop.WriteTo(bytes);
             Check(bytes.AsMemory().Slice(0, offset), new byte[] {
                      0x80, 0x00, // props flags
                      0x0A, // shortstr len
@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestFullProperties()
         {
-            Framing.BasicProperties prop = new Framing.BasicProperties
+            IAmqpWriteable prop = new BasicProperties
                 {
                     AppId = "A",
                     ContentType = "B",
@@ -94,9 +94,9 @@ namespace RabbitMQ.Client.Unit
                     UserId = "J",
                     Headers = new Dictionary<string, object>(0)
                 };
-            int bytesNeeded = prop.GetRequiredPayloadBufferSize();
+            int bytesNeeded = prop.GetRequiredBufferSize();
             byte[] bytes = new byte[bytesNeeded];
-            int offset = prop.WritePropertiesTo(bytes);
+            int offset = prop.WriteTo(bytes);
             Check(bytes.AsMemory().Slice(0, offset), new byte[] {
                      0b1111_1111, 0b1111_1100, // props flags (all set)
                      0x01, 0x42, // ContentType

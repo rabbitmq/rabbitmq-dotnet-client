@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Events
             bool redelivered,
             string exchange,
             string routingKey,
-            IBasicProperties properties,
+            in ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
             ConsumerTag = consumerTag;
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>The content header of the message.</summary>
-        public IBasicProperties BasicProperties { get; set; }
+        public ReadOnlyBasicProperties BasicProperties { get; set; }
 
         ///<summary>The message body.</summary>
         public ReadOnlyMemory<byte> Body { get; set; }

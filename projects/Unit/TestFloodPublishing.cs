@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Unit
                                 }
                             }
 
-                            model.BasicPublish(CachedString.Empty, CachedString.Empty, null, _body);
+                            model.BasicPublish(CachedString.Empty, CachedString.Empty, _body);
                         }
                     }
                     finally
@@ -128,10 +128,9 @@ namespace RabbitMQ.Client.Unit
                 {
                     using (IModel m = c.CreateModel())
                     {
-                        IBasicProperties bp = m.CreateBasicProperties();
                         for (int i = 0; i < publishCount; i++)
                         {
-                            m.BasicPublish(string.Empty, queueName, bp, sendBody);
+                            m.BasicPublish(string.Empty, queueName, sendBody);
                         }
                     }
                 });

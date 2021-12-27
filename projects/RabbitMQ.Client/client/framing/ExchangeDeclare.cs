@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDeclare;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
             offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);

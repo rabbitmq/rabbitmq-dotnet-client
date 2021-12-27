@@ -9,10 +9,7 @@ namespace Benchmarks.Networking
     [MemoryDiagnoser]
     public class Networking_BasicDeliver_Commons
     {
-        private const int messageCount = 10000;
-
-
-        public static async Task Publish_Hello_World(IConnection connection, uint n, byte[] body)
+        public static async Task Publish_Hello_World(IConnection connection, uint messageCount, byte[] body)
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             using (var model = connection.CreateModel())
@@ -31,7 +28,7 @@ namespace Benchmarks.Networking
 
                 for (int i = 0; i < messageCount; i++)
                 {
-                    model.BasicPublish("", queue.QueueName, null, body);
+                    model.BasicPublish("", queue.QueueName, body);
                 }
 
                 await tcs.Task;

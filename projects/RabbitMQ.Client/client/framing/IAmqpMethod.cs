@@ -1,5 +1,3 @@
-using System;
-using System.Diagnostics.Contracts;
 using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -9,11 +7,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ProtocolCommandId ProtocolCommandId { get; }
     }
 
-    internal interface IOutgoingAmqpMethod : IAmqpMethod
+    internal interface IOutgoingAmqpMethod : IAmqpMethod, IAmqpWriteable
     {
-        [Pure]
-        int WriteArgumentsTo(Span<byte> span);
-        [Pure]
-        int GetRequiredBufferSize();
     }
 }

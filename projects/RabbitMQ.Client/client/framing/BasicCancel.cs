@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag);
             return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);

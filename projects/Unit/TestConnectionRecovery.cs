@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Unit
             string q = GenerateQueueName();
             _model.QueueDeclare(q, false, false, false, null);
             // create an offset
-            _model.BasicPublish("", q, null, ReadOnlyMemory<byte>.Empty);
+            _model.BasicPublish("", q, ReadOnlyMemory<byte>.Empty);
             Thread.Sleep(50);
             BasicGetResult g = _model.BasicGet(q, false);
             CloseAndWaitForRecovery();
@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Unit
             Assert.True(_model.IsOpen);
             // ack the message after recovery - this should be out of range and ignored
             _model.BasicAck(g.DeliveryTag, false);
-            // do a sync operation to 'check' there is no channel exception 
+            // do a sync operation to 'check' there is no channel exception
             _model.BasicGet(q, false);
         }
 
@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery();
             Assert.True(_model.IsOpen);
 
-            WithTemporaryNonExclusiveQueue(_model, (m, q) => m.BasicPublish("", q, null, _encoding.GetBytes("")));
+            WithTemporaryNonExclusiveQueue(_model, (m, q) => m.BasicPublish("", q, _encoding.GetBytes("")));
             Wait(latch);
         }
 
@@ -309,7 +309,7 @@ namespace RabbitMQ.Client.Unit
                 var latch = new ManualResetEventSlim(false);
                 cons.Received += (s, args) => latch.Set();
 
-                m.BasicPublish("", q, null, _encoding.GetBytes("msg"));
+                m.BasicPublish("", q, _encoding.GetBytes("msg"));
                 Wait(latch);
 
                 m.QueueDelete(q);
@@ -349,7 +349,7 @@ namespace RabbitMQ.Client.Unit
                 var latch = new ManualResetEventSlim(false);
                 cons.Received += (s, args) => latch.Set();
 
-                m.BasicPublish("", q1, null, _encoding.GetBytes("msg"));
+                m.BasicPublish("", q1, _encoding.GetBytes("msg"));
                 Wait(latch);
 
                 m.QueueDelete(q1);
@@ -518,7 +518,7 @@ namespace RabbitMQ.Client.Unit
             {
                 CloseAndWaitForRecovery();
                 Assert.True(_model.IsOpen);
-                _model.BasicPublish(x2, "", null, _encoding.GetBytes("msg"));
+                _model.BasicPublish(x2, "", _encoding.GetBytes("msg"));
                 AssertMessageCount(q, 1);
             }
             finally
@@ -566,7 +566,7 @@ namespace RabbitMQ.Client.Unit
             ch.ConfirmSelect();
             ch.QueuePurge(q);
             ch.ExchangeDeclare(exchange: x, type: "fanout");
-            ch.BasicPublish(exchange: x, routingKey: "", basicProperties: null, body: _encoding.GetBytes("msg"));
+            ch.BasicPublish(exchange: x, routingKey: "", body: _encoding.GetBytes("msg"));
             WaitForConfirms(ch);
             QueueDeclareOk ok = ch.QueueDeclare(queue: q, durable: false, exclusive: false, autoDelete: true, arguments: null);
             Assert.Equal(1u, ok.MessageCount);
@@ -599,7 +599,7 @@ namespace RabbitMQ.Client.Unit
             Assert.NotEqual(nameBefore, nameAfter);
             ch.ConfirmSelect();
             ch.ExchangeDeclare(exchange: x, type: "fanout");
-            ch.BasicPublish(exchange: x, routingKey: "", basicProperties: null, body: _encoding.GetBytes("msg"));
+            ch.BasicPublish(exchange: x, routingKey: "", body: _encoding.GetBytes("msg"));
             WaitForConfirms(ch);
             QueueDeclareOk ok = ch.QueueDeclarePassive(nameAfter);
             Assert.Equal(1u, ok.MessageCount);
@@ -780,7 +780,7 @@ namespace RabbitMQ.Client.Unit
             var latch = new ManualResetEventSlim(false);
             cons.Received += (s, args) => latch.Set();
 
-            _model.BasicPublish("", q, null, ReadOnlyMemory<byte>.Empty);
+            _model.BasicPublish("", q);
             Wait(latch);
 
             _model.QueueUnbind(q, x, rk);
@@ -795,7 +795,7 @@ namespace RabbitMQ.Client.Unit
             _model.QueueDeclare(testQueueName, false, false, false, null);
             var replyConsumer = new EventingBasicConsumer(_model);
             _model.BasicConsume("amq.rabbitmq.reply-to", true, replyConsumer);
-            var properties = _model.CreateBasicProperties();
+            var properties = new BasicProperties();
             properties.ReplyTo = "amq.rabbitmq.reply-to";
 
             bool done = false;
@@ -817,7 +817,7 @@ namespace RabbitMQ.Client.Unit
             {
                 try
                 {
-                    _model.BasicPublish(string.Empty, testQueueName, false, properties, ReadOnlyMemory<byte>.Empty);
+                    _model.BasicPublish(string.Empty, testQueueName, ref properties, ReadOnlyMemory<byte>.Empty);
                 }
                 catch (Exception e)
                 {
@@ -864,7 +864,7 @@ namespace RabbitMQ.Client.Unit
             {
                 CloseAndWaitForRecovery();
                 Assert.True(_model.IsOpen);
-                _model.BasicPublish(x2, "", null, _encoding.GetBytes("msg"));
+                _model.BasicPublish(x2, "", _encoding.GetBytes("msg"));
                 AssertMessageCount(q, 0);
             }
             finally
@@ -914,7 +914,7 @@ namespace RabbitMQ.Client.Unit
             {
                 CloseAndWaitForRecovery();
                 Assert.True(_model.IsOpen);
-                _model.BasicPublish(x2, "", null, _encoding.GetBytes("msg"));
+                _model.BasicPublish(x2, "", _encoding.GetBytes("msg"));
                 AssertMessageCount(q, 0);
             }
             finally
@@ -969,7 +969,7 @@ namespace RabbitMQ.Client.Unit
                 string rk = "routing-key";
                 m.QueueBind(q, x, rk);
                 byte[] mb = RandomMessageBody();
-                m.BasicPublish(x, rk, null, mb);
+                m.BasicPublish(x, rk, mb);
 
                 Assert.True(WaitForConfirms(m));
                 m.ExchangeDeclarePassive(x);
@@ -987,7 +987,7 @@ namespace RabbitMQ.Client.Unit
             m.QueueDeclarePassive(q);
             QueueDeclareOk ok1 = m.QueueDeclare(q, false, exclusive, false, null);
             Assert.Equal(0u, ok1.MessageCount);
-            m.BasicPublish("", q, null, _encoding.GetBytes(""));
+            m.BasicPublish("", q, _encoding.GetBytes(""));
             Assert.True(WaitForConfirms(m));
             QueueDeclareOk ok2 = m.QueueDeclare(q, false, exclusive, false, null);
             Assert.Equal(1u, ok2.MessageCount);
@@ -1064,7 +1064,7 @@ namespace RabbitMQ.Client.Unit
 
             for (int i = 0; i < n; i++)
             {
-                publishingModel.BasicPublish("", q, null, _encoding.GetBytes(""));
+                publishingModel.BasicPublish("", q, _encoding.GetBytes(""));
             }
 
             Wait(latch, TimeSpan.FromSeconds(20));
@@ -1135,7 +1135,7 @@ namespace RabbitMQ.Client.Unit
                 bool redelivered,
                 string exchange,
                 string routingKey,
-                IBasicProperties properties,
+                in ReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
                 try

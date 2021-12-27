@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             bool redelivered,
                             string exchange,
                             string routingKey,
-                            IBasicProperties basicProperties,
+                            in ReadOnlyBasicProperties basicProperties,
                             ReadOnlyMemory<byte> body,
                             byte[] rentedArray);
 

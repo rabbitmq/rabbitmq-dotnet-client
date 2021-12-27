@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Unit
             _model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
             Assert.Equal(0u, _model.MessageCount(q));
 
-            _model.BasicPublish(exchange: "", routingKey: q, basicProperties: null, body: _encoding.GetBytes("msg"));
+            _model.BasicPublish("", q, _encoding.GetBytes("msg"));
             await _model.WaitForConfirmsAsync().ConfigureAwait(false);
             Assert.Equal(1u, _model.MessageCount(q));
         }

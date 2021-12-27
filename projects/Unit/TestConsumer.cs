@@ -20,13 +20,12 @@ namespace RabbitMQ.Client.Unit
             using(IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
                 const string publish1 = "sync-hi-1";
                 byte[] body = Encoding.UTF8.GetBytes(publish1);
-                m.BasicPublish("", q.QueueName, bp, body);
+                m.BasicPublish("", q.QueueName, body);
                 const string publish2 = "sync-hi-2";
                 body = Encoding.UTF8.GetBytes(publish2);
-                m.BasicPublish("", q.QueueName, bp, body);
+                m.BasicPublish("", q.QueueName, body);
 
                 var consumer = new EventingBasicConsumer(m);
 

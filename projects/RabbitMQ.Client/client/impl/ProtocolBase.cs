@@ -65,7 +65,6 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return new AmqpVersion(MajorVersion, MinorVersion); }
         }
 
-        internal abstract ContentHeaderBase DecodeContentHeaderFrom(ushort classId, ReadOnlySpan<byte> span);
         internal abstract ProtocolCommandId DecodeCommandIdFrom(ReadOnlySpan<byte> span);
 
         public override bool Equals(object obj)

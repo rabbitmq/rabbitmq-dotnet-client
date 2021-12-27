@@ -17,7 +17,7 @@ namespace RabbitMQ.Benchmarks
         protected readonly ulong _deliveryTag = 500UL;
         protected readonly string _exchange = "Exchange";
         protected readonly string _routingKey = "RoutingKey";
-        protected readonly IBasicProperties _properties = new Client.Framing.BasicProperties();
+        protected readonly ReadOnlyBasicProperties _properties = new ReadOnlyBasicProperties();
         protected readonly byte[] _body = new byte[512];
     }
 

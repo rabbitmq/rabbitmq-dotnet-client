@@ -41,7 +41,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpen;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             span[0] = 0; // _reserved1
             return 1;

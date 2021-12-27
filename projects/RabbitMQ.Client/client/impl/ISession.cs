@@ -73,6 +73,8 @@ namespace RabbitMQ.Client.Impl
         bool HandleFrame(in InboundFrame frame);
         void Notify();
         void Transmit<T>(ref T cmd) where T : struct, IOutgoingAmqpMethod;
-        void Transmit<T>(ref T cmd, ContentHeaderBase header, ReadOnlyMemory<byte> body) where T : struct, IOutgoingAmqpMethod;
+        void Transmit<TMethod, THeader>(ref TMethod cmd, ref THeader header, ReadOnlyMemory<byte> body)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader;
     }
 }

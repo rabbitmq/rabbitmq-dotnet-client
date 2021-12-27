@@ -41,7 +41,7 @@ namespace RabbitMQ.Client.Unit
         public void TestPersistentPropertyChangesDeliveryMode_PersistentTrueDelivery2()
         {
             // Arrange
-            var subject = new Framing.BasicProperties
+            var subject = new BasicProperties
             {
                 // Act
                 Persistent = true
@@ -50,13 +50,28 @@ namespace RabbitMQ.Client.Unit
             // Assert
             Assert.Equal(2, subject.DeliveryMode);
             Assert.True(subject.Persistent);
+
+            Span<byte> span = new byte[1024];
+            int offset = ((IAmqpWriteable)subject).WriteTo(span);
+
+            // Read from Stream
+            var propertiesFromStream = new ReadOnlyBasicProperties(span.Slice(0, offset));
+
+            Assert.Equal(2, propertiesFromStream.DeliveryMode);
+            Assert.True(propertiesFromStream.Persistent);
+
+            // Verify Basic Properties
+            var basicProperties = new BasicProperties(propertiesFromStream);
+
+            Assert.Equal(2, basicProperties.DeliveryMode);
+            Assert.True(basicProperties.Persistent);
         }
 
         [Fact]
         public void TestPersistentPropertyChangesDeliveryMode_PersistentFalseDelivery1()
         {
             // Arrange
-            var subject = new Framing.BasicProperties
+            var subject = new BasicProperties
             {
 
                 // Act
@@ -66,6 +81,21 @@ namespace RabbitMQ.Client.Unit
             // Assert
             Assert.Equal(1, subject.DeliveryMode);
             Assert.False(subject.Persistent);
+
+            Span<byte> span = new byte[1024];
+            int offset = ((IAmqpWriteable)subject).WriteTo(span);
+
+            // Read from Stream
+            var propertiesFromStream = new ReadOnlyBasicProperties(span.Slice(0, offset));
+
+            Assert.Equal(1, propertiesFromStream.DeliveryMode);
+            Assert.False(propertiesFromStream.Persistent);
+
+            // Verify Basic Properties
+            var basicProperties = new BasicProperties(propertiesFromStream);
+
+            Assert.Equal(1, basicProperties.DeliveryMode);
+            Assert.False(basicProperties.Persistent);
         }
 
         [Theory]
@@ -80,7 +110,7 @@ namespace RabbitMQ.Client.Unit
         public void TestNullableProperties_CanWrite(string clusterId, string correlationId, string messageId)
         {
             // Arrange
-            var subject = new Framing.BasicProperties
+            var subject = new BasicProperties
             {
                 // Act
                 ClusterId = clusterId,
@@ -99,10 +129,10 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(isMessageIdPresent, subject.IsMessageIdPresent());
 
             Span<byte> span = new byte[1024];
-            int offset = subject.WritePropertiesTo(span);
+            int offset = ((IAmqpWriteable)subject).WriteTo(span);
 
             // Read from Stream
-            var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset));
+            var propertiesFromStream = new ReadOnlyBasicProperties(span.Slice(0, offset));
 
             Assert.Equal(clusterId, propertiesFromStream.ClusterId);
             Assert.Equal(correlationId, propertiesFromStream.CorrelationId);
@@ -110,6 +140,16 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(isClusterIdPresent, propertiesFromStream.IsClusterIdPresent());
             Assert.Equal(isCorrelationIdPresent, propertiesFromStream.IsCorrelationIdPresent());
             Assert.Equal(isMessageIdPresent, propertiesFromStream.IsMessageIdPresent());
+
+            // Verify Basic Properties
+            var basicProperties = new BasicProperties(propertiesFromStream);
+
+            Assert.Equal(clusterId, basicProperties.ClusterId);
+            Assert.Equal(correlationId, basicProperties.CorrelationId);
+            Assert.Equal(messageId, basicProperties.MessageId);
+            Assert.Equal(isClusterIdPresent, basicProperties.IsClusterIdPresent());
+            Assert.Equal(isCorrelationIdPresent, basicProperties.IsCorrelationIdPresent());
+            Assert.Equal(isMessageIdPresent, basicProperties.IsMessageIdPresent());
         }
 
         [Theory]
@@ -119,7 +159,7 @@ namespace RabbitMQ.Client.Unit
         public void TestProperties_ReplyTo(string replyTo)
         {
             // Arrange
-            var subject = new Framing.BasicProperties
+            var subject = new BasicProperties
             {
                 // Act
                 ReplyTo = replyTo,
@@ -132,14 +172,21 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(isReplyToPresent, subject.IsReplyToPresent());
 
             Span<byte> span = new byte[1024];
-            int offset = subject.WritePropertiesTo(span);
+            int offset = ((IAmqpWriteable)subject).WriteTo(span);
 
             // Read from Stream
-            var propertiesFromStream = new Framing.BasicProperties(span.Slice(0, offset));
+            var propertiesFromStream = new ReadOnlyBasicProperties(span.Slice(0, offset));
 
             Assert.Equal(replyTo, propertiesFromStream.ReplyTo);
             Assert.Equal(isReplyToPresent, propertiesFromStream.IsReplyToPresent());
             Assert.Equal(replyToAddress, propertiesFromStream.ReplyToAddress?.ToString());
+
+            // Verify Basic Properties
+            var basicProperties = new BasicProperties(propertiesFromStream);
+
+            Assert.Equal(replyTo, basicProperties.ReplyTo);
+            Assert.Equal(isReplyToPresent, basicProperties.IsReplyToPresent());
+            Assert.Equal(replyToAddress, basicProperties.ReplyToAddress?.ToString());
         }
     }
 }

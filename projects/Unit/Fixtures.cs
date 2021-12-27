@@ -35,7 +35,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 using Xunit;
@@ -260,7 +260,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void EnsureNotEmpty(string q, string body)
         {
-            WithTemporaryModel(x => x.BasicPublish("", q, null, _encoding.GetBytes(body)));
+            WithTemporaryModel(x => x.BasicPublish("", q, _encoding.GetBytes(body)));
         }
 
         internal void WithNonEmptyQueue(Action<IModel, string> action)

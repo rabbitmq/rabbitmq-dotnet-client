@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Unit
             {
                 for (int i = 0; i < n; i++)
                 {
-                    ch.BasicPublish("", QueueName, null, _encoding.GetBytes("msg"));
+                    ch.BasicPublish("", QueueName, _encoding.GetBytes("msg"));
                 }
                 await ch.WaitForConfirmsAsync().ConfigureAwait(false);
 
@@ -135,7 +135,7 @@ namespace RabbitMQ.Client.Unit
             ReadOnlyMemory<byte> body = _encoding.GetBytes("msg");
             for (int i = 0; i < numberOfMessagesToPublish; i++)
             {
-                ch.BasicPublish("", QueueName, null, body);
+                ch.BasicPublish("", QueueName, body);
             }
 
             try

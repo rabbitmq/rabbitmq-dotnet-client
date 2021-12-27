@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicRecover;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             return WireFormatting.WriteBits(ref span.GetStart(), _requeue);
         }

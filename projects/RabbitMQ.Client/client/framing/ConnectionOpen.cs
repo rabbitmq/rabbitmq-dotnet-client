@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _virtualHost);
             span[offset++] = 0; // _reserved1

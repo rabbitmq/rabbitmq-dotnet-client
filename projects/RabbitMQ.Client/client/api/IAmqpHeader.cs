@@ -29,39 +29,17 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client
 {
-    internal abstract class StreamProperties : ContentHeaderBase, IStreamProperties
+#nullable enable
+    /// <summary>
+    /// A AMQP header.
+    /// </summary>
+    public interface IAmqpHeader : IAmqpWriteable
     {
-        public abstract string ContentEncoding { get; set; }
-        public abstract string ContentType { get; set; }
-        public abstract IDictionary<string, object> Headers { get; set; }
-        public abstract byte Priority { get; set; }
-        public abstract AmqpTimestamp Timestamp { get; set; }
-
-        public override object Clone()
-        {
-            var clone = MemberwiseClone() as StreamProperties;
-            if (IsHeadersPresent())
-            {
-                clone.Headers = new Dictionary<string, object>(Headers);
-            }
-
-            return clone;
-        }
-
-        public abstract void ClearContentEncoding();
-        public abstract void ClearContentType();
-        public abstract void ClearHeaders();
-        public abstract void ClearPriority();
-        public abstract void ClearTimestamp();
-
-        public abstract bool IsContentEncodingPresent();
-        public abstract bool IsContentTypePresent();
-        public abstract bool IsHeadersPresent();
-        public abstract bool IsPriorityPresent();
-        public abstract bool IsTimestampPresent();
+        /// <summary>
+        /// The protocol class id.
+        /// </summary>
+        ushort ProtocolClassId { get; }
     }
 }

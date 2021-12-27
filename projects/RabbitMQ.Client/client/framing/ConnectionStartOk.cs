@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStartOk;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteTable(ref span.GetStart(), _clientProperties);
             offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _mechanism);

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
-
+using RabbitMQ.Client.Framing;
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
@@ -19,7 +19,7 @@ namespace RabbitMQ.Client.Unit
             using(IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
+                var bp = new BasicProperties();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
                 var consumer = new EventingBasicConsumer(m);
@@ -32,7 +32,7 @@ namespace RabbitMQ.Client.Unit
                 };
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
 
-                m.BasicPublish("", q.QueueName, bp, sendBody);
+                m.BasicPublish("", q.QueueName, ref bp, sendBody);
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
@@ -50,7 +50,6 @@ namespace RabbitMQ.Client.Unit
             {
                 CachedString exchangeName = new CachedString(string.Empty);
                 CachedString queueName = new CachedString(m.QueueDeclare().QueueName);
-                IBasicProperties bp = m.CreateBasicProperties();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
                 var consumer = new EventingBasicConsumer(m);
@@ -63,7 +62,7 @@ namespace RabbitMQ.Client.Unit
                 };
                 string tag = m.BasicConsume(queueName.Value, true, consumer);
 
-                m.BasicPublish(exchangeName, queueName, bp, sendBody);
+                m.BasicPublish(exchangeName, queueName, sendBody);
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
@@ -80,7 +79,6 @@ namespace RabbitMQ.Client.Unit
             using(IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
                 var consumer = new EventingBasicConsumer(m);
@@ -93,7 +91,7 @@ namespace RabbitMQ.Client.Unit
                 };
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
 
-                m.BasicPublish("", q.QueueName, bp, new ReadOnlyMemory<byte>(sendBody));
+                m.BasicPublish("", q.QueueName, new ReadOnlyMemory<byte>(sendBody));
                 bool waitResFalse = are.WaitOne(2000);
                 m.BasicCancel(tag);
 
@@ -110,7 +108,6 @@ namespace RabbitMQ.Client.Unit
             using(IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
-                IBasicProperties bp = m.CreateBasicProperties();
                 byte[] sendBody = new byte[1000];
                 var consumer = new EventingBasicConsumer(m);
                 var are = new AutoResetEvent(false);
@@ -125,7 +122,7 @@ namespace RabbitMQ.Client.Unit
                 };
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
 
-                m.BasicPublish("", q.QueueName, bp, sendBody);
+                m.BasicPublish("", q.QueueName, sendBody);
                 sendBody.AsSpan().Fill(1);
 
                 Assert.True(are.WaitOne(2000));

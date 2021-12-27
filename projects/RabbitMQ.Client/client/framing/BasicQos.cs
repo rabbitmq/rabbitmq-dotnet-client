@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicQos;
 
-        public int WriteArgumentsTo(Span<byte> span)
+        public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteLong(ref span.GetStart(), _prefetchSize);
             offset += WireFormatting.WriteShort(ref span.GetOffset(offset), _prefetchCount);

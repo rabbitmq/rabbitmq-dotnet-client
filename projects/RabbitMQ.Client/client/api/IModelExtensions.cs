@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using RabbitMQ.Client.client.impl;
 
 namespace RabbitMQ.Client
 {
@@ -74,46 +75,25 @@ namespace RabbitMQ.Client
             return model.BasicConsume(queue, autoAck, consumerTag, false, false, arguments, consumer);
         }
 
+#nullable enable
         /// <summary>
         /// (Extension method) Convenience overload of BasicPublish.
         /// </summary>
         /// <remarks>
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
-        public static void BasicPublish(this IModel model, PublicationAddress addr, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        public static void BasicPublish<T>(this IModel model, PublicationAddress addr, ref T basicProperties, ReadOnlyMemory<byte> body)
+            where T : IReadOnlyBasicProperties, IAmqpHeader
         {
-            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, basicProperties: basicProperties, body: body);
+            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, ref basicProperties, body);
         }
 
-        /// <summary>
-        /// (Extension method) Convenience overload of BasicPublish.
-        /// </summary>
-        /// <remarks>
-        /// The publication occurs with mandatory=false
-        /// </remarks>
-        public static void BasicPublish(this IModel model, CachedString exchange, CachedString routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-        {
-            model.BasicPublish(exchange, routingKey, false, basicProperties, body);
-        }
+        public static void BasicPublish(this IModel model, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            => model.BasicPublish(exchange, routingKey, ref EmptyBasicProperty.Empty, body, mandatory);
 
-        /// <summary>
-        /// (Extension method) Convenience overload of BasicPublish.
-        /// </summary>
-        /// <remarks>
-        /// The publication occurs with mandatory=false
-        /// </remarks>
-        public static void BasicPublish(this IModel model, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
-        {
-            model.BasicPublish(exchange, routingKey, false, basicProperties, body);
-        }
-
-        /// <summary>
-        /// (Spec method) Convenience overload of BasicPublish.
-        /// </summary>
-        public static void BasicPublish(this IModel model, string exchange, string routingKey, bool mandatory = false, IBasicProperties basicProperties = null, ReadOnlyMemory<byte> body = default)
-        {
-            model.BasicPublish(exchange, routingKey, mandatory, basicProperties, body);
-        }
+        public static void BasicPublish(this IModel model, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            => model.BasicPublish(exchange, routingKey, ref EmptyBasicProperty.Empty, body, mandatory);
+#nullable disable
 
         /// <summary>
         /// (Spec method) Declare a queue.
