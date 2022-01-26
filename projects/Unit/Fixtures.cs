@@ -504,7 +504,7 @@ namespace RabbitMQ.Client.Unit
             return ExecCommand(command, args, null);
         }
 
-        internal Process ExecCommand(string ctl, string args, string changeDirTo)
+        internal Process ExecCommand(string cmd, string args, string changeDirTo)
         {
             var proc = new Process
             {
@@ -514,17 +514,10 @@ namespace RabbitMQ.Client.Unit
                     UseShellExecute = false
                 }
             };
-            if(changeDirTo != null)
+
+            if (changeDirTo != null)
             {
                 proc.StartInfo.WorkingDirectory = changeDirTo;
-            }
-
-            string cmd;
-            if(IsRunningOnMonoOrDotNetCore()) {
-                cmd  = ctl;
-            } else {
-                cmd  = "cmd.exe";
-                args = $"/c \"\"{ctl}\" {args}\"";
             }
 
             try {
@@ -534,11 +527,12 @@ namespace RabbitMQ.Client.Unit
               proc.StartInfo.RedirectStandardOutput = true;
 
               proc.Start();
-                string stderr = proc.StandardError.ReadToEnd();
               proc.WaitForExit();
+
+              string stderr = proc.StandardError.ReadToEnd();
               if (stderr.Length >  0 || proc.ExitCode > 0)
               {
-                    string stdout = proc.StandardOutput.ReadToEnd();
+                  string stdout = proc.StandardOutput.ReadToEnd();
                   ReportExecFailure(cmd, args, $"{stderr}\n{stdout}");
               }
 
@@ -649,7 +643,7 @@ namespace RabbitMQ.Client.Unit
         internal void CloseConnection(IConnection conn)
         {
             ConnectionInfo ci = ListConnections().First(x => conn.ClientProvidedName == x.Name);
-            CloseConnection(ci.Pid);
+            CloseConnection(conn.ClientProvidedName, ci.Pid);
         }
 
         internal void CloseAllConnections()
@@ -657,13 +651,13 @@ namespace RabbitMQ.Client.Unit
             List<ConnectionInfo> cs = ListConnections();
             foreach(ConnectionInfo c in cs)
             {
-                CloseConnection(c.Pid);
+                CloseConnection(c.Name, c.Pid);
             }
         }
 
-        internal void CloseConnection(string pid)
+        internal void CloseConnection(string name, string pid)
         {
-            ExecRabbitMQCtl($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"");
+            ExecRabbitMQCtl($"close_connection \"{pid}\" \"{name} {pid} closed via rabbitmqctl\"");
         }
 
         internal void RestartRabbitMQ()

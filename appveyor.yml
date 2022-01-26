@@ -3,14 +3,13 @@ version: "6.2.0.{build}"
 platform: Any CPU
 configuration: Release
 skip_tags: true
-skip_branch_with_pr: true
 image: Visual Studio 2019
 
 cache:
   # Note: this must match the $rabbitmq_installer_path and $erlang_installer_path values in
   # tools\appveyor\install.ps1
-  - "%HOMEDRIVE%%HOMEPATH%\\rabbitmq-server-3.8.5.exe"
-  - "%HOMEDRIVE%%HOMEPATH%\\otp_win64_23.0.2.exe"
+  - "%HOMEDRIVE%%HOMEPATH%\\rabbitmq-server-3.9.13.exe"
+  - "%HOMEDRIVE%%HOMEPATH%\\otp_win64_24.2.1.exe"
 
 install:
   - ps: .\tools\appveyor\install.ps1
