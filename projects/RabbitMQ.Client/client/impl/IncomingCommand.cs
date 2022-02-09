@@ -29,5 +29,10 @@ namespace RabbitMQ.Client.Impl
                 ArrayPool<byte>.Shared.Return(_rentedArray);
             }
         }
+
+        public override string ToString()
+        {
+            return $"IncomingCommand Method={Method.ProtocolMethodName}, Body.Length={Body.Length}";
+        }
     }
 }
