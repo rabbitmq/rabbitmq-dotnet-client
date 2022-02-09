@@ -1,3 +1,8 @@
+## Changes Between 6.2.1 and 6.2.3
+
+GitHub milestone: [`6.2.3`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/54?closed=1)
+GitHub milestone: [`6.2.2`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/51?closed=1)
+
 ## Changes Between 6.2.0 and 6.2.1
 
 6.2.0 was published incorrectly, resulting in version 6.2.1
