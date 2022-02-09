@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Ignore("TODO flaky")]
+        // [Ignore("TODO flaky")]
         public void TestBasicAckAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);

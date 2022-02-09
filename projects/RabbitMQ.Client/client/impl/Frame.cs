@@ -172,25 +172,14 @@ namespace RabbitMQ.Client.Impl
             _rentedArray = rentedArray;
         }
 
-        private static void ProcessProtocolHeader(Stream reader)
+        private static void ProcessUnexpectedProtocolHeader(Stream reader)
         {
-            try
-            {
-                byte b1 = (byte)reader.ReadByte();
-                byte b2 = (byte)reader.ReadByte();
-                byte b3 = (byte)reader.ReadByte();
-                if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
-                {
-                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
-                }
+            byte[] buf = new byte[1];
+            int c = 0;
+            byte b1, b2, b3;
 
-                int transportHigh = reader.ReadByte();
-                int transportLow = reader.ReadByte();
-                int serverMajor = reader.ReadByte();
-                int serverMinor = reader.ReadByte();
-                throw new PacketNotRecognizedException(transportHigh, transportLow, serverMajor, serverMinor);
-            }
-            catch (EndOfStreamException)
+            c = reader.Read(buf, 0, 1);
+            if (c == 0)
             {
                 // Ideally we'd wrap the EndOfStreamException in the
                 // MalformedFrameException, but unfortunately the
@@ -199,16 +188,72 @@ namespace RabbitMQ.Client.Impl
                 // this. Fortunately, the call stack in the
                 // EndOfStreamException is largely irrelevant at this
                 // point, so can safely be ignored.
-                throw new MalformedFrameException("Invalid AMQP protocol header from server");
+                throw new MalformedFrameException("Unexpected invalid AMQP protocol header from server");
             }
+            b1 = buf[0];
+
+            c = reader.Read(buf, 0, 1);
+            if (c == 0)
+            {
+                throw new MalformedFrameException("Unexpected invalid AMQP protocol header from server");
+            }
+            b2 = buf[0];
+
+            c = reader.Read(buf, 0, 1);
+            if (c == 0)
+            {
+                throw new MalformedFrameException("Unexpected invalid AMQP protocol header from server");
+            }
+            b3 = buf[0];
+
+            if (b1 != 'M' || b2 != 'Q' || b3 != 'P')
+            {
+                throw new MalformedFrameException("Unexpected invalid AMQP protocol header from server");
+            }
+
+            int transportHigh = 0;
+            int transportLow = 0;
+            int serverMajor = 0;
+            int serverMinor = 0;
+
+            c = reader.Read(buf, 0, 1);
+            if (c == 0)
+            {
+                throw new MalformedFrameException("Unexpected invalid AMQP protocol header from server");
+            }
+            transportHigh = buf[0];
+
+            c = reader.Read(buf, 0, 1);
+            if (c == 0)
+            {
+                throw new MalformedFrameException("Unexpected invalid AMQP protocol header from server");
+            }
+            transportLow = buf[0];
+
+            c = reader.Read(buf, 0, 1);
+            if (c == 0)
+            {
+                throw new MalformedFrameException("Unexpected invalid AMQP protocol header from server");
+            }
+            serverMajor = buf[0];
+
+            c = reader.Read(buf, 0, 1);
+            if (c == 0)
+            {
+                throw new MalformedFrameException("Unexpected invalid AMQP protocol header from server");
+            }
+            serverMinor = buf[0];
+
+            throw new PacketNotRecognizedException(transportHigh, transportLow, serverMajor, serverMinor);
         }
 
         internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer)
         {
+            byte[] buf = new byte[1];
             int type = default;
+
             try
             {
-                byte[] buf = new byte[1];
                 int c = reader.Read(buf, 0, 1);
                 if (c == 0)
                 {
@@ -234,7 +279,7 @@ namespace RabbitMQ.Client.Impl
             if (type == 'A')
             {
                 // Probably an AMQP protocol header, otherwise meaningless
-                ProcessProtocolHeader(reader);
+                ProcessUnexpectedProtocolHeader(reader);
             }
 
             reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length);
