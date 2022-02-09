@@ -208,7 +208,13 @@ namespace RabbitMQ.Client.Impl
             int type = default;
             try
             {
-                type = reader.ReadByte();
+                byte[] buf = new byte[1];
+                int c = reader.Read(buf, 0, 1);
+                if (c == 0)
+                {
+                    throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
+                }
+                type = buf[0];
             }
             catch (IOException ioe)
             {
@@ -225,14 +231,10 @@ namespace RabbitMQ.Client.Impl
                 ExceptionDispatchInfo.Capture(ioe.InnerException).Throw();
             }
 
-            switch (type)
+            if (type == 'A')
             {
-                case -1:
-                    throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
-                case 'A':
-                    // Probably an AMQP protocol header, otherwise meaningless
-                    ProcessProtocolHeader(reader);
-                    break;
+                // Probably an AMQP protocol header, otherwise meaningless
+                ProcessProtocolHeader(reader);
             }
 
             reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length);
