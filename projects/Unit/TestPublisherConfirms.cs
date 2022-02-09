@@ -117,7 +117,7 @@ namespace RabbitMQ.Client.Unit
                 // to be equal to N because acks can be batched,
                 // so we primarily care about event handlers being invoked
                 // in this test
-                Assert.True(c > 20);
+                Assert.True(c > 5);
             }
             finally
             {
