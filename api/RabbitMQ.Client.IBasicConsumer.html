@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Interface IBasicConsumer
    ">
-    <meta name="generator" content="docfx 2.52.0.0">
+    <meta name="generator" content="docfx 2.59.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -78,7 +78,7 @@ receive messages from a queue by subscription.</p>
 </div>
   <div class="markdown level0 conceptual"></div>
   <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.Client.html">RabbitMQ.Client</a></h6>
-  <h6><strong>Assembly</strong>: RabbitMQ.Client.dll</h6>
+  <h6><strong>Assembly</strong>: Apigen.dll</h6>
   <h5 id="RabbitMQ_Client_IBasicConsumer_syntax">Syntax</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public interface IBasicConsumer</code></pre>
@@ -89,7 +89,7 @@ See IModel.BasicConsume, IModel.BasicCancel.
 </p>
 <p>
 Note that the &quot;Handle*&quot; methods run in the connection&apos;s
-thread! Consider using <a class="xref" href="RabbitMQ.Client.Events.EventingBasicConsumer.html">EventingBasicConsumer</a>, which uses a
+thread! Consider using <see cref="!:EventingBasicConsumer"></see>, which uses a
 SharedQueue instance to safely pass received messages across
 to user threads.
 </p>
@@ -98,10 +98,10 @@ to user threads.
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_Model.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.Model%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_Model.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.Model%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L66">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L57">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IBasicConsumer_Model_" data-uid="RabbitMQ.Client.IBasicConsumer.Model*"></a>
   <h4 id="RabbitMQ_Client_IBasicConsumer_Model" data-uid="RabbitMQ.Client.IBasicConsumer.Model">Model</h4>
@@ -132,10 +132,10 @@ for use in acknowledging received messages, for instance.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleBasicCancel_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleBasicCancel(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleBasicCancel_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleBasicCancel(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L79">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L70">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IBasicConsumer_HandleBasicCancel_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleBasicCancel*"></a>
   <h4 id="RabbitMQ_Client_IBasicConsumer_HandleBasicCancel_System_String_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleBasicCancel(System.String)">HandleBasicCancel(String)</h4>
@@ -168,10 +168,10 @@ See <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html#RabbitMQ_Client_IB
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleBasicCancelOk_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleBasicCancelOk(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleBasicCancelOk_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleBasicCancelOk(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L85">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L76">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IBasicConsumer_HandleBasicCancelOk_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleBasicCancelOk*"></a>
   <h4 id="RabbitMQ_Client_IBasicConsumer_HandleBasicCancelOk_System_String_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleBasicCancelOk(System.String)">HandleBasicCancelOk(String)</h4>
@@ -202,10 +202,10 @@ See <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html#RabbitMQ_Client_IB
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleBasicConsumeOk_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleBasicConsumeOk(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleBasicConsumeOk_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleBasicConsumeOk(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L91">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L82">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IBasicConsumer_HandleBasicConsumeOk_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleBasicConsumeOk*"></a>
   <h4 id="RabbitMQ_Client_IBasicConsumer_HandleBasicConsumeOk_System_String_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleBasicConsumeOk(System.String)">HandleBasicConsumeOk(String)</h4>
@@ -236,10 +236,10 @@ See <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html#RabbitMQ_Client_IB
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleBasicDeliver(System.String%2CSystem.UInt64%2CSystem.Boolean%2CSystem.String%2CSystem.String%2CRabbitMQ.Client.IBasicProperties%2CSystem.ReadOnlyMemory%7BSystem.Byte%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleBasicDeliver(System.String%2CSystem.UInt64%2CSystem.Boolean%2CSystem.String%2CSystem.String%2CRabbitMQ.Client.IBasicProperties%2CSystem.ReadOnlyMemory%7BSystem.Byte%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L101">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L92">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IBasicConsumer_HandleBasicDeliver_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleBasicDeliver*"></a>
   <h4 id="RabbitMQ_Client_IBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__" data-uid="RabbitMQ.Client.IBasicConsumer.HandleBasicDeliver(System.String,System.UInt64,System.Boolean,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})">HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory&lt;Byte&gt;)</h4>
@@ -304,10 +304,10 @@ The implementation of this method in this class does NOT acknowledge such messag
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleModelShutdown_System_Object_RabbitMQ_Client_ShutdownEventArgs_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleModelShutdown(System.Object%2CRabbitMQ.Client.ShutdownEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_HandleModelShutdown_System_Object_RabbitMQ_Client_ShutdownEventArgs_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.HandleModelShutdown(System.Object%2CRabbitMQ.Client.ShutdownEventArgs)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L114">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L105">View Source</a>
   </span>
   <a id="RabbitMQ_Client_IBasicConsumer_HandleModelShutdown_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleModelShutdown*"></a>
   <h4 id="RabbitMQ_Client_IBasicConsumer_HandleModelShutdown_System_Object_RabbitMQ_Client_ShutdownEventArgs_" data-uid="RabbitMQ.Client.IBasicConsumer.HandleModelShutdown(System.Object,RabbitMQ.Client.ShutdownEventArgs)">HandleModelShutdown(Object, ShutdownEventArgs)</h4>
@@ -346,10 +346,10 @@ The implementation of this method in this class does NOT acknowledge such messag
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_ConsumerCancelled.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.ConsumerCancelled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer_ConsumerCancelled.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer.ConsumerCancelled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L71">View Source</a>
+    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L62">View Source</a>
   </span>
   <h4 id="RabbitMQ_Client_IBasicConsumer_ConsumerCancelled" data-uid="RabbitMQ.Client.IBasicConsumer.ConsumerCancelled">ConsumerCancelled</h4>
   <div class="markdown level1 summary"><p>Signalled when the consumer gets cancelled.</p>
@@ -382,15 +382,16 @@ The implementation of this method in this class does NOT acknowledge such messag
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/master/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IBasicConsumer.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IBasicConsumer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L60" class="contribution-link">View Source</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicConsumer.cs/#L51" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+                <h5>In This Article</h5>
+                <div></div>
               </nav>
             </div>
           </div>

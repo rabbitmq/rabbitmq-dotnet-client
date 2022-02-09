@@ -1,6 +1,6 @@
 {
   "homepages": [],
-  "source_base_path": "C:/Users/lbakken/development/rabbitmq/rabbitmq-dotnet-client",
+  "source_base_path": "C:/Users/bakkenl/development/rabbitmq/rabbitmq-dotnet-client",
   "xrefmap": "xrefmap.yml",
   "files": [
     {
@@ -9,7 +9,7 @@
       "output": {
         ".html": {
           "relative_path": "APIDOCS.html",
-          "hash": "E5Mh/chmy/BD4uqjaaj7OA=="
+          "hash": "oIYoHEyr8/QmgeBIpg1vdKgst00ndSuKzKzZMdbHHbY="
         }
       },
       "is_incremental": false,
@@ -21,7 +21,7 @@
       "output": {
         ".html": {
           "relative_path": "CHANGELOG.html",
-          "hash": "U4n3+bx5IH2mT2LjTJB4TQ=="
+          "hash": "KNExYLu5LvN1x9wdl5lukUJeMKPxKX/ybqntczjU6DY="
         }
       },
       "is_incremental": false,
@@ -33,7 +33,7 @@
       "output": {
         ".html": {
           "relative_path": "CODE_OF_CONDUCT.html",
-          "hash": "hAZ7+2RuRFSWtda2XyF1ng=="
+          "hash": "Yho9N6pOPAm0SX71bQmvyv69NkD8tdv8aXVxSYZLx6A="
         }
       },
       "is_incremental": false,
@@ -45,7 +45,7 @@
       "output": {
         ".html": {
           "relative_path": "CONTRIBUTING.html",
-          "hash": "NW4fDWkYBBPdEtlX0vk+Vg=="
+          "hash": "dEuSkzy7b7X1lb1DBF5iL9WKpa5NrjPurvwPj9v6/Fc="
         }
       },
       "is_incremental": false,
@@ -57,7 +57,7 @@
       "output": {
         ".html": {
           "relative_path": "README.html",
-          "hash": "zkONOg3P17/ozYtQbu9/bw=="
+          "hash": "POprF6jfd1TvHWDHqLr/XgDuH93+JkylCU+5PpVMMF8="
         }
       },
       "is_incremental": false,
@@ -69,7 +69,7 @@
       "output": {
         ".html": {
           "relative_path": "RUNNING_TESTS.html",
-          "hash": "mLnN93y+OkaM+5AoY9Efnw=="
+          "hash": "ZEaip+GfIwLUnP65Ty3I4QN8ecmkhBycJvmI4xhjaZ8="
         }
       },
       "is_incremental": false,
@@ -81,7 +81,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.AmqpTcpEndpoint.html",
-          "hash": "oeDyRJp9hbag1GPQZ0fZhw=="
+          "hash": "IQi2t4Ut7MYXD9URhoAVApGkdsdFG2zFcLzP1h+Ek/4="
         }
       },
       "is_incremental": false,
@@ -93,7 +93,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.AmqpTimestamp.html",
-          "hash": "68QEJVNf0u3Xmz/hPdsspw=="
+          "hash": "RK1pXTE2F9RlDz6jcYfj9UC+88RGpgebblI1617buRI="
         }
       },
       "is_incremental": false,
@@ -105,7 +105,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Apigen.AmqpClass.html",
-          "hash": "KBdL9nbFOFSk07LB/Nzlqg=="
+          "hash": "apUTzuI5m+dp4QqmxZeSGe5pwZyZfBCWCAF58oRPp94="
         }
       },
       "is_incremental": false,
@@ -117,7 +117,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Apigen.AmqpEntity.html",
-          "hash": "jAm2mu/j7DOeP2Ouc+ZcAw=="
+          "hash": "A68jBhscIKOTP0Im5sF2El+RSc8DncvMrOxb//9DeTs="
         }
       },
       "is_incremental": false,
@@ -129,7 +129,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Apigen.AmqpField.html",
-          "hash": "QBR7FFOLjjHHSj8d4V1ANQ=="
+          "hash": "15ZwWeD2aHqg4R7hbSyb1HxUV/oAsff9yS/hE1T1WzE="
         }
       },
       "is_incremental": false,
@@ -141,7 +141,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Apigen.AmqpMethod.html",
-          "hash": "as8JwHBkcRFszNmuiINwSA=="
+          "hash": "Z/AVwN8F1q4c0Str/+QW9Kzcw7Fd837P/qjI2tXp96I="
         }
       },
       "is_incremental": false,
@@ -153,7 +153,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Apigen.Apigen.html",
-          "hash": "hRz8MQ4tMzdpDTvKVhqegQ=="
+          "hash": "JR9c5pey0An2zKH/3/k+w4WL1K2VuzcgyIdF8geY2zo="
         }
       },
       "is_incremental": false,
@@ -165,7 +165,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Apigen.ApigenExtensions.html",
-          "hash": "FuIs7Fv3pnUAuHU5w/J7YA=="
+          "hash": "5BPnlB2Gsbuk5cIy+gaFPoNFN5iPhiPsd/fAoEqf34o="
         }
       },
       "is_incremental": false,
@@ -177,7 +177,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Apigen.html",
-          "hash": "8SGvu7a1WaAQxgWVgcCsfw=="
+          "hash": "G7fBc/jp6ziLJASPyhwxxUIkhG7sxCltKnupDm8DSsA="
         }
       },
       "is_incremental": false,
@@ -189,7 +189,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.AsyncDefaultBasicConsumer.html",
-          "hash": "ynunMGxoD7S64pgPDW/mVg=="
+          "hash": "L2vpRbClaC0mY82IdQizOztWh/433nDbeBpZ8W93MIc="
         }
       },
       "is_incremental": false,
@@ -201,7 +201,31 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.BasicGetResult.html",
-          "hash": "nB/S+rlbqw60FOBdOpe5+Q=="
+          "hash": "XqYAV7NHdFFqfWCOc4cKKBazqgoIHII+LVK4ZjI4Ubo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/RabbitMQ.Client.BasicPublishBatchExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/RabbitMQ.Client.BasicPublishBatchExtensions.html",
+          "hash": "rCerQiE8L+KDd4MWkz6CTenRuWyMZWiswspVy+tWIw0="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/RabbitMQ.Client.BinaryTableValue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/RabbitMQ.Client.BinaryTableValue.html",
+          "hash": "0odN1WAR8+d6yoOeoC3Bwype1jnFKR5jo4TIowIAXus="
         }
       },
       "is_incremental": false,
@@ -213,7 +237,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ConnectionFactory.html",
-          "hash": "Btw7rwpqT1wedAXJowbdrA=="
+          "hash": "HHFrfwGAASTGQ9GrTp5fQTLLVE880mi22zJOfws/GVs="
         }
       },
       "is_incremental": false,
@@ -225,7 +249,19 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ConnectionFactoryBase.html",
-          "hash": "R0kvrdeHlswH3f48p7TlVg=="
+          "hash": "S4PjYhHlyOzxhZ1h1mEhQLOI8HYCsbLTBjwIBje1gnc="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/RabbitMQ.Client.Constants.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/RabbitMQ.Client.Constants.html",
+          "hash": "KJBjjwCI+8fRhwljtk0k3pIC+nvaanJmWgNLEEpzr/s="
         }
       },
       "is_incremental": false,
@@ -237,7 +273,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.DefaultBasicConsumer.html",
-          "hash": "CsIhrx2J4uD2QGYFaH8UNw=="
+          "hash": "Qoyn7IerSUOBBAq0je8YOs6iqRQ2Ev+Mg7IYAByus1o="
         }
       },
       "is_incremental": false,
@@ -249,7 +285,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.DefaultEndpointResolver.html",
-          "hash": "GLD7VklqVdOXppxOX3GbIw=="
+          "hash": "cx1TyE/T1TTyuDiILaLxq6/ESulJY/tGl1+jUCWFOu4="
         }
       },
       "is_incremental": false,
@@ -261,7 +297,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.EndpointResolverExtensions.html",
-          "hash": "85raLlGqV/5S5jm+QRXVVg=="
+          "hash": "XBJ1WdFDNofsoMdVYqQ+ZbVa1g3CugJUAuLHXjH+zJ4="
         }
       },
       "is_incremental": false,
@@ -273,7 +309,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.AsyncEventHandler-1.html",
-          "hash": "sCo4pNQqSms0qDg8jaIzmw=="
+          "hash": "utE+l+Qff+viP3e7Hyg1ZKLoSMqdowljE2gMP3eNYAE="
         }
       },
       "is_incremental": false,
@@ -285,7 +321,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.AsyncEventingBasicConsumer.html",
-          "hash": "Yiq95DTIQtPkmS9Pn3USdQ=="
+          "hash": "oalJELibHpOnIpISVSQX2h0pilfLL3M+sLcww5wRK0s="
         }
       },
       "is_incremental": false,
@@ -297,7 +333,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.BaseExceptionEventArgs.html",
-          "hash": "iySN01N1OB7JGT+oedLfyg=="
+          "hash": "f7ACVPShpZAs0OKqZnHuJuvFohKt0tuqpjivNy+vnnQ="
         }
       },
       "is_incremental": false,
@@ -309,7 +345,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.BasicAckEventArgs.html",
-          "hash": "//vDRTt07WGtf7kn4dMOSQ=="
+          "hash": "VHxndca/ZQzZZ03nU0mjnuZ5nHQaDzQYMBZjmYUC68U="
         }
       },
       "is_incremental": false,
@@ -321,7 +357,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.BasicDeliverEventArgs.html",
-          "hash": "h5+jMtI+CVZGm3HZJFJM8w=="
+          "hash": "uE8cirufi2aTUIKxsynbjCuSDZ1VhSn92/MVmgqDKfY="
         }
       },
       "is_incremental": false,
@@ -333,7 +369,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.BasicNackEventArgs.html",
-          "hash": "C4wKP8VY2i7Mn5vs63h5AQ=="
+          "hash": "8a2uFWf6R6VoMzxcpdaqE0DYZ5b/rb+tlyZyEKSId7M="
         }
       },
       "is_incremental": false,
@@ -345,7 +381,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.BasicReturnEventArgs.html",
-          "hash": "T2Mze9IX1CJpF0RnvJKHvQ=="
+          "hash": "0lr+nQDIc1ZTincxopeXvxyjmv0QO/zqXglvMVz7Kbw="
         }
       },
       "is_incremental": false,
@@ -357,7 +393,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.CallbackExceptionEventArgs.html",
-          "hash": "BRZmm+IF/jmpynXEzrZVNw=="
+          "hash": "tBdU34JXR2bTM8azmm45rx6EhEazh4i3fRCvQuEbIO8="
         }
       },
       "is_incremental": false,
@@ -369,7 +405,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.ConnectionBlockedEventArgs.html",
-          "hash": "pJpYQMsJtISJh217gP8OZQ=="
+          "hash": "5b1NNvCxMqyUGrpy6UvqKd7Dm2++5iHtV72OuFqSOis="
         }
       },
       "is_incremental": false,
@@ -381,7 +417,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs.html",
-          "hash": "7H7rE7mlqOEKdNm7cF6HoA=="
+          "hash": "9Et9Ld/HoXMi1tSsLYAiP7IOKoThEXB3uTKPnkIHRQM="
         }
       },
       "is_incremental": false,
@@ -393,7 +429,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.ConsumerEventArgs.html",
-          "hash": "YEeGvc8K7vw6QA6+vlfzVA=="
+          "hash": "bSJ9CJNISgDVyvMRDvpYTaZGxSV8Y0wzpifKy1/OSJk="
         }
       },
       "is_incremental": false,
@@ -405,7 +441,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs.html",
-          "hash": "AB8zJGhsD8TDVpOsRfRD6w=="
+          "hash": "uxgKjHK6o28LKSU2cnbjPaVzNiaXV/ZlRMfgeBkxsRg="
         }
       },
       "is_incremental": false,
@@ -417,7 +453,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.EventingBasicConsumer.html",
-          "hash": "uryE0fxpU3eIbaQbwuFSiw=="
+          "hash": "BBFhkC1fMgOLZ5gR1uYzNtmj+bDwRgC4NOZLK4EbYR0="
         }
       },
       "is_incremental": false,
@@ -429,7 +465,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.FlowControlEventArgs.html",
-          "hash": "Fb3+jZs18KBWgmzmzjgksg=="
+          "hash": "exk8vWbwhfDWI8YF5tzjhyMIJcL/8WhXyjZf6GERmXI="
         }
       },
       "is_incremental": false,
@@ -441,7 +477,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.html",
-          "hash": "EB+PUlqT318MyQPkZzRKbA=="
+          "hash": "kDx3ndlf8WGDT5JrM15bgQEq0NEdZbK8i4IhHXjwP1A="
         }
       },
       "is_incremental": false,
@@ -453,7 +489,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.RecoveryExceptionEventArgs.html",
-          "hash": "+kbW9Pp4esMWo0c7I675Gw=="
+          "hash": "FdDGVg+kKqgNB3CCD0VfWoLJtB/iv848YwCvPT1h2MM="
         }
       },
       "is_incremental": false,
@@ -465,7 +501,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Events.html",
-          "hash": "+U0LoEz/sobZPym1qdrsfg=="
+          "hash": "uQwUmdok1Mdxyz8mOfR9DUEjb0wFdIN7u5/RWnbm3VI="
         }
       },
       "is_incremental": false,
@@ -477,7 +513,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.AlreadyClosedException.html",
-          "hash": "er3iMX/v/HGQWogyD66Uog=="
+          "hash": "tdr7+K2EMvWXWorZ36nhT35tmt4ykfxWzFJYnci+yxk="
         }
       },
       "is_incremental": false,
@@ -489,7 +525,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.AuthenticationFailureException.html",
-          "hash": "OkSS5KZZ0KX9RT0tWC6vcg=="
+          "hash": "dKRJHHzz+FO8jiqCYyX9KeFPupsNiaEayBYlNCsrUzA="
         }
       },
       "is_incremental": false,
@@ -501,7 +537,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.BrokerUnreachableException.html",
-          "hash": "PIq+Khc4R0XRPyCNzc6h9Q=="
+          "hash": "E0MTrzbYp925TFgPonpJZ0NtaC6onyQ9nkyIfNf64zs="
         }
       },
       "is_incremental": false,
@@ -513,7 +549,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.ChannelAllocationException.html",
-          "hash": "v9Pi8PnP1uAcJTAeZ0wPmA=="
+          "hash": "fkBTH5keVNeddkNGuiqrqkCNMBr+YWRm8xpaZksfRJE="
         }
       },
       "is_incremental": false,
@@ -525,7 +561,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.ChannelErrorException.html",
-          "hash": "IksPSX/926sa3QOBvNFjUQ=="
+          "hash": "9fSZ4m+Glmz8KAtO5Wa284ofZKFX1UcUuH8W/h87ABg="
         }
       },
       "is_incremental": false,
@@ -537,7 +573,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.ConnectFailureException.html",
-          "hash": "1AR0cYQRgDzT11c+M1TxaQ=="
+          "hash": "ao0m0n2W/ulUTBI+cxeCbp9tnqI0mcKB2t7OZIMWHBc="
         }
       },
       "is_incremental": false,
@@ -549,7 +585,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.HardProtocolException.html",
-          "hash": "f3aettc8mKVgq6PUYdpBog=="
+          "hash": "U1lUw3rSbgpredoGJb1qGqYM07wdciuD3wg5StbJTyI="
         }
       },
       "is_incremental": false,
@@ -561,7 +597,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.MalformedFrameException.html",
-          "hash": "d8zrzEsRTV58KBy7Ot7NaQ=="
+          "hash": "CLoaXLMtjjXm9Mb4SSfMQc2p9dv6IrsSceZqKK2RBHE="
         }
       },
       "is_incremental": false,
@@ -573,7 +609,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.OperationInterruptedException.html",
-          "hash": "F7EodmJcJCYVC7Elp0d1sw=="
+          "hash": "EK9YUgTc1rWOeo4o4B7fu6H2XVPRy7VbT8/Wn5oIXjs="
         }
       },
       "is_incremental": false,
@@ -585,7 +621,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.PacketNotRecognizedException.html",
-          "hash": "HOUuzZERqfzDPIt+bCIRHQ=="
+          "hash": "SKiYLwv55yXGeT8OjCtAaoFfm5cIcwRwxc9AOF68OrM="
         }
       },
       "is_incremental": false,
@@ -597,7 +633,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.PossibleAuthenticationFailureException.html",
-          "hash": "3ZovdeN/Ko2iDfGstS5X+Q=="
+          "hash": "LlDwW9nOrBVhw7/DHN4jX3Liu5I3bUUUNX5dr/tjbCc="
         }
       },
       "is_incremental": false,
@@ -609,7 +645,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.ProtocolException.html",
-          "hash": "dlC0M4lkdhpU3uNv604CkQ=="
+          "hash": "PLqjbp9k0OUtwKHIBuBFZ/rXxFIIUQj8fESPtUDw6U0="
         }
       },
       "is_incremental": false,
@@ -621,7 +657,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.ProtocolVersionMismatchException.html",
-          "hash": "z+pAw1KlwyACzBLMMaWaXg=="
+          "hash": "NuLrPU3PJgCqr4u81L2r62NK8XvqSmsdJIChV182UO0="
         }
       },
       "is_incremental": false,
@@ -633,7 +669,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.ProtocolViolationException.html",
-          "hash": "/LYpBJKz9BuLwvOsQ1wy/A=="
+          "hash": "w6Vmp7LaB7vVsohL0WgYEL0yt9nzR8pZy/n88DN/+as="
         }
       },
       "is_incremental": false,
@@ -645,7 +681,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.RabbitMQClientException.html",
-          "hash": "3MqW15iH4YU4dsutkPsXHA=="
+          "hash": "+LYJwRR69dcuy0qN5yC7genHuW+8uOjeXNazKcZDwLk="
         }
       },
       "is_incremental": false,
@@ -657,7 +693,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.SoftProtocolException.html",
-          "hash": "FcQbKc0vLVVJTUa1to0K1w=="
+          "hash": "Fj/N5C5c38i5gzLUDejMFMV/QNsnoOUCDRtqTFUWzBc="
         }
       },
       "is_incremental": false,
@@ -669,7 +705,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.SyntaxErrorException.html",
-          "hash": "5JG/IULhT9RN3hfiLp1W+w=="
+          "hash": "WxImpZoyHW6X1+uOR3n8A/NQjBk+X+CfDL/aNrSIDu8="
         }
       },
       "is_incremental": false,
@@ -681,7 +717,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.TopologyRecoveryException.html",
-          "hash": "lgv/Ft+gOx/lSh5z4JaOOQ=="
+          "hash": "XOzw/LWoUUSMLGq+MlbEsZJXhn2hOSh6D/TC4IY+akI="
         }
       },
       "is_incremental": false,
@@ -693,7 +729,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.UnexpectedFrameException.html",
-          "hash": "sGFteZVrGGknlVTMdURwVQ=="
+          "hash": "WsXW5kIs5ahX/7zuYZN/sDDo2ADq7jk+rnCLtAjbZ74="
         }
       },
       "is_incremental": false,
@@ -705,7 +741,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.UnexpectedMethodException.html",
-          "hash": "7a/W4BF+vGv1kX5ZB0QCZQ=="
+          "hash": "8bZiFXotz1SH6rDnmKXMUzwLEWog4loaV02dJzXwyX0="
         }
       },
       "is_incremental": false,
@@ -717,7 +753,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.UnknownClassOrMethodException.html",
-          "hash": "9bCbgGVIAYKvNLxpo9cX8g=="
+          "hash": "wPcy7KOQokNSKO1NaWdtBQHHT8qOqh/sUdquzr3aHUI="
         }
       },
       "is_incremental": false,
@@ -729,7 +765,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.UnsupportedMethodException.html",
-          "hash": "qeG7gXXirX+okmucqbmhRg=="
+          "hash": "mD/EEcm/rjZ4YqfpvQCcW7Y1KRQDEt0hqJtTrQM52B8="
         }
       },
       "is_incremental": false,
@@ -741,7 +777,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.UnsupportedMethodFieldException.html",
-          "hash": "WKU78h3ijyF9ITKWFi/bQA=="
+          "hash": "BSyIe0OhZ6SgHqUxCmUPWeJ5PlGO/IiBtQAdw89ow60="
         }
       },
       "is_incremental": false,
@@ -753,7 +789,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.WireFormattingException.html",
-          "hash": "tYI4joEGzrZWlJ2zrmFBoQ=="
+          "hash": "8mCF1nTaYCseXG+Gy5UhWnNzogLZL8/0H++r6vMdb3U="
         }
       },
       "is_incremental": false,
@@ -765,7 +801,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Exceptions.html",
-          "hash": "D3Oc+32dqFSn7QQAdF5gGQ=="
+          "hash": "aK0qRXnEKBVkznaXLBbxiPOViHbZN5opeX9wWXzPYmo="
         }
       },
       "is_incremental": false,
@@ -777,7 +813,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ExchangeType.html",
-          "hash": "Z5EKLxMKn4qoDxt+oEa5GA=="
+          "hash": "gTX+BWH1wwNRbgokVGCyd1z2VK7Kn6s5WE5olSj1wrI="
         }
       },
       "is_incremental": false,
@@ -789,7 +825,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ExternalMechanism.html",
-          "hash": "i69lg55oThDgxnShs2S8wQ=="
+          "hash": "1InKhwb4HEyfl61zwaLFZUfei/g747PNdmoc2d2khpA="
         }
       },
       "is_incremental": false,
@@ -801,7 +837,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ExternalMechanismFactory.html",
-          "hash": "pDRZrXaYckL8iN6y4vVe1A=="
+          "hash": "EKMTElRvvQ89rGnKXKr6fUI0N+ZLt65Fz3KnPXHI5iQ="
         }
       },
       "is_incremental": false,
@@ -813,7 +849,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Headers.html",
-          "hash": "Opi6tz/2FaSzaGNviIFAWg=="
+          "hash": "AAV2J0aA0KPpNZnz+mEMlg8mg8Qxiy9sgyQ+7IlP+BM="
         }
       },
       "is_incremental": false,
@@ -825,7 +861,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IAsyncBasicConsumer.html",
-          "hash": "JW81Fmizfxq6X5gxLFZZcQ=="
+          "hash": "hXz+cqGFEthnvmlC7ajVE/25stQkCsxWmiD+KCVyYh0="
         }
       },
       "is_incremental": false,
@@ -837,7 +873,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IAsyncConnectionFactory.html",
-          "hash": "5OHIRxoXy67PabuYU6CJwQ=="
+          "hash": "/3LgLDJceZ0uAXDgY+MI9sBNetL/M0xINXL05tw7sco="
         }
       },
       "is_incremental": false,
@@ -849,7 +885,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IAuthMechanism.html",
-          "hash": "qNr93pES/K+WxdGztITqKg=="
+          "hash": "QYG8vV8vwJveYmWz53lo+oBlgzH1Y+2xj6VvuhmuO0U="
         }
       },
       "is_incremental": false,
@@ -861,7 +897,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IAuthMechanismFactory.html",
-          "hash": "GAIYL0XvrenwtsLGGi1xFA=="
+          "hash": "wTyuovfUJ9c9iOAvIp6z1BgvYNGagag74rf3JkoGHAQ="
         }
       },
       "is_incremental": false,
@@ -873,7 +909,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IAutorecoveringConnection.html",
-          "hash": "Z9CkHPGMQk0ayuylSvtrQQ=="
+          "hash": "Jz1lMOz2+HmuRc5bn2rnfJTQdVcPNJDo4+b+/aBXJ0Y="
         }
       },
       "is_incremental": false,
@@ -885,7 +921,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IBasicConsumer.html",
-          "hash": "xm7s3VYir72P7P6BiQ45Yw=="
+          "hash": "7v+3tV/JMKUujhGurH9W7Q4nTZxPtWFG7cJUsJZTUiI="
         }
       },
       "is_incremental": false,
@@ -897,7 +933,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IBasicProperties.html",
-          "hash": "qrf7MrK5256JG+Hh8el2ZQ=="
+          "hash": "KJ6iVtKCswDBzs3G0X6rTC9G09BSnLFTdeV3H2jLUZk="
         }
       },
       "is_incremental": false,
@@ -909,7 +945,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IBasicPublishBatch.html",
-          "hash": "tlVh5q7Zu9wJmGjneHZAwA=="
+          "hash": "o6AtG55STX9sAtadr/PkK5SZy1+eskgzA0nhq2MWw9A="
         }
       },
       "is_incremental": false,
@@ -921,7 +957,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IConnection.html",
-          "hash": "rzIhnJ3J3VQyWtBXd/9BAw=="
+          "hash": "W08cHLwB92cFfH41GTosnuyVuE9jn6jKMHgxuvNDslI="
         }
       },
       "is_incremental": false,
@@ -933,7 +969,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IConnectionFactory.html",
-          "hash": "OopKEbucqTU0W01z4SCWEw=="
+          "hash": "UMRUIyljtUA7JYf9FrVZ6OIyh27bOfI9BZs5iABn9gU="
         }
       },
       "is_incremental": false,
@@ -945,7 +981,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IContentHeader.html",
-          "hash": "/K+KYW4KadmTcFLIEqzp/Q=="
+          "hash": "pHqgCD9usg30XX+dIXOUBsI/YUet15gwvCIYdScTfB0="
         }
       },
       "is_incremental": false,
@@ -957,7 +993,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IEndpointResolver.html",
-          "hash": "+d0e39N4BpKc/qVBH2bRwA=="
+          "hash": "VwoIjyS+yCbmL0fOYnF/Ct8dnKO2wiArdUXFzujdxDk="
         }
       },
       "is_incremental": false,
@@ -969,7 +1005,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IMethod.html",
-          "hash": "Nq28f+kwKq41BdbnHVE9VA=="
+          "hash": "m64ONKm428bNUuWjEtSaTAMu8ts1lPoOTQgsjoN1Qis="
         }
       },
       "is_incremental": false,
@@ -981,7 +1017,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IModel.html",
-          "hash": "X2u/gEE1ChfonTR2WBn83w=="
+          "hash": "qZA8FMlgYQlV5hnxmnpEKW/bTyZOnEU2djVw4A6i/gE="
         }
       },
       "is_incremental": false,
@@ -993,7 +1029,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IModelExensions.html",
-          "hash": "j+T94Kk3E24TAPvu0kQMlg=="
+          "hash": "M/TQLlFpFJdKRFR0ZG00Raori5bDRbqRNfw7ZPAKPls="
         }
       },
       "is_incremental": false,
@@ -1005,7 +1041,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.INetworkConnection.html",
-          "hash": "MLhw5cu6jv1PWW+SMSItyg=="
+          "hash": "3x5lcL0mRLiunhfkDx4gDrgaM83rgPHvqi6EEpGSFL8="
         }
       },
       "is_incremental": false,
@@ -1017,7 +1053,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IProtocol.html",
-          "hash": "cLY+nXscLn16Iu6Dzd1/Hw=="
+          "hash": "eHAysIeGWgK1Ho8bQkwuQdQGKMnW3KquHla2DaHn6cc="
         }
       },
       "is_incremental": false,
@@ -1029,7 +1065,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IRecoverable.html",
-          "hash": "kND36EbZpaVDwaQ2spZmgw=="
+          "hash": "dMMM1a2DSbyA2ZcseSXmS7bJIbigKkL8kf1XKSNBLQo="
         }
       },
       "is_incremental": false,
@@ -1041,7 +1077,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.IStreamProperties.html",
-          "hash": "7Ot7pP5y2+mxalBHdMz2Pg=="
+          "hash": "4Qo5sH35GUW2O0iZ7lwq9F5PxDzZlxJUkWRQHUIZIYM="
         }
       },
       "is_incremental": false,
@@ -1053,7 +1089,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ITcpClient.html",
-          "hash": "dpeBk63O+4lUWHD/4S7clQ=="
+          "hash": "XWGxBAY6Zgs9JJ3B+KvwKJ5HMX7yaDskX5YlxsU79DM="
         }
       },
       "is_incremental": false,
@@ -1065,7 +1101,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Logging.RabbitMqClientEventSource.Keywords.html",
-          "hash": "vIX8Cj0+Uxv4xhbZpzg7nQ=="
+          "hash": "Qc0+YjjatrcBIOoPerkDU/LMiKS7P1CKIdxrfcZ8vdE="
         }
       },
       "is_incremental": false,
@@ -1077,7 +1113,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Logging.RabbitMqClientEventSource.html",
-          "hash": "fgp1o3+aC9R8TaF0gZZHcQ=="
+          "hash": "nxxuNUGmejhVaAmwPtioVhH7GOcOOsa7qC4UVuJtot4="
         }
       },
       "is_incremental": false,
@@ -1089,7 +1125,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Logging.RabbitMqConsoleEventListener.html",
-          "hash": "5v2cf9fO8SJ00wMIZ0MNOQ=="
+          "hash": "JWxyM5+ybK5YeriufWIWB+RNyfFClLDwsIgQ51o0FmE="
         }
       },
       "is_incremental": false,
@@ -1101,7 +1137,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Logging.RabbitMqExceptionDetail.html",
-          "hash": "i5E3du4t346F7mpqWQtOdA=="
+          "hash": "qomzt1DAw41PU+yxkASICJ0yxfc/q1xXVAwpfQScICg="
         }
       },
       "is_incremental": false,
@@ -1113,7 +1149,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Logging.html",
-          "hash": "feoFuq0BuEuiQhvNWXzJuA=="
+          "hash": "l28VfJriBvi9ksxPcstP6L9DZlIrTtAyFpMiJrYUMO8="
         }
       },
       "is_incremental": false,
@@ -1125,7 +1161,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.PlainMechanism.html",
-          "hash": "fbmLRN2s3SuKa7UbGG7E3g=="
+          "hash": "OlMgPHQf3AdmyBc5F+MuMr3D6FSkc8Ix8FSM6f2IDks="
         }
       },
       "is_incremental": false,
@@ -1137,7 +1173,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.PlainMechanismFactory.html",
-          "hash": "FPmAa2LP8gM7pPSeXQn4Ug=="
+          "hash": "cCIDJnBxHmvxwqqrl83TG/ZacQXPivT1jrWO0S3MSN4="
         }
       },
       "is_incremental": false,
@@ -1149,7 +1185,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Protocols.html",
-          "hash": "fpSt2KYPw2OeaqF/lO9wzw=="
+          "hash": "JxeoqchK4vtsj00ZnXpWSjIxOnipAZ95q5h4vrjXPms="
         }
       },
       "is_incremental": false,
@@ -1161,7 +1197,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.PublicationAddress.html",
-          "hash": "AzLIA+bIaTvlFvfXcfpl1w=="
+          "hash": "aMXqggeBc5B88Z7l0lfiXjyFklQLLxdiNOYi7QXQn4I="
         }
       },
       "is_incremental": false,
@@ -1173,7 +1209,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.QueueDeclareOk.html",
-          "hash": "mENyoQfrpmUgYm6F2cQIPw=="
+          "hash": "pkn7gdZwQnOBBjlFgFdaEXdOPdfufCD0RXY7Hibz5tc="
         }
       },
       "is_incremental": false,
@@ -1185,7 +1221,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ShutdownEventArgs.html",
-          "hash": "QF/hQc91xiyw/IIhOls+Uw=="
+          "hash": "yclfc8C2A+/TuYUGGNH10iC7jeoHyZTHC+952rZwyMg="
         }
       },
       "is_incremental": false,
@@ -1197,7 +1233,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ShutdownInitiator.html",
-          "hash": "Sb4J9lBWi+IPs6MKpoa1lw=="
+          "hash": "cPPMjdlHUslfoHrdDsT9BaOsiFhiW4GrQe5eB+sAcqw="
         }
       },
       "is_incremental": false,
@@ -1209,7 +1245,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.ShutdownReportEntry.html",
-          "hash": "i+uaNVcXDv3zPFSRkUcjZA=="
+          "hash": "fe76m94EStsCTaDxv1sEm2xJ0Yh+bRpmgWCSnWZeNEg="
         }
       },
       "is_incremental": false,
@@ -1221,7 +1257,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.SslOption.html",
-          "hash": "kDC0nlKhPaIsSXNyl5P8/A=="
+          "hash": "hhpeiGOIM7cCp1d0yLCRlX3Dhml+DIk6nEU3iW3c2UM="
         }
       },
       "is_incremental": false,
@@ -1233,7 +1269,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.APIApproval.html",
-          "hash": "l9rXIs/2YL+41YaCFsmtbg=="
+          "hash": "gD4TklT4amuJD3V5yYN6cXB4LfEAUH0yabl26zUYUts="
         }
       },
       "is_incremental": false,
@@ -1245,7 +1281,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.html",
-          "hash": "h5YKPlSvFO2q5gcvhJcmZw=="
+          "hash": "/s0W6V8xBercI0KHTPWiFAt1oYdDyUhiACVUbj18Xpo="
         }
       },
       "is_incremental": false,
@@ -1257,7 +1293,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.IntegrationFixture.html",
-          "hash": "s5VUF4APMw0TgVJa22PruQ=="
+          "hash": "wia2xjpKxNkVw7zlw95AZ7hOXeKO/WJqRjQrec7u6YM="
         }
       },
       "is_incremental": false,
@@ -1269,7 +1305,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.html",
-          "hash": "coFi3bMl5LlD+tHUzQVwsg=="
+          "hash": "aKhuOq0f8wiwseNdfr8f4208SchPYjoTB7G/XLmLLd4="
         }
       },
       "is_incremental": false,
@@ -1281,7 +1317,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestAmqpUri.html",
-          "hash": "1SKY+5ctSTOU1BYU/JBTlw=="
+          "hash": "6oNKbcWUvPGCJ5hlyriciZjGiFyc0jfpwVju9pDhqSk="
         }
       },
       "is_incremental": false,
@@ -1293,7 +1329,19 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestAsyncConsumer.html",
-          "hash": "h2a3jEzFD8/p8mCyPQMc0Q=="
+          "hash": "cDA7o9zNuoAw9MdTQlOzpkOnBnIN49LNz6pHVw8NjW4="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html",
+          "hash": "OcjM7w7/FuUuyhsi2tHO95vmdQQ7mmzuj4Z3evMPysE="
         }
       },
       "is_incremental": false,
@@ -1305,7 +1353,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestAuth.html",
-          "hash": "oYmBZ3MUnagxNZaIK4K9ZQ=="
+          "hash": "ebx+7GGa0HccSZL2VYctxHiBF45sjbhMJxW4y1pn9E0="
         }
       },
       "is_incremental": false,
@@ -1317,7 +1365,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestBasicGet.html",
-          "hash": "1/6mamSK1fzwO13b7Iq0Mg=="
+          "hash": "2bCf/0aY3uBl5XC2mFgRnHHQyrr20Sr20bZQaRqeuGw="
         }
       },
       "is_incremental": false,
@@ -1329,7 +1377,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestBasicPublish.html",
-          "hash": "5ppfUoDRRiWzZDtI9AVIAA=="
+          "hash": "wdLSMixbH39eXCtCosLj0/94siCRYLOZ3Mi+7wFh3gA="
         }
       },
       "is_incremental": false,
@@ -1341,7 +1389,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.html",
-          "hash": "FwZRJeZHUDaolgkY93gUWA=="
+          "hash": "BSj0rylVXHvQwA/WVJJ1N+LAy7rOQ/PiQoouD/J2560="
         }
       },
       "is_incremental": false,
@@ -1353,7 +1401,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConfirmSelect.html",
-          "hash": "FXd+le02rdZzltwlvK3OVg=="
+          "hash": "EWXi7AqFMs88z01BXdIfCW3fLY6Og+CcL5AIXNpwg9U="
         }
       },
       "is_incremental": false,
@@ -1365,7 +1413,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionBlocked.html",
-          "hash": "7PJMw89Pqan1plu+VqoJcA=="
+          "hash": "r+RHH8WjeS2VKpBJQn8mo7cQwzXRvAS+IoiHQglecGQ="
         }
       },
       "is_incremental": false,
@@ -1377,7 +1425,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.html",
-          "hash": "T1fHUaSOB2Y92H5B6eqY4A=="
+          "hash": "daLrLq/QR4AghZPLNA84TfeDjely5T6Jb7lpXrGFkBE="
         }
       },
       "is_incremental": false,
@@ -1389,7 +1437,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.html",
-          "hash": "4bQ79A1gil3YNu/6y9z0Mg=="
+          "hash": "hPa6udYgoSkBUtHN0FLJoIlls2EXENb4ka/nEU5qMvs="
         }
       },
       "is_incremental": false,
@@ -1401,7 +1449,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.html",
-          "hash": "UpDfoZ6732KJcWPeCx6NLA=="
+          "hash": "M2zUpLQJLMRdB6aGIoXXTzl+9xycSXgAGgd8+BUtxRc="
         }
       },
       "is_incremental": false,
@@ -1409,11 +1457,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.yml",
+      "source_relative_path": "api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.yml",
       "output": {
         ".html": {
-          "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html",
-          "hash": "WivWAu6PlRtSNNrK5S1NqA=="
+          "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.html",
+          "hash": "lvzmTNceO7QsT3T08ckxr9rspEfbOKzYGnCVScne+CM="
         }
       },
       "is_incremental": false,
@@ -1425,7 +1473,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionRecovery.html",
-          "hash": "tfj4FeDVFjsx0EZBZ8QDZA=="
+          "hash": "MiI/m64PUjr7U9p7oEtcpIUjemWdMkyAUg4Rz1gZoXo="
         }
       },
       "is_incremental": false,
@@ -1437,7 +1485,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionShutdown.html",
-          "hash": "giUhGhM68pcKZQb5GPF9og=="
+          "hash": "3hqXN2PfnDJFcvJoYgx2nngNr0/69IgvZOk60mFe0YQ="
         }
       },
       "is_incremental": false,
@@ -1449,7 +1497,19 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConnectionWithBackgroundThreads.html",
-          "hash": "nobG1yRdJnTShqvIkG91iQ=="
+          "hash": "kiKwGI2PwTZ1VlzgmpDHPJ4uMvsJ9QXJpHIXvlpfuMo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/RabbitMQ.Client.Unit.TestConsumer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/RabbitMQ.Client.Unit.TestConsumer.html",
+          "hash": "U7VU74U13MxqGPxPRv4XC9lcO0WbbSmWPWbDX0XZYe0="
         }
       },
       "is_incremental": false,
@@ -1461,7 +1521,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConsumerCancelNotify.html",
-          "hash": "DVZj0a/nTBNhsTUlRacTrA=="
+          "hash": "J1NRQFiP7/XdGV1lw00jLZ+Jz120ionNDQlnmcTsZD0="
         }
       },
       "is_incremental": false,
@@ -1473,7 +1533,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestConsumerExceptions.html",
-          "hash": "fA9HGV8ll39zlL8iasz4CA=="
+          "hash": "tVybdVFooXnBl6Pl1Lq61pzG1pPi2auu40zZ8GvKRUk="
         }
       },
       "is_incremental": false,
@@ -1485,7 +1545,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestEndpointResolver.html",
-          "hash": "pJcWTH65dVXJib7MXPgwYg=="
+          "hash": "VgrbAxoHNb1TIPiVdUvE6Vpu5krT6lG5CktJu62Q1M8="
         }
       },
       "is_incremental": false,
@@ -1497,7 +1557,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestEventingConsumer.html",
-          "hash": "2flmxNpkOcg62bdMtUKiqA=="
+          "hash": "mvBfcXna5TsG7/M+6EVHX5384coFEXpWDA2zKnp2iTQ="
         }
       },
       "is_incremental": false,
@@ -1509,7 +1569,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestExceptionMessages.html",
-          "hash": "ka0BpbW5kWxUdav6D7uy5Q=="
+          "hash": "nnKu4RPo4rKVuGjz2hD8jAudyj2b35HrAZtEH7cE7Fk="
         }
       },
       "is_incremental": false,
@@ -1521,7 +1581,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestExchangeDeclare.html",
-          "hash": "lWYshGzguJGfBUzs1F4z7Q=="
+          "hash": "cD/+cE6zHSQ6S86PJU4YzammJ+u+CpfQrbT+1s4JztE="
         }
       },
       "is_incremental": false,
@@ -1533,7 +1593,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestExtensions.html",
-          "hash": "KpMUKepJO6d80s/+0PSksw=="
+          "hash": "aKFiWB8TEoff2s0k1PB0MXg0p8XIOB/tYyqmI0BGrYQ="
         }
       },
       "is_incremental": false,
@@ -1545,7 +1605,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestFloodPublishing.html",
-          "hash": "HzKovycJjBrxcpQM3CIIyg=="
+          "hash": "QRwvZ5xxfS5bK5btoTT3sgd0YH7KekUTR4dg+KmyOrw="
         }
       },
       "is_incremental": false,
@@ -1557,7 +1617,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestIEndpointResolverExtensions.html",
-          "hash": "2bigqUDYsfPeSXTwCeccAg=="
+          "hash": "XR9vlqMZGMDHFAXxlZCluJArRCM7EevstZkCwjc/K6M="
         }
       },
       "is_incremental": false,
@@ -1569,7 +1629,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestIModelAllocation.html",
-          "hash": "kStECSKGCQ+sd+wGk1U4tw=="
+          "hash": "jOzeHSleqT5nNp7tBb3YkBs47ZgN2iVXKb1g8uH+xxU="
         }
       },
       "is_incremental": false,
@@ -1581,7 +1641,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestInitialConnection.html",
-          "hash": "yzeTwnKAitrDpb2Q2lotDQ=="
+          "hash": "scIyuyN4MTmzPtXufFHot0K5pBE6Nu+j7z5shrAsQUc="
         }
       },
       "is_incremental": false,
@@ -1593,7 +1653,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestIntAllocator.html",
-          "hash": "QbbeS3TeLyTVD9oIwboi4Q=="
+          "hash": "BhBmwPb1QjHWnHOC0SEX7GzDLRvOfFgPBR4fr9wmg9w="
         }
       },
       "is_incremental": false,
@@ -1605,7 +1665,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestInvalidAck.html",
-          "hash": "BIxAYFv3KQDVZg8m2vYLLQ=="
+          "hash": "Lv7ykhxMf5fhqPA+ZYszy9ItFhpWwE2L9Re/9lFi9wY="
         }
       },
       "is_incremental": false,
@@ -1617,7 +1677,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestMainLoop.html",
-          "hash": "PJ5PccaBtaDwZ89qyI7fsA=="
+          "hash": "tu4wxUBE5p2IEBLCqj+XzKpAUe8oTVIPuV3V/0Q2Hiw="
         }
       },
       "is_incremental": false,
@@ -1629,7 +1689,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestNoWait.html",
-          "hash": "5h1vOsB1ZS3mG2RPPJwhkA=="
+          "hash": "SQiHLYGJ67aDJmRdb/g4QVi7MOXjC+Eev3Iay3YOmAU="
         }
       },
       "is_incremental": false,
@@ -1641,7 +1701,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestPassiveDeclare.html",
-          "hash": "wON9xuaiGFRKJcn0frjo8A=="
+          "hash": "A/w2HJ1Swwhdwjtj1mPlgitJ3PTViPskM1zJnkH6Vds="
         }
       },
       "is_incremental": false,
@@ -1653,7 +1713,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestPropertiesClone.html",
-          "hash": "C1Q6C0iQ7BpbmXogYzfolQ=="
+          "hash": "NAwM9KbQXpcw7fTwS7aghz+kDM3CDoPnPL0nXUwPHBU="
         }
       },
       "is_incremental": false,
@@ -1665,7 +1725,19 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestPublicationAddress.html",
-          "hash": "Uw4qOP0H2c4E//ioQMfoZA=="
+          "hash": "oSGeUaw9KHkj6G17bunVNKPuPpNK/uxYRoetxa8fXKs="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/RabbitMQ.Client.Unit.TestPublishSharedModel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/RabbitMQ.Client.Unit.TestPublishSharedModel.html",
+          "hash": "x+d/VJpt0D/lzG+pPkWYiii3oqYEdvbnSqfFLEFGo5Y="
         }
       },
       "is_incremental": false,
@@ -1677,7 +1749,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestPublishValidation.html",
-          "hash": "iX2jhyfuzQnJ4HaeZ2LnDg=="
+          "hash": "Y1GOK10m4nFGFFFdV45OgheMOdvvZr02gDAi13YXuLA="
         }
       },
       "is_incremental": false,
@@ -1689,7 +1761,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestPublisherConfirms.html",
-          "hash": "8mTo+pyzRufFmC2mceTOdQ=="
+          "hash": "byZQisj//8aU+DhsSmZm9IzKtEPNll5py6BDR3c5+D0="
         }
       },
       "is_incremental": false,
@@ -1701,7 +1773,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestQueueDeclare.html",
-          "hash": "JtpNzKn5hNOJGiMHYrhzkw=="
+          "hash": "gUVl0eqRHvT1v+/YraRm0lH5bE/psVGW10yVEZIyeiM="
         }
       },
       "is_incremental": false,
@@ -1713,7 +1785,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestRecoverAfterCancel.html",
-          "hash": "EVXoQJix2CLfGXkaHhu1Bw=="
+          "hash": "aoC1yulgkOhtx65bR9axeh9qFALSk2N3nRlmw3vNEU8="
         }
       },
       "is_incremental": false,
@@ -1725,7 +1797,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestRpcContinuationQueue.html",
-          "hash": "LWMbYj3Qq8gmh+xW1urE0w=="
+          "hash": "wIWk//sMyGDtLqRZ2AesO2DjN0ho1ugfVSAWyz57Im8="
         }
       },
       "is_incremental": false,
@@ -1737,7 +1809,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestSsl.html",
-          "hash": "IR3Wx/01BqvtJ+C0OffFLw=="
+          "hash": "nZRYNnXn5+QdvsGZ/BGrijffEarcYraVxLt0yXPTIFc="
         }
       },
       "is_incremental": false,
@@ -1749,7 +1821,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestTcpClientAdapter.html",
-          "hash": "/xlvf7fIftjQ6yOYeQz9dQ=="
+          "hash": "1gVYE6OLAmSgoUoRW82SKy8x98aVKDTdkbkfLO74mJk="
         }
       },
       "is_incremental": false,
@@ -1761,7 +1833,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TestUpdateSecret.html",
-          "hash": "S2zICsDcj0AnQtwXTXl9NQ=="
+          "hash": "WZ5nSPflKoe37kYboXYRbve6R19onU55rMNbciYJ1VA="
         }
       },
       "is_incremental": false,
@@ -1773,7 +1845,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.TimingFixture.html",
-          "hash": "GV6siS9pmq1ai+VT4UMHgg=="
+          "hash": "lEnsqkOuFki198sjtfxQhBtGDTpVKYbTCI6jt2M+9BU="
         }
       },
       "is_incremental": false,
@@ -1785,7 +1857,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.Unit.html",
-          "hash": "clcu36Xk7lebH9VQVf+SNw=="
+          "hash": "Rq9K5e1Af6FYnTzrW0M2ncq2xNzOarG7tnW5UlX3Qas="
         }
       },
       "is_incremental": false,
@@ -1797,7 +1869,7 @@
       "output": {
         ".html": {
           "relative_path": "api/RabbitMQ.Client.html",
-          "hash": "+LxheZp5Of2cntlMvwHGWg=="
+          "hash": "F+ZN76wbY4TW5ui6P+sBG15ek47bMaiKxm9V2Z5zdBw="
         }
       },
       "is_incremental": false,
@@ -1809,7 +1881,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "lRJ+vow5VwS8EVBiAkaDjQ=="
+          "hash": "Y6STkZUIADviiQVg3N9T0PfZ40S4pY4pRrc7nmrFDhM="
         }
       },
       "is_incremental": false,
@@ -1824,7 +1896,7 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "pUIdU4Ov3Uce071WQU/KzQ=="
+          "hash": "zrrZ3BvPfE5chq0T75jwlyn05tfC2TiG1066s3aeCHo="
         }
       },
       "is_incremental": false,
@@ -1836,7 +1908,7 @@
       "output": {
         ".html": {
           "relative_path": "toc.html",
-          "hash": "/FGSqZQejR/3GMmmvxJI6g=="
+          "hash": "gNCQDz3pI0yeKzyMwpju3rLyTyhEUEdLuNpUTXcLGyU="
         }
       },
       "is_incremental": false,
@@ -1863,7 +1935,7 @@
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": false,
           "incrementalPhase": "build",
-          "total_file_count": 144,
+          "total_file_count": 150,
           "skipped_file_count": 0
         },
         "TocDocumentProcessor": {

@@ -1734,6 +1734,69 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.BasicGetResult.RoutingKey
   nameWithType: BasicGetResult.RoutingKey
+- uid: RabbitMQ.Client.BasicPublishBatchExtensions
+  name: BasicPublishBatchExtensions
+  href: api/RabbitMQ.Client.BasicPublishBatchExtensions.html
+  commentId: T:RabbitMQ.Client.BasicPublishBatchExtensions
+  fullName: RabbitMQ.Client.BasicPublishBatchExtensions
+  nameWithType: BasicPublishBatchExtensions
+- uid: RabbitMQ.Client.BasicPublishBatchExtensions.Add(RabbitMQ.Client.IBasicPublishBatch,System.String,System.String,System.Boolean,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})
+  name: Add(IBasicPublishBatch, String, String, Boolean, IBasicProperties, ReadOnlyMemory<Byte>)
+  href: api/RabbitMQ.Client.BasicPublishBatchExtensions.html#RabbitMQ_Client_BasicPublishBatchExtensions_Add_RabbitMQ_Client_IBasicPublishBatch_System_String_System_String_System_Boolean_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__
+  commentId: M:RabbitMQ.Client.BasicPublishBatchExtensions.Add(RabbitMQ.Client.IBasicPublishBatch,System.String,System.String,System.Boolean,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})
+  name.vb: Add(IBasicPublishBatch, String, String, Boolean, IBasicProperties, ReadOnlyMemory(Of Byte))
+  fullName: RabbitMQ.Client.BasicPublishBatchExtensions.Add(RabbitMQ.Client.IBasicPublishBatch, System.String, System.String, System.Boolean, RabbitMQ.Client.IBasicProperties, System.ReadOnlyMemory<System.Byte>)
+  fullName.vb: RabbitMQ.Client.BasicPublishBatchExtensions.Add(RabbitMQ.Client.IBasicPublishBatch, System.String, System.String, System.Boolean, RabbitMQ.Client.IBasicProperties, System.ReadOnlyMemory(Of System.Byte))
+  nameWithType: BasicPublishBatchExtensions.Add(IBasicPublishBatch, String, String, Boolean, IBasicProperties, ReadOnlyMemory<Byte>)
+  nameWithType.vb: BasicPublishBatchExtensions.Add(IBasicPublishBatch, String, String, Boolean, IBasicProperties, ReadOnlyMemory(Of Byte))
+- uid: RabbitMQ.Client.BasicPublishBatchExtensions.Add*
+  name: Add
+  href: api/RabbitMQ.Client.BasicPublishBatchExtensions.html#RabbitMQ_Client_BasicPublishBatchExtensions_Add_
+  commentId: Overload:RabbitMQ.Client.BasicPublishBatchExtensions.Add
+  isSpec: "True"
+  fullName: RabbitMQ.Client.BasicPublishBatchExtensions.Add
+  nameWithType: BasicPublishBatchExtensions.Add
+- uid: RabbitMQ.Client.BinaryTableValue
+  name: BinaryTableValue
+  href: api/RabbitMQ.Client.BinaryTableValue.html
+  commentId: T:RabbitMQ.Client.BinaryTableValue
+  fullName: RabbitMQ.Client.BinaryTableValue
+  nameWithType: BinaryTableValue
+- uid: RabbitMQ.Client.BinaryTableValue.#ctor
+  name: BinaryTableValue()
+  href: api/RabbitMQ.Client.BinaryTableValue.html#RabbitMQ_Client_BinaryTableValue__ctor
+  commentId: M:RabbitMQ.Client.BinaryTableValue.#ctor
+  fullName: RabbitMQ.Client.BinaryTableValue.BinaryTableValue()
+  nameWithType: BinaryTableValue.BinaryTableValue()
+- uid: RabbitMQ.Client.BinaryTableValue.#ctor(System.Byte[])
+  name: BinaryTableValue(Byte[])
+  href: api/RabbitMQ.Client.BinaryTableValue.html#RabbitMQ_Client_BinaryTableValue__ctor_System_Byte___
+  commentId: M:RabbitMQ.Client.BinaryTableValue.#ctor(System.Byte[])
+  name.vb: BinaryTableValue(Byte())
+  fullName: RabbitMQ.Client.BinaryTableValue.BinaryTableValue(System.Byte[])
+  fullName.vb: RabbitMQ.Client.BinaryTableValue.BinaryTableValue(System.Byte())
+  nameWithType: BinaryTableValue.BinaryTableValue(Byte[])
+  nameWithType.vb: BinaryTableValue.BinaryTableValue(Byte())
+- uid: RabbitMQ.Client.BinaryTableValue.#ctor*
+  name: BinaryTableValue
+  href: api/RabbitMQ.Client.BinaryTableValue.html#RabbitMQ_Client_BinaryTableValue__ctor_
+  commentId: Overload:RabbitMQ.Client.BinaryTableValue.#ctor
+  isSpec: "True"
+  fullName: RabbitMQ.Client.BinaryTableValue.BinaryTableValue
+  nameWithType: BinaryTableValue.BinaryTableValue
+- uid: RabbitMQ.Client.BinaryTableValue.Bytes
+  name: Bytes
+  href: api/RabbitMQ.Client.BinaryTableValue.html#RabbitMQ_Client_BinaryTableValue_Bytes
+  commentId: P:RabbitMQ.Client.BinaryTableValue.Bytes
+  fullName: RabbitMQ.Client.BinaryTableValue.Bytes
+  nameWithType: BinaryTableValue.Bytes
+- uid: RabbitMQ.Client.BinaryTableValue.Bytes*
+  name: Bytes
+  href: api/RabbitMQ.Client.BinaryTableValue.html#RabbitMQ_Client_BinaryTableValue_Bytes_
+  commentId: Overload:RabbitMQ.Client.BinaryTableValue.Bytes
+  isSpec: "True"
+  fullName: RabbitMQ.Client.BinaryTableValue.Bytes
+  nameWithType: BinaryTableValue.Bytes
 - uid: RabbitMQ.Client.ConnectionFactory
   name: ConnectionFactory
   href: api/RabbitMQ.Client.ConnectionFactory.html
@@ -1834,6 +1897,19 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.ConnectionFactory.ClientProvidedName
   nameWithType: ConnectionFactory.ClientProvidedName
+- uid: RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency
+  name: ConsumerDispatchConcurrency
+  href: api/RabbitMQ.Client.ConnectionFactory.html#RabbitMQ_Client_ConnectionFactory_ConsumerDispatchConcurrency
+  commentId: P:RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency
+  fullName: RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency
+  nameWithType: ConnectionFactory.ConsumerDispatchConcurrency
+- uid: RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency*
+  name: ConsumerDispatchConcurrency
+  href: api/RabbitMQ.Client.ConnectionFactory.html#RabbitMQ_Client_ConnectionFactory_ConsumerDispatchConcurrency_
+  commentId: Overload:RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency
+  isSpec: "True"
+  fullName: RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency
+  nameWithType: ConnectionFactory.ConsumerDispatchConcurrency
 - uid: RabbitMQ.Client.ConnectionFactory.ContinuationTimeout
   name: ContinuationTimeout
   href: api/RabbitMQ.Client.ConnectionFactory.html#RabbitMQ_Client_ConnectionFactory_ContinuationTimeout
@@ -2267,6 +2343,156 @@ references:
   commentId: F:RabbitMQ.Client.ConnectionFactoryBase.SocketFactory
   fullName: RabbitMQ.Client.ConnectionFactoryBase.SocketFactory
   nameWithType: ConnectionFactoryBase.SocketFactory
+- uid: RabbitMQ.Client.Constants
+  name: Constants
+  href: api/RabbitMQ.Client.Constants.html
+  commentId: T:RabbitMQ.Client.Constants
+  fullName: RabbitMQ.Client.Constants
+  nameWithType: Constants
+- uid: RabbitMQ.Client.Constants.AccessRefused
+  name: AccessRefused
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_AccessRefused
+  commentId: F:RabbitMQ.Client.Constants.AccessRefused
+  fullName: RabbitMQ.Client.Constants.AccessRefused
+  nameWithType: Constants.AccessRefused
+- uid: RabbitMQ.Client.Constants.ChannelError
+  name: ChannelError
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_ChannelError
+  commentId: F:RabbitMQ.Client.Constants.ChannelError
+  fullName: RabbitMQ.Client.Constants.ChannelError
+  nameWithType: Constants.ChannelError
+- uid: RabbitMQ.Client.Constants.CommandInvalid
+  name: CommandInvalid
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_CommandInvalid
+  commentId: F:RabbitMQ.Client.Constants.CommandInvalid
+  fullName: RabbitMQ.Client.Constants.CommandInvalid
+  nameWithType: Constants.CommandInvalid
+- uid: RabbitMQ.Client.Constants.ConnectionForced
+  name: ConnectionForced
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_ConnectionForced
+  commentId: F:RabbitMQ.Client.Constants.ConnectionForced
+  fullName: RabbitMQ.Client.Constants.ConnectionForced
+  nameWithType: Constants.ConnectionForced
+- uid: RabbitMQ.Client.Constants.ContentTooLarge
+  name: ContentTooLarge
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_ContentTooLarge
+  commentId: F:RabbitMQ.Client.Constants.ContentTooLarge
+  fullName: RabbitMQ.Client.Constants.ContentTooLarge
+  nameWithType: Constants.ContentTooLarge
+- uid: RabbitMQ.Client.Constants.FrameBody
+  name: FrameBody
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_FrameBody
+  commentId: F:RabbitMQ.Client.Constants.FrameBody
+  fullName: RabbitMQ.Client.Constants.FrameBody
+  nameWithType: Constants.FrameBody
+- uid: RabbitMQ.Client.Constants.FrameEnd
+  name: FrameEnd
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_FrameEnd
+  commentId: F:RabbitMQ.Client.Constants.FrameEnd
+  fullName: RabbitMQ.Client.Constants.FrameEnd
+  nameWithType: Constants.FrameEnd
+- uid: RabbitMQ.Client.Constants.FrameError
+  name: FrameError
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_FrameError
+  commentId: F:RabbitMQ.Client.Constants.FrameError
+  fullName: RabbitMQ.Client.Constants.FrameError
+  nameWithType: Constants.FrameError
+- uid: RabbitMQ.Client.Constants.FrameHeader
+  name: FrameHeader
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_FrameHeader
+  commentId: F:RabbitMQ.Client.Constants.FrameHeader
+  fullName: RabbitMQ.Client.Constants.FrameHeader
+  nameWithType: Constants.FrameHeader
+- uid: RabbitMQ.Client.Constants.FrameHeartbeat
+  name: FrameHeartbeat
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_FrameHeartbeat
+  commentId: F:RabbitMQ.Client.Constants.FrameHeartbeat
+  fullName: RabbitMQ.Client.Constants.FrameHeartbeat
+  nameWithType: Constants.FrameHeartbeat
+- uid: RabbitMQ.Client.Constants.FrameMethod
+  name: FrameMethod
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_FrameMethod
+  commentId: F:RabbitMQ.Client.Constants.FrameMethod
+  fullName: RabbitMQ.Client.Constants.FrameMethod
+  nameWithType: Constants.FrameMethod
+- uid: RabbitMQ.Client.Constants.FrameMinSize
+  name: FrameMinSize
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_FrameMinSize
+  commentId: F:RabbitMQ.Client.Constants.FrameMinSize
+  fullName: RabbitMQ.Client.Constants.FrameMinSize
+  nameWithType: Constants.FrameMinSize
+- uid: RabbitMQ.Client.Constants.InternalError
+  name: InternalError
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_InternalError
+  commentId: F:RabbitMQ.Client.Constants.InternalError
+  fullName: RabbitMQ.Client.Constants.InternalError
+  nameWithType: Constants.InternalError
+- uid: RabbitMQ.Client.Constants.InvalidPath
+  name: InvalidPath
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_InvalidPath
+  commentId: F:RabbitMQ.Client.Constants.InvalidPath
+  fullName: RabbitMQ.Client.Constants.InvalidPath
+  nameWithType: Constants.InvalidPath
+- uid: RabbitMQ.Client.Constants.NoConsumers
+  name: NoConsumers
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_NoConsumers
+  commentId: F:RabbitMQ.Client.Constants.NoConsumers
+  fullName: RabbitMQ.Client.Constants.NoConsumers
+  nameWithType: Constants.NoConsumers
+- uid: RabbitMQ.Client.Constants.NotAllowed
+  name: NotAllowed
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_NotAllowed
+  commentId: F:RabbitMQ.Client.Constants.NotAllowed
+  fullName: RabbitMQ.Client.Constants.NotAllowed
+  nameWithType: Constants.NotAllowed
+- uid: RabbitMQ.Client.Constants.NotFound
+  name: NotFound
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_NotFound
+  commentId: F:RabbitMQ.Client.Constants.NotFound
+  fullName: RabbitMQ.Client.Constants.NotFound
+  nameWithType: Constants.NotFound
+- uid: RabbitMQ.Client.Constants.NotImplemented
+  name: NotImplemented
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_NotImplemented
+  commentId: F:RabbitMQ.Client.Constants.NotImplemented
+  fullName: RabbitMQ.Client.Constants.NotImplemented
+  nameWithType: Constants.NotImplemented
+- uid: RabbitMQ.Client.Constants.PreconditionFailed
+  name: PreconditionFailed
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_PreconditionFailed
+  commentId: F:RabbitMQ.Client.Constants.PreconditionFailed
+  fullName: RabbitMQ.Client.Constants.PreconditionFailed
+  nameWithType: Constants.PreconditionFailed
+- uid: RabbitMQ.Client.Constants.ReplySuccess
+  name: ReplySuccess
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_ReplySuccess
+  commentId: F:RabbitMQ.Client.Constants.ReplySuccess
+  fullName: RabbitMQ.Client.Constants.ReplySuccess
+  nameWithType: Constants.ReplySuccess
+- uid: RabbitMQ.Client.Constants.ResourceError
+  name: ResourceError
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_ResourceError
+  commentId: F:RabbitMQ.Client.Constants.ResourceError
+  fullName: RabbitMQ.Client.Constants.ResourceError
+  nameWithType: Constants.ResourceError
+- uid: RabbitMQ.Client.Constants.ResourceLocked
+  name: ResourceLocked
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_ResourceLocked
+  commentId: F:RabbitMQ.Client.Constants.ResourceLocked
+  fullName: RabbitMQ.Client.Constants.ResourceLocked
+  nameWithType: Constants.ResourceLocked
+- uid: RabbitMQ.Client.Constants.SyntaxError
+  name: SyntaxError
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_SyntaxError
+  commentId: F:RabbitMQ.Client.Constants.SyntaxError
+  fullName: RabbitMQ.Client.Constants.SyntaxError
+  nameWithType: Constants.SyntaxError
+- uid: RabbitMQ.Client.Constants.UnexpectedFrame
+  name: UnexpectedFrame
+  href: api/RabbitMQ.Client.Constants.html#RabbitMQ_Client_Constants_UnexpectedFrame
+  commentId: F:RabbitMQ.Client.Constants.UnexpectedFrame
+  fullName: RabbitMQ.Client.Constants.UnexpectedFrame
+  nameWithType: Constants.UnexpectedFrame
 - uid: RabbitMQ.Client.DefaultBasicConsumer
   name: DefaultBasicConsumer
   href: api/RabbitMQ.Client.DefaultBasicConsumer.html
@@ -4555,6 +4781,18 @@ references:
   commentId: E:RabbitMQ.Client.IAutorecoveringConnection.ConnectionRecoveryError
   fullName: RabbitMQ.Client.IAutorecoveringConnection.ConnectionRecoveryError
   nameWithType: IAutorecoveringConnection.ConnectionRecoveryError
+- uid: RabbitMQ.Client.IAutorecoveringConnection.ConsumerTagChangeAfterRecovery
+  name: ConsumerTagChangeAfterRecovery
+  href: api/RabbitMQ.Client.IAutorecoveringConnection.html#RabbitMQ_Client_IAutorecoveringConnection_ConsumerTagChangeAfterRecovery
+  commentId: E:RabbitMQ.Client.IAutorecoveringConnection.ConsumerTagChangeAfterRecovery
+  fullName: RabbitMQ.Client.IAutorecoveringConnection.ConsumerTagChangeAfterRecovery
+  nameWithType: IAutorecoveringConnection.ConsumerTagChangeAfterRecovery
+- uid: RabbitMQ.Client.IAutorecoveringConnection.QueueNameChangeAfterRecovery
+  name: QueueNameChangeAfterRecovery
+  href: api/RabbitMQ.Client.IAutorecoveringConnection.html#RabbitMQ_Client_IAutorecoveringConnection_QueueNameChangeAfterRecovery
+  commentId: E:RabbitMQ.Client.IAutorecoveringConnection.QueueNameChangeAfterRecovery
+  fullName: RabbitMQ.Client.IAutorecoveringConnection.QueueNameChangeAfterRecovery
+  nameWithType: IAutorecoveringConnection.QueueNameChangeAfterRecovery
 - uid: RabbitMQ.Client.IAutorecoveringConnection.RecoverySucceeded
   name: RecoverySucceeded
   href: api/RabbitMQ.Client.IAutorecoveringConnection.html#RabbitMQ_Client_IAutorecoveringConnection_RecoverySucceeded
@@ -7699,6 +7937,22 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.PublicationAddress.ToString
   nameWithType: PublicationAddress.ToString
+- uid: RabbitMQ.Client.PublicationAddress.TryParse(System.String,RabbitMQ.Client.PublicationAddress@)
+  name: TryParse(String, out PublicationAddress)
+  href: api/RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_TryParse_System_String_RabbitMQ_Client_PublicationAddress__
+  commentId: M:RabbitMQ.Client.PublicationAddress.TryParse(System.String,RabbitMQ.Client.PublicationAddress@)
+  name.vb: TryParse(String, ByRef PublicationAddress)
+  fullName: RabbitMQ.Client.PublicationAddress.TryParse(System.String, out RabbitMQ.Client.PublicationAddress)
+  fullName.vb: RabbitMQ.Client.PublicationAddress.TryParse(System.String, ByRef RabbitMQ.Client.PublicationAddress)
+  nameWithType: PublicationAddress.TryParse(String, out PublicationAddress)
+  nameWithType.vb: PublicationAddress.TryParse(String, ByRef PublicationAddress)
+- uid: RabbitMQ.Client.PublicationAddress.TryParse*
+  name: TryParse
+  href: api/RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_TryParse_
+  commentId: Overload:RabbitMQ.Client.PublicationAddress.TryParse
+  isSpec: "True"
+  fullName: RabbitMQ.Client.PublicationAddress.TryParse
+  nameWithType: PublicationAddress.TryParse
 - uid: RabbitMQ.Client.QueueDeclareOk
   name: QueueDeclareOk
   href: api/RabbitMQ.Client.QueueDeclareOk.html
@@ -8528,6 +8782,19 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtrip
   nameWithType: TestAsyncConsumer.TestBasicRoundtrip
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtripConcurrent
+  name: TestBasicRoundtripConcurrent()
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumer.html#RabbitMQ_Client_Unit_TestAsyncConsumer_TestBasicRoundtripConcurrent
+  commentId: M:RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtripConcurrent
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtripConcurrent()
+  nameWithType: TestAsyncConsumer.TestBasicRoundtripConcurrent()
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtripConcurrent*
+  name: TestBasicRoundtripConcurrent
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumer.html#RabbitMQ_Client_Unit_TestAsyncConsumer_TestBasicRoundtripConcurrent_
+  commentId: Overload:RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtripConcurrent
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtripConcurrent
+  nameWithType: TestAsyncConsumer.TestBasicRoundtripConcurrent
 - uid: RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtripNoWait
   name: TestBasicRoundtripNoWait()
   href: api/RabbitMQ.Client.Unit.TestAsyncConsumer.html#RabbitMQ_Client_Unit_TestAsyncConsumer_TestBasicRoundtripNoWait
@@ -8541,6 +8808,106 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestAsyncConsumer.TestBasicRoundtripNoWait
   nameWithType: TestAsyncConsumer.TestBasicRoundtripNoWait
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions
+  name: TestAsyncConsumerExceptions
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html
+  commentId: T:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions
+  nameWithType: TestAsyncConsumerExceptions
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init
+  name: Init()
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_Init
+  commentId: M:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init()
+  nameWithType: TestAsyncConsumerExceptions.Init()
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init*
+  name: Init
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_Init_
+  commentId: Overload:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init
+  nameWithType: TestAsyncConsumerExceptions.Init
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling
+  name: TestCancelNotificationExceptionHandling()
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestCancelNotificationExceptionHandling
+  commentId: M:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling()
+  nameWithType: TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling()
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling*
+  name: TestCancelNotificationExceptionHandling
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestCancelNotificationExceptionHandling_
+  commentId: Overload:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling
+  nameWithType: TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling
+  name: TestConsumerCancelOkExceptionHandling()
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerCancelOkExceptionHandling
+  commentId: M:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling()
+  nameWithType: TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling()
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling*
+  name: TestConsumerCancelOkExceptionHandling
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerCancelOkExceptionHandling_
+  commentId: Overload:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling
+  nameWithType: TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling
+  name: TestConsumerConsumeOkExceptionHandling()
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerConsumeOkExceptionHandling
+  commentId: M:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling()
+  nameWithType: TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling()
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling*
+  name: TestConsumerConsumeOkExceptionHandling
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerConsumeOkExceptionHandling_
+  commentId: Overload:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling
+  nameWithType: TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling
+  name: TestConsumerShutdownExceptionHandling()
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerShutdownExceptionHandling
+  commentId: M:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling()
+  nameWithType: TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling()
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling*
+  name: TestConsumerShutdownExceptionHandling
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerShutdownExceptionHandling_
+  commentId: Overload:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling
+  nameWithType: TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling
+  name: TestDeliveryExceptionHandling()
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestDeliveryExceptionHandling
+  commentId: M:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling()
+  nameWithType: TestAsyncConsumerExceptions.TestDeliveryExceptionHandling()
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling*
+  name: TestDeliveryExceptionHandling
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestDeliveryExceptionHandling_
+  commentId: Overload:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling
+  nameWithType: TestAsyncConsumerExceptions.TestDeliveryExceptionHandling
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith(RabbitMQ.Client.IBasicConsumer,System.Action{RabbitMQ.Client.IModel,System.String,RabbitMQ.Client.IBasicConsumer,System.String})
+  name: TestExceptionHandlingWith(IBasicConsumer, Action<IModel, String, IBasicConsumer, String>)
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestExceptionHandlingWith_RabbitMQ_Client_IBasicConsumer_System_Action_RabbitMQ_Client_IModel_System_String_RabbitMQ_Client_IBasicConsumer_System_String__
+  commentId: M:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith(RabbitMQ.Client.IBasicConsumer,System.Action{RabbitMQ.Client.IModel,System.String,RabbitMQ.Client.IBasicConsumer,System.String})
+  name.vb: TestExceptionHandlingWith(IBasicConsumer, Action(Of IModel, String, IBasicConsumer, String))
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith(RabbitMQ.Client.IBasicConsumer, System.Action<RabbitMQ.Client.IModel, System.String, RabbitMQ.Client.IBasicConsumer, System.String>)
+  fullName.vb: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith(RabbitMQ.Client.IBasicConsumer, System.Action(Of RabbitMQ.Client.IModel, System.String, RabbitMQ.Client.IBasicConsumer, System.String))
+  nameWithType: TestAsyncConsumerExceptions.TestExceptionHandlingWith(IBasicConsumer, Action<IModel, String, IBasicConsumer, String>)
+  nameWithType.vb: TestAsyncConsumerExceptions.TestExceptionHandlingWith(IBasicConsumer, Action(Of IModel, String, IBasicConsumer, String))
+- uid: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith*
+  name: TestExceptionHandlingWith
+  href: api/RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html#RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestExceptionHandlingWith_
+  commentId: Overload:RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith
+  nameWithType: TestAsyncConsumerExceptions.TestExceptionHandlingWith
 - uid: RabbitMQ.Client.Unit.TestAuth
   name: TestAuth
   href: api/RabbitMQ.Client.Unit.TestAuth.html
@@ -8611,6 +8978,19 @@ references:
   commentId: T:RabbitMQ.Client.Unit.TestBasicPublish
   fullName: RabbitMQ.Client.Unit.TestBasicPublish
   nameWithType: TestBasicPublish
+- uid: RabbitMQ.Client.Unit.TestBasicPublish.CanNotModifyPayloadAfterPublish
+  name: CanNotModifyPayloadAfterPublish()
+  href: api/RabbitMQ.Client.Unit.TestBasicPublish.html#RabbitMQ_Client_Unit_TestBasicPublish_CanNotModifyPayloadAfterPublish
+  commentId: M:RabbitMQ.Client.Unit.TestBasicPublish.CanNotModifyPayloadAfterPublish
+  fullName: RabbitMQ.Client.Unit.TestBasicPublish.CanNotModifyPayloadAfterPublish()
+  nameWithType: TestBasicPublish.CanNotModifyPayloadAfterPublish()
+- uid: RabbitMQ.Client.Unit.TestBasicPublish.CanNotModifyPayloadAfterPublish*
+  name: CanNotModifyPayloadAfterPublish
+  href: api/RabbitMQ.Client.Unit.TestBasicPublish.html#RabbitMQ_Client_Unit_TestBasicPublish_CanNotModifyPayloadAfterPublish_
+  commentId: Overload:RabbitMQ.Client.Unit.TestBasicPublish.CanNotModifyPayloadAfterPublish
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestBasicPublish.CanNotModifyPayloadAfterPublish
+  nameWithType: TestBasicPublish.CanNotModifyPayloadAfterPublish
 - uid: RabbitMQ.Client.Unit.TestBasicPublish.TestBasicRoundtripArray
   name: TestBasicRoundtripArray()
   href: api/RabbitMQ.Client.Unit.TestBasicPublish.html#RabbitMQ_Client_Unit_TestBasicPublish_TestBasicRoundtripArray
@@ -8947,18 +9327,31 @@ references:
   commentId: T:RabbitMQ.Client.Unit.TestConnectionRecovery
   fullName: RabbitMQ.Client.Unit.TestConnectionRecovery
   nameWithType: TestConnectionRecovery
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.#ctor
+  name: TestConnectionRecovery()
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery__ctor
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.#ctor
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestConnectionRecovery()
+  nameWithType: TestConnectionRecovery.TestConnectionRecovery()
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.#ctor*
+  name: TestConnectionRecovery
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery__ctor_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.#ctor
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestConnectionRecovery
+  nameWithType: TestConnectionRecovery.TestConnectionRecovery
 - uid: RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer
   name: TestConnectionRecovery.AckingBasicConsumer
   href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.html
   commentId: T:RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer
   fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer
   nameWithType: TestConnectionRecovery.AckingBasicConsumer
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.Threading.ManualResetEvent,System.Action)
-  name: AckingBasicConsumer(IModel, ManualResetEvent, Action)
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_AckingBasicConsumer__ctor_RabbitMQ_Client_IModel_System_Threading_ManualResetEvent_System_Action_
-  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.Threading.ManualResetEvent,System.Action)
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.AckingBasicConsumer(RabbitMQ.Client.IModel, System.Threading.ManualResetEvent, System.Action)
-  nameWithType: TestConnectionRecovery.AckingBasicConsumer.AckingBasicConsumer(IModel, ManualResetEvent, Action)
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.UInt16,System.Threading.ManualResetEventSlim)
+  name: AckingBasicConsumer(IModel, UInt16, ManualResetEventSlim)
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_AckingBasicConsumer__ctor_RabbitMQ_Client_IModel_System_UInt16_System_Threading_ManualResetEventSlim_
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.UInt16,System.Threading.ManualResetEventSlim)
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.AckingBasicConsumer(RabbitMQ.Client.IModel, System.UInt16, System.Threading.ManualResetEventSlim)
+  nameWithType: TestConnectionRecovery.AckingBasicConsumer.AckingBasicConsumer(IModel, UInt16, ManualResetEventSlim)
 - uid: RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.#ctor*
   name: AckingBasicConsumer
   href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.AckingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_AckingBasicConsumer__ctor_
@@ -9011,12 +9404,12 @@ references:
   commentId: T:RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer
   fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer
   nameWithType: TestConnectionRecovery.NackingBasicConsumer
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.Threading.ManualResetEvent,System.Action)
-  name: NackingBasicConsumer(IModel, ManualResetEvent, Action)
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_NackingBasicConsumer__ctor_RabbitMQ_Client_IModel_System_Threading_ManualResetEvent_System_Action_
-  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.Threading.ManualResetEvent,System.Action)
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.NackingBasicConsumer(RabbitMQ.Client.IModel, System.Threading.ManualResetEvent, System.Action)
-  nameWithType: TestConnectionRecovery.NackingBasicConsumer.NackingBasicConsumer(IModel, ManualResetEvent, Action)
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.UInt16,System.Threading.ManualResetEventSlim)
+  name: NackingBasicConsumer(IModel, UInt16, ManualResetEventSlim)
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_NackingBasicConsumer__ctor_RabbitMQ_Client_IModel_System_UInt16_System_Threading_ManualResetEventSlim_
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.UInt16,System.Threading.ManualResetEventSlim)
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.NackingBasicConsumer(RabbitMQ.Client.IModel, System.UInt16, System.Threading.ManualResetEventSlim)
+  nameWithType: TestConnectionRecovery.NackingBasicConsumer.NackingBasicConsumer(IModel, UInt16, ManualResetEventSlim)
 - uid: RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.#ctor*
   name: NackingBasicConsumer
   href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.NackingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_NackingBasicConsumer__ctor_
@@ -9043,12 +9436,12 @@ references:
   commentId: T:RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer
   fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer
   nameWithType: TestConnectionRecovery.RejectingBasicConsumer
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.Threading.ManualResetEvent,System.Action)
-  name: RejectingBasicConsumer(IModel, ManualResetEvent, Action)
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_RejectingBasicConsumer__ctor_RabbitMQ_Client_IModel_System_Threading_ManualResetEvent_System_Action_
-  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.Threading.ManualResetEvent,System.Action)
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.RejectingBasicConsumer(RabbitMQ.Client.IModel, System.Threading.ManualResetEvent, System.Action)
-  nameWithType: TestConnectionRecovery.RejectingBasicConsumer.RejectingBasicConsumer(IModel, ManualResetEvent, Action)
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.UInt16,System.Threading.ManualResetEventSlim)
+  name: RejectingBasicConsumer(IModel, UInt16, ManualResetEventSlim)
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_RejectingBasicConsumer__ctor_RabbitMQ_Client_IModel_System_UInt16_System_Threading_ManualResetEventSlim_
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.UInt16,System.Threading.ManualResetEventSlim)
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.RejectingBasicConsumer(RabbitMQ.Client.IModel, System.UInt16, System.Threading.ManualResetEventSlim)
+  nameWithType: TestConnectionRecovery.RejectingBasicConsumer.RejectingBasicConsumer(IModel, UInt16, ManualResetEventSlim)
 - uid: RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.#ctor*
   name: RejectingBasicConsumer
   href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.RejectingBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_RejectingBasicConsumer__ctor_
@@ -9212,54 +9605,54 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts
   nameWithType: TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1
-  name: TestConnectionRecovery.TestBasicConsumer1
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html
-  commentId: T:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1
-  nameWithType: TestConnectionRecovery.TestBasicConsumer1
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.#ctor(RabbitMQ.Client.IModel,System.Threading.ManualResetEvent,System.Action)
-  name: TestBasicConsumer1(IModel, ManualResetEvent, Action)
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer1__ctor_RabbitMQ_Client_IModel_System_Threading_ManualResetEvent_System_Action_
-  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.#ctor(RabbitMQ.Client.IModel,System.Threading.ManualResetEvent,System.Action)
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.TestBasicConsumer1(RabbitMQ.Client.IModel, System.Threading.ManualResetEvent, System.Action)
-  nameWithType: TestConnectionRecovery.TestBasicConsumer1.TestBasicConsumer1(IModel, ManualResetEvent, Action)
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.#ctor*
-  name: TestBasicConsumer1
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer1__ctor_
-  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.#ctor
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer
+  name: TestConnectionRecovery.TestBasicConsumer
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.html
+  commentId: T:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer
+  nameWithType: TestConnectionRecovery.TestBasicConsumer
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.UInt16,System.Threading.ManualResetEventSlim)
+  name: TestBasicConsumer(IModel, UInt16, ManualResetEventSlim)
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer__ctor_RabbitMQ_Client_IModel_System_UInt16_System_Threading_ManualResetEventSlim_
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.#ctor(RabbitMQ.Client.IModel,System.UInt16,System.Threading.ManualResetEventSlim)
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.TestBasicConsumer(RabbitMQ.Client.IModel, System.UInt16, System.Threading.ManualResetEventSlim)
+  nameWithType: TestConnectionRecovery.TestBasicConsumer.TestBasicConsumer(IModel, UInt16, ManualResetEventSlim)
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.#ctor*
+  name: TestBasicConsumer
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer__ctor_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.#ctor
   isSpec: "True"
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.TestBasicConsumer1
-  nameWithType: TestConnectionRecovery.TestBasicConsumer1.TestBasicConsumer1
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver(System.String,System.UInt64,System.Boolean,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.TestBasicConsumer
+  nameWithType: TestConnectionRecovery.TestBasicConsumer.TestBasicConsumer
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver(System.String,System.UInt64,System.Boolean,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})
   name: HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory<Byte>)
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer1_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__
-  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver(System.String,System.UInt64,System.Boolean,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver(System.String,System.UInt64,System.Boolean,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})
   name.vb: HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory(Of Byte))
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver(System.String, System.UInt64, System.Boolean, System.String, System.String, RabbitMQ.Client.IBasicProperties, System.ReadOnlyMemory<System.Byte>)
-  fullName.vb: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver(System.String, System.UInt64, System.Boolean, System.String, System.String, RabbitMQ.Client.IBasicProperties, System.ReadOnlyMemory(Of System.Byte))
-  nameWithType: TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory<Byte>)
-  nameWithType.vb: TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory(Of Byte))
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver*
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver(System.String, System.UInt64, System.Boolean, System.String, System.String, RabbitMQ.Client.IBasicProperties, System.ReadOnlyMemory<System.Byte>)
+  fullName.vb: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver(System.String, System.UInt64, System.Boolean, System.String, System.String, RabbitMQ.Client.IBasicProperties, System.ReadOnlyMemory(Of System.Byte))
+  nameWithType: TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory<Byte>)
+  nameWithType.vb: TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory(Of Byte))
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver*
   name: HandleBasicDeliver
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer1_HandleBasicDeliver_
-  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer_HandleBasicDeliver_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver
   isSpec: "True"
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver
-  nameWithType: TestConnectionRecovery.TestBasicConsumer1.HandleBasicDeliver
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.PostHandleDelivery(System.UInt64)
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver
+  nameWithType: TestConnectionRecovery.TestBasicConsumer.HandleBasicDeliver
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.PostHandleDelivery(System.UInt64)
   name: PostHandleDelivery(UInt64)
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer1_PostHandleDelivery_System_UInt64_
-  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.PostHandleDelivery(System.UInt64)
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.PostHandleDelivery(System.UInt64)
-  nameWithType: TestConnectionRecovery.TestBasicConsumer1.PostHandleDelivery(UInt64)
-- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.PostHandleDelivery*
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer_PostHandleDelivery_System_UInt64_
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.PostHandleDelivery(System.UInt64)
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.PostHandleDelivery(System.UInt64)
+  nameWithType: TestConnectionRecovery.TestBasicConsumer.PostHandleDelivery(UInt64)
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.PostHandleDelivery*
   name: PostHandleDelivery
-  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer1_PostHandleDelivery_
-  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.PostHandleDelivery
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConsumer_PostHandleDelivery_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.PostHandleDelivery
   isSpec: "True"
-  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer1.PostHandleDelivery
-  nameWithType: TestConnectionRecovery.TestBasicConsumer1.PostHandleDelivery
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConsumer.PostHandleDelivery
+  nameWithType: TestConnectionRecovery.TestBasicConsumer.PostHandleDelivery
 - uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecovery
   name: TestBasicModelRecovery()
   href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecovery
@@ -9533,6 +9926,19 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeToExchangeBindingRecovery
   nameWithType: TestConnectionRecovery.TestExchangeToExchangeBindingRecovery
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect
+  name: TestPublishRpcRightAfterReconnect()
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestPublishRpcRightAfterReconnect
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect()
+  nameWithType: TestConnectionRecovery.TestPublishRpcRightAfterReconnect()
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect*
+  name: TestPublishRpcRightAfterReconnect
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestPublishRpcRightAfterReconnect_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect
+  nameWithType: TestConnectionRecovery.TestPublishRpcRightAfterReconnect
 - uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestQueueRecoveryWithManyQueues
   name: TestQueueRecoveryWithManyQueues()
   href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestQueueRecoveryWithManyQueues
@@ -9546,6 +9952,19 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestQueueRecoveryWithManyQueues
   nameWithType: TestConnectionRecovery.TestQueueRecoveryWithManyQueues
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel
+  name: TestRecoverTopologyOnDisposedChannel()
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoverTopologyOnDisposedChannel
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel()
+  nameWithType: TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel()
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel*
+  name: TestRecoverTopologyOnDisposedChannel
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoverTopologyOnDisposedChannel_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel
+  nameWithType: TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel
 - uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnChannel
   name: TestRecoveryEventHandlersOnChannel()
   href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnChannel
@@ -9792,6 +10211,25 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestConnectionWithBackgroundThreads.TestWithBackgroundThreadsEnabled
   nameWithType: TestConnectionWithBackgroundThreads.TestWithBackgroundThreadsEnabled
+- uid: RabbitMQ.Client.Unit.TestConsumer
+  name: TestConsumer
+  href: api/RabbitMQ.Client.Unit.TestConsumer.html
+  commentId: T:RabbitMQ.Client.Unit.TestConsumer
+  fullName: RabbitMQ.Client.Unit.TestConsumer
+  nameWithType: TestConsumer
+- uid: RabbitMQ.Client.Unit.TestConsumer.TestBasicRoundtripConcurrent
+  name: TestBasicRoundtripConcurrent()
+  href: api/RabbitMQ.Client.Unit.TestConsumer.html#RabbitMQ_Client_Unit_TestConsumer_TestBasicRoundtripConcurrent
+  commentId: M:RabbitMQ.Client.Unit.TestConsumer.TestBasicRoundtripConcurrent
+  fullName: RabbitMQ.Client.Unit.TestConsumer.TestBasicRoundtripConcurrent()
+  nameWithType: TestConsumer.TestBasicRoundtripConcurrent()
+- uid: RabbitMQ.Client.Unit.TestConsumer.TestBasicRoundtripConcurrent*
+  name: TestBasicRoundtripConcurrent
+  href: api/RabbitMQ.Client.Unit.TestConsumer.html#RabbitMQ_Client_Unit_TestConsumer_TestBasicRoundtripConcurrent_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConsumer.TestBasicRoundtripConcurrent
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestConsumer.TestBasicRoundtripConcurrent
+  nameWithType: TestConsumer.TestBasicRoundtripConcurrent
 - uid: RabbitMQ.Client.Unit.TestConsumerCancelNotify
   name: TestConsumerCancelNotify
   href: api/RabbitMQ.Client.Unit.TestConsumerCancelNotify.html
@@ -10628,19 +11066,32 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestMissingExchangeType
   nameWithType: TestPublicationAddress.TestMissingExchangeType
-- uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFail
-  name: TestParseFail()
-  href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestParseFail
-  commentId: M:RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFail
-  fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFail()
-  nameWithType: TestPublicationAddress.TestParseFail()
-- uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFail*
-  name: TestParseFail
-  href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestParseFail_
-  commentId: Overload:RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFail
+- uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithANE
+  name: TestParseFailWithANE()
+  href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestParseFailWithANE
+  commentId: M:RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithANE
+  fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithANE()
+  nameWithType: TestPublicationAddress.TestParseFailWithANE()
+- uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithANE*
+  name: TestParseFailWithANE
+  href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestParseFailWithANE_
+  commentId: Overload:RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithANE
   isSpec: "True"
-  fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFail
-  nameWithType: TestPublicationAddress.TestParseFail
+  fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithANE
+  nameWithType: TestPublicationAddress.TestParseFailWithANE
+- uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithUnparseableInput
+  name: TestParseFailWithUnparseableInput()
+  href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestParseFailWithUnparseableInput
+  commentId: M:RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithUnparseableInput
+  fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithUnparseableInput()
+  nameWithType: TestPublicationAddress.TestParseFailWithUnparseableInput()
+- uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithUnparseableInput*
+  name: TestParseFailWithUnparseableInput
+  href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestParseFailWithUnparseableInput_
+  commentId: Overload:RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithUnparseableInput
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseFailWithUnparseableInput
+  nameWithType: TestPublicationAddress.TestParseFailWithUnparseableInput
 - uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseOk
   name: TestParseOk()
   href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestParseOk
@@ -10654,6 +11105,19 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestParseOk
   nameWithType: TestPublicationAddress.TestParseOk
+- uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestTryParseFail
+  name: TestTryParseFail()
+  href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestTryParseFail
+  commentId: M:RabbitMQ.Client.Unit.TestPublicationAddress.TestTryParseFail
+  fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestTryParseFail()
+  nameWithType: TestPublicationAddress.TestTryParseFail()
+- uid: RabbitMQ.Client.Unit.TestPublicationAddress.TestTryParseFail*
+  name: TestTryParseFail
+  href: api/RabbitMQ.Client.Unit.TestPublicationAddress.html#RabbitMQ_Client_Unit_TestPublicationAddress_TestTryParseFail_
+  commentId: Overload:RabbitMQ.Client.Unit.TestPublicationAddress.TestTryParseFail
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestPublicationAddress.TestTryParseFail
+  nameWithType: TestPublicationAddress.TestTryParseFail
 - uid: RabbitMQ.Client.Unit.TestPublisherConfirms
   name: TestPublisherConfirms
   href: api/RabbitMQ.Client.Unit.TestPublisherConfirms.html
@@ -10741,6 +11205,25 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestPublisherConfirms.TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse
   nameWithType: TestPublisherConfirms.TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse
+- uid: RabbitMQ.Client.Unit.TestPublishSharedModel
+  name: TestPublishSharedModel
+  href: api/RabbitMQ.Client.Unit.TestPublishSharedModel.html
+  commentId: T:RabbitMQ.Client.Unit.TestPublishSharedModel
+  fullName: RabbitMQ.Client.Unit.TestPublishSharedModel
+  nameWithType: TestPublishSharedModel
+- uid: RabbitMQ.Client.Unit.TestPublishSharedModel.MultiThreadPublishOnSharedModel
+  name: MultiThreadPublishOnSharedModel()
+  href: api/RabbitMQ.Client.Unit.TestPublishSharedModel.html#RabbitMQ_Client_Unit_TestPublishSharedModel_MultiThreadPublishOnSharedModel
+  commentId: M:RabbitMQ.Client.Unit.TestPublishSharedModel.MultiThreadPublishOnSharedModel
+  fullName: RabbitMQ.Client.Unit.TestPublishSharedModel.MultiThreadPublishOnSharedModel()
+  nameWithType: TestPublishSharedModel.MultiThreadPublishOnSharedModel()
+- uid: RabbitMQ.Client.Unit.TestPublishSharedModel.MultiThreadPublishOnSharedModel*
+  name: MultiThreadPublishOnSharedModel
+  href: api/RabbitMQ.Client.Unit.TestPublishSharedModel.html#RabbitMQ_Client_Unit_TestPublishSharedModel_MultiThreadPublishOnSharedModel_
+  commentId: Overload:RabbitMQ.Client.Unit.TestPublishSharedModel.MultiThreadPublishOnSharedModel
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestPublishSharedModel.MultiThreadPublishOnSharedModel
+  nameWithType: TestPublishSharedModel.MultiThreadPublishOnSharedModel
 - uid: RabbitMQ.Client.Unit.TestPublishValidation
   name: TestPublishValidation
   href: api/RabbitMQ.Client.Unit.TestPublishValidation.html

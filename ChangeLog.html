@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Changes Between 5.2.0 and 6.0.0 </title>
+    <title>Changes Between 6.2.0 and 6.2.1 </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Changes Between 5.2.0 and 6.0.0 ">
-    <meta name="generator" content="docfx 2.52.0.0">
+    <meta name="title" content="Changes Between 6.2.0 and 6.2.1 ">
+    <meta name="generator" content="docfx 2.59.0.0">
     
     <link rel="shortcut icon" href="favicon.ico">
     <link rel="stylesheet" href="styles/docfx.vendor.css">
@@ -60,8 +60,16 @@
         <div class="article row grid">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h2 id="changes-between-520-and-600">Changes Between 5.2.0 and 6.0.0</h2>
+<h2 id="changes-between-620-and-621">Changes Between 6.2.0 and 6.2.1</h2>
 
+<p>6.2.0 was published incorrectly, resulting in version 6.2.1</p>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/50?closed=1"><code>6.2.1</code></a>.</p>
+<h2 id="changes-between-610-and-620">Changes Between 6.1.0 and 6.2.0</h2>
+<p>A full list of changes can be found in the GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/49?closed=1"><code>6.2.0</code></a>.</p>
+<h2 id="changes-between-600-and-610">Changes Between 6.0.0 and 6.1.0</h2>
+<p>This release continues with improvements to memory use and object allocations.</p>
+<p>A full list of changes can be found in the GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/48?closed=1"><code>6.1.0</code></a>.</p>
+<h2 id="changes-between-520-and-600">Changes Between 5.2.0 and 6.0.0</h2>
 <p>This major release of this client introduces substantial improvements
 in terms of memory footprint and throughput. They come at the cost
 of minor but important <strong>breaking API changes</strong> covered below.</p>
@@ -71,8 +79,8 @@ Earlier versions are no longer supported by the <code>6.x</code> series.</p>
 our stellar community members (in no particular order): @stebet, @bording,
 @Anarh2404, @danielmarbach, and others.</p>
 <p>A full list of changes can be found in the GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1"><code>6.0.0</code></a>.</p>
-<h3 id="the-switch-to-systemmemory-and-significantly-lower-memory-footprint-that-comes-with-it">The Switch to System.Memory (and Significantly Lower Memory Footprint that Comes with It)</h3>
-<p>The client now uses the <a href=""><code>System.Memory</code> library</a> for message and command payloads. This significantly
+<h3 id="the-switch-to-systemmemory-and-significantly-lower-memory-footprinthttpsstebetnetreal-world-example-of-reducing-allocations-using-span-t-and-memory-t-that-comes-with-it">The Switch to System.Memory (and <a href="https://stebet.net/real-world-example-of-reducing-allocations-using-span-t-and-memory-t/">Significantly Lower Memory Footprint</a> that Comes with It)</h3>
+<p>The client now uses the <a href="https://www.nuget.org/packages/System.Memory/"><code>System.Memory</code> library</a> for message and command payloads. This significantly
 reduces object allocation and GC pressure for heavy workloads but also
 <strong>potentially requires application changes</strong>: consumer delivery payloads are now of instance <a href="https://docs.microsoft.com/en-us/dotnet/api/system.readonlymemory-1?view=netcore-3.1"><code>System.ReadOnlyMemory&lt;byte&gt;</code></a>
 instead of <code>byte[]</code>.</p>
@@ -202,12 +210,13 @@ longer be used to control concurrency.</p>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/CHANGELOG.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/CHANGELOG.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+                <h5>In This Article</h5>
+                <div></div>
               </nav>
             </div>
           </div>

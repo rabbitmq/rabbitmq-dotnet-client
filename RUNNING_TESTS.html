@@ -8,7 +8,7 @@
     <title>Overview </title>
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Overview ">
-    <meta name="generator" content="docfx 2.52.0.0">
+    <meta name="generator" content="docfx 2.59.0.0">
     
     <link rel="shortcut icon" href="favicon.ico">
     <link rel="stylesheet" href="styles/docfx.vendor.css">
@@ -73,40 +73,55 @@ the <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">umbrella repo
 <p>Before this project can be opened in Visual Studio, it&#39;s necessary to pull down dependencies
 and perform protocol encoder/decoder code generation.</p>
 <p>On Windows run:</p>
-<pre><code>build.bat
-</code></pre><p>On osx/linux run:</p>
-<pre><code>build.sh
+<pre><code class="lang-powershell">build.bat
+</code></pre><p>On MacOS and linux run:</p>
+<pre><code class="lang-shell">build.sh
 </code></pre><p>This will complete the code AMQP 0-9-1 protocol code generation and build all projects. After this open the solution in Visual Studio.</p>
-<h2 id="running-tests">Running Tests</h2>
+<h2 id="test-environment-requirements">Test Environment Requirements</h2>
 <p>Tests can be run from Visual Studio using the NUnit Test Adapter.  Note that it
 may take some time for the adapter to discover tests in the assemblies.</p>
 <p>The test suite assumes there&#39;s a RabbitMQ node running locally with all
 defaults, and the tests will need to be able to run commands against the
 <a href="https://www.rabbitmq.com/rabbitmqctl.8.html"><code>rabbitmqctl</code></a> tool for that node.
-Two options to accomplish this are:</p>
-<ol>
-<li><p>Team RabbitMQ uses <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">rabbitmq-public-umbrella</a>, which sets up a local RabbitMQ server <a href="https://www.rabbitmq.com/build-server.html">built from source</a>:</p>
+Two options to accomplish this are covered below.</p>
+<h3 id="option-one-using-a-rabbitmq-release">Option One: Using a RabbitMQ Release</h3>
+<p>It is possible to install and run a node using any <a href="https://www.rabbitmq.com/download.html">binary build</a> suitable
+for the platform. Its <a href="">CLI tools</a> then must be added to <code>PATH</code> so that <code>rabbitmqctl</code> (<code>rabbitmqctl.bat</code> on Windows)
+can be invoked directly without using an absolute file path.</p>
+<p>On Windows, you must run unit tests as follows (replace <code>X.Y.Z</code> with your RabbitMQ version):</p>
+<pre><code>set &quot;RABBITMQ_RABBITMQCTL_PATH=C:\Program Files\RabbitMQ Server\rabbitmq_server-X.Y.Z\sbin\rabbitmqctl.bat&quot;
+.\run-test.bat
+</code></pre><h3 id="option-two-using-rabbitmq-umbrella-repository">Option Two: Using RabbitMQ Umbrella Repository</h3>
+<p>Team RabbitMQ uses <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">rabbitmq-public-umbrella</a>,
+which makes it easy to run a RabbitMQ node <a href="https://www.rabbitmq.com/build-server.html">built from source</a>:</p>
 <pre><code>git clone https://github.com/rabbitmq/rabbitmq-public-umbrella umbrella
 cd umbrella
 make co
 cd deps/rabbit
 make
 make run-broker
-</code></pre></li>
-<li><p>You can load a RabbitMQ node in a <a href="https://www.docker.com/">docker</a> container. You will need to create an environment variable <code>RABBITMQ_RABBITMQCTL_PATH</code> and set it to <code>DOCKER:&lt;container_name&gt;</code> (for example <code>DOCKER:rabbitmq01</code>). This tells the unit tests to run the <code>rabbitmqctl</code> commands through docker, in the format <code>docker exec rabbitmq01 rabbitmqctl &lt;args&gt;</code>:</p>
-<pre><code>docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
-</code></pre><p> Then, to run the tests on Windows use:</p>
-<pre><code>run-test.bat
-</code></pre><p> On MacOS, Linux, BSD use:</p>
-<pre><code>run-test.sh
-</code></pre></li>
-</ol>
+</code></pre><p><code>rabbitmqctl</code> location will be computed using a relative path in the umbrella.
+It is possible to override the location using <code>RABBITMQ_RABBITMQCTL_PATH</code>:</p>
+<pre><code>RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Unit
+</code></pre><h3 id="option-three-using-a-docker-container">Option Three: Using a Docker Container</h3>
+<p>It is also possible to run a RabbitMQ node in a <a href="https://www.docker.com/">Docker</a> container.  Set the environment variable <code>RABBITMQ_RABBITMQCTL_PATH</code> to <code>DOCKER:&lt;container_name&gt;</code> (for example <code>DOCKER:rabbitmq01</code>). This tells the unit tests to run the <code>rabbitmqctl</code> commands through Docker, in the format <code>docker exec rabbitmq01 rabbitmqctl &lt;args&gt;</code>:</p>
+<pre><code class="lang-shell">docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
+</code></pre><h2 id="running-all-tests">Running All Tests</h2>
+<p>Then, to run the tests use:</p>
+<pre><code class="lang-powershell"># will run tests on .NET Core and .NET Framework
+run-test.bat
+</code></pre><p>On MacOS, Linux, BSD use:</p>
+<pre><code class="lang-shell"># will only run tests on .NET Core
+run-test.sh
+</code></pre><h2 id="running-individual-suites-or-test-casess">Running Individual Suites or Test Casess</h2>
 <p>Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
-To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests
-to be run:</p>
-<pre><code>dotnet test projects/Unit --filter &quot;Name~TestAmqpUriParseFail&quot;
+To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests to be run:</p>
+<pre><code class="lang-shell">dotnet test projects/Unit -f netcoreapp3.1 --filter &quot;Name~TestAmqpUriParseFail&quot;
 
-dotnet test projects/Unit --filter &quot;FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats&quot;
+dotnet test projects/Unit -f netcoreapp3.1 --filter &quot;FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats&quot;
+</code></pre><h2 id="running-tests-for-a-specific-net-target">Running Tests for a Specific .NET Target</h2>
+<p>To only run tests on .NET Core:</p>
+<pre><code class="lang-shell">dotnet test -f netcoreapp3.1 projects/Unit
 </code></pre></article>
           </div>
           
@@ -115,12 +130,13 @@ dotnet test projects/Unit --filter &quot;FullyQualifiedName~RabbitMQ.Client.Unit
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/master/RUNNING_TESTS.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/RUNNING_TESTS.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+                <h5>In This Article</h5>
+                <div></div>
               </nav>
             </div>
           </div>
