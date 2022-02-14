@@ -64,6 +64,7 @@ namespace RabbitMQ.Client.Unit
 
             var cf = new ConnectionFactory()
             {
+                Port = 5671,
                 RequestedHeartbeat = _heartbeatTimeout,
                 AutomaticRecoveryEnabled = false
             };
@@ -71,15 +72,13 @@ namespace RabbitMQ.Client.Unit
             string sslDir = IntegrationFixture.CertificatesDirectory();
             if (null == sslDir)
             {
-                Console.WriteLine("SSL_CERT_DIR is not configured, skipping test");
+                Console.WriteLine("SSL_CERTS_DIR is not configured, skipping test");
                 return;
             }
             cf.Ssl.ServerName = System.Net.Dns.GetHostName();
             Assert.NotNull(sslDir);
-            cf.Ssl.CertPath = $"{sslDir}/client/keycert.p12";
-            string p12Password = Environment.GetEnvironmentVariable("PASSWORD");
-            Assert.NotNull(p12Password);
-            cf.Ssl.CertPassphrase = p12Password;
+            cf.Ssl.CertPath = $"{sslDir}/client_key.p12";
+            cf.Ssl.CertPassphrase = Environment.GetEnvironmentVariable("PASSWORD");
             cf.Ssl.Enabled = true;
 
             RunSingleConnectionTest(cf);
