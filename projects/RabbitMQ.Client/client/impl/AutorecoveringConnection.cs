@@ -451,6 +451,24 @@ namespace RabbitMQ.Client.Framing.Impl
             catch (Exception e)
             {
                 ESLog.Error("Exception when recovering connection. Will try again after retry interval.", e);
+
+                try
+                {
+                    /*
+                     * To prevent connection leaks on the next recovery loop,
+                     * we abort the delegated connection if it is still open.
+                     * We do not want to block the abort forever (potentially deadlocking recovery),
+                     * so we specify the same configured timeout used for connection.
+                     */
+                    if (_delegate?.IsOpen == true)
+                    {
+                        _delegate.Abort(Constants.InternalError, "FailedAutoRecovery", ShutdownInitiator.Library, _factory.RequestedConnectionTimeout);
+                    }
+                }
+                catch (Exception e2)
+                {
+                    ESLog.Warn("Exception when aborting previous auto recovery connection.", e2);
+                }
             }
 
             return false;
@@ -672,7 +690,6 @@ namespace RabbitMQ.Client.Framing.Impl
             lock (_eventLock)
             {
                 ConnectionShutdown += recoveryListener;
-                _recordedShutdownEventHandlers += recoveryListener;
             }
         }
 
