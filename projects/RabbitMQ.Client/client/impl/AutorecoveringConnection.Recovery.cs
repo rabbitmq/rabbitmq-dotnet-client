@@ -141,10 +141,13 @@ namespace RabbitMQ.Client.Framing.Impl
                             // 2. Recover queues
                             // 3. Recover bindings
                             // 4. Recover consumers
-                            using var recoveryChannel = _innerConnection.CreateModel();
-                            RecoverExchanges(recoveryChannel);
-                            RecoverQueues(recoveryChannel);
-                            RecoverBindings(recoveryChannel);
+                            using (var recoveryChannel = _innerConnection.CreateModel())
+                            {
+                                RecoverExchanges(recoveryChannel);
+                                RecoverQueues(recoveryChannel);
+                                RecoverBindings(recoveryChannel);
+                            }
+                                
                         }
                         RecoverModelsAndItsConsumers();
                     }

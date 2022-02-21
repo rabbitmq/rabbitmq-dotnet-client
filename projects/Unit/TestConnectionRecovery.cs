@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Unit
 
         }
 
-        [Fact(Skip="TODO flaky")]
+        [Fact]
         public void TestBasicAckAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
@@ -112,7 +112,7 @@ namespace RabbitMQ.Client.Unit
             Wait(allMessagesSeenLatch);
         }
 
-        [Fact(Skip="TODO flaky")]
+        [Fact]
         public void TestBasicNackAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
@@ -134,7 +134,7 @@ namespace RabbitMQ.Client.Unit
             Wait(allMessagesSeenLatch);
         }
 
-        [Fact(Skip="TODO flaky")]
+        [Fact]
         public void TestBasicRejectAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
@@ -858,7 +858,7 @@ namespace RabbitMQ.Client.Unit
                 {
 
                     CloseAndWaitForRecovery();
-                    Thread.Sleep(100);
+                    Thread.Sleep(500);
                 }
                 finally
                 {
