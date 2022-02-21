@@ -228,5 +228,10 @@ namespace RabbitMQ.Client.Unit
         {
             ExecRabbitMQCtl("start_app");
         }
+
+        public static void AwaitRabbitMQ()
+        {
+            ExecRabbitMQCtl("await_startup");
+        }
     }
 }

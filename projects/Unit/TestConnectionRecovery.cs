@@ -851,22 +851,22 @@ namespace RabbitMQ.Client.Unit
             var properties = new BasicProperties();
             properties.ReplyTo = "amq.rabbitmq.reply-to";
 
-            bool done = false;
+            TimeSpan doneSpan = TimeSpan.FromMilliseconds(100);
+            var done = new ManualResetEventSlim(false);
             Task.Run(() =>
             {
                 try
                 {
 
                     CloseAndWaitForRecovery();
-                    Thread.Sleep(500);
                 }
                 finally
                 {
-                    done = true;
+                    done.Set();
                 }
             });
 
-            while (!done)
+            while (!done.IsSet)
             {
                 try
                 {
@@ -880,7 +880,7 @@ namespace RabbitMQ.Client.Unit
                         Assert.NotEqual(406, a.ShutdownReason.ReplyCode);
                     }
                 }
-                Thread.Sleep(1);
+                done.Wait(doneSpan);
             }
         }
 
