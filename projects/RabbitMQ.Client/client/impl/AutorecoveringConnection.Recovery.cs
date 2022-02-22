@@ -114,7 +114,9 @@ namespace RabbitMQ.Client.Framing.Impl
         private static void HandleTopologyRecoveryException(TopologyRecoveryException e)
         {
             ESLog.Error("Topology recovery exception", e);
-            if (e.InnerException is AlreadyClosedException or OperationInterruptedException or TimeoutException)
+            if (e.InnerException is AlreadyClosedException ||
+                    (e.InnerException is OperationInterruptedException) ||
+                    (e.InnerException is TimeoutException))
             {
                 throw e;
             }

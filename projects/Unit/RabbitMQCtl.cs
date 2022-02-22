@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
             string precomputedArguments;
             string? envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
 
-            if (envVariable is not null)
+            if (!string.IsNullOrWhiteSpace(envVariable))
             {
                 const string DockerPrefix = "DOCKER:";
                 if (envVariable.StartsWith(DockerPrefix))
