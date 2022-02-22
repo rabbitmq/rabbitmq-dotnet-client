@@ -1,0 +1,88 @@
+name: rabbitmq-dotnet-client
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-win32:
+    name: build/test on windows-latest
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+      - name: Cache installers
+        uses: actions/cache@v2
+        with:
+          # Note: the cache path is relative to the workspace directory
+          # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
+          path: ~/installers
+          key: ${{ runner.os }}-v0-${{ hashFiles('tools/versions.json') }}
+      - name: Cache NuGet packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/AppData/Local/NuGet/v3-cache
+          key: ${{ runner.os }}-v0-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-v0-nuget-
+      - name: Install and start RabbitMQ
+        run: ./tools/install.ps1
+      - name: List NuGet sources
+        run: dotnet nuget locals all --list
+      - name: Restore
+        run: dotnet restore --verbosity=normal
+      - name: Build
+        run: dotnet build --no-restore --verbosity=normal
+      - name: Test
+        run: ./tools/gha-run-tests.ps1
+
+  build:
+    name: build/test on ubuntu-latest
+
+    runs-on: ubuntu-latest
+
+    services:
+      rabbitmq:
+        image: rabbitmq:3.9-management
+        ports:
+         - 5672:5672
+         - 15672:15672
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/.local/share/NuGet/v3-cache
+          key: ${{ runner.os }}-v0-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-v0-nuget-
+      - name: Restore
+        run: dotnet restore --verbosity=normal
+      - name: Build
+        run: dotnet build --no-restore --verbosity=normal
+      - name: Test
+        run: dotnet test --no-build --logger "console;verbosity=detailed"
+        env:
+          RABBITMQ_RABBITMQCTL_PATH: DOCKER:${{job.services.rabbitmq.id}}

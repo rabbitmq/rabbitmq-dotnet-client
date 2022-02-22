@@ -130,7 +130,7 @@ namespace RabbitMQ.Client
         /// <inheritdoc />
         public void Dispose()
         {
-            if (_rentedArray is not null)
+            if (_rentedArray != null)
             {
                 ArrayPool<byte>.Shared.Return(_rentedArray);
             }
