@@ -382,6 +382,7 @@ namespace RabbitMQ.Client.Unit
         internal void StartRabbitMQ()
         {
             RabbitMQCtl.StartRabbitMQ();
+            RabbitMQCtl.AwaitRabbitMQ();
         }
 
         //
