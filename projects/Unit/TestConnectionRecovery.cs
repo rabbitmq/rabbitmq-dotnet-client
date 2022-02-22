@@ -75,7 +75,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Ignore("TODO flaky")]
         public void TestBasicAckAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
@@ -98,7 +97,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Ignore("TODO flaky")]
         public void TestBasicNackAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
@@ -121,7 +119,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Ignore("TODO flaky")]
         public void TestBasicRejectAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
@@ -839,23 +836,23 @@ namespace RabbitMQ.Client.Unit
             var properties = Model.CreateBasicProperties();
             properties.ReplyTo = "amq.rabbitmq.reply-to";
 
-            bool done = false;
+            TimeSpan doneSpan = TimeSpan.FromMilliseconds(100);
+            var done = new ManualResetEventSlim(false);
             var t = new Thread(() =>
             {
                 try
                 {
 
                     CloseAndWaitForRecovery();
-                    Thread.Sleep(100);
                 }
                 finally
                 {
-                    done = true;
+                    done.Set();
                 }
             });
             t.Start();
 
-            while (!done)
+            while (!done.IsSet)
             {
                 try
                 {
@@ -869,9 +866,8 @@ namespace RabbitMQ.Client.Unit
                         Assert.AreNotEqual(406, a.ShutdownReason.ReplyCode);
                     }
                 }
-                Thread.Sleep(1);
+                done.Wait(doneSpan);
             }
-
             t.Join();
         }
 

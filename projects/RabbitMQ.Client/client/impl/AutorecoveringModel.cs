@@ -441,12 +441,19 @@ namespace RabbitMQ.Client.Impl
                 newModel.TxSelect();
             }
 
+            /*
+             * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140
+             * If this assignment is not done before recovering consumers, there is a good
+             * chance that an invalid Model will be used to handle a basic.deliver frame,
+             * with the resulting basic.ack never getting sent out.
+             */
+            _delegate = newModel;
+
             if (recoverConsumers)
             {
                 _connection.RecoverConsumers(this, newModel);
             }
 
-            _delegate = newModel;
             RunRecoveryEventHandlers();
         }
 
