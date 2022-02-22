@@ -12,6 +12,10 @@ jobs:
 
     runs-on: windows-latest
 
+    # https://github.com/NuGet/Home/issues/11548
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
@@ -55,7 +59,7 @@ jobs:
 
     services:
       rabbitmq:
-        image: rabbitmq:3.9-management
+        image: pivotalrabbitmq/rabbitmq:master-otp-max
         ports:
          - 5672:5672
          - 15672:15672
@@ -83,6 +87,6 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --verbosity=normal
       - name: Test
-        run: dotnet test --no-build --logger "console;verbosity=detailed"
+        run: dotnet test --no-restore --no-build --logger "console;verbosity=detailed" --framework "netcoreapp3.1"
         env:
           RABBITMQ_RABBITMQCTL_PATH: DOCKER:${{job.services.rabbitmq.id}}
