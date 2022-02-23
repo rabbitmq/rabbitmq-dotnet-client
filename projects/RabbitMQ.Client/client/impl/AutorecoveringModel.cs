@@ -409,6 +409,12 @@ namespace RabbitMQ.Client.Impl
             _connection = conn;
             RecoveryAwareModel defunctModel = _delegate;
 
+            /*
+             * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140
+             * If this assignment is not done before recovering consumers, there is a good
+             * chance that an invalid Model will be used to handle a basic.deliver frame,
+             * with the resulting basic.ack never getting sent out.
+             */
             _delegate = conn.CreateNonRecoveringModel();
             _delegate.InheritOffsetFrom(defunctModel);
 
@@ -419,7 +425,6 @@ namespace RabbitMQ.Client.Impl
             RecoverBasicAckHandlers();
             RecoverBasicNackHandlers();
             RecoverCallbackExceptionHandlers();
-
             RunRecoveryEventHandlers();
         }
 
