@@ -29,4 +29,4 @@ $env:RABBITMQ_RABBITMQCTL_PATH = $rabbitmqctl_path
 [Environment]::SetEnvironmentVariable('RABBITMQ_RABBITMQCTL_PATH', $rabbitmqctl_path, 'Machine')
 
 $solution_file = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath 'RabbitMQDotNetClient.sln'
-dotnet test --no-build --logger "console;verbosity=detailed" $solution_file
+dotnet test --no-restore --no-build --logger "console;verbosity=detailed" $solution_file
