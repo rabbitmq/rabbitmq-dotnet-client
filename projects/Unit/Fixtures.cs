@@ -675,6 +675,7 @@ namespace RabbitMQ.Client.Unit
         internal void StartRabbitMQ()
         {
             ExecRabbitMQCtl("start_app");
+            ExecRabbitMQCtl("await_startup");
         }
 
         //

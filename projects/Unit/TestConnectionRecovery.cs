@@ -75,7 +75,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Ignore("TODO flaky")]
         public void TestBasicAckAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
@@ -98,7 +97,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Ignore("TODO flaky")]
         public void TestBasicNackAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
@@ -121,7 +119,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
-        [Ignore("TODO flaky")]
         public void TestBasicRejectAfterChannelRecovery()
         {
             var allMessagesSeenLatch = new ManualResetEventSlim(false);
