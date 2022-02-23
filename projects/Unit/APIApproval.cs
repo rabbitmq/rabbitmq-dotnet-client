@@ -38,7 +38,7 @@ using VerifyTests;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    [Platform(Exclude="Mono")]
+    [Platform(Exclude="Mono,Linux")]
     public class APIApproval
     {
         [Test]
