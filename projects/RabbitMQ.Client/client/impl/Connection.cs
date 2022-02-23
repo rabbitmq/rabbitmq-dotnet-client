@@ -116,7 +116,15 @@ namespace RabbitMQ.Client.Framing.Impl
             _model0 = (ModelBase)Protocol.CreateModel(_session0);
 
             StartMainLoop(factory.UseBackgroundThreadsForIO);
-            Open(insist);
+            try
+            {
+                Open(insist);
+            }
+            catch
+            {
+                TerminateMainloop();
+                throw;
+            }
         }
 
         public Guid Id { get { return _id; } }

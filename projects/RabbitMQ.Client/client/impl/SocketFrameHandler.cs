@@ -193,17 +193,18 @@ namespace RabbitMQ.Client.Impl
                     try
                     {
                         _channelWriter.Complete();
-                        _writerTask.GetAwaiter().GetResult();
+                        _writerTask?.GetAwaiter().GetResult();
                     }
-                    catch(Exception)
+                    catch
                     {
+                        // ignore, we are closing anyway
                     }
 
                     try
                     {
                         _socket.Close();
                     }
-                    catch (Exception)
+                    catch
                     {
                         // ignore, we are closing anyway
                     }
