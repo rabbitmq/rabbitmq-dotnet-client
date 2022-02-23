@@ -178,7 +178,14 @@ namespace RabbitMQ.Client.Impl
                 finally
                 {
                     work.PostExecute();
-                    limiter.Release();
+
+                    try
+                    {
+                        limiter.Release();
+                    }
+                    catch (ObjectDisposedException) // Prevents Exceptions in the Task's finalizer when the WorkPool is Stopped
+                    {
+                    }
                 }
             }
 
