@@ -1,4 +1,4 @@
-$ProgressPreference = 'SilentlyContinue'
+$ProgressPreference = 'Continue'
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2.0
 
@@ -7,8 +7,8 @@ Set-StrictMode -Version 2.0
 Write-Host '[INFO] Removing all existing versions of Erlang...'
 Get-ChildItem -Path 'C:\Program Files\erl*\Uninstall.exe' | %{ Start-Process -Wait -NoNewWindow -FilePath $_ -ArgumentList '/S' }
 
-$erlang_download_url = 'http://erlang.org/download/otp_win64_23.1.2.exe'
-$erlang_installer_path = Join-Path -Path $HOME -ChildPath 'otp_win64_23.1.2.exe'
+$erlang_download_url = 'https://github.com/erlang/otp/releases/download/OTP-24.2.1/otp_win64_24.2.1.exe'
+$erlang_installer_path = Join-Path -Path $HOME -ChildPath 'otp_win64_24.2.1.exe'
 $erlang_install_dir = Join-Path -Path $HOME -ChildPath 'erlang'
 
 Write-Host '[INFO] Downloading Erlang...'
@@ -25,8 +25,8 @@ else
 Write-Host "[INFO] Installing Erlang to $erlang_install_dir..."
 & $erlang_installer_path '/S' "/D=$erlang_install_dir" | Out-Null
 
-$rabbitmq_installer_download_url = 'https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.8.5/rabbitmq-server-3.8.9.exe'
-$rabbitmq_installer_path = Join-Path -Path $HOME -ChildPath 'rabbitmq-server-3.8.9.exe'
+$rabbitmq_installer_download_url = 'https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.9.13/rabbitmq-server-3.9.13.exe'
+$rabbitmq_installer_path = Join-Path -Path $HOME -ChildPath 'rabbitmq-server-3.9.13.exe'
 
 $erlang_reg_path = 'HKLM:\SOFTWARE\Ericsson\Erlang'
 if (Test-Path 'HKLM:\SOFTWARE\WOW6432Node\')
@@ -36,6 +36,7 @@ if (Test-Path 'HKLM:\SOFTWARE\WOW6432Node\')
 $erlang_erts_version = Get-ChildItem -Path $erlang_reg_path -Name
 $erlang_home = (Get-ItemProperty -LiteralPath $erlang_reg_path\$erlang_erts_version).'(default)'
 
+Write-Host "[INFO] Setting ERLANG_HOME to $erlang_home"
 $env:ERLANG_HOME = $erlang_home
 [Environment]::SetEnvironmentVariable('ERLANG_HOME', $erlang_home, 'Machine')
 
@@ -69,33 +70,34 @@ Write-Host '[INFO] Installing and starting RabbitMQ with default config'
 & $rabbitmq_installer_path '/S' | Out-Null
 (Get-Service -Name RabbitMQ).Status
 
-Write-Host '[INFO] Setting RABBITMQ_RABBITMQCTL_PATH'
-
 $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ'
 if (Test-Path 'HKLM:\SOFTWARE\WOW6432Node\')
 {
     $regPath = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ'
 }
-$path = Split-Path -Parent (Get-ItemProperty $regPath 'UninstallString').UninstallString
+$rabbitmq_base_path = Split-Path -Parent (Get-ItemProperty $regPath 'UninstallString').UninstallString
 $rabbitmq_version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
 
-$rabbitmq_home = "$path\rabbitmq_server-$rabbitmq_version"
+$rabbitmq_home = Join-Path -Path $rabbitmq_base_path -ChildPath "rabbitmq_server-$rabbitmq_version"
+Write-Host "[INFO] Setting RABBITMQ_HOME to $rabbitmq_home"
 [Environment]::SetEnvironmentVariable('RABBITMQ_HOME', $rabbitmq_home, 'Machine')
 $env:RABBITMQ_HOME = $rabbitmq_home
 
-$rabbitmqctl_path = "$path\rabbitmq_server-$rabbitmq_version\sbin\rabbitmqctl.bat"
+$rabbitmqctl_path = Join-Path -Path $rabbitmq_base_path -ChildPath "rabbitmq_server-$rabbitmq_version" | Join-Path -ChildPath 'sbin' | Join-Path -ChildPath 'rabbitmqctl.bat'
+
 [Environment]::SetEnvironmentVariable('RABBITMQ_RABBITMQCTL_PATH', $rabbitmqctl_path, 'Machine')
+Write-Host "[INFO] Setting RABBITMQ_RABBITMQCTL_PATH to $rabbitmqctl_path"
 $env:RABBITMQ_RABBITMQCTL_PATH = $rabbitmqctl_path
 
 $epmd_running = $false
 [int]$count = 1
 
-$epmd = [System.IO.Path]::Combine($erlang_home, "erts-$erlang_erts_version", "bin", "epmd.exe")
+$epmd_exe = Join-Path -Path $erlang_home -ChildPath "erts-$erlang_erts_version" | Join-Path -ChildPath 'bin' | Join-Path -ChildPath 'epmd.exe'
 
-Write-Host "[INFO] Waiting for epmd ($epmd) to report that RabbitMQ has started"
+Write-Host "[INFO] Waiting for epmd ($epmd_exe) to report that RabbitMQ has started"
 
 Do {
-    $epmd_running = & $epmd -names | Select-String -CaseSensitive -SimpleMatch -Quiet -Pattern 'name rabbit at port'
+    $epmd_running = & $epmd_exe -names | Select-String -CaseSensitive -SimpleMatch -Quiet -Pattern 'name rabbit at port'
     if ($epmd_running -eq $true) {
         Write-Host '[INFO] epmd reports that RabbitMQ is running'
         break
@@ -133,5 +135,7 @@ Do {
 
 } While ($true)
 
-Write-Host '[INFO] Getting RabbitMQ status'
+$ErrorActionPreference = 'Continue'
+Write-Host '[INFO] Getting RabbitMQ status in 5 seconds...'
+Start-Sleep -Seconds 5
 & $rabbitmqctl_path status

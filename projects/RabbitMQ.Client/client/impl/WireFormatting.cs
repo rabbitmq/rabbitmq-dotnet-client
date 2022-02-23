@@ -32,6 +32,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using RabbitMQ.Client.Exceptions;
@@ -72,6 +73,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static decimal ReadDecimal(ReadOnlySpan<byte> span)
         {
+            byte scale = span[0];
             if (scale > 28)
             {
                 ThrowInvalidDecimalScale(scale);
@@ -118,13 +120,6 @@ namespace RabbitMQ.Client.Impl
             }
 
             return array;
-        }
-
-        public static decimal ReadDecimal(ReadOnlySpan<byte> span)
-        {
-            byte scale = span[0];
-            uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(span.Slice(1));
-            return AmqpToDecimal(scale, unsignedMantissa);
         }
 
         public static object ReadFieldValue(ReadOnlySpan<byte> span, out int bytesRead)
