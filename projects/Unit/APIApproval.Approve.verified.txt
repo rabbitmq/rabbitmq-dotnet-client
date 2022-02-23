@@ -847,13 +847,13 @@ namespace RabbitMQ.Client.Logging
     {
         public static RabbitMQ.Client.Logging.RabbitMqClientEventSource Log;
         public RabbitMqClientEventSource() { }
-        [System.Diagnostics.Tracing.Event(3, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Error, Message="ERROR")]
+        [System.Diagnostics.Tracing.Event(3, Keywords=System.Diagnostics.Tracing.EventKeywords.None, Level=System.Diagnostics.Tracing.EventLevel.Error, Message="ERROR")]
         public void Error(string message, RabbitMQ.Client.Logging.RabbitMqExceptionDetail ex) { }
         [System.Diagnostics.Tracing.NonEvent]
         public void Error(string message, System.Exception ex) { }
-        [System.Diagnostics.Tracing.Event(1, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Informational, Message="INFO")]
+        [System.Diagnostics.Tracing.Event(1, Keywords=System.Diagnostics.Tracing.EventKeywords.None, Level=System.Diagnostics.Tracing.EventLevel.Informational, Message="INFO")]
         public void Info(string message) { }
-        [System.Diagnostics.Tracing.Event(2, Keywords=System.Diagnostics.Tracing.EventKeywords.None | System.Diagnostics.Tracing.EventKeywords.All, Level=System.Diagnostics.Tracing.EventLevel.Warning, Message="WARN")]
+        [System.Diagnostics.Tracing.Event(2, Keywords=System.Diagnostics.Tracing.EventKeywords.None, Level=System.Diagnostics.Tracing.EventLevel.Warning, Message="WARN")]
         public void Warn(string message) { }
         public class Keywords
         {
