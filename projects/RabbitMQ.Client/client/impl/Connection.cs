@@ -108,11 +108,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public bool IsOpen => CloseReason is null;
 
         public int LocalPort => _frameHandler.LocalPort;
-
-        ///<summary>Another overload of a Protocol property, useful
-        ///for exposing a tighter type.</summary>
-        internal ProtocolBase Protocol => (ProtocolBase)Endpoint.Protocol;
-
         public int RemotePort => _frameHandler.RemotePort;
 
         public IDictionary<string, object?>? ServerProperties { get; private set; }
@@ -122,6 +117,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
         IProtocol IConnection.Protocol => Endpoint.Protocol;
+
+        ///<summary>Another overload of a Protocol property, useful
+        ///for exposing a tighter type.</summary>
+        internal ProtocolBase Protocol => (ProtocolBase)Endpoint.Protocol;
+
+        ///<summary>Used for testing only.</summary>
+        internal IFrameHandler FrameHandler
+        {
+            get { return _frameHandler; }
+        }
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
         {
@@ -259,7 +264,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///</para>
         ///<para>
         ///Timeout determines how much time internal close operations should be given
-        ///to complete. System.Threading.Timeout.InfiniteTimeSpan value means infinity.
+        ///to complete.
         ///</para>
         ///</remarks>
         internal void Close(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
@@ -279,8 +284,11 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     // Try to send connection.close wait for CloseOk in the MainLoop
-                    var cmd = new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0);
-                    _session0.Transmit(ref cmd);
+                    if (!_closed)
+                    {
+                        var cmd = new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0);
+                        _session0.Transmit(ref cmd);
+                    }
                 }
                 catch (AlreadyClosedException)
                 {

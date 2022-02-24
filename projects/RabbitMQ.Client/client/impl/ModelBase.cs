@@ -742,7 +742,7 @@ namespace RabbitMQ.Client.Impl
             if (m_connectionStartCell is null)
             {
                 var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
-                Session.Connection.Close(reason, false, Timeout.InfiniteTimeSpan);
+                Session.Connection.Close(reason, false, TimeSpan.FromSeconds(30));
             }
 
             var method = new ConnectionStart(cmd.MethodBytes.Span);
