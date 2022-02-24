@@ -65,12 +65,18 @@
 <p>Updating the content in the <code>_site</code> submodule (which is this repository&#39;s <code>gh-pages</code> branch) is a manual process that must be done on Windows (as of docfx <code>2.31</code>):</p>
 <pre><code>cd C:\path\to\rabbitmq-dotnet-client`
 git submodule update --init
+pushd _site
+git remote add origin-ssh git@github.com:rabbitmq/rabbitmq-dotnet-client.git
+git checkout --track origin-ssh/gh-pages
+popd
 .\build.bat
 docfx.exe
-cd _site
+pushd _site
 git commit -a -m &#39;rabbitmq-dotnet-client docs vX.Y.Z&#39;
-cd ..
+git push origin-ssh
+popd
 git commit -a -m &#39;rabbitmq-dotnet-client docs vX.Y.Z&#39;
+git push
 </code></pre></article>
           </div>
           
@@ -79,7 +85,7 @@ git commit -a -m &#39;rabbitmq-dotnet-client docs vX.Y.Z&#39;
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/APIDOCS.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-6.2.4/APIDOCS.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>
