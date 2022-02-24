@@ -81,7 +81,16 @@ namespace RabbitMQ.Client.Framing.Impl
             };
 
             _mainLoopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
-            Open();
+            try
+            {
+                Open();
+            }
+            catch
+            {
+                var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen");
+                Close(ea, true, TimeSpan.FromSeconds(5));
+                throw;
+            }
         }
 
         public Guid Id => _id;
