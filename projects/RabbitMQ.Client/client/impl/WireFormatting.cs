@@ -428,7 +428,7 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength);
+                    int bytesWritten = val.Length > 0 ? Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength) : 0;
                     span[0] = (byte)bytesWritten;
                     return bytesWritten + 1;
                 }
@@ -441,12 +441,20 @@ namespace RabbitMQ.Client.Impl
 
         public static unsafe int WriteLongstr(Span<byte> span, string val)
         {
+            int maxLength = span.Length - 4;
             fixed (char* chars = val)
             fixed (byte* bytes = &span.Slice(4).GetPinnableReference())
             {
-                int bytesWritten = Encoding.UTF8.GetBytes(chars, val.Length, bytes, span.Length);
-                NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
-                return bytesWritten + 4;
+                try
+                {
+                    int bytesWritten = val.Length > 0 ? Encoding.UTF8.GetBytes(chars, val.Length, bytes, maxLength) : 0;
+                    NetworkOrderSerializer.WriteUInt32(span, (uint)bytesWritten);
+                    return bytesWritten + 4;
+                }
+                catch (ArgumentException)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(val), val, $"Value exceeds the maximum allowed length of {maxLength} bytes.");
+                }
             }
         }
 
