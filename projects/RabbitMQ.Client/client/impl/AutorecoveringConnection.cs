@@ -163,6 +163,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ToString()
             => $"AutorecoveringConnection({InnerConnection.Id},{Endpoint},{GetHashCode()})";
 
+        internal IFrameHandler FrameHandler => InnerConnection.FrameHandler;
+
         internal void Init()
         {
             Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));

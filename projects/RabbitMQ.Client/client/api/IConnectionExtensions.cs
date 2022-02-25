@@ -19,7 +19,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static void Close(this IConnection connection)
         {
-            connection.Close(Constants.ReplySuccess, "Goodbye", Timeout.InfiniteTimeSpan, false);
+            connection.Close(Constants.ReplySuccess, "Goodbye", TimeSpan.FromSeconds(30), false);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static void Close(this IConnection connection, ushort reasonCode, string reasonText)
         {
-            connection.Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan, false);
+            connection.Close(reasonCode, reasonText, TimeSpan.FromSeconds(30), false);
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static void Abort(this IConnection connection)
         {
-            connection.Close(Constants.ReplySuccess, "Connection close forced", Timeout.InfiniteTimeSpan, true);
+            connection.Close(Constants.ReplySuccess, "Connection close forced", TimeSpan.FromSeconds(5), true);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static void Abort(this IConnection connection, ushort reasonCode, string reasonText)
         {
-            connection.Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan, true);
+            connection.Close(reasonCode, reasonText, TimeSpan.FromSeconds(5), true);
         }
 
         /// <summary>

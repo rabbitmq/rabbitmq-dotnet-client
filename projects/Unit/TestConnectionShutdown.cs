@@ -33,6 +33,7 @@ using System;
 using System.Threading;
 
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing.Impl;
 
 using Xunit;
 
@@ -41,6 +42,61 @@ namespace RabbitMQ.Client.Unit
 
     public class TestConnectionShutdown : IntegrationFixture
     {
+        [Fact]
+        public void TestCleanClosureWithSocketClosedOutOfBand()
+        {
+            _conn = CreateAutorecoveringConnection();
+            _model = _conn.CreateModel();
+
+            var latch = new ManualResetEventSlim(false);
+            _model.ModelShutdown += (model, args) => {
+                latch.Set();
+            };
+
+            var c = (AutorecoveringConnection)_conn;
+            c.FrameHandler.Close();
+
+            _conn.Close(TimeSpan.FromSeconds(4));
+            Wait(latch, TimeSpan.FromSeconds(5));
+        }
+
+        [Fact]
+        public void TestAbortWithSocketClosedOutOfBand()
+        {
+            _conn = CreateAutorecoveringConnection();
+            _model = _conn.CreateModel();
+
+            var latch = new ManualResetEventSlim(false);
+            _model.ModelShutdown += (model, args) => {
+                latch.Set();
+            };
+
+            var c = (AutorecoveringConnection)_conn;
+            c.FrameHandler.Close();
+
+            _conn.Abort();
+            // default Connection.Abort() timeout and then some
+            Wait(latch, TimeSpan.FromSeconds(6));
+        }
+
+        [Fact]
+        public void TestDisposedWithSocketClosedOutOfBand()
+        {
+            _conn = CreateAutorecoveringConnection();
+            _model = _conn.CreateModel();
+
+            var latch = new ManualResetEventSlim(false);
+            _model.ModelShutdown += (model, args) => {
+                latch.Set();
+            };
+
+            var c = (AutorecoveringConnection)_conn;
+            c.FrameHandler.Close();
+
+            _conn.Dispose();
+            Wait(latch, TimeSpan.FromSeconds(3));
+        }
+
         [Fact]
         public void TestShutdownSignalPropagationToChannels()
         {
