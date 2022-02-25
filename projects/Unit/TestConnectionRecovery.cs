@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit
         private readonly ushort _closeAtCount = 16;
         private string _queueName;
 
-        public TestConnectionRecovery()
+        public TestConnectionRecovery() : base()
         {
             var rnd = new Random();
             _messageBody = new byte[4096];
@@ -68,10 +68,19 @@ namespace RabbitMQ.Client.Unit
             Model.QueueDelete(_queueName);
         }
 
-        [TearDown]
-        public void CleanUp()
+        protected override void ReleaseResources()
         {
-            Conn.Close();
+            if (Model.IsOpen)
+            {
+                Model.Close();
+            }
+
+            if (Conn.IsOpen)
+            {
+                Conn.Close();
+            }
+
+            Unblock();
         }
 
         [Test]
@@ -1106,11 +1115,6 @@ namespace RabbitMQ.Client.Unit
             aconn.ConnectionShutdown += (c, args) => latch.Set();
 
             return latch;
-        }
-
-        protected override void ReleaseResources()
-        {
-            Unblock();
         }
 
         internal void RestartServerAndWaitForRecovery()

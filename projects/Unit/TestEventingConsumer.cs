@@ -38,7 +38,11 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestEventingConsumer : IntegrationFixture {
+    public class TestEventingConsumer : IntegrationFixture
+    {
+        public TestEventingConsumer() : base()
+        {
+        }
 
         [Test]
         public void TestEventingConsumerRegistrationEvents()

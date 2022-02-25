@@ -188,7 +188,11 @@ namespace RabbitMQ.Client.Impl
         {
             lock (_semaphore)
             {
-                if (!_closed)
+                if (_closed || _socket == null)
+                {
+                    return;
+                }
+                else
                 {
                     try
                     {

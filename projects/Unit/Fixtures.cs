@@ -42,12 +42,10 @@ using System.Threading;
 
 using NUnit.Framework;
 
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class IntegrationFixture
     {
         internal IConnectionFactory ConnFactory;
@@ -56,6 +54,12 @@ namespace RabbitMQ.Client.Unit
 
         internal Encoding encoding = new UTF8Encoding();
         public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
+        protected readonly string _testDisplayName;
+
+        public IntegrationFixture()
+        {
+            _testDisplayName = TestContext.CurrentContext.Test.FullName;
+        }
 
         [SetUp]
         public virtual void Init()
@@ -72,6 +76,7 @@ namespace RabbitMQ.Client.Unit
             {
                 Model.Close();
             }
+
             if(Conn.IsOpen)
             {
                 Conn.Close();
@@ -106,7 +111,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = interval
             };
-            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
@@ -119,7 +124,7 @@ namespace RabbitMQ.Client.Unit
                 RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
                 NetworkRecoveryInterval = interval
             };
-            return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
@@ -132,7 +137,7 @@ namespace RabbitMQ.Client.Unit
                 RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
                 NetworkRecoveryInterval = RECOVERY_INTERVAL
             };
-            return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection(endpoints, $"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
@@ -143,7 +148,7 @@ namespace RabbitMQ.Client.Unit
                 TopologyRecoveryEnabled = false,
                 NetworkRecoveryInterval = RECOVERY_INTERVAL
             };
-            return (AutorecoveringConnection)cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal IConnection CreateNonRecoveringConnection()
@@ -153,7 +158,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = false,
                 TopologyRecoveryEnabled = false
             };
-            return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal IConnection CreateConnectionWithContinuationTimeout(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)
@@ -163,7 +168,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = automaticRecoveryEnabled,
                 ContinuationTimeout = continuationTimeout
             };
-            return cf.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            return cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         //
@@ -177,7 +182,7 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = true
             };
 
-            var connection = (AutorecoveringConnection)factory.CreateConnection($"UNIT_CONN:{Guid.NewGuid()}");
+            var connection = (AutorecoveringConnection)factory.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
             try
             {
                 action(connection);

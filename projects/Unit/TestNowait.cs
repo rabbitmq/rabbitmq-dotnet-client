@@ -34,7 +34,12 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestNoWait : IntegrationFixture {
+    public class TestNoWait : IntegrationFixture
+    {
+        public TestNoWait() : base()
+        {
+        }
+
         [Test]
         public void TestQueueDeclareNoWait()
         {

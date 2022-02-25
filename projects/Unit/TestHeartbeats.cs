@@ -39,9 +39,13 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    internal class TestHeartbeats : IntegrationFixture
+    public class TestHeartbeats : IntegrationFixture
     {
         private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(2);
+
+        public TestHeartbeats() : base()
+        {
+        }
 
         [Test, Category("LongRunning"), MaxTimeAttribute(35000)]
         public void TestThatHeartbeatWriterUsesConfigurableInterval()

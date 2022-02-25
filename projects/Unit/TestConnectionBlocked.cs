@@ -44,11 +44,14 @@ namespace RabbitMQ.Client.Unit
         private readonly object _lockObject = new object();
         private bool _notified;
 
+        public TestConnectionBlocked() : base()
+        {
+        }
+
         public void HandleBlocked(object sender, ConnectionBlockedEventArgs args)
         {
             Unblock();
         }
-
 
         public void HandleUnblocked(object sender, EventArgs ea)
         {

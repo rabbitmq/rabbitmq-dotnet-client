@@ -42,6 +42,10 @@ namespace RabbitMQ.Client.Unit
     {
         private static Exception TestException = new Exception("oops");
 
+        public TestAsyncConsumerExceptions() : base()
+        {
+        }
+
         protected void TestExceptionHandlingWith(IBasicConsumer consumer,
             Action<IModel, string, IBasicConsumer, string> action)
         {
