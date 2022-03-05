@@ -32,11 +32,16 @@
 using System.Threading;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
-    public class TestInvalidAck : IntegrationFixture {
+    public class TestInvalidAck : IntegrationFixture
+    {
+        public TestInvalidAck(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void TestAckWithUnknownConsumerTagAndMultipleFalse()

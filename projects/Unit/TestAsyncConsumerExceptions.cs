@@ -36,13 +36,17 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestAsyncConsumerExceptions : IntegrationFixture
     {
         private static readonly Exception TestException = new Exception("oops");
+
+        public TestAsyncConsumerExceptions(ITestOutputHelper output) : base(output)
+        {
+        }
 
         protected void TestExceptionHandlingWith(IBasicConsumer consumer,
             Action<IModel, string, IBasicConsumer, string> action)

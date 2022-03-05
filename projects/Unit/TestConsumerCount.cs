@@ -32,11 +32,16 @@
 using RabbitMQ.Client.Events;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
     public class TestConsumerCount : IntegrationFixture
     {
+        public TestConsumerCount(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestConsumerCountMethod()
         {

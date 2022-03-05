@@ -30,12 +30,15 @@
 //---------------------------------------------------------------------------
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestConfirmSelect : IntegrationFixture
     {
+        public TestConfirmSelect(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void TestConfirmSelectIdempotency()

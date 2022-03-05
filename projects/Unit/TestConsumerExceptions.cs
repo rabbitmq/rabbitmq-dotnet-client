@@ -33,6 +33,7 @@ using System;
 using System.Threading;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -124,6 +125,10 @@ namespace RabbitMQ.Client.Unit
             WaitOn(o);
 
             Assert.True(notified);
+        }
+
+        public TestConsumerExceptions(ITestOutputHelper output) : base(output)
+        {
         }
 
         [Fact]

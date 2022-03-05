@@ -34,15 +34,19 @@ using System.Collections.Generic;
 using System.Threading;
 
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Framing;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
     public class TestConsumerOperationDispatch : IntegrationFixture
     {
+        public TestConsumerOperationDispatch(ITestOutputHelper output) : base(output)
+        {
+        }
+
         private readonly string _x = "dotnet.tests.consumer-operation-dispatch.fanout";
         private readonly List<IModel> _channels = new List<IModel>();
         private readonly List<string> _queues = new List<string>();

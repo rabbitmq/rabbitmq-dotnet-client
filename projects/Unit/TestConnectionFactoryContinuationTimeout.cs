@@ -32,12 +32,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestConnectionFactoryContinuationTimeout : IntegrationFixture
     {
+        public TestConnectionFactoryContinuationTimeout(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestConnectionFactoryContinuationTimeoutOnRecoveringConnection()
         {

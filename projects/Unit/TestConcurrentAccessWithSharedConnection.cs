@@ -35,6 +35,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -44,6 +45,10 @@ namespace RabbitMQ.Client.Unit
         internal const int Threads = 32;
         internal CountdownEvent _latch;
         internal TimeSpan _completionTimeout = TimeSpan.FromSeconds(90);
+
+        public TestConcurrentAccessWithSharedConnection(ITestOutputHelper output) : base(output)
+        {
+        }
 
         protected override void SetUp()
         {

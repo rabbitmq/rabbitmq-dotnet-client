@@ -39,29 +39,12 @@ using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
 
 using Xunit;
+using Xunit.Abstractions;
 
 #pragma warning disable 0618
 
 namespace RabbitMQ.Client.Unit
 {
-    [CollectionDefinition("NoParallelization", DisableParallelization = true)]
-    public class NoParallelizationCollection { }
-    class DisposableConnection : IDisposable
-    {
-        public DisposableConnection(AutorecoveringConnection c)
-        {
-            Connection = c;
-        }
-
-        public AutorecoveringConnection Connection { get; }
-
-        public void Dispose()
-        {
-            Connection.Close();
-        }
-    }
-
-    [Collection("NoParallelization")]
     public class TestConnectionRecovery : IntegrationFixture
     {
         private readonly byte[] _messageBody;
@@ -69,7 +52,7 @@ namespace RabbitMQ.Client.Unit
         private readonly ushort _closeAtCount = 16;
         private string _queueName;
 
-        public TestConnectionRecovery()
+        public TestConnectionRecovery(ITestOutputHelper output) : base(output)
         {
             var rnd = new Random();
             _messageBody = new byte[4096];
@@ -84,10 +67,20 @@ namespace RabbitMQ.Client.Unit
             _model.QueueDelete(_queueName);
         }
 
-        public override void Dispose()
+        protected override void ReleaseResources()
         {
-            _conn.Close();
+            // TODO LRB not really necessary
+            if (_model.IsOpen)
+            {
+                _model.Close();
+            }
 
+            if (_conn.IsOpen)
+            {
+                _conn.Close();
+            }
+
+            Unblock();
         }
 
         [Fact]
@@ -1094,11 +1087,6 @@ namespace RabbitMQ.Client.Unit
             aconn.ConnectionShutdown += (c, args) => latch.Set();
 
             return latch;
-        }
-
-        protected override void ReleaseResources()
-        {
-            Unblock();
         }
 
         internal void RestartServerAndWaitForRecovery()

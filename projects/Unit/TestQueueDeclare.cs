@@ -34,12 +34,15 @@ using System.Collections.Generic;
 using System.Threading;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestQueueDeclare : IntegrationFixture
     {
+        public TestQueueDeclare(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         [Trait("Category", "RequireSMP")]

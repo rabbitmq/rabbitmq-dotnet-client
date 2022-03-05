@@ -31,25 +31,85 @@
 
 using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
-    [Collection("NoParallelization")]
     public class TestConnectionBlocked : IntegrationFixture
     {
+        private readonly ManualResetEventSlim _connDisposed = new ManualResetEventSlim(false);
         private readonly object _lockObject = new object();
         private bool _notified;
+
+        public TestConnectionBlocked(ITestOutputHelper output) : base(output)
+        {
+        }
+
+        [Fact]
+        public void TestConnectionBlockedNotification()
+        {
+            _notified = false;
+            _conn.ConnectionBlocked += HandleBlocked;
+            _conn.ConnectionUnblocked += HandleUnblocked;
+
+            try
+            {
+                Block();
+
+                lock (_lockObject)
+                {
+                    if (!_notified)
+                    {
+                        Monitor.Wait(_lockObject, TimeSpan.FromSeconds(15));
+                    }
+                }
+
+                if (!_notified)
+                {
+                    Assert.True(false, "Unblock notification not received.");
+                }
+            }
+            finally
+            {
+                Unblock();
+            }
+        }
+
+        [Fact]
+        public void TestDisposeOnBlockedConnectionDoesNotHang()
+        {
+            _notified = false;
+
+            try
+            {
+                Block();
+
+                Task.Factory.StartNew(DisposeConnection);
+
+                if (!_connDisposed.Wait(TimeSpan.FromSeconds(20)))
+                {
+                    Assert.True(false, "Dispose must have finished within 20 seconds after starting");
+                }
+            }
+            finally
+            {
+                Unblock();
+            }
+        }
+
+        protected override void ReleaseResources()
+        {
+            Unblock();
+        }
 
         private void HandleBlocked(object sender, ConnectionBlockedEventArgs args)
         {
             Unblock();
         }
-
 
         private void HandleUnblocked(object sender, EventArgs ea)
         {
@@ -60,30 +120,10 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected override void ReleaseResources()
+        private void DisposeConnection()
         {
-            Unblock();
-        }
-
-        [Fact]
-        public void TestConnectionBlockedNotification()
-        {
-            _conn.ConnectionBlocked += HandleBlocked;
-            _conn.ConnectionUnblocked += HandleUnblocked;
-
-            Block();
-            lock (_lockObject)
-            {
-                if (!_notified)
-                {
-                    Monitor.Wait(_lockObject, TimeSpan.FromSeconds(15));
-                }
-            }
-            if (!_notified)
-            {
-                Unblock();
-                Assert.True(false, "Unblock notification not received.");
-            }
+            _conn.Dispose();
+            _connDisposed.Set();
         }
     }
 }

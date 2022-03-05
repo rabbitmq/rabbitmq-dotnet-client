@@ -36,12 +36,17 @@ using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Framing.Impl;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
     public class TestConnectionShutdown : IntegrationFixture
     {
+        public TestConnectionShutdown(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestCleanClosureWithSocketClosedOutOfBand()
         {

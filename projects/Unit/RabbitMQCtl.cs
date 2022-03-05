@@ -217,6 +217,7 @@ namespace RabbitMQ.Client.Unit
             StopRabbitMQ();
             Thread.Sleep(500);
             StartRabbitMQ();
+            AwaitRabbitMQ();
         }
 
         public static void StopRabbitMQ()
