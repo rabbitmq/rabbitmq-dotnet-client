@@ -236,15 +236,22 @@ namespace RabbitMQ.Client.Unit
             AutorecoveringConnection c = CreateAutorecoveringConnection();
             var latch = new AutoResetEvent(false);
             c.ConnectionRecoveryError += (o, args) => latch.Set();
-            StopRabbitMQ();
-            latch.WaitOne(30000); // we got the failed reconnection event.
-            bool triedRecoveryAfterClose = false;
-            c.Close();
-            Thread.Sleep(5000);
-            c.ConnectionRecoveryError += (o, args) => triedRecoveryAfterClose = true;
-            Thread.Sleep(10000);
-            Assert.False(triedRecoveryAfterClose);
-            StartRabbitMQ();
+
+            try
+            {
+                StopRabbitMQ();
+                latch.WaitOne(30000); // we got the failed reconnection event.
+                bool triedRecoveryAfterClose = false;
+                c.Close();
+                Thread.Sleep(5000);
+                c.ConnectionRecoveryError += (o, args) => triedRecoveryAfterClose = true;
+                Thread.Sleep(10000);
+                Assert.False(triedRecoveryAfterClose);
+            }
+            finally
+            {
+                StartRabbitMQ();
+            }
         }
 
         [Fact]
@@ -775,14 +782,21 @@ namespace RabbitMQ.Client.Unit
             ManualResetEventSlim recoveryLatch = PrepareForRecovery((AutorecoveringConnection)_conn);
 
             Assert.True(_conn.IsOpen);
-            StopRabbitMQ();
-            Console.WriteLine("Stopped RabbitMQ. About to sleep for multiple recovery intervals...");
-            Thread.Sleep(7000);
-            StartRabbitMQ();
+
+            try
+            {
+                StopRabbitMQ();
+                Console.WriteLine("Stopped RabbitMQ. About to sleep for multiple recovery intervals...");
+                Thread.Sleep(7000);
+            }
+            finally
+            {
+                StartRabbitMQ();
+            }
+
             Wait(shutdownLatch, TimeSpan.FromSeconds(30));
             Wait(recoveryLatch, TimeSpan.FromSeconds(30));
             Assert.True(_conn.IsOpen);
-
             Assert.True(counter >= 1);
         }
 
