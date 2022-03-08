@@ -668,6 +668,14 @@ namespace RabbitMQ.Client.Framing.Impl
             Init(fh);
         }
 
+        internal IFrameHandler FrameHandler
+        {
+            get
+            {
+                return _delegate.FrameHandler;
+            }
+        }
+
         private void Init(IFrameHandler fh)
         {
             if (_disposed)

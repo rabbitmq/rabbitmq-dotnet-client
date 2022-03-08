@@ -41,7 +41,7 @@ using RabbitMQ.Client.Framing;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    internal class TestConsumerOperationDispatch : IntegrationFixture
+    public class TestConsumerOperationDispatch : IntegrationFixture
     {
         private readonly string _x = "dotnet.tests.consumer-operation-dispatch.fanout";
         private readonly List<IModel> _channels = new List<IModel>();
@@ -55,6 +55,10 @@ namespace RabbitMQ.Client.Unit
         private const int N = 100;
 
         public static CountdownEvent counter = new CountdownEvent(Y);
+
+        public TestConsumerOperationDispatch() : base()
+        {
+        }
 
         [TearDown]
         protected override void ReleaseResources()

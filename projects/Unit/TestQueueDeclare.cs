@@ -38,7 +38,11 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestQueueDeclare : IntegrationFixture {
+    public class TestQueueDeclare : IntegrationFixture
+    {
+        public TestQueueDeclare() : base()
+        {
+        }
 
         [Test]
         [Category("RequireSMP")]

@@ -40,6 +40,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestExceptionMessages : IntegrationFixture
     {
+        public TestExceptionMessages() : base()
+        {
+        }
+
         [Test]
         public void TestAlreadyClosedExceptionMessage()
         {

@@ -35,12 +35,81 @@ using System.Threading;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
     public class TestConnectionShutdown : IntegrationFixture
     {
+        public TestConnectionShutdown() : base()
+        {
+        }
+
+        [Test]
+        public void TestCleanClosureWithSocketClosedOutOfBand()
+        {
+            using (IConnection conn = CreateAutorecoveringConnection())
+            {
+                using (IModel model = conn.CreateModel())
+                {
+                    var latch = new ManualResetEventSlim(false);
+                    model.ModelShutdown += (m, args) => {
+                        latch.Set();
+                    };
+
+                    var c = (AutorecoveringConnection)conn;
+                    c.FrameHandler.Close();
+
+                    conn.Close(TimeSpan.FromSeconds(4));
+                    Wait(latch, TimeSpan.FromSeconds(5));
+                }
+            }
+        }
+
+        [Test]
+        public void TestAbortWithSocketClosedOutOfBand()
+        {
+            using (IConnection conn = CreateAutorecoveringConnection())
+            {
+                using (IModel model = conn.CreateModel())
+                {
+                    var latch = new ManualResetEventSlim(false);
+                    model.ModelShutdown += (m, args) => {
+                        latch.Set();
+                    };
+
+                    var c = (AutorecoveringConnection)conn;
+                    c.FrameHandler.Close();
+
+                    conn.Abort();
+                    // default Connection.Abort() timeout and then some
+                    Wait(latch, TimeSpan.FromSeconds(6));
+                }
+            }
+        }
+
+        [Test]
+        public void TestDisposedWithSocketClosedOutOfBand()
+        {
+            using (IConnection conn = CreateAutorecoveringConnection())
+            {
+                using (IModel model = conn.CreateModel())
+                {
+                    var latch = new ManualResetEventSlim(false);
+                    model.ModelShutdown += (m, args) => {
+                        latch.Set();
+                    };
+
+                    var c = (AutorecoveringConnection)conn;
+                    c.FrameHandler.Close();
+
+                    conn.Dispose();
+                    Wait(latch, TimeSpan.FromSeconds(3));
+                }
+            }
+        }
+
         [Test]
         public void TestShutdownSignalPropagationToChannels()
         {

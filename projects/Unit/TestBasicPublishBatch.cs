@@ -35,8 +35,12 @@ using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
-    internal class TestBasicPublishBatch : IntegrationFixture
+    public class TestBasicPublishBatch : IntegrationFixture
     {
+        public TestBasicPublishBatch() : base()
+        {
+        }
+
         [Test]
         public void TestBasicPublishBatchSend()
         {

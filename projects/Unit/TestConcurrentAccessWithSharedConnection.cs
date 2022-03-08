@@ -42,10 +42,13 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
     {
-
         internal const int Threads = 32;
         internal CountdownEvent _latch;
         internal TimeSpan _completionTimeout = TimeSpan.FromSeconds(90);
+
+        public TestConcurrentAccessWithSharedConnection() : base()
+        {
+        }
 
         [SetUp]
         public override void Init()

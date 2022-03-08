@@ -129,7 +129,7 @@ namespace RabbitMQ.Client.Unit
 
         private void SendReceive(ConnectionFactory cf)
         {
-            using (IConnection conn = cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}"))
+            using (IConnection conn = cf.CreateConnection($"{this.GetType().FullName}:{Guid.NewGuid()}"))
             {
                 using (IModel ch = conn.CreateModel())
                 {

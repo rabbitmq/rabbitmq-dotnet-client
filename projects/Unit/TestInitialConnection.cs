@@ -40,6 +40,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestInitialConnection : IntegrationFixture
     {
+        public TestInitialConnection() : base()
+        {
+        }
+
         [Test]
         public void TestBasicConnectionRecoveryWithHostnameList()
         {

@@ -34,7 +34,11 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestConfirmSelect : IntegrationFixture {
+    public class TestConfirmSelect : IntegrationFixture
+    {
+        public TestConfirmSelect() : base()
+        {
+        }
 
         [Test]
         public void TestConfirmSelectIdempotency()

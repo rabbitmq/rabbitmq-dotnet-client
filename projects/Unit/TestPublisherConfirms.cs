@@ -43,6 +43,10 @@ namespace RabbitMQ.Client.Unit
     {
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
 
+        public TestPublisherConfirms() : base()
+        {
+        }
+
         [Test]
         public void TestWaitForConfirmsWithoutTimeout()
         {

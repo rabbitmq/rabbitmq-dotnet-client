@@ -39,7 +39,11 @@ using RabbitMQ.Client.Events;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    public class TestMainLoop : IntegrationFixture {
+    public class TestMainLoop : IntegrationFixture
+    {
+        public TestMainLoop() : base()
+        {
+        }
 
         private class FaultyConsumer : DefaultBasicConsumer
         {
