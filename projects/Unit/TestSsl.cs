@@ -42,7 +42,6 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestSsl
     {
-        private readonly string _testDisplayName;
         private readonly string _sslDir;
         private readonly string _certPassphrase;
         private readonly bool _sslConfigured;
