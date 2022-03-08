@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 
 using NUnit.Framework;
@@ -58,8 +59,7 @@ namespace RabbitMQ.Client.Unit
         {
             if (!LongRunningTestsEnabled())
             {
-                Console.WriteLine("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
-                return;
+                Assert.Ignore("RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
             }
 
             var cf = new ConnectionFactory()
@@ -70,15 +70,18 @@ namespace RabbitMQ.Client.Unit
             };
 
             string sslDir = IntegrationFixture.CertificatesDirectory();
-            if (null == sslDir)
+            string certPassphrase = Environment.GetEnvironmentVariable("PASSWORD");
+            bool sslConfigured = Directory.Exists(sslDir) &&
+                (false == string.IsNullOrEmpty(certPassphrase));
+            if (false == sslConfigured)
             {
-                Console.WriteLine("SSL_CERTS_DIR is not configured, skipping test");
-                return;
+                Assert.Ignore("SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
             }
-            cf.Ssl.ServerName = System.Net.Dns.GetHostName();
-            Assert.IsNotNull(sslDir);
-            cf.Ssl.CertPath = $"{sslDir}/client_key.p12";
-            cf.Ssl.CertPassphrase = Environment.GetEnvironmentVariable("PASSWORD");
+
+            string hostName = System.Net.Dns.GetHostName();
+            cf.Ssl.ServerName = hostName;
+            cf.Ssl.CertPath = $"{sslDir}/client_{hostName}_key.p12";
+            cf.Ssl.CertPassphrase = certPassphrase;
             cf.Ssl.Enabled = true;
 
             RunSingleConnectionTest(cf);
