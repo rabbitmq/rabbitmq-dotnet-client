@@ -30,48 +30,44 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using System.Net.Security;
+using System.Reflection;
 using System.Security.Authentication;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
+    [Collection("IntegrationFixture")]
     public class TestSsl
     {
-        private void SendReceive(ConnectionFactory cf)
+        private readonly ITestOutputHelper _output;
+        private readonly string _testDisplayName;
+        private readonly string _sslDir;
+        private readonly string _certPassphrase;
+        private readonly bool _sslConfigured;
+
+        public TestSsl(ITestOutputHelper output)
         {
-            using (IConnection conn = cf.CreateConnection())
-            {
-                IModel ch = conn.CreateModel();
+            _output = output;
+            var type = _output.GetType();
+            var testMember = type.GetField("test", BindingFlags.Instance | BindingFlags.NonPublic);
+            var test = (ITest)testMember.GetValue(output);
+            _testDisplayName = test.DisplayName;
 
-                ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-                string qName = ch.QueueDeclare();
-                ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
+            _sslDir = IntegrationFixture.CertificatesDirectory();
+            _certPassphrase = Environment.GetEnvironmentVariable("PASSWORD");
 
-                string message = "Hello C# SSL Client World";
-                byte[] msgBytes = System.Text.Encoding.UTF8.GetBytes(message);
-                ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", msgBytes);
-
-                bool autoAck = false;
-                BasicGetResult result = ch.BasicGet(qName, autoAck);
-                byte[] body = result.Body.ToArray();
-                string resultMessage = System.Text.Encoding.UTF8.GetString(body);
-
-                Assert.Equal(message, resultMessage);
-            }
+            _sslConfigured = Directory.Exists(_sslDir) &&
+                (false == string.IsNullOrEmpty(_certPassphrase));
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestServerVerifiedIgnoringNameMismatch()
         {
-            string sslDir = IntegrationFixture.CertificatesDirectory();
-            if (null == sslDir)
-            {
-                Console.WriteLine("SSL_CERTS_DIR is not configured, skipping test");
-                return;
-            }
+            Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
             ConnectionFactory cf = new ConnectionFactory { Port = 5671 };
             cf.Ssl.ServerName = "*";
@@ -80,15 +76,10 @@ namespace RabbitMQ.Client.Unit
             SendReceive(cf);
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestServerVerified()
         {
-            string sslDir = IntegrationFixture.CertificatesDirectory();
-            if (null == sslDir)
-            {
-                Console.WriteLine("SSL_CERTS_DIR is not configured, skipping test");
-                return;
-            }
+            Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
             ConnectionFactory cf = new ConnectionFactory { Port = 5671 };
             cf.Ssl.ServerName = System.Net.Dns.GetHostName();
@@ -96,35 +87,25 @@ namespace RabbitMQ.Client.Unit
             SendReceive(cf);
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestClientAndServerVerified()
         {
-            string sslDir = IntegrationFixture.CertificatesDirectory();
-            if (null == sslDir)
-            {
-                Console.WriteLine("SSL_CERTS_DIR is not configured, skipping test");
-                return;
-            }
+            Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
+            string hostName  = System.Net.Dns.GetHostName();
             ConnectionFactory cf = new ConnectionFactory { Port = 5671 };
-            cf.Ssl.ServerName = System.Net.Dns.GetHostName();
-            Assert.NotNull(sslDir);
-            cf.Ssl.CertPath = $"{sslDir}/client_key.p12";
-            cf.Ssl.CertPassphrase = Environment.GetEnvironmentVariable("PASSWORD");
+            cf.Ssl.ServerName = hostName;
+            cf.Ssl.CertPath = $"{_sslDir}/client_{hostName}_key.p12";
+            cf.Ssl.CertPassphrase = _certPassphrase;
             cf.Ssl.Enabled = true;
             SendReceive(cf);
         }
 
         // rabbitmq/rabbitmq-dotnet-client#46, also #44 and #45
-        [Fact]
+        [SkippableFact]
         public void TestNoClientCertificate()
         {
-            string sslDir = IntegrationFixture.CertificatesDirectory();
-            if (null == sslDir)
-            {
-                Console.WriteLine("SSL_CERTS_DIR is not configured, skipping test");
-                return;
-            }
+            Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
             ConnectionFactory cf = new ConnectionFactory
             {
@@ -142,6 +123,30 @@ namespace RabbitMQ.Client.Unit
             };
 
             SendReceive(cf);
+        }
+
+        private void SendReceive(ConnectionFactory cf)
+        {
+            using (IConnection conn = cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}"))
+            {
+                using (IModel ch = conn.CreateModel())
+                {
+                    ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
+                    string qName = ch.QueueDeclare();
+                    ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
+
+                    string message = "Hello C# SSL Client World";
+                    byte[] msgBytes = System.Text.Encoding.UTF8.GetBytes(message);
+                    ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", msgBytes);
+
+                    bool autoAck = false;
+                    BasicGetResult result = ch.BasicGet(qName, autoAck);
+                    byte[] body = result.Body.ToArray();
+                    string resultMessage = System.Text.Encoding.UTF8.GetString(body);
+
+                    Assert.Equal(message, resultMessage);
+                }
+            }
         }
     }
 }

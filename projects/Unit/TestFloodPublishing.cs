@@ -38,14 +38,21 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
+    [Collection("IntegrationFixture")]
     public class TestFloodPublishing
     {
+        private readonly ITestOutputHelper _output;
         private readonly byte[] _body = new byte[2048];
         private readonly TimeSpan _tenSeconds = TimeSpan.FromSeconds(10);
+
+        public TestFloodPublishing(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public void TestUnthrottledFloodPublishing()
@@ -89,7 +96,7 @@ namespace RabbitMQ.Client.Unit
                     finally
                     {
                         stopwatch.Stop();
-                        Console.WriteLine($"sent {i}, done in {stopwatch.Elapsed.TotalMilliseconds} ms");
+                        _output.WriteLine($"sent {i}, done in {stopwatch.Elapsed.TotalMilliseconds} ms");
                     }
 
                     Assert.True(conn.IsOpen);
@@ -97,7 +104,7 @@ namespace RabbitMQ.Client.Unit
                 }
             }
             closeWatch.Stop();
-            Console.WriteLine($"Closing took {closeWatch.Elapsed.TotalMilliseconds} ms");
+            _output.WriteLine($"Closing took {closeWatch.Elapsed.TotalMilliseconds} ms");
         }
 
         [Fact]

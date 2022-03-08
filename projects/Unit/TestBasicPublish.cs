@@ -8,7 +8,6 @@ using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestBasicPublish
     {
         [Fact]
