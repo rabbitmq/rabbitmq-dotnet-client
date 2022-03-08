@@ -29,14 +29,15 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using NUnit.Framework;
-using RabbitMQ.Client.Events;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using NUnit.Framework;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Unit
 {
