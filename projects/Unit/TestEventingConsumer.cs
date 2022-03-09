@@ -38,7 +38,6 @@ using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestEventingConsumer : IntegrationFixture
     {
         public TestEventingConsumer(ITestOutputHelper output) : base(output)
