@@ -360,14 +360,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                if (_delegate == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return _delegate.IsClosed;
-                }
+                return !IsOpen;
             }
         }
 
