@@ -132,7 +132,7 @@ namespace RabbitMQ.Client.Impl
             set => InnerChannel.DefaultConsumer = value;
         }
 
-        public bool IsClosed => _innerChannel != null && _innerChannel.IsClosed;
+        public bool IsClosed => !IsOpen;
 
         public bool IsOpen => _innerChannel != null && _innerChannel.IsOpen;
 
