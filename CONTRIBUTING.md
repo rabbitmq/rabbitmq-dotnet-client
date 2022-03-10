@@ -67,7 +67,7 @@ Here's the recommended workflow:
    repositories are involved in addressing the same issue, please use the same branch name
    in each repository
  * Create a branch with a descriptive name in the relevant repositories
- * Make your changes, run tests (usually with `make tests`), commit with a
+ * Make your changes, [run tests](RUNNING_TESTS.md), commit with a
    [descriptive message][git-commit-msgs], push to your fork
  * Submit pull requests with an explanation what has been changed and **why**
  * Submit a filled out and signed [Contributor Agreement][ca-agreement] if needed (see below)
