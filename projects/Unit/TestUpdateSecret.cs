@@ -31,7 +31,7 @@
 
 using System;
 using System.Text;
-
+using RabbitMQ.Client.Framing.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Unit
 
             _conn.UpdateSecret("new-secret", "Test Case");
 
-            Assert.Equal("new-secret", _connFactory.Password);
+            Assert.Equal("new-secret", ((AutorecoveringConnection)_conn).Password);
         }
 
         private bool RabbitMQ380OrHigher()

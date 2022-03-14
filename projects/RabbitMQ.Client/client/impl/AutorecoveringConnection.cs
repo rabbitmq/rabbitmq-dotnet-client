@@ -32,7 +32,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 
@@ -40,15 +39,14 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal sealed partial class AutorecoveringConnection : IConnection
     {
-        private readonly ConnectionFactory _factory;
-
-        private Connection _innerConnection;
-        private bool _disposed;
-
+        private readonly ConnectionConfig _config;
         // list of endpoints provided on initial connection.
         // on re-connection, the next host in the line is chosen using
         // IHostnameSelector
-        private IEndpointResolver _endpoints;
+        private readonly IEndpointResolver _endpoints;
+
+        private Connection _innerConnection;
+        private bool _disposed;
 
         private Connection InnerConnection
         {
@@ -59,16 +57,24 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
+        public AutorecoveringConnection(ConnectionConfig config, IEndpointResolver endpoints)
         {
-            _factory = factory;
-            ClientProvidedName = clientProvidedName;
+            _config = config;
+            _endpoints = endpoints;
 
-            Action<Exception, string> onException = (exception, context) => _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+            IFrameHandler fh = _endpoints.SelectOne(_config.FrameHandlerFactory);
+
+            _innerConnection = new Connection(_config, fh);
+
+            Action<Exception, string> onException =
+                (exception, context) =>
+                _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _recoverySucceededWrapper = new EventingWrapper<EventArgs>("OnConnectionRecovery", onException);
             _connectionRecoveryErrorWrapper = new EventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onException);
             _consumerTagChangeAfterRecoveryWrapper = new EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onException);
             _queueNameChangeAfterRecoveryWrapper = new EventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onException);
+
+            ConnectionShutdown += HandleConnectionShutdown;
         }
 
         public event EventHandler<EventArgs> RecoverySucceeded
@@ -123,7 +129,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private EventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangeAfterRecoveryWrapper;
 
-        public string ClientProvidedName { get; }
+        public string ClientProvidedName => _config.ClientProvidedName;
 
         public ushort ChannelMax => InnerConnection.ChannelMax;
 
@@ -152,10 +158,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public RecoveryAwareModel CreateNonRecoveringModel()
         {
             ISession session = InnerConnection.CreateSession();
-            var result = new RecoveryAwareModel(_factory.DispatchConsumersAsync, _factory.ConsumerDispatchConcurrency, session)
-            {
-                ContinuationTimeout = _factory.ContinuationTimeout
-            };
+            var result = new RecoveryAwareModel(_config, session);
             result._Private_ChannelOpen();
             return result;
         }
@@ -165,19 +168,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal IFrameHandler FrameHandler => InnerConnection.FrameHandler;
 
-        internal void Init()
-        {
-            Init(_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { _factory.Endpoint }));
-        }
-
-        internal void Init(IEndpointResolver endpoints)
-        {
-            ThrowIfDisposed();
-            _endpoints = endpoints;
-            IFrameHandler fh = endpoints.SelectOne(_factory.CreateFrameHandler);
-            _innerConnection = new Connection(_factory, fh, ClientProvidedName);
-            ConnectionShutdown += HandleConnectionShutdown;
-        }
+        internal string Password => _config.Password;
 
         ///<summary>API-side invocation of updating the secret.</summary>
         public void UpdateSecret(string newSecret, string reason)
@@ -185,7 +176,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ThrowIfDisposed();
             EnsureIsOpen();
             _innerConnection.UpdateSecret(newSecret, reason);
-            _factory.Password = newSecret;
+            _config.Password = newSecret;
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>

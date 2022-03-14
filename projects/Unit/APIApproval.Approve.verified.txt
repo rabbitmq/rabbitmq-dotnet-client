@@ -127,6 +127,25 @@ namespace RabbitMQ.Client
         public CachedString(string value) { }
         public CachedString(string value, System.ReadOnlyMemory<byte> bytes) { }
     }
+    public sealed class ConnectionConfig
+    {
+        public System.Collections.Generic.IList<RabbitMQ.Client.IAuthMechanismFactory> AuthMechanisms { get; }
+        public System.Collections.Generic.IDictionary<string, object?> ClientProperties { get; }
+        public string? ClientProvidedName { get; }
+        public System.TimeSpan ContinuationTimeout { get; }
+        public int DispatchConsumerConcurrency { get; }
+        public bool DispatchConsumersAsync { get; }
+        public System.TimeSpan HandshakeContinuationTimeout { get; }
+        public System.TimeSpan HeartbeatInterval { get; }
+        public ushort MaxChannelCount { get; }
+        public uint MaxFrameSize { get; }
+        public System.TimeSpan NetworkRecoveryInterval { get; }
+        public string Password { get; }
+        public System.TimeSpan RequestedConnectionTimeout { get; }
+        public bool TopologyRecoveryEnabled { get; }
+        public string UserName { get; }
+        public string VirtualHost { get; }
+    }
     public sealed class ConnectionFactory : RabbitMQ.Client.ConnectionFactoryBase, RabbitMQ.Client.IConnectionFactory
     {
         public const ushort DefaultChannelMax = 2047;
@@ -244,7 +263,7 @@ namespace RabbitMQ.Client
     public class ExternalMechanism : RabbitMQ.Client.IAuthMechanism
     {
         public ExternalMechanism() { }
-        public byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.IConnectionFactory factory) { }
+        public byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.ConnectionConfig config) { }
     }
     public class ExternalMechanismFactory : RabbitMQ.Client.IAuthMechanismFactory
     {
@@ -290,7 +309,7 @@ namespace RabbitMQ.Client
     }
     public interface IAuthMechanism
     {
-        byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.IConnectionFactory factory);
+        byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.ConnectionConfig config);
     }
     public interface IAuthMechanismFactory
     {
@@ -551,7 +570,7 @@ namespace RabbitMQ.Client
     public class PlainMechanism : RabbitMQ.Client.IAuthMechanism
     {
         public PlainMechanism() { }
-        public byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.IConnectionFactory factory) { }
+        public byte[] handleChallenge(byte[] challenge, RabbitMQ.Client.ConnectionConfig config) { }
     }
     public class PlainMechanismFactory : RabbitMQ.Client.IAuthMechanismFactory
     {

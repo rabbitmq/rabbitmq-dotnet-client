@@ -74,15 +74,15 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             RabbitMqClientEventSource.Log.ConnectionOpened();
             StartAndTune();
-            _model0.ConnectionOpen(_factory.VirtualHost);
+            _model0.ConnectionOpen(_config.VirtualHost);
         }
 
         private void StartAndTune()
         {
             var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
             _model0.m_connectionStartCell = connectionStartCell;
-            _model0.HandshakeContinuationTimeout = _factory.HandshakeContinuationTimeout;
-            _frameHandler.ReadTimeout = _factory.HandshakeContinuationTimeout;
+            _model0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
+            _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.SendHeader();
 
             ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
@@ -107,18 +107,13 @@ namespace RabbitMQ.Client.Framing.Impl
             bool tuned = false;
             try
             {
-                string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms, 0, connectionStart.m_mechanisms.Length);
-                string[] mechanisms = mechanismsString.Split(' ');
-                IAuthMechanismFactory mechanismFactory = _factory.AuthMechanismFactory(mechanisms);
-                if (mechanismFactory is null)
-                {
-                    throw new IOException($"No compatible authentication mechanism found - server offered [{mechanismsString}]");
-                }
+                string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms);
+                IAuthMechanismFactory mechanismFactory = GetAuthMechanismFactory(mechanismsString);
                 IAuthMechanism mechanism = mechanismFactory.GetInstance();
                 byte[]? challenge = null;
                 do
                 {
-                    byte[] response = mechanism.handleChallenge(challenge, _factory);
+                    byte[] response = mechanism.handleChallenge(challenge, _config);
                     ConnectionSecureOrTune res;
                     if (challenge is null)
                     {
@@ -154,20 +149,34 @@ namespace RabbitMQ.Client.Framing.Impl
                     "Possibly caused by authentication failure", e);
             }
 
-            ushort channelMax = (ushort)NegotiatedMaxValue(_factory.RequestedChannelMax, connectionTune.m_channelMax);
+            ushort channelMax = (ushort)NegotiatedMaxValue(_config.MaxChannelCount, connectionTune.m_channelMax);
             _sessionManager = new SessionManager(this, channelMax);
 
-            uint frameMax = NegotiatedMaxValue(_factory.RequestedFrameMax, connectionTune.m_frameMax);
+            uint frameMax = NegotiatedMaxValue(_config.MaxFrameSize, connectionTune.m_frameMax);
             FrameMax = frameMax;
             MaxPayloadSize = frameMax == 0 ? int.MaxValue : (int)frameMax - Client.Impl.Framing.BaseFrameSize;
 
-            uint heartbeatInSeconds = NegotiatedMaxValue((uint)_factory.RequestedHeartbeat.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
+            uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
             _model0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
 
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();
+        }
+
+        private IAuthMechanismFactory GetAuthMechanismFactory(string supportedMechanismNames)
+        {
+            // Our list is in order of preference, the server one is not.
+            foreach (var factory in _config.AuthMechanisms)
+            {
+                if (supportedMechanismNames.Contains(factory.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return factory;
+                }
+            }
+
+            throw new IOException($"No compatible authentication mechanism found - server offered [{supportedMechanismNames}]");
         }
 
         private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)

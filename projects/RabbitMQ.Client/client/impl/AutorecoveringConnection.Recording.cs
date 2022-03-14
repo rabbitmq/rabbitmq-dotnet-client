@@ -176,7 +176,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void RecordConsumer(in RecordedConsumer consumer)
         {
-            if (!_factory.TopologyRecoveryEnabled)
+            if (!_config.TopologyRecoveryEnabled)
             {
                 return;
             }
@@ -189,7 +189,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void DeleteRecordedConsumer(string consumerTag)
         {
-            if (!_factory.TopologyRecoveryEnabled)
+            if (!_config.TopologyRecoveryEnabled)
             {
                 return;
             }
