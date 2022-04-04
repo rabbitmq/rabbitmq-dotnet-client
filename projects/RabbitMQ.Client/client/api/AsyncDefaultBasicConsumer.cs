@@ -151,33 +151,33 @@ namespace RabbitMQ.Client
 
         event EventHandler<ConsumerEventArgs> IBasicConsumer.ConsumerCancelled
         {
-            add { throw new InvalidOperationException("Should never be called."); }
-            remove { throw new InvalidOperationException("Should never be called."); }
+            add { throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'."); }
+            remove { throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'."); }
         }
 
         void IBasicConsumer.HandleBasicCancelOk(string consumerTag)
         {
-            throw new InvalidOperationException("Should never be called.");
+            throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
         void IBasicConsumer.HandleBasicConsumeOk(string consumerTag)
         {
-            throw new InvalidOperationException("Should never be called.");
+            throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
         void IBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            throw new InvalidOperationException("Should never be called.");
+            throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
         void IBasicConsumer.HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
-            throw new InvalidOperationException("Should never be called.");
+            throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
         void IBasicConsumer.HandleBasicCancel(string consumerTag)
         {
-            throw new InvalidOperationException("Should never be called.");
+            throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
     }
 }
