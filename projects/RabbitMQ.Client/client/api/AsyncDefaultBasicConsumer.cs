@@ -151,33 +151,33 @@ namespace RabbitMQ.Client
 
         event EventHandler<ConsumerEventArgs> IBasicConsumer.ConsumerCancelled
         {
-            add { throw new InvalidOperationException("Should never be called. Enable 'ConsumerDisaptchAsync'."); }
-            remove { throw new InvalidOperationException("Should never be called. Enable 'ConsumerDisaptchAsync'."); }
+            add { throw new InvalidOperationException("Should never be called. Enable 'ConsumerDispatchAsync'."); }
+            remove { throw new InvalidOperationException("Should never be called. Enable 'ConsumerDispatchAsync'."); }
         }
 
         void IBasicConsumer.HandleBasicCancelOk(string consumerTag)
         {
-            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDisaptchAsync'.");
+            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDispatchAsync'.");
         }
 
         void IBasicConsumer.HandleBasicConsumeOk(string consumerTag)
         {
-            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDisaptchAsync'.");
+            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDispatchAsync'.");
         }
 
         void IBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDisaptchAsync'.");
+            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDispatchAsync'.");
         }
 
         void IBasicConsumer.HandleModelShutdown(object model, ShutdownEventArgs reason)
         {
-            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDisaptchAsync'.");
+            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDispatchAsync'.");
         }
 
         void IBasicConsumer.HandleBasicCancel(string consumerTag)
         {
-            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDisaptchAsync'.");
+            throw new InvalidOperationException("Should never be called. Enable 'ConsumerDispatchAsync'.");
         }
     }
 }
