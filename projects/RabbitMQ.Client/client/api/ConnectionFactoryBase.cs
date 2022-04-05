@@ -31,6 +31,7 @@
 
 using System;
 using System.Net.Sockets;
+using Pipelines.Sockets.Unofficial;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
@@ -49,12 +50,8 @@ namespace RabbitMQ.Client
         /// <returns>New instance of a <see cref="TcpClient"/>.</returns>
         public static ITcpClient DefaultSocketFactory(AddressFamily addressFamily)
         {
-            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
-            {
-                NoDelay = true,
-                ReceiveBufferSize = 65536,
-                SendBufferSize = 65536
-            };
+            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+            SocketConnection.SetRecommendedClientOptions(socket);
             return new TcpClientAdapter(socket);
         }
     }
