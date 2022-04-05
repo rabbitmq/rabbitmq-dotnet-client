@@ -13,4 +13,4 @@ fi
 
 cd "$script_dir"
 
-dotnet test --no-build --logger 'console;verbosity=detailed' --framework 'netcoreapp3.1' ./RabbitMQDotNetClient.sln < /dev/null
+dotnet test --no-build --logger 'console;verbosity=detailed' ./RabbitMQDotNetClient.sln < /dev/null
