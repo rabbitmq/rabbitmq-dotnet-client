@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
 
         public bool Persistent
         {
-            get
+            readonly get
             {
                 return DeliveryMode == DeliveryModes.Persistent;
             }
@@ -77,6 +77,7 @@ namespace RabbitMQ.Client
                 PublicationAddress.TryParse(ReplyTo, out PublicationAddress result);
                 return result;
             }
+
             set { ReplyTo = value?.ToString(); }
         }
 
