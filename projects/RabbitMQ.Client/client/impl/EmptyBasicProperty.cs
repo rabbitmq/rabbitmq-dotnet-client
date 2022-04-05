@@ -27,7 +27,7 @@ namespace RabbitMQ.Client.client.impl
         public string? ContentEncoding => default;
         public string? ContentType => default;
         public string? CorrelationId => default;
-        public byte DeliveryMode => default;
+        public DeliveryModes DeliveryMode => default;
         public string? Expiration => default;
         public IDictionary<string, object?>? Headers => default;
         public string? MessageId => default;

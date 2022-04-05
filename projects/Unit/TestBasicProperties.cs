@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
             };
 
             // Assert
-            Assert.Equal(2, subject.DeliveryMode);
+            Assert.Equal(DeliveryModes.Persistent, subject.DeliveryMode);
             Assert.True(subject.Persistent);
 
             Span<byte> span = new byte[1024];
@@ -57,13 +57,13 @@ namespace RabbitMQ.Client.Unit
             // Read from Stream
             var propertiesFromStream = new ReadOnlyBasicProperties(span.Slice(0, offset));
 
-            Assert.Equal(2, propertiesFromStream.DeliveryMode);
+            Assert.Equal(DeliveryModes.Persistent, propertiesFromStream.DeliveryMode);
             Assert.True(propertiesFromStream.Persistent);
 
             // Verify Basic Properties
             var basicProperties = new BasicProperties(propertiesFromStream);
 
-            Assert.Equal(2, basicProperties.DeliveryMode);
+            Assert.Equal(DeliveryModes.Persistent, basicProperties.DeliveryMode);
             Assert.True(basicProperties.Persistent);
         }
 
@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Unit
             };
 
             // Assert
-            Assert.Equal(1, subject.DeliveryMode);
+            Assert.Equal(DeliveryModes.Transient, subject.DeliveryMode);
             Assert.False(subject.Persistent);
 
             Span<byte> span = new byte[1024];
@@ -88,13 +88,13 @@ namespace RabbitMQ.Client.Unit
             // Read from Stream
             var propertiesFromStream = new ReadOnlyBasicProperties(span.Slice(0, offset));
 
-            Assert.Equal(1, propertiesFromStream.DeliveryMode);
+            Assert.Equal(DeliveryModes.Transient, propertiesFromStream.DeliveryMode);
             Assert.False(propertiesFromStream.Persistent);
 
             // Verify Basic Properties
             var basicProperties = new BasicProperties(propertiesFromStream);
 
-            Assert.Equal(1, basicProperties.DeliveryMode);
+            Assert.Equal(DeliveryModes.Transient, basicProperties.DeliveryMode);
             Assert.False(basicProperties.Persistent);
         }
 

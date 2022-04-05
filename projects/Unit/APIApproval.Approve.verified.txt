@@ -72,7 +72,7 @@ namespace RabbitMQ.Client
         public string? ContentEncoding { get; set; }
         public string? ContentType { get; set; }
         public string? CorrelationId { get; set; }
-        public byte DeliveryMode { get; set; }
+        public RabbitMQ.Client.DeliveryModes DeliveryMode { get; set; }
         public string? Expiration { get; set; }
         public System.Collections.Generic.IDictionary<string, object?>? Headers { get; set; }
         public string? MessageId { get; set; }
@@ -248,6 +248,11 @@ namespace RabbitMQ.Client
         public DefaultEndpointResolver(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> tcpEndpoints) { }
         public System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> All() { }
     }
+    public enum DeliveryModes : byte
+    {
+        Transient = 1,
+        Persistent = 2,
+    }
     public static class EndpointResolverExtensions
     {
         public static T SelectOne<T>(this RabbitMQ.Client.IEndpointResolver resolver, System.Func<RabbitMQ.Client.AmqpTcpEndpoint, T> selector) { }
@@ -333,7 +338,7 @@ namespace RabbitMQ.Client
         new string? ContentEncoding { get; set; }
         new string? ContentType { get; set; }
         new string? CorrelationId { get; set; }
-        new byte DeliveryMode { get; set; }
+        new RabbitMQ.Client.DeliveryModes DeliveryMode { get; set; }
         new string? Expiration { get; set; }
         new System.Collections.Generic.IDictionary<string, object?>? Headers { get; set; }
         new string? MessageId { get; set; }
@@ -527,7 +532,7 @@ namespace RabbitMQ.Client
         string? ContentEncoding { get; }
         string? ContentType { get; }
         string? CorrelationId { get; }
-        byte DeliveryMode { get; }
+        RabbitMQ.Client.DeliveryModes DeliveryMode { get; }
         string? Expiration { get; }
         System.Collections.Generic.IDictionary<string, object?>? Headers { get; }
         string? MessageId { get; }
@@ -610,7 +615,7 @@ namespace RabbitMQ.Client
         public string? ContentEncoding { get; }
         public string? ContentType { get; }
         public string? CorrelationId { get; }
-        public byte DeliveryMode { get; }
+        public RabbitMQ.Client.DeliveryModes DeliveryMode { get; }
         public string? Expiration { get; }
         public System.Collections.Generic.IDictionary<string, object?>? Headers { get; }
         public string? MessageId { get; }
