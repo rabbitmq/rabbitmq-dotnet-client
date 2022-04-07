@@ -683,8 +683,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            _delegate = new Connection(_factory, false,
-                fh, ClientProvidedName);
+            _delegate = new Connection(_factory, false, fh, _factory.MemoryPool, ClientProvidedName);
 
             _recoveryTask = Task.Run(MainRecoveryLoop);
 
@@ -1017,7 +1016,7 @@ namespace RabbitMQ.Client.Framing.Impl
             try
             {
                 IFrameHandler fh = _endpoints.SelectOne(_factory.CreateFrameHandler);
-                _delegate = new Connection(_factory, false, fh, ClientProvidedName);
+                _delegate = new Connection(_factory, false, fh, _factory.MemoryPool, ClientProvidedName);
                 return true;
             }
             catch (Exception e)

@@ -70,6 +70,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private volatile bool _running = true;
         private readonly MainSession _session0;
         private SessionManager _sessionManager;
+        private readonly ArrayPool<byte> _memoryPool = ArrayPool<byte>.Shared;
 
         //
         // Heartbeats
@@ -125,6 +126,18 @@ namespace RabbitMQ.Client.Framing.Impl
                 TerminateMainloop();
                 throw;
             }
+        }
+
+        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, ArrayPool<byte> memoryPool,
+                string clientProvidedName = null)
+            : this(factory, insist, frameHandler, clientProvidedName)
+        {
+            _memoryPool = memoryPool;
+        }
+
+        internal ArrayPool<byte> MemoryPool
+        {
+            get => _memoryPool;
         }
 
         public Guid Id { get { return _id; } }
@@ -908,7 +921,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!_closed)
                 {
-                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
+                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame(MemoryPool));
                     _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
@@ -945,7 +958,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return string.Format("Connection({0},{1})", _id, Endpoint);
         }
 
-        public void Write(Memory<byte> memory)
+        public void Write(ReadOnlyMemory<byte> memory)
         {
             _frameHandler.Write(memory);
         }

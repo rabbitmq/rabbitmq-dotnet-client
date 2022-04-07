@@ -11,22 +11,24 @@ namespace RabbitMQ.Client.Impl
         public readonly ContentHeaderBase Header;
         public readonly ReadOnlyMemory<byte> Body;
         private readonly byte[] _rentedArray;
+        private readonly ArrayPool<byte> _rentedArrayOwner;
 
         public bool IsEmpty => Method is null;
 
-        public IncomingCommand(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body, byte[] rentedArray)
+        public IncomingCommand(MethodBase method, ContentHeaderBase header, ReadOnlyMemory<byte> body, byte[] rentedArray, ArrayPool<byte> rentedArrayOwner)
         {
             Method = method;
             Header = header;
             Body = body;
             _rentedArray = rentedArray;
+            _rentedArrayOwner = rentedArrayOwner;
         }
 
         public void Dispose()
         {
             if (_rentedArray != null)
             {
-                ArrayPool<byte>.Shared.Return(_rentedArray);
+                _rentedArrayOwner.Return(_rentedArray);
             }
         }
 

@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void HeartbeatFrame()
         {
-            var memory = Impl.Framing.Heartbeat.GetHeartbeatFrame();
+            var memory = Impl.Framing.Heartbeat.GetHeartbeatFrame(ArrayPool<byte>.Shared);
             var frameSpan = memory.Span;
 
             try

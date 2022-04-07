@@ -61,6 +61,6 @@ namespace RabbitMQ.Client.Impl
 
         void SendHeader();
 
-        void Write(Memory<byte> memory);
+        void Write(ReadOnlyMemory<byte> memory);
     }
 }

@@ -65,8 +65,8 @@ namespace RabbitMQ.Client.Impl
             int maxBodyPayloadBytes = (int)(connection.FrameMax == 0 ? int.MaxValue : connection.FrameMax - EmptyFrameSize);
             var size = GetMaxSize(maxBodyPayloadBytes);
 
-            // Will be returned by SocketFrameWriter.WriteLoop
-            var memory = new Memory<byte>(ArrayPool<byte>.Shared.Rent(size), 0, size);
+            // Will be returned by SocketFrameHandler.WriteLoop
+            var memory = new Memory<byte>(connection.MemoryPool.Rent(size), 0, size);
             var span = memory.Span;
 
             var offset = Framing.Method.WriteTo(span, channelNumber, Method);
