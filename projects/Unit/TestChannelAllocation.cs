@@ -38,8 +38,6 @@ using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
-
     public class TestIModelAllocation : IDisposable
     {
         public const int CHANNEL_COUNT = 100;

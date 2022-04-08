@@ -170,7 +170,7 @@ namespace RabbitMQ.Client.Framing.Impl
             // Our list is in order of preference, the server one is not.
             foreach (var factory in _config.AuthMechanisms)
             {
-                if (supportedMechanismNames.Contains(factory.Name, StringComparison.OrdinalIgnoreCase))
+                if (supportedMechanismNames.IndexOf(factory.Name, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     return factory;
                 }

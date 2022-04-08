@@ -164,7 +164,7 @@ namespace RabbitMQ.Client.Unit
         public void TestBackgroundUpdateFails()
         {
             var k = new BlockingCell<int>();
-            SetAfter(TimingInterval_2X, k, 123);
+            SetAfter(TimingInterval_4X, k, 123);
 
             ResetTimer();
             Assert.Throws<TimeoutException>(() => k.WaitForValue(TimingInterval));

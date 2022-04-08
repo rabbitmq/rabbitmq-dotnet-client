@@ -45,9 +45,14 @@ namespace RabbitMQ.Client.Unit
     public class TestPublisherConfirms : IntegrationFixture
     {
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
+        private readonly byte[] _body;
 
         public TestPublisherConfirms(ITestOutputHelper output) : base(output)
         {
+            var rnd = new Random();
+            _body  = new byte[4096];
+            rnd.NextBytes(_body);
+
         }
 
         [Fact]
@@ -64,18 +69,22 @@ namespace RabbitMQ.Client.Unit
         {
             TestWaitForConfirms(200, (ch) =>
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-                Assert.True(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
+                {
+                    Assert.True(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                }
             });
         }
 
         [Fact]
         public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
         {
-            TestWaitForConfirms(2000, (ch) =>
+            TestWaitForConfirms(10000, (ch) =>
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1));
-                Assert.Throws<TaskCanceledException>(() => ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                using (var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1)))
+                {
+                    Assert.Throws<TaskCanceledException>(() => ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                }
             });
         }
 
@@ -90,67 +99,70 @@ namespace RabbitMQ.Client.Unit
                     .GetMethod("HandleAckNack", BindingFlags.Instance | BindingFlags.NonPublic)
                     .Invoke(actualModel, new object[] { 10UL, false, true });
 
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-                Assert.False(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
+                {
+                    Assert.False(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                }
             });
         }
 
         [Fact]
         public async Task TestWaitForConfirmsWithEvents()
         {
-            IModel ch = _conn.CreateModel();
-            ch.ConfirmSelect();
-
-            ch.QueueDeclare(QueueName);
-            int n = 200;
-            // number of event handler invocations
-            int c = 0;
-
-            ch.BasicAcks += (_, args) =>
+            using (IModel ch = _conn.CreateModel())
             {
-                Interlocked.Increment(ref c);
-            };
-            try
-            {
-                for (int i = 0; i < n; i++)
+                ch.ConfirmSelect();
+
+                ch.QueueDeclare(QueueName);
+                int n = 200;
+                // number of event handler invocations
+                int c = 0;
+
+                ch.BasicAcks += (_, args) =>
                 {
-                    ch.BasicPublish("", QueueName, _encoding.GetBytes("msg"));
-                }
-                await ch.WaitForConfirmsAsync().ConfigureAwait(false);
+                    Interlocked.Increment(ref c);
+                };
+                try
+                {
+                    for (int i = 0; i < n; i++)
+                    {
+                        ch.BasicPublish("", QueueName, _encoding.GetBytes("msg"));
+                    }
+                    await ch.WaitForConfirmsAsync().ConfigureAwait(false);
 
-                // Note: number of event invocations is not guaranteed
-                // to be equal to N because acks can be batched,
-                // so we primarily care about event handlers being invoked
-                // in this test
-                Assert.True(c > 5);
-            }
-            finally
-            {
-                ch.QueueDelete(QueueName);
-                ch.Close();
+                    // Note: number of event invocations is not guaranteed
+                    // to be equal to N because acks can be batched,
+                    // so we primarily care about event handlers being invoked
+                    // in this test
+                    Assert.True(c > 5);
+                }
+                finally
+                {
+                    ch.QueueDelete(QueueName);
+                }
             }
         }
 
         protected void TestWaitForConfirms(int numberOfMessagesToPublish, Action<IModel> fn)
         {
-            IModel ch = _conn.CreateModel();
-            ch.ConfirmSelect();
-            ch.QueueDeclare(QueueName);
+            using (IModel ch = _conn.CreateModel())
+            {
+                ch.ConfirmSelect();
+                ch.QueueDeclare(QueueName);
 
-            ReadOnlyMemory<byte> body = _encoding.GetBytes("msg");
-            for (int i = 0; i < numberOfMessagesToPublish; i++)
-            {
-                ch.BasicPublish("", QueueName, body);
-            }
+                for (int i = 0; i < numberOfMessagesToPublish; i++)
+                {
+                    ch.BasicPublish("", QueueName, _body);
+                }
 
-            try
-            {
-                fn(ch);
-            }
-            finally
-            {
-                ch.QueueDelete(QueueName);
-                ch.Close();
+                try
+                {
+                    fn(ch);
+                }
+                finally
+                {
+                    ch.QueueDelete(QueueName);
+                }
             }
         }
     }

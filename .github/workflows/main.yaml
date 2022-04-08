@@ -22,7 +22,7 @@ jobs:
         with:
           submodules: true
       - name: Cache installers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
@@ -66,11 +66,11 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 3.1.x
+          dotnet-version: 6.x
       - name: Cache NuGet packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.nuget/packages
@@ -83,6 +83,6 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --verbosity=normal
       - name: Test
-        run: dotnet test --no-restore --no-build --logger "console;verbosity=detailed" --framework "netcoreapp3.1"
+        run: dotnet test --no-restore --no-build --logger "console;verbosity=detailed" --framework "net6.0"
         env:
           RABBITMQ_RABBITMQCTL_PATH: DOCKER:${{job.services.rabbitmq.id}}

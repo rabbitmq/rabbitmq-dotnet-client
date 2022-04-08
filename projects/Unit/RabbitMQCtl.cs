@@ -43,6 +43,7 @@ namespace RabbitMQ.Client.Unit
     #nullable enable
     public static class RabbitMQCtl
     {
+        private static readonly char[] newLine = new char[] { '\n' };
         private static readonly Func<string, Process> s_invokeRabbitMqCtl = GetRabbitMqCtlInvokeAction();
 
         private static Func<string, Process> GetRabbitMqCtlInvokeAction()
@@ -209,7 +210,8 @@ namespace RabbitMQ.Client.Unit
 
         private static string[] EnumerateConnectionsPid()
         {
-            return ExecRabbitMQCtl("list_connections --silent pid").Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            string rabbitmqCtlResult = ExecRabbitMQCtl("list_connections --silent pid");
+            return rabbitmqCtlResult.Split(newLine, StringSplitOptions.RemoveEmptyEntries);
         }
 
         public static void RestartRabbitMQ()
