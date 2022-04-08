@@ -90,11 +90,11 @@ namespace RabbitMQ.Client.Unit
                 using (IModel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
-                    string publish1 = get_unique_string(16384);
+                    string publish1 = get_unique_string(1024);
                     byte[] body = Encoding.UTF8.GetBytes(publish1);
                     m.BasicPublish("", q.QueueName, body);
 
-                    string publish2 = get_unique_string(16384);
+                    string publish2 = get_unique_string(1024);
                     body = Encoding.UTF8.GetBytes(publish2);
                     m.BasicPublish("", q.QueueName, body);
 
@@ -126,12 +126,12 @@ namespace RabbitMQ.Client.Unit
                     };
 
                     m.BasicConsume(q.QueueName, true, consumer);
-                    // ensure we get a delivery
 
+                    // ensure we get a delivery
                     await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 
-                    Assert.True(publish1SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
-                    Assert.True(publish2SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                    Assert.True(publish1SyncSource.Task.Result, $"1 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                    Assert.True(publish2SyncSource.Task.Result, $"2 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
                 }
             }
         }
