@@ -423,6 +423,7 @@ namespace RabbitMQ.Client.Unit
     {
         public static readonly TimeSpan TimingInterval = TimeSpan.FromMilliseconds(300);
         public static readonly TimeSpan TimingInterval_2X = TimeSpan.FromMilliseconds(600);
+        public static readonly TimeSpan TimingInterval_4X = TimeSpan.FromMilliseconds(1200);
         public static readonly TimeSpan SafetyMargin = TimeSpan.FromMilliseconds(150);
         public static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
     }
