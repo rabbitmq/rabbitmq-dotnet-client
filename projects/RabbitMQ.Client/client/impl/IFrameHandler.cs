@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.IO.Pipelines;
 using System.Net;
 
 namespace RabbitMQ.Client.Impl
@@ -54,13 +55,9 @@ namespace RabbitMQ.Client.Impl
 
         void Close();
 
-        ///<summary>Read a frame from the underlying
-        ///transport. Returns null if the read operation timed out
-        ///(see Timeout property).</summary>
-        InboundFrame ReadFrame();
-
-        void SendHeader();
-
-        void Write(ReadOnlyMemory<byte> memory);
+        PipeReader FrameReader { get; }
+        
+        PipeWriter FrameWriter { get; }
+        bool IsClosed { get; }
     }
 }

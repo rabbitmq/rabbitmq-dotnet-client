@@ -1,20 +1,27 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 
 namespace RabbitMQ.Client.Impl
 {
     internal static class TcpClientAdapterHelper
     {
-        public static IPAddress GetMatchingHost(IReadOnlyCollection<IPAddress> addresses, AddressFamily addressFamily)
+        public static IPAddress GetMatchingHost(IPAddress[] addresses, AddressFamily addressFamily)
         {
-            IPAddress ep = addresses.FirstOrDefault(a => a.AddressFamily == addressFamily);
-            if (ep is null && addresses.Count == 1 && addressFamily == AddressFamily.Unspecified)
+            if (addresses != null && addresses.Length == 1 && addressFamily == AddressFamily.Unspecified)
             {
-                return addresses.Single();
+                return addresses[0];
             }
-            return ep;
+
+            for (int i = 0; i < addresses.Length; i++)
+            {
+                IPAddress address = addresses[i];
+                if (address.AddressFamily == addressFamily)
+                {
+                    return address;
+                }
+            }
+
+            return null;
         }
     }
 }

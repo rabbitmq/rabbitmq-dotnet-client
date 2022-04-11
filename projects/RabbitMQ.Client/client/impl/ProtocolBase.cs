@@ -59,6 +59,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public abstract int MajorVersion { get; }
         public abstract int MinorVersion { get; }
         public abstract int Revision { get; }
+        public abstract ReadOnlySpan<byte> Header { get; }
 
         public AmqpVersion Version
         {

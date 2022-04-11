@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Framing;
+
 using Xunit;
 
 namespace RabbitMQ.Client.Unit

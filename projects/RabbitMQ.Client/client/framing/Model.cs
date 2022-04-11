@@ -30,8 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+
 using RabbitMQ.Client.client.framing;
-using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -297,113 +297,115 @@ namespace RabbitMQ.Client.Framing.Impl
 
         protected override bool DispatchAsynchronous(in IncomingCommand cmd)
         {
-            switch (cmd.CommandId)
+            int classType = (int)cmd.CommandId >> 16;
+            int methodType = (int)cmd.CommandId & 0x00FF;
+            return classType switch
             {
-                case ProtocolCommandId.BasicDeliver:
-                    {
-                        HandleBasicDeliver(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicAck:
-                    {
-                        HandleBasicAck(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicCancel:
-                    {
-                        HandleBasicCancel(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicCancelOk:
-                    {
-                        HandleBasicCancelOk(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicConsumeOk:
-                    {
-                        HandleBasicConsumeOk(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicGetEmpty:
-                    {
-                        cmd.ReturnMethodBuffer();
-                        HandleBasicGetEmpty();
-                        return true;
-                    }
-                case ProtocolCommandId.BasicGetOk:
-                    {
-                        HandleBasicGetOk(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicNack:
-                    {
-                        HandleBasicNack(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicRecoverOk:
-                    {
-                        cmd.ReturnMethodBuffer();
-                        HandleBasicRecoverOk();
-                        return true;
-                    }
-                case ProtocolCommandId.BasicReturn:
-                    {
-                        HandleBasicReturn(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.ChannelClose:
-                    {
-                        HandleChannelClose(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.ChannelCloseOk:
-                    {
-                        cmd.ReturnMethodBuffer();
-                        HandleChannelCloseOk();
-                        return true;
-                    }
-                case ProtocolCommandId.ChannelFlow:
-                    {
-                        HandleChannelFlow(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.ConnectionBlocked:
-                    {
-                        HandleConnectionBlocked(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.ConnectionClose:
-                    {
-                        HandleConnectionClose(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.ConnectionSecure:
-                    {
-                        HandleConnectionSecure(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.ConnectionStart:
-                    {
-                        HandleConnectionStart(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.ConnectionTune:
-                    {
-                        HandleConnectionTune(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.ConnectionUnblocked:
-                    {
-                        cmd.ReturnMethodBuffer();
-                        HandleConnectionUnblocked();
-                        return true;
-                    }
-                case ProtocolCommandId.QueueDeclareOk:
-                    {
-                        HandleQueueDeclareOk(in cmd);
-                        return true;
-                    }
-                default: return false;
+                ClassConstants.Basic => DispatchBasicCommand(in cmd, methodType),
+                ClassConstants.Channel => DispatchChannelCommand(in cmd, methodType),
+                ClassConstants.Connection => DispatchConnectionCommand(in cmd, methodType),
+                ClassConstants.Queue => DispatchQueueCommand(in cmd, methodType),
+                _ => false,
+            };
+        }
+
+        private bool DispatchQueueCommand(in IncomingCommand cmd, int methodType)
+        {
+            switch (methodType)
+            {
+                case QueueMethodConstants.DeclareOk:
+                    HandleQueueDeclareOk(in cmd);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private bool DispatchConnectionCommand(in IncomingCommand cmd, int methodType)
+        {
+            switch (methodType)
+            {
+                case ConnectionMethodConstants.Start:
+                    HandleConnectionStart(in cmd);
+                    return true;
+                case ConnectionMethodConstants.Secure:
+                    HandleConnectionSecure(in cmd);
+                    return true;
+                case ConnectionMethodConstants.Tune:
+                    HandleConnectionTune(in cmd);
+                    return true;
+                case ConnectionMethodConstants.Close:
+                    HandleConnectionClose(in cmd);
+                    return true;
+                case ConnectionMethodConstants.Blocked:
+                    HandleConnectionBlocked(in cmd);
+                    return true;
+                case ConnectionMethodConstants.Unblocked:
+                    cmd.ReturnMethodBuffer();
+                    HandleConnectionUnblocked();
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private bool DispatchChannelCommand(in IncomingCommand cmd, int methodType)
+        {
+            switch (methodType)
+            {
+                case ChannelMethodConstants.Flow:
+                    HandleChannelFlow(in cmd);
+                    return true;
+                case ChannelMethodConstants.Close:
+                    HandleChannelClose(in cmd);
+                    return true;
+                case ChannelMethodConstants.CloseOk:
+                    cmd.ReturnMethodBuffer();
+                    HandleChannelCloseOk();
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private bool DispatchBasicCommand(in IncomingCommand cmd, int methodType)
+        {
+            switch (methodType)
+            {
+                case BasicMethodConstants.ConsumeOk:
+                    HandleBasicConsumeOk(in cmd);
+                    return true;
+                case BasicMethodConstants.Cancel:
+                    HandleBasicCancel(in cmd);
+                    return true;
+                case BasicMethodConstants.CancelOk:
+                    HandleBasicCancelOk(in cmd);
+                    return true;
+                case BasicMethodConstants.Return:
+                    HandleBasicReturn(in cmd);
+                    return true;
+                case BasicMethodConstants.Deliver:
+                    HandleBasicDeliver(in cmd);
+                    return true;
+                case BasicMethodConstants.GetOk:
+                    HandleBasicGetOk(in cmd);
+                    return true;
+                case BasicMethodConstants.GetEmpty:
+                    cmd.ReturnMethodBuffer();
+                    HandleBasicGetEmpty();
+                    return true;
+                case BasicMethodConstants.Ack:
+                    HandleBasicAck(in cmd);
+                    return true;
+                case BasicMethodConstants.RecoverOk:
+                    cmd.ReturnMethodBuffer();
+                    HandleBasicRecoverOk();
+                    return true;
+                case BasicMethodConstants.Nack:
+                    HandleBasicNack(in cmd);
+                    return true;
+                default:
+                    return false;
             }
         }
     }

@@ -149,7 +149,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!_closed)
                 {
-                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
+                    Write(Client.Impl.Framing.Heartbeat.Payload);
                     _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }

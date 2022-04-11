@@ -30,8 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
-using System.Runtime.InteropServices;
 
 using RabbitMQ.Client.Framing.Impl;
 
@@ -44,28 +42,17 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void HeartbeatFrame()
         {
-            Memory<byte> memory = Impl.Framing.Heartbeat.GetHeartbeatFrame();
-            Span<byte> frameSpan = memory.Span;
+            ReadOnlySpan<byte> frameSpan = Impl.Framing.Heartbeat.Payload;
 
-            try
-            {
-                Assert.Equal(8, frameSpan.Length);
-                Assert.Equal(Constants.FrameHeartbeat, frameSpan[0]);
-                Assert.Equal(0, frameSpan[1]); // channel
-                Assert.Equal(0, frameSpan[2]); // channel
-                Assert.Equal(0, frameSpan[3]); // payload size
-                Assert.Equal(0, frameSpan[4]); // payload size
-                Assert.Equal(0, frameSpan[5]); // payload size
-                Assert.Equal(0, frameSpan[6]); // payload size
-                Assert.Equal(Constants.FrameEnd, frameSpan[7]);
-            }
-            finally
-            {
-                if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
-                {
-                    ArrayPool<byte>.Shared.Return(segment.Array);
-                }
-            }
+            Assert.Equal(8, frameSpan.Length);
+            Assert.Equal(Constants.FrameHeartbeat, frameSpan[0]);
+            Assert.Equal(0, frameSpan[1]); // channel
+            Assert.Equal(0, frameSpan[2]); // channel
+            Assert.Equal(0, frameSpan[3]); // payload size
+            Assert.Equal(0, frameSpan[4]); // payload size
+            Assert.Equal(0, frameSpan[5]); // payload size
+            Assert.Equal(0, frameSpan[6]); // payload size
+            Assert.Equal(Constants.FrameEnd, frameSpan[7]);
         }
 
         [Fact]
