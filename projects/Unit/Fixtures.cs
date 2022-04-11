@@ -398,14 +398,9 @@ namespace RabbitMQ.Client.Unit
         // Concurrency and Coordination
         //
 
-        internal void Wait(ManualResetEventSlim latch)
+        internal void Wait(ManualResetEventSlim latch, TimeSpan? timeSpan = null)
         {
-            Assert.True(latch.Wait(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
-        }
-
-        internal void Wait(ManualResetEventSlim latch, TimeSpan timeSpan)
-        {
-            Assert.True(latch.Wait(timeSpan), "waiting on a latch timed out");
+            Assert.True(latch.Wait(timeSpan ?? TimeSpan.FromSeconds(15)), "waiting on a latch timed out");
         }
 
         //

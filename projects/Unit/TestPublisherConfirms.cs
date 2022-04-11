@@ -52,46 +52,42 @@ namespace RabbitMQ.Client.Unit
             var rnd = new Random();
             _body = new byte[4096];
             rnd.NextBytes(_body);
-
         }
 
         [Fact]
-        public void TestWaitForConfirmsWithoutTimeout()
+        public async Task TestWaitForConfirmsWithoutTimeout()
         {
-            TestWaitForConfirms(200, (ch) =>
+            await TestWaitForConfirms(200, async (ch) =>
             {
-                Assert.True(ch.WaitForConfirmsAsync().GetAwaiter().GetResult());
+                Assert.True(await ch.WaitForConfirmsAsync());
             });
         }
 
         [Fact]
-        public void TestWaitForConfirmsWithTimeout()
+        public async Task TestWaitForConfirmsWithTimeout()
         {
-            TestWaitForConfirms(200, (ch) =>
+            await TestWaitForConfirms(200, async (ch) =>
             {
                 using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
                 {
-                    Assert.True(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                    Assert.True(await ch.WaitForConfirmsAsync(cts.Token));
                 }
             });
         }
 
         [Fact]
-        public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
+        public async Task TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
         {
-            TestWaitForConfirms(10000, (ch) =>
+            await TestWaitForConfirms(1000, async (ch) =>
             {
-                using (var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1)))
-                {
-                    Assert.Throws<TaskCanceledException>(() => ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
-                }
+                await Assert.ThrowsAsync<TaskCanceledException>(async () => await ch.WaitForConfirmsAsync(new CancellationToken(true)));
             });
         }
 
         [Fact]
-        public void TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
+        public async Task TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
         {
-            TestWaitForConfirms(2000, (ch) =>
+            await TestWaitForConfirms(2000, async (ch) =>
             {
                 IModel actualModel = ((AutorecoveringModel)ch).InnerChannel;
                 actualModel
@@ -101,7 +97,7 @@ namespace RabbitMQ.Client.Unit
 
                 using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
                 {
-                    Assert.False(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                    Assert.False(await ch.WaitForConfirmsAsync(cts.Token));
                 }
             });
         }
@@ -143,7 +139,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        protected void TestWaitForConfirms(int numberOfMessagesToPublish, Action<IModel> fn)
+        protected async Task TestWaitForConfirms(int numberOfMessagesToPublish, Func<IModel, Task> fn)
         {
             using (IModel ch = _conn.CreateModel())
             {
@@ -157,7 +153,7 @@ namespace RabbitMQ.Client.Unit
 
                 try
                 {
-                    fn(ch);
+                    await fn(ch).ConfigureAwait(false);
                 }
                 finally
                 {

@@ -136,7 +136,7 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-            Connection.Write(Framing.SerializeToFrames(ref cmd, ChannelNumber));
+            Connection.Write(ref cmd, ChannelNumber);
         }
 
         public void Transmit<TMethod, THeader>(ref TMethod cmd, ref THeader header, ReadOnlyMemory<byte> body)
@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-            Connection.Write(Framing.SerializeToFrames(ref cmd, ref header, body, ChannelNumber, Connection.MaxPayloadSize));
+            Connection.Write(ref cmd, ref header, body, ChannelNumber, Connection.MaxPayloadSize);
         }
 
         private void ThrowAlreadyClosedException()

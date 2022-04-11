@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Reflection;
 using System.Threading.Tasks;
 
 using PublicApiGenerator;

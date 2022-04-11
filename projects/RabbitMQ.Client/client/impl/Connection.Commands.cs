@@ -32,6 +32,7 @@
 using System;
 using System.IO;
 using System.Text;
+
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
@@ -83,7 +84,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _model0.m_connectionStartCell = connectionStartCell;
             _model0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
-            _frameHandler.SendHeader();
+            Write(Protocol.Header);
 
             ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
 

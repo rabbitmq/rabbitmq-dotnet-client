@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Text;
 
 using BenchmarkDotNet.Attributes;
@@ -19,7 +20,12 @@ namespace RabbitMQ.Benchmarks
         public ushort Channel { get; set; }
 
         [Benchmark]
-        public ReadOnlyMemory<byte> BasicAckWrite() => Framing.SerializeToFrames(ref _basicAck, Channel);
+        public ReadOnlyMemory<byte> BasicAckWrite()
+        {
+            ArrayBufferWriter<byte> _writer = new ArrayBufferWriter<byte>();
+            Framing.SerializeToFrames(ref _basicAck, _writer, Channel);
+            return _writer.WrittenMemory;
+        }
     }
 
     [Config(typeof(Config))]
@@ -41,13 +47,28 @@ namespace RabbitMQ.Benchmarks
         public int FrameMax { get; set; }
 
         [Benchmark]
-        public ReadOnlyMemory<byte> BasicPublishWriteNonEmpty() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _body, Channel, FrameMax);
+        public ReadOnlyMemory<byte> BasicPublishWriteNonEmpty()
+        {
+            ArrayBufferWriter<byte> _writer = new ArrayBufferWriter<byte>();
+            Framing.SerializeToFrames(ref _basicPublish, ref _properties, _body, _writer, Channel, FrameMax);
+            return _writer.WrittenMemory;
+        }
 
         [Benchmark]
-        public ReadOnlyMemory<byte> BasicPublishWrite() => Framing.SerializeToFrames(ref _basicPublish, ref _propertiesEmpty, _bodyEmpty, Channel, FrameMax);
+        public ReadOnlyMemory<byte> BasicPublishWrite()
+        {
+            ArrayBufferWriter<byte> _writer = new ArrayBufferWriter<byte>();
+            Framing.SerializeToFrames(ref _basicPublish, ref _propertiesEmpty, _bodyEmpty, _writer, Channel, FrameMax);
+            return _writer.WrittenMemory;
+        }
 
         [Benchmark]
-        public ReadOnlyMemory<byte> BasicPublishMemoryWrite() => Framing.SerializeToFrames(ref _basicPublishMemory, ref _propertiesEmpty, _bodyEmpty, Channel, FrameMax);
+        public ReadOnlyMemory<byte> BasicPublishMemoryWrite()
+        {
+            ArrayBufferWriter<byte> _writer = new ArrayBufferWriter<byte>();
+            Framing.SerializeToFrames(ref _basicPublishMemory, ref _propertiesEmpty, _bodyEmpty, _writer, Channel, FrameMax);
+            return _writer.WrittenMemory;
+        }
     }
 
     [Config(typeof(Config))]
@@ -60,6 +81,11 @@ namespace RabbitMQ.Benchmarks
         public ushort Channel { get; set; }
 
         [Benchmark]
-        public ReadOnlyMemory<byte> ChannelCloseWrite() => Framing.SerializeToFrames(ref _channelClose, Channel);
+        public ReadOnlyMemory<byte> ChannelCloseWrite()
+        {
+            ArrayBufferWriter<byte> _writer = new ArrayBufferWriter<byte>();
+            Framing.SerializeToFrames(ref _channelClose, _writer, Channel);
+            return _writer.WrittenMemory;
+        }
     }
 }

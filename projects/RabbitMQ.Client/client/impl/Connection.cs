@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,6 +59,8 @@ namespace RabbitMQ.Client.Framing.Impl
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
+        private readonly SemaphoreSlim _writeSemaphore = new SemaphoreSlim(1);
+
         public Connection(ConnectionConfig config, IFrameHandler frameHandler)
         {
             _config = config;
@@ -71,7 +74,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this);
-            _model0 = new Model(_config, _session0); ;
+            _model0 = new Model(_config, _session0);
 
             ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)
             {
@@ -79,7 +82,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 ["connection_name"] = ClientProvidedName
             };
 
-            _mainLoopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
+            _mainLoopTask = Task.Run(MainLoop);
             try
             {
                 Open();
@@ -373,7 +376,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool SetCloseReason(ShutdownEventArgs reason)
         {
-            return System.Threading.Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
         private void LogCloseError(string error, Exception ex)
@@ -394,9 +397,93 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionWrapper.Invoke(this, args);
         }
 
-        internal void Write(ReadOnlyMemory<byte> memory)
+        internal void Write(ReadOnlySpan<byte> payload)
         {
-            _frameHandler.Write(memory);
+            if (!_frameHandler.IsClosed)
+            {
+                _writeSemaphore.Wait();
+                WriteSpan(payload);
+                _frameHandler.FrameWriter.FlushAsync().AsTask().Wait(); // Sync-over-async, not great, not terrible. All we can do for the sync path.
+                _writeSemaphore.Release();
+            }
+        }
+
+        internal async ValueTask WriteAsync(ReadOnlyMemory<byte> payload)
+        {
+            if (!_frameHandler.IsClosed)
+            {
+                if (!_writeSemaphore.Wait(0))
+                {
+                    await _writeSemaphore.WaitAsync().ConfigureAwait(false);
+                }
+
+                WriteSpan(payload.Span);
+                await _frameHandler.FrameWriter.FlushAsync().ConfigureAwait(false);
+                _writeSemaphore.Release();
+            }
+        }
+
+        private void WriteSpan(ReadOnlySpan<byte> payload)
+        {
+            Span<byte> span = _frameHandler.FrameWriter.GetSpan(payload.Length);
+            payload.CopyTo(span);
+            _frameHandler.FrameWriter.Advance(payload.Length);
+        }
+
+        internal void Write<TMethod>(ref TMethod method, ushort channelNumber) where TMethod : struct, IOutgoingAmqpMethod
+        {
+            if (!_frameHandler.IsClosed)
+            {
+                _writeSemaphore.Wait();
+                Client.Impl.Framing.SerializeToFrames(ref method, _frameHandler.FrameWriter, channelNumber);
+                _frameHandler.FrameWriter.FlushAsync().AsTask().Wait(); // Sync-over-async, not great, not terrible. All we can do for the sync path.
+                _writeSemaphore.Release();
+            }
+        }
+
+        internal async ValueTask WriteAsync<TMethod>(TMethod method, ushort channelNumber) where TMethod : struct, IOutgoingAmqpMethod
+        {
+            if (!_frameHandler.IsClosed)
+            {
+                if (!_writeSemaphore.Wait(0))
+                {
+                    await _writeSemaphore.WaitAsync().ConfigureAwait(false);
+                }
+
+                Client.Impl.Framing.SerializeToFrames(ref method, _frameHandler.FrameWriter, channelNumber);
+                await _frameHandler.FrameWriter.FlushAsync().ConfigureAwait(false);
+                _writeSemaphore.Release();
+            }
+        }
+
+        internal void Write<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (!_frameHandler.IsClosed)
+            {
+                _writeSemaphore.Wait();
+                Client.Impl.Framing.SerializeToFrames(ref method, ref header, body, _frameHandler.FrameWriter, channelNumber, maxBodyPayloadBytes);
+                _frameHandler.FrameWriter.FlushAsync().AsTask().Wait(); // Sync-over-async, not great, not terrible. All we can do for the sync path.
+                _writeSemaphore.Release();
+            }
+        }
+
+        internal async ValueTask WriteAsync<TMethod, THeader>(TMethod method, THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (!_frameHandler.IsClosed)
+            {
+                if (!_writeSemaphore.Wait(0))
+                {
+                    await _writeSemaphore.WaitAsync().ConfigureAwait(false);
+                }
+
+                Client.Impl.Framing.SerializeToFrames(ref method, ref header, body, _frameHandler.FrameWriter, channelNumber, maxBodyPayloadBytes);
+                await _frameHandler.FrameWriter.FlushAsync().ConfigureAwait(false);
+                _writeSemaphore.Release();
+            }
         }
 
         public void Dispose()

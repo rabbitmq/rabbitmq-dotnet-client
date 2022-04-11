@@ -44,9 +44,8 @@ namespace RabbitMQ.Client.Unit
     public static class RabbitMQCtl
     {
         private static readonly char[] newLine = new char[] { '\n' };
-        private static readonly Func<string, Process> s_invokeRabbitMqCtl = GetRabbitMqCtlInvokeAction();
 
-        private static Func<string, Process> GetRabbitMqCtlInvokeAction()
+        private static Process GetRabbitMqCtlInvokeAction(string args)
         {
             string precomputedArguments;
             string? envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
@@ -58,11 +57,11 @@ namespace RabbitMQ.Client.Unit
                 {
                     // Call docker
                     precomputedArguments = $"exec {envVariable.Substring(DockerPrefix.Length)} rabbitmqctl ";
-                    return args => CreateProcess("docker", precomputedArguments + args);
+                    return CreateProcess("docker", precomputedArguments + args);
                 }
 
                 // call the path from the env var
-                return args => CreateProcess(envVariable, args);
+                return CreateProcess(envVariable, args);
             }
 
             // Try default
@@ -84,11 +83,11 @@ namespace RabbitMQ.Client.Unit
 
             if (IsRunningOnMonoOrDotNetCore())
             {
-                return args => CreateProcess(path, args);
+                return CreateProcess(path, args);
             }
 
             precomputedArguments = $"/c \"\"{path}\" ";
-            return args => CreateProcess("cmd.exe", precomputedArguments + args);
+            return CreateProcess("cmd.exe", precomputedArguments + args);
         }
 
         //
@@ -98,7 +97,7 @@ namespace RabbitMQ.Client.Unit
         {
             try
             {
-                using var process = s_invokeRabbitMqCtl(args);
+                using var process = GetRabbitMqCtlInvokeAction(args);
                 process.Start();
                 process.WaitForExit();
                 string stderr = process.StandardError.ReadToEnd();
@@ -137,7 +136,7 @@ namespace RabbitMQ.Client.Unit
 
         private static void ReportExecFailure(string cmd, string args, string msg)
         {
-            Console.WriteLine($"Failure while running {cmd} {args}:\n{msg}");
+            Xunit.Assert.True(false, $"Failure while running {cmd} {args}:\n{msg}");
         }
 
         private static bool IsRunningOnMonoOrDotNetCore()

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -44,6 +45,7 @@ namespace RabbitMQ.Client.Unit
     public class TestAsyncConsumer
     {
         private readonly ITestOutputHelper _output;
+        private static readonly RandomNumberGenerator s_randomNumberGenerator = RandomNumberGenerator.Create();
 
         public TestAsyncConsumer(ITestOutputHelper output)
         {
@@ -90,11 +92,11 @@ namespace RabbitMQ.Client.Unit
                 using (IModel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
-                    string publish1 = get_unique_string(1024);
+                    string publish1 = TestAsyncConsumer.get_unique_string(1024);
                     byte[] body = Encoding.UTF8.GetBytes(publish1);
                     m.BasicPublish("", q.QueueName, body);
 
-                    string publish2 = get_unique_string(1024);
+                    string publish2 = TestAsyncConsumer.get_unique_string(1024);
                     body = Encoding.UTF8.GetBytes(publish2);
                     m.BasicPublish("", q.QueueName, body);
 
@@ -141,11 +143,8 @@ namespace RabbitMQ.Client.Unit
         {
             const int publish_total = 4096;
             string queueName = $"{nameof(TestBasicRoundtripConcurrentManyMessages)}-{Guid.NewGuid()}";
-
-            string publish1 = get_unique_string(32768);
-            byte[] body1 = Encoding.ASCII.GetBytes(publish1);
-            string publish2 = get_unique_string(32768);
-            byte[] body2 = Encoding.ASCII.GetBytes(publish2);
+            byte[] body1 = Encoding.ASCII.GetBytes(get_unique_string(4096));
+            byte[] body2 = Encoding.ASCII.GetBytes(get_unique_string(4096));
 
             var cf = new ConnectionFactory { DispatchConsumersAsync = true, ConsumerDispatchConcurrency = 2 };
 
@@ -174,7 +173,7 @@ namespace RabbitMQ.Client.Unit
                         }
                     });
 
-            Task consumeTask = Task.Run(() =>
+            Task consumeTask = Task.Run(async () =>
                     {
                         var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                         var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -197,8 +196,7 @@ namespace RabbitMQ.Client.Unit
 
                                 consumer.Received += async (o, a) =>
                                 {
-                                    string decoded = Encoding.ASCII.GetString(a.Body.ToArray());
-                                    if (decoded == publish1)
+                                    if (a.Body.Span.SequenceEqual(body1))
                                     {
                                         if (Interlocked.Increment(ref publish1_count) >= publish_total)
                                         {
@@ -206,7 +204,7 @@ namespace RabbitMQ.Client.Unit
                                             await publish2SyncSource.Task;
                                         }
                                     }
-                                    else if (decoded == publish2)
+                                    else if (a.Body.Span.SequenceEqual(body2))
                                     {
                                         if (Interlocked.Increment(ref publish2_count) >= publish_total)
                                         {
@@ -219,7 +217,7 @@ namespace RabbitMQ.Client.Unit
                                 m.BasicConsume(queueName, true, consumer);
 
                                 // ensure we get a delivery
-                                Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
+                                await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 
                                 Assert.True(publish1SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
                                 Assert.True(publish2SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
@@ -239,14 +237,14 @@ namespace RabbitMQ.Client.Unit
                 using (IModel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
-                    byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
+                    byte[] body = Encoding.UTF8.GetBytes("async-hi");
                     m.BasicPublish("", q.QueueName, body);
                     var consumer = new AsyncEventingBasicConsumer(m);
                     var are = new AutoResetEvent(false);
-                    consumer.Received += async (o, a) =>
+                    consumer.Received += (o, a) =>
                         {
                             are.Set();
-                            await Task.Yield();
+                            return Task.CompletedTask;
                         };
                     string tag = m.BasicConsume(q.QueueName, true, consumer);
                     // ensure we get a delivery
@@ -337,16 +335,15 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        private string get_unique_string(int string_length)
+        private static string get_unique_string(int string_length)
         {
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                var bit_count = (string_length * 6);
-                var byte_count = ((bit_count + 7) / 8); // rounded up
-                var bytes = new byte[byte_count];
-                rng.GetBytes(bytes);
-                return Convert.ToBase64String(bytes);
-            }
+            var bit_count = string_length * 6;
+            var byte_count = (bit_count + 7) / 8; // rounded up
+            var bytes = ArrayPool<byte>.Shared.Rent(byte_count);
+            s_randomNumberGenerator.GetBytes(bytes);
+            var result = Convert.ToBase64String(bytes);
+            ArrayPool<byte>.Shared.Return(bytes);
+            return result;
         }
     }
 }

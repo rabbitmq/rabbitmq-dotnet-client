@@ -31,10 +31,7 @@
 
 using System;
 using System.Buffers;
-using System.IO;
-using System.Net.Sockets;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -131,41 +128,30 @@ namespace RabbitMQ.Client.Impl
             /// <summary>
             /// Compiler trick to directly refer to static data in the assembly, see here: https://github.com/dotnet/roslyn/pull/24621
             /// </summary>
-            private static ReadOnlySpan<byte> Payload => new byte[]
+            internal static ReadOnlySpan<byte> Payload => new byte[]
             {
                 Constants.FrameHeartbeat,
                 0, 0, // channel
                 0, 0, 0, 0, // payload length
                 Constants.FrameEnd
             };
-
-            public static Memory<byte> GetHeartbeatFrame()
-            {
-                // Is returned by SocketFrameHandler.WriteLoop
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
-                Payload.CopyTo(buffer);
-                return new Memory<byte>(buffer, 0, FrameSize);
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlyMemory<byte> SerializeToFrames<T>(ref T method, ushort channelNumber)
-            where T : struct, IOutgoingAmqpMethod
+        public static void SerializeToFrames<TMethod, TBufferWriter>(ref TMethod method, TBufferWriter pipeWriter, ushort channelNumber) where TMethod : struct, IOutgoingAmqpMethod where TBufferWriter : IBufferWriter<byte>
         {
             int size = Method.FrameSize + method.GetRequiredBufferSize();
-
-            // Will be returned by SocketFrameWriter.WriteLoop
-            var array = ArrayPool<byte>.Shared.Rent(size);
-            int offset = Method.WriteTo(array, channelNumber, ref method);
-
-            System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            return new ReadOnlyMemory<byte>(array, 0, size);
+            Span<byte> outputBuffer = pipeWriter.GetSpan(size);
+            int offset = Method.WriteTo(outputBuffer, channelNumber, ref method);
+            System.Diagnostics.Debug.Assert(offset == size, "Serialized to wrong size", "Serialized to wrong size, expect {0:N0}, offset {1:N0}", size, offset);
+            pipeWriter.Advance(size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlyMemory<byte> SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+        public static void SerializeToFrames<TMethod, THeader, TBufferWriter>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, TBufferWriter pipeWriter, ushort channelNumber, int maxBodyPayloadBytes)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
+            where TBufferWriter : IBufferWriter<byte>
         {
             int remainingBodyBytes = body.Length;
             int size = Method.FrameSize + Header.FrameSize +
@@ -173,20 +159,20 @@ namespace RabbitMQ.Client.Impl
                        BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes) + remainingBodyBytes;
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            var array = ArrayPool<byte>.Shared.Rent(size);
+            Span<byte> outputBuffer = pipeWriter.GetSpan(size);
 
-            int offset = Method.WriteTo(array, channelNumber, ref method);
-            offset += Header.WriteTo(array.AsSpan(offset), channelNumber, ref header, remainingBodyBytes);
+            int offset = Method.WriteTo(outputBuffer, channelNumber, ref method);
+            offset += Header.WriteTo(outputBuffer.Slice(offset), channelNumber, ref header, remainingBodyBytes);
             var bodySpan = body.Span;
             while (remainingBodyBytes > 0)
             {
                 int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
-                offset += BodySegment.WriteTo(array.AsSpan(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
+                offset += BodySegment.WriteTo(outputBuffer.Slice(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
                 remainingBodyBytes -= frameSize;
             }
 
-            System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            return new ReadOnlyMemory<byte>(array, 0, size);
+            System.Diagnostics.Debug.Assert(offset == size, "Serialized to wrong size", "Serialized to wrong size, expect {0:N0}, offset {1:N0}", size, offset);
+            pipeWriter.Advance(size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -201,7 +187,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal readonly ref struct InboundFrame
+    internal readonly struct InboundFrame
     {
         public readonly FrameType Type;
         public readonly int Channel;
@@ -216,113 +202,48 @@ namespace RabbitMQ.Client.Impl
             _rentedArray = rentedArray;
         }
 
-        private static void ProcessProtocolHeader(Stream reader, ReadOnlySpan<byte> frameHeader)
+        internal static void ProcessProtocolHeader(ReadOnlySequence<byte> buffer)
         {
-            try
+            Span<byte> protocolSpan = stackalloc byte[7];
+            buffer.Slice(1, 7).CopyTo(protocolSpan);
+            if (protocolSpan[0] != 'M' || protocolSpan[1] != 'Q' || protocolSpan[2] != 'P')
             {
-                if (frameHeader[0] != 'M' || frameHeader[1] != 'Q' || frameHeader[2] != 'P')
-                {
-                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
-                }
-
-                int serverMinor = reader.ReadByte();
-                if (serverMinor == -1)
-                {
-                    throw new EndOfStreamException();
-                }
-
-                throw new PacketNotRecognizedException(frameHeader[3], frameHeader[4], frameHeader[5], serverMinor);
-            }
-            catch (EndOfStreamException)
-            {
-                // Ideally we'd wrap the EndOfStreamException in the
-                // MalformedFrameException, but unfortunately the
-                // design of MalformedFrameException's superclass,
-                // ProtocolViolationException, doesn't permit
-                // this. Fortunately, the call stack in the
-                // EndOfStreamException is largely irrelevant at this
-                // point, so can safely be ignored.
                 throw new MalformedFrameException("Invalid AMQP protocol header from server");
             }
+
+            throw new PacketNotRecognizedException(protocolSpan[3], protocolSpan[4], protocolSpan[5], protocolSpan[6]);
         }
 
-        internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer)
+        public static bool TryParseInboundFrame(ref ReadOnlySequence<byte> buffer, out InboundFrame frame)
         {
-            try
+            int payloadSize = NetworkOrderDeserializer.ReadInt32(buffer.Slice(3, 4)); // FIXME - throw exn on unreasonable value
+            int frameSize = payloadSize + 8;
+            if (buffer.Length < frameSize)
             {
-                ReadFromStream(reader, frameHeaderBuffer, frameHeaderBuffer.Length);
-            }
-            catch (IOException ioe)
-            {
-                // If it's a WSAETIMEDOUT SocketException, unwrap it.
-                // This might happen when the limit of half-open connections is
-                // reached.
-                if (ioe?.InnerException is SocketException exception && exception.SocketErrorCode == SocketError.TimedOut)
-                {
-                    ExceptionDispatchInfo.Capture(exception).Throw();
-                }
-                else
-                {
-                    throw;
-                }
+                frame = default;
+                return false;
             }
 
-            byte firstByte = frameHeaderBuffer[0];
-            if (firstByte == 'A')
-            {
-                // Probably an AMQP protocol header, otherwise meaningless
-                ProcessProtocolHeader(reader, frameHeaderBuffer.AsSpan(1, 6));
-            }
-
-            FrameType type = (FrameType)firstByte;
-            var frameHeaderSpan = new ReadOnlySpan<byte>(frameHeaderBuffer, 1, 6);
-            int channel = NetworkOrderDeserializer.ReadUInt16(frameHeaderSpan);
-            int payloadSize = NetworkOrderDeserializer.ReadInt32(frameHeaderSpan.Slice(2, 4)); // FIXME - throw exn on unreasonable value
-
-            const int EndMarkerLength = 1;
-            // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
-            int readSize = payloadSize + EndMarkerLength;
-            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
-            try
-            {
-                ReadFromStream(reader, payloadBytes, readSize);
-            }
-            catch (Exception)
-            {
-                // Early EOF.
-                ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException($"Short frame - expected to read {readSize} bytes");
-            }
-
-            if (payloadBytes[payloadSize] != Constants.FrameEnd)
+            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(frameSize);
+            buffer.Slice(0, frameSize).CopyTo(payloadBytes);
+            if (payloadBytes[frameSize - 1] != Constants.FrameEnd)
             {
                 ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
+                frame = default;
+                return ThrowMalformedFrameException(payloadBytes[frameSize - 1]);
             }
 
-            RabbitMqClientEventSource.Log.DataReceived(payloadSize + Framing.BaseFrameSize);
-            return new InboundFrame(type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
+            buffer = buffer.Slice(frameSize);
+            RabbitMqClientEventSource.Log.DataReceived(frameSize);
+            FrameType frameType = (FrameType)payloadBytes[0];
+            ushort channel = NetworkOrderDeserializer.ReadUInt16(ref Unsafe.AsRef(payloadBytes[1]));
+            frame = new InboundFrame(frameType, channel, payloadBytes.AsMemory(7, payloadSize), payloadBytes);
+            return true;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ReadFromStream(Stream reader, byte[] buffer, int toRead)
+        private static bool ThrowMalformedFrameException(byte value)
         {
-            int bytesRead = 0;
-            do
-            {
-                int read = reader.Read(buffer, bytesRead, toRead - bytesRead);
-                if (read == 0)
-                {
-                    ThrowEndOfStream();
-                }
-
-                bytesRead += read;
-            } while (bytesRead != toRead);
-
-            static void ThrowEndOfStream()
-            {
-                throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
-            }
+            throw new MalformedFrameException($"Bad frame end marker: {value}");
         }
 
         public byte[] TakeoverPayload()

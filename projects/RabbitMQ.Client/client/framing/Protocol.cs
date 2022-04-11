@@ -50,6 +50,10 @@ namespace RabbitMQ.Client.Framing
         ///<summary>Protocol API name (= :AMQP_0_9_1)</summary>
         public override string ApiName => ":AMQP_0_9_1";
 
+        public override ReadOnlySpan<byte> Header => Amqp091Header;
+
+        private static ReadOnlySpan<byte> Amqp091Header => new byte[] { (byte)'A', (byte)'M', (byte)'Q', (byte)'P', 0, 0, 9, 1 };
+
         ///<summary>Default TCP port (= 5672)</summary>
         public override int DefaultPort => 5672;
 
