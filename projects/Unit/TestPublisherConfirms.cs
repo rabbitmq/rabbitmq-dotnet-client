@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
         public TestPublisherConfirms(ITestOutputHelper output) : base(output)
         {
             var rnd = new Random();
-            _body  = new byte[4096];
+            _body = new byte[4096];
             rnd.NextBytes(_body);
 
         }

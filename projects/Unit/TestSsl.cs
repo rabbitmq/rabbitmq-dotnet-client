@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Unit
         {
             Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
-            string hostName  = System.Net.Dns.GetHostName();
+            string hostName = System.Net.Dns.GetHostName();
             ConnectionFactory cf = new ConnectionFactory { Port = 5671 };
             cf.Ssl.ServerName = hostName;
             cf.Ssl.CertPath = $"{_sslDir}/client_{hostName}_key.p12";

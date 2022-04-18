@@ -35,7 +35,7 @@ using System.Threading;
 
 namespace RabbitMQ.Client.Logging
 {
-    #nullable enable
+#nullable enable
     internal sealed partial class RabbitMqClientEventSource
     {
         private static int ConnectionsOpened;

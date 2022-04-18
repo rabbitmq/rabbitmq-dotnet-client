@@ -333,7 +333,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void ModelRpc<TMethod>(ref  TMethod method, ProtocolCommandId returnCommandId)
+        protected void ModelRpc<TMethod>(ref TMethod method, ProtocolCommandId returnCommandId)
             where TMethod : struct, IOutgoingAmqpMethod
         {
             var k = new SimpleBlockingRpcContinuation();
@@ -353,7 +353,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected TReturn ModelRpc<TMethod, TReturn>(ref  TMethod method, ProtocolCommandId returnCommandId, Func<ReadOnlyMemory<byte>, TReturn> createFunc)
+        protected TReturn ModelRpc<TMethod, TReturn>(ref TMethod method, ProtocolCommandId returnCommandId, Func<ReadOnlyMemory<byte>, TReturn> createFunc)
             where TMethod : struct, IOutgoingAmqpMethod
         {
             var k = new SimpleBlockingRpcContinuation();
@@ -378,7 +378,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ModelSend<T>(ref  T method) where T : struct, IOutgoingAmqpMethod
+        protected void ModelSend<T>(ref T method) where T : struct, IOutgoingAmqpMethod
         {
             Session.Transmit(ref method);
         }

@@ -98,8 +98,8 @@ namespace RabbitMQ.Client
         /// Override ToString to be useful for debugging.
         /// </summary>
         public override string ToString()
-        { 
-            return $"AMQP close-reason, initiated by {Initiator}" 
+        {
+            return $"AMQP close-reason, initiated by {Initiator}"
                 + $", code={ReplyCode}"
                 + (ReplyText != null ? $", text='{ReplyText}'" : string.Empty)
                 + $", classId={ClassId}"

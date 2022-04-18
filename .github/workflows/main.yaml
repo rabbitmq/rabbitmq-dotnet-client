@@ -86,3 +86,5 @@ jobs:
         run: dotnet test --no-restore --no-build --logger "console;verbosity=detailed" --framework "net6.0"
         env:
           RABBITMQ_RABBITMQCTL_PATH: DOCKER:${{job.services.rabbitmq.id}}
+      - name: Verify Formatting
+        run: dotnet format --verbosity normal --no-restore --verify-no-changes

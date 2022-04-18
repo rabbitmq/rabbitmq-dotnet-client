@@ -46,9 +46,9 @@ namespace RabbitMQ.Client
             bool noLocal = false,
             bool exclusive = false,
             IDictionary<string, object> arguments = null)
-            {
-                return model.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
-            }
+        {
+            return model.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+        }
 
         /// <summary>Start a Basic content-class consumer.</summary>
         public static string BasicConsume(this IModel model, string queue, bool autoAck, IBasicConsumer consumer)
@@ -100,9 +100,9 @@ namespace RabbitMQ.Client
         /// </summary>
         public static QueueDeclareOk QueueDeclare(this IModel model, string queue = "", bool durable = false, bool exclusive = true,
             bool autoDelete = true, IDictionary<string, object> arguments = null)
-            {
-                return model.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            }
+        {
+            return model.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Extension method) Bind an exchange to an exchange.
@@ -125,18 +125,18 @@ namespace RabbitMQ.Client
         /// </summary>
         public static void ExchangeDeclare(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
-            }
+        {
+            model.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Extension method) Like ExchangeDeclare but sets nowait to true. 
         /// </summary>
         public static void ExchangeDeclareNoWait(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
-            }
+        {
+            model.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+        }
 
         /// <summary>
         /// (Spec method) Unbinds an exchange.
@@ -145,9 +145,9 @@ namespace RabbitMQ.Client
             string source,
             string routingKey,
             IDictionary<string, object> arguments = null)
-            {
-                model.ExchangeUnbind(destination, source, routingKey, arguments);
-            }
+        {
+            model.ExchangeUnbind(destination, source, routingKey, arguments);
+        }
 
         /// <summary>
         /// (Spec method) Deletes an exchange.

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-    #nullable enable
+#nullable enable
     internal abstract class ConsumerDispatcherBase
     {
         private static readonly FallbackConsumer fallbackConsumer = new FallbackConsumer();

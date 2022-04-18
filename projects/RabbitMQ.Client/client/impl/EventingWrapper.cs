@@ -4,7 +4,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
 {
-    #nullable enable
+#nullable enable
     internal struct EventingWrapper<T>
     {
         private event EventHandler<T>? _event;

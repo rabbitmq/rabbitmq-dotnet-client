@@ -6,7 +6,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-    #nullable enable
+#nullable enable
     internal sealed class ConsumerDispatcher : ConsumerDispatcherChannelBase
     {
         public ConsumerDispatcher(ModelBase model, int concurrency)

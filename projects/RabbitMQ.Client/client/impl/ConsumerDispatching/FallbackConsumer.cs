@@ -5,7 +5,7 @@ using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-    #nullable enable
+#nullable enable
     internal sealed class FallbackConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
         public IModel? Model { get; } = null;

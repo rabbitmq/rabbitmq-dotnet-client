@@ -64,13 +64,17 @@ namespace RabbitMQ.Client.Impl
 
             var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
 
-            Action<SslOption> TryAuthenticating = (SslOption opts) => {
+            Action<SslOption> TryAuthenticating = (SslOption opts) =>
+            {
                 sslStream.AuthenticateAsClientAsync(opts.ServerName, opts.Certs, opts.Version,
                                                     opts.CheckCertificateRevocation).GetAwaiter().GetResult();
             };
-            try {
+            try
+            {
                 TryAuthenticating(options);
-            } catch(ArgumentException e) when (e.ParamName == "sslProtocolType" && options.Version == SslProtocols.None) {
+            }
+            catch (ArgumentException e) when (e.ParamName == "sslProtocolType" && options.Version == SslProtocols.None)
+            {
                 // SslProtocols.None is dysfunctional in this environment, possibly due to TLS version restrictions
                 // in the app context, system or .NET version-specific behavior. See rabbitmq/rabbitmq-dotnet-client#764
                 // for background.

@@ -136,7 +136,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             ReadOnlySpan<byte> span = frame.Payload.Span;
-            var classId =  NetworkOrderDeserializer.ReadUInt16(span);
+            var classId = NetworkOrderDeserializer.ReadUInt16(span);
             if (classId != ClassConstants.Basic)
             {
                 throw new UnknownClassOrMethodException(classId, 0);

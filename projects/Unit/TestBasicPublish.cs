@@ -14,8 +14,8 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicRoundtripArray()
         {
             var cf = new ConnectionFactory();
-            using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            using (IConnection c = cf.CreateConnection())
+            using (IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 var bp = new BasicProperties();
@@ -44,8 +44,8 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicRoundtripCachedString()
         {
             var cf = new ConnectionFactory();
-            using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            using (IConnection c = cf.CreateConnection())
+            using (IModel m = c.CreateModel())
             {
                 CachedString exchangeName = new CachedString(string.Empty);
                 CachedString queueName = new CachedString(m.QueueDeclare().QueueName);
@@ -74,8 +74,8 @@ namespace RabbitMQ.Client.Unit
         public void TestBasicRoundtripReadOnlyMemory()
         {
             var cf = new ConnectionFactory();
-            using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            using (IConnection c = cf.CreateConnection())
+            using (IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
@@ -103,8 +103,8 @@ namespace RabbitMQ.Client.Unit
         public void CanNotModifyPayloadAfterPublish()
         {
             var cf = new ConnectionFactory();
-            using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            using (IConnection c = cf.CreateConnection())
+            using (IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 byte[] sendBody = new byte[1000];
