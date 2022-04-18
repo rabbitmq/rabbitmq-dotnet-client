@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Impl
              * | 2 bytes  | 2 bytes   |           |
              * +----------+-----------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2;
-            
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo<T>(Span<byte> span, ushort channel, ref T method) where T : struct, IOutgoingAmqpMethod
             {
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
              * | 2 bytes  | 2 bytes  | 8 bytes           | x bytes   |
              * +----------+----------+-------------------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2 + 8;
-            
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo<T>(Span<byte> span, ushort channel, ref T header, int bodyLength) where T : IAmqpHeader
             {

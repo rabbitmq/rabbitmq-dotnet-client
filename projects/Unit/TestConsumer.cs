@@ -15,9 +15,9 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
-            var cf = new ConnectionFactory{ ConsumerDispatchConcurrency = 2 };
-            using(IConnection c = cf.CreateConnection())
-            using(IModel m = c.CreateModel())
+            var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
+            using (IConnection c = cf.CreateConnection())
+            using (IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 const string publish1 = "sync-hi-1";

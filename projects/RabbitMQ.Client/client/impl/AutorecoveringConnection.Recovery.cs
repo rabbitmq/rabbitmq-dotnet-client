@@ -149,7 +149,7 @@ namespace RabbitMQ.Client.Framing.Impl
                                 RecoverQueues(recoveryChannel);
                                 RecoverBindings(recoveryChannel);
                             }
-                                
+
                         }
                         RecoverModelsAndItsConsumers();
                     }

@@ -1,8 +1,8 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
-using System;
 
 namespace Benchmarks.Networking
 {
@@ -17,7 +17,7 @@ namespace Benchmarks.Networking
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _container = RabbitMQBroker.Start(); 
+            _container = RabbitMQBroker.Start();
         }
 
         [GlobalCleanup]

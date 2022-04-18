@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this);
-            _model0 = new Model(_config, _session0);;
+            _model0 = new Model(_config, _session0); ;
 
             ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)
             {

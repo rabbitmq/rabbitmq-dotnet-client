@@ -40,7 +40,7 @@ using System.Threading;
 
 namespace RabbitMQ.Client.Unit
 {
-    #nullable enable
+#nullable enable
     public static class RabbitMQCtl
     {
         private static readonly char[] newLine = new char[] { '\n' };
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        private static Process CreateProcess(string cmd,  string arguments, string? workDirectory = null)
+        private static Process CreateProcess(string cmd, string arguments, string? workDirectory = null)
         {
             return new Process
             {

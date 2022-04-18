@@ -1,21 +1,12 @@
-# editorconfig.org
-
-# top-most EditorConfig file
 root = true
 
-# Default settings:
-# A newline ending every file
-# Use 4 spaces as indentation
+trim_trailing_whitespace = true
+
 [*]
 insert_final_newline = true
 indent_style = space
 indent_size = 4
-trim_trailing_whitespace = true
 
-[project.json]
-indent_size = 2
-
-# C# files
 [*.cs]
 # New line preferences
 csharp_new_line_before_open_brace = all
@@ -178,12 +169,13 @@ indent_size = 2
 [*.{props,targets,config,nuspec}]
 indent_size = 2
 
-# Shell scripts
 [*.sh]
 end_of_line = lf
 [*.{cmd, bat}]
 end_of_line = crlf
 
-# YAML files
+[*.json]
+indent_size = 2
+
 [*.yml]
 indent_size = 2

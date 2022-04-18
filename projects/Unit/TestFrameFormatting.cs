@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Unit
             var basicProperties = new BasicProperties { AppId = "A" };
             int payloadSize = ((IAmqpWriteable)basicProperties).GetRequiredBufferSize();
             byte[] frameBytes = new byte[Impl.Framing.Header.FrameSize + BodyLength + payloadSize];
-            Impl.Framing.Header.WriteTo(frameBytes, Channel, ref  basicProperties, BodyLength);
+            Impl.Framing.Header.WriteTo(frameBytes, Channel, ref basicProperties, BodyLength);
 
             Assert.Equal(20, Impl.Framing.Header.FrameSize);
             Assert.Equal(Constants.FrameHeader, frameBytes[0]);

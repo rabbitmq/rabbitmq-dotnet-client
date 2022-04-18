@@ -73,7 +73,9 @@ namespace RabbitMQ.Client.Unit
             {
                 _model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
                 _model.ExchangeDeclarePassive(x);
-            } finally {
+            }
+            finally
+            {
                 _model.ExchangeDelete(x);
             }
         }
@@ -86,7 +88,9 @@ namespace RabbitMQ.Client.Unit
             {
                 _model.ExchangeDeclareNoWait(x, "fanout", false, true, null);
                 _model.ExchangeBindNoWait(x, "amq.fanout", "", null);
-            } finally {
+            }
+            finally
+            {
                 _model.ExchangeDelete(x);
             }
         }
@@ -100,7 +104,9 @@ namespace RabbitMQ.Client.Unit
                 _model.ExchangeDeclare(x, "fanout", false, true, null);
                 _model.ExchangeBind(x, "amq.fanout", "", null);
                 _model.ExchangeUnbindNoWait(x, "amq.fanout", "", null);
-            } finally {
+            }
+            finally
+            {
                 _model.ExchangeDelete(x);
             }
         }

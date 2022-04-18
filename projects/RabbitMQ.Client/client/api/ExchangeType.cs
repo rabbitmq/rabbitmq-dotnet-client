@@ -64,7 +64,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public const string Topic = "topic";
 
-        private static readonly string[] s_all = {Fanout, Direct, Topic, Headers};
+        private static readonly string[] s_all = { Fanout, Direct, Topic, Headers };
 
         /// <summary>
         /// Retrieve a collection containing all standard exchange types.

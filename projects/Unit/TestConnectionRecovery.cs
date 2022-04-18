@@ -848,7 +848,7 @@ namespace RabbitMQ.Client.Unit
             _model.QueueDelete(q);
         }
 
-        [Fact(Skip="TODO-FLAKY")]
+        [Fact(Skip = "TODO-FLAKY")]
         public void TestPublishRpcRightAfterReconnect()
         {
             string testQueueName = $"dotnet-client.test.{nameof(TestPublishRpcRightAfterReconnect)}";

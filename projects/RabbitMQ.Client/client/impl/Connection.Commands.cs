@@ -40,7 +40,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    #nullable enable
+#nullable enable
     internal sealed partial class Connection
     {
         public void UpdateSecret(string newSecret, string reason)

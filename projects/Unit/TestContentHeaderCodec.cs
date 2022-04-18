@@ -61,9 +61,9 @@ namespace RabbitMQ.Client.Unit
         public void TestSimpleProperties()
         {
             IAmqpWriteable prop = new BasicProperties
-                {
-                    ContentType = "text/plain"
-                };
+            {
+                ContentType = "text/plain"
+            };
             int bytesNeeded = prop.GetRequiredBufferSize();
             byte[] bytes = new byte[bytesNeeded];
             int offset = prop.WriteTo(bytes);
@@ -78,22 +78,22 @@ namespace RabbitMQ.Client.Unit
         public void TestFullProperties()
         {
             IAmqpWriteable prop = new BasicProperties
-                {
-                    AppId = "A",
-                    ContentType = "B",
-                    ContentEncoding = "C",
-                    ClusterId = "D",
-                    CorrelationId = "E",
-                    DeliveryMode = DeliveryModes.Transient,
-                    Expiration = "F",
-                    MessageId = "G",
-                    Priority = 2,
-                    Timestamp = new AmqpTimestamp(3),
-                    Type = "H",
-                    ReplyTo = "I",
-                    UserId = "J",
-                    Headers = new Dictionary<string, object>(0)
-                };
+            {
+                AppId = "A",
+                ContentType = "B",
+                ContentEncoding = "C",
+                ClusterId = "D",
+                CorrelationId = "E",
+                DeliveryMode = DeliveryModes.Transient,
+                Expiration = "F",
+                MessageId = "G",
+                Priority = 2,
+                Timestamp = new AmqpTimestamp(3),
+                Type = "H",
+                ReplyTo = "I",
+                UserId = "J",
+                Headers = new Dictionary<string, object>(0)
+            };
             int bytesNeeded = prop.GetRequiredBufferSize();
             byte[] bytes = new byte[bytesNeeded];
             int offset = prop.WriteTo(bytes);

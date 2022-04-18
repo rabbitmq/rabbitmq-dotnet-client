@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Unit
 
             List<Thread> ts = new List<Thread>();
             NotSupportedException nse = null;
-            for(int i = 0; i < 256; i++)
+            for (int i = 0; i < 256; i++)
             {
                 Thread t = new Thread(() =>
                         {
@@ -63,7 +63,8 @@ namespace RabbitMQ.Client.Unit
                                 // of thread interleaving. MK.
                                 Thread.Sleep(rnd.Next(5, 500));
                                 _model.ExchangeDeclare(x, "fanout", false, false, null);
-                            } catch (NotSupportedException e)
+                            }
+                            catch (NotSupportedException e)
                             {
                                 nse = e;
                             }

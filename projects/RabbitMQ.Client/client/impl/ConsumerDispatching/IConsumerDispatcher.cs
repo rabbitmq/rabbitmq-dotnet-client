@@ -34,7 +34,7 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-    #nullable enable
+#nullable enable
     internal interface IConsumerDispatcher
     {
         IBasicConsumer? DefaultConsumer { get; set; }

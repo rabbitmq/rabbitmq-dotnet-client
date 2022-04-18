@@ -37,7 +37,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    #nullable enable
+#nullable enable
     internal sealed partial class Connection
     {
         private readonly IFrameHandler _frameHandler;

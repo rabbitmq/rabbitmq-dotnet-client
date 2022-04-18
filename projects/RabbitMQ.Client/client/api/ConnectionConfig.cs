@@ -36,7 +36,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
-    #nullable enable
+#nullable enable
     /// <summary>
     /// The configuration of a connection.
     /// </summary>

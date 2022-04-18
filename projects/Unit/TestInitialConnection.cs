@@ -64,7 +64,8 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
         {
-            Assert.Throws<BrokerUnreachableException>(() => {
+            Assert.Throws<BrokerUnreachableException>(() =>
+            {
                 CreateAutorecoveringConnection(new List<string>() {
                     "191.72.44.22",
                     "145.23.22.18",

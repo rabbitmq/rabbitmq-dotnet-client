@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
 
         private sealed class FaultyConsumer : DefaultBasicConsumer
         {
-            public FaultyConsumer(IModel model) : base(model) {}
+            public FaultyConsumer(IModel model) : base(model) { }
 
             public override void HandleBasicDeliver(string consumerTag,
                                                ulong deliveryTag,
@@ -73,7 +73,8 @@ namespace RabbitMQ.Client.Unit
             m.QueueDeclare(q, false, false, false, null);
 
             CallbackExceptionEventArgs ea = null;
-            m.CallbackException += (_, evt) => {
+            m.CallbackException += (_, evt) =>
+            {
                 ea = evt;
                 c.Close();
                 Monitor.PulseAll(o);

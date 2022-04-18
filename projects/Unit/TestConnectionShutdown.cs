@@ -31,10 +31,8 @@
 
 using System;
 using System.Threading;
-
-using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Framing.Impl;
-
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -54,7 +52,8 @@ namespace RabbitMQ.Client.Unit
             _model = _conn.CreateModel();
 
             var latch = new ManualResetEventSlim(false);
-            _model.ModelShutdown += (model, args) => {
+            _model.ModelShutdown += (model, args) =>
+            {
                 latch.Set();
             };
 
@@ -72,7 +71,8 @@ namespace RabbitMQ.Client.Unit
             _model = _conn.CreateModel();
 
             var latch = new ManualResetEventSlim(false);
-            _model.ModelShutdown += (model, args) => {
+            _model.ModelShutdown += (model, args) =>
+            {
                 latch.Set();
             };
 
@@ -91,7 +91,8 @@ namespace RabbitMQ.Client.Unit
             _model = _conn.CreateModel();
 
             var latch = new ManualResetEventSlim(false);
-            _model.ModelShutdown += (model, args) => {
+            _model.ModelShutdown += (model, args) =>
+            {
                 latch.Set();
             };
 
@@ -107,7 +108,8 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEventSlim(false);
 
-            _model.ModelShutdown += (model, args) => {
+            _model.ModelShutdown += (model, args) =>
+            {
                 latch.Set();
             };
             _conn.Close();

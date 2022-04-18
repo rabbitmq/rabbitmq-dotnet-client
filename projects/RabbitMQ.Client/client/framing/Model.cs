@@ -36,7 +36,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal class Model: ModelBase
+    internal class Model : ModelBase
     {
         public Model(ConnectionConfig config, ISession session) : base(config, session)
         {
@@ -300,109 +300,109 @@ namespace RabbitMQ.Client.Framing.Impl
             switch (cmd.CommandId)
             {
                 case ProtocolCommandId.BasicDeliver:
-                {
-                    HandleBasicDeliver(in cmd);
-                    return true;
-                }
+                    {
+                        HandleBasicDeliver(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.BasicAck:
-                {
-                    HandleBasicAck(in cmd);
-                    return true;
-                }
+                    {
+                        HandleBasicAck(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.BasicCancel:
-                {
-                    HandleBasicCancel(in cmd);
-                    return true;
-                }
+                    {
+                        HandleBasicCancel(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.BasicCancelOk:
-                {
-                    HandleBasicCancelOk(in cmd);
-                    return true;
-                }
+                    {
+                        HandleBasicCancelOk(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.BasicConsumeOk:
-                {
-                    HandleBasicConsumeOk(in cmd);
-                    return true;
-                }
+                    {
+                        HandleBasicConsumeOk(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.BasicGetEmpty:
-                {
-                    cmd.ReturnMethodBuffer();
-                    HandleBasicGetEmpty();
-                    return true;
-                }
+                    {
+                        cmd.ReturnMethodBuffer();
+                        HandleBasicGetEmpty();
+                        return true;
+                    }
                 case ProtocolCommandId.BasicGetOk:
-                {
-                    HandleBasicGetOk(in cmd);
-                    return true;
-                }
+                    {
+                        HandleBasicGetOk(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.BasicNack:
-                {
-                    HandleBasicNack(in cmd);
-                    return true;
-                }
+                    {
+                        HandleBasicNack(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.BasicRecoverOk:
-                {
-                    cmd.ReturnMethodBuffer();
-                    HandleBasicRecoverOk();
-                    return true;
-                }
+                    {
+                        cmd.ReturnMethodBuffer();
+                        HandleBasicRecoverOk();
+                        return true;
+                    }
                 case ProtocolCommandId.BasicReturn:
-                {
-                    HandleBasicReturn(in cmd);
-                    return true;
-                }
+                    {
+                        HandleBasicReturn(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.ChannelClose:
-                {
-                    HandleChannelClose(in cmd);
-                    return true;
-                }
+                    {
+                        HandleChannelClose(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.ChannelCloseOk:
-                {
-                    cmd.ReturnMethodBuffer();
-                    HandleChannelCloseOk();
-                    return true;
-                }
+                    {
+                        cmd.ReturnMethodBuffer();
+                        HandleChannelCloseOk();
+                        return true;
+                    }
                 case ProtocolCommandId.ChannelFlow:
-                {
-                    HandleChannelFlow(in cmd);
-                    return true;
-                }
+                    {
+                        HandleChannelFlow(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.ConnectionBlocked:
-                {
-                    HandleConnectionBlocked(in cmd);
-                    return true;
-                }
+                    {
+                        HandleConnectionBlocked(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.ConnectionClose:
-                {
-                    HandleConnectionClose(in cmd);
-                    return true;
-                }
+                    {
+                        HandleConnectionClose(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.ConnectionSecure:
-                {
-                    HandleConnectionSecure(in cmd);
-                    return true;
-                }
+                    {
+                        HandleConnectionSecure(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.ConnectionStart:
-                {
-                    HandleConnectionStart(in cmd);
-                    return true;
-                }
+                    {
+                        HandleConnectionStart(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.ConnectionTune:
-                {
-                    HandleConnectionTune(in cmd);
-                    return true;
-                }
+                    {
+                        HandleConnectionTune(in cmd);
+                        return true;
+                    }
                 case ProtocolCommandId.ConnectionUnblocked:
-                {
-                    cmd.ReturnMethodBuffer();
-                    HandleConnectionUnblocked();
-                    return true;
-                }
+                    {
+                        cmd.ReturnMethodBuffer();
+                        HandleConnectionUnblocked();
+                        return true;
+                    }
                 case ProtocolCommandId.QueueDeclareOk:
-                {
-                    HandleQueueDeclareOk(in cmd);
-                    return true;
-                }
+                    {
+                        HandleQueueDeclareOk(in cmd);
+                        return true;
+                    }
                 default: return false;
             }
         }

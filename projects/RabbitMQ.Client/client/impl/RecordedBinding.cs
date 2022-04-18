@@ -34,7 +34,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    #nullable enable
+#nullable enable
     internal readonly struct RecordedBinding : IEquatable<RecordedBinding>
     {
         private readonly bool _isQueueBinding;

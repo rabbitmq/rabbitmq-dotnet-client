@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Logging
             Type = ex.GetType().FullName;
             Message = ex.Message;
             StackTrace = ex.StackTrace;
-            if(ex.InnerException != null)
+            if (ex.InnerException != null)
             {
                 InnerException = ex.InnerException.ToString();
             }

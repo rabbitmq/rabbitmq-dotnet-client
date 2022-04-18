@@ -34,7 +34,7 @@ using System.Diagnostics.Tracing;
 
 namespace RabbitMQ.Client.Logging
 {
-    #nullable enable
+#nullable enable
     internal sealed partial class RabbitMqClientEventSource : EventSource
     {
         public static readonly RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
@@ -52,14 +52,14 @@ namespace RabbitMQ.Client.Logging
         [Event(1, Message = "INFO", Keywords = Keywords.Log, Level = EventLevel.Informational)]
         public void Info(string message)
         {
-            if(IsEnabled())
+            if (IsEnabled())
                 WriteEvent(1, message);
         }
 
         [Event(2, Message = "WARN", Keywords = Keywords.Log, Level = EventLevel.Warning)]
         public void Warn(string message)
         {
-            if(IsEnabled())
+            if (IsEnabled())
                 WriteEvent(2, message);
         }
 #if NET452
@@ -71,9 +71,9 @@ namespace RabbitMQ.Client.Logging
         }
 #else
         [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
-        public void Error(string message,  RabbitMqExceptionDetail ex)
+        public void Error(string message, RabbitMqExceptionDetail ex)
         {
-            if(IsEnabled())
+            if (IsEnabled())
                 WriteEvent(3, message, ex);
         }
 #endif
