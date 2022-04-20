@@ -189,14 +189,15 @@ namespace RabbitMQ.Client
 
         // just here to hold the value that was set through the setter
         private Uri _uri;
-        private readonly ArrayPool<byte> _memoryPool;
+        private ArrayPool<byte> _memoryPool;
 
         /// <summary>
         /// The memory pool used for allocating buffers. Default is <see cref="MemoryPool{T}.Shared"/>.
         /// </summary>
         public ArrayPool<byte> MemoryPool
         {
-            get => _memoryPool;
+            get { return _memoryPool; }
+            set { _memoryPool = value ?? ArrayPool<byte>.Shared; }
         }
 
         /// <summary>
@@ -268,18 +269,6 @@ namespace RabbitMQ.Client
         public ConnectionFactory()
         {
             ClientProperties = Connection.DefaultClientProperties();
-            _memoryPool = ArrayPool<byte>.Shared;
-        }
-
-        /// <summary>
-        /// Construct a fresh instance, with all fields set to their respective defaults,
-        /// using your own memory pool.
-        /// <param name="memoryPool">Memory pool to use with all Connections</param>
-        /// </summary>
-        public ConnectionFactory(ArrayPool<byte> memoryPool)
-        {
-            ClientProperties = Connection.DefaultClientProperties();
-            _memoryPool = memoryPool;
         }
 
         /// <summary>
