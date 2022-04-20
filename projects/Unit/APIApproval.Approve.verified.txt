@@ -78,7 +78,6 @@ namespace RabbitMQ.Client
         public static readonly System.TimeSpan DefaultConnectionTimeout;
         public static readonly System.TimeSpan DefaultHeartbeat;
         public ConnectionFactory() { }
-        public ConnectionFactory(System.Buffers.ArrayPool<byte> memoryPool) { }
         public System.Security.Authentication.SslProtocols AmqpUriSslProtocols { get; set; }
         public System.Collections.Generic.IList<RabbitMQ.Client.IAuthMechanismFactory> AuthMechanisms { get; set; }
         public bool AutomaticRecoveryEnabled { get; set; }
@@ -91,7 +90,7 @@ namespace RabbitMQ.Client
         public System.Func<System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>, RabbitMQ.Client.IEndpointResolver> EndpointResolverFactory { get; set; }
         public System.TimeSpan HandshakeContinuationTimeout { get; set; }
         public string HostName { get; set; }
-        public System.Buffers.ArrayPool<byte> MemoryPool { get; }
+        public System.Buffers.ArrayPool<byte> MemoryPool { get; set; }
         public System.TimeSpan NetworkRecoveryInterval { get; set; }
         public string Password { get; set; }
         public int Port { get; set; }

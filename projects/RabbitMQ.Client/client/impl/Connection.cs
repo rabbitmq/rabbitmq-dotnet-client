@@ -132,6 +132,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 string clientProvidedName = null)
             : this(factory, insist, frameHandler, clientProvidedName)
         {
+            if (memoryPool == null)
+            {
+                throw new ArgumentNullException(nameof(memoryPool));
+            }
             _memoryPool = memoryPool;
         }
 

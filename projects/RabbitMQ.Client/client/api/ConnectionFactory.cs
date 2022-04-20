@@ -189,7 +189,7 @@ namespace RabbitMQ.Client
 
         // just here to hold the value that was set through the setter
         private Uri _uri;
-        private ArrayPool<byte> _memoryPool;
+        private ArrayPool<byte> _memoryPool = ArrayPool<byte>.Shared;
 
         /// <summary>
         /// The memory pool used for allocating buffers. Default is <see cref="MemoryPool{T}.Shared"/>.
