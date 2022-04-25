@@ -42,68 +42,54 @@ namespace RabbitMQ.Client.Unit
     public class TestConnectionBlocked : IntegrationFixture
     {
         private readonly ManualResetEventSlim _connDisposed = new ManualResetEventSlim(false);
-        private readonly object _lockObject = new object();
-        private bool _notified;
+        private readonly ManualResetEventSlim _connectionUnblocked = new ManualResetEventSlim(false);
 
         public TestConnectionBlocked(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
-        public void TestConnectionBlockedNotification()
+        public async Task TestConnectionBlockedNotification()
         {
-            _notified = false;
             _conn.ConnectionBlocked += HandleBlocked;
             _conn.ConnectionUnblocked += HandleUnblocked;
 
-            try
-            {
-                Block();
-
-                lock (_lockObject)
-                {
-                    if (!_notified)
-                    {
-                        Monitor.Wait(_lockObject, TimeSpan.FromSeconds(15));
-                    }
-                }
-
-                if (!_notified)
-                {
-                    Assert.True(false, "Unblock notification not received.");
-                }
-            }
-            finally
-            {
-                Unblock();
-            }
+            await BlockAsync();
+            Assert.True(_connectionUnblocked.Wait(TimeSpan.FromSeconds(15)));
+            ResetEvent();
         }
 
         [Fact]
-        public void TestDisposeOnBlockedConnectionDoesNotHang()
+        public async Task TestDisposeOnBlockedConnectionDoesNotHang()
         {
-            _notified = false;
-
             try
             {
-                Block();
-
-                Task.Factory.StartNew(DisposeConnection);
-
-                if (!_connDisposed.Wait(TimeSpan.FromSeconds(20)))
+                await BlockAsync();
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)))
                 {
-                    Assert.True(false, "Dispose must have finished within 20 seconds after starting");
+                    await Task.Run(DisposeConnection, cts.Token);
                 }
+            }
+            catch (TaskCanceledException)
+            {
+                Assert.True(false, "Dispose must have finished within 20 seconds after starting");
             }
             finally
             {
-                Unblock();
+                ResetEvent();
             }
         }
 
-        protected override void ReleaseResources()
+        private void ResetEvent()
         {
-            Unblock();
+            if (!_connectionUnblocked.IsSet)
+            {
+                Unblock();
+            }
+            else
+            {
+                _connectionUnblocked.Reset();
+            }
         }
 
         private void HandleBlocked(object sender, ConnectionBlockedEventArgs args)
@@ -113,11 +99,7 @@ namespace RabbitMQ.Client.Unit
 
         private void HandleUnblocked(object sender, EventArgs ea)
         {
-            lock (_lockObject)
-            {
-                _notified = true;
-                Monitor.PulseAll(_lockObject);
-            }
+            _connectionUnblocked.Set();
         }
 
         private void DisposeConnection()

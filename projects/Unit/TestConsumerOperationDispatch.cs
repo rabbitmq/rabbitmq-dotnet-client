@@ -185,7 +185,7 @@ namespace RabbitMQ.Client.Unit
             public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
-                if (Latch.Wait(0))
+                if (Latch.IsSet)
                 {
                     DuplicateLatch.Set();
                 }
@@ -207,7 +207,7 @@ namespace RabbitMQ.Client.Unit
             _model.BasicConsume(queue: q, autoAck: true, consumer: c);
             _model.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
-            Assert.False(duplicateLatch.Wait(TimeSpan.FromSeconds(5)),
+            Assert.False(duplicateLatch.Wait(TimeSpan.FromSeconds(1)),
                            "event handler fired more than once");
         }
     }

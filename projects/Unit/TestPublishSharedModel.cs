@@ -77,17 +77,14 @@ namespace RabbitMQ.Client.Unit
                     model.QueueBind(QueueName, ExchangeName.Value, PublishKey.Value, null);
 
                     // Act
-                    var pubTask = Task.Run(() => NewFunction(model));
-                    var pubTask2 = Task.Run(() => NewFunction(model));
-
-                    await Task.WhenAll(pubTask, pubTask2);
+                    await Task.WhenAll(NewFunction(model), NewFunction(model));
                 }
             }
 
             // Assert
             Assert.Null(_raisedException);
 
-            void NewFunction(IModel model)
+            async Task NewFunction(IModel model)
             {
                 try
                 {
@@ -98,7 +95,7 @@ namespace RabbitMQ.Client.Unit
                             model.BasicPublish(ExchangeName, PublishKey, _body, false);
                         }
 
-                        Thread.Sleep(1);
+                        await Task.Delay(1);
                     }
                 }
                 catch (Exception e)

@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Unit
         public void TestEventingConsumerDeliveryEvents()
         {
             string q = _model.QueueDeclare();
-            object o = new object();
+            ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim(false);
 
             bool receivedInvoked = false;
             object receivedSender = null;
@@ -95,14 +95,14 @@ namespace RabbitMQ.Client.Unit
             {
                 receivedInvoked = true;
                 receivedSender = s;
-
-                Monitor.PulseAll(o);
+                manualResetEventSlim.Set();
             };
 
             _model.BasicConsume(q, true, ec);
             _model.BasicPublish("", q, _encoding.GetBytes("msg"));
 
-            WaitOn(o);
+            Assert.True(manualResetEventSlim.Wait(TimingFixture.TestTimeout));
+            manualResetEventSlim.Reset();
             Assert.True(receivedInvoked);
             Assert.NotNull(receivedSender);
             Assert.Equal(ec, receivedSender);
@@ -115,12 +115,11 @@ namespace RabbitMQ.Client.Unit
             {
                 shutdownInvoked = true;
                 shutdownSender = s;
-
-                Monitor.PulseAll(o);
+                manualResetEventSlim.Set();
             };
 
             _model.Close();
-            WaitOn(o);
+            Assert.True(manualResetEventSlim.Wait(TimingFixture.TestTimeout));
 
             Assert.True(shutdownInvoked);
             Assert.NotNull(shutdownSender);

@@ -149,10 +149,10 @@ namespace RabbitMQ.Client.Unit
         {
             if (InitiatedByPeerOrLibrary(evt))
             {
-                Console.WriteLine(((Exception)evt.Cause).StackTrace);
+                _output.WriteLine(((Exception)evt.Cause).StackTrace);
                 string s = string.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
-                Console.WriteLine(s);
+                _output.WriteLine(s);
                 Assert.True(false, s);
             }
         }
@@ -169,7 +169,7 @@ namespace RabbitMQ.Client.Unit
 
         private void SleepFor(int t)
         {
-            Console.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
+            _output.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
             Thread.Sleep(t * 1000);
         }
     }

@@ -36,12 +36,20 @@ using System.Text;
 using RabbitMQ.Client.Impl;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
     public class TestMethodArgumentCodec
     {
+        protected readonly ITestOutputHelper _output;
+
+        public TestMethodArgumentCodec(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         private void Check(byte[] actual, byte[] expected)
         {
             try
@@ -50,12 +58,12 @@ namespace RabbitMQ.Client.Unit
             }
             catch
             {
-                Console.WriteLine();
-                Console.WriteLine("EXPECTED ==================================================");
-                DebugUtil.Dump(expected, Console.Out);
-                Console.WriteLine("ACTUAL ====================================================");
-                DebugUtil.Dump(actual, Console.Out);
-                Console.WriteLine("===========================================================");
+                _output.WriteLine("");
+                _output.WriteLine("EXPECTED ==================================================");
+                DebugUtil.Dump(expected, _output);
+                _output.WriteLine("ACTUAL ====================================================");
+                DebugUtil.Dump(actual, _output);
+                _output.WriteLine("===========================================================");
                 throw;
             }
         }

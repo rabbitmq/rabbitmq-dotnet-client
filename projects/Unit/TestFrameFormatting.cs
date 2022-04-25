@@ -34,11 +34,16 @@ using System;
 using RabbitMQ.Client.Framing.Impl;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
     public class TestFrameFormatting : WireFormattingFixture
     {
+        public TestFrameFormatting(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void HeartbeatFrame()
         {

@@ -46,18 +46,18 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestAckWithUnknownConsumerTagAndMultipleFalse()
         {
-            object o = new object();
+            ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim();
             bool shutdownFired = false;
             ShutdownEventArgs shutdownArgs = null;
             _model.ModelShutdown += (s, args) =>
             {
                 shutdownFired = true;
                 shutdownArgs = args;
-                Monitor.PulseAll(o);
+                manualResetEventSlim.Set();
             };
 
             _model.BasicAck(123456, false);
-            WaitOn(o);
+            Assert.True(manualResetEventSlim.Wait(TimingFixture.TestTimeout));
             Assert.True(shutdownFired);
             AssertPreconditionFailed(shutdownArgs);
         }

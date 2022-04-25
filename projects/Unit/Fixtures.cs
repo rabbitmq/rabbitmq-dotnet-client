@@ -34,8 +34,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+
 using RabbitMQ.Client.Framing.Impl;
 using Xunit;
 using Xunit.Abstractions;
@@ -97,27 +100,7 @@ namespace RabbitMQ.Client.Unit
         // Connections
         //
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection()
-        {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
-        }
-
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
-        {
-            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames);
-        }
-
-        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
-        {
-            var cf = new ConnectionFactory
-            {
-                AutomaticRecoveryEnabled = true,
-                NetworkRecoveryInterval = interval
-            };
-            return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
-        }
-
-        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
         {
             var cf = new ConnectionFactory
             {
@@ -125,9 +108,20 @@ namespace RabbitMQ.Client.Unit
                 // tests that use this helper will likely list unreachable hosts,
                 // make sure we time out quickly on those
                 RequestedConnectionTimeout = TimeSpan.FromSeconds(1),
-                NetworkRecoveryInterval = interval
+                NetworkRecoveryInterval = RECOVERY_INTERVAL
             };
             return (AutorecoveringConnection)cf.CreateConnection(hostnames, $"{_testDisplayName}:{Guid.NewGuid()}");
+        }
+
+        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan? interval = null)
+        {
+            interval ??= RECOVERY_INTERVAL;
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = interval.Value
+            };
+            return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
@@ -210,13 +204,13 @@ namespace RabbitMQ.Client.Unit
             return _encoding.GetBytes(Guid.NewGuid().ToString());
         }
 
-        internal string DeclareNonDurableExchange(IModel m, string x)
+        internal string DeclareNonDurableExchange(IModel m, [CallerMemberName]string x = null)
         {
             m.ExchangeDeclare(x, "fanout", false);
             return x;
         }
 
-        internal string DeclareNonDurableExchangeNoWait(IModel m, string x)
+        internal string DeclareNonDurableExchangeNoWait(IModel m, [CallerMemberName]string x = null)
         {
             m.ExchangeDeclareNoWait(x, "fanout", false, false, null);
             return x;
@@ -226,40 +220,35 @@ namespace RabbitMQ.Client.Unit
         // Queues
         //
 
-        internal string GenerateQueueName()
+        internal string GenerateQueueName([CallerMemberName] string callerName = null)
         {
-            return $"queue{Guid.NewGuid()}";
+            return $"queue{Guid.NewGuid()}{callerName}";
         }
 
-        internal void WithTemporaryNonExclusiveQueue(Action<IModel, string> action)
+        internal Task WithTemporaryNonExclusiveQueueAsync(Func<IModel, string, Task> action)
         {
-            WithTemporaryNonExclusiveQueue(_model, action);
+            return WithTemporaryNonExclusiveQueueAsync(_model, action);
         }
 
-        internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action)
-        {
-            WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
-        }
-
-        internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action, string queue)
+        internal async Task WithTemporaryNonExclusiveQueueAsync(IModel model, Func<IModel, string, Task> action, [CallerMemberName] string queueName = null)
         {
             try
             {
-                model.QueueDeclare(queue, false, false, false, null);
-                action(model, queue);
+                model.QueueDeclare(queueName, false, false, false, null);
+                await action(model, queueName);
             }
             finally
             {
-                WithTemporaryModel(tm => tm.QueueDelete(queue));
+                WithTemporaryModel(tm => tm.QueueDelete(queueName));
             }
         }
 
-        internal void WithTemporaryQueueNoWait(IModel model, Action<IModel, string> action, string queue)
+        internal async Task WithTemporaryQueueNoWaitAsync(IModel model, Func<IModel, string, Task> action, string queue)
         {
             try
             {
                 model.QueueDeclareNoWait(queue, false, true, false, null);
-                action(model, queue);
+                await action(model, queue);
             }
             finally
             {
@@ -272,26 +261,26 @@ namespace RabbitMQ.Client.Unit
             WithTemporaryModel(x => x.BasicPublish("", q, _encoding.GetBytes(body)));
         }
 
-        internal void WithNonEmptyQueue(Action<IModel, string> action)
+        internal Task WithNonEmptyQueueAsync(Func<IModel, string, Task> action)
         {
-            WithNonEmptyQueue(action, "msg");
+            return WithNonEmptyQueueAsync(action, "msg");
         }
 
-        internal void WithNonEmptyQueue(Action<IModel, string> action, string msg)
+        internal Task WithNonEmptyQueueAsync(Func<IModel, string, Task> action, string msg)
         {
-            WithTemporaryNonExclusiveQueue((m, q) =>
+            return WithTemporaryNonExclusiveQueueAsync(async (m, q) =>
             {
                 EnsureNotEmpty(q, msg);
-                action(m, q);
+                await action(m, q);
             });
         }
 
-        internal void WithEmptyQueue(Action<IModel, string> action)
+        internal Task WithEmptyQueueAsync(Func<IModel, string, Task> action)
         {
-            WithTemporaryNonExclusiveQueue((model, queue) =>
+            return WithTemporaryNonExclusiveQueueAsync(async (model, queue) =>
             {
                 model.QueuePurge(queue);
-                action(model, queue);
+                await action(model, queue);
             });
         }
 
@@ -339,29 +328,17 @@ namespace RabbitMQ.Client.Unit
         }
 
         //
-        // Concurrency
-        //
-
-        internal void WaitOn(object o)
-        {
-            lock (o)
-            {
-                Monitor.Wait(o, TimingFixture.TestTimeout);
-            }
-        }
-
-        //
         // Flow Control
         //
 
-        internal void Block()
+        internal Task BlockAsync()
         {
-            RabbitMQCtl.Block(_conn, _encoding);
+            return RabbitMQCtl.BlockAsync(_conn, _encoding, _output);
         }
 
         internal void Unblock()
         {
-            RabbitMQCtl.Unblock();
+            RabbitMQCtl.Unblock(_output);
         }
 
         //
@@ -370,28 +347,23 @@ namespace RabbitMQ.Client.Unit
 
         internal void CloseConnection(IConnection conn)
         {
-            RabbitMQCtl.CloseConnection(conn);
+            RabbitMQCtl.CloseConnection(conn, _output);
         }
 
-        internal void CloseAllConnections()
+        internal Task RestartRabbitMQAsync()
         {
-            RabbitMQCtl.CloseAllConnections();
-        }
-
-        internal void RestartRabbitMQ()
-        {
-            RabbitMQCtl.RestartRabbitMQ();
+            return RabbitMQCtl.RestartRabbitMQAsync(_output);
         }
 
         internal void StopRabbitMQ()
         {
-            RabbitMQCtl.StopRabbitMQ();
+            RabbitMQCtl.StopRabbitMQ(_output);
         }
 
         internal void StartRabbitMQ()
         {
-            RabbitMQCtl.StartRabbitMQ();
-            RabbitMQCtl.AwaitRabbitMQ();
+            RabbitMQCtl.StartRabbitMQ(_output);
+            RabbitMQCtl.AwaitRabbitMQ(_output);
         }
 
         //
@@ -400,7 +372,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void Wait(ManualResetEventSlim latch, TimeSpan? timeSpan = null)
         {
-            Assert.True(latch.Wait(timeSpan ?? TimeSpan.FromSeconds(15)), "waiting on a latch timed out");
+            Assert.True(latch.Wait(timeSpan ?? TimeSpan.FromSeconds(30)), "waiting on a latch timed out");
         }
 
         //

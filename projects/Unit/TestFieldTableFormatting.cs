@@ -36,11 +36,16 @@ using System.Text;
 using RabbitMQ.Client.Impl;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
     public class TestFieldTableFormatting : WireFormattingFixture
     {
+        public TestFieldTableFormatting(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void TestStandardTypes()
         {

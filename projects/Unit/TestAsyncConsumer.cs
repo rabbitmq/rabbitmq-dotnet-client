@@ -65,10 +65,10 @@ namespace RabbitMQ.Client.Unit
                     m.BasicPublish("", q.QueueName, body);
                     var consumer = new AsyncEventingBasicConsumer(m);
                     var are = new AutoResetEvent(false);
-                    consumer.Received += async (o, a) =>
+                    consumer.Received += (o, a) =>
                         {
                             are.Set();
-                            await Task.Yield();
+                            return Task.CompletedTask;
                         };
                     string tag = m.BasicConsume(q.QueueName, true, consumer);
                     // ensure we get a delivery

@@ -66,6 +66,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestCorrectConsumerTag()
         {
+            ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim();
             string q1 = GenerateQueueName();
             string q2 = GenerateQueueName();
 
@@ -79,15 +80,12 @@ namespace RabbitMQ.Client.Unit
             string notifiedConsumerTag = null;
             consumer.ConsumerCancelled += (sender, args) =>
             {
-                lock (lockObject)
-                {
                     notifiedConsumerTag = args.ConsumerTags.First();
-                    Monitor.PulseAll(lockObject);
-                }
+                    manualResetEventSlim.Set();
             };
 
             _model.QueueDelete(q1);
-            WaitOn(lockObject);
+            Assert.True(manualResetEventSlim.Wait(TimingFixture.TestTimeout));
             Assert.Equal(consumerTag1, notifiedConsumerTag);
 
             _model.QueueDelete(q2);
@@ -95,12 +93,12 @@ namespace RabbitMQ.Client.Unit
 
         private void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
         {
+            ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim();
             _model.QueueDeclare(queue, false, true, false, null);
-            IBasicConsumer consumer = new CancelNotificationConsumer(_model, this, EventMode);
+            IBasicConsumer consumer = new CancelNotificationConsumer(_model, this, EventMode, manualResetEventSlim);
             string actualConsumerTag = _model.BasicConsume(queue, false, consumer);
-
             _model.QueueDelete(queue);
-            WaitOn(lockObject);
+            Assert.True(manualResetEventSlim.Wait(TimingFixture.TestTimeout));
             Assert.True(notified);
             Assert.Equal(actualConsumerTag, consumerTag);
         }
@@ -109,12 +107,14 @@ namespace RabbitMQ.Client.Unit
         {
             private readonly TestConsumerCancelNotify _testClass;
             private readonly bool _eventMode;
+            private readonly ManualResetEventSlim _manualResetEventSlim;
 
-            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode)
+            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode, ManualResetEventSlim manualResetEventSlim)
                 : base(model)
             {
                 _testClass = tc;
                 _eventMode = EventMode;
+                _manualResetEventSlim = manualResetEventSlim;
                 if (EventMode)
                 {
                     ConsumerCancelled += Cancelled;
@@ -125,24 +125,19 @@ namespace RabbitMQ.Client.Unit
             {
                 if (!_eventMode)
                 {
-                    lock (_testClass.lockObject)
-                    {
-                        _testClass.notifiedCallback = true;
-                        _testClass.consumerTag = consumerTag;
-                        Monitor.PulseAll(_testClass.lockObject);
-                    }
+                    _testClass.notifiedCallback = true;
+                    _testClass.consumerTag = consumerTag;
+                    _manualResetEventSlim.Set();
                 }
+
                 base.HandleBasicCancel(consumerTag);
             }
 
             private void Cancelled(object sender, ConsumerEventArgs arg)
             {
-                lock (_testClass.lockObject)
-                {
                     _testClass.notifiedEvent = true;
                     _testClass.consumerTag = arg.ConsumerTags[0];
-                    Monitor.PulseAll(_testClass.lockObject);
-                }
+                _manualResetEventSlim.Set();
             }
         }
     }

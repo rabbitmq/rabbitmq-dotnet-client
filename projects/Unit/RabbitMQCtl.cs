@@ -37,6 +37,9 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
+
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -93,8 +96,9 @@ namespace RabbitMQ.Client.Unit
         //
         // Shelling Out
         //
-        private static string ExecRabbitMQCtl(string args)
+        private static string ExecRabbitMQCtl(string args, ITestOutputHelper outputHelper)
         {
+            Stopwatch timer = Stopwatch.StartNew();
             try
             {
                 using var process = GetRabbitMqCtlInvokeAction(args);
@@ -108,13 +112,20 @@ namespace RabbitMQ.Client.Unit
                     ReportExecFailure("rabbitmqctl", args, $"{stderr}\n{stdout}");
                 }
 
+                outputHelper?.WriteLine($"Successfully executed RabbitMQCtl {args} in {timer.ElapsedMilliseconds:N0} ms.");
                 return stdout;
             }
             catch (Exception e)
             {
+                outputHelper?.WriteLine($"Failed to executed RabbitMQCtl {args} in {timer.ElapsedMilliseconds:N0} ms.");
                 ReportExecFailure("rabbitmqctl", args, e.Message);
                 throw;
             }
+        }
+
+        private static void Process_Exited(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private static Process CreateProcess(string cmd, string arguments, string? workDirectory = null)
@@ -151,11 +162,11 @@ namespace RabbitMQ.Client.Unit
         //
         // Flow Control
         //
-        public static void Block(IConnection conn, Encoding encoding)
+        public static async Task BlockAsync(IConnection conn, Encoding encoding, ITestOutputHelper outputHelper)
         {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
+            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001", outputHelper);
             // give rabbitmqctl some time to do its job
-            Thread.Sleep(1200);
+            await Task.Delay(1200);
             Publish(conn, encoding);
         }
 
@@ -165,20 +176,20 @@ namespace RabbitMQ.Client.Unit
             ch.BasicPublish("amq.fanout", "", encoding.GetBytes("message"));
         }
 
-        public static void Unblock()
+        public static void Unblock(ITestOutputHelper outputHelper)
         {
-            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
+            ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4", outputHelper);
         }
 
-        public static void CloseConnection(IConnection conn)
+        public static void CloseConnection(IConnection conn, ITestOutputHelper outputHelper)
         {
-            CloseConnection(GetConnectionPid(conn.ClientProvidedName));
+            CloseConnection(GetConnectionPid(conn.ClientProvidedName, outputHelper), outputHelper);
         }
 
         private static readonly Regex s_getConnectionProperties = new Regex(@"^(?<pid><[^>]*>)\s\[.*""connection_name"",""(?<connection_name>[^""]*)"".*\]$", RegexOptions.Multiline | RegexOptions.Compiled);
-        private static string GetConnectionPid(string connectionName)
+        private static string GetConnectionPid(string connectionName, ITestOutputHelper outputHelper)
         {
-            string stdout = ExecRabbitMQCtl("list_connections --silent pid client_properties");
+            string stdout = ExecRabbitMQCtl("list_connections --silent pid client_properties", outputHelper);
 
             var match = s_getConnectionProperties.Match(stdout);
             while (match.Success)
@@ -194,46 +205,46 @@ namespace RabbitMQ.Client.Unit
             throw new Exception($"No connection found with name: {connectionName}");
         }
 
-        private static void CloseConnection(string pid)
+        private static void CloseConnection(string pid, ITestOutputHelper outputHelper)
         {
-            ExecRabbitMQCtl($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"");
+            ExecRabbitMQCtl($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"", outputHelper);
         }
 
-        public static void CloseAllConnections()
+        public static void CloseAllConnections(ITestOutputHelper outputHelper)
         {
-            foreach (var pid in EnumerateConnectionsPid())
+            foreach (var pid in EnumerateConnectionsPid(outputHelper))
             {
-                CloseConnection(pid);
+                CloseConnection(pid, outputHelper);
             }
         }
 
-        private static string[] EnumerateConnectionsPid()
+        private static string[] EnumerateConnectionsPid(ITestOutputHelper outputHelper)
         {
-            string rabbitmqCtlResult = ExecRabbitMQCtl("list_connections --silent pid");
+            string rabbitmqCtlResult = ExecRabbitMQCtl("list_connections --silent pid", outputHelper);
             return rabbitmqCtlResult.Split(newLine, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        public static void RestartRabbitMQ()
+        public static async Task RestartRabbitMQAsync(ITestOutputHelper outputHelper)
         {
-            StopRabbitMQ();
-            Thread.Sleep(500);
-            StartRabbitMQ();
-            AwaitRabbitMQ();
+            StopRabbitMQ(outputHelper);
+            await Task.Delay(500);
+            StartRabbitMQ(outputHelper);
+            AwaitRabbitMQ(outputHelper);
         }
 
-        public static void StopRabbitMQ()
+        public static void StopRabbitMQ(ITestOutputHelper outputHelper)
         {
-            ExecRabbitMQCtl("stop_app");
+            ExecRabbitMQCtl("stop_app", outputHelper);
         }
 
-        public static void StartRabbitMQ()
+        public static void StartRabbitMQ(ITestOutputHelper outputHelper)
         {
-            ExecRabbitMQCtl("start_app");
+            ExecRabbitMQCtl("start_app", outputHelper);
         }
 
-        public static void AwaitRabbitMQ()
+        public static void AwaitRabbitMQ(ITestOutputHelper outputHelper)
         {
-            ExecRabbitMQCtl("await_startup");
+            ExecRabbitMQCtl("await_startup", outputHelper);
         }
     }
 }

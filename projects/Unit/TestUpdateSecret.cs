@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Unit
         {
             if (!RabbitMQ380OrHigher())
             {
-                Console.WriteLine("Not connected to RabbitMQ 3.8 or higher, skipping test");
+                _output.WriteLine("Not connected to RabbitMQ 3.8 or higher, skipping test");
                 return;
             }
 

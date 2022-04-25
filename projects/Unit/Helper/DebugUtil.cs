@@ -33,6 +33,9 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
+using System.Text;
+
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -42,44 +45,40 @@ namespace RabbitMQ.Client.Unit
     ///</remarks>
     internal static class DebugUtil
     {
-        ///<summary>Print a hex dump of the supplied bytes to stdout.</summary>
-        public static void Dump(byte[] bytes)
-        {
-            Dump(bytes, Console.Out);
-        }
-
         ///<summary>Print a hex dump of the supplied bytes to the supplied TextWriter.</summary>
-        public static void Dump(byte[] bytes, TextWriter writer)
+        public static void Dump(byte[] bytes, ITestOutputHelper writer)
         {
             int rowlen = 16;
 
             for (int count = 0; count < bytes.Length; count += rowlen)
             {
                 int thisRow = Math.Min(bytes.Length - count, rowlen);
+                StringBuilder builder = new StringBuilder();
 
-                writer.Write("{0:X8}: ", count);
+                builder.AppendFormat("{0:X8}: ", count);
                 for (int i = 0; i < thisRow; i++)
                 {
-                    writer.Write("{0:X2}", bytes[count + i]);
+                    builder.AppendFormat("{0:X2}", bytes[count + i]);
                 }
                 for (int i = 0; i < (rowlen - thisRow); i++)
                 {
-                    writer.Write("  ");
+                    builder.Append("  ");
                 }
-                writer.Write("  ");
+                builder.Append("  ");
                 for (int i = 0; i < thisRow; i++)
                 {
                     if (bytes[count + i] >= 32 &&
                         bytes[count + i] < 128)
                     {
-                        writer.Write((char)bytes[count + i]);
+                        builder.Append((char)bytes[count + i]);
                     }
                     else
                     {
-                        writer.Write('.');
+                        builder.Append('.');
                     }
                 }
-                writer.WriteLine();
+
+                writer.WriteLine(builder.ToString());
             }
             if (bytes.Length % 16 != 0)
             {
@@ -89,15 +88,15 @@ namespace RabbitMQ.Client.Unit
 
         ///<summary>Prints an indented key/value pair; used by DumpProperties()</summary>
         ///<remarks>Recurses into the value using DumpProperties().</remarks>
-        public static void DumpKeyValue(string key, object value, TextWriter writer, int indent)
+        public static void DumpKeyValue(string key, object value, ITestOutputHelper writer, int indent)
         {
             string prefix = $"{new string(' ', indent + 2)}{key}: ";
-            writer.Write(prefix);
+            writer.WriteLine(prefix);
             DumpProperties(value, writer, indent + 2);
         }
 
         ///<summary>Dump properties of objects to the supplied writer.</summary>
-        public static void DumpProperties(object value, TextWriter writer, int indent)
+        public static void DumpProperties(object value, ITestOutputHelper writer, int indent)
         {
             switch (value)
             {
@@ -112,7 +111,7 @@ namespace RabbitMQ.Client.Unit
                     Dump(byteVal, writer);
                     break;
                 case ValueType _:
-                    writer.WriteLine(value);
+                    writer.WriteLine($"{value}");
                     break;
                 case IDictionary dictionary:
                     {

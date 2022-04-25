@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
+
 using RabbitMQ.Client.Exceptions;
 
 using Xunit;
@@ -43,36 +45,39 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestBasicGetWithClosedChannel()
+        public async Task TestBasicGetWithClosedChannel()
         {
-            WithNonEmptyQueue((_, q) =>
+            await WithNonEmptyQueueAsync((_, q) =>
                {
                    WithClosedModel(cm =>
                    {
                        Assert.Throws<AlreadyClosedException>(() => cm.BasicGet(q, true));
                    });
+                   return Task.CompletedTask;
                });
         }
 
         [Fact]
-        public void TestBasicGetWithEmptyResponse()
+        public async Task TestBasicGetWithEmptyResponse()
         {
-            WithEmptyQueue((model, queue) =>
+            await WithEmptyQueueAsync((model, queue) =>
             {
                 BasicGetResult res = model.BasicGet(queue, false);
                 Assert.Null(res);
+                return Task.CompletedTask;
             });
         }
 
         [Fact]
-        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
+        public async Task TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
             const string msg = "for basic.get";
-            WithNonEmptyQueue((model, queue) =>
+            await WithNonEmptyQueueAsync((model, queue) =>
             {
                 BasicGetResult res = model.BasicGet(queue, true);
                 Assert.Equal(msg, _encoding.GetString(res.Body.ToArray()));
                 AssertMessageCount(queue, 0);
+                return Task.CompletedTask;
             }, msg);
         }
     }

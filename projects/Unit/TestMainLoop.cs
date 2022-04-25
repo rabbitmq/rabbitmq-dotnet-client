@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Unit
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection c = connFactory.CreateConnection();
             IModel m = _conn.CreateModel();
-            object o = new object();
+            ManualResetEventSlim manualResetEventSlim = new ManualResetEventSlim(false);
             string q = GenerateQueueName();
             m.QueueDeclare(q, false, false, false, null);
 
@@ -77,12 +77,11 @@ namespace RabbitMQ.Client.Unit
             {
                 ea = evt;
                 c.Close();
-                Monitor.PulseAll(o);
+                manualResetEventSlim.Set();
             };
             m.BasicConsume(q, true, new FaultyConsumer(_model));
             m.BasicPublish("", q, _encoding.GetBytes("message"));
-            WaitOn(o);
-
+            Assert.True(manualResetEventSlim.Wait(TimingFixture.TestTimeout));
             Assert.NotNull(ea);
             Assert.False(c.IsOpen);
             Assert.Equal(200, c.CloseReason.ReplyCode);

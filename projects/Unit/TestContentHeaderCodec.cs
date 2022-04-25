@@ -33,12 +33,20 @@ using System;
 using System.Collections.Generic;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
 
     public class TestContentHeaderCodec
     {
+        protected readonly ITestOutputHelper _output;
+        
+        public TestContentHeaderCodec(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         private void Check(ReadOnlyMemory<byte> actual, ReadOnlyMemory<byte> expected)
         {
             try
@@ -47,12 +55,12 @@ namespace RabbitMQ.Client.Unit
             }
             catch
             {
-                Console.WriteLine();
-                Console.WriteLine("EXPECTED ==================================================");
-                DebugUtil.Dump(expected.ToArray(), Console.Out);
-                Console.WriteLine("ACTUAL ====================================================");
-                DebugUtil.Dump(actual.ToArray(), Console.Out);
-                Console.WriteLine("===========================================================");
+                _output.WriteLine("");
+                _output.WriteLine("EXPECTED ==================================================");
+                DebugUtil.Dump(expected.ToArray(), _output);
+                _output.WriteLine("ACTUAL ====================================================");
+                DebugUtil.Dump(actual.ToArray(), _output);
+                _output.WriteLine("===========================================================");
                 throw;
             }
         }
