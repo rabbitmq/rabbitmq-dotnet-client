@@ -375,6 +375,11 @@ namespace RabbitMQ.Client.Unit
             Assert.True(latch.Wait(timeSpan ?? TimeSpan.FromSeconds(30)), "waiting on a latch timed out");
         }
 
+        internal void Wait(CountdownEvent countdownEvent, TimeSpan? timeSpan = null)
+        {
+            Assert.True(countdownEvent.Wait(timeSpan ?? TimeSpan.FromSeconds(30)), "waiting on a latch timed out");
+        }
+
         //
         // TLS
         //

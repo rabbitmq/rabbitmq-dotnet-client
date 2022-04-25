@@ -96,13 +96,13 @@ namespace RabbitMQ.Client.Unit
             _model.BasicQos(0, 1, false);
             string consumerTag = _model.BasicConsume(queueName, false, cons);
 
-            ManualResetEventSlim sl = PrepareForShutdown(_conn);
-            ManualResetEventSlim rl = PrepareForRecovery(_conn);
+            CountdownEvent countdownEvent = new CountdownEvent(2);
+            PrepareForShutdown(_conn, countdownEvent);
+            PrepareForRecovery(_conn, countdownEvent);
 
             PublishMessagesWhileClosingConn(queueName);
 
-            Wait(sl);
-            Wait(rl);
+            Wait(countdownEvent);
             Wait(allMessagesSeenLatch);
         }
 
@@ -118,13 +118,13 @@ namespace RabbitMQ.Client.Unit
             _model.BasicQos(0, 1, false);
             string consumerTag = _model.BasicConsume(queueName, false, cons);
 
-            ManualResetEventSlim sl = PrepareForShutdown(_conn);
-            ManualResetEventSlim rl = PrepareForRecovery(_conn);
+            CountdownEvent countdownEvent = new CountdownEvent(2);
+            PrepareForShutdown(_conn, countdownEvent);
+            PrepareForRecovery(_conn, countdownEvent);
 
             PublishMessagesWhileClosingConn(queueName);
 
-            Wait(sl);
-            Wait(rl);
+            Wait(countdownEvent);
             Wait(allMessagesSeenLatch);
         }
 
@@ -140,13 +140,13 @@ namespace RabbitMQ.Client.Unit
             _model.BasicQos(0, 1, false);
             string consumerTag = _model.BasicConsume(queueName, false, cons);
 
-            ManualResetEventSlim sl = PrepareForShutdown(_conn);
-            ManualResetEventSlim rl = PrepareForRecovery(_conn);
+            CountdownEvent countdownEvent = new CountdownEvent(2);
+            PrepareForShutdown(_conn, countdownEvent);
+            PrepareForRecovery(_conn, countdownEvent);
 
             PublishMessagesWhileClosingConn(queueName);
 
-            Wait(sl);
-            Wait(rl);
+            
             Wait(allMessagesSeenLatch);
         }
 
@@ -777,8 +777,9 @@ namespace RabbitMQ.Client.Unit
         {
             int counter = 0;
             _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
-            ManualResetEventSlim shutdownLatch = PrepareForShutdown(_conn);
-            ManualResetEventSlim recoveryLatch = PrepareForRecovery((AutorecoveringConnection)_conn);
+            CountdownEvent countdownEvent = new CountdownEvent(2);
+            PrepareForShutdown(_conn, countdownEvent);
+            PrepareForRecovery((AutorecoveringConnection)_conn, countdownEvent);
 
             Assert.True(_conn.IsOpen);
 
@@ -793,8 +794,7 @@ namespace RabbitMQ.Client.Unit
                 StartRabbitMQ();
             }
 
-            Wait(shutdownLatch, TimeSpan.FromSeconds(30));
-            Wait(recoveryLatch, TimeSpan.FromSeconds(30));
+            Wait(countdownEvent, TimeSpan.FromSeconds(60));
             Assert.True(_conn.IsOpen);
             Assert.True(counter >= 1);
         }
@@ -1065,47 +1065,41 @@ namespace RabbitMQ.Client.Unit
         internal void CloseAndWaitForRecovery(AutorecoveringConnection conn)
         {
             Stopwatch timer = Stopwatch.StartNew();
-            ManualResetEventSlim sl = PrepareForShutdown(conn);
-            ManualResetEventSlim rl = PrepareForRecovery(conn);
+            CountdownEvent countdownEvent = new CountdownEvent(2);
+            PrepareForShutdown(conn, countdownEvent);
+            PrepareForRecovery(conn, countdownEvent);
             CloseConnection(conn);
-            Wait(sl);
-            Wait(rl);
+            Wait(countdownEvent);
             _output.WriteLine($"Shutdown and recovered RabbitMQ in {timer.ElapsedMilliseconds}ms");
         }
 
-        internal ManualResetEventSlim PrepareForRecovery(IConnection conn)
+        internal static void PrepareForRecovery(IConnection conn, CountdownEvent countdownEvent)
         {
-            var latch = new ManualResetEventSlim(false);
-
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.RecoverySucceeded += (source, ea) => latch.Set();
-
-            return latch;
+            aconn.RecoverySucceeded += (source, ea) => countdownEvent.Signal();
         }
 
-        internal static ManualResetEventSlim PrepareForShutdown(IConnection conn)
+        internal static void PrepareForShutdown(IConnection conn, CountdownEvent countdownEvent)
         {
-            var latch = new ManualResetEventSlim(false);
-
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.ConnectionShutdown += (c, args) => latch.Set();
-
-            return latch;
+            aconn.ConnectionShutdown += (c, args) => countdownEvent.Signal();
         }
 
         internal async Task RestartServerAndWaitForRecoveryAsync()
         {
+            CountdownEvent countdownEvent = new CountdownEvent(2);
             AutorecoveringConnection conn = (AutorecoveringConnection)_conn;
-            ManualResetEventSlim sl = PrepareForShutdown(conn);
-            ManualResetEventSlim rl = PrepareForRecovery(conn);
+            PrepareForShutdown(conn, countdownEvent);
+            PrepareForRecovery(conn, countdownEvent);
             await RestartRabbitMQAsync();
-            Wait(sl);
-            Wait(rl);
+            Wait(countdownEvent);
         }
 
         internal void WaitForShutdown(IConnection conn)
         {
-            Wait(PrepareForShutdown(conn));
+            CountdownEvent countdownEvent = new CountdownEvent(1);
+            PrepareForShutdown(conn, countdownEvent);
+            Wait(countdownEvent);
         }
 
         internal void PublishMessagesWhileClosingConn(string queueName)
@@ -1165,11 +1159,11 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        public class TestBasicConsumer : DefaultBasicConsumer
+        public abstract class TestBasicConsumer : DefaultBasicConsumer
         {
             private readonly ManualResetEventSlim _allMessagesSeenLatch;
             private readonly ushort _totalMessageCount;
-            private ushort _counter = 0;
+            private int _counter = 0;
 
             public TestBasicConsumer(IModel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
                 : base(model)
@@ -1192,17 +1186,14 @@ namespace RabbitMQ.Client.Unit
                 }
                 finally
                 {
-                    ++_counter;
-                    if (_counter >= _totalMessageCount)
+                    if (Interlocked.Increment(ref _counter) == _totalMessageCount)
                     {
                         _allMessagesSeenLatch.Set();
                     }
                 }
             }
 
-            public virtual void PostHandleDelivery(ulong deliveryTag)
-            {
-            }
+            public abstract void PostHandleDelivery(ulong deliveryTag);
         }
     }
 }
