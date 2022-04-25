@@ -97,8 +97,8 @@ namespace RabbitMQ.Client.Unit
             string consumerTag = _model.BasicConsume(queueName, false, cons);
 
             CountdownEvent countdownEvent = new CountdownEvent(2);
-            PrepareForShutdown(_conn, countdownEvent);
-            PrepareForRecovery(_conn, countdownEvent);
+            PrepareForShutdown(_conn, countdownEvent, _output);
+            PrepareForRecovery(_conn, countdownEvent, _output);
 
             PublishMessagesWhileClosingConn(queueName);
 
@@ -119,8 +119,8 @@ namespace RabbitMQ.Client.Unit
             string consumerTag = _model.BasicConsume(queueName, false, cons);
 
             CountdownEvent countdownEvent = new CountdownEvent(2);
-            PrepareForShutdown(_conn, countdownEvent);
-            PrepareForRecovery(_conn, countdownEvent);
+            PrepareForShutdown(_conn, countdownEvent, _output);
+            PrepareForRecovery(_conn, countdownEvent, _output);
 
             PublishMessagesWhileClosingConn(queueName);
 
@@ -141,8 +141,8 @@ namespace RabbitMQ.Client.Unit
             string consumerTag = _model.BasicConsume(queueName, false, cons);
 
             CountdownEvent countdownEvent = new CountdownEvent(2);
-            PrepareForShutdown(_conn, countdownEvent);
-            PrepareForRecovery(_conn, countdownEvent);
+            PrepareForShutdown(_conn, countdownEvent, _output);
+            PrepareForRecovery(_conn, countdownEvent, _output);
 
             PublishMessagesWhileClosingConn(queueName);
 
@@ -446,7 +446,7 @@ namespace RabbitMQ.Client.Unit
             try
             {
                 c.Close();
-                WaitForShutdown(c);
+                WaitForShutdown(c, _output);
                 Assert.False(c.IsOpen);
                 c.CreateModel();
                 Assert.True(false, "Expected an exception");
@@ -778,8 +778,8 @@ namespace RabbitMQ.Client.Unit
             int counter = 0;
             _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
             CountdownEvent countdownEvent = new CountdownEvent(2);
-            PrepareForShutdown(_conn, countdownEvent);
-            PrepareForRecovery((AutorecoveringConnection)_conn, countdownEvent);
+            PrepareForShutdown(_conn, countdownEvent, _output);
+            PrepareForRecovery((AutorecoveringConnection)_conn, countdownEvent, _output);
 
             Assert.True(_conn.IsOpen);
 
@@ -1066,39 +1066,47 @@ namespace RabbitMQ.Client.Unit
         {
             Stopwatch timer = Stopwatch.StartNew();
             CountdownEvent countdownEvent = new CountdownEvent(2);
-            PrepareForShutdown(conn, countdownEvent);
-            PrepareForRecovery(conn, countdownEvent);
+            PrepareForShutdown(conn, countdownEvent, _output);
+            PrepareForRecovery(conn, countdownEvent, _output);
             CloseConnection(conn);
             Wait(countdownEvent);
             _output.WriteLine($"Shutdown and recovered RabbitMQ in {timer.ElapsedMilliseconds}ms");
         }
 
-        internal static void PrepareForRecovery(IConnection conn, CountdownEvent countdownEvent)
+        internal static void PrepareForRecovery(IConnection conn, CountdownEvent countdownEvent, ITestOutputHelper testOutputHelper)
         {
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.RecoverySucceeded += (source, ea) => countdownEvent.Signal();
+            aconn.RecoverySucceeded += (source, ea) =>
+            {
+                testOutputHelper.WriteLine("Received recovery succeeded event.");
+                countdownEvent.Signal();
+            };
         }
 
-        internal static void PrepareForShutdown(IConnection conn, CountdownEvent countdownEvent)
+        internal static void PrepareForShutdown(IConnection conn, CountdownEvent countdownEvent, ITestOutputHelper testOutputHelper)
         {
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.ConnectionShutdown += (c, args) => countdownEvent.Signal();
+            aconn.ConnectionShutdown += (c, args) =>
+            {
+                testOutputHelper.WriteLine("Received connection shutdown event.");
+                countdownEvent.Signal();
+            };
         }
 
         internal async Task RestartServerAndWaitForRecoveryAsync()
         {
             CountdownEvent countdownEvent = new CountdownEvent(2);
             AutorecoveringConnection conn = (AutorecoveringConnection)_conn;
-            PrepareForShutdown(conn, countdownEvent);
-            PrepareForRecovery(conn, countdownEvent);
+            PrepareForShutdown(conn, countdownEvent, _output);
+            PrepareForRecovery(conn, countdownEvent, _output);
             await RestartRabbitMQAsync();
             Wait(countdownEvent);
         }
 
-        internal void WaitForShutdown(IConnection conn)
+        internal void WaitForShutdown(IConnection conn, ITestOutputHelper testOutputHelper)
         {
             CountdownEvent countdownEvent = new CountdownEvent(1);
-            PrepareForShutdown(conn, countdownEvent);
+            PrepareForShutdown(conn, countdownEvent, testOutputHelper);
             Wait(countdownEvent);
         }
 
