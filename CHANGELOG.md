@@ -1,3 +1,7 @@
+## Changes Between 6.2.4 and 6.3.0
+
+GitHub milestone: [`6.3.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/52?closed=1)
+
 ## Changes Between 6.2.3 and 6.2.4
 
 GitHub milestone: [`6.2.4`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/55?closed=1)
