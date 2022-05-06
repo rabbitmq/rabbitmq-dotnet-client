@@ -282,6 +282,7 @@ namespace RabbitMQ.Client
         public const string XDeadLetterExchange = "x-dead-letter-exchange";
         public const string XDeadLetterRoutingKey = "x-dead-letter-routing-key";
         public const string XExpires = "x-expires";
+        public const string XMaxAge = "x-max-age";
         public const string XMaxLength = "x-max-length";
         public const string XMaxLengthInBytes = "x-max-length-bytes";
         public const string XMaxPriority = "x-max-priority";
@@ -292,6 +293,8 @@ namespace RabbitMQ.Client
         public const string XQueueType = "x-queue-type";
         public const string XQuorumInitialGroupSize = "x-quorum-initial-group-size";
         public const string XSingleActiveConsumer = "x-single-active-consumer";
+        public const string XStreamMaxSegmentSizeInBytes = "x-stream-max-segment-size-bytes";
+        public const string XStreamOffset = "x-stream-offset";
     }
     public interface IAmqpHeader : RabbitMQ.Client.IAmqpWriteable
     {

@@ -49,6 +49,7 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// x-max-length header
+        /// The max total size in bytes
         /// </summary>
         public const string XMaxLength = "x-max-length";
 
@@ -96,7 +97,7 @@ namespace RabbitMQ.Client
         // quorum
         /// <summary>
         /// x-queue-type header.
-        /// Available types: "quorum" and "classic"(default)
+        /// Available types: "quorum" and "classic"(default) and "stream"
         /// </summary>
         public const string XQueueType = "x-queue-type";
 
@@ -121,5 +122,29 @@ namespace RabbitMQ.Client
         /// Allows to configure strategy when <see cref="XMaxLength"/> or <see cref="XMaxLengthInBytes"/> hits limits
         /// </summary>
         public const string XOverflow = "x-overflow";
+
+        /// <summary>
+        /// x-max-age header
+        /// Sets the maximum age of the stream. Default: not set.
+        /// valid units: Y, M, D, h, m, s
+        /// e.g. 7D for a week
+        /// </summary>
+        public const string XMaxAge = "x-max-age";
+
+        /// <summary>
+        /// x-stream-max-segment-size-bytes header
+        /// A stream is divided up into fixed size segment files on disk.
+        /// This setting controls the size of these. Default: (500000000 bytes).
+        /// </summary>
+        public const string XStreamMaxSegmentSizeInBytes = "x-stream-max-segment-size-bytes";
+
+        /// <summary>
+        /// x-stream-offset header.
+        /// As streams never delete any messages, any consumer can start reading/consuming from any point in the log.
+        /// this is controlled by the x-stream-offset consumer argument.
+        /// Available values: "first", "last", "next", Timestamp and Interval (valid units: Y, M, D, h, m, s)
+        /// <see href="https://www.rabbitmq.com/streams.html#consuming">See more</see>
+        /// </summary>
+        public const string XStreamOffset = "x-stream-offset";
     }
 }
