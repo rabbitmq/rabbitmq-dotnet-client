@@ -147,12 +147,12 @@ namespace RabbitMQ.Client.Impl
                 Constants.FrameEnd
             };
 
-            public static Memory<byte> GetHeartbeatFrame()
+            public static ReadOnlyMemory<byte> GetHeartbeatFrame(ArrayPool<byte> pool)
             {
                 // Is returned by SocketFrameHandler.WriteLoop
-                var buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
+                var buffer = pool.Rent(FrameSize);
                 Payload.CopyTo(buffer);
-                return new Memory<byte>(buffer, 0, FrameSize);
+                return new ReadOnlyMemory<byte>(buffer, 0, FrameSize);
             }
         }
     }
@@ -163,13 +163,15 @@ namespace RabbitMQ.Client.Impl
         public readonly int Channel;
         public readonly ReadOnlyMemory<byte> Payload;
         private readonly byte[] _rentedArray;
+        private readonly ArrayPool<byte> _rentedArrayOwner;
 
-        private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload, byte[] rentedArray)
+        private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload, byte[] rentedArray, ArrayPool<byte> rentedArrayOwner)
         {
             Type = type;
             Channel = channel;
             Payload = payload;
             _rentedArray = rentedArray;
+            _rentedArrayOwner = rentedArrayOwner;
         }
 
         private static void ProcessProtocolHeader(Stream reader)
@@ -203,7 +205,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer)
+        internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer, ArrayPool<byte> pool)
         {
             int type = default;
             try
@@ -242,7 +244,7 @@ namespace RabbitMQ.Client.Impl
             const int EndMarkerLength = 1;
             // Is returned by InboundFrame.Dispose in Connection.MainLoopIteration
             var readSize = payloadSize + EndMarkerLength;
-            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
+            byte[] payloadBytes = pool.Rent(readSize);
             int bytesRead = 0;
             try
             {
@@ -254,22 +256,22 @@ namespace RabbitMQ.Client.Impl
             catch (Exception)
             {
                 // Early EOF.
-                ArrayPool<byte>.Shared.Return(payloadBytes);
+                pool.Return(payloadBytes);
                 throw new MalformedFrameException($"Short frame - expected to read {readSize} bytes, only got {bytesRead} bytes");
             }
 
             if (payloadBytes[payloadSize] != Constants.FrameEnd)
             {
-                ArrayPool<byte>.Shared.Return(payloadBytes);
+                pool.Return(payloadBytes);
                 throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
             }
 
-            return new InboundFrame((FrameType)type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
+            return new InboundFrame((FrameType)type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes, pool);
         }
 
         public void Dispose()
         {
-            ArrayPool<byte>.Shared.Return(_rentedArray);
+            _rentedArrayOwner.Return(_rentedArray);
         }
 
         public override string ToString()

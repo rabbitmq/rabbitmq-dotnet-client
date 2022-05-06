@@ -47,10 +47,11 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             ReadOnlySpan<byte> body)
         {
-            byte[] bodyBytes = ArrayPool<byte>.Shared.Rent(body.Length);
+            var pool = _model.Session.Connection.MemoryPool;
+            byte[] bodyBytes = pool.Rent(body.Length);
             Memory<byte> bodyCopy = new Memory<byte>(bodyBytes, 0, body.Length);
             body.CopyTo(bodyCopy.Span);
-            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, bodyCopy));
+            ScheduleUnlessShuttingDown(new BasicDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, bodyCopy, pool));
         }
 
         public void HandleBasicCancelOk(IBasicConsumer consumer, string consumerTag)

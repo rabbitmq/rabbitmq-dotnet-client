@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Buffers;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -188,6 +189,16 @@ namespace RabbitMQ.Client
 
         // just here to hold the value that was set through the setter
         private Uri _uri;
+        private ArrayPool<byte> _memoryPool = ArrayPool<byte>.Shared;
+
+        /// <summary>
+        /// The memory pool used for allocating buffers. Default is <see cref="MemoryPool{T}.Shared"/>.
+        /// </summary>
+        public ArrayPool<byte> MemoryPool
+        {
+            get { return _memoryPool; }
+            set { _memoryPool = value ?? ArrayPool<byte>.Shared; }
+        }
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before
@@ -497,7 +508,8 @@ namespace RabbitMQ.Client
                 else
                 {
                     var protocol = new RabbitMQ.Client.Framing.Protocol();
-                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
+                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(CreateFrameHandler),
+                           _memoryPool, clientProvidedName);
                 }
             }
             catch (Exception e)
@@ -510,7 +522,7 @@ namespace RabbitMQ.Client
 
         internal IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
         {
-            IFrameHandler fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, SocketFactory,
+            IFrameHandler fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, _memoryPool, SocketFactory,
                 RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             return ConfigureFrameHandler(fh);
         }

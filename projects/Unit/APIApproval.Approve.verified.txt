@@ -90,6 +90,7 @@ namespace RabbitMQ.Client
         public System.Func<System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>, RabbitMQ.Client.IEndpointResolver> EndpointResolverFactory { get; set; }
         public System.TimeSpan HandshakeContinuationTimeout { get; set; }
         public string HostName { get; set; }
+        public System.Buffers.ArrayPool<byte> MemoryPool { get; set; }
         public System.TimeSpan NetworkRecoveryInterval { get; set; }
         public string Password { get; set; }
         public int Port { get; set; }
