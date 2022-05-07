@@ -31,25 +31,24 @@
 
 using System;
 
-namespace RabbitMQ.Client
-{
-#nullable enable
-    /// <summary>
-    /// A AMQP writeable.
-    /// </summary>
-    public interface IAmqpWriteable
-    {
-        /// <summary>
-        /// Gets the minimum required buffer size.
-        /// </summary>
-        /// <returns>The minimum required buffer size.</returns>
-        int GetRequiredBufferSize();
+namespace RabbitMQ.Client;
 
-        /// <summary>
-        /// Write this instance to the provided span.
-        /// </summary>
-        /// <param name="span">The span to write it to.</param>
-        /// <returns>The amount of bytes written.</returns>
-        int WriteTo(Span<byte> span);
-    }
+#nullable enable
+/// <summary>
+/// A AMQP writeable.
+/// </summary>
+public interface IAmqpWriteable
+{
+    /// <summary>
+    /// Gets the minimum required buffer size.
+    /// </summary>
+    /// <returns>The minimum required buffer size.</returns>
+    int GetRequiredBufferSize();
+
+    /// <summary>
+    /// Write this instance to the provided span.
+    /// </summary>
+    /// <param name="span">The span to write it to.</param>
+    /// <returns>The amount of bytes written.</returns>
+    int WriteTo(Span<byte> span);
 }

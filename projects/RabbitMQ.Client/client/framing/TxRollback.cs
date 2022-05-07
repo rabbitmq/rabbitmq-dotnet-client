@@ -32,20 +32,19 @@
 using System;
 using RabbitMQ.Client.client.framing;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct TxRollback : IOutgoingAmqpMethod
 {
-    internal readonly struct TxRollback : IOutgoingAmqpMethod
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxRollback;
+
+    public int WriteTo(Span<byte> span)
     {
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxRollback;
+        return 0;
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            return 0;
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            return 0;
-        }
+    public int GetRequiredBufferSize()
+    {
+        return 0;
     }
 }

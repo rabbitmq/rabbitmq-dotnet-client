@@ -29,14 +29,13 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Exceptions
+namespace RabbitMQ.Client.Exceptions;
+
+///<summary>Subclass of ProtocolException representing problems
+///requiring a connection.close.</summary>
+public abstract class HardProtocolException : ProtocolException
 {
-    ///<summary>Subclass of ProtocolException representing problems
-    ///requiring a connection.close.</summary>
-    public abstract class HardProtocolException : ProtocolException
+    protected HardProtocolException(string message) : base(message)
     {
-        protected HardProtocolException(string message) : base(message)
-        {
-        }
     }
 }

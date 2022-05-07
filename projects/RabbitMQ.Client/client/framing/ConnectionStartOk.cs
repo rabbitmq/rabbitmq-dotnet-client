@@ -35,41 +35,40 @@ using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ConnectionStartOk : IOutgoingAmqpMethod
 {
-    internal readonly struct ConnectionStartOk : IOutgoingAmqpMethod
+    public readonly IDictionary<string, object> _clientProperties;
+    public readonly string _mechanism;
+    public readonly byte[] _response;
+    public readonly string _locale;
+
+    public ConnectionStartOk(IDictionary<string, object> ClientProperties, string Mechanism, byte[] Response, string Locale)
     {
-        public readonly IDictionary<string, object> _clientProperties;
-        public readonly string _mechanism;
-        public readonly byte[] _response;
-        public readonly string _locale;
+        _clientProperties = ClientProperties;
+        _mechanism = Mechanism;
+        _response = Response;
+        _locale = Locale;
+    }
 
-        public ConnectionStartOk(IDictionary<string, object> ClientProperties, string Mechanism, byte[] Response, string Locale)
-        {
-            _clientProperties = ClientProperties;
-            _mechanism = Mechanism;
-            _response = Response;
-            _locale = Locale;
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStartOk;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStartOk;
+    public int WriteTo(Span<byte> span)
+    {
+        int offset = WireFormatting.WriteTable(ref span.GetStart(), _clientProperties);
+        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _mechanism);
+        offset += WireFormatting.WriteLongstr(ref span.GetOffset(offset), _response);
+        return offset + WireFormatting.WriteShortstr(ref span.GetOffset(offset), _locale);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteTable(ref span.GetStart(), _clientProperties);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _mechanism);
-            offset += WireFormatting.WriteLongstr(ref span.GetOffset(offset), _response);
-            return offset + WireFormatting.WriteShortstr(ref span.GetOffset(offset), _locale);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            int bufferSize = 1 + 4 + 1; // bytes for length of _mechanism, length of _response, length of _locale
-            bufferSize += WireFormatting.GetTableByteCount(_clientProperties); // _clientProperties in bytes
-            bufferSize += WireFormatting.GetByteCount(_mechanism); // _mechanism in bytes
-            bufferSize += _response.Length; // _response in bytes
-            bufferSize += WireFormatting.GetByteCount(_locale); // _locale in bytes
-            return bufferSize;
-        }
+    public int GetRequiredBufferSize()
+    {
+        int bufferSize = 1 + 4 + 1; // bytes for length of _mechanism, length of _response, length of _locale
+        bufferSize += WireFormatting.GetTableByteCount(_clientProperties); // _clientProperties in bytes
+        bufferSize += WireFormatting.GetByteCount(_mechanism); // _mechanism in bytes
+        bufferSize += _response.Length; // _response in bytes
+        bufferSize += WireFormatting.GetByteCount(_locale); // _locale in bytes
+        return bufferSize;
     }
 }

@@ -38,390 +38,389 @@ using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Impl;
+
+internal sealed class AutorecoveringModel : IModel, IRecoverable
 {
-    internal sealed class AutorecoveringModel : IModel, IRecoverable
+    private AutorecoveringConnection _connection;
+    private RecoveryAwareModel _innerChannel;
+    private bool _disposed;
+
+    private ushort _prefetchCountConsumer;
+    private ushort _prefetchCountGlobal;
+    private bool _usesPublisherConfirms;
+    private bool _usesTransactions;
+
+    internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
+
+    internal RecoveryAwareModel InnerChannel
     {
-        private AutorecoveringConnection _connection;
-        private RecoveryAwareModel _innerChannel;
-        private bool _disposed;
-
-        private ushort _prefetchCountConsumer;
-        private ushort _prefetchCountGlobal;
-        private bool _usesPublisherConfirms;
-        private bool _usesTransactions;
-
-        internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
-
-        internal RecoveryAwareModel InnerChannel
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _innerChannel;
-            }
-        }
-
-        public TimeSpan ContinuationTimeout
-        {
-            get => InnerChannel.ContinuationTimeout;
-            set => InnerChannel.ContinuationTimeout = value;
-        }
-
-        public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel innerChannel)
-        {
-            _connection = conn;
-            _innerChannel = innerChannel;
-        }
-
-        public event EventHandler<BasicAckEventArgs> BasicAcks
-        {
-            add => InnerChannel.BasicAcks += value;
-            remove => InnerChannel.BasicAcks -= value;
-        }
-
-        public event EventHandler<BasicNackEventArgs> BasicNacks
-        {
-            add => InnerChannel.BasicNacks += value;
-            remove => InnerChannel.BasicNacks -= value;
-        }
-
-        public event EventHandler<EventArgs> BasicRecoverOk
-        {
-            add => InnerChannel.BasicRecoverOk += value;
-            remove => InnerChannel.BasicRecoverOk -= value;
-        }
-
-        public event EventHandler<BasicReturnEventArgs> BasicReturn
-        {
-            add => InnerChannel.BasicReturn += value;
-            remove => InnerChannel.BasicReturn -= value;
-        }
-
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
-        {
-            add => InnerChannel.CallbackException += value;
-            remove => InnerChannel.CallbackException -= value;
-        }
-
-        public event EventHandler<FlowControlEventArgs> FlowControl
-        {
-            add { InnerChannel.FlowControl += value; }
-            remove { InnerChannel.FlowControl -= value; }
-        }
-
-        public event EventHandler<ShutdownEventArgs> ModelShutdown
-        {
-            add => InnerChannel.ModelShutdown += value;
-            remove => InnerChannel.ModelShutdown -= value;
-        }
-
-        public event EventHandler<EventArgs> Recovery
-        {
-            add { InnerChannel.Recovery += value; }
-            remove { InnerChannel.Recovery -= value; }
-        }
-
-        public int ChannelNumber => InnerChannel.ChannelNumber;
-
-        public ShutdownEventArgs CloseReason => InnerChannel.CloseReason;
-
-        public IBasicConsumer DefaultConsumer
-        {
-            get => InnerChannel.DefaultConsumer;
-            set => InnerChannel.DefaultConsumer = value;
-        }
-
-        public bool IsClosed => !IsOpen;
-
-        public bool IsOpen => _innerChannel != null && _innerChannel.IsOpen;
-
-        public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
-
-        internal void AutomaticallyRecover(AutorecoveringConnection conn, bool recoverConsumers)
+        get
         {
             ThrowIfDisposed();
-            _connection = conn;
-
-            var newChannel = conn.CreateNonRecoveringModel();
-            newChannel.TakeOver(_innerChannel);
-
-            if (_prefetchCountConsumer != 0)
-            {
-                newChannel.BasicQos(0, _prefetchCountConsumer, false);
-            }
-
-            if (_prefetchCountGlobal != 0)
-            {
-                newChannel.BasicQos(0, _prefetchCountGlobal, true);
-            }
-
-            if (_usesPublisherConfirms)
-            {
-                newChannel.ConfirmSelect();
-            }
-
-            if (_usesTransactions)
-            {
-                newChannel.TxSelect();
-            }
-
-            /*
-             * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140
-             * If this assignment is not done before recovering consumers, there is a good
-             * chance that an invalid Model will be used to handle a basic.deliver frame,
-             * with the resulting basic.ack never getting sent out.
-             */
-            _innerChannel = newChannel;
-
-            if (recoverConsumers)
-            {
-                _connection.RecoverConsumers(this, newChannel);
-            }
-
-            _innerChannel.RunRecoveryEventHandlers(this);
+            return _innerChannel;
         }
+    }
 
-        public void Close(ushort replyCode, string replyText, bool abort)
+    public TimeSpan ContinuationTimeout
+    {
+        get => InnerChannel.ContinuationTimeout;
+        set => InnerChannel.ContinuationTimeout = value;
+    }
+
+    public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel innerChannel)
+    {
+        _connection = conn;
+        _innerChannel = innerChannel;
+    }
+
+    public event EventHandler<BasicAckEventArgs> BasicAcks
+    {
+        add => InnerChannel.BasicAcks += value;
+        remove => InnerChannel.BasicAcks -= value;
+    }
+
+    public event EventHandler<BasicNackEventArgs> BasicNacks
+    {
+        add => InnerChannel.BasicNacks += value;
+        remove => InnerChannel.BasicNacks -= value;
+    }
+
+    public event EventHandler<EventArgs> BasicRecoverOk
+    {
+        add => InnerChannel.BasicRecoverOk += value;
+        remove => InnerChannel.BasicRecoverOk -= value;
+    }
+
+    public event EventHandler<BasicReturnEventArgs> BasicReturn
+    {
+        add => InnerChannel.BasicReturn += value;
+        remove => InnerChannel.BasicReturn -= value;
+    }
+
+    public event EventHandler<CallbackExceptionEventArgs> CallbackException
+    {
+        add => InnerChannel.CallbackException += value;
+        remove => InnerChannel.CallbackException -= value;
+    }
+
+    public event EventHandler<FlowControlEventArgs> FlowControl
+    {
+        add { InnerChannel.FlowControl += value; }
+        remove { InnerChannel.FlowControl -= value; }
+    }
+
+    public event EventHandler<ShutdownEventArgs> ModelShutdown
+    {
+        add => InnerChannel.ModelShutdown += value;
+        remove => InnerChannel.ModelShutdown -= value;
+    }
+
+    public event EventHandler<EventArgs> Recovery
+    {
+        add { InnerChannel.Recovery += value; }
+        remove { InnerChannel.Recovery -= value; }
+    }
+
+    public int ChannelNumber => InnerChannel.ChannelNumber;
+
+    public ShutdownEventArgs CloseReason => InnerChannel.CloseReason;
+
+    public IBasicConsumer DefaultConsumer
+    {
+        get => InnerChannel.DefaultConsumer;
+        set => InnerChannel.DefaultConsumer = value;
+    }
+
+    public bool IsClosed => !IsOpen;
+
+    public bool IsOpen => _innerChannel != null && _innerChannel.IsOpen;
+
+    public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
+
+    internal void AutomaticallyRecover(AutorecoveringConnection conn, bool recoverConsumers)
+    {
+        ThrowIfDisposed();
+        _connection = conn;
+
+        var newChannel = conn.CreateNonRecoveringModel();
+        newChannel.TakeOver(_innerChannel);
+
+        if (_prefetchCountConsumer != 0)
         {
-            ThrowIfDisposed();
-            try
-            {
-                _innerChannel.Close(replyCode, replyText, abort);
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this);
-            }
+            newChannel.BasicQos(0, _prefetchCountConsumer, false);
         }
 
-        public override string ToString()
-            => InnerChannel.ToString();
-
-        public void Dispose()
+        if (_prefetchCountGlobal != 0)
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            this.Abort();
-
-            _connection = null;
-            _innerChannel = null;
-            _disposed = true;
+            newChannel.BasicQos(0, _prefetchCountGlobal, true);
         }
 
-        public void BasicAck(ulong deliveryTag, bool multiple)
-            => InnerChannel.BasicAck(deliveryTag, multiple);
-
-        public void BasicCancel(string consumerTag)
+        if (_usesPublisherConfirms)
         {
-            ThrowIfDisposed();
-            _connection.DeleteRecordedConsumer(consumerTag);
-            _innerChannel.BasicCancel(consumerTag);
+            newChannel.ConfirmSelect();
         }
 
-        public void BasicCancelNoWait(string consumerTag)
+        if (_usesTransactions)
         {
-            ThrowIfDisposed();
-            _connection.DeleteRecordedConsumer(consumerTag);
-            _innerChannel.BasicCancelNoWait(consumerTag);
+            newChannel.TxSelect();
         }
 
-        public string BasicConsume(
-            string queue,
-            bool autoAck,
-            string consumerTag,
-            bool noLocal,
-            bool exclusive,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer)
+        /*
+         * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140
+         * If this assignment is not done before recovering consumers, there is a good
+         * chance that an invalid Model will be used to handle a basic.deliver frame,
+         * with the resulting basic.ack never getting sent out.
+         */
+        _innerChannel = newChannel;
+
+        if (recoverConsumers)
         {
-            string result = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
-            _connection.RecordConsumer(new RecordedConsumer(this, consumer, queue, autoAck, result, exclusive, arguments));
-            return result;
+            _connection.RecoverConsumers(this, newChannel);
         }
 
-        public BasicGetResult BasicGet(string queue, bool autoAck)
-            => InnerChannel.BasicGet(queue, autoAck);
+        _innerChannel.RunRecoveryEventHandlers(this);
+    }
 
-        public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
-            => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
-
-        public void BasicPublish<TProperties>(string exchange, string routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublish(exchange, routingKey, ref basicProperties, body, mandatory);
-
-        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublish(exchange, routingKey, ref basicProperties, body, mandatory);
-
-        public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
+    public void Close(ushort replyCode, string replyText, bool abort)
+    {
+        ThrowIfDisposed();
+        try
         {
-            ThrowIfDisposed();
-            if (global)
-            {
-                _prefetchCountGlobal = prefetchCount;
-            }
-            else
-            {
-                _prefetchCountConsumer = prefetchCount;
-            }
-            _innerChannel.BasicQos(prefetchSize, prefetchCount, global);
+            _innerChannel.Close(replyCode, replyText, abort);
         }
-
-        public void BasicRecover(bool requeue)
-            => InnerChannel.BasicRecover(requeue);
-
-        public void BasicRecoverAsync(bool requeue)
-            => InnerChannel.BasicRecoverAsync(requeue);
-
-        public void BasicReject(ulong deliveryTag, bool requeue)
-            => InnerChannel.BasicReject(deliveryTag, requeue);
-
-        public void ConfirmSelect()
+        finally
         {
-            InnerChannel.ConfirmSelect();
-            _usesPublisherConfirms = true;
+            _connection.DeleteRecordedChannel(this);
         }
+    }
 
-        public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+    public override string ToString()
+        => InnerChannel.ToString();
+
+    public void Dispose()
+    {
+        if (_disposed)
         {
-            ThrowIfDisposed();
-            _connection.RecordBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
-            _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
+            return;
         }
 
-        public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-            => InnerChannel.ExchangeBindNoWait(destination, source, routingKey, arguments);
+        this.Abort();
 
-        public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        _connection = null;
+        _innerChannel = null;
+        _disposed = true;
+    }
+
+    public void BasicAck(ulong deliveryTag, bool multiple)
+        => InnerChannel.BasicAck(deliveryTag, multiple);
+
+    public void BasicCancel(string consumerTag)
+    {
+        ThrowIfDisposed();
+        _connection.DeleteRecordedConsumer(consumerTag);
+        _innerChannel.BasicCancel(consumerTag);
+    }
+
+    public void BasicCancelNoWait(string consumerTag)
+    {
+        ThrowIfDisposed();
+        _connection.DeleteRecordedConsumer(consumerTag);
+        _innerChannel.BasicCancelNoWait(consumerTag);
+    }
+
+    public string BasicConsume(
+        string queue,
+        bool autoAck,
+        string consumerTag,
+        bool noLocal,
+        bool exclusive,
+        IDictionary<string, object> arguments,
+        IBasicConsumer consumer)
+    {
+        string result = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+        _connection.RecordConsumer(new RecordedConsumer(this, consumer, queue, autoAck, result, exclusive, arguments));
+        return result;
+    }
+
+    public BasicGetResult BasicGet(string queue, bool autoAck)
+        => InnerChannel.BasicGet(queue, autoAck);
+
+    public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
+        => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
+
+    public void BasicPublish<TProperties>(string exchange, string routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        => InnerChannel.BasicPublish(exchange, routingKey, ref basicProperties, body, mandatory);
+
+    public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        => InnerChannel.BasicPublish(exchange, routingKey, ref basicProperties, body, mandatory);
+
+    public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
+    {
+        ThrowIfDisposed();
+        if (global)
         {
-            ThrowIfDisposed();
-            _innerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+            _prefetchCountGlobal = prefetchCount;
         }
-
-        public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        else
         {
-            ThrowIfDisposed();
-            _innerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+            _prefetchCountConsumer = prefetchCount;
         }
+        _innerChannel.BasicQos(prefetchSize, prefetchCount, global);
+    }
 
-        public void ExchangeDeclarePassive(string exchange)
-            => InnerChannel.ExchangeDeclarePassive(exchange);
+    public void BasicRecover(bool requeue)
+        => InnerChannel.BasicRecover(requeue);
 
-        public void ExchangeDelete(string exchange, bool ifUnused)
+    public void BasicRecoverAsync(bool requeue)
+        => InnerChannel.BasicRecoverAsync(requeue);
+
+    public void BasicReject(ulong deliveryTag, bool requeue)
+        => InnerChannel.BasicReject(deliveryTag, requeue);
+
+    public void ConfirmSelect()
+    {
+        InnerChannel.ConfirmSelect();
+        _usesPublisherConfirms = true;
+    }
+
+    public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+    {
+        ThrowIfDisposed();
+        _connection.RecordBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
+        _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
+    }
+
+    public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        => InnerChannel.ExchangeBindNoWait(destination, source, routingKey, arguments);
+
+    public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+    {
+        ThrowIfDisposed();
+        _innerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+        _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+    }
+
+    public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+    {
+        ThrowIfDisposed();
+        _innerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+        _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+    }
+
+    public void ExchangeDeclarePassive(string exchange)
+        => InnerChannel.ExchangeDeclarePassive(exchange);
+
+    public void ExchangeDelete(string exchange, bool ifUnused)
+    {
+        InnerChannel.ExchangeDelete(exchange, ifUnused);
+        _connection.DeleteRecordedExchange(exchange);
+    }
+
+    public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
+    {
+        InnerChannel.ExchangeDeleteNoWait(exchange, ifUnused);
+        _connection.DeleteRecordedExchange(exchange);
+    }
+
+    public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+    {
+        ThrowIfDisposed();
+        _connection.DeleteRecordedBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
+        _innerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
+        _connection.DeleteAutoDeleteExchange(source);
+    }
+
+    public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        => InnerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
+
+    public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+    {
+        ThrowIfDisposed();
+        _connection.RecordBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
+        _innerChannel.QueueBind(queue, exchange, routingKey, arguments);
+    }
+
+    public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        => InnerChannel.QueueBind(queue, exchange, routingKey, arguments);
+
+    public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+    {
+        ThrowIfDisposed();
+        QueueDeclareOk result = _innerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+        _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+        return result;
+    }
+
+    public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+    {
+        ThrowIfDisposed();
+        _innerChannel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
+        _connection.RecordQueue(new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+    }
+
+    public QueueDeclareOk QueueDeclarePassive(string queue)
+        => InnerChannel.QueueDeclarePassive(queue);
+
+    public uint MessageCount(string queue)
+        => InnerChannel.MessageCount(queue);
+
+    public uint ConsumerCount(string queue)
+        => InnerChannel.ConsumerCount(queue);
+
+    public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
+    {
+        ThrowIfDisposed();
+        uint result = _innerChannel.QueueDelete(queue, ifUnused, ifEmpty);
+        _connection.DeleteRecordedQueue(queue);
+        return result;
+    }
+
+    public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
+    {
+        InnerChannel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+        _connection.DeleteRecordedQueue(queue);
+    }
+
+    public uint QueuePurge(string queue)
+        => InnerChannel.QueuePurge(queue);
+
+    public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+    {
+        ThrowIfDisposed();
+        _connection.DeleteRecordedBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
+        _innerChannel.QueueUnbind(queue, exchange, routingKey, arguments);
+        _connection.DeleteAutoDeleteExchange(exchange);
+    }
+
+    public void TxCommit()
+        => InnerChannel.TxCommit();
+
+    public void TxRollback()
+        => InnerChannel.TxRollback();
+
+    public void TxSelect()
+    {
+        InnerChannel.TxSelect();
+        _usesTransactions = true;
+    }
+
+    public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
+        => InnerChannel.WaitForConfirmsAsync(token);
+
+    public Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
+        => InnerChannel.WaitForConfirmsOrDieAsync(token);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
         {
-            InnerChannel.ExchangeDelete(exchange, ifUnused);
-            _connection.DeleteRecordedExchange(exchange);
+            ThrowDisposed();
         }
 
-        public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
-        {
-            InnerChannel.ExchangeDeleteNoWait(exchange, ifUnused);
-            _connection.DeleteRecordedExchange(exchange);
-        }
-
-        public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _connection.DeleteRecordedBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
-            _innerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
-            _connection.DeleteAutoDeleteExchange(source);
-        }
-
-        public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-            => InnerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
-
-        public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _connection.RecordBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
-            _innerChannel.QueueBind(queue, exchange, routingKey, arguments);
-        }
-
-        public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-            => InnerChannel.QueueBind(queue, exchange, routingKey, arguments);
-
-        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            QueueDeclareOk result = _innerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
-            return result;
-        }
-
-        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _innerChannel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments));
-        }
-
-        public QueueDeclareOk QueueDeclarePassive(string queue)
-            => InnerChannel.QueueDeclarePassive(queue);
-
-        public uint MessageCount(string queue)
-            => InnerChannel.MessageCount(queue);
-
-        public uint ConsumerCount(string queue)
-            => InnerChannel.ConsumerCount(queue);
-
-        public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
-        {
-            ThrowIfDisposed();
-            uint result = _innerChannel.QueueDelete(queue, ifUnused, ifEmpty);
-            _connection.DeleteRecordedQueue(queue);
-            return result;
-        }
-
-        public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
-        {
-            InnerChannel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
-            _connection.DeleteRecordedQueue(queue);
-        }
-
-        public uint QueuePurge(string queue)
-            => InnerChannel.QueuePurge(queue);
-
-        public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _connection.DeleteRecordedBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
-            _innerChannel.QueueUnbind(queue, exchange, routingKey, arguments);
-            _connection.DeleteAutoDeleteExchange(exchange);
-        }
-
-        public void TxCommit()
-            => InnerChannel.TxCommit();
-
-        public void TxRollback()
-            => InnerChannel.TxRollback();
-
-        public void TxSelect()
-        {
-            InnerChannel.TxSelect();
-            _usesTransactions = true;
-        }
-
-        public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
-            => InnerChannel.WaitForConfirmsAsync(token);
-
-        public Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
-            => InnerChannel.WaitForConfirmsOrDieAsync(token);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ThrowIfDisposed()
-        {
-            if (_disposed)
-            {
-                ThrowDisposed();
-            }
-
-            static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringModel).FullName);
-        }
+        static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringModel).FullName);
     }
 }

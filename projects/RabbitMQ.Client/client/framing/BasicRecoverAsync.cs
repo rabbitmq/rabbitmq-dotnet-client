@@ -33,27 +33,26 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct BasicRecoverAsync : IOutgoingAmqpMethod
 {
-    internal readonly struct BasicRecoverAsync : IOutgoingAmqpMethod
+    public readonly bool _requeue;
+
+    public BasicRecoverAsync(bool Requeue)
     {
-        public readonly bool _requeue;
+        _requeue = Requeue;
+    }
 
-        public BasicRecoverAsync(bool Requeue)
-        {
-            _requeue = Requeue;
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicRecoverAsync;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicRecoverAsync;
+    public int WriteTo(Span<byte> span)
+    {
+        return WireFormatting.WriteBits(ref span.GetStart(), _requeue);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            return WireFormatting.WriteBits(ref span.GetStart(), _requeue);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            return 1; // bytes for bit fields
-        }
+    public int GetRequiredBufferSize()
+    {
+        return 1; // bytes for bit fields
     }
 }

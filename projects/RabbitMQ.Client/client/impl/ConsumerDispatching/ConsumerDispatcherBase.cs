@@ -2,68 +2,67 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.ConsumerDispatching
-{
+namespace RabbitMQ.Client.ConsumerDispatching;
+
 #nullable enable
-    internal abstract class ConsumerDispatcherBase
+internal abstract class ConsumerDispatcherBase
+{
+    private static readonly FallbackConsumer fallbackConsumer = new FallbackConsumer();
+    private readonly Dictionary<string, IBasicConsumer> _consumers;
+
+    public IBasicConsumer? DefaultConsumer { get; set; }
+
+    protected ConsumerDispatcherBase()
     {
-        private static readonly FallbackConsumer fallbackConsumer = new FallbackConsumer();
-        private readonly Dictionary<string, IBasicConsumer> _consumers;
+        _consumers = new Dictionary<string, IBasicConsumer>();
+    }
 
-        public IBasicConsumer? DefaultConsumer { get; set; }
-
-        protected ConsumerDispatcherBase()
+    protected void AddConsumer(IBasicConsumer consumer, string tag)
+    {
+        lock (_consumers)
         {
-            _consumers = new Dictionary<string, IBasicConsumer>();
+            _consumers[tag] = consumer;
         }
+    }
 
-        protected void AddConsumer(IBasicConsumer consumer, string tag)
+    protected IBasicConsumer GetConsumerOrDefault(string tag)
+    {
+        lock (_consumers)
         {
-            lock (_consumers)
+            return _consumers.TryGetValue(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
+        }
+    }
+
+    public IBasicConsumer GetAndRemoveConsumer(string tag)
+    {
+        lock (_consumers)
+        {
+            return _consumers.Remove(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
+        }
+    }
+
+    public Task ShutdownAsync(ShutdownEventArgs reason)
+    {
+        lock (_consumers)
+        {
+            foreach (KeyValuePair<string, IBasicConsumer> pair in _consumers)
             {
-                _consumers[tag] = consumer;
+                ShutdownConsumer(pair.Value, reason);
             }
+            _consumers.Clear();
         }
 
-        protected IBasicConsumer GetConsumerOrDefault(string tag)
-        {
-            lock (_consumers)
-            {
-                return _consumers.TryGetValue(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
-            }
-        }
+        return InternalShutdownAsync();
+    }
 
-        public IBasicConsumer GetAndRemoveConsumer(string tag)
-        {
-            lock (_consumers)
-            {
-                return _consumers.Remove(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
-            }
-        }
+    protected abstract void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason);
 
-        public Task ShutdownAsync(ShutdownEventArgs reason)
-        {
-            lock (_consumers)
-            {
-                foreach (KeyValuePair<string, IBasicConsumer> pair in _consumers)
-                {
-                    ShutdownConsumer(pair.Value, reason);
-                }
-                _consumers.Clear();
-            }
+    protected abstract Task InternalShutdownAsync();
 
-            return InternalShutdownAsync();
-        }
-
-        protected abstract void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason);
-
-        protected abstract Task InternalShutdownAsync();
-
-        // Do not inline as it's not the default case on a hot path
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private IBasicConsumer GetDefaultOrFallbackConsumer()
-        {
-            return DefaultConsumer ?? fallbackConsumer;
-        }
+    // Do not inline as it's not the default case on a hot path
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private IBasicConsumer GetDefaultOrFallbackConsumer()
+    {
+        return DefaultConsumer ?? fallbackConsumer;
     }
 }

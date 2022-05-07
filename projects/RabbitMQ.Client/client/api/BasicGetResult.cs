@@ -32,108 +32,107 @@
 using System;
 using System.Buffers;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client;
+
+/// <summary>Represents Basic.GetOk responses from the server.</summary>
+/// <remarks>
+/// Basic.Get either returns an instance of this class, or null if a Basic.GetEmpty was received.
+/// </remarks>
+public sealed class BasicGetResult : IDisposable
 {
-    /// <summary>Represents Basic.GetOk responses from the server.</summary>
-    /// <remarks>
-    /// Basic.Get either returns an instance of this class, or null if a Basic.GetEmpty was received.
-    /// </remarks>
-    public sealed class BasicGetResult : IDisposable
+    private readonly byte[] _rentedArray;
+
+    /// <summary>
+    /// Sets the new instance's properties from the arguments passed in.
+    /// </summary>
+    /// <param name="deliveryTag">Delivery tag for the message.</param>
+    /// <param name="redelivered">Redelivered flag for the message</param>
+    /// <param name="exchange">The exchange this message was published to.</param>
+    /// <param name="routingKey">Routing key with which the message was published.</param>
+    /// <param name="messageCount">The number of messages pending on the queue, excluding the message being delivered.</param>
+    /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
+    /// <param name="body">The body</param>
+    public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+        uint messageCount, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body)
     {
-        private readonly byte[] _rentedArray;
+        DeliveryTag = deliveryTag;
+        Redelivered = redelivered;
+        Exchange = exchange;
+        RoutingKey = routingKey;
+        MessageCount = messageCount;
+        BasicProperties = basicProperties;
+        Body = body;
+    }
 
-        /// <summary>
-        /// Sets the new instance's properties from the arguments passed in.
-        /// </summary>
-        /// <param name="deliveryTag">Delivery tag for the message.</param>
-        /// <param name="redelivered">Redelivered flag for the message</param>
-        /// <param name="exchange">The exchange this message was published to.</param>
-        /// <param name="routingKey">Routing key with which the message was published.</param>
-        /// <param name="messageCount">The number of messages pending on the queue, excluding the message being delivered.</param>
-        /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
-        /// <param name="body">The body</param>
-        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            uint messageCount, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+    /// <summary>
+    /// Sets the new instance's properties from the arguments passed in.
+    /// </summary>
+    /// <param name="deliveryTag">Delivery tag for the message.</param>
+    /// <param name="redelivered">Redelivered flag for the message</param>
+    /// <param name="exchange">The exchange this message was published to.</param>
+    /// <param name="routingKey">Routing key with which the message was published.</param>
+    /// <param name="messageCount">The number of messages pending on the queue, excluding the message being delivered.</param>
+    /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
+    /// <param name="body">The body</param>
+    /// <param name="rentedArray">The rented array which body is part of.</param>
+    public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+        uint messageCount, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
+    {
+        DeliveryTag = deliveryTag;
+        Redelivered = redelivered;
+        Exchange = exchange;
+        RoutingKey = routingKey;
+        MessageCount = messageCount;
+        BasicProperties = basicProperties;
+        Body = body;
+        _rentedArray = rentedArray;
+    }
+
+    /// <summary>
+    /// Retrieves the Basic-class content header properties for this message.
+    /// </summary>
+    public ReadOnlyBasicProperties BasicProperties { get; }
+
+    /// <summary>
+    /// Retrieves the body of this message.
+    /// </summary>
+    public ReadOnlyMemory<byte> Body { get; }
+
+    /// <summary>
+    /// Retrieve the delivery tag for this message. See also <see cref="IModel.BasicAck"/>.
+    /// </summary>
+    public ulong DeliveryTag { get; }
+
+    /// <summary>
+    /// Retrieve the exchange this message was published to.
+    /// </summary>
+    public string Exchange { get; }
+
+    /// <summary>
+    /// Retrieve the number of messages pending on the queue, excluding the message being delivered.
+    /// </summary>
+    /// <remarks>
+    /// Note that this figure is indicative, not reliable, and can
+    /// change arbitrarily as messages are added to the queue and removed by other clients.
+    /// </remarks>
+    public uint MessageCount { get; }
+
+    /// <summary>
+    /// Retrieve the redelivered flag for this message.
+    /// </summary>
+    public bool Redelivered { get; }
+
+    /// <summary>
+    /// Retrieve the routing key with which this message was published.
+    /// </summary>
+    public string RoutingKey { get; }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_rentedArray != null)
         {
-            DeliveryTag = deliveryTag;
-            Redelivered = redelivered;
-            Exchange = exchange;
-            RoutingKey = routingKey;
-            MessageCount = messageCount;
-            BasicProperties = basicProperties;
-            Body = body;
-        }
-
-        /// <summary>
-        /// Sets the new instance's properties from the arguments passed in.
-        /// </summary>
-        /// <param name="deliveryTag">Delivery tag for the message.</param>
-        /// <param name="redelivered">Redelivered flag for the message</param>
-        /// <param name="exchange">The exchange this message was published to.</param>
-        /// <param name="routingKey">Routing key with which the message was published.</param>
-        /// <param name="messageCount">The number of messages pending on the queue, excluding the message being delivered.</param>
-        /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
-        /// <param name="body">The body</param>
-        /// <param name="rentedArray">The rented array which body is part of.</param>
-        public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            uint messageCount, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
-        {
-            DeliveryTag = deliveryTag;
-            Redelivered = redelivered;
-            Exchange = exchange;
-            RoutingKey = routingKey;
-            MessageCount = messageCount;
-            BasicProperties = basicProperties;
-            Body = body;
-            _rentedArray = rentedArray;
-        }
-
-        /// <summary>
-        /// Retrieves the Basic-class content header properties for this message.
-        /// </summary>
-        public ReadOnlyBasicProperties BasicProperties { get; }
-
-        /// <summary>
-        /// Retrieves the body of this message.
-        /// </summary>
-        public ReadOnlyMemory<byte> Body { get; }
-
-        /// <summary>
-        /// Retrieve the delivery tag for this message. See also <see cref="IModel.BasicAck"/>.
-        /// </summary>
-        public ulong DeliveryTag { get; }
-
-        /// <summary>
-        /// Retrieve the exchange this message was published to.
-        /// </summary>
-        public string Exchange { get; }
-
-        /// <summary>
-        /// Retrieve the number of messages pending on the queue, excluding the message being delivered.
-        /// </summary>
-        /// <remarks>
-        /// Note that this figure is indicative, not reliable, and can
-        /// change arbitrarily as messages are added to the queue and removed by other clients.
-        /// </remarks>
-        public uint MessageCount { get; }
-
-        /// <summary>
-        /// Retrieve the redelivered flag for this message.
-        /// </summary>
-        public bool Redelivered { get; }
-
-        /// <summary>
-        /// Retrieve the routing key with which this message was published.
-        /// </summary>
-        public string RoutingKey { get; }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            if (_rentedArray != null)
-            {
-                ArrayPool<byte>.Shared.Return(_rentedArray);
-            }
+            ArrayPool<byte>.Shared.Return(_rentedArray);
         }
     }
 }

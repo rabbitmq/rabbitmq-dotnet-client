@@ -34,33 +34,32 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ConnectionUpdateSecret : IOutgoingAmqpMethod
 {
-    internal readonly struct ConnectionUpdateSecret : IOutgoingAmqpMethod
+    public readonly byte[] _newSecret;
+    public readonly string _reason;
+
+    public ConnectionUpdateSecret(byte[] NewSecret, string Reason)
     {
-        public readonly byte[] _newSecret;
-        public readonly string _reason;
+        _newSecret = NewSecret;
+        _reason = Reason;
+    }
 
-        public ConnectionUpdateSecret(byte[] NewSecret, string Reason)
-        {
-            _newSecret = NewSecret;
-            _reason = Reason;
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionUpdateSecret;
+    public int WriteTo(Span<byte> span)
+    {
+        int offset = WireFormatting.WriteLongstr(ref span.GetStart(), _newSecret);
+        return offset + WireFormatting.WriteShortstr(ref span.GetOffset(offset), _reason);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteLongstr(ref span.GetStart(), _newSecret);
-            return offset + WireFormatting.WriteShortstr(ref span.GetOffset(offset), _reason);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            int bufferSize = 4 + 1; // bytes for length of _newSecret, length of _reason
-            bufferSize += _newSecret.Length; // _newSecret in bytes
-            bufferSize += WireFormatting.GetByteCount(_reason); // _reason in bytes
-            return bufferSize;
-        }
+    public int GetRequiredBufferSize()
+    {
+        int bufferSize = 4 + 1; // bytes for length of _newSecret, length of _reason
+        bufferSize += _newSecret.Length; // _newSecret in bytes
+        bufferSize += WireFormatting.GetByteCount(_reason); // _reason in bytes
+        return bufferSize;
     }
 }

@@ -33,44 +33,43 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 
-namespace RabbitMQ.Client.Logging
-{
+namespace RabbitMQ.Client.Logging;
+
 #if NET452
 #else
-    [EventData]
+[EventData]
 #endif
-    public class RabbitMqExceptionDetail
+public class RabbitMqExceptionDetail
+{
+    public RabbitMqExceptionDetail(Exception ex)
     {
-        public RabbitMqExceptionDetail(Exception ex)
+        Type = ex.GetType().FullName;
+        Message = ex.Message;
+        StackTrace = ex.StackTrace;
+        if (ex.InnerException != null)
         {
-            Type = ex.GetType().FullName;
-            Message = ex.Message;
-            StackTrace = ex.StackTrace;
-            if (ex.InnerException != null)
-            {
-                InnerException = ex.InnerException.ToString();
-            }
+            InnerException = ex.InnerException.ToString();
         }
+    }
 
-        public RabbitMqExceptionDetail(IDictionary<string, object> ex)
+    public RabbitMqExceptionDetail(IDictionary<string, object> ex)
+    {
+        Type = ex["Type"].ToString();
+        Message = ex["Message"].ToString();
+        StackTrace = ex["StackTrace"].ToString();
+        if (ex.TryGetValue("InnerException", out object inner))
         {
-            Type = ex["Type"].ToString();
-            Message = ex["Message"].ToString();
-            StackTrace = ex["StackTrace"].ToString();
-            if (ex.TryGetValue("InnerException", out object inner))
-            {
-                InnerException = inner.ToString();
-            }
+            InnerException = inner.ToString();
         }
+    }
 
-        public string Type { get; }
-        public string Message { get; }
-        public string StackTrace { get; }
-        public string InnerException { get; }
+    public string Type { get; }
+    public string Message { get; }
+    public string StackTrace { get; }
+    public string InnerException { get; }
 
-        public override string ToString()
-        {
-            return $"Exception: {Type}\r\n{Message}\r\n\r\n{StackTrace}\r\nInnerException:\r\n{InnerException}";
-        }
+    public override string ToString()
+    {
+        return $"Exception: {Type}\r\n{Message}\r\n\r\n{StackTrace}\r\nInnerException:\r\n{InnerException}";
     }
 }

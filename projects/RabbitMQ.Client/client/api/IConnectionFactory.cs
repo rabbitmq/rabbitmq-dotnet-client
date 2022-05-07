@@ -34,158 +34,157 @@ using System.Collections.Generic;
 
 using RabbitMQ.Client.Exceptions;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client;
+
+public interface IConnectionFactory
 {
-    public interface IConnectionFactory
-    {
-        /// <summary>
-        /// Dictionary of client properties to be sent to the server.
-        /// </summary>
-        IDictionary<string, object> ClientProperties { get; set; }
+    /// <summary>
+    /// Dictionary of client properties to be sent to the server.
+    /// </summary>
+    IDictionary<string, object> ClientProperties { get; set; }
 
-        /// <summary>
-        /// Password to use when authenticating to the server.
-        /// </summary>
-        string Password { get; set; }
+    /// <summary>
+    /// Password to use when authenticating to the server.
+    /// </summary>
+    string Password { get; set; }
 
-        /// <summary>
-        /// Maximum channel number to ask for.
-        /// </summary>
-        ushort RequestedChannelMax { get; set; }
+    /// <summary>
+    /// Maximum channel number to ask for.
+    /// </summary>
+    ushort RequestedChannelMax { get; set; }
 
-        /// <summary>
-        /// Frame-max parameter to ask for (in bytes).
-        /// </summary>
-        uint RequestedFrameMax { get; set; }
+    /// <summary>
+    /// Frame-max parameter to ask for (in bytes).
+    /// </summary>
+    uint RequestedFrameMax { get; set; }
 
-        /// <summary>
-        /// Heartbeat setting to request.
-        /// </summary>
-        TimeSpan RequestedHeartbeat { get; set; }
+    /// <summary>
+    /// Heartbeat setting to request.
+    /// </summary>
+    TimeSpan RequestedHeartbeat { get; set; }
 
-        /// <summary>
-        /// Username to use when authenticating to the server.
-        /// </summary>
-        string UserName { get; set; }
+    /// <summary>
+    /// Username to use when authenticating to the server.
+    /// </summary>
+    string UserName { get; set; }
 
-        /// <summary>
-        /// Virtual host to access during this connection.
-        /// </summary>
-        string VirtualHost { get; set; }
+    /// <summary>
+    /// Virtual host to access during this connection.
+    /// </summary>
+    string VirtualHost { get; set; }
 
-        /// <summary>
-        /// Sets or gets the AMQP Uri to be used for connections.
-        /// </summary>
-        Uri Uri { get; set; }
+    /// <summary>
+    /// Sets or gets the AMQP Uri to be used for connections.
+    /// </summary>
+    Uri Uri { get; set; }
 
-        /// <summary>
-        /// Default client provided name to be used for connections.
-        /// </summary>
-        string ClientProvidedName { get; set; }
+    /// <summary>
+    /// Default client provided name to be used for connections.
+    /// </summary>
+    string ClientProvidedName { get; set; }
 
-        /// <summary>
-        /// Given a list of mechanism names supported by the server, select a preferred mechanism,
-        /// or null if we have none in common.
-        /// </summary>
-        IAuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames);
+    /// <summary>
+    /// Given a list of mechanism names supported by the server, select a preferred mechanism,
+    /// or null if we have none in common.
+    /// </summary>
+    IAuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames);
 
-        /// <summary>
-        /// Create a connection to the specified endpoint.
-        /// </summary>
-        IConnection CreateConnection();
+    /// <summary>
+    /// Create a connection to the specified endpoint.
+    /// </summary>
+    IConnection CreateConnection();
 
-        /// <summary>
-        /// Create a connection to the specified endpoint.
-        /// </summary>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        IConnection CreateConnection(string clientProvidedName);
+    /// <summary>
+    /// Create a connection to the specified endpoint.
+    /// </summary>
+    /// <param name="clientProvidedName">
+    /// Application-specific connection name, will be displayed in the management UI
+    /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+    /// be used as a connection identifier, e.g. in HTTP API requests.
+    /// This value is supposed to be human-readable.
+    /// </param>
+    /// <returns>Open connection</returns>
+    IConnection CreateConnection(string clientProvidedName);
 
-        /// <summary>
-        /// Connects to the first reachable hostname from the list.
-        /// </summary>
-        /// <param name="hostnames">List of host names to use</param>
-        /// <returns>Open connection</returns>
-        IConnection CreateConnection(IList<string> hostnames);
+    /// <summary>
+    /// Connects to the first reachable hostname from the list.
+    /// </summary>
+    /// <param name="hostnames">List of host names to use</param>
+    /// <returns>Open connection</returns>
+    IConnection CreateConnection(IList<string> hostnames);
 
-        /// <summary>
-        /// Connects to the first reachable hostname from the list.
-        /// </summary>
-        /// <param name="hostnames">List of host names to use</param>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
+    /// <summary>
+    /// Connects to the first reachable hostname from the list.
+    /// </summary>
+    /// <param name="hostnames">List of host names to use</param>
+    /// <param name="clientProvidedName">
+    /// Application-specific connection name, will be displayed in the management UI
+    /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+    /// be used as a connection identifier, e.g. in HTTP API requests.
+    /// This value is supposed to be human-readable.
+    /// </param>
+    /// <returns>Open connection</returns>
+    IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
 
-        /// <summary>
-        /// Create a connection using a list of endpoints.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
-        /// </summary>
-        /// <param name="endpoints">
-        /// List of endpoints to use for the initial
-        /// connection and recovery.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints);
+    /// <summary>
+    /// Create a connection using a list of endpoints.
+    /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+    /// </summary>
+    /// <param name="endpoints">
+    /// List of endpoints to use for the initial
+    /// connection and recovery.
+    /// </param>
+    /// <returns>Open connection</returns>
+    /// <exception cref="BrokerUnreachableException">
+    /// When no hostname was reachable.
+    /// </exception>
+    IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints);
 
-        /// <summary>
-        /// Create a connection using a list of endpoints.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
-        /// </summary>
-        /// <param name="endpoints">
-        /// List of endpoints to use for the initial
-        /// connection and recovery.
-        /// </param>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName);
+    /// <summary>
+    /// Create a connection using a list of endpoints.
+    /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+    /// </summary>
+    /// <param name="endpoints">
+    /// List of endpoints to use for the initial
+    /// connection and recovery.
+    /// </param>
+    /// <param name="clientProvidedName">
+    /// Application-specific connection name, will be displayed in the management UI
+    /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+    /// be used as a connection identifier, e.g. in HTTP API requests.
+    /// This value is supposed to be human-readable.
+    /// </param>
+    /// <returns>Open connection</returns>
+    /// <exception cref="BrokerUnreachableException">
+    /// When no hostname was reachable.
+    /// </exception>
+    IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName);
 
-        /// <summary>
-        /// Amount of time protocol handshake operations are allowed to take before
-        /// timing out.
-        /// </summary>
-        TimeSpan HandshakeContinuationTimeout { get; set; }
+    /// <summary>
+    /// Amount of time protocol handshake operations are allowed to take before
+    /// timing out.
+    /// </summary>
+    TimeSpan HandshakeContinuationTimeout { get; set; }
 
-        /// <summary>
-        /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
-        /// timing out.
-        /// </summary>
-        TimeSpan ContinuationTimeout { get; set; }
+    /// <summary>
+    /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
+    /// timing out.
+    /// </summary>
+    TimeSpan ContinuationTimeout { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/> is used.
-        /// </summary>
-        /// <value><see langword="true" /> if an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/> is used; otherwise, <see langword="false" />.</value>
-        bool DispatchConsumersAsync { get; set; }
+    /// <summary>
+    /// Gets or sets a value indicating whether an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/> is used.
+    /// </summary>
+    /// <value><see langword="true" /> if an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/> is used; otherwise, <see langword="false" />.</value>
+    bool DispatchConsumersAsync { get; set; }
 
-        /// <summary>
-        /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IBasicConsumer"/>
-        /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
-        /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
-        /// Defaults to 1.
-        /// </summary>
-        /// <remarks>For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
-        /// In addition to that consumers need to be thread/concurrency safe.</remarks>
-        int ConsumerDispatchConcurrency { get; set; }
-    }
+    /// <summary>
+    /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IBasicConsumer"/>
+    /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
+    /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
+    /// Defaults to 1.
+    /// </summary>
+    /// <remarks>For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
+    /// In addition to that consumers need to be thread/concurrency safe.</remarks>
+    int ConsumerDispatchConcurrency { get; set; }
 }

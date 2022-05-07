@@ -35,37 +35,36 @@ using System.Runtime.CompilerServices;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct BasicAck : IOutgoingAmqpMethod
 {
-    internal readonly struct BasicAck : IOutgoingAmqpMethod
+    public readonly ulong _deliveryTag;
+    public readonly bool _multiple;
+
+    public BasicAck(ulong DeliveryTag, bool Multiple)
     {
-        public readonly ulong _deliveryTag;
-        public readonly bool _multiple;
+        _deliveryTag = DeliveryTag;
+        _multiple = Multiple;
+    }
 
-        public BasicAck(ulong DeliveryTag, bool Multiple)
-        {
-            _deliveryTag = DeliveryTag;
-            _multiple = Multiple;
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public BasicAck(ReadOnlySpan<byte> span)
+    {
+        int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+        WireFormatting.ReadBits(span.Slice(offset), out _multiple);
+    }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BasicAck(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
-            WireFormatting.ReadBits(span.Slice(offset), out _multiple);
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicAck;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicAck;
+    public int WriteTo(Span<byte> span)
+    {
+        int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
+        return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _multiple);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
-            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _multiple);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            return 8 + 1;
-        }
+    public int GetRequiredBufferSize()
+    {
+        return 8 + 1;
     }
 }

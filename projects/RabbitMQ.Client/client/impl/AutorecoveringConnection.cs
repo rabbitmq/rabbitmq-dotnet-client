@@ -35,204 +35,203 @@ using System.Runtime.CompilerServices;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal sealed partial class AutorecoveringConnection : IConnection
 {
-    internal sealed partial class AutorecoveringConnection : IConnection
+    private readonly ConnectionConfig _config;
+    // list of endpoints provided on initial connection.
+    // on re-connection, the next host in the line is chosen using
+    // IHostnameSelector
+    private readonly IEndpointResolver _endpoints;
+
+    private Connection _innerConnection;
+    private bool _disposed;
+
+    private Connection InnerConnection
     {
-        private readonly ConnectionConfig _config;
-        // list of endpoints provided on initial connection.
-        // on re-connection, the next host in the line is chosen using
-        // IHostnameSelector
-        private readonly IEndpointResolver _endpoints;
-
-        private Connection _innerConnection;
-        private bool _disposed;
-
-        private Connection InnerConnection
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _innerConnection;
-            }
-        }
-
-        public AutorecoveringConnection(ConnectionConfig config, IEndpointResolver endpoints)
-        {
-            _config = config;
-            _endpoints = endpoints;
-
-            IFrameHandler fh = _endpoints.SelectOne(_config.FrameHandlerFactory);
-
-            _innerConnection = new Connection(_config, fh);
-
-            Action<Exception, string> onException =
-                (exception, context) =>
-                _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
-            _recoverySucceededWrapper = new EventingWrapper<EventArgs>("OnConnectionRecovery", onException);
-            _connectionRecoveryErrorWrapper = new EventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onException);
-            _consumerTagChangeAfterRecoveryWrapper = new EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onException);
-            _queueNameChangeAfterRecoveryWrapper = new EventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onException);
-
-            ConnectionShutdown += HandleConnectionShutdown;
-        }
-
-        public event EventHandler<EventArgs> RecoverySucceeded
-        {
-            add => _recoverySucceededWrapper.AddHandler(value);
-            remove => _recoverySucceededWrapper.RemoveHandler(value);
-        }
-        private EventingWrapper<EventArgs> _recoverySucceededWrapper;
-
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
-        {
-            add => _connectionRecoveryErrorWrapper.AddHandler(value);
-            remove => _connectionRecoveryErrorWrapper.RemoveHandler(value);
-        }
-        private EventingWrapper<ConnectionRecoveryErrorEventArgs> _connectionRecoveryErrorWrapper;
-
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
-        {
-            add => InnerConnection.CallbackException += value;
-            remove => InnerConnection.CallbackException -= value;
-        }
-
-        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
-        {
-            add => InnerConnection.ConnectionBlocked += value;
-            remove => InnerConnection.ConnectionBlocked -= value;
-        }
-
-        public event EventHandler<ShutdownEventArgs> ConnectionShutdown
-        {
-            add => InnerConnection.ConnectionShutdown += value;
-            remove => InnerConnection.ConnectionShutdown -= value;
-        }
-
-        public event EventHandler<EventArgs> ConnectionUnblocked
-        {
-            add => InnerConnection.ConnectionUnblocked += value;
-            remove => InnerConnection.ConnectionUnblocked -= value;
-        }
-
-        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
-        {
-            add => _consumerTagChangeAfterRecoveryWrapper.AddHandler(value);
-            remove => _consumerTagChangeAfterRecoveryWrapper.RemoveHandler(value);
-        }
-        private EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryWrapper;
-
-        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery
-        {
-            add => _queueNameChangeAfterRecoveryWrapper.AddHandler(value);
-            remove => _queueNameChangeAfterRecoveryWrapper.RemoveHandler(value);
-        }
-        private EventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangeAfterRecoveryWrapper;
-
-        public string ClientProvidedName => _config.ClientProvidedName;
-
-        public ushort ChannelMax => InnerConnection.ChannelMax;
-
-        public IDictionary<string, object> ClientProperties => InnerConnection.ClientProperties;
-
-        public ShutdownEventArgs CloseReason => InnerConnection.CloseReason;
-
-        public AmqpTcpEndpoint Endpoint => InnerConnection.Endpoint;
-
-        public uint FrameMax => InnerConnection.FrameMax;
-
-        public TimeSpan Heartbeat => InnerConnection.Heartbeat;
-
-        public bool IsOpen => _innerConnection?.IsOpen ?? false;
-
-        public int LocalPort => InnerConnection.LocalPort;
-
-        public int RemotePort => InnerConnection.RemotePort;
-
-        public IDictionary<string, object> ServerProperties => InnerConnection.ServerProperties;
-
-        public IList<ShutdownReportEntry> ShutdownReport => InnerConnection.ShutdownReport;
-
-        public IProtocol Protocol => Endpoint.Protocol;
-
-        public RecoveryAwareModel CreateNonRecoveringModel()
-        {
-            ISession session = InnerConnection.CreateSession();
-            var result = new RecoveryAwareModel(_config, session);
-            result._Private_ChannelOpen();
-            return result;
-        }
-
-        public override string ToString()
-            => $"AutorecoveringConnection({InnerConnection.Id},{Endpoint},{GetHashCode()})";
-
-        internal IFrameHandler FrameHandler => InnerConnection.FrameHandler;
-
-        internal string Password => _config.Password;
-
-        ///<summary>API-side invocation of updating the secret.</summary>
-        public void UpdateSecret(string newSecret, string reason)
+        get
         {
             ThrowIfDisposed();
-            EnsureIsOpen();
-            _innerConnection.UpdateSecret(newSecret, reason);
-            _config.Password = newSecret;
+            return _innerConnection;
         }
+    }
 
-        ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
+    public AutorecoveringConnection(ConnectionConfig config, IEndpointResolver endpoints)
+    {
+        _config = config;
+        _endpoints = endpoints;
+
+        IFrameHandler fh = _endpoints.SelectOne(_config.FrameHandlerFactory);
+
+        _innerConnection = new Connection(_config, fh);
+
+        Action<Exception, string> onException =
+            (exception, context) =>
+            _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+        _recoverySucceededWrapper = new EventingWrapper<EventArgs>("OnConnectionRecovery", onException);
+        _connectionRecoveryErrorWrapper = new EventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onException);
+        _consumerTagChangeAfterRecoveryWrapper = new EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onException);
+        _queueNameChangeAfterRecoveryWrapper = new EventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onException);
+
+        ConnectionShutdown += HandleConnectionShutdown;
+    }
+
+    public event EventHandler<EventArgs> RecoverySucceeded
+    {
+        add => _recoverySucceededWrapper.AddHandler(value);
+        remove => _recoverySucceededWrapper.RemoveHandler(value);
+    }
+    private EventingWrapper<EventArgs> _recoverySucceededWrapper;
+
+    public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
+    {
+        add => _connectionRecoveryErrorWrapper.AddHandler(value);
+        remove => _connectionRecoveryErrorWrapper.RemoveHandler(value);
+    }
+    private EventingWrapper<ConnectionRecoveryErrorEventArgs> _connectionRecoveryErrorWrapper;
+
+    public event EventHandler<CallbackExceptionEventArgs> CallbackException
+    {
+        add => InnerConnection.CallbackException += value;
+        remove => InnerConnection.CallbackException -= value;
+    }
+
+    public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
+    {
+        add => InnerConnection.ConnectionBlocked += value;
+        remove => InnerConnection.ConnectionBlocked -= value;
+    }
+
+    public event EventHandler<ShutdownEventArgs> ConnectionShutdown
+    {
+        add => InnerConnection.ConnectionShutdown += value;
+        remove => InnerConnection.ConnectionShutdown -= value;
+    }
+
+    public event EventHandler<EventArgs> ConnectionUnblocked
+    {
+        add => InnerConnection.ConnectionUnblocked += value;
+        remove => InnerConnection.ConnectionUnblocked -= value;
+    }
+
+    public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
+    {
+        add => _consumerTagChangeAfterRecoveryWrapper.AddHandler(value);
+        remove => _consumerTagChangeAfterRecoveryWrapper.RemoveHandler(value);
+    }
+    private EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryWrapper;
+
+    public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery
+    {
+        add => _queueNameChangeAfterRecoveryWrapper.AddHandler(value);
+        remove => _queueNameChangeAfterRecoveryWrapper.RemoveHandler(value);
+    }
+    private EventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangeAfterRecoveryWrapper;
+
+    public string ClientProvidedName => _config.ClientProvidedName;
+
+    public ushort ChannelMax => InnerConnection.ChannelMax;
+
+    public IDictionary<string, object> ClientProperties => InnerConnection.ClientProperties;
+
+    public ShutdownEventArgs CloseReason => InnerConnection.CloseReason;
+
+    public AmqpTcpEndpoint Endpoint => InnerConnection.Endpoint;
+
+    public uint FrameMax => InnerConnection.FrameMax;
+
+    public TimeSpan Heartbeat => InnerConnection.Heartbeat;
+
+    public bool IsOpen => _innerConnection?.IsOpen ?? false;
+
+    public int LocalPort => InnerConnection.LocalPort;
+
+    public int RemotePort => InnerConnection.RemotePort;
+
+    public IDictionary<string, object> ServerProperties => InnerConnection.ServerProperties;
+
+    public IList<ShutdownReportEntry> ShutdownReport => InnerConnection.ShutdownReport;
+
+    public IProtocol Protocol => Endpoint.Protocol;
+
+    public RecoveryAwareModel CreateNonRecoveringModel()
+    {
+        ISession session = InnerConnection.CreateSession();
+        var result = new RecoveryAwareModel(_config, session);
+        result._Private_ChannelOpen();
+        return result;
+    }
+
+    public override string ToString()
+        => $"AutorecoveringConnection({InnerConnection.Id},{Endpoint},{GetHashCode()})";
+
+    internal IFrameHandler FrameHandler => InnerConnection.FrameHandler;
+
+    internal string Password => _config.Password;
+
+    ///<summary>API-side invocation of updating the secret.</summary>
+    public void UpdateSecret(string newSecret, string reason)
+    {
+        ThrowIfDisposed();
+        EnsureIsOpen();
+        _innerConnection.UpdateSecret(newSecret, reason);
+        _config.Password = newSecret;
+    }
+
+    ///<summary>API-side invocation of connection.close with timeout.</summary>
+    public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
+    {
+        ThrowIfDisposed();
+        StopRecoveryLoop();
+        if (_innerConnection.IsOpen)
         {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_innerConnection.IsOpen)
-            {
-                _innerConnection.Close(reasonCode, reasonText, timeout, abort);
-            }
+            _innerConnection.Close(reasonCode, reasonText, timeout, abort);
         }
+    }
 
-        public IModel CreateModel()
+    public IModel CreateModel()
+    {
+        EnsureIsOpen();
+        AutorecoveringModel m = new AutorecoveringModel(this, CreateNonRecoveringModel());
+        RecordChannel(m);
+        return m;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
         {
-            EnsureIsOpen();
-            AutorecoveringModel m = new AutorecoveringModel(this, CreateNonRecoveringModel());
-            RecordChannel(m);
-            return m;
+            return;
         }
 
-        public void Dispose()
+        try
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            try
-            {
-                this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
-            }
-            catch (Exception)
-            {
-                // TODO: log
-            }
-            finally
-            {
-                _models.Clear();
-                _innerConnection = null;
-                _disposed = true;
-            }
+            this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
         }
-
-        private void EnsureIsOpen()
-            => InnerConnection.EnsureIsOpen();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ThrowIfDisposed()
+        catch (Exception)
         {
-            if (_disposed)
-            {
-                ThrowDisposed();
-            }
-
-            static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringConnection).FullName);
+            // TODO: log
         }
+        finally
+        {
+            _models.Clear();
+            _innerConnection = null;
+            _disposed = true;
+        }
+    }
+
+    private void EnsureIsOpen()
+        => InnerConnection.EnsureIsOpen();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            ThrowDisposed();
+        }
+
+        static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringConnection).FullName);
     }
 }

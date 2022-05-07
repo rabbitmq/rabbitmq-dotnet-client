@@ -32,35 +32,34 @@
 using System;
 using System.Net;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Impl;
+
+internal interface IFrameHandler
 {
-    internal interface IFrameHandler
-    {
-        AmqpTcpEndpoint Endpoint { get; }
+    AmqpTcpEndpoint Endpoint { get; }
 
-        EndPoint LocalEndPoint { get; }
+    EndPoint LocalEndPoint { get; }
 
-        int LocalPort { get; }
+    int LocalPort { get; }
 
-        EndPoint RemoteEndPoint { get; }
+    EndPoint RemoteEndPoint { get; }
 
-        int RemotePort { get; }
+    int RemotePort { get; }
 
-        ///<summary>Socket read timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
-        TimeSpan ReadTimeout { set; }
+    ///<summary>Socket read timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
+    TimeSpan ReadTimeout { set; }
 
-        ///<summary>Socket write timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
-        TimeSpan WriteTimeout { set; }
+    ///<summary>Socket write timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
+    TimeSpan WriteTimeout { set; }
 
-        void Close();
+    void Close();
 
-        ///<summary>Read a frame from the underlying
-        ///transport. Returns null if the read operation timed out
-        ///(see Timeout property).</summary>
-        InboundFrame ReadFrame();
+    ///<summary>Read a frame from the underlying
+    ///transport. Returns null if the read operation timed out
+    ///(see Timeout property).</summary>
+    InboundFrame ReadFrame();
 
-        void SendHeader();
+    void SendHeader();
 
-        void Write(ReadOnlyMemory<byte> memory);
-    }
+    void Write(ReadOnlyMemory<byte> memory);
 }
