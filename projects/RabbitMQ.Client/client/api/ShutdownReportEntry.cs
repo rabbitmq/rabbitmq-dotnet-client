@@ -31,34 +31,33 @@
 
 using System;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client;
+
+/// <summary>
+/// Single entry object in the shutdown report that encapsulates description
+/// of the error which occurred during shutdown.
+/// </summary>
+public class ShutdownReportEntry
 {
-    /// <summary>
-    /// Single entry object in the shutdown report that encapsulates description
-    /// of the error which occurred during shutdown.
-    /// </summary>
-    public class ShutdownReportEntry
+    public ShutdownReportEntry(string description, Exception exception)
     {
-        public ShutdownReportEntry(string description, Exception exception)
-        {
-            Description = description;
-            Exception = exception;
-        }
+        Description = description;
+        Exception = exception;
+    }
 
-        /// <summary>
-        /// Description provided in the error.
-        /// </summary>
-        public string Description { get; set; }
+    /// <summary>
+    /// Description provided in the error.
+    /// </summary>
+    public string Description { get; set; }
 
-        /// <summary>
-        /// <see cref="Exception"/> object that occurred during shutdown, or null if unspecified.
-        /// </summary>
-        public Exception Exception { get; set; }
+    /// <summary>
+    /// <see cref="Exception"/> object that occurred during shutdown, or null if unspecified.
+    /// </summary>
+    public Exception Exception { get; set; }
 
-        public override string ToString()
-        {
-            string description = $"Message: {Description}";
-            return (Exception != null) ? $"{description} Exception: {Exception}" : description;
-        }
+    public override string ToString()
+    {
+        string description = $"Message: {Description}";
+        return (Exception != null) ? $"{description} Exception: {Exception}" : description;
     }
 }

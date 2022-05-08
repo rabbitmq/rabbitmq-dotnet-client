@@ -1,15 +1,13 @@
 ﻿using System;
 
-namespace RabbitMQ
-{
+namespace RabbitMQ;
 #nullable enable
 #if NETSTANDARD
-    internal static class StringExtension
+internal static class StringExtension
+{
+    public static bool Contains(this string toSearch, string value, StringComparison comparisonType)
     {
-        public static bool Contains(this string toSearch, string value, StringComparison comparisonType)
-        {
-            return toSearch.IndexOf(value, comparisonType) > 0;
-        }
+        return toSearch.IndexOf(value, comparisonType) > 0;
     }
-#endif
 }
+#endif

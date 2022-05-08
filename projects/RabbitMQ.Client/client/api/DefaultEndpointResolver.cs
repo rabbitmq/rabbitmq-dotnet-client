@@ -33,21 +33,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client;
+
+public class DefaultEndpointResolver : IEndpointResolver
 {
-    public class DefaultEndpointResolver : IEndpointResolver
+    private readonly List<AmqpTcpEndpoint> _endpoints;
+    private readonly Random _rnd = new Random();
+
+    public DefaultEndpointResolver(IEnumerable<AmqpTcpEndpoint> tcpEndpoints)
     {
-        private readonly List<AmqpTcpEndpoint> _endpoints;
-        private readonly Random _rnd = new Random();
+        _endpoints = tcpEndpoints.ToList();
+    }
 
-        public DefaultEndpointResolver(IEnumerable<AmqpTcpEndpoint> tcpEndpoints)
-        {
-            _endpoints = tcpEndpoints.ToList();
-        }
-
-        public IEnumerable<AmqpTcpEndpoint> All()
-        {
-            return _endpoints.OrderBy(item => _rnd.Next());
-        }
+    public IEnumerable<AmqpTcpEndpoint> All()
+    {
+        return _endpoints.OrderBy(item => _rnd.Next());
     }
 }

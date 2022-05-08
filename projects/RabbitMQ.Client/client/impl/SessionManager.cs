@@ -34,66 +34,65 @@ using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Impl;
+
+internal class SessionManager
 {
-    internal class SessionManager
+    public readonly ushort ChannelMax;
+    private readonly IntAllocator _ints;
+    private readonly Connection _connection;
+    private readonly Dictionary<int, ISession> _sessionMap = new Dictionary<int, ISession>();
+
+    public SessionManager(Connection connection, ushort channelMax)
     {
-        public readonly ushort ChannelMax;
-        private readonly IntAllocator _ints;
-        private readonly Connection _connection;
-        private readonly Dictionary<int, ISession> _sessionMap = new Dictionary<int, ISession>();
+        _connection = connection;
+        ChannelMax = (channelMax == 0) ? ushort.MaxValue : channelMax;
+        _ints = new IntAllocator(1, ChannelMax);
+    }
 
-        public SessionManager(Connection connection, ushort channelMax)
-        {
-            _connection = connection;
-            ChannelMax = (channelMax == 0) ? ushort.MaxValue : channelMax;
-            _ints = new IntAllocator(1, ChannelMax);
-        }
-
-        public int Count
-        {
-            get
-            {
-                lock (_sessionMap)
-                {
-                    return _sessionMap.Count;
-                }
-            }
-        }
-
-        public ISession Create()
+    public int Count
+    {
+        get
         {
             lock (_sessionMap)
             {
-                int channelNumber = _ints.Allocate();
-                if (channelNumber == -1)
-                {
-                    throw new ChannelAllocationException();
-                }
-
-                ISession session = new Session(_connection, (ushort)channelNumber);
-                session.SessionShutdown += HandleSessionShutdown;
-                _sessionMap[channelNumber] = session;
-                return session;
+                return _sessionMap.Count;
             }
         }
+    }
 
-        private void HandleSessionShutdown(object sender, ShutdownEventArgs reason)
+    public ISession Create()
+    {
+        lock (_sessionMap)
         {
-            lock (_sessionMap)
+            int channelNumber = _ints.Allocate();
+            if (channelNumber == -1)
             {
-                var session = (ISession)sender;
-                _sessionMap.Remove(session.ChannelNumber);
-                _ints.Free(session.ChannelNumber);
+                throw new ChannelAllocationException();
             }
+
+            ISession session = new Session(_connection, (ushort)channelNumber);
+            session.SessionShutdown += HandleSessionShutdown;
+            _sessionMap[channelNumber] = session;
+            return session;
         }
+    }
 
-        public ISession Lookup(int number)
+    private void HandleSessionShutdown(object sender, ShutdownEventArgs reason)
+    {
+        lock (_sessionMap)
         {
-            lock (_sessionMap)
-            {
-                return _sessionMap[number];
-            }
+            var session = (ISession)sender;
+            _sessionMap.Remove(session.ChannelNumber);
+            _ints.Free(session.ChannelNumber);
+        }
+    }
+
+    public ISession Lookup(int number)
+    {
+        lock (_sessionMap)
+        {
+            return _sessionMap[number];
         }
     }
 }

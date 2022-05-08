@@ -32,20 +32,19 @@
 using System;
 using RabbitMQ.Client.client.framing;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ConnectionCloseOk : IOutgoingAmqpMethod
 {
-    internal readonly struct ConnectionCloseOk : IOutgoingAmqpMethod
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionCloseOk;
+
+    public int WriteTo(Span<byte> span)
     {
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionCloseOk;
+        return 0;
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            return 0;
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            return 0;
-        }
+    public int GetRequiredBufferSize()
+    {
+        return 0;
     }
 }

@@ -31,58 +31,57 @@
 
 using System;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client;
+
+// time representations in mainstream languages: the horror, the horror
+// see in particular the difference between .NET 1.x and .NET 2.0's versions of DateTime
+
+/// <summary>
+/// Structure holding an AMQP timestamp, a posix 64-bit time_t.</summary>
+/// <remarks>
+/// <para>
+/// When converting between an AmqpTimestamp and a System.DateTime,
+/// be aware of the effect of your local timezone. In particular,
+/// different versions of the .NET framework assume different
+/// defaults.
+/// </para>
+/// <para>
+/// We have chosen a signed 64-bit time_t here, since the AMQP
+/// specification through versions 0-9 is silent on whether
+/// timestamps are signed or unsigned.
+/// </para>
+/// </remarks>
+public readonly struct AmqpTimestamp : IEquatable<AmqpTimestamp>
 {
-    // time representations in mainstream languages: the horror, the horror
-    // see in particular the difference between .NET 1.x and .NET 2.0's versions of DateTime
+    /// <summary>
+    /// Construct an <see cref="AmqpTimestamp"/>.
+    /// </summary>
+    /// <param name="unixTime">Unix time.</param>
+    public AmqpTimestamp(long unixTime) : this()
+    {
+        UnixTime = unixTime;
+    }
 
     /// <summary>
-    /// Structure holding an AMQP timestamp, a posix 64-bit time_t.</summary>
-    /// <remarks>
-    /// <para>
-    /// When converting between an AmqpTimestamp and a System.DateTime,
-    /// be aware of the effect of your local timezone. In particular,
-    /// different versions of the .NET framework assume different
-    /// defaults.
-    /// </para>
-    /// <para>
-    /// We have chosen a signed 64-bit time_t here, since the AMQP
-    /// specification through versions 0-9 is silent on whether
-    /// timestamps are signed or unsigned.
-    /// </para>
-    /// </remarks>
-    public readonly struct AmqpTimestamp : IEquatable<AmqpTimestamp>
+    /// Unix time.
+    /// </summary>
+    public long UnixTime { get; }
+
+    public bool Equals(AmqpTimestamp other) => UnixTime == other.UnixTime;
+
+    public override bool Equals(object obj) => obj is AmqpTimestamp other && Equals(other);
+
+    public override int GetHashCode() => UnixTime.GetHashCode();
+
+    public static bool operator ==(AmqpTimestamp left, AmqpTimestamp right) => left.Equals(right);
+
+    public static bool operator !=(AmqpTimestamp left, AmqpTimestamp right) => !left.Equals(right);
+
+    /// <summary>
+    /// Provides a debugger-friendly display.
+    /// </summary>
+    public override string ToString()
     {
-        /// <summary>
-        /// Construct an <see cref="AmqpTimestamp"/>.
-        /// </summary>
-        /// <param name="unixTime">Unix time.</param>
-        public AmqpTimestamp(long unixTime) : this()
-        {
-            UnixTime = unixTime;
-        }
-
-        /// <summary>
-        /// Unix time.
-        /// </summary>
-        public long UnixTime { get; }
-
-        public bool Equals(AmqpTimestamp other) => UnixTime == other.UnixTime;
-
-        public override bool Equals(object obj) => obj is AmqpTimestamp other && Equals(other);
-
-        public override int GetHashCode() => UnixTime.GetHashCode();
-
-        public static bool operator ==(AmqpTimestamp left, AmqpTimestamp right) => left.Equals(right);
-
-        public static bool operator !=(AmqpTimestamp left, AmqpTimestamp right) => !left.Equals(right);
-
-        /// <summary>
-        /// Provides a debugger-friendly display.
-        /// </summary>
-        public override string ToString()
-        {
-            return $"((time_t){UnixTime})";
-        }
+        return $"((time_t){UnixTime})";
     }
 }

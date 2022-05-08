@@ -34,21 +34,20 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct QueueDeclareOk : IAmqpMethod
 {
-    internal readonly struct QueueDeclareOk : IAmqpMethod
+    public readonly string _queue;
+    public readonly uint _messageCount;
+    public readonly uint _consumerCount;
+
+    public QueueDeclareOk(ReadOnlySpan<byte> span)
     {
-        public readonly string _queue;
-        public readonly uint _messageCount;
-        public readonly uint _consumerCount;
-
-        public QueueDeclareOk(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadShortstr(span, out _queue);
-            offset += WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
-            WireFormatting.ReadLong(span.Slice(offset), out _consumerCount);
-        }
-
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
+        int offset = WireFormatting.ReadShortstr(span, out _queue);
+        offset += WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
+        WireFormatting.ReadLong(span.Slice(offset), out _consumerCount);
     }
+
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclareOk;
 }

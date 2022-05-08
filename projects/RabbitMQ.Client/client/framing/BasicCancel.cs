@@ -34,38 +34,37 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct BasicCancel : IOutgoingAmqpMethod
 {
-    internal readonly struct BasicCancel : IOutgoingAmqpMethod
+    public readonly string _consumerTag;
+    public readonly bool _nowait;
+
+    public BasicCancel(string ConsumerTag, bool Nowait)
     {
-        public readonly string _consumerTag;
-        public readonly bool _nowait;
+        _consumerTag = ConsumerTag;
+        _nowait = Nowait;
+    }
 
-        public BasicCancel(string ConsumerTag, bool Nowait)
-        {
-            _consumerTag = ConsumerTag;
-            _nowait = Nowait;
-        }
+    public BasicCancel(ReadOnlySpan<byte> span)
+    {
+        int offset = WireFormatting.ReadShortstr(span, out _consumerTag);
+        WireFormatting.ReadBits(span.Slice(offset), out _nowait);
+    }
 
-        public BasicCancel(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadShortstr(span, out _consumerTag);
-            WireFormatting.ReadBits(span.Slice(offset), out _nowait);
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
+    public int WriteTo(Span<byte> span)
+    {
+        int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag);
+        return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag);
-            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            int bufferSize = 1 + 1; // bytes for length of _consumerTag, bit fields
-            bufferSize += WireFormatting.GetByteCount(_consumerTag); // _consumerTag in bytes
-            return bufferSize;
-        }
+    public int GetRequiredBufferSize()
+    {
+        int bufferSize = 1 + 1; // bytes for length of _consumerTag, bit fields
+        bufferSize += WireFormatting.GetByteCount(_consumerTag); // _consumerTag in bytes
+        return bufferSize;
     }
 }

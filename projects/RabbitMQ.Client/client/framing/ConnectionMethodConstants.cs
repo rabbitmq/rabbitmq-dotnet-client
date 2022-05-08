@@ -29,23 +29,22 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal static class ConnectionMethodConstants
 {
-    internal static class ConnectionMethodConstants
-    {
-        internal const ushort Start = 10;
-        internal const ushort StartOk = 11;
-        internal const ushort Secure = 20;
-        internal const ushort SecureOk = 21;
-        internal const ushort Tune = 30;
-        internal const ushort TuneOk = 31;
-        internal const ushort Open = 40;
-        internal const ushort OpenOk = 41;
-        internal const ushort Close = 50;
-        internal const ushort CloseOk = 51;
-        internal const ushort Blocked = 60;
-        internal const ushort Unblocked = 61;
-        internal const ushort UpdateSecret = 70;
-        internal const ushort UpdateSecretOk = 71;
-    }
+    internal const ushort Start = 10;
+    internal const ushort StartOk = 11;
+    internal const ushort Secure = 20;
+    internal const ushort SecureOk = 21;
+    internal const ushort Tune = 30;
+    internal const ushort TuneOk = 31;
+    internal const ushort Open = 40;
+    internal const ushort OpenOk = 41;
+    internal const ushort Close = 50;
+    internal const ushort CloseOk = 51;
+    internal const ushort Blocked = 60;
+    internal const ushort Unblocked = 61;
+    internal const ushort UpdateSecret = 70;
+    internal const ushort UpdateSecretOk = 71;
 }

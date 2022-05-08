@@ -37,80 +37,79 @@
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Framing.Impl;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Impl;
+
+///<summary>Small ISession implementation used only for channel 0.</summary>
+internal sealed class MainSession : Session
 {
-    ///<summary>Small ISession implementation used only for channel 0.</summary>
-    internal sealed class MainSession : Session
+    private volatile bool _closeServerInitiated;
+    private volatile bool _closing;
+    private readonly object _lock = new object();
+
+    public MainSession(Connection connection) : base(connection, 0)
     {
-        private volatile bool _closeServerInitiated;
-        private volatile bool _closing;
-        private readonly object _lock = new object();
+    }
 
-        public MainSession(Connection connection) : base(connection, 0)
+    public override bool HandleFrame(in InboundFrame frame)
+    {
+        if (_closing)
         {
-        }
-
-        public override bool HandleFrame(in InboundFrame frame)
-        {
-            if (_closing)
+            // We are closing
+            if (!_closeServerInitiated && frame.Type == FrameType.FrameMethod)
             {
-                // We are closing
-                if (!_closeServerInitiated && frame.Type == FrameType.FrameMethod)
+                // This isn't a server initiated close and we have a method frame
+                switch (Connection.Protocol.DecodeCommandIdFrom(frame.Payload.Span))
                 {
-                    // This isn't a server initiated close and we have a method frame
-                    switch (Connection.Protocol.DecodeCommandIdFrom(frame.Payload.Span))
-                    {
-                        case ProtocolCommandId.ConnectionClose:
-                            return base.HandleFrame(in frame);
-                        case ProtocolCommandId.ConnectionCloseOk:
-                            // This is the reply (CloseOk) we were looking for
-                            // Call any listener attached to this session
-                            Connection.NotifyReceivedCloseOk();
-                            break;
-                    }
+                    case ProtocolCommandId.ConnectionClose:
+                        return base.HandleFrame(in frame);
+                    case ProtocolCommandId.ConnectionCloseOk:
+                        // This is the reply (CloseOk) we were looking for
+                        // Call any listener attached to this session
+                        Connection.NotifyReceivedCloseOk();
+                        break;
                 }
-
-                // Either a non-method frame, or not what we were looking
-                // for. Ignore it - we're quiescing.
-                return true;
             }
 
-            return base.HandleFrame(in frame);
+            // Either a non-method frame, or not what we were looking
+            // for. Ignore it - we're quiescing.
+            return true;
         }
 
-        ///<summary> Set channel 0 as quiescing </summary>
-        ///<remarks>
-        /// Method should be idempotent. Cannot use base.Close
-        /// method call because that would prevent us from
-        /// sending/receiving Close/CloseOk commands
-        ///</remarks>
-        public void SetSessionClosing(bool closeServerInitiated)
+        return base.HandleFrame(in frame);
+    }
+
+    ///<summary> Set channel 0 as quiescing </summary>
+    ///<remarks>
+    /// Method should be idempotent. Cannot use base.Close
+    /// method call because that would prevent us from
+    /// sending/receiving Close/CloseOk commands
+    ///</remarks>
+    public void SetSessionClosing(bool closeServerInitiated)
+    {
+        if (!_closing)
         {
-            if (!_closing)
+            lock (_lock)
             {
-                lock (_lock)
+                if (!_closing)
                 {
-                    if (!_closing)
-                    {
-                        _closing = true;
-                        _closeServerInitiated = closeServerInitiated;
-                    }
+                    _closing = true;
+                    _closeServerInitiated = closeServerInitiated;
                 }
             }
         }
+    }
 
-        public override void Transmit<T>(ref T cmd)
+    public override void Transmit<T>(ref T cmd)
+    {
+        if (_closing && // Are we closing?
+            cmd.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk && // is this not a close-ok?
+            (_closeServerInitiated || cmd.ProtocolCommandId != ProtocolCommandId.ConnectionClose)) // is this either server initiated or not a close?
         {
-            if (_closing && // Are we closing?
-                cmd.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk && // is this not a close-ok?
-                (_closeServerInitiated || cmd.ProtocolCommandId != ProtocolCommandId.ConnectionClose)) // is this either server initiated or not a close?
-            {
-                // We shouldn't do anything since we are closing, not sending a connection-close-ok command
-                // and this is either a server-initiated close or not a connection-close command.
-                return;
-            }
-
-            base.Transmit(ref cmd);
+            // We shouldn't do anything since we are closing, not sending a connection-close-ok command
+            // and this is either a server-initiated close or not a connection-close command.
+            return;
         }
+
+        base.Transmit(ref cmd);
     }
 }

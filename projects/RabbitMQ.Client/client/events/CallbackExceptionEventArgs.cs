@@ -32,73 +32,72 @@
 using System;
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Events
+namespace RabbitMQ.Client.Events;
+
+public abstract class BaseExceptionEventArgs : EventArgs
 {
-    public abstract class BaseExceptionEventArgs : EventArgs
+    ///<summary>Wrap an exception thrown by a callback.</summary>
+    protected BaseExceptionEventArgs(IDictionary<string, object> detail, Exception exception)
     {
-        ///<summary>Wrap an exception thrown by a callback.</summary>
-        protected BaseExceptionEventArgs(IDictionary<string, object> detail, Exception exception)
-        {
-            Detail = detail;
-            Exception = exception;
-        }
-
-        ///<summary>Access helpful information about the context in
-        ///which the wrapped exception was thrown.</summary>
-        public IDictionary<string, object> Detail { get; }
-
-        ///<summary>Access the wrapped exception.</summary>
-        public Exception Exception { get; }
+        Detail = detail;
+        Exception = exception;
     }
 
+    ///<summary>Access helpful information about the context in
+    ///which the wrapped exception was thrown.</summary>
+    public IDictionary<string, object> Detail { get; }
 
-    ///<summary>Describes an exception that was thrown during the
-    ///library's invocation of an application-supplied callback
-    ///handler.</summary>
-    ///<remarks>
-    ///<para>
-    /// When an exception is thrown from a callback registered with
-    /// part of the RabbitMQ .NET client library, it is caught,
-    /// packaged into a CallbackExceptionEventArgs, and passed through
-    /// the appropriate IModel's or IConnection's CallbackException
-    /// event handlers. If an exception is thrown in a
-    /// CallbackException handler, it is silently swallowed, as
-    /// CallbackException is the last chance to handle these kinds of
-    /// exception.
-    ///</para>
-    ///<para>
-    /// Code constructing CallbackExceptionEventArgs instances will
-    /// usually place helpful information about the context of the
-    /// call in the IDictionary available through the Detail property.
-    ///</para>
-    ///</remarks>
-    public class CallbackExceptionEventArgs : BaseExceptionEventArgs
+    ///<summary>Access the wrapped exception.</summary>
+    public Exception Exception { get; }
+}
+
+
+///<summary>Describes an exception that was thrown during the
+///library's invocation of an application-supplied callback
+///handler.</summary>
+///<remarks>
+///<para>
+/// When an exception is thrown from a callback registered with
+/// part of the RabbitMQ .NET client library, it is caught,
+/// packaged into a CallbackExceptionEventArgs, and passed through
+/// the appropriate IModel's or IConnection's CallbackException
+/// event handlers. If an exception is thrown in a
+/// CallbackException handler, it is silently swallowed, as
+/// CallbackException is the last chance to handle these kinds of
+/// exception.
+///</para>
+///<para>
+/// Code constructing CallbackExceptionEventArgs instances will
+/// usually place helpful information about the context of the
+/// call in the IDictionary available through the Detail property.
+///</para>
+///</remarks>
+public class CallbackExceptionEventArgs : BaseExceptionEventArgs
+{
+    private const string ContextString = "context";
+    private const string ConsumerString = "consumer";
+
+    public CallbackExceptionEventArgs(IDictionary<string, object> detail, Exception exception)
+        : base(detail, exception)
     {
-        private const string ContextString = "context";
-        private const string ConsumerString = "consumer";
+    }
 
-        public CallbackExceptionEventArgs(IDictionary<string, object> detail, Exception exception)
-            : base(detail, exception)
+    public static CallbackExceptionEventArgs Build(Exception e, string context)
+    {
+        var details = new Dictionary<string, object>(1)
         {
-        }
+            {ContextString, context}
+        };
+        return new CallbackExceptionEventArgs(details, e);
+    }
 
-        public static CallbackExceptionEventArgs Build(Exception e, string context)
+    public static CallbackExceptionEventArgs Build(Exception e, string context, object consumer)
+    {
+        var details = new Dictionary<string, object>(2)
         {
-            var details = new Dictionary<string, object>(1)
-            {
-                {ContextString, context}
-            };
-            return new CallbackExceptionEventArgs(details, e);
-        }
-
-        public static CallbackExceptionEventArgs Build(Exception e, string context, object consumer)
-        {
-            var details = new Dictionary<string, object>(2)
-            {
-                {ContextString, context},
-                {ConsumerString, consumer}
-            };
-            return new CallbackExceptionEventArgs(details, e);
-        }
+            {ContextString, context},
+            {ConsumerString, consumer}
+        };
+        return new CallbackExceptionEventArgs(details, e);
     }
 }

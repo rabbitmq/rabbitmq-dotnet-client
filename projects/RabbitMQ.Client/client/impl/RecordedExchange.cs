@@ -31,37 +31,36 @@
 
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Impl
-{
+namespace RabbitMQ.Client.Impl;
+
 #nullable enable
-    internal readonly struct RecordedExchange
+internal readonly struct RecordedExchange
+{
+    private readonly string _name;
+    private readonly string _type;
+    private readonly bool _durable;
+    private readonly bool _isAutoDelete;
+    private readonly IDictionary<string, object>? _arguments;
+
+    public string Name => _name;
+    public bool IsAutoDelete => _isAutoDelete;
+
+    public RecordedExchange(string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
     {
-        private readonly string _name;
-        private readonly string _type;
-        private readonly bool _durable;
-        private readonly bool _isAutoDelete;
-        private readonly IDictionary<string, object>? _arguments;
+        _name = name;
+        _type = type;
+        _durable = durable;
+        _isAutoDelete = isAutoDelete;
+        _arguments = arguments;
+    }
 
-        public string Name => _name;
-        public bool IsAutoDelete => _isAutoDelete;
+    public void Recover(IModel model)
+    {
+        model.ExchangeDeclare(Name, _type, _durable, IsAutoDelete, _arguments);
+    }
 
-        public RecordedExchange(string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
-        {
-            _name = name;
-            _type = type;
-            _durable = durable;
-            _isAutoDelete = isAutoDelete;
-            _arguments = arguments;
-        }
-
-        public void Recover(IModel model)
-        {
-            model.ExchangeDeclare(Name, _type, _durable, IsAutoDelete, _arguments);
-        }
-
-        public override string ToString()
-        {
-            return $"{nameof(RecordedExchange)}: name = '{Name}', type = '{_type}', durable = {_durable}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
-        }
+    public override string ToString()
+    {
+        return $"{nameof(RecordedExchange)}: name = '{Name}', type = '{_type}', durable = {_durable}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
     }
 }

@@ -29,21 +29,20 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client;
+
+/// <summary>
+/// Convenience enum providing compile-time names for persistent modes.
+/// </summary>
+public enum DeliveryModes : byte
 {
     /// <summary>
-    /// Convenience enum providing compile-time names for persistent modes.
+    /// Value for transient delivery mode (not durable).
     /// </summary>
-    public enum DeliveryModes : byte
-    {
-        /// <summary>
-        /// Value for transient delivery mode (not durable).
-        /// </summary>
-        Transient = 1,
+    Transient = 1,
 
-        /// <summary>
-        /// Value for persistent delivery mode (durable).
-        /// </summary>
-        Persistent = 2
-    }
+    /// <summary>
+    /// Value for persistent delivery mode (durable).
+    /// </summary>
+    Persistent = 2
 }

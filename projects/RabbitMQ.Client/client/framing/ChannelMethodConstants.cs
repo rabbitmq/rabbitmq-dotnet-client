@@ -29,15 +29,14 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal static class ChannelMethodConstants
 {
-    internal static class ChannelMethodConstants
-    {
-        internal const ushort Open = 10;
-        internal const ushort OpenOk = 11;
-        internal const ushort Flow = 20;
-        internal const ushort FlowOk = 21;
-        internal const ushort Close = 40;
-        internal const ushort CloseOk = 41;
-    }
+    internal const ushort Open = 10;
+    internal const ushort OpenOk = 11;
+    internal const ushort Flow = 20;
+    internal const ushort FlowOk = 21;
+    internal const ushort Close = 40;
+    internal const ushort CloseOk = 41;
 }

@@ -29,11 +29,10 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal static class ConfirmMethodConstants
 {
-    internal static class ConfirmMethodConstants
-    {
-        internal const ushort Select = 10;
-        internal const ushort SelectOk = 11;
-    }
+    internal const ushort Select = 10;
+    internal const ushort SelectOk = 11;
 }

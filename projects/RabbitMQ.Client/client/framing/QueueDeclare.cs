@@ -35,47 +35,46 @@ using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct QueueDeclare : IOutgoingAmqpMethod
 {
-    internal readonly struct QueueDeclare : IOutgoingAmqpMethod
+    // deprecated
+    // ushort _reserved1
+    public readonly string _queue;
+    public readonly bool _passive;
+    public readonly bool _durable;
+    public readonly bool _exclusive;
+    public readonly bool _autoDelete;
+    public readonly bool _nowait;
+    public readonly IDictionary<string, object> _arguments;
+
+    public QueueDeclare(string Queue, bool Passive, bool Durable, bool Exclusive, bool AutoDelete, bool Nowait, IDictionary<string, object> Arguments)
     {
-        // deprecated
-        // ushort _reserved1
-        public readonly string _queue;
-        public readonly bool _passive;
-        public readonly bool _durable;
-        public readonly bool _exclusive;
-        public readonly bool _autoDelete;
-        public readonly bool _nowait;
-        public readonly IDictionary<string, object> _arguments;
+        _queue = Queue;
+        _passive = Passive;
+        _durable = Durable;
+        _exclusive = Exclusive;
+        _autoDelete = AutoDelete;
+        _nowait = Nowait;
+        _arguments = Arguments;
+    }
 
-        public QueueDeclare(string Queue, bool Passive, bool Durable, bool Exclusive, bool AutoDelete, bool Nowait, IDictionary<string, object> Arguments)
-        {
-            _queue = Queue;
-            _passive = Passive;
-            _durable = Durable;
-            _exclusive = Exclusive;
-            _autoDelete = AutoDelete;
-            _nowait = Nowait;
-            _arguments = Arguments;
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclare;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclare;
+    public int WriteTo(Span<byte> span)
+    {
+        int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
+        offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _passive, _durable, _exclusive, _autoDelete, _nowait);
+        return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
-            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _passive, _durable, _exclusive, _autoDelete, _nowait);
-            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _queue, bit fields
-            bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
-            bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
-            return bufferSize;
-        }
+    public int GetRequiredBufferSize()
+    {
+        int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _queue, bit fields
+        bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
+        bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
+        return bufferSize;
     }
 }

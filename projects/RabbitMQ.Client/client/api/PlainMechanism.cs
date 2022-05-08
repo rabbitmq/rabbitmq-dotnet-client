@@ -31,13 +31,12 @@
 
 using System.Text;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client;
+
+public class PlainMechanism : IAuthMechanism
 {
-    public class PlainMechanism : IAuthMechanism
+    public byte[] handleChallenge(byte[] challenge, ConnectionConfig config)
     {
-        public byte[] handleChallenge(byte[] challenge, ConnectionConfig config)
-        {
-            return Encoding.UTF8.GetBytes($"\0{config.UserName}\0{config.Password}");
-        }
+        return Encoding.UTF8.GetBytes($"\0{config.UserName}\0{config.Password}");
     }
 }

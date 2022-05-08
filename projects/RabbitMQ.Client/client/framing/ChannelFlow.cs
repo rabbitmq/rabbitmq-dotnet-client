@@ -33,17 +33,16 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ChannelFlow : IAmqpMethod
 {
-    internal readonly struct ChannelFlow : IAmqpMethod
+    public readonly bool _active;
+
+    public ChannelFlow(ReadOnlySpan<byte> span)
     {
-        public readonly bool _active;
-
-        public ChannelFlow(ReadOnlySpan<byte> span)
-        {
-            WireFormatting.ReadBits(span, out _active);
-        }
-
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlow;
+        WireFormatting.ReadBits(span, out _active);
     }
+
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlow;
 }

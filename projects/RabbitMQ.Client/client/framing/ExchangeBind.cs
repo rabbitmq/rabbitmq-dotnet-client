@@ -35,47 +35,46 @@ using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ExchangeBind : IOutgoingAmqpMethod
 {
-    internal readonly struct ExchangeBind : IOutgoingAmqpMethod
+    // deprecated
+    // ushort _reserved1
+    public readonly string _destination;
+    public readonly string _source;
+    public readonly string _routingKey;
+    public readonly bool _nowait;
+    public readonly IDictionary<string, object> _arguments;
+
+    public ExchangeBind(string Destination, string Source, string RoutingKey, bool Nowait, IDictionary<string, object> Arguments)
     {
-        // deprecated
-        // ushort _reserved1
-        public readonly string _destination;
-        public readonly string _source;
-        public readonly string _routingKey;
-        public readonly bool _nowait;
-        public readonly IDictionary<string, object> _arguments;
+        _destination = Destination;
+        _source = Source;
+        _routingKey = RoutingKey;
+        _nowait = Nowait;
+        _arguments = Arguments;
+    }
 
-        public ExchangeBind(string Destination, string Source, string RoutingKey, bool Nowait, IDictionary<string, object> Arguments)
-        {
-            _destination = Destination;
-            _source = Source;
-            _routingKey = RoutingKey;
-            _nowait = Nowait;
-            _arguments = Arguments;
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeBind;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeBind;
+    public int WriteTo(Span<byte> span)
+    {
+        int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _destination);
+        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _source);
+        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
+        offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
+        return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _destination);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _source);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
-            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
-            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            int bufferSize = 2 + 1 + 1 + 1 + 1; // bytes for _reserved1, length of _destination, length of _source, length of _routingKey, bit fields
-            bufferSize += WireFormatting.GetByteCount(_destination); // _destination in bytes
-            bufferSize += WireFormatting.GetByteCount(_source); // _source in bytes
-            bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
-            bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
-            return bufferSize;
-        }
+    public int GetRequiredBufferSize()
+    {
+        int bufferSize = 2 + 1 + 1 + 1 + 1; // bytes for _reserved1, length of _destination, length of _source, length of _routingKey, bit fields
+        bufferSize += WireFormatting.GetByteCount(_destination); // _destination in bytes
+        bufferSize += WireFormatting.GetByteCount(_source); // _source in bytes
+        bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
+        bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
+        return bufferSize;
     }
 }

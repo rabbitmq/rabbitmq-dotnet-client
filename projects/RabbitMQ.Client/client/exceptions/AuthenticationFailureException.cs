@@ -31,15 +31,14 @@
 
 using System;
 
-namespace RabbitMQ.Client.Exceptions
+namespace RabbitMQ.Client.Exceptions;
+
+/// <summary> Thrown when the cause is  an
+/// authentication failure. </summary>
+[Serializable]
+public class AuthenticationFailureException : PossibleAuthenticationFailureException
 {
-    /// <summary> Thrown when the cause is  an
-    /// authentication failure. </summary>
-    [Serializable]
-    public class AuthenticationFailureException : PossibleAuthenticationFailureException
+    public AuthenticationFailureException(string msg) : base(msg)
     {
-        public AuthenticationFailureException(string msg) : base(msg)
-        {
-        }
     }
 }

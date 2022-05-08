@@ -32,24 +32,23 @@
 using System;
 using RabbitMQ.Client.client.framing;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ChannelOpen : IOutgoingAmqpMethod
 {
-    internal readonly struct ChannelOpen : IOutgoingAmqpMethod
+    // deprecated
+    // string _reserved1
+
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpen;
+
+    public int WriteTo(Span<byte> span)
     {
-        // deprecated
-        // string _reserved1
+        span[0] = 0; // _reserved1
+        return 1;
+    }
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelOpen;
-
-        public int WriteTo(Span<byte> span)
-        {
-            span[0] = 0; // _reserved1
-            return 1;
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            return 1; // bytes for length of _reserved1
-        }
+    public int GetRequiredBufferSize()
+    {
+        return 1; // bytes for length of _reserved1
     }
 }

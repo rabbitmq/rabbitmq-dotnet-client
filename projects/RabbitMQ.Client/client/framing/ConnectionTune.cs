@@ -33,21 +33,20 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ConnectionTune : IAmqpMethod
 {
-    internal readonly struct ConnectionTune : IAmqpMethod
+    public readonly ushort _channelMax;
+    public readonly uint _frameMax;
+    public readonly ushort _heartbeat;
+
+    public ConnectionTune(ReadOnlySpan<byte> span)
     {
-        public readonly ushort _channelMax;
-        public readonly uint _frameMax;
-        public readonly ushort _heartbeat;
-
-        public ConnectionTune(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadShort(span, out _channelMax);
-            offset += WireFormatting.ReadLong(span.Slice(offset), out _frameMax);
-            WireFormatting.ReadShort(span.Slice(offset), out _heartbeat);
-        }
-
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTune;
+        int offset = WireFormatting.ReadShort(span, out _channelMax);
+        offset += WireFormatting.ReadLong(span.Slice(offset), out _frameMax);
+        WireFormatting.ReadShort(span.Slice(offset), out _heartbeat);
     }
+
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTune;
 }

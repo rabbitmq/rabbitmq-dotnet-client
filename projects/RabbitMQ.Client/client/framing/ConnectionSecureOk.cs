@@ -33,29 +33,28 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ConnectionSecureOk : IOutgoingAmqpMethod
 {
-    internal readonly struct ConnectionSecureOk : IOutgoingAmqpMethod
+    public readonly byte[] _response;
+
+    public ConnectionSecureOk(byte[] Response)
     {
-        public readonly byte[] _response;
+        _response = Response;
+    }
 
-        public ConnectionSecureOk(byte[] Response)
-        {
-            _response = Response;
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecureOk;
+    public int WriteTo(Span<byte> span)
+    {
+        return WireFormatting.WriteLongstr(ref span.GetStart(), _response);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            return WireFormatting.WriteLongstr(ref span.GetStart(), _response);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            int bufferSize = 4; // bytes for length of _response
-            bufferSize += _response.Length; // _response in bytes
-            return bufferSize;
-        }
+    public int GetRequiredBufferSize()
+    {
+        int bufferSize = 4; // bytes for length of _response
+        bufferSize += _response.Length; // _response in bytes
+        return bufferSize;
     }
 }

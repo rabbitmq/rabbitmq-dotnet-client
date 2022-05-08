@@ -31,13 +31,12 @@
 
 using System;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client;
+
+/// <summary>
+/// A marker interface for entities that are recoverable (currently connection or channel).
+/// </summary>
+public interface IRecoverable
 {
-    /// <summary>
-    /// A marker interface for entities that are recoverable (currently connection or channel).
-    /// </summary>
-    public interface IRecoverable
-    {
-        event EventHandler<EventArgs> Recovery;
-    }
+    event EventHandler<EventArgs> Recovery;
 }

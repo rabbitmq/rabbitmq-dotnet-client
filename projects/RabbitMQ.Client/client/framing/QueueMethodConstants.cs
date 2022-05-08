@@ -29,19 +29,18 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal static class QueueMethodConstants
 {
-    internal static class QueueMethodConstants
-    {
-        internal const ushort Declare = 10;
-        internal const ushort DeclareOk = 11;
-        internal const ushort Bind = 20;
-        internal const ushort BindOk = 21;
-        internal const ushort Unbind = 50;
-        internal const ushort UnbindOk = 51;
-        internal const ushort Purge = 30;
-        internal const ushort PurgeOk = 31;
-        internal const ushort Delete = 40;
-        internal const ushort DeleteOk = 41;
-    }
+    internal const ushort Declare = 10;
+    internal const ushort DeclareOk = 11;
+    internal const ushort Bind = 20;
+    internal const ushort BindOk = 21;
+    internal const ushort Unbind = 50;
+    internal const ushort UnbindOk = 51;
+    internal const ushort Purge = 30;
+    internal const ushort PurgeOk = 31;
+    internal const ushort Delete = 40;
+    internal const ushort DeleteOk = 41;
 }

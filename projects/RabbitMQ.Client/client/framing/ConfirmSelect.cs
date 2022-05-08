@@ -33,27 +33,26 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ConfirmSelect : IOutgoingAmqpMethod
 {
-    internal readonly struct ConfirmSelect : IOutgoingAmqpMethod
+    public readonly bool _nowait;
+
+    public ConfirmSelect(bool Nowait)
     {
-        public readonly bool _nowait;
+        _nowait = Nowait;
+    }
 
-        public ConfirmSelect(bool Nowait)
-        {
-            _nowait = Nowait;
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConfirmSelect;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConfirmSelect;
+    public int WriteTo(Span<byte> span)
+    {
+        return WireFormatting.WriteBits(ref span.GetStart(), _nowait);
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            return WireFormatting.WriteBits(ref span.GetStart(), _nowait);
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            return 1; // bytes for bit fields
-        }
+    public int GetRequiredBufferSize()
+    {
+        return 1; // bytes for bit fields
     }
 }

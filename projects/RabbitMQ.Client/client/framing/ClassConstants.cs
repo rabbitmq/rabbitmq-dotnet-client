@@ -29,16 +29,15 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal static class ClassConstants
 {
-    internal static class ClassConstants
-    {
-        internal const ushort Connection = 10;
-        internal const ushort Channel = 20;
-        internal const ushort Exchange = 40;
-        internal const ushort Queue = 50;
-        internal const ushort Basic = 60;
-        internal const ushort Tx = 90;
-        internal const ushort Confirm = 85;
-    }
+    internal const ushort Connection = 10;
+    internal const ushort Channel = 20;
+    internal const ushort Exchange = 40;
+    internal const ushort Queue = 50;
+    internal const ushort Basic = 60;
+    internal const ushort Tx = 90;
+    internal const ushort Confirm = 85;
 }

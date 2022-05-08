@@ -33,46 +33,45 @@ using System;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Impl;
+
+internal class SimpleBlockingRpcContinuation : IRpcContinuation
 {
-    internal class SimpleBlockingRpcContinuation : IRpcContinuation
+    private readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();
+
+    public void GetReply(TimeSpan timeout)
     {
-        private readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();
-
-        public void GetReply(TimeSpan timeout)
+        Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
+        if (result.Alternative == EitherAlternative.Left)
         {
-            Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
-            if (result.Alternative == EitherAlternative.Left)
-            {
-                return;
-            }
-            ThrowOperationInterruptedException(result.RightValue);
+            return;
+        }
+        ThrowOperationInterruptedException(result.RightValue);
+    }
+
+    public void GetReply(TimeSpan timeout, out IncomingCommand reply)
+    {
+        Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
+        if (result.Alternative == EitherAlternative.Left)
+        {
+            reply = result.LeftValue;
+            return;
         }
 
-        public void GetReply(TimeSpan timeout, out IncomingCommand reply)
-        {
-            Either<IncomingCommand, ShutdownEventArgs> result = m_cell.WaitForValue(timeout);
-            if (result.Alternative == EitherAlternative.Left)
-            {
-                reply = result.LeftValue;
-                return;
-            }
+        reply = IncomingCommand.Empty;
+        ThrowOperationInterruptedException(result.RightValue);
+    }
 
-            reply = IncomingCommand.Empty;
-            ThrowOperationInterruptedException(result.RightValue);
-        }
+    private static void ThrowOperationInterruptedException(ShutdownEventArgs shutdownEventArgs)
+        => throw new OperationInterruptedException(shutdownEventArgs);
 
-        private static void ThrowOperationInterruptedException(ShutdownEventArgs shutdownEventArgs)
-            => throw new OperationInterruptedException(shutdownEventArgs);
+    public void HandleCommand(in IncomingCommand cmd)
+    {
+        m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Left(cmd));
+    }
 
-        public void HandleCommand(in IncomingCommand cmd)
-        {
-            m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Left(cmd));
-        }
-
-        public void HandleModelShutdown(ShutdownEventArgs reason)
-        {
-            m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Right(reason));
-        }
+    public void HandleModelShutdown(ShutdownEventArgs reason)
+    {
+        m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Right(reason));
     }
 }

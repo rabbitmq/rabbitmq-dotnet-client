@@ -34,35 +34,34 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Client.Framing.Impl;
+
+internal readonly struct ConnectionOpen : IOutgoingAmqpMethod
 {
-    internal readonly struct ConnectionOpen : IOutgoingAmqpMethod
+    public readonly string _virtualHost;
+    // deprecated
+    // string _reserved1
+    // bool _reserved2
+
+    public ConnectionOpen(string VirtualHost)
     {
-        public readonly string _virtualHost;
-        // deprecated
-        // string _reserved1
-        // bool _reserved2
+        _virtualHost = VirtualHost;
+    }
 
-        public ConnectionOpen(string VirtualHost)
-        {
-            _virtualHost = VirtualHost;
-        }
+    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionOpen;
+    public int WriteTo(Span<byte> span)
+    {
+        int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _virtualHost);
+        span[offset++] = 0; // _reserved1
+        span[offset++] = 0; // _reserved2
+        return offset;
+    }
 
-        public int WriteTo(Span<byte> span)
-        {
-            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _virtualHost);
-            span[offset++] = 0; // _reserved1
-            span[offset++] = 0; // _reserved2
-            return offset;
-        }
-
-        public int GetRequiredBufferSize()
-        {
-            int bufferSize = 1 + 1 + 1; // bytes for length of _virtualHost, length of _capabilities, bit fields
-            bufferSize += WireFormatting.GetByteCount(_virtualHost); // _virtualHost in bytes
-            return bufferSize;
-        }
+    public int GetRequiredBufferSize()
+    {
+        int bufferSize = 1 + 1 + 1; // bytes for length of _virtualHost, length of _capabilities, bit fields
+        bufferSize += WireFormatting.GetByteCount(_virtualHost); // _virtualHost in bytes
+        return bufferSize;
     }
 }
