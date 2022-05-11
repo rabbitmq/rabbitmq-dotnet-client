@@ -70,6 +70,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private volatile bool _running = true;
         private readonly MainSession _session0;
         private SessionManager _sessionManager;
+        private readonly ArrayPool<byte> _memoryPool = ArrayPool<byte>.Shared;
 
         //
         // Heartbeats
@@ -125,6 +126,22 @@ namespace RabbitMQ.Client.Framing.Impl
                 TerminateMainloop();
                 throw;
             }
+        }
+
+        public Connection(IConnectionFactory factory, bool insist, IFrameHandler frameHandler, ArrayPool<byte> memoryPool,
+                string clientProvidedName = null)
+            : this(factory, insist, frameHandler, clientProvidedName)
+        {
+            if (memoryPool == null)
+            {
+                throw new ArgumentNullException(nameof(memoryPool));
+            }
+            _memoryPool = memoryPool;
+        }
+
+        internal ArrayPool<byte> MemoryPool
+        {
+            get => _memoryPool;
         }
 
         public Guid Id { get { return _id; } }
@@ -271,7 +288,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void Close(ShutdownEventArgs reason)
         {
-            Close(reason, false, Timeout.InfiniteTimeSpan);
+            Close(reason, false, TimeSpan.FromSeconds(30));
         }
 
         ///<summary>Try to close connection in a graceful way</summary>
@@ -286,7 +303,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///</para>
         ///<para>
         ///Timeout determines how much time internal close operations should be given
-        ///to complete. System.Threading.Timeout.InfiniteTimeSpan value means infinity.
+        ///to complete.
         ///</para>
         ///</remarks>
         public void Close(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
@@ -307,7 +324,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     // Try to send connection.close
                     // Wait for CloseOk in the MainLoop
-                    _session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode, reason.ReplyText));
+                    if (!_closed)
+                    {
+                        _session0.Transmit(ConnectionCloseWrapper(reason.ReplyCode, reason.ReplyText));
+                    }
                 }
                 catch (AlreadyClosedException)
                 {
@@ -453,9 +473,12 @@ namespace RabbitMQ.Client.Framing.Impl
                 _session0.SetSessionClosing(false);
                 try
                 {
-                    _session0.Transmit(ConnectionCloseWrapper(
-                        hpe.ShutdownReason.ReplyCode,
-                        hpe.ShutdownReason.ReplyText));
+                    if (!_closed)
+                    {
+                        _session0.Transmit(ConnectionCloseWrapper(
+                            hpe.ShutdownReason.ReplyCode,
+                            hpe.ShutdownReason.ReplyText));
+                    }
                     return true;
                 }
                 catch (IOException ioe)
@@ -902,7 +925,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!_closed)
                 {
-                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
+                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame(MemoryPool));
                     _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
@@ -939,7 +962,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return string.Format("Connection({0},{1})", _id, Endpoint);
         }
 
-        public void Write(Memory<byte> memory)
+        public void Write(ReadOnlyMemory<byte> memory)
         {
             _frameHandler.Write(memory);
         }
@@ -952,13 +975,13 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            Abort(Timeout.InfiniteTimeSpan);
+            Abort(TimeSpan.FromSeconds(5));
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            Abort(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
+            Abort(reasonCode, reasonText, TimeSpan.FromSeconds(5));
         }
 
         ///<summary>API-side invocation of connection abort with timeout.</summary>
@@ -976,13 +999,13 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            Close(Constants.ReplySuccess, "Goodbye", Timeout.InfiniteTimeSpan);
+            Close(Constants.ReplySuccess, "Goodbye", TimeSpan.FromSeconds(30));
         }
 
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            Close(reasonCode, reasonText, Timeout.InfiniteTimeSpan);
+            Close(reasonCode, reasonText, TimeSpan.FromSeconds(30));
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>
@@ -1058,7 +1081,16 @@ namespace RabbitMQ.Client.Framing.Impl
             return request;
         }
 
-        void StartAndTune()
+        ///<summary>Used for testing only.</summary>
+        internal IFrameHandler FrameHandler
+        {
+            get
+            {
+                return _frameHandler;
+            }
+        }
+
+        private void StartAndTune()
         {
             var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
             _model0.m_connectionStartCell = connectionStartCell;

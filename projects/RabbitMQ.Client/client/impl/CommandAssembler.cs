@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Impl
                 return IncomingCommand.Empty;
             }
 
-            var result = new IncomingCommand(_method, _header, _body, _bodyBytes);
+            var result = new IncomingCommand(_method, _header, _body, _bodyBytes, _protocol.MemoryPool);
             Reset();
             return result;
         }
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Impl
             _remainingBodyBytes = (int) totalBodyBytes;
 
             // Is returned by IncomingCommand.Dispose in Session.HandleFrame
-            _bodyBytes = ArrayPool<byte>.Shared.Rent(_remainingBodyBytes);
+            _bodyBytes = _protocol.MemoryPool.Rent(_remainingBodyBytes);
             _body = new Memory<byte>(_bodyBytes, 0, _remainingBodyBytes);
             UpdateContentBodyState();
         }

@@ -64,7 +64,8 @@ namespace RabbitMQ.Client.Impl
                                        IBasicProperties basicProperties,
                                        ReadOnlySpan<byte> body)
         {
-            byte[] memoryCopyArray = ArrayPool<byte>.Shared.Rent(body.Length);
+            var pool = _model.Session.Connection.MemoryPool;
+            byte[] memoryCopyArray = pool.Rent(body.Length);
             Memory<byte> memoryCopy = new Memory<byte>(memoryCopyArray, 0, body.Length);
             body.CopyTo(memoryCopy.Span);
             UnlessShuttingDown(() =>
@@ -90,7 +91,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 finally
                 {
-                    ArrayPool<byte>.Shared.Return(memoryCopyArray);
+                    pool.Return(memoryCopyArray);
                 }
             });
         }

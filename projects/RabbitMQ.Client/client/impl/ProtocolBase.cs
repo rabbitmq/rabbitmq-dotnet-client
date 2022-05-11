@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 using RabbitMQ.Client.Impl;
@@ -38,6 +39,8 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal abstract class ProtocolBase : IProtocol
     {
+        private ArrayPool<byte> _memoryPool = ArrayPool<byte>.Shared;
+
         public IDictionary<string, bool> Capabilities;
 
         public ProtocolBase()
@@ -63,6 +66,11 @@ namespace RabbitMQ.Client.Framing.Impl
         public AmqpVersion Version
         {
             get { return new AmqpVersion(MajorVersion, MinorVersion); }
+        }
+
+        public ArrayPool<byte> MemoryPool
+        {
+            get { return _memoryPool; }
         }
 
         public bool CanSendWhileClosed(MethodBase method)
@@ -112,18 +120,21 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IConnection CreateConnection(IConnectionFactory factory,
             bool insist,
-            IFrameHandler frameHandler)
+            IFrameHandler frameHandler,
+            ArrayPool<byte> memoryPool)
         {
-            return new Connection(factory, insist, frameHandler, null);
+            _memoryPool = memoryPool;
+            return new Connection(factory, insist, frameHandler, memoryPool, null);
         }
-
 
         public IConnection CreateConnection(IConnectionFactory factory,
             bool insist,
             IFrameHandler frameHandler,
+            ArrayPool<byte> memoryPool,
             string clientProvidedName)
         {
-            return new Connection(factory, insist, frameHandler, clientProvidedName);
+            _memoryPool = memoryPool;
+            return new Connection(factory, insist, frameHandler, memoryPool, clientProvidedName);
         }
 
         public IConnection CreateConnection(ConnectionFactory factory,

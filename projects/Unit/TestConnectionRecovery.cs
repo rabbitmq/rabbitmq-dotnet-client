@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit
         private readonly ushort _closeAtCount = 16;
         private string _queueName;
 
-        public TestConnectionRecovery()
+        public TestConnectionRecovery() : base()
         {
             var rnd = new Random();
             _messageBody = new byte[4096];
@@ -68,10 +68,19 @@ namespace RabbitMQ.Client.Unit
             Model.QueueDelete(_queueName);
         }
 
-        [TearDown]
-        public void CleanUp()
+        protected override void ReleaseResources()
         {
-            Conn.Close();
+            if (Model.IsOpen)
+            {
+                Model.Close();
+            }
+
+            if (Conn.IsOpen)
+            {
+                Conn.Close();
+            }
+
+            Unblock();
         }
 
         [Test]
@@ -228,15 +237,21 @@ namespace RabbitMQ.Client.Unit
             AutorecoveringConnection c = CreateAutorecoveringConnection();
             var latch = new AutoResetEvent(false);
             c.ConnectionRecoveryError += (o, args) => latch.Set();
-            StopRabbitMQ();
-            latch.WaitOne(30000); // we got the failed reconnection event.
-            bool triedRecoveryAfterClose = false;
-            c.Close();
-            Thread.Sleep(5000);
-            c.ConnectionRecoveryError += (o, args) => triedRecoveryAfterClose = true;
-            Thread.Sleep(10000);
-            Assert.IsFalse(triedRecoveryAfterClose);
-            StartRabbitMQ();
+            try
+            {
+                StopRabbitMQ();
+                latch.WaitOne(30000); // we got the failed reconnection event.
+                bool triedRecoveryAfterClose = false;
+                c.Close();
+                Thread.Sleep(5000);
+                c.ConnectionRecoveryError += (o, args) => triedRecoveryAfterClose = true;
+                Thread.Sleep(10000);
+                Assert.False(triedRecoveryAfterClose);
+            }
+            finally
+            {
+                StartRabbitMQ();
+            }
         }
 
         [Test]
@@ -767,14 +782,21 @@ namespace RabbitMQ.Client.Unit
             ManualResetEventSlim recoveryLatch = PrepareForRecovery((AutorecoveringConnection)Conn);
 
             Assert.IsTrue(Conn.IsOpen);
-            StopRabbitMQ();
-            Console.WriteLine("Stopped RabbitMQ. About to sleep for multiple recovery intervals...");
-            Thread.Sleep(7000);
-            StartRabbitMQ();
+
+            try
+            {
+                StopRabbitMQ();
+                Console.WriteLine("Stopped RabbitMQ. About to sleep for multiple recovery intervals...");
+                Thread.Sleep(7000);
+            }
+            finally
+            {
+                StartRabbitMQ();
+            }
+
             Wait(shutdownLatch, TimeSpan.FromSeconds(30));
             Wait(recoveryLatch, TimeSpan.FromSeconds(30));
             Assert.IsTrue(Conn.IsOpen);
-
             Assert.IsTrue(counter >= 1);
         }
 
@@ -1093,11 +1115,6 @@ namespace RabbitMQ.Client.Unit
             aconn.ConnectionShutdown += (c, args) => latch.Set();
 
             return latch;
-        }
-
-        protected override void ReleaseResources()
-        {
-            Unblock();
         }
 
         internal void RestartServerAndWaitForRecovery()

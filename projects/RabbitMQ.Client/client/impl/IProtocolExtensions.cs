@@ -30,9 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Buffers;
 using System.Net.Sockets;
-
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -42,12 +41,16 @@ namespace RabbitMQ.Client.Framing.Impl
         public static IFrameHandler CreateFrameHandler(
             this IProtocol protocol,
             AmqpTcpEndpoint endpoint,
+            ArrayPool<byte> pool,
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout,
             TimeSpan readTimeout,
             TimeSpan writeTimeout)
         {
-            return new SocketFrameHandler(endpoint, socketFactory, connectionTimeout, readTimeout, writeTimeout);
+            return new SocketFrameHandler(endpoint, socketFactory, connectionTimeout, readTimeout, writeTimeout)
+            {
+                MemoryPool = pool
+            };
         }
     }
 }

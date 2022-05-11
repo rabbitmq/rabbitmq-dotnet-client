@@ -38,6 +38,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestBasicGet : IntegrationFixture
     {
+        public TestBasicGet() : base()
+        {
+        }
+
         [Test]
         public void TestBasicGetWithClosedChannel()
         {

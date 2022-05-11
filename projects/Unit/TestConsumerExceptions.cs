@@ -39,6 +39,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestConsumerExceptions : IntegrationFixture
     {
+        public TestConsumerExceptions() : base()
+        {
+        }
+
         private class ConsumerFailingOnDelivery : DefaultBasicConsumer
         {
             public ConsumerFailingOnDelivery(IModel model) : base(model)

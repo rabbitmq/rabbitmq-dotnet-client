@@ -70,12 +70,13 @@ namespace RabbitMQ.Client.Impl
         private readonly ITcpClient _socket;
         private readonly Stream _reader;
         private readonly Stream _writer;
-        private readonly ChannelWriter<Memory<byte>> _channelWriter;
-        private readonly ChannelReader<Memory<byte>> _channelReader;
+        private readonly ChannelWriter<ReadOnlyMemory<byte>> _channelWriter;
+        private readonly ChannelReader<ReadOnlyMemory<byte>> _channelReader;
         private readonly Task _writerTask;
         private readonly object _semaphore = new object();
         private readonly byte[] _frameHeaderBuffer;
         private bool _closed;
+        private ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
@@ -83,7 +84,7 @@ namespace RabbitMQ.Client.Impl
         {
             Endpoint = endpoint;
             _frameHeaderBuffer = new byte[6];
-            var channel = Channel.CreateUnbounded<Memory<byte>>(
+            var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
                 new UnboundedChannelOptions
                 {
                     AllowSynchronousContinuations = false,
@@ -135,6 +136,12 @@ namespace RabbitMQ.Client.Impl
             _writerTask = Task.Run(WriteLoop, CancellationToken.None);
         }
         public AmqpTcpEndpoint Endpoint { get; set; }
+
+        internal ArrayPool<byte> MemoryPool
+        {
+            get => _pool;
+            set => _pool = value ?? ArrayPool<byte>.Shared; // TODO: Change to init accessor
+        }
 
         public EndPoint LocalEndPoint
         {
@@ -188,7 +195,11 @@ namespace RabbitMQ.Client.Impl
         {
             lock (_semaphore)
             {
-                if (!_closed)
+                if (_closed || _socket == null)
+                {
+                    return;
+                }
+                else
                 {
                     try
                     {
@@ -218,7 +229,7 @@ namespace RabbitMQ.Client.Impl
 
         public InboundFrame ReadFrame()
         {
-            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer);
+            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer, MemoryPool);
         }
 
         public void SendHeader()
@@ -244,7 +255,7 @@ namespace RabbitMQ.Client.Impl
             _writer.Flush();
         }
 
-        public void Write(Memory<byte> memory)
+        public void Write(ReadOnlyMemory<byte> memory)
         {
             _channelWriter.TryWrite(memory);
         }
@@ -258,7 +269,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
                     await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
-                    ArrayPool<byte>.Shared.Return(segment.Array);
+                    MemoryPool.Return(segment.Array);
                 }
 
                 await _writer.FlushAsync().ConfigureAwait(false);

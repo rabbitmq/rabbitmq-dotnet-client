@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Impl
 
         private bool _onlyAcksReceived = true;
 
-        public IConsumerDispatcher ConsumerDispatcher { get; private set; }
+        public IConsumerDispatcher ConsumerDispatcher { get; }
 
         public ModelBase(ISession session) : this(session, session.Connection.ConsumerWorkService)
         { }

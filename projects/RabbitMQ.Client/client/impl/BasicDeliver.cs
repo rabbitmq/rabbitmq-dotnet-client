@@ -14,6 +14,7 @@ namespace RabbitMQ.Client.Impl
         private readonly string _routingKey;
         private readonly IBasicProperties _basicProperties;
         private readonly ReadOnlyMemory<byte> _body;
+        private readonly ArrayPool<byte> _bodyOwner;
 
         public override string Context => "HandleBasicDeliver";
 
@@ -24,7 +25,8 @@ namespace RabbitMQ.Client.Impl
             string exchange,
             string routingKey,
             IBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body) : base(consumer)
+            ReadOnlyMemory<byte> body,
+            ArrayPool<byte> pool) : base(consumer)
         {
             _consumerTag = consumerTag;
             _deliveryTag = deliveryTag;
@@ -33,6 +35,7 @@ namespace RabbitMQ.Client.Impl
             _routingKey = routingKey;
             _basicProperties = basicProperties;
             _body = body;
+            _bodyOwner = pool;
         }
 
         protected override Task Execute(IAsyncBasicConsumer consumer)
@@ -50,7 +53,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (MemoryMarshal.TryGetArray(_body, out ArraySegment<byte> segment))
             {
-                ArrayPool<byte>.Shared.Return(segment.Array);
+                _bodyOwner.Return(segment.Array);
             }
         }
     }

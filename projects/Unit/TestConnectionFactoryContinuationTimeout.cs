@@ -35,8 +35,12 @@ using NUnit.Framework;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    internal class TestConnectionFactoryContinuationTimeout : IntegrationFixture
+    public class TestConnectionFactoryContinuationTimeout : IntegrationFixture
     {
+        public TestConnectionFactoryContinuationTimeout() : base()
+        {
+        }
+
         [Test]
         public void TestConnectionFactoryContinuationTimeoutOnRecoveringConnection()
         {

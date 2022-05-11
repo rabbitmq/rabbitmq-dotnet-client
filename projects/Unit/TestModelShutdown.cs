@@ -39,8 +39,12 @@ using RabbitMQ.Client.Impl;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    internal class TestModelShutdown : IntegrationFixture
+    public class TestModelShutdown : IntegrationFixture
     {
+        public TestModelShutdown() : base()
+        {
+        }
+
         [Test]
         public void TestConsumerDispatcherShutdown()
         {

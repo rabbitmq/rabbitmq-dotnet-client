@@ -38,6 +38,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestExtensions : IntegrationFixture
     {
+        public TestExtensions() : base()
+        {
+        }
+
         [Test]
         public void TestConfirmBarrier()
         {

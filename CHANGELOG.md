@@ -1,3 +1,18 @@
+## Changes Between 6.2.4 and 6.3.0
+
+GitHub milestone: [`6.3.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/52?closed=1)
+
+## Changes Between 6.2.3 and 6.2.4
+
+GitHub milestone: [`6.2.4`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/55?closed=1)
+
+This release contains some important bug fixes:
+
+* [Fix connection leaks on auto recovery](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1145)
+* [Fix buffer overflow when writing long strings](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1162)
+* [Fix regression resulting in `ObjectDisposedException`](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1154)
+* [Fix regression that could affect consuming after auto recovery](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1148)
+
 ## Changes Between 6.2.1 and 6.2.3
 
 GitHub milestone: [`6.2.3`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/54?closed=1)

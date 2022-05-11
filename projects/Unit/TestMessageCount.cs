@@ -35,8 +35,13 @@ using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
 {
-    internal class TestMessageCount : IntegrationFixture
+    [TestFixture]
+    public class TestMessageCount : IntegrationFixture
     {
+        public TestMessageCount() : base()
+        {
+        }
+
         [Test]
         public void TestMessageCountMethod()
         {

@@ -40,6 +40,10 @@ namespace RabbitMQ.Client.Unit
     [TestFixture]
     public class TestPassiveDeclare : IntegrationFixture
     {
+        public TestPassiveDeclare() : base()
+        {
+        }
+
         [Test]
         public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
         {
