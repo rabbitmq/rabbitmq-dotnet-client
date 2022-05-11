@@ -577,7 +577,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // if it is auto-deleted. See bug 26364.
                     if ((rx != null) && rx.IsAutoDelete)
                     {
-                        _recordedExchanges.Remove(exchange);
+                        DeleteRecordedExchange(exchange);
                     }
                 }
             }
@@ -594,7 +594,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // if it is auto-deleted. See bug 26364.
                     if ((rq != null) && rq.IsAutoDelete)
                     {
-                        _recordedQueues.Remove(queue);
+                        DeleteRecordedQueue(queue);
                     }
                 }
             }
@@ -937,7 +937,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void PropagateQueueNameChangeToBindings(string oldName, string newName)
         {
-            lock (_recordedBindings)
+            lock (_recordedEntitiesLock)
             {
                 foreach (RecordedBinding b in _recordedBindings.Keys)
                 {
@@ -966,7 +966,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private void RecoverBindings(IModel model)
         {
             Dictionary<RecordedBinding, byte> recordedBindingsCopy;
-            lock (_recordedBindings)
+            lock (_recordedEntitiesLock)
             {
                 recordedBindingsCopy = new Dictionary<RecordedBinding, byte>(_recordedBindings);
             }
