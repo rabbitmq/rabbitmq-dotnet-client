@@ -82,7 +82,7 @@ internal sealed partial class AutorecoveringConnection
                 if (!AnyBindingsOnExchange(exchangeName))
                 {
                     // last binding where this exchange is the source is gone, remove recorded exchange if it is auto-deleted.
-                    _recordedExchanges.Remove(exchangeName);
+                    DeleteRecordedExchange(exchangeName);
                 }
             }
         }
@@ -209,7 +209,7 @@ internal sealed partial class AutorecoveringConnection
                 // last consumer on this connection is gone, remove recorded queue if it is auto-deleted.
                 if (!AnyConsumersOnQueue(queue))
                 {
-                    _recordedQueues.Remove(queue);
+                    DeleteRecordedQueue(queue);
                 }
             }
         }
