@@ -756,6 +756,35 @@ namespace RabbitMQ.Client.Unit
 
             Model.QueueDeclarePassive(nameAfter);
         }
+        [Test]
+        public void TestUnbindQueueAfterRecoveryConnection()
+        {
+            string q = Model.QueueDeclare("", false, true, true, null).QueueName;
+            string x = "amq.fanout";
+            Model.QueueBind(q, x, "");
+
+            string nameBefore = q;
+            string nameAfter = null;
+
+            var latch = new ManualResetEventSlim(false);
+            var connection = (AutorecoveringConnection)Conn;
+            connection.RecoverySucceeded += (source, ea) => latch.Set();
+            connection.QueueNameChangeAfterRecovery += (source, ea) => { nameAfter = ea.NameAfter; };
+
+            CloseAndWaitForRecovery();
+            Wait(latch);
+
+            Assert.IsNotNull(nameAfter);
+            Assert.IsTrue(nameBefore.StartsWith("amq."));
+            Assert.IsTrue(nameAfter.StartsWith("amq."));
+            Assert.AreNotEqual(nameBefore, nameAfter);
+            Model.QueueUnbind(nameAfter,x,"");
+            Model.QueueDeleteNoWait(nameAfter);
+            latch.Reset();
+            CloseAndWaitForRecovery();
+            Wait(latch);
+            //Model.QueueDeclarePassive(nameAfter);
+        }
 
         [Test]
         public void TestShutdownEventHandlersRecoveryOnConnection()

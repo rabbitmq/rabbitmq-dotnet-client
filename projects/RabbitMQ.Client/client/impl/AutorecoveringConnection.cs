@@ -946,12 +946,26 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedEntitiesLock)
             {
+                var recreateEntityList = new List<RecordedBinding>();
                 foreach (RecordedBinding b in _recordedBindings.Keys)
                 {
                     if (b.Destination.Equals(oldName))
                     {
-                        b.Destination = newName;
+                        recreateEntityList.Add(b);
                     }
+                }
+
+                foreach (var recordedBinding in recreateEntityList)
+                {
+                    var newRb = recordedBinding is RecordedQueueBinding
+                        ? (RecordedBinding)new RecordedQueueBinding()
+                        : new RecordedExchangeBinding();
+                    newRb.WithArguments(recordedBinding.Arguments)
+                        .WithDestination(newName)
+                        .WithRoutingKey(recordedBinding.RoutingKey)
+                        .WithSource(recordedBinding.Source);
+                    _recordedBindings.Remove(recordedBinding);
+                    _recordedBindings.Add(newRb, 0);
                 }
             }
         }
