@@ -38,7 +38,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Logging;
 
@@ -48,6 +47,9 @@ internal static class TaskExtensions
 {
     public static async Task TimeoutAfter(this Task task, TimeSpan timeout)
     {
+#if NET6_0_OR_GREATER
+        await task.WaitAsync(timeout).ConfigureAwait(false);
+#else
         if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
         {
             await task.ConfigureAwait(false);
@@ -57,6 +59,7 @@ internal static class TaskExtensions
             Task supressErrorTask = task.ContinueWith((t, s) => t.Exception.Handle(e => true), null, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             throw new TimeoutException();
         }
+#endif
     }
 }
 
