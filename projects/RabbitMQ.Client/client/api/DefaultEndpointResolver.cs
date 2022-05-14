@@ -47,6 +47,10 @@ public class DefaultEndpointResolver : IEndpointResolver
 
     public IEnumerable<AmqpTcpEndpoint> All()
     {
+#if NET6_0_OR_GREATER
+        return _endpoints.OrderBy(item => Random.Shared.Next());
+#else
         return _endpoints.OrderBy(item => _rnd.Next());
+#endif
     }
 }
