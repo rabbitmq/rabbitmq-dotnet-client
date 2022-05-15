@@ -29,15 +29,16 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client;
-
-/// <summary>
-/// A pluggable authentication mechanism.
-/// </summary>
-public interface IAuthMechanism
+namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Handle one round of challenge-response.
+    /// A pluggable authentication mechanism.
     /// </summary>
-    byte[] handleChallenge(byte[] challenge, ConnectionConfig config);
+    public interface IAuthMechanism
+    {
+        /// <summary>
+        /// Handle one round of challenge-response.
+        /// </summary>
+        byte[] handleChallenge(byte[] challenge, ConnectionConfig config);
+    }
 }

@@ -33,16 +33,17 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct QueueDeleteOk : IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly uint _messageCount;
-
-    public QueueDeleteOk(ReadOnlySpan<byte> span)
+    internal readonly struct QueueDeleteOk : IAmqpMethod
     {
-        WireFormatting.ReadLong(span, out _messageCount);
-    }
+        public readonly uint _messageCount;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeleteOk;
+        public QueueDeleteOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLong(span, out _messageCount);
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeleteOk;
+    }
 }

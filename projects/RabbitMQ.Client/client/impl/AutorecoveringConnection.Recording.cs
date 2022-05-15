@@ -33,224 +33,225 @@ using System.Collections.Generic;
 using System.Linq;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-#nullable enable
-internal sealed partial class AutorecoveringConnection
+namespace RabbitMQ.Client.Framing.Impl
 {
-    private readonly object _recordedEntitiesLock = new object();
-    private readonly Dictionary<string, RecordedExchange> _recordedExchanges = new Dictionary<string, RecordedExchange>();
-    private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
-    private readonly HashSet<RecordedBinding> _recordedBindings = new HashSet<RecordedBinding>();
-    private readonly Dictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
-    private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
-
-    internal int RecordedExchangesCount => _recordedExchanges.Count;
-
-    internal void RecordExchange(in RecordedExchange exchange)
+#nullable enable
+    internal sealed partial class AutorecoveringConnection
     {
-        lock (_recordedEntitiesLock)
-        {
-            _recordedExchanges[exchange.Name] = exchange;
-        }
-    }
+        private readonly object _recordedEntitiesLock = new object();
+        private readonly Dictionary<string, RecordedExchange> _recordedExchanges = new Dictionary<string, RecordedExchange>();
+        private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
+        private readonly HashSet<RecordedBinding> _recordedBindings = new HashSet<RecordedBinding>();
+        private readonly Dictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
+        private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
 
-    internal void DeleteRecordedExchange(string exchangeName)
-    {
-        lock (_recordedEntitiesLock)
-        {
-            _recordedExchanges.Remove(exchangeName);
+        internal int RecordedExchangesCount => _recordedExchanges.Count;
 
-            // find bindings that need removal, check if some auto-delete exchanges might need the same
-            foreach (RecordedBinding binding in _recordedBindings.ToArray())
+        internal void RecordExchange(in RecordedExchange exchange)
+        {
+            lock (_recordedEntitiesLock)
             {
-                if (binding.Destination == exchangeName)
-                {
-                    DeleteRecordedBinding(binding);
-                    DeleteAutoDeleteExchange(binding.Source);
-                }
+                _recordedExchanges[exchange.Name] = exchange;
             }
         }
-    }
 
-    internal void DeleteAutoDeleteExchange(string exchangeName)
-    {
-        lock (_recordedEntitiesLock)
+        internal void DeleteRecordedExchange(string exchangeName)
         {
-            if (_recordedExchanges.TryGetValue(exchangeName, out var recordedExchange) && recordedExchange.IsAutoDelete)
+            lock (_recordedEntitiesLock)
             {
-                if (!AnyBindingsOnExchange(exchangeName))
+                _recordedExchanges.Remove(exchangeName);
+
+                // find bindings that need removal, check if some auto-delete exchanges might need the same
+                foreach (RecordedBinding binding in _recordedBindings.ToArray())
                 {
-                    // last binding where this exchange is the source is gone, remove recorded exchange if it is auto-deleted.
-                    DeleteRecordedExchange(exchangeName);
+                    if (binding.Destination == exchangeName)
+                    {
+                        DeleteRecordedBinding(binding);
+                        DeleteAutoDeleteExchange(binding.Source);
+                    }
                 }
             }
         }
 
-        bool AnyBindingsOnExchange(string exchange)
+        internal void DeleteAutoDeleteExchange(string exchangeName)
         {
-            foreach (var recordedBinding in _recordedBindings)
+            lock (_recordedEntitiesLock)
             {
-                if (recordedBinding.Source == exchange)
+                if (_recordedExchanges.TryGetValue(exchangeName, out var recordedExchange) && recordedExchange.IsAutoDelete)
                 {
-                    return true;
+                    if (!AnyBindingsOnExchange(exchangeName))
+                    {
+                        // last binding where this exchange is the source is gone, remove recorded exchange if it is auto-deleted.
+                        _recordedExchanges.Remove(exchangeName);
+                    }
                 }
             }
 
-            return false;
-        }
-    }
-
-    internal int RecordedQueuesCount => _recordedQueues.Count;
-
-    internal void RecordQueue(in RecordedQueue queue)
-    {
-        lock (_recordedEntitiesLock)
-        {
-            _recordedQueues[queue.Name] = queue;
-        }
-    }
-
-    internal void DeleteRecordedQueue(string queueName)
-    {
-        lock (_recordedEntitiesLock)
-        {
-            _recordedQueues.Remove(queueName);
-
-            // find bindings that need removal, check if some auto-delete exchanges might need the same
-            foreach (var binding in _recordedBindings.ToArray())
+            bool AnyBindingsOnExchange(string exchange)
             {
-                if (binding.Destination == queueName)
+                foreach (var recordedBinding in _recordedBindings)
                 {
-                    DeleteRecordedBinding(binding);
-                    DeleteAutoDeleteExchange(binding.Source);
+                    if (recordedBinding.Source == exchange)
+                    {
+                        return true;
+                    }
                 }
+
+                return false;
             }
         }
-    }
 
-    private void UpdateBindingsDestination(string oldName, string newName)
-    {
-        lock (_recordedEntitiesLock)
+        internal int RecordedQueuesCount => _recordedQueues.Count;
+
+        internal void RecordQueue(in RecordedQueue queue)
         {
-            foreach (RecordedBinding b in _recordedBindings.ToArray())
+            lock (_recordedEntitiesLock)
             {
-                if (b.Destination == oldName)
+                _recordedQueues[queue.Name] = queue;
+            }
+        }
+
+        internal void DeleteRecordedQueue(string queueName)
+        {
+            lock (_recordedEntitiesLock)
+            {
+                _recordedQueues.Remove(queueName);
+
+                // find bindings that need removal, check if some auto-delete exchanges might need the same
+                foreach (var binding in _recordedBindings.ToArray())
                 {
-                    _recordedBindings.Remove(b);
-                    _recordedBindings.Add(new RecordedBinding(newName, b));
-                }
-            }
-        }
-    }
-
-    private void UpdateConsumerQueue(string oldName, string newName)
-    {
-        lock (_recordedEntitiesLock)
-        {
-            foreach (RecordedConsumer consumer in _recordedConsumers.Values.ToArray())
-            {
-                if (consumer.Queue == oldName)
-                {
-                    _recordedConsumers[consumer.ConsumerTag] = RecordedConsumer.WithNewQueueNameTag(newName, consumer);
-                }
-            }
-        }
-    }
-
-    internal void RecordBinding(in RecordedBinding rb)
-    {
-        lock (_recordedEntitiesLock)
-        {
-            _recordedBindings.Add(rb);
-        }
-    }
-
-    internal void DeleteRecordedBinding(in RecordedBinding rb)
-    {
-        lock (_recordedEntitiesLock)
-        {
-            _recordedBindings.Remove(rb);
-        }
-    }
-
-    internal void RecordConsumer(in RecordedConsumer consumer)
-    {
-        if (!_config.TopologyRecoveryEnabled)
-        {
-            return;
-        }
-
-        lock (_recordedEntitiesLock)
-        {
-            _recordedConsumers[consumer.ConsumerTag] = consumer;
-        }
-    }
-
-    internal void DeleteRecordedConsumer(string consumerTag)
-    {
-        if (!_config.TopologyRecoveryEnabled)
-        {
-            return;
-        }
-
-        lock (_recordedEntitiesLock)
-        {
-            if (_recordedConsumers.Remove(consumerTag, out var recordedConsumer))
-            {
-                DeleteAutoDeleteQueue(recordedConsumer.Queue);
-            }
-        }
-
-        void DeleteAutoDeleteQueue(string queue)
-        {
-            if (_recordedQueues.TryGetValue(queue, out var recordedQueue) && recordedQueue.IsAutoDelete)
-            {
-                // last consumer on this connection is gone, remove recorded queue if it is auto-deleted.
-                if (!AnyConsumersOnQueue(queue))
-                {
-                    DeleteRecordedQueue(queue);
+                    if (binding.Destination == queueName)
+                    {
+                        DeleteRecordedBinding(binding);
+                        DeleteAutoDeleteExchange(binding.Source);
+                    }
                 }
             }
         }
 
-        bool AnyConsumersOnQueue(string queue)
+        private void UpdateBindingsDestination(string oldName, string newName)
         {
-            foreach (var pair in _recordedConsumers)
+            lock (_recordedEntitiesLock)
             {
-                if (pair.Value.Queue == queue)
+                foreach (RecordedBinding b in _recordedBindings.ToArray())
                 {
-                    return true;
+                    if (b.Destination == oldName)
+                    {
+                        _recordedBindings.Remove(b);
+                        _recordedBindings.Add(new RecordedBinding(newName, b));
+                    }
+                }
+            }
+        }
+
+        private void UpdateConsumerQueue(string oldName, string newName)
+        {
+            lock (_recordedEntitiesLock)
+            {
+                foreach (RecordedConsumer consumer in _recordedConsumers.Values.ToArray())
+                {
+                    if (consumer.Queue == oldName)
+                    {
+                        _recordedConsumers[consumer.ConsumerTag] = RecordedConsumer.WithNewQueueNameTag(newName, consumer);
+                    }
+                }
+            }
+        }
+
+        internal void RecordBinding(in RecordedBinding rb)
+        {
+            lock (_recordedEntitiesLock)
+            {
+                _recordedBindings.Add(rb);
+            }
+        }
+
+        internal void DeleteRecordedBinding(in RecordedBinding rb)
+        {
+            lock (_recordedEntitiesLock)
+            {
+                _recordedBindings.Remove(rb);
+            }
+        }
+
+        internal void RecordConsumer(in RecordedConsumer consumer)
+        {
+            if (!_config.TopologyRecoveryEnabled)
+            {
+                return;
+            }
+
+            lock (_recordedEntitiesLock)
+            {
+                _recordedConsumers[consumer.ConsumerTag] = consumer;
+            }
+        }
+
+        internal void DeleteRecordedConsumer(string consumerTag)
+        {
+            if (!_config.TopologyRecoveryEnabled)
+            {
+                return;
+            }
+
+            lock (_recordedEntitiesLock)
+            {
+                if (_recordedConsumers.Remove(consumerTag, out var recordedConsumer))
+                {
+                    DeleteAutoDeleteQueue(recordedConsumer.Queue);
                 }
             }
 
-            return false;
-        }
-    }
+            void DeleteAutoDeleteQueue(string queue)
+            {
+                if (_recordedQueues.TryGetValue(queue, out var recordedQueue) && recordedQueue.IsAutoDelete)
+                {
+                    // last consumer on this connection is gone, remove recorded queue if it is auto-deleted.
+                    if (!AnyConsumersOnQueue(queue))
+                    {
+                        _recordedQueues.Remove(queue);
+                    }
+                }
+            }
 
-    private void UpdateConsumer(string oldTag, string newTag, in RecordedConsumer consumer)
-    {
-        lock (_recordedEntitiesLock)
-        {
-            // make sure server-generated tags are re-added
-            _recordedConsumers.Remove(oldTag);
-            _recordedConsumers.Add(newTag, consumer);
-        }
-    }
+            bool AnyConsumersOnQueue(string queue)
+            {
+                foreach (var pair in _recordedConsumers)
+                {
+                    if (pair.Value.Queue == queue)
+                    {
+                        return true;
+                    }
+                }
 
-    private void RecordChannel(AutorecoveringModel m)
-    {
-        lock (_models)
-        {
-            _models.Add(m);
+                return false;
+            }
         }
-    }
 
-    internal void DeleteRecordedChannel(AutorecoveringModel model)
-    {
-        lock (_models)
+        private void UpdateConsumer(string oldTag, string newTag, in RecordedConsumer consumer)
         {
-            _models.Remove(model);
+            lock (_recordedEntitiesLock)
+            {
+                // make sure server-generated tags are re-added
+                _recordedConsumers.Remove(oldTag);
+                _recordedConsumers.Add(newTag, consumer);
+            }
+        }
+
+        private void RecordChannel(AutorecoveringModel m)
+        {
+            lock (_models)
+            {
+                _models.Add(m);
+            }
+        }
+
+        internal void DeleteRecordedChannel(AutorecoveringModel model)
+        {
+            lock (_models)
+            {
+                _models.Remove(model);
+            }
         }
     }
 }

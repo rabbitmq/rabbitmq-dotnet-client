@@ -29,16 +29,17 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client;
-
-#nullable enable
-/// <summary>
-/// A AMQP header.
-/// </summary>
-public interface IAmqpHeader : IAmqpWriteable
+namespace RabbitMQ.Client
 {
+#nullable enable
     /// <summary>
-    /// The protocol class id.
+    /// A AMQP header.
     /// </summary>
-    ushort ProtocolClassId { get; }
+    public interface IAmqpHeader : IAmqpWriteable
+    {
+        /// <summary>
+        /// The protocol class id.
+        /// </summary>
+        ushort ProtocolClassId { get; }
+    }
 }

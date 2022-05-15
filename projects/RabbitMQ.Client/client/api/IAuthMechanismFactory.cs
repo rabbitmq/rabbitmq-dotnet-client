@@ -29,17 +29,18 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client;
-
-public interface IAuthMechanismFactory
+namespace RabbitMQ.Client
 {
-    /// <summary>
-    /// The name of the authentication mechanism, as negotiated on the wire.
-    /// </summary>
-    string Name { get; }
+    public interface IAuthMechanismFactory
+    {
+        /// <summary>
+        /// The name of the authentication mechanism, as negotiated on the wire.
+        /// </summary>
+        string Name { get; }
 
-    /// <summary>
-    /// Return a new authentication mechanism implementation.
-    /// </summary>
-    IAuthMechanism GetInstance();
+        /// <summary>
+        /// Return a new authentication mechanism implementation.
+        /// </summary>
+        IAuthMechanism GetInstance();
+    }
 }

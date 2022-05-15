@@ -31,19 +31,20 @@
 
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Exceptions;
-
-/// <summary>
-/// Thrown when the connection receives a frame that it wasn't expecting.
-/// </summary>
-public class UnexpectedFrameException : HardProtocolException
+namespace RabbitMQ.Client.Exceptions
 {
-    internal UnexpectedFrameException(FrameType frameType) : base($"A frame of type {frameType} was not expected at this time")
+    /// <summary>
+    /// Thrown when the connection receives a frame that it wasn't expecting.
+    /// </summary>
+    public class UnexpectedFrameException : HardProtocolException
     {
-    }
+        internal UnexpectedFrameException(FrameType frameType) : base($"A frame of type {frameType} was not expected at this time")
+        {
+        }
 
-    public override ushort ReplyCode
-    {
-        get { return Constants.CommandInvalid; }
+        public override ushort ReplyCode
+        {
+            get { return Constants.CommandInvalid; }
+        }
     }
 }

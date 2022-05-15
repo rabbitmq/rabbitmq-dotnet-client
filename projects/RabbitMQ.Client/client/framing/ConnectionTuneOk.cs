@@ -33,32 +33,33 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct ConnectionTuneOk : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly ushort _channelMax;
-    public readonly uint _frameMax;
-    public readonly ushort _heartbeat;
-
-    public ConnectionTuneOk(ushort ChannelMax, uint FrameMax, ushort Heartbeat)
+    internal readonly struct ConnectionTuneOk : IOutgoingAmqpMethod
     {
-        _channelMax = ChannelMax;
-        _frameMax = FrameMax;
-        _heartbeat = Heartbeat;
-    }
+        public readonly ushort _channelMax;
+        public readonly uint _frameMax;
+        public readonly ushort _heartbeat;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTuneOk;
+        public ConnectionTuneOk(ushort ChannelMax, uint FrameMax, ushort Heartbeat)
+        {
+            _channelMax = ChannelMax;
+            _frameMax = FrameMax;
+            _heartbeat = Heartbeat;
+        }
 
-    public int WriteTo(Span<byte> span)
-    {
-        int offset = WireFormatting.WriteShort(ref span.GetStart(), _channelMax);
-        offset += WireFormatting.WriteLong(ref span.GetOffset(offset), _frameMax);
-        return offset + WireFormatting.WriteShort(ref span.GetOffset(offset), _heartbeat);
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionTuneOk;
 
-    public int GetRequiredBufferSize()
-    {
-        return 2 + 4 + 2; // bytes for _channelMax, _frameMax, _heartbeat
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), _channelMax);
+            offset += WireFormatting.WriteLong(ref span.GetOffset(offset), _frameMax);
+            return offset + WireFormatting.WriteShort(ref span.GetOffset(offset), _heartbeat);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            return 2 + 4 + 2; // bytes for _channelMax, _frameMax, _heartbeat
+        }
     }
 }

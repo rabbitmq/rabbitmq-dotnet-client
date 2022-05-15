@@ -35,46 +35,47 @@ using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct QueueBind : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    // deprecated
-    // ushort _reserved1
-    public readonly string _queue;
-    public readonly string _exchange;
-    public readonly string _routingKey;
-    public readonly bool _nowait;
-    public readonly IDictionary<string, object> _arguments;
-
-    public QueueBind(string Queue, string Exchange, string RoutingKey, bool Nowait, IDictionary<string, object> Arguments)
+    internal readonly struct QueueBind : IOutgoingAmqpMethod
     {
-        _queue = Queue;
-        _exchange = Exchange;
-        _routingKey = RoutingKey;
-        _nowait = Nowait;
-        _arguments = Arguments;
-    }
+        // deprecated
+        // ushort _reserved1
+        public readonly string _queue;
+        public readonly string _exchange;
+        public readonly string _routingKey;
+        public readonly bool _nowait;
+        public readonly IDictionary<string, object> _arguments;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueBind;
+        public QueueBind(string Queue, string Exchange, string RoutingKey, bool Nowait, IDictionary<string, object> Arguments)
+        {
+            _queue = Queue;
+            _exchange = Exchange;
+            _routingKey = RoutingKey;
+            _nowait = Nowait;
+            _arguments = Arguments;
+        }
 
-    public int WriteTo(Span<byte> span)
-    {
-        int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
-        offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
-        return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueBind;
 
-    public int GetRequiredBufferSize()
-    {
-        int bufferSize = 2 + 1 + 1 + 1 + 1; // bytes for _reserved1, length of _queue, length of _exchange, length of _routingKey, bit fields
-        bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
-        bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes
-        bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
-        bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
-        return bufferSize;
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
+            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
+            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            int bufferSize = 2 + 1 + 1 + 1 + 1; // bytes for _reserved1, length of _queue, length of _exchange, length of _routingKey, bit fields
+            bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
+            bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes
+            bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
+            bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
+            return bufferSize;
+        }
     }
 }

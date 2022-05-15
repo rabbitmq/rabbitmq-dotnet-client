@@ -33,37 +33,38 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct BasicNack : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly ulong _deliveryTag;
-    public readonly bool _multiple;
-    public readonly bool _requeue;
-
-    public BasicNack(ulong DeliveryTag, bool Multiple, bool Requeue)
+    internal readonly struct BasicNack : IOutgoingAmqpMethod
     {
-        _deliveryTag = DeliveryTag;
-        _multiple = Multiple;
-        _requeue = Requeue;
-    }
+        public readonly ulong _deliveryTag;
+        public readonly bool _multiple;
+        public readonly bool _requeue;
 
-    public BasicNack(ReadOnlySpan<byte> span)
-    {
-        int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
-        WireFormatting.ReadBits(span.Slice(offset), out _multiple, out _requeue);
-    }
+        public BasicNack(ulong DeliveryTag, bool Multiple, bool Requeue)
+        {
+            _deliveryTag = DeliveryTag;
+            _multiple = Multiple;
+            _requeue = Requeue;
+        }
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
+        public BasicNack(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+            WireFormatting.ReadBits(span.Slice(offset), out _multiple, out _requeue);
+        }
 
-    public int WriteTo(Span<byte> span)
-    {
-        int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
-        return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _multiple, _requeue);
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicNack;
 
-    public int GetRequiredBufferSize()
-    {
-        return 8 + 1; // bytes for _deliveryTag, bit fields
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _multiple, _requeue);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            return 8 + 1; // bytes for _deliveryTag, bit fields
+        }
     }
 }

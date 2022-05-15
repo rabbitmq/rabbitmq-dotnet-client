@@ -32,50 +32,51 @@
 using System;
 using RabbitMQ.Client.client.framing;
 
-namespace RabbitMQ.Client.Exceptions;
-
-/// <summary>
-/// Thrown when the model receives an RPC reply that it wasn't expecting.
-/// </summary>
-[Serializable]
-public class UnexpectedMethodException : ProtocolViolationException
+namespace RabbitMQ.Client.Exceptions
 {
-    private readonly ProtocolCommandId _receivedCommandId;
-    private readonly ProtocolCommandId _expectedCommandId;
-
-    internal UnexpectedMethodException(ProtocolCommandId receivedCommandId, ProtocolCommandId expectedCommandId)
+    /// <summary>
+    /// Thrown when the model receives an RPC reply that it wasn't expecting.
+    /// </summary>
+    [Serializable]
+    public class UnexpectedMethodException : ProtocolViolationException
     {
-        _receivedCommandId = receivedCommandId;
-        _expectedCommandId = expectedCommandId;
+        private readonly ProtocolCommandId _receivedCommandId;
+        private readonly ProtocolCommandId _expectedCommandId;
+
+        internal UnexpectedMethodException(ProtocolCommandId receivedCommandId, ProtocolCommandId expectedCommandId)
+        {
+            _receivedCommandId = receivedCommandId;
+            _expectedCommandId = expectedCommandId;
+        }
+
+        /// <summary>
+        /// Retrieves the class ID number of this method, as defined in the AMQP specification XML.
+        /// </summary>
+        public ushort ProtocolClassId => (ushort)((uint)_receivedCommandId >> 16);
+
+        /// <summary>
+        /// Retrieves the method ID number of this method, as defined in the AMQP specification XML.
+        /// </summary>
+        public ushort ProtocolMethodId => (ushort)((uint)_receivedCommandId & 0xFFFF);
+
+        /// <summary>
+        /// Retrieves the name of this method - for debugging use.
+        /// </summary>
+        public string ProtocolMethodName => _receivedCommandId.ToString();
+
+        /// <summary>
+        /// Retrieves the expected class ID number of this method, as defined in the AMQP specification XML.
+        /// </summary>
+        public ushort ExpectedProtocolClassId => (ushort)((uint)_expectedCommandId >> 16);
+
+        /// <summary>
+        /// Retrieves the expected method ID number of this method, as defined in the AMQP specification XML.
+        /// </summary>
+        public ushort ExpectedProtocolMethodId => (ushort)((uint)_expectedCommandId & 0xFFFF);
+
+        /// <summary>
+        /// Retrieves the expected name of this method - for debugging use.
+        /// </summary>
+        public string ExpectedProtocolMethodName => _expectedCommandId.ToString();
     }
-
-    /// <summary>
-    /// Retrieves the class ID number of this method, as defined in the AMQP specification XML.
-    /// </summary>
-    public ushort ProtocolClassId => (ushort)((uint)_receivedCommandId >> 16);
-
-    /// <summary>
-    /// Retrieves the method ID number of this method, as defined in the AMQP specification XML.
-    /// </summary>
-    public ushort ProtocolMethodId => (ushort)((uint)_receivedCommandId & 0xFFFF);
-
-    /// <summary>
-    /// Retrieves the name of this method - for debugging use.
-    /// </summary>
-    public string ProtocolMethodName => _receivedCommandId.ToString();
-
-    /// <summary>
-    /// Retrieves the expected class ID number of this method, as defined in the AMQP specification XML.
-    /// </summary>
-    public ushort ExpectedProtocolClassId => (ushort)((uint)_expectedCommandId >> 16);
-
-    /// <summary>
-    /// Retrieves the expected method ID number of this method, as defined in the AMQP specification XML.
-    /// </summary>
-    public ushort ExpectedProtocolMethodId => (ushort)((uint)_expectedCommandId & 0xFFFF);
-
-    /// <summary>
-    /// Retrieves the expected name of this method - for debugging use.
-    /// </summary>
-    public string ExpectedProtocolMethodName => _expectedCommandId.ToString();
 }

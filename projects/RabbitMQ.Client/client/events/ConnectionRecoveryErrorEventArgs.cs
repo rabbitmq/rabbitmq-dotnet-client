@@ -31,14 +31,15 @@
 
 using System;
 
-namespace RabbitMQ.Client.Events;
-
-public sealed class ConnectionRecoveryErrorEventArgs : EventArgs
+namespace RabbitMQ.Client.Events
 {
-    public ConnectionRecoveryErrorEventArgs(Exception ex)
+    public sealed class ConnectionRecoveryErrorEventArgs : EventArgs
     {
-        Exception = ex;
-    }
+        public ConnectionRecoveryErrorEventArgs(Exception ex)
+        {
+            Exception = ex;
+        }
 
-    public Exception Exception { get; }
+        public Exception Exception { get; }
+    }
 }

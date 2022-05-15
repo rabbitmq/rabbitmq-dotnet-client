@@ -29,23 +29,24 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client;
-
-public class ExternalMechanismFactory : IAuthMechanismFactory
+namespace RabbitMQ.Client
 {
-    /// <summary>
-    /// The name of the authentication mechanism, as negotiated on the wire.
-    /// </summary>
-    public string Name
+    public class ExternalMechanismFactory : IAuthMechanismFactory
     {
-        get { return "EXTERNAL"; }
-    }
+        /// <summary>
+        /// The name of the authentication mechanism, as negotiated on the wire.
+        /// </summary>
+        public string Name
+        {
+            get { return "EXTERNAL"; }
+        }
 
-    /// <summary>
-    /// Return a new authentication mechanism implementation.
-    /// </summary>
-    public IAuthMechanism GetInstance()
-    {
-        return new ExternalMechanism();
+        /// <summary>
+        /// Return a new authentication mechanism implementation.
+        /// </summary>
+        public IAuthMechanism GetInstance()
+        {
+            return new ExternalMechanism();
+        }
     }
 }

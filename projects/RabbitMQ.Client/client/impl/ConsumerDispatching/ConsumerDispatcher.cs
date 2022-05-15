@@ -4,54 +4,55 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.ConsumerDispatching;
-
-#nullable enable
-internal sealed class ConsumerDispatcher : ConsumerDispatcherChannelBase
+namespace RabbitMQ.Client.ConsumerDispatching
 {
-    public ConsumerDispatcher(ModelBase model, int concurrency)
-        : base(model, concurrency)
+#nullable enable
+    internal sealed class ConsumerDispatcher : ConsumerDispatcherChannelBase
     {
-    }
-
-    protected override async Task ProcessChannelAsync()
-    {
-        while (await _reader.WaitToReadAsync().ConfigureAwait(false))
+        public ConsumerDispatcher(ModelBase model, int concurrency)
+            : base(model, concurrency)
         {
-            while (_reader.TryRead(out var work))
+        }
+
+        protected override async Task ProcessChannelAsync()
+        {
+            while (await _reader.WaitToReadAsync().ConfigureAwait(false))
             {
-                try
+                while (_reader.TryRead(out var work))
                 {
-                    var consumer = work.Consumer;
-                    var consumerTag = work.ConsumerTag;
-                    switch (work.WorkType)
+                    try
                     {
-                        case WorkType.Deliver:
-                            consumer.HandleBasicDeliver(consumerTag, work.DeliveryTag, work.Redelivered, work.Exchange, work.RoutingKey, work.BasicProperties, work.Body);
-                            break;
-                        case WorkType.Cancel:
-                            consumer.HandleBasicCancel(consumerTag);
-                            break;
-                        case WorkType.CancelOk:
-                            consumer.HandleBasicCancelOk(consumerTag);
-                            break;
-                        case WorkType.ConsumeOk:
-                            consumer.HandleBasicConsumeOk(consumerTag);
-                            break;
-                        case WorkType.Shutdown:
-                            consumer.HandleModelShutdown(_model, work.Reason);
-                            break;
+                        var consumer = work.Consumer;
+                        var consumerTag = work.ConsumerTag;
+                        switch (work.WorkType)
+                        {
+                            case WorkType.Deliver:
+                                consumer.HandleBasicDeliver(consumerTag, work.DeliveryTag, work.Redelivered, work.Exchange, work.RoutingKey, work.BasicProperties, work.Body);
+                                break;
+                            case WorkType.Cancel:
+                                consumer.HandleBasicCancel(consumerTag);
+                                break;
+                            case WorkType.CancelOk:
+                                consumer.HandleBasicCancelOk(consumerTag);
+                                break;
+                            case WorkType.ConsumeOk:
+                                consumer.HandleBasicConsumeOk(consumerTag);
+                                break;
+                            case WorkType.Shutdown:
+                                consumer.HandleModelShutdown(_model, work.Reason);
+                                break;
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, work.WorkType.ToString(), work.Consumer));
-                }
-                finally
-                {
-                    if (work.RentedArray != null)
+                    catch (Exception e)
                     {
-                        ArrayPool<byte>.Shared.Return(work.RentedArray);
+                        _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, work.WorkType.ToString(), work.Consumer));
+                    }
+                    finally
+                    {
+                        if (work.RentedArray != null)
+                        {
+                            ArrayPool<byte>.Shared.Return(work.RentedArray);
+                        }
                     }
                 }
             }

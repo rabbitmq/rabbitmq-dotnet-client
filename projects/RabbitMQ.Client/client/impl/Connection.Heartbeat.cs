@@ -33,135 +33,136 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-#nullable enable
-internal sealed partial class Connection
+namespace RabbitMQ.Client.Framing.Impl
 {
-    private TimeSpan _heartbeat;
-    private TimeSpan _heartbeatTimeSpan;
-    private int _missedHeartbeats;
-    private bool _heartbeatDetected;
-
-    private Timer? _heartbeatWriteTimer;
-    private Timer? _heartbeatReadTimer;
-
-    public TimeSpan Heartbeat
+#nullable enable
+    internal sealed partial class Connection
     {
-        get => _heartbeat;
-        set
+        private TimeSpan _heartbeat;
+        private TimeSpan _heartbeatTimeSpan;
+        private int _missedHeartbeats;
+        private bool _heartbeatDetected;
+
+        private Timer? _heartbeatWriteTimer;
+        private Timer? _heartbeatReadTimer;
+
+        public TimeSpan Heartbeat
         {
-            _heartbeat = value;
-            // timers fire at slightly below half the interval to avoid race
-            // conditions
-            _heartbeatTimeSpan = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds / 4);
-            _frameHandler.ReadTimeout = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds * 2);
-        }
-    }
-
-    private void MaybeStartHeartbeatTimers()
-    {
-        if (Heartbeat != TimeSpan.Zero)
-        {
-            _heartbeatWriteTimer ??= new Timer(HeartbeatWriteTimerCallback, null, 200, Timeout.Infinite);
-            _heartbeatReadTimer ??= new Timer(HeartbeatReadTimerCallback, null, 300, Timeout.Infinite);
-        }
-    }
-
-    private void MaybeStopHeartbeatTimers()
-    {
-        NotifyHeartbeatListener();
-        _heartbeatReadTimer?.Dispose();
-        _heartbeatWriteTimer?.Dispose();
-    }
-
-    private void NotifyHeartbeatListener()
-    {
-        _heartbeatDetected = true;
-    }
-
-    private void HeartbeatReadTimerCallback(object? state)
-    {
-        if (_heartbeatReadTimer is null)
-        {
-            return;
-        }
-
-        bool shouldTerminate = false;
-
-        try
-        {
-            if (!_closed)
+            get => _heartbeat;
+            set
             {
-                if (_heartbeatDetected)
+                _heartbeat = value;
+                // timers fire at slightly below half the interval to avoid race
+                // conditions
+                _heartbeatTimeSpan = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds / 4);
+                _frameHandler.ReadTimeout = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds * 2);
+            }
+        }
+
+        private void MaybeStartHeartbeatTimers()
+        {
+            if (Heartbeat != TimeSpan.Zero)
+            {
+                _heartbeatWriteTimer ??= new Timer(HeartbeatWriteTimerCallback, null, 200, Timeout.Infinite);
+                _heartbeatReadTimer ??= new Timer(HeartbeatReadTimerCallback, null, 300, Timeout.Infinite);
+            }
+        }
+
+        private void MaybeStopHeartbeatTimers()
+        {
+            NotifyHeartbeatListener();
+            _heartbeatReadTimer?.Dispose();
+            _heartbeatWriteTimer?.Dispose();
+        }
+
+        private void NotifyHeartbeatListener()
+        {
+            _heartbeatDetected = true;
+        }
+
+        private void HeartbeatReadTimerCallback(object? state)
+        {
+            if (_heartbeatReadTimer is null)
+            {
+                return;
+            }
+
+            bool shouldTerminate = false;
+
+            try
+            {
+                if (!_closed)
                 {
-                    _heartbeatDetected = false;
-                    _missedHeartbeats = 0;
+                    if (_heartbeatDetected)
+                    {
+                        _heartbeatDetected = false;
+                        _missedHeartbeats = 0;
+                    }
+                    else
+                    {
+                        _missedHeartbeats++;
+                    }
+
+                    // We check against 8 = 2 * 4 because we need to wait for at
+                    // least two complete heartbeat setting intervals before
+                    // complaining, and we've set the socket timeout to a quarter
+                    // of the heartbeat setting in setHeartbeat above.
+                    if (_missedHeartbeats > 2 * 4)
+                    {
+                        var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
+                        LogCloseError(eose.Message, eose);
+                        HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+                        shouldTerminate = true;
+                    }
+                }
+
+                if (shouldTerminate)
+                {
+                    TerminateMainloop();
+                    FinishClose();
                 }
                 else
                 {
-                    _missedHeartbeats++;
+                    _heartbeatReadTimer?.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
                 }
+            }
+            catch (ObjectDisposedException)
+            {
+                // timer is already disposed,
+                // e.g. due to shutdown
+            }
+            catch (NullReferenceException)
+            {
+                // timer has already been disposed from a different thread after null check
+                // this event should be rare
+            }
+        }
 
-                // We check against 8 = 2 * 4 because we need to wait for at
-                // least two complete heartbeat setting intervals before
-                // complaining, and we've set the socket timeout to a quarter
-                // of the heartbeat setting in setHeartbeat above.
-                if (_missedHeartbeats > 2 * 4)
+        private void HeartbeatWriteTimerCallback(object? state)
+        {
+            if (_heartbeatWriteTimer is null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (!_closed)
                 {
-                    var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
-                    LogCloseError(eose.Message, eose);
-                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
-                    shouldTerminate = true;
+                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
+                    _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
-
-            if (shouldTerminate)
+            catch (ObjectDisposedException)
             {
-                TerminateMainloop();
-                FinishClose();
+                // timer is already disposed,
+                // e.g. due to shutdown
             }
-            else
+            catch (Exception)
             {
-                _heartbeatReadTimer?.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
+                // ignore, let the read callback detect
+                // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
             }
-        }
-        catch (ObjectDisposedException)
-        {
-            // timer is already disposed,
-            // e.g. due to shutdown
-        }
-        catch (NullReferenceException)
-        {
-            // timer has already been disposed from a different thread after null check
-            // this event should be rare
-        }
-    }
-
-    private void HeartbeatWriteTimerCallback(object? state)
-    {
-        if (_heartbeatWriteTimer is null)
-        {
-            return;
-        }
-
-        try
-        {
-            if (!_closed)
-            {
-                Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
-                _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
-            }
-        }
-        catch (ObjectDisposedException)
-        {
-            // timer is already disposed,
-            // e.g. due to shutdown
-        }
-        catch (Exception)
-        {
-            // ignore, let the read callback detect
-            // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
         }
     }
 }

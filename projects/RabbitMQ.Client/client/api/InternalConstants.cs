@@ -31,10 +31,11 @@
 
 using System;
 
-namespace RabbitMQ.Client;
-
-internal static class InternalConstants
+namespace RabbitMQ.Client
 {
-    internal static readonly TimeSpan DefaultConnectionAbortTimeout = TimeSpan.FromSeconds(5);
-    internal static readonly TimeSpan DefaultConnectionCloseTimeout = TimeSpan.FromSeconds(30);
+    internal static class InternalConstants
+    {
+        internal static readonly TimeSpan DefaultConnectionAbortTimeout = TimeSpan.FromSeconds(5);
+        internal static readonly TimeSpan DefaultConnectionCloseTimeout = TimeSpan.FromSeconds(30);
+    }
 }

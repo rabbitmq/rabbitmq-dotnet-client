@@ -31,38 +31,39 @@
 
 using System.Text;
 
-namespace RabbitMQ.Client.Impl;
-
-internal static partial class WireFormatting
+namespace RabbitMQ.Client.Impl
 {
-    public static readonly object TrueBoolean = true;
-    public static readonly object FalseBoolean = false;
-
-    // * DESCRIPTION TAKEN FROM MS REFERENCE SOURCE *
-    // https://github.com/microsoft/referencesource/blob/master/mscorlib/system/decimal.cs
-    // The lo, mid, hi, and flags fields contain the representation of the
-    // Decimal value. The lo, mid, and hi fields contain the 96-bit integer
-    // part of the Decimal. Bits 0-15 (the lower word) of the flags field are
-    // unused and must be zero; bits 16-23 contain must contain a value between
-    // 0 and 28, indicating the power of 10 to divide the 96-bit integer part
-    // by to produce the Decimal value; bits 24-30 are unused and must be zero;
-    // and finally bit 31 indicates the sign of the Decimal value, 0 meaning
-    // positive and 1 meaning negative.
-    readonly struct DecimalData
+    internal static partial class WireFormatting
     {
-        public readonly uint Flags;
-        public readonly uint Hi;
-        public readonly uint Lo;
-        public readonly uint Mid;
+        public static readonly object TrueBoolean = true;
+        public static readonly object FalseBoolean = false;
 
-        internal DecimalData(uint flags, uint hi, uint lo, uint mid)
+        // * DESCRIPTION TAKEN FROM MS REFERENCE SOURCE *
+        // https://github.com/microsoft/referencesource/blob/master/mscorlib/system/decimal.cs
+        // The lo, mid, hi, and flags fields contain the representation of the
+        // Decimal value. The lo, mid, and hi fields contain the 96-bit integer
+        // part of the Decimal. Bits 0-15 (the lower word) of the flags field are
+        // unused and must be zero; bits 16-23 contain must contain a value between
+        // 0 and 28, indicating the power of 10 to divide the 96-bit integer part
+        // by to produce the Decimal value; bits 24-30 are unused and must be zero;
+        // and finally bit 31 indicates the sign of the Decimal value, 0 meaning
+        // positive and 1 meaning negative.
+        readonly struct DecimalData
         {
-            Flags = flags;
-            Hi = hi;
-            Lo = lo;
-            Mid = mid;
-        }
-    }
+            public readonly uint Flags;
+            public readonly uint Hi;
+            public readonly uint Lo;
+            public readonly uint Mid;
 
-    private static readonly UTF8Encoding UTF8 = new UTF8Encoding();
+            internal DecimalData(uint flags, uint hi, uint lo, uint mid)
+            {
+                Flags = flags;
+                Hi = hi;
+                Lo = lo;
+                Mid = mid;
+            }
+        }
+
+        private static readonly UTF8Encoding UTF8 = new UTF8Encoding();
+    }
 }

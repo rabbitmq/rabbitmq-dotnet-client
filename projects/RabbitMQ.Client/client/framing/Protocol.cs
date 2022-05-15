@@ -34,27 +34,28 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Framing.Impl;
 
-namespace RabbitMQ.Client.Framing;
-
-internal sealed class Protocol : ProtocolBase
+namespace RabbitMQ.Client.Framing
 {
-    ///<summary>Protocol major version (= 0)</summary>
-    public override int MajorVersion => 0;
-
-    ///<summary>Protocol minor version (= 9)</summary>
-    public override int MinorVersion => 9;
-
-    ///<summary>Protocol revision (= 1)</summary>
-    public override int Revision => 1;
-
-    ///<summary>Protocol API name (= :AMQP_0_9_1)</summary>
-    public override string ApiName => ":AMQP_0_9_1";
-
-    ///<summary>Default TCP port (= 5672)</summary>
-    public override int DefaultPort => 5672;
-
-    internal override ProtocolCommandId DecodeCommandIdFrom(ReadOnlySpan<byte> span)
+    internal sealed class Protocol : ProtocolBase
     {
-        return (ProtocolCommandId)Util.NetworkOrderDeserializer.ReadUInt32(span);
+        ///<summary>Protocol major version (= 0)</summary>
+        public override int MajorVersion => 0;
+
+        ///<summary>Protocol minor version (= 9)</summary>
+        public override int MinorVersion => 9;
+
+        ///<summary>Protocol revision (= 1)</summary>
+        public override int Revision => 1;
+
+        ///<summary>Protocol API name (= :AMQP_0_9_1)</summary>
+        public override string ApiName => ":AMQP_0_9_1";
+
+        ///<summary>Default TCP port (= 5672)</summary>
+        public override int DefaultPort => 5672;
+
+        internal override ProtocolCommandId DecodeCommandIdFrom(ReadOnlySpan<byte> span)
+        {
+            return (ProtocolCommandId)Util.NetworkOrderDeserializer.ReadUInt32(span);
+        }
     }
 }

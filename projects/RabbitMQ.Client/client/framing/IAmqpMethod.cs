@@ -1,12 +1,13 @@
 using RabbitMQ.Client.client.framing;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal interface IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    ProtocolCommandId ProtocolCommandId { get; }
-}
+    internal interface IAmqpMethod
+    {
+        ProtocolCommandId ProtocolCommandId { get; }
+    }
 
-internal interface IOutgoingAmqpMethod : IAmqpMethod, IAmqpWriteable
-{
+    internal interface IOutgoingAmqpMethod : IAmqpMethod, IAmqpWriteable
+    {
+    }
 }

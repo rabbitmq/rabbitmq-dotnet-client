@@ -34,45 +34,46 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct ConnectionClose : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly ushort _replyCode;
-    public readonly string _replyText;
-    public readonly ushort _classId;
-    public readonly ushort _methodId;
-
-    public ConnectionClose(ushort ReplyCode, string ReplyText, ushort ClassId, ushort MethodId)
+    internal readonly struct ConnectionClose : IOutgoingAmqpMethod
     {
-        _replyCode = ReplyCode;
-        _replyText = ReplyText;
-        _classId = ClassId;
-        _methodId = MethodId;
-    }
+        public readonly ushort _replyCode;
+        public readonly string _replyText;
+        public readonly ushort _classId;
+        public readonly ushort _methodId;
 
-    public ConnectionClose(ReadOnlySpan<byte> span)
-    {
-        int offset = WireFormatting.ReadShort(span, out _replyCode);
-        offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
-        offset += WireFormatting.ReadShort(span.Slice(offset), out _classId);
-        WireFormatting.ReadShort(span.Slice(offset), out _methodId);
-    }
+        public ConnectionClose(ushort ReplyCode, string ReplyText, ushort ClassId, ushort MethodId)
+        {
+            _replyCode = ReplyCode;
+            _replyText = ReplyText;
+            _classId = ClassId;
+            _methodId = MethodId;
+        }
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionClose;
+        public ConnectionClose(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _replyCode);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
+            offset += WireFormatting.ReadShort(span.Slice(offset), out _classId);
+            WireFormatting.ReadShort(span.Slice(offset), out _methodId);
+        }
 
-    public int WriteTo(Span<byte> span)
-    {
-        int offset = WireFormatting.WriteShort(ref span.GetStart(), _replyCode);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _replyText);
-        offset += WireFormatting.WriteShort(ref span.GetOffset(offset), _classId);
-        return offset + WireFormatting.WriteShort(ref span.GetOffset(offset), _methodId);
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionClose;
 
-    public int GetRequiredBufferSize()
-    {
-        int bufferSize = 2 + 1 + 2 + 2; // bytes for _replyCode, length of _replyText, _classId, _methodId
-        bufferSize += WireFormatting.GetByteCount(_replyText); // _replyText in bytes
-        return bufferSize;
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), _replyCode);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _replyText);
+            offset += WireFormatting.WriteShort(ref span.GetOffset(offset), _classId);
+            return offset + WireFormatting.WriteShort(ref span.GetOffset(offset), _methodId);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            int bufferSize = 2 + 1 + 2 + 2; // bytes for _replyCode, length of _replyText, _classId, _methodId
+            bufferSize += WireFormatting.GetByteCount(_replyText); // _replyText in bytes
+            return bufferSize;
+        }
     }
 }

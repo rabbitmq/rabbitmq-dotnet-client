@@ -33,26 +33,27 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct ChannelFlowOk : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly bool _active;
-
-    public ChannelFlowOk(bool Active)
+    internal readonly struct ChannelFlowOk : IOutgoingAmqpMethod
     {
-        _active = Active;
-    }
+        public readonly bool _active;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlowOk;
+        public ChannelFlowOk(bool Active)
+        {
+            _active = Active;
+        }
 
-    public int WriteTo(Span<byte> span)
-    {
-        return WireFormatting.WriteBits(ref span.GetStart(), _active);
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ChannelFlowOk;
 
-    public int GetRequiredBufferSize()
-    {
-        return 1; // bytes for bit fields
+        public int WriteTo(Span<byte> span)
+        {
+            return WireFormatting.WriteBits(ref span.GetStart(), _active);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            return 1; // bytes for bit fields
+        }
     }
 }

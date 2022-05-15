@@ -35,165 +35,166 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-#nullable enable
-internal sealed partial class Connection
+namespace RabbitMQ.Client.Framing.Impl
 {
-    private readonly IFrameHandler _frameHandler;
-    private readonly Task _mainLoopTask;
-
-    private void MainLoop()
+#nullable enable
+    internal sealed partial class Connection
     {
-        try
-        {
-            ReceiveLoop();
-        }
-        catch (EndOfStreamException eose)
-        {
-            // Possible heartbeat exception
-            HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
-        }
-        catch (HardProtocolException hpe)
-        {
-            HardProtocolExceptionHandler(hpe);
-        }
-        catch (Exception ex)
-        {
-            HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "Unexpected Exception", ex));
-        }
+        private readonly IFrameHandler _frameHandler;
+        private readonly Task _mainLoopTask;
 
-        FinishClose();
-    }
-
-    private void ReceiveLoop()
-    {
-        while (!_closed)
+        private void MainLoop()
         {
-            InboundFrame frame = _frameHandler.ReadFrame();
-            NotifyHeartbeatListener();
-
-            bool shallReturn = true;
-            if (frame.Channel == 0)
+            try
             {
-                if (frame.Type == FrameType.FrameHeartbeat)
+                ReceiveLoop();
+            }
+            catch (EndOfStreamException eose)
+            {
+                // Possible heartbeat exception
+                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+            }
+            catch (HardProtocolException hpe)
+            {
+                HardProtocolExceptionHandler(hpe);
+            }
+            catch (Exception ex)
+            {
+                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "Unexpected Exception", ex));
+            }
+
+            FinishClose();
+        }
+
+        private void ReceiveLoop()
+        {
+            while (!_closed)
+            {
+                InboundFrame frame = _frameHandler.ReadFrame();
+                NotifyHeartbeatListener();
+
+                bool shallReturn = true;
+                if (frame.Channel == 0)
                 {
-                    // Ignore it: we've already just reset the heartbeat
+                    if (frame.Type == FrameType.FrameHeartbeat)
+                    {
+                        // Ignore it: we've already just reset the heartbeat
+                    }
+                    else
+                    {
+                        // In theory, we could get non-connection.close-ok
+                        // frames here while we're quiescing (m_closeReason !=
+                        // null). In practice, there's a limited number of
+                        // things the server can ask of us on channel 0 -
+                        // essentially, just connection.close. That, combined
+                        // with the restrictions on pipelining, mean that
+                        // we're OK here to handle channel 0 traffic in a
+                        // quiescing situation, even though technically we
+                        // should be ignoring everything except
+                        // connection.close-ok.
+                        shallReturn = _session0.HandleFrame(in frame);
+                    }
                 }
                 else
                 {
-                    // In theory, we could get non-connection.close-ok
-                    // frames here while we're quiescing (m_closeReason !=
-                    // null). In practice, there's a limited number of
-                    // things the server can ask of us on channel 0 -
-                    // essentially, just connection.close. That, combined
-                    // with the restrictions on pipelining, mean that
-                    // we're OK here to handle channel 0 traffic in a
-                    // quiescing situation, even though technically we
-                    // should be ignoring everything except
-                    // connection.close-ok.
-                    shallReturn = _session0.HandleFrame(in frame);
+                    // If we're still m_running, but have a m_closeReason,
+                    // then we must be quiescing, which means any inbound
+                    // frames for non-zero channels (and any inbound
+                    // commands on channel zero that aren't
+                    // Connection.CloseOk) must be discarded.
+                    if (_closeReason is null)
+                    {
+                        // No close reason, not quiescing the
+                        // connection. Handle the frame. (Of course, the
+                        // Session itself may be quiescing this particular
+                        // channel, but that's none of our concern.)
+                        shallReturn = _sessionManager.Lookup(frame.Channel).HandleFrame(in frame);
+                    }
+                }
+
+                if (shallReturn)
+                {
+                    frame.ReturnPayload();
+                }
+            }
+        }
+
+        ///<remarks>
+        /// May be called more than once. Should therefore be idempotent.
+        ///</remarks>
+        private void TerminateMainloop()
+        {
+            MaybeStopHeartbeatTimers();
+        }
+
+        private void HandleMainLoopException(ShutdownEventArgs reason)
+        {
+            if (!SetCloseReason(reason))
+            {
+                LogCloseError("Unexpected Main Loop Exception while closing: " + reason, new Exception(reason.ToString()));
+                return;
+            }
+
+            OnShutdown(reason);
+            LogCloseError($"Unexpected connection closure: {reason}", new Exception(reason.ToString()));
+        }
+
+        private void HardProtocolExceptionHandler(HardProtocolException hpe)
+        {
+            if (SetCloseReason(hpe.ShutdownReason))
+            {
+                OnShutdown(hpe.ShutdownReason);
+                _session0.SetSessionClosing(false);
+                try
+                {
+                    var cmd = new ConnectionClose(hpe.ShutdownReason.ReplyCode, hpe.ShutdownReason.ReplyText, 0, 0);
+                    _session0.Transmit(ref cmd);
+                    ClosingLoop();
+                }
+                catch (IOException ioe)
+                {
+                    LogCloseError("Broker closed socket unexpectedly", ioe);
                 }
             }
             else
             {
-                // If we're still m_running, but have a m_closeReason,
-                // then we must be quiescing, which means any inbound
-                // frames for non-zero channels (and any inbound
-                // commands on channel zero that aren't
-                // Connection.CloseOk) must be discarded.
-                if (_closeReason is null)
-                {
-                    // No close reason, not quiescing the
-                    // connection. Handle the frame. (Of course, the
-                    // Session itself may be quiescing this particular
-                    // channel, but that's none of our concern.)
-                    shallReturn = _sessionManager.Lookup(frame.Channel).HandleFrame(in frame);
-                }
-            }
-
-            if (shallReturn)
-            {
-                frame.ReturnPayload();
+                LogCloseError("Hard Protocol Exception occurred while closing the connection", hpe);
             }
         }
-    }
 
-    ///<remarks>
-    /// May be called more than once. Should therefore be idempotent.
-    ///</remarks>
-    private void TerminateMainloop()
-    {
-        MaybeStopHeartbeatTimers();
-    }
-
-    private void HandleMainLoopException(ShutdownEventArgs reason)
-    {
-        if (!SetCloseReason(reason))
+        ///<remarks>
+        /// Loop only used while quiescing. Use only to cleanly close connection
+        ///</remarks>
+        private void ClosingLoop()
         {
-            LogCloseError("Unexpected Main Loop Exception while closing: " + reason, new Exception(reason.ToString()));
-            return;
-        }
-
-        OnShutdown(reason);
-        LogCloseError($"Unexpected connection closure: {reason}", new Exception(reason.ToString()));
-    }
-
-    private void HardProtocolExceptionHandler(HardProtocolException hpe)
-    {
-        if (SetCloseReason(hpe.ShutdownReason))
-        {
-            OnShutdown(hpe.ShutdownReason);
-            _session0.SetSessionClosing(false);
             try
             {
-                var cmd = new ConnectionClose(hpe.ShutdownReason.ReplyCode, hpe.ShutdownReason.ReplyText, 0, 0);
-                _session0.Transmit(ref cmd);
-                ClosingLoop();
+                _frameHandler.ReadTimeout = TimeSpan.Zero;
+                // Wait for response/socket closure or timeout
+                ReceiveLoop();
+            }
+            catch (ObjectDisposedException ode)
+            {
+                if (!_closed)
+                {
+                    LogCloseError("Connection didn't close cleanly", ode);
+                }
+            }
+            catch (EndOfStreamException eose)
+            {
+                if (_model0.CloseReason is null)
+                {
+                    LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", eose);
+                }
             }
             catch (IOException ioe)
             {
-                LogCloseError("Broker closed socket unexpectedly", ioe);
+                LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", ioe);
             }
-        }
-        else
-        {
-            LogCloseError("Hard Protocol Exception occurred while closing the connection", hpe);
-        }
-    }
-
-    ///<remarks>
-    /// Loop only used while quiescing. Use only to cleanly close connection
-    ///</remarks>
-    private void ClosingLoop()
-    {
-        try
-        {
-            _frameHandler.ReadTimeout = TimeSpan.Zero;
-            // Wait for response/socket closure or timeout
-            ReceiveLoop();
-        }
-        catch (ObjectDisposedException ode)
-        {
-            if (!_closed)
+            catch (Exception e)
             {
-                LogCloseError("Connection didn't close cleanly", ode);
+                LogCloseError("Unexpected exception while closing: ", e);
             }
-        }
-        catch (EndOfStreamException eose)
-        {
-            if (_model0.CloseReason is null)
-            {
-                LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", eose);
-            }
-        }
-        catch (IOException ioe)
-        {
-            LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", ioe);
-        }
-        catch (Exception e)
-        {
-            LogCloseError("Unexpected exception while closing: ", e);
         }
     }
 }

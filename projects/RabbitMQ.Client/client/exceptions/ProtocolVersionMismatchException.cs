@@ -31,41 +31,42 @@
 
 using System;
 
-namespace RabbitMQ.Client.Exceptions;
-
-///<summary>Thrown to indicate that the peer does not support the
-///wire protocol version we requested immediately after opening
-///the TCP socket.</summary>
-[Serializable]
-public class ProtocolVersionMismatchException : ProtocolViolationException
+namespace RabbitMQ.Client.Exceptions
 {
-    ///<summary>Fills the new instance's properties with the values passed in.</summary>
-    public ProtocolVersionMismatchException(int clientMajor,
-        int clientMinor,
-        int serverMajor,
-        int serverMinor)
-        : base($"AMQP server protocol negotiation failure: server version {positiveOrUnknown(serverMajor)}-{positiveOrUnknown(serverMinor)}, client version {positiveOrUnknown(clientMajor)}-{positiveOrUnknown(clientMinor)}")
+    ///<summary>Thrown to indicate that the peer does not support the
+    ///wire protocol version we requested immediately after opening
+    ///the TCP socket.</summary>
+    [Serializable]
+    public class ProtocolVersionMismatchException : ProtocolViolationException
     {
-        ClientMajor = clientMajor;
-        ClientMinor = clientMinor;
-        ServerMajor = serverMajor;
-        ServerMinor = serverMinor;
-    }
+        ///<summary>Fills the new instance's properties with the values passed in.</summary>
+        public ProtocolVersionMismatchException(int clientMajor,
+            int clientMinor,
+            int serverMajor,
+            int serverMinor)
+            : base($"AMQP server protocol negotiation failure: server version {positiveOrUnknown(serverMajor)}-{positiveOrUnknown(serverMinor)}, client version {positiveOrUnknown(clientMajor)}-{positiveOrUnknown(clientMinor)}")
+        {
+            ClientMajor = clientMajor;
+            ClientMinor = clientMinor;
+            ServerMajor = serverMajor;
+            ServerMinor = serverMinor;
+        }
 
-    ///<summary>The client's AMQP specification major version.</summary>
-    public int ClientMajor { get; }
+        ///<summary>The client's AMQP specification major version.</summary>
+        public int ClientMajor { get; }
 
-    ///<summary>The client's AMQP specification minor version.</summary>
-    public int ClientMinor { get; }
+        ///<summary>The client's AMQP specification minor version.</summary>
+        public int ClientMinor { get; }
 
-    ///<summary>The peer's AMQP specification major version.</summary>
-    public int ServerMajor { get; }
+        ///<summary>The peer's AMQP specification major version.</summary>
+        public int ServerMajor { get; }
 
-    ///<summary>The peer's AMQP specification minor version.</summary>
-    public int ServerMinor { get; }
+        ///<summary>The peer's AMQP specification minor version.</summary>
+        public int ServerMinor { get; }
 
-    private static string positiveOrUnknown(int version)
-    {
-        return version >= 0 ? version.ToString() : "unknown";
+        private static string positiveOrUnknown(int version)
+        {
+            return version >= 0 ? version.ToString() : "unknown";
+        }
     }
 }

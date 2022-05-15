@@ -32,60 +32,61 @@
 using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Framing.Impl;
 
-namespace RabbitMQ.Client.Impl;
-
-internal sealed class RecoveryAwareModel : Model
+namespace RabbitMQ.Client.Impl
 {
-    public RecoveryAwareModel(ConnectionConfig config, ISession session) : base(config, session)
+    internal sealed class RecoveryAwareModel : Model
     {
-        ActiveDeliveryTagOffset = 0;
-        MaxSeenDeliveryTag = 0;
-    }
-
-    public ulong ActiveDeliveryTagOffset { get; private set; }
-    public ulong MaxSeenDeliveryTag { get; private set; }
-
-    internal void TakeOver(RecoveryAwareModel other)
-    {
-        base.TakeOver(other);
-
-        ActiveDeliveryTagOffset = other.ActiveDeliveryTagOffset + other.MaxSeenDeliveryTag;
-        MaxSeenDeliveryTag = 0;
-    }
-
-    protected override ulong AdjustDeliveryTag(ulong deliveryTag)
-    {
-        if (deliveryTag > MaxSeenDeliveryTag)
+        public RecoveryAwareModel(ConnectionConfig config, ISession session) : base(config, session)
         {
-            MaxSeenDeliveryTag = deliveryTag;
+            ActiveDeliveryTagOffset = 0;
+            MaxSeenDeliveryTag = 0;
         }
-        return deliveryTag + ActiveDeliveryTagOffset;
-    }
 
-    public override void BasicAck(ulong deliveryTag, bool multiple)
-    {
-        ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-        if (realTag > 0 && realTag <= deliveryTag)
+        public ulong ActiveDeliveryTagOffset { get; private set; }
+        public ulong MaxSeenDeliveryTag { get; private set; }
+
+        internal void TakeOver(RecoveryAwareModel other)
         {
-            base.BasicAck(realTag, multiple);
+            base.TakeOver(other);
+
+            ActiveDeliveryTagOffset = other.ActiveDeliveryTagOffset + other.MaxSeenDeliveryTag;
+            MaxSeenDeliveryTag = 0;
         }
-    }
 
-    public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
-    {
-        ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-        if (realTag > 0 && realTag <= deliveryTag)
+        protected override ulong AdjustDeliveryTag(ulong deliveryTag)
         {
-            base.BasicNack(realTag, multiple, requeue);
+            if (deliveryTag > MaxSeenDeliveryTag)
+            {
+                MaxSeenDeliveryTag = deliveryTag;
+            }
+            return deliveryTag + ActiveDeliveryTagOffset;
         }
-    }
 
-    public override void BasicReject(ulong deliveryTag, bool requeue)
-    {
-        ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-        if (realTag > 0 && realTag <= deliveryTag)
+        public override void BasicAck(ulong deliveryTag, bool multiple)
         {
-            base.BasicReject(realTag, requeue);
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                base.BasicAck(realTag, multiple);
+            }
+        }
+
+        public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                base.BasicNack(realTag, multiple, requeue);
+            }
+        }
+
+        public override void BasicReject(ulong deliveryTag, bool requeue)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                base.BasicReject(realTag, requeue);
+            }
         }
     }
 }

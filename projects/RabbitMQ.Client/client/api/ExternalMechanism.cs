@@ -31,15 +31,16 @@
 
 using System;
 
-namespace RabbitMQ.Client;
-
-public class ExternalMechanism : IAuthMechanism
+namespace RabbitMQ.Client
 {
-    /// <summary>
-    /// Handle one round of challenge-response.
-    /// </summary>
-    public byte[] handleChallenge(byte[] challenge, ConnectionConfig config)
+    public class ExternalMechanism : IAuthMechanism
     {
-        return Array.Empty<byte>();
+        /// <summary>
+        /// Handle one round of challenge-response.
+        /// </summary>
+        public byte[] handleChallenge(byte[] challenge, ConnectionConfig config)
+        {
+            return Array.Empty<byte>();
+        }
     }
 }

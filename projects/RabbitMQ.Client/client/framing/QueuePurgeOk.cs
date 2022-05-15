@@ -33,16 +33,17 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct QueuePurgeOk : IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly uint _messageCount;
-
-    public QueuePurgeOk(ReadOnlySpan<byte> span)
+    internal readonly struct QueuePurgeOk : IAmqpMethod
     {
-        WireFormatting.ReadLong(span, out _messageCount);
-    }
+        public readonly uint _messageCount;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurgeOk;
+        public QueuePurgeOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLong(span, out _messageCount);
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurgeOk;
+    }
 }

@@ -38,151 +38,152 @@ using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Logging;
 using RabbitMQ.Util;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-#nullable enable
-internal sealed partial class Connection
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public void UpdateSecret(string newSecret, string reason)
+#nullable enable
+    internal sealed partial class Connection
     {
-        _model0.UpdateSecret(newSecret, reason);
-    }
-
-    internal void NotifyReceivedCloseOk()
-    {
-        TerminateMainloop();
-        _closed = true;
-    }
-
-    internal void HandleConnectionBlocked(string reason)
-    {
-        if (!_connectionBlockedWrapper.IsEmpty)
+        public void UpdateSecret(string newSecret, string reason)
         {
-            _connectionBlockedWrapper.Invoke(this, new ConnectionBlockedEventArgs(reason));
-        }
-    }
-
-    internal void HandleConnectionUnblocked()
-    {
-        if (!_connectionUnblockedWrapper.IsEmpty)
-        {
-            _connectionUnblockedWrapper.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    private void Open()
-    {
-        RabbitMqClientEventSource.Log.ConnectionOpened();
-        StartAndTune();
-        _model0.ConnectionOpen(_config.VirtualHost);
-    }
-
-    private void StartAndTune()
-    {
-        var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
-        _model0.m_connectionStartCell = connectionStartCell;
-        _model0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
-        _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
-        _frameHandler.SendHeader();
-
-        ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
-
-        if (connectionStart is null)
-        {
-            throw new IOException("connection.start was never received, likely due to a network timeout");
+            _model0.UpdateSecret(newSecret, reason);
         }
 
-        ServerProperties = connectionStart.m_serverProperties;
-
-        var serverVersion = new AmqpVersion(connectionStart.m_versionMajor, connectionStart.m_versionMinor);
-        if (!serverVersion.Equals(Protocol.Version))
+        internal void NotifyReceivedCloseOk()
         {
             TerminateMainloop();
-            FinishClose();
-            throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
+            _closed = true;
         }
 
-        // FIXME: parse out locales properly!
-        ConnectionTuneDetails connectionTune = default;
-        bool tuned = false;
-        try
+        internal void HandleConnectionBlocked(string reason)
         {
-            string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms);
-            IAuthMechanismFactory mechanismFactory = GetAuthMechanismFactory(mechanismsString);
-            IAuthMechanism mechanism = mechanismFactory.GetInstance();
-            byte[]? challenge = null;
-            do
+            if (!_connectionBlockedWrapper.IsEmpty)
             {
-                byte[] response = mechanism.handleChallenge(challenge, _config);
-                ConnectionSecureOrTune res;
-                if (challenge is null)
-                {
-                    res = _model0.ConnectionStartOk(ClientProperties,
-                        mechanismFactory.Name,
-                        response,
-                        "en_US");
-                }
-                else
-                {
-                    res = _model0.ConnectionSecureOk(response);
-                }
-
-                if (res.m_challenge is null)
-                {
-                    connectionTune = res.m_tuneDetails;
-                    tuned = true;
-                }
-                else
-                {
-                    challenge = res.m_challenge;
-                }
-            }
-            while (!tuned);
-        }
-        catch (OperationInterruptedException e)
-        {
-            if (e.ShutdownReason != null && e.ShutdownReason.ReplyCode == Constants.AccessRefused)
-            {
-                throw new AuthenticationFailureException(e.ShutdownReason.ReplyText);
-            }
-            throw new PossibleAuthenticationFailureException(
-                "Possibly caused by authentication failure", e);
-        }
-
-        ushort channelMax = (ushort)NegotiatedMaxValue(_config.MaxChannelCount, connectionTune.m_channelMax);
-        _sessionManager = new SessionManager(this, channelMax);
-
-        uint frameMax = NegotiatedMaxValue(_config.MaxFrameSize, connectionTune.m_frameMax);
-        FrameMax = frameMax;
-        MaxPayloadSize = frameMax == 0 ? int.MaxValue : (int)frameMax - Client.Impl.Framing.BaseFrameSize;
-
-        uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
-        Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
-
-        _model0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
-
-        // now we can start heartbeat timers
-        MaybeStartHeartbeatTimers();
-    }
-
-    private IAuthMechanismFactory GetAuthMechanismFactory(string supportedMechanismNames)
-    {
-        // Our list is in order of preference, the server one is not.
-        foreach (var factory in _config.AuthMechanisms)
-        {
-            if (supportedMechanismNames.IndexOf(factory.Name, StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return factory;
+                _connectionBlockedWrapper.Invoke(this, new ConnectionBlockedEventArgs(reason));
             }
         }
 
-        throw new IOException($"No compatible authentication mechanism found - server offered [{supportedMechanismNames}]");
-    }
+        internal void HandleConnectionUnblocked()
+        {
+            if (!_connectionUnblockedWrapper.IsEmpty)
+            {
+                _connectionUnblockedWrapper.Invoke(this, EventArgs.Empty);
+            }
+        }
 
-    private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
-    {
-        return (clientValue == 0 || serverValue == 0) ?
-            Math.Max(clientValue, serverValue) :
-            Math.Min(clientValue, serverValue);
+        private void Open()
+        {
+            RabbitMqClientEventSource.Log.ConnectionOpened();
+            StartAndTune();
+            _model0.ConnectionOpen(_config.VirtualHost);
+        }
+
+        private void StartAndTune()
+        {
+            var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
+            _model0.m_connectionStartCell = connectionStartCell;
+            _model0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
+            _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
+            _frameHandler.SendHeader();
+
+            ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
+
+            if (connectionStart is null)
+            {
+                throw new IOException("connection.start was never received, likely due to a network timeout");
+            }
+
+            ServerProperties = connectionStart.m_serverProperties;
+
+            var serverVersion = new AmqpVersion(connectionStart.m_versionMajor, connectionStart.m_versionMinor);
+            if (!serverVersion.Equals(Protocol.Version))
+            {
+                TerminateMainloop();
+                FinishClose();
+                throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
+            }
+
+            // FIXME: parse out locales properly!
+            ConnectionTuneDetails connectionTune = default;
+            bool tuned = false;
+            try
+            {
+                string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms);
+                IAuthMechanismFactory mechanismFactory = GetAuthMechanismFactory(mechanismsString);
+                IAuthMechanism mechanism = mechanismFactory.GetInstance();
+                byte[]? challenge = null;
+                do
+                {
+                    byte[] response = mechanism.handleChallenge(challenge, _config);
+                    ConnectionSecureOrTune res;
+                    if (challenge is null)
+                    {
+                        res = _model0.ConnectionStartOk(ClientProperties,
+                            mechanismFactory.Name,
+                            response,
+                            "en_US");
+                    }
+                    else
+                    {
+                        res = _model0.ConnectionSecureOk(response);
+                    }
+
+                    if (res.m_challenge is null)
+                    {
+                        connectionTune = res.m_tuneDetails;
+                        tuned = true;
+                    }
+                    else
+                    {
+                        challenge = res.m_challenge;
+                    }
+                }
+                while (!tuned);
+            }
+            catch (OperationInterruptedException e)
+            {
+                if (e.ShutdownReason != null && e.ShutdownReason.ReplyCode == Constants.AccessRefused)
+                {
+                    throw new AuthenticationFailureException(e.ShutdownReason.ReplyText);
+                }
+                throw new PossibleAuthenticationFailureException(
+                    "Possibly caused by authentication failure", e);
+            }
+
+            ushort channelMax = (ushort)NegotiatedMaxValue(_config.MaxChannelCount, connectionTune.m_channelMax);
+            _sessionManager = new SessionManager(this, channelMax);
+
+            uint frameMax = NegotiatedMaxValue(_config.MaxFrameSize, connectionTune.m_frameMax);
+            FrameMax = frameMax;
+            MaxPayloadSize = frameMax == 0 ? int.MaxValue : (int)frameMax - Client.Impl.Framing.BaseFrameSize;
+
+            uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
+            Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
+
+            _model0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
+
+            // now we can start heartbeat timers
+            MaybeStartHeartbeatTimers();
+        }
+
+        private IAuthMechanismFactory GetAuthMechanismFactory(string supportedMechanismNames)
+        {
+            // Our list is in order of preference, the server one is not.
+            foreach (var factory in _config.AuthMechanisms)
+            {
+                if (supportedMechanismNames.IndexOf(factory.Name, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return factory;
+                }
+            }
+
+            throw new IOException($"No compatible authentication mechanism found - server offered [{supportedMechanismNames}]");
+        }
+
+        private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
+        {
+            return (clientValue == 0 || serverValue == 0) ?
+                Math.Max(clientValue, serverValue) :
+                Math.Min(clientValue, serverValue);
+        }
     }
 }

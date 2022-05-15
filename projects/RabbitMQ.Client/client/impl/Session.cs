@@ -31,27 +31,28 @@
 
 using RabbitMQ.Client.Framing.Impl;
 
-namespace RabbitMQ.Client.Impl;
-
-///<summary>Normal ISession implementation used during normal channel operation.</summary>
-internal class Session : SessionBase
+namespace RabbitMQ.Client.Impl
 {
-    private readonly CommandAssembler _assembler;
-
-    public Session(Connection connection, ushort channelNumber) : base(connection, channelNumber)
+    ///<summary>Normal ISession implementation used during normal channel operation.</summary>
+    internal class Session : SessionBase
     {
-        _assembler = new CommandAssembler();
-    }
+        private readonly CommandAssembler _assembler;
 
-    public override bool HandleFrame(in InboundFrame frame)
-    {
-        bool shallReturnFramePayload = _assembler.HandleFrame(in frame, out IncomingCommand cmd);
-
-        if (!cmd.IsEmpty)
+        public Session(Connection connection, ushort channelNumber) : base(connection, channelNumber)
         {
-            CommandReceived.Invoke(in cmd);
+            _assembler = new CommandAssembler();
         }
 
-        return shallReturnFramePayload;
+        public override bool HandleFrame(in InboundFrame frame)
+        {
+            bool shallReturnFramePayload = _assembler.HandleFrame(in frame, out IncomingCommand cmd);
+
+            if (!cmd.IsEmpty)
+            {
+                CommandReceived.Invoke(in cmd);
+            }
+
+            return shallReturnFramePayload;
+        }
     }
 }

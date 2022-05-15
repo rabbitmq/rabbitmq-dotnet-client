@@ -33,90 +33,91 @@ using System;
 using System.Collections.Generic;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client;
-
-#nullable enable
-/// <summary>
-/// AMQP specification content header properties for content class "basic"
-/// </summary>
-public readonly struct ReadOnlyBasicProperties : IReadOnlyBasicProperties
+namespace RabbitMQ.Client
 {
-    private readonly string? _contentType;
-    private readonly string? _contentEncoding;
-    private readonly IDictionary<string, object?>? _headers;
-    private readonly DeliveryModes _deliveryMode;
-    private readonly byte _priority;
-    private readonly string? _correlationId;
-    private readonly string? _replyTo;
-    private readonly string? _expiration;
-    private readonly string? _messageId;
-    private readonly AmqpTimestamp _timestamp;
-    private readonly string? _type;
-    private readonly string? _userId;
-    private readonly string? _appId;
-    private readonly string? _clusterId;
-
-    public string? ContentType => _contentType;
-    public string? ContentEncoding => _contentEncoding;
-    public IDictionary<string, object?>? Headers => _headers;
-    public DeliveryModes DeliveryMode => _deliveryMode;
-    public byte Priority => _priority;
-    public string? CorrelationId => _correlationId;
-    public string? ReplyTo => _replyTo;
-    public string? Expiration => _expiration;
-    public string? MessageId => _messageId;
-    public AmqpTimestamp Timestamp => _timestamp;
-    public string? Type => _type;
-    public string? UserId => _userId;
-    public string? AppId => _appId;
-    public string? ClusterId => _clusterId;
-
-    public bool Persistent => DeliveryMode == DeliveryModes.Persistent;
-
-    public PublicationAddress? ReplyToAddress
+#nullable enable
+    /// <summary>
+    /// AMQP specification content header properties for content class "basic"
+    /// </summary>
+    public readonly struct ReadOnlyBasicProperties : IReadOnlyBasicProperties
     {
-        get
+        private readonly string? _contentType;
+        private readonly string? _contentEncoding;
+        private readonly IDictionary<string, object?>? _headers;
+        private readonly DeliveryModes _deliveryMode;
+        private readonly byte _priority;
+        private readonly string? _correlationId;
+        private readonly string? _replyTo;
+        private readonly string? _expiration;
+        private readonly string? _messageId;
+        private readonly AmqpTimestamp _timestamp;
+        private readonly string? _type;
+        private readonly string? _userId;
+        private readonly string? _appId;
+        private readonly string? _clusterId;
+
+        public string? ContentType => _contentType;
+        public string? ContentEncoding => _contentEncoding;
+        public IDictionary<string, object?>? Headers => _headers;
+        public DeliveryModes DeliveryMode => _deliveryMode;
+        public byte Priority => _priority;
+        public string? CorrelationId => _correlationId;
+        public string? ReplyTo => _replyTo;
+        public string? Expiration => _expiration;
+        public string? MessageId => _messageId;
+        public AmqpTimestamp Timestamp => _timestamp;
+        public string? Type => _type;
+        public string? UserId => _userId;
+        public string? AppId => _appId;
+        public string? ClusterId => _clusterId;
+
+        public bool Persistent => DeliveryMode == DeliveryModes.Persistent;
+
+        public PublicationAddress? ReplyToAddress
         {
-            PublicationAddress.TryParse(ReplyTo, out PublicationAddress result);
-            return result;
+            get
+            {
+                PublicationAddress.TryParse(ReplyTo, out PublicationAddress result);
+                return result;
+            }
         }
+
+        public ReadOnlyBasicProperties(ReadOnlySpan<byte> span)
+            : this()
+        {
+            int offset = 2;
+            ref readonly byte bits = ref span[0];
+            if (bits.IsBitSet(BasicProperties.ContentTypeBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentType); }
+            if (bits.IsBitSet(BasicProperties.ContentEncodingBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentEncoding); }
+            if (bits.IsBitSet(BasicProperties.HeaderBit)) { offset += WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDirectory); _headers = tmpDirectory; }
+            if (bits.IsBitSet(BasicProperties.DeliveryModeBit)) { _deliveryMode = (DeliveryModes)span[offset++]; }
+            if (bits.IsBitSet(BasicProperties.PriorityBit)) { _priority = span[offset++]; }
+            if (bits.IsBitSet(BasicProperties.CorrelationIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _correlationId); }
+            if (bits.IsBitSet(BasicProperties.ReplyToBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyTo); }
+            if (bits.IsBitSet(BasicProperties.ExpirationBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _expiration); }
+
+            bits = ref span[1];
+            if (bits.IsBitSet(BasicProperties.MessageIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _messageId); }
+            if (bits.IsBitSet(BasicProperties.TimestampBit)) { offset += WireFormatting.ReadTimestamp(span.Slice(offset), out _timestamp); }
+            if (bits.IsBitSet(BasicProperties.TypeBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _type); }
+            if (bits.IsBitSet(BasicProperties.UserIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _userId); }
+            if (bits.IsBitSet(BasicProperties.AppIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _appId); }
+            if (bits.IsBitSet(BasicProperties.ClusterIdBit)) { WireFormatting.ReadShortstr(span.Slice(offset), out _clusterId); }
+        }
+
+        public bool IsContentTypePresent() => ContentType != default;
+        public bool IsContentEncodingPresent() => ContentEncoding != default;
+        public bool IsHeadersPresent() => Headers != default;
+        public bool IsDeliveryModePresent() => DeliveryMode != default;
+        public bool IsPriorityPresent() => Priority != default;
+        public bool IsCorrelationIdPresent() => CorrelationId != default;
+        public bool IsReplyToPresent() => ReplyTo != default;
+        public bool IsExpirationPresent() => Expiration != default;
+        public bool IsMessageIdPresent() => MessageId != default;
+        public bool IsTimestampPresent() => Timestamp != default;
+        public bool IsTypePresent() => Type != default;
+        public bool IsUserIdPresent() => UserId != default;
+        public bool IsAppIdPresent() => AppId != default;
+        public bool IsClusterIdPresent() => ClusterId != default;
     }
-
-    public ReadOnlyBasicProperties(ReadOnlySpan<byte> span)
-        : this()
-    {
-        int offset = 2;
-        ref readonly byte bits = ref span[0];
-        if (bits.IsBitSet(BasicProperties.ContentTypeBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentType); }
-        if (bits.IsBitSet(BasicProperties.ContentEncodingBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentEncoding); }
-        if (bits.IsBitSet(BasicProperties.HeaderBit)) { offset += WireFormatting.ReadDictionary(span.Slice(offset), out var tmpDirectory); _headers = tmpDirectory; }
-        if (bits.IsBitSet(BasicProperties.DeliveryModeBit)) { _deliveryMode = (DeliveryModes)span[offset++]; }
-        if (bits.IsBitSet(BasicProperties.PriorityBit)) { _priority = span[offset++]; }
-        if (bits.IsBitSet(BasicProperties.CorrelationIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _correlationId); }
-        if (bits.IsBitSet(BasicProperties.ReplyToBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyTo); }
-        if (bits.IsBitSet(BasicProperties.ExpirationBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _expiration); }
-
-        bits = ref span[1];
-        if (bits.IsBitSet(BasicProperties.MessageIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _messageId); }
-        if (bits.IsBitSet(BasicProperties.TimestampBit)) { offset += WireFormatting.ReadTimestamp(span.Slice(offset), out _timestamp); }
-        if (bits.IsBitSet(BasicProperties.TypeBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _type); }
-        if (bits.IsBitSet(BasicProperties.UserIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _userId); }
-        if (bits.IsBitSet(BasicProperties.AppIdBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _appId); }
-        if (bits.IsBitSet(BasicProperties.ClusterIdBit)) { WireFormatting.ReadShortstr(span.Slice(offset), out _clusterId); }
-    }
-
-    public bool IsContentTypePresent() => ContentType != default;
-    public bool IsContentEncodingPresent() => ContentEncoding != default;
-    public bool IsHeadersPresent() => Headers != default;
-    public bool IsDeliveryModePresent() => DeliveryMode != default;
-    public bool IsPriorityPresent() => Priority != default;
-    public bool IsCorrelationIdPresent() => CorrelationId != default;
-    public bool IsReplyToPresent() => ReplyTo != default;
-    public bool IsExpirationPresent() => Expiration != default;
-    public bool IsMessageIdPresent() => MessageId != default;
-    public bool IsTimestampPresent() => Timestamp != default;
-    public bool IsTypePresent() => Type != default;
-    public bool IsUserIdPresent() => UserId != default;
-    public bool IsAppIdPresent() => AppId != default;
-    public bool IsClusterIdPresent() => ClusterId != default;
 }

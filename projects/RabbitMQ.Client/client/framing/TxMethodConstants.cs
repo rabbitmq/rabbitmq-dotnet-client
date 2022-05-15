@@ -29,14 +29,15 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal static class TxMethodConstants
+namespace RabbitMQ.Client.Framing.Impl
 {
-    internal const ushort Select = 10;
-    internal const ushort SelectOk = 11;
-    internal const ushort Commit = 20;
-    internal const ushort CommitOk = 21;
-    internal const ushort Rollback = 30;
-    internal const ushort RollbackOk = 31;
+    internal static class TxMethodConstants
+    {
+        internal const ushort Select = 10;
+        internal const ushort SelectOk = 11;
+        internal const ushort Commit = 20;
+        internal const ushort CommitOk = 21;
+        internal const ushort Rollback = 30;
+        internal const ushort RollbackOk = 31;
+    }
 }

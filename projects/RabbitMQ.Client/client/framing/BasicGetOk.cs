@@ -34,24 +34,25 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct BasicGetOk : IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly ulong _deliveryTag;
-    public readonly bool _redelivered;
-    public readonly string _exchange;
-    public readonly string _routingKey;
-    public readonly uint _messageCount;
-
-    public BasicGetOk(ReadOnlySpan<byte> span)
+    internal readonly struct BasicGetOk : IAmqpMethod
     {
-        int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
-        offset += WireFormatting.ReadBits(span.Slice(offset), out _redelivered);
-        offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
-        offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
-        WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
-    }
+        public readonly ulong _deliveryTag;
+        public readonly bool _redelivered;
+        public readonly string _exchange;
+        public readonly string _routingKey;
+        public readonly uint _messageCount;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetOk;
+        public BasicGetOk(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadLonglong(span, out _deliveryTag);
+            offset += WireFormatting.ReadBits(span.Slice(offset), out _redelivered);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+            WireFormatting.ReadLong(span.Slice(offset), out _messageCount);
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicGetOk;
+    }
 }

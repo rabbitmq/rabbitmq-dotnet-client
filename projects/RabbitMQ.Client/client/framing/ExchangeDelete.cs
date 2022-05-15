@@ -34,36 +34,37 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct ExchangeDelete : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    // deprecated
-    // ushort _reserved1
-    public readonly string _exchange;
-    public readonly bool _ifUnused;
-    public readonly bool _nowait;
-
-    public ExchangeDelete(string Exchange, bool IfUnused, bool Nowait)
+    internal readonly struct ExchangeDelete : IOutgoingAmqpMethod
     {
-        _exchange = Exchange;
-        _ifUnused = IfUnused;
-        _nowait = Nowait;
-    }
+        // deprecated
+        // ushort _reserved1
+        public readonly string _exchange;
+        public readonly bool _ifUnused;
+        public readonly bool _nowait;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDelete;
+        public ExchangeDelete(string Exchange, bool IfUnused, bool Nowait)
+        {
+            _exchange = Exchange;
+            _ifUnused = IfUnused;
+            _nowait = Nowait;
+        }
 
-    public int WriteTo(Span<byte> span)
-    {
-        int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
-        return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _ifUnused, _nowait);
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ExchangeDelete;
 
-    public int GetRequiredBufferSize()
-    {
-        int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _exchange, bit fields
-        bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes
-        return bufferSize;
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _ifUnused, _nowait);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _exchange, bit fields
+            bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes
+            return bufferSize;
+        }
     }
 }

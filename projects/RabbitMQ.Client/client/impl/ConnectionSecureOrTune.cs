@@ -29,24 +29,25 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Impl;
-
-///<summary>Essential information from an incoming Connection.Tune
-///method.</summary>
-internal struct ConnectionTuneDetails
+namespace RabbitMQ.Client.Impl
 {
-    ///<summary>The peer's suggested channel-max parameter.</summary>
-    public ushort m_channelMax;
+    ///<summary>Essential information from an incoming Connection.Tune
+    ///method.</summary>
+    internal struct ConnectionTuneDetails
+    {
+        ///<summary>The peer's suggested channel-max parameter.</summary>
+        public ushort m_channelMax;
 
-    ///<summary>The peer's suggested frame-max parameter.</summary>
-    public uint m_frameMax;
+        ///<summary>The peer's suggested frame-max parameter.</summary>
+        public uint m_frameMax;
 
-    ///<summary>The peer's suggested heartbeat parameter.</summary>
-    public ushort m_heartbeatInSeconds;
-}
+        ///<summary>The peer's suggested heartbeat parameter.</summary>
+        public ushort m_heartbeatInSeconds;
+    }
 
-internal class ConnectionSecureOrTune
-{
-    public byte[] m_challenge;
-    public ConnectionTuneDetails m_tuneDetails;
+    internal class ConnectionSecureOrTune
+    {
+        public byte[] m_challenge;
+        public ConnectionTuneDetails m_tuneDetails;
+    }
 }

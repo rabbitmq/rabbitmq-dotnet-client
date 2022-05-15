@@ -36,121 +36,122 @@ using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Logging;
 
-namespace RabbitMQ.Client.Impl;
-
-internal abstract class SessionBase : ISession
+namespace RabbitMQ.Client.Impl
 {
-    private ShutdownEventArgs _closeReason;
-    public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
-
-    protected SessionBase(Connection connection, ushort channelNumber)
+    internal abstract class SessionBase : ISession
     {
-        Connection = connection;
-        ChannelNumber = channelNumber;
-        if (channelNumber != 0)
-        {
-            connection.ConnectionShutdown += OnConnectionShutdown;
-        }
-        RabbitMqClientEventSource.Log.ChannelOpened();
-    }
+        private ShutdownEventArgs _closeReason;
+        public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
 
-    public event EventHandler<ShutdownEventArgs> SessionShutdown
-    {
-        add
+        protected SessionBase(Connection connection, ushort channelNumber)
         {
-            if (CloseReason is null)
+            Connection = connection;
+            ChannelNumber = channelNumber;
+            if (channelNumber != 0)
             {
-                _sessionShutdownWrapper.AddHandler(value);
+                connection.ConnectionShutdown += OnConnectionShutdown;
             }
-            else
+            RabbitMqClientEventSource.Log.ChannelOpened();
+        }
+
+        public event EventHandler<ShutdownEventArgs> SessionShutdown
+        {
+            add
             {
-                value(this, CloseReason);
+                if (CloseReason is null)
+                {
+                    _sessionShutdownWrapper.AddHandler(value);
+                }
+                else
+                {
+                    value(this, CloseReason);
+                }
+            }
+            remove
+            {
+                _sessionShutdownWrapper.RemoveHandler(value);
             }
         }
-        remove
+        private EventingWrapper<ShutdownEventArgs> _sessionShutdownWrapper;
+
+        public ushort ChannelNumber { get; }
+
+        public CommandReceivedAction CommandReceived { get; set; }
+        public Connection Connection { get; }
+
+        public bool IsOpen => CloseReason is null;
+
+        public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
         {
-            _sessionShutdownWrapper.RemoveHandler(value);
-        }
-    }
-    private EventingWrapper<ShutdownEventArgs> _sessionShutdownWrapper;
-
-    public ushort ChannelNumber { get; }
-
-    public CommandReceivedAction CommandReceived { get; set; }
-    public Connection Connection { get; }
-
-    public bool IsOpen => CloseReason is null;
-
-    public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
-    {
-        Close(reason);
-    }
-
-    public virtual void OnSessionShutdown(ShutdownEventArgs reason)
-    {
-        Connection.ConnectionShutdown -= OnConnectionShutdown;
-        _sessionShutdownWrapper.Invoke(this, reason);
-    }
-
-    public override string ToString()
-    {
-        return $"{GetType().Name}#{ChannelNumber}:{Connection}";
-    }
-
-    public void Close(ShutdownEventArgs reason)
-    {
-        Close(reason, true);
-    }
-
-    public void Close(ShutdownEventArgs reason, bool notify)
-    {
-        if (Interlocked.CompareExchange(ref _closeReason, reason, null) is null)
-        {
-            RabbitMqClientEventSource.Log.ChannelClosed();
-        }
-        if (notify)
-        {
-            OnSessionShutdown(CloseReason);
-        }
-    }
-
-    public abstract bool HandleFrame(in InboundFrame frame);
-
-    public void Notify()
-    {
-        // Ensure that we notify only when session is already closed
-        // If not, throw exception, since this is a serious bug in the library
-        var reason = CloseReason;
-        if (reason is null)
-        {
-            throw new Exception("Internal Error in Session.Close");
+            Close(reason);
         }
 
-        OnSessionShutdown(reason);
-    }
-
-    public virtual void Transmit<T>(ref T cmd) where T : struct, IOutgoingAmqpMethod
-    {
-        if (!IsOpen && cmd.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
+        public virtual void OnSessionShutdown(ShutdownEventArgs reason)
         {
-            ThrowAlreadyClosedException();
+            Connection.ConnectionShutdown -= OnConnectionShutdown;
+            _sessionShutdownWrapper.Invoke(this, reason);
         }
 
-        Connection.Write(Framing.SerializeToFrames(ref cmd, ChannelNumber));
-    }
-
-    public void Transmit<TMethod, THeader>(ref TMethod cmd, ref THeader header, ReadOnlyMemory<byte> body)
-        where TMethod : struct, IOutgoingAmqpMethod
-        where THeader : IAmqpHeader
-    {
-        if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
+        public override string ToString()
         {
-            ThrowAlreadyClosedException();
+            return $"{GetType().Name}#{ChannelNumber}:{Connection}";
         }
 
-        Connection.Write(Framing.SerializeToFrames(ref cmd, ref header, body, ChannelNumber, Connection.MaxPayloadSize));
-    }
+        public void Close(ShutdownEventArgs reason)
+        {
+            Close(reason, true);
+        }
 
-    private void ThrowAlreadyClosedException()
-        => throw new AlreadyClosedException(CloseReason);
+        public void Close(ShutdownEventArgs reason, bool notify)
+        {
+            if (Interlocked.CompareExchange(ref _closeReason, reason, null) is null)
+            {
+                RabbitMqClientEventSource.Log.ChannelClosed();
+            }
+            if (notify)
+            {
+                OnSessionShutdown(CloseReason);
+            }
+        }
+
+        public abstract bool HandleFrame(in InboundFrame frame);
+
+        public void Notify()
+        {
+            // Ensure that we notify only when session is already closed
+            // If not, throw exception, since this is a serious bug in the library
+            var reason = CloseReason;
+            if (reason is null)
+            {
+                throw new Exception("Internal Error in Session.Close");
+            }
+
+            OnSessionShutdown(reason);
+        }
+
+        public virtual void Transmit<T>(ref T cmd) where T : struct, IOutgoingAmqpMethod
+        {
+            if (!IsOpen && cmd.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
+            {
+                ThrowAlreadyClosedException();
+            }
+
+            Connection.Write(Framing.SerializeToFrames(ref cmd, ChannelNumber));
+        }
+
+        public void Transmit<TMethod, THeader>(ref TMethod cmd, ref THeader header, ReadOnlyMemory<byte> body)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
+            {
+                ThrowAlreadyClosedException();
+            }
+
+            Connection.Write(Framing.SerializeToFrames(ref cmd, ref header, body, ChannelNumber, Connection.MaxPayloadSize));
+        }
+
+        private void ThrowAlreadyClosedException()
+            => throw new AlreadyClosedException(CloseReason);
+    }
 }

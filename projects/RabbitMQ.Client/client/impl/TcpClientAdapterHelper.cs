@@ -3,17 +3,18 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
-namespace RabbitMQ.Client.Impl;
-
-internal static class TcpClientAdapterHelper
+namespace RabbitMQ.Client.Impl
 {
-    public static IPAddress GetMatchingHost(IReadOnlyCollection<IPAddress> addresses, AddressFamily addressFamily)
+    internal static class TcpClientAdapterHelper
     {
-        IPAddress ep = addresses.FirstOrDefault(a => a.AddressFamily == addressFamily);
-        if (ep is null && addresses.Count == 1 && addressFamily == AddressFamily.Unspecified)
+        public static IPAddress GetMatchingHost(IReadOnlyCollection<IPAddress> addresses, AddressFamily addressFamily)
         {
-            return addresses.Single();
+            IPAddress ep = addresses.FirstOrDefault(a => a.AddressFamily == addressFamily);
+            if (ep is null && addresses.Count == 1 && addressFamily == AddressFamily.Unspecified)
+            {
+                return addresses.Single();
+            }
+            return ep;
         }
-        return ep;
     }
 }

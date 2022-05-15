@@ -34,16 +34,17 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct BasicConsumeOk : IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly string _consumerTag;
-
-    public BasicConsumeOk(ReadOnlySpan<byte> span)
+    internal readonly struct BasicConsumeOk : IAmqpMethod
     {
-        WireFormatting.ReadShortstr(span, out _consumerTag);
-    }
+        public readonly string _consumerTag;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsumeOk;
+        public BasicConsumeOk(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _consumerTag);
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsumeOk;
+    }
 }

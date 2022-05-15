@@ -31,42 +31,43 @@
 
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Impl;
-
-#nullable enable
-internal readonly struct RecordedConsumer
+namespace RabbitMQ.Client.Impl
 {
-    public AutorecoveringModel Channel { get; }
-    public IBasicConsumer Consumer { get; }
-    public string Queue { get; }
-    public bool AutoAck { get; }
-    public string ConsumerTag { get; }
-    public bool Exclusive { get; }
-    public IDictionary<string, object>? Arguments { get; }
-
-    public RecordedConsumer(AutorecoveringModel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IDictionary<string, object>? arguments)
+#nullable enable
+    internal readonly struct RecordedConsumer
     {
-        Channel = channel;
-        Consumer = consumer;
-        Queue = queue;
-        AutoAck = autoAck;
-        ConsumerTag = consumerTag;
-        Exclusive = exclusive;
-        Arguments = arguments;
-    }
+        public AutorecoveringModel Channel { get; }
+        public IBasicConsumer Consumer { get; }
+        public string Queue { get; }
+        public bool AutoAck { get; }
+        public string ConsumerTag { get; }
+        public bool Exclusive { get; }
+        public IDictionary<string, object>? Arguments { get; }
 
-    public static RecordedConsumer WithNewConsumerTag(string newTag, in RecordedConsumer old)
-    {
-        return new RecordedConsumer(old.Channel, old.Consumer, old.Queue, old.AutoAck, newTag, old.Exclusive, old.Arguments);
-    }
+        public RecordedConsumer(AutorecoveringModel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IDictionary<string, object>? arguments)
+        {
+            Channel = channel;
+            Consumer = consumer;
+            Queue = queue;
+            AutoAck = autoAck;
+            ConsumerTag = consumerTag;
+            Exclusive = exclusive;
+            Arguments = arguments;
+        }
 
-    public static RecordedConsumer WithNewQueueNameTag(string newQueueName, in RecordedConsumer old)
-    {
-        return new RecordedConsumer(old.Channel, old.Consumer, newQueueName, old.AutoAck, old.ConsumerTag, old.Exclusive, old.Arguments);
-    }
+        public static RecordedConsumer WithNewConsumerTag(string newTag, in RecordedConsumer old)
+        {
+            return new RecordedConsumer(old.Channel, old.Consumer, old.Queue, old.AutoAck, newTag, old.Exclusive, old.Arguments);
+        }
 
-    public string Recover(IModel channel)
-    {
-        return channel.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
+        public static RecordedConsumer WithNewQueueNameTag(string newQueueName, in RecordedConsumer old)
+        {
+            return new RecordedConsumer(old.Channel, old.Consumer, newQueueName, old.AutoAck, old.ConsumerTag, old.Exclusive, old.Arguments);
+        }
+
+        public string Recover(IModel channel)
+        {
+            return channel.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
+        }
     }
 }

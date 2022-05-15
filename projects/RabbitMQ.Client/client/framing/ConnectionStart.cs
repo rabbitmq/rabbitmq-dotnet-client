@@ -35,24 +35,25 @@ using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct ConnectionStart : IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly byte _versionMajor;
-    public readonly byte _versionMinor;
-    public readonly Dictionary<string, object> _serverProperties;
-    public readonly byte[] _mechanisms;
-    public readonly byte[] _locales;
-
-    public ConnectionStart(ReadOnlySpan<byte> span)
+    internal readonly struct ConnectionStart : IAmqpMethod
     {
-        _versionMajor = span[0];
-        _versionMinor = span[1];
-        int offset = 2 + WireFormatting.ReadDictionary(span.Slice(2), out _serverProperties);
-        offset += WireFormatting.ReadLongstr(span.Slice(offset), out _mechanisms);
-        WireFormatting.ReadLongstr(span.Slice(offset), out _locales);
-    }
+        public readonly byte _versionMajor;
+        public readonly byte _versionMinor;
+        public readonly Dictionary<string, object> _serverProperties;
+        public readonly byte[] _mechanisms;
+        public readonly byte[] _locales;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStart;
+        public ConnectionStart(ReadOnlySpan<byte> span)
+        {
+            _versionMajor = span[0];
+            _versionMinor = span[1];
+            int offset = 2 + WireFormatting.ReadDictionary(span.Slice(2), out _serverProperties);
+            offset += WireFormatting.ReadLongstr(span.Slice(offset), out _mechanisms);
+            WireFormatting.ReadLongstr(span.Slice(offset), out _locales);
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionStart;
+    }
 }

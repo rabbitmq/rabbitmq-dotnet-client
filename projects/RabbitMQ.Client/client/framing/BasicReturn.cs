@@ -34,22 +34,23 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct BasicReturn : IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly ushort _replyCode;
-    public readonly string _replyText;
-    public readonly string _exchange;
-    public readonly string _routingKey;
-
-    public BasicReturn(ReadOnlySpan<byte> span)
+    internal readonly struct BasicReturn : IAmqpMethod
     {
-        int offset = WireFormatting.ReadShort(span, out _replyCode);
-        offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
-        offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
-        WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
-    }
+        public readonly ushort _replyCode;
+        public readonly string _replyText;
+        public readonly string _exchange;
+        public readonly string _routingKey;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReturn;
+        public BasicReturn(ReadOnlySpan<byte> span)
+        {
+            int offset = WireFormatting.ReadShort(span, out _replyCode);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _replyText);
+            offset += WireFormatting.ReadShortstr(span.Slice(offset), out _exchange);
+            WireFormatting.ReadShortstr(span.Slice(offset), out _routingKey);
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReturn;
+    }
 }

@@ -32,60 +32,61 @@
 using System;
 using System.Diagnostics.Tracing;
 
-namespace RabbitMQ.Client.Logging;
-
-#nullable enable
-internal sealed partial class RabbitMqClientEventSource : EventSource
+namespace RabbitMQ.Client.Logging
 {
-    public static readonly RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
-
-    public RabbitMqClientEventSource()
-        : base("rabbitmq-client")
+#nullable enable
+    internal sealed partial class RabbitMqClientEventSource : EventSource
     {
-    }
+        public static readonly RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
 
-    public class Keywords
-    {
-        public const EventKeywords Log = (EventKeywords)1;
-    }
+        public RabbitMqClientEventSource()
+            : base("rabbitmq-client")
+        {
+        }
 
-    [Event(1, Message = "INFO", Keywords = Keywords.Log, Level = EventLevel.Informational)]
-    public void Info(string message)
-    {
-        if (IsEnabled())
-            WriteEvent(1, message);
-    }
+        public class Keywords
+        {
+            public const EventKeywords Log = (EventKeywords)1;
+        }
 
-    [Event(2, Message = "WARN", Keywords = Keywords.Log, Level = EventLevel.Warning)]
-    public void Warn(string message)
-    {
-        if (IsEnabled())
-            WriteEvent(2, message);
-    }
+        [Event(1, Message = "INFO", Keywords = Keywords.Log, Level = EventLevel.Informational)]
+        public void Info(string message)
+        {
+            if (IsEnabled())
+                WriteEvent(1, message);
+        }
+
+        [Event(2, Message = "WARN", Keywords = Keywords.Log, Level = EventLevel.Warning)]
+        public void Warn(string message)
+        {
+            if (IsEnabled())
+                WriteEvent(2, message);
+        }
 #if NET452
-    [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
-    public void Error(string message, string detail)
-    {
-        if(IsEnabled())
-            this.WriteEvent(3, message, detail);
-    }
+        [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
+        public void Error(string message, string detail)
+        {
+            if(IsEnabled())
+                this.WriteEvent(3, message, detail);
+        }
 #else
-    [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
-    public void Error(string message, RabbitMqExceptionDetail ex)
-    {
-        if (IsEnabled())
-            WriteEvent(3, message, ex);
-    }
+        [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
+        public void Error(string message, RabbitMqExceptionDetail ex)
+        {
+            if (IsEnabled())
+                WriteEvent(3, message, ex);
+        }
 #endif
 
-    [NonEvent]
-    public void Error(string message, Exception ex)
-    {
+        [NonEvent]
+        public void Error(string message, Exception ex)
+        {
 
 #if NET452
-        Error(message, ex.ToString());
+            Error(message, ex.ToString());
 #else
-        Error(message, new RabbitMqExceptionDetail(ex));
+            Error(message, new RabbitMqExceptionDetail(ex));
 #endif
+        }
     }
 }

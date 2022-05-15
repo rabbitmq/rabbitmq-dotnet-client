@@ -33,29 +33,30 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct BasicReject : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly ulong _deliveryTag;
-    public readonly bool _requeue;
-
-    public BasicReject(ulong DeliveryTag, bool Requeue)
+    internal readonly struct BasicReject : IOutgoingAmqpMethod
     {
-        _deliveryTag = DeliveryTag;
-        _requeue = Requeue;
-    }
+        public readonly ulong _deliveryTag;
+        public readonly bool _requeue;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReject;
+        public BasicReject(ulong DeliveryTag, bool Requeue)
+        {
+            _deliveryTag = DeliveryTag;
+            _requeue = Requeue;
+        }
 
-    public int WriteTo(Span<byte> span)
-    {
-        int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
-        return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _requeue);
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicReject;
 
-    public int GetRequiredBufferSize()
-    {
-        return 8 + 1; // bytes for _deliveryTag, bit fields
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteLonglong(ref span.GetStart(), _deliveryTag);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _requeue);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            return 8 + 1; // bytes for _deliveryTag, bit fields
+        }
     }
 }

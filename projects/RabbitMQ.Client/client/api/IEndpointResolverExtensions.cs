@@ -32,36 +32,37 @@
 using System;
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client;
-
-public static class EndpointResolverExtensions
+namespace RabbitMQ.Client
 {
-    public static T SelectOne<T>(this IEndpointResolver resolver, Func<AmqpTcpEndpoint, T> selector)
+    public static class EndpointResolverExtensions
     {
-        var t = default(T);
-        List<Exception> exceptions = null;
-        foreach (AmqpTcpEndpoint ep in resolver.All())
+        public static T SelectOne<T>(this IEndpointResolver resolver, Func<AmqpTcpEndpoint, T> selector)
         {
-            try
+            var t = default(T);
+            List<Exception> exceptions = null;
+            foreach (AmqpTcpEndpoint ep in resolver.All())
             {
-                t = selector(ep);
-                if (t.Equals(default(T)) == false)
+                try
                 {
-                    return t;
+                    t = selector(ep);
+                    if (t.Equals(default(T)) == false)
+                    {
+                        return t;
+                    }
+                }
+                catch (Exception e)
+                {
+                    exceptions ??= new List<Exception>(1);
+                    exceptions.Add(e);
                 }
             }
-            catch (Exception e)
+
+            if (Object.Equals(t, default(T)) && exceptions?.Count > 0)
             {
-                exceptions ??= new List<Exception>(1);
-                exceptions.Add(e);
+                throw new AggregateException(exceptions);
             }
-        }
 
-        if (Object.Equals(t, default(T)) && exceptions?.Count > 0)
-        {
-            throw new AggregateException(exceptions);
+            return t;
         }
-
-        return t;
     }
 }

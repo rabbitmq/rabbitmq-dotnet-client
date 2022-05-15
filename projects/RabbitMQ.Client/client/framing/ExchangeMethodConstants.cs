@@ -29,16 +29,17 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal static class ExchangeMethodConstants
+namespace RabbitMQ.Client.Framing.Impl
 {
-    internal const ushort Declare = 10;
-    internal const ushort DeclareOk = 11;
-    internal const ushort Delete = 20;
-    internal const ushort DeleteOk = 21;
-    internal const ushort Bind = 30;
-    internal const ushort BindOk = 31;
-    internal const ushort Unbind = 40;
-    internal const ushort UnbindOk = 51;
+    internal static class ExchangeMethodConstants
+    {
+        internal const ushort Declare = 10;
+        internal const ushort DeclareOk = 11;
+        internal const ushort Delete = 20;
+        internal const ushort DeleteOk = 21;
+        internal const ushort Bind = 30;
+        internal const ushort BindOk = 31;
+        internal const ushort Unbind = 40;
+        internal const ushort UnbindOk = 51;
+    }
 }

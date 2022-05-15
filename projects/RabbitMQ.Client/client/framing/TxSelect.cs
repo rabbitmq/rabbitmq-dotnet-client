@@ -32,19 +32,20 @@
 using System;
 using RabbitMQ.Client.client.framing;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct TxSelect : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxSelect;
-
-    public int WriteTo(Span<byte> span)
+    internal readonly struct TxSelect : IOutgoingAmqpMethod
     {
-        return 0;
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.TxSelect;
 
-    public int GetRequiredBufferSize()
-    {
-        return 0;
+        public int WriteTo(Span<byte> span)
+        {
+            return 0;
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            return 0;
+        }
     }
 }

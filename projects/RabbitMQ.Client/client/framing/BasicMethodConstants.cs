@@ -29,26 +29,27 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal static class BasicMethodConstants
+namespace RabbitMQ.Client.Framing.Impl
 {
-    internal const ushort Qos = 10;
-    internal const ushort QosOk = 11;
-    internal const ushort Consume = 20;
-    internal const ushort ConsumeOk = 21;
-    internal const ushort Cancel = 30;
-    internal const ushort CancelOk = 31;
-    internal const ushort Publish = 40;
-    internal const ushort Return = 50;
-    internal const ushort Deliver = 60;
-    internal const ushort Get = 70;
-    internal const ushort GetOk = 71;
-    internal const ushort GetEmpty = 72;
-    internal const ushort Ack = 80;
-    internal const ushort Reject = 90;
-    internal const ushort RecoverAsync = 100;
-    internal const ushort Recover = 110;
-    internal const ushort RecoverOk = 111;
-    internal const ushort Nack = 120;
+    internal static class BasicMethodConstants
+    {
+        internal const ushort Qos = 10;
+        internal const ushort QosOk = 11;
+        internal const ushort Consume = 20;
+        internal const ushort ConsumeOk = 21;
+        internal const ushort Cancel = 30;
+        internal const ushort CancelOk = 31;
+        internal const ushort Publish = 40;
+        internal const ushort Return = 50;
+        internal const ushort Deliver = 60;
+        internal const ushort Get = 70;
+        internal const ushort GetOk = 71;
+        internal const ushort GetEmpty = 72;
+        internal const ushort Ack = 80;
+        internal const ushort Reject = 90;
+        internal const ushort RecoverAsync = 100;
+        internal const ushort Recover = 110;
+        internal const ushort RecoverOk = 111;
+        internal const ushort Nack = 120;
+    }
 }

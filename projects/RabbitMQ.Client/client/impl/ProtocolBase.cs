@@ -34,51 +34,52 @@ using System.Collections.Generic;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal abstract class ProtocolBase : IProtocol
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public Dictionary<string, object> Capabilities;
-
-    protected ProtocolBase()
+    internal abstract class ProtocolBase : IProtocol
     {
-        Capabilities = new Dictionary<string, object>(6)
+        public Dictionary<string, object> Capabilities;
+
+        protected ProtocolBase()
         {
-            ["publisher_confirms"] = WireFormatting.TrueBoolean,
-            ["exchange_exchange_bindings"] = WireFormatting.TrueBoolean,
-            ["basic.nack"] = WireFormatting.TrueBoolean,
-            ["consumer_cancel_notify"] = WireFormatting.TrueBoolean,
-            ["connection.blocked"] = WireFormatting.TrueBoolean,
-            ["authentication_failure_close"] = WireFormatting.TrueBoolean
-        };
-    }
+            Capabilities = new Dictionary<string, object>(6)
+            {
+                ["publisher_confirms"] = WireFormatting.TrueBoolean,
+                ["exchange_exchange_bindings"] = WireFormatting.TrueBoolean,
+                ["basic.nack"] = WireFormatting.TrueBoolean,
+                ["consumer_cancel_notify"] = WireFormatting.TrueBoolean,
+                ["connection.blocked"] = WireFormatting.TrueBoolean,
+                ["authentication_failure_close"] = WireFormatting.TrueBoolean
+            };
+        }
 
-    public abstract string ApiName { get; }
-    public abstract int DefaultPort { get; }
+        public abstract string ApiName { get; }
+        public abstract int DefaultPort { get; }
 
-    public abstract int MajorVersion { get; }
-    public abstract int MinorVersion { get; }
-    public abstract int Revision { get; }
+        public abstract int MajorVersion { get; }
+        public abstract int MinorVersion { get; }
+        public abstract int Revision { get; }
 
-    public AmqpVersion Version
-    {
-        get { return new AmqpVersion(MajorVersion, MinorVersion); }
-    }
+        public AmqpVersion Version
+        {
+            get { return new AmqpVersion(MajorVersion, MinorVersion); }
+        }
 
-    internal abstract ProtocolCommandId DecodeCommandIdFrom(ReadOnlySpan<byte> span);
+        internal abstract ProtocolCommandId DecodeCommandIdFrom(ReadOnlySpan<byte> span);
 
-    public override bool Equals(object obj)
-    {
-        return GetType() == obj.GetType();
-    }
+        public override bool Equals(object obj)
+        {
+            return GetType() == obj.GetType();
+        }
 
-    public override int GetHashCode()
-    {
-        return GetType().GetHashCode();
-    }
+        public override int GetHashCode()
+        {
+            return GetType().GetHashCode();
+        }
 
-    public override string ToString()
-    {
-        return Version.ToString();
+        public override string ToString()
+        {
+            return Version.ToString();
+        }
     }
 }

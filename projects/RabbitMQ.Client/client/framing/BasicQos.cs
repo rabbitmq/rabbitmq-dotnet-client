@@ -33,32 +33,33 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct BasicQos : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly uint _prefetchSize;
-    public readonly ushort _prefetchCount;
-    public readonly bool _global;
-
-    public BasicQos(uint PrefetchSize, ushort PrefetchCount, bool Global)
+    internal readonly struct BasicQos : IOutgoingAmqpMethod
     {
-        _prefetchSize = PrefetchSize;
-        _prefetchCount = PrefetchCount;
-        _global = Global;
-    }
+        public readonly uint _prefetchSize;
+        public readonly ushort _prefetchCount;
+        public readonly bool _global;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicQos;
+        public BasicQos(uint PrefetchSize, ushort PrefetchCount, bool Global)
+        {
+            _prefetchSize = PrefetchSize;
+            _prefetchCount = PrefetchCount;
+            _global = Global;
+        }
 
-    public int WriteTo(Span<byte> span)
-    {
-        int offset = WireFormatting.WriteLong(ref span.GetStart(), _prefetchSize);
-        offset += WireFormatting.WriteShort(ref span.GetOffset(offset), _prefetchCount);
-        return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _global);
-    }
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicQos;
 
-    public int GetRequiredBufferSize()
-    {
-        return 4 + 2 + 1; // bytes for _prefetchSize, _prefetchCount, bit fields
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteLong(ref span.GetStart(), _prefetchSize);
+            offset += WireFormatting.WriteShort(ref span.GetOffset(offset), _prefetchCount);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _global);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            return 4 + 2 + 1; // bytes for _prefetchSize, _prefetchCount, bit fields
+        }
     }
 }

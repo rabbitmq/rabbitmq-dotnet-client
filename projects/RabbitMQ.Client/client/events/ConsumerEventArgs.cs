@@ -31,20 +31,21 @@
 
 using System;
 
-namespace RabbitMQ.Client.Events;
-
-///<summary>Event relating to a successful consumer registration
-///or cancellation.</summary>
-public class ConsumerEventArgs : EventArgs
+namespace RabbitMQ.Client.Events
 {
-    ///<summary>Construct an event containing the consumer-tags of
-    ///the consumer the event relates to.</summary>
-    public ConsumerEventArgs(string[] consumerTags)
+    ///<summary>Event relating to a successful consumer registration
+    ///or cancellation.</summary>
+    public class ConsumerEventArgs : EventArgs
     {
-        ConsumerTags = consumerTags;
-    }
+        ///<summary>Construct an event containing the consumer-tags of
+        ///the consumer the event relates to.</summary>
+        public ConsumerEventArgs(string[] consumerTags)
+        {
+            ConsumerTags = consumerTags;
+        }
 
-    ///<summary>Access the consumer-tags of the consumer the event
-    ///relates to.</summary>
-    public string[] ConsumerTags { get; }
+        ///<summary>Access the consumer-tags of the consumer the event
+        ///relates to.</summary>
+        public string[] ConsumerTags { get; }
+    }
 }

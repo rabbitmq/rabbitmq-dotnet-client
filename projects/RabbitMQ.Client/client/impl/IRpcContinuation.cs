@@ -29,10 +29,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Impl;
-
-internal interface IRpcContinuation
+namespace RabbitMQ.Client.Impl
 {
-    void HandleCommand(in IncomingCommand cmd);
-    void HandleModelShutdown(ShutdownEventArgs reason);
+    internal interface IRpcContinuation
+    {
+        void HandleCommand(in IncomingCommand cmd);
+        void HandleModelShutdown(ShutdownEventArgs reason);
+    }
 }

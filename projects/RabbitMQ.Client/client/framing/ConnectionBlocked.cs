@@ -34,16 +34,17 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct ConnectionBlocked : IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly string _reason;
-
-    public ConnectionBlocked(ReadOnlySpan<byte> span)
+    internal readonly struct ConnectionBlocked : IAmqpMethod
     {
-        WireFormatting.ReadShortstr(span, out _reason);
-    }
+        public readonly string _reason;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionBlocked;
+        public ConnectionBlocked(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadShortstr(span, out _reason);
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionBlocked;
+    }
 }

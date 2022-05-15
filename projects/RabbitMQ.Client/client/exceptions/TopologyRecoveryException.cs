@@ -31,11 +31,12 @@
 
 using System;
 
-namespace RabbitMQ.Client.Exceptions;
-
-public class TopologyRecoveryException : RabbitMQClientException
+namespace RabbitMQ.Client.Exceptions
 {
-    public TopologyRecoveryException(string message, Exception cause) : base(message, cause)
+    public class TopologyRecoveryException : RabbitMQClientException
     {
+        public TopologyRecoveryException(string message, Exception cause) : base(message, cause)
+        {
+        }
     }
 }

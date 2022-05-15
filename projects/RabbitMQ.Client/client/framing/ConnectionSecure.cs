@@ -33,16 +33,17 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct ConnectionSecure : IAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    public readonly byte[] _challenge;
-
-    public ConnectionSecure(ReadOnlySpan<byte> span)
+    internal readonly struct ConnectionSecure : IAmqpMethod
     {
-        WireFormatting.ReadLongstr(span, out _challenge);
-    }
+        public readonly byte[] _challenge;
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecure;
+        public ConnectionSecure(ReadOnlySpan<byte> span)
+        {
+            WireFormatting.ReadLongstr(span, out _challenge);
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.ConnectionSecure;
+    }
 }

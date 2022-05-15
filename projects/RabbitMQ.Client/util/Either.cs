@@ -29,45 +29,46 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Util;
-
-///<summary>Used internally by class Either.</summary>
-internal enum EitherAlternative
+namespace RabbitMQ.Util
 {
-    Left,
-    Right
-}
-
-
-///<summary>Models the disjoint union of two alternatives, a
-///"left" alternative and a "right" alternative.</summary>
-///<remarks>Borrowed from ML, Haskell etc.</remarks>
-internal class Either<L, R>
-{
-    ///<summary>Private constructor. Use the static methods Left, Right instead.</summary>
-    private Either(EitherAlternative alternative, in L valueL, R valueR)
+    ///<summary>Used internally by class Either.</summary>
+    internal enum EitherAlternative
     {
-        Alternative = alternative;
-        LeftValue = valueL;
-        RightValue = valueR;
+        Left,
+        Right
     }
 
-    ///<summary>Retrieve the alternative represented by this instance.</summary>
-    public EitherAlternative Alternative { get; }
 
-    ///<summary>Retrieve the value carried by this instance.</summary>
-    public L LeftValue { get; }
-    public R RightValue { get; }
-
-    ///<summary>Constructs an Either instance representing a Left alternative.</summary>
-    public static Either<L, R> Left(in L value)
+    ///<summary>Models the disjoint union of two alternatives, a
+    ///"left" alternative and a "right" alternative.</summary>
+    ///<remarks>Borrowed from ML, Haskell etc.</remarks>
+    internal class Either<L, R>
     {
-        return new Either<L, R>(EitherAlternative.Left, value, default);
-    }
+        ///<summary>Private constructor. Use the static methods Left, Right instead.</summary>
+        private Either(EitherAlternative alternative, in L valueL, R valueR)
+        {
+            Alternative = alternative;
+            LeftValue = valueL;
+            RightValue = valueR;
+        }
 
-    ///<summary>Constructs an Either instance representing a Right alternative.</summary>
-    public static Either<L, R> Right(R value)
-    {
-        return new Either<L, R>(EitherAlternative.Right, default, value);
+        ///<summary>Retrieve the alternative represented by this instance.</summary>
+        public EitherAlternative Alternative { get; }
+
+        ///<summary>Retrieve the value carried by this instance.</summary>
+        public L LeftValue { get; }
+        public R RightValue { get; }
+
+        ///<summary>Constructs an Either instance representing a Left alternative.</summary>
+        public static Either<L, R> Left(in L value)
+        {
+            return new Either<L, R>(EitherAlternative.Left, value, default);
+        }
+
+        ///<summary>Constructs an Either instance representing a Right alternative.</summary>
+        public static Either<L, R> Right(R value)
+        {
+            return new Either<L, R>(EitherAlternative.Right, default, value);
+        }
     }
 }

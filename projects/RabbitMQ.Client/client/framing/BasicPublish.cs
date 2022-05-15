@@ -34,74 +34,75 @@ using System;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
-namespace RabbitMQ.Client.Framing.Impl;
-
-internal readonly struct BasicPublish : IOutgoingAmqpMethod
+namespace RabbitMQ.Client.Framing.Impl
 {
-    // deprecated
-    // ushort _reserved1
-    public readonly string _exchange;
-    public readonly string _routingKey;
-    public readonly bool _mandatory;
-    public readonly bool _immediate;
-
-    public BasicPublish(string Exchange, string RoutingKey, bool Mandatory, bool Immediate)
+    internal readonly struct BasicPublish : IOutgoingAmqpMethod
     {
-        _exchange = Exchange;
-        _routingKey = RoutingKey;
-        _mandatory = Mandatory;
-        _immediate = Immediate;
+        // deprecated
+        // ushort _reserved1
+        public readonly string _exchange;
+        public readonly string _routingKey;
+        public readonly bool _mandatory;
+        public readonly bool _immediate;
+
+        public BasicPublish(string Exchange, string RoutingKey, bool Mandatory, bool Immediate)
+        {
+            _exchange = Exchange;
+            _routingKey = RoutingKey;
+            _mandatory = Mandatory;
+            _immediate = Immediate;
+        }
+
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicPublish;
+
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _mandatory, _immediate);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            int bufferSize = 2 + 1 + 1 + 1; // bytes for _reserved1, length of _exchange, length of _routingKey, bit fields
+            bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes
+            bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
+            return bufferSize;
+        }
     }
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicPublish;
-
-    public int WriteTo(Span<byte> span)
+    internal readonly struct BasicPublishMemory : IOutgoingAmqpMethod
     {
-        int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
-        return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _mandatory, _immediate);
-    }
+        // deprecated
+        // ushort _reserved1
+        public readonly ReadOnlyMemory<byte> _exchange;
+        public readonly ReadOnlyMemory<byte> _routingKey;
+        public readonly bool _mandatory;
+        public readonly bool _immediate;
 
-    public int GetRequiredBufferSize()
-    {
-        int bufferSize = 2 + 1 + 1 + 1; // bytes for _reserved1, length of _exchange, length of _routingKey, bit fields
-        bufferSize += WireFormatting.GetByteCount(_exchange); // _exchange in bytes
-        bufferSize += WireFormatting.GetByteCount(_routingKey); // _routingKey in bytes
-        return bufferSize;
-    }
-}
+        public BasicPublishMemory(ReadOnlyMemory<byte> Exchange, ReadOnlyMemory<byte> RoutingKey, bool Mandatory, bool Immediate)
+        {
+            _exchange = Exchange;
+            _routingKey = RoutingKey;
+            _mandatory = Mandatory;
+            _immediate = Immediate;
+        }
 
-internal readonly struct BasicPublishMemory : IOutgoingAmqpMethod
-{
-    // deprecated
-    // ushort _reserved1
-    public readonly ReadOnlyMemory<byte> _exchange;
-    public readonly ReadOnlyMemory<byte> _routingKey;
-    public readonly bool _mandatory;
-    public readonly bool _immediate;
+        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicPublish;
 
-    public BasicPublishMemory(ReadOnlyMemory<byte> Exchange, ReadOnlyMemory<byte> RoutingKey, bool Mandatory, bool Immediate)
-    {
-        _exchange = Exchange;
-        _routingKey = RoutingKey;
-        _mandatory = Mandatory;
-        _immediate = Immediate;
-    }
+        public int WriteTo(Span<byte> span)
+        {
+            int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange.Span);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey.Span);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _mandatory, _immediate);
+        }
 
-    public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicPublish;
-
-    public int WriteTo(Span<byte> span)
-    {
-        int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange.Span);
-        offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey.Span);
-        return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _mandatory, _immediate);
-    }
-
-    public int GetRequiredBufferSize()
-    {
-        return 2 + 1 + 1 + 1 + // bytes for _reserved1, length of _exchange, length of _routingKey, bit fields
-               _exchange.Length + _routingKey.Length;
+        public int GetRequiredBufferSize()
+        {
+            return 2 + 1 + 1 + 1 + // bytes for _reserved1, length of _exchange, length of _routingKey, bit fields
+                   _exchange.Length + _routingKey.Length;
+        }
     }
 }
