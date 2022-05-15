@@ -7,7 +7,7 @@
     <AssemblyTitle>RabbitMQ Client Library for .NET</AssemblyTitle>
     <Authors>VMware</Authors>
     <Company>VMware, Inc. or its affiliates.</Company>
-    <Copyright>Copyright © 2007-2020 VMware, Inc. or its affiliates.</Copyright>
+    <Copyright>Copyright © 2007-2022 VMware, Inc. or its affiliates.</Copyright>
     <Description>The RabbitMQ .NET client is the official client library for C# (and, implicitly, other .NET languages)</Description>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
