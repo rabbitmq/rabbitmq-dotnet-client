@@ -22,30 +22,20 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 {
                     try
                     {
-                        var consumer = work.Consumer;
-                        var consumerTag = work.ConsumerTag;
-                        switch (work.WorkType)
+                        var task = work.WorkType switch
                         {
-                            case WorkType.Deliver:
-                                consumer.HandleBasicDeliver(consumerTag, work.DeliveryTag, work.Redelivered, work.Exchange, work.RoutingKey, work.BasicProperties, work.Body);
-                                break;
-                            case WorkType.Cancel:
-                                consumer.HandleBasicCancel(consumerTag);
-                                break;
-                            case WorkType.CancelOk:
-                                consumer.HandleBasicCancelOk(consumerTag);
-                                break;
-                            case WorkType.ConsumeOk:
-                                consumer.HandleBasicConsumeOk(consumerTag);
-                                break;
-                            case WorkType.Shutdown:
-                                consumer.HandleModelShutdown(_model, work.Reason);
-                                break;
-                        }
+                            WorkType.Deliver => work.Strategy.DispatchBasicDeliver(work.ConsumerTag, work.DeliveryTag, work.Redelivered, work.Exchange, work.RoutingKey, work.BasicProperties, work.Body),
+                            WorkType.Cancel => work.Strategy.DispatchBasicCancel(work.ConsumerTag),
+                            WorkType.CancelOk => work.Strategy.DispatchBasicCancelOk(work.ConsumerTag),
+                            WorkType.ConsumeOk => work.Strategy.DispatchBasicConsumeOk(work.ConsumerTag),
+                            WorkType.Shutdown => work.Strategy.DispatchModelShutdown(_model, work.Reason),
+                            _ => Task.CompletedTask
+                        };
+                        await task.ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {
-                        _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, work.WorkType.ToString(), work.Consumer));
+                        _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, work.WorkType.ToString(), work.Strategy.Consumer));
                     }
                     finally
                     {

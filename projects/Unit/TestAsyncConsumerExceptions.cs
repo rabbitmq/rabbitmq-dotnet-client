@@ -72,10 +72,7 @@ namespace RabbitMQ.Client.Unit
 
         protected override void SetUp()
         {
-            _connFactory = new ConnectionFactory
-            {
-                DispatchConsumersAsync = true
-            };
+            _connFactory = new ConnectionFactory();
 
             _conn = _connFactory.CreateConnection();
             _model = _conn.CreateModel();

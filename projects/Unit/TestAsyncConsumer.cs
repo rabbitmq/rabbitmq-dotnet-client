@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestBasicRoundtrip()
         {
-            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
+            var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
             {
                 using (IModel m = c.CreateModel())
@@ -84,7 +84,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
-            var cf = new ConnectionFactory { DispatchConsumersAsync = true, ConsumerDispatchConcurrency = 2 };
+            var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
             using (IConnection c = cf.CreateConnection())
             {
                 using (IModel m = c.CreateModel())
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.Unit
             string publish2 = get_unique_string(32768);
             byte[] body2 = Encoding.ASCII.GetBytes(publish2);
 
-            var cf = new ConnectionFactory { DispatchConsumersAsync = true, ConsumerDispatchConcurrency = 2 };
+            var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
 
             using (IConnection c = cf.CreateConnection())
             {
@@ -233,7 +233,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestBasicRoundtripNoWait()
         {
-            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
+            var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
             {
                 using (IModel m = c.CreateModel())
@@ -269,7 +269,7 @@ namespace RabbitMQ.Client.Unit
 
             var called = new byte[NumberOfThreads * NumberOfRegistrations];
 
-            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
+            var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
             {
                 using (IModel m = c.CreateModel())
@@ -318,23 +318,6 @@ namespace RabbitMQ.Client.Unit
 
             // Check received messages
             Assert.Equal(-1, called.AsSpan().IndexOf((byte)0));
-        }
-
-        [Fact]
-        public void NonAsyncConsumerShouldThrowInvalidOperationException()
-        {
-            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
-            using (IConnection c = cf.CreateConnection())
-            {
-                using (IModel m = c.CreateModel())
-                {
-                    QueueDeclareOk q = m.QueueDeclare();
-                    byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
-                    m.BasicPublish("", q.QueueName, body);
-                    var consumer = new EventingBasicConsumer(m);
-                    Assert.Throws<InvalidOperationException>(() => m.BasicConsume(q.QueueName, false, consumer));
-                }
-            }
         }
 
         private string get_unique_string(int string_length)

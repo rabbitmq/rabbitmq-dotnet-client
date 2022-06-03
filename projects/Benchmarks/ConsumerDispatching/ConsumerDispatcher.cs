@@ -33,7 +33,7 @@ namespace RabbitMQ.Benchmarks
         public void SetUpAsyncConsumer()
         {
             _consumer.Count = Count;
-            _dispatcher = new AsyncConsumerDispatcher(null, Concurrency);
+            _dispatcher = new ConsumerDispatcher(null, Concurrency);
             _dispatcher.HandleBasicConsumeOk(_consumer, _consumerTag);
         }
         [Benchmark]

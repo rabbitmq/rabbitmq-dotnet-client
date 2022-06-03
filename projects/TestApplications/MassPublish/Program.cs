@@ -22,7 +22,7 @@ namespace MassPublish
 
             doneEvent = new AutoResetEvent(false);
 
-            var connectionFactory = new ConnectionFactory { DispatchConsumersAsync = true };
+            var connectionFactory = new ConnectionFactory();
             var connection = connectionFactory.CreateConnection();
             var publisher = connection.CreateModel();
             var subscriber = connection.CreateModel();

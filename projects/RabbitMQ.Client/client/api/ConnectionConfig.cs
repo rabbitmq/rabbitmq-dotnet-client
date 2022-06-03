@@ -112,11 +112,6 @@ namespace RabbitMQ.Client
         public TimeSpan RequestedConnectionTimeout { get; }
 
         /// <summary>
-        /// Set to true will enable an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/>.
-        /// </summary>
-        public bool DispatchConsumersAsync { get; }
-
-        /// <summary>
         /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IBasicConsumer"/>
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
@@ -128,9 +123,8 @@ namespace RabbitMQ.Client
         internal ConnectionConfig(string virtualHost, string userName, string password, IList<IAuthMechanismFactory> authMechanisms,
             IDictionary<string, object?> clientProperties, string? clientProvidedName,
             ushort maxChannelCount, uint maxFrameSize, bool topologyRecoveryEnabled,
-            TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
-            bool dispatchConsumersAsync, int dispatchConsumerConcurrency,
-            Func<AmqpTcpEndpoint, IFrameHandler> frameHandlerFactory)
+            TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout, 
+            int dispatchConsumerConcurrency, Func<AmqpTcpEndpoint, IFrameHandler> frameHandlerFactory)
         {
             VirtualHost = virtualHost;
             UserName = userName;
@@ -146,7 +140,6 @@ namespace RabbitMQ.Client
             ContinuationTimeout = continuationTimeout;
             HandshakeContinuationTimeout = handshakeContinuationTimeout;
             RequestedConnectionTimeout = requestedConnectionTimeout;
-            DispatchConsumersAsync = dispatchConsumersAsync;
             DispatchConsumerConcurrency = dispatchConsumerConcurrency;
             FrameHandlerFactory = frameHandlerFactory;
         }

@@ -69,9 +69,7 @@ namespace RabbitMQ.Client.Impl
         protected ModelBase(ConnectionConfig config, ISession session)
         {
             ContinuationTimeout = config.ContinuationTimeout;
-            ConsumerDispatcher = config.DispatchConsumersAsync ?
-                (IConsumerDispatcher)new AsyncConsumerDispatcher(this, config.DispatchConsumerConcurrency) :
-                new ConsumerDispatcher(this, config.DispatchConsumerConcurrency);
+            ConsumerDispatcher = new ConsumerDispatcher(this, config.DispatchConsumerConcurrency);
 
             Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);
@@ -857,16 +855,6 @@ namespace RabbitMQ.Client.Impl
 
         public string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer)
         {
-            // TODO: Replace with flag
-            if (ConsumerDispatcher is AsyncConsumerDispatcher)
-            {
-                if (!(consumer is IAsyncBasicConsumer))
-                {
-                    // TODO: Friendly message
-                    throw new InvalidOperationException("In the async mode you have to use an async consumer");
-                }
-            }
-
             var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
 
             lock (_rpcLock)

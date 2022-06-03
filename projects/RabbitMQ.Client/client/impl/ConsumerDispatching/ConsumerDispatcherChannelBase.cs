@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-
+using RabbitMQ.Client.DispatchStrategies;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.ConsumerDispatching
@@ -103,8 +103,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected readonly struct WorkStruct
         {
-            public readonly IBasicConsumer Consumer;
-            public IAsyncBasicConsumer AsyncConsumer => (IAsyncBasicConsumer)Consumer;
+            public readonly IDispatchStrategy Strategy;
             public readonly string? ConsumerTag;
             public readonly ulong DeliveryTag;
             public readonly bool Redelivered;
@@ -120,7 +119,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 : this()
             {
                 WorkType = type;
-                Consumer = consumer;
+                Strategy = DispatchStrategyFactory.Create(consumer);
                 ConsumerTag = consumerTag;
             }
 
@@ -128,7 +127,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 : this()
             {
                 WorkType = WorkType.Shutdown;
-                Consumer = consumer;
+                Strategy = DispatchStrategyFactory.Create(consumer);
                 Reason = reason;
             }
 
@@ -136,7 +135,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
             {
                 WorkType = WorkType.Deliver;
-                Consumer = consumer;
+                Strategy = DispatchStrategyFactory.Create(consumer);
                 ConsumerTag = consumerTag;
                 DeliveryTag = deliveryTag;
                 Redelivered = redelivered;

@@ -21,7 +21,7 @@ namespace CreateChannel
 
             doneEvent = new AutoResetEvent(false);
 
-            var connectionFactory = new ConnectionFactory { DispatchConsumersAsync = true };
+            var connectionFactory = new ConnectionFactory();
             var connection = connectionFactory.CreateConnection();
 
             var watch = Stopwatch.StartNew();
