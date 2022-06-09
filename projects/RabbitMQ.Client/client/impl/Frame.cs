@@ -237,7 +237,11 @@ namespace RabbitMQ.Client.Impl
                     break;
             }
 
-            reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length);
+            if (reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length) == 0)
+            {
+                throw new EndOfStreamException("Reached the end of the stream while reading the frame header length.");
+            }
+
             int channel = NetworkOrderDeserializer.ReadUInt16(new ReadOnlySpan<byte>(frameHeaderBuffer));
             int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 2, 4)); // FIXME - throw exn on unreasonable value
 
@@ -245,12 +249,19 @@ namespace RabbitMQ.Client.Impl
             // Is returned by InboundFrame.Dispose in Connection.MainLoopIteration
             var readSize = payloadSize + EndMarkerLength;
             byte[] payloadBytes = pool.Rent(readSize);
+            int read = 0;
             int bytesRead = 0;
             try
             {
                 while (bytesRead < readSize)
                 {
-                    bytesRead += reader.Read(payloadBytes, bytesRead, readSize - bytesRead);
+                    read = reader.Read(payloadBytes, bytesRead, readSize - bytesRead);
+                    if (read == 0)
+                    {
+                        throw new EndOfStreamException("Reached the end of the stream while reading frame payload.");
+                    }
+
+                    bytesRead += read;
                 }
             }
             catch (Exception)
