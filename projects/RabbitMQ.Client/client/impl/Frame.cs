@@ -205,7 +205,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer, ArrayPool<byte> pool)
+        internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer, ArrayPool<byte> pool, uint maxMessageSize)
         {
             int type = default;
             try
@@ -239,7 +239,11 @@ namespace RabbitMQ.Client.Impl
 
             reader.Read(frameHeaderBuffer, 0, frameHeaderBuffer.Length);
             int channel = NetworkOrderDeserializer.ReadUInt16(new ReadOnlySpan<byte>(frameHeaderBuffer));
-            int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 2, 4)); // FIXME - throw exn on unreasonable value
+            int payloadSize = NetworkOrderDeserializer.ReadInt32(new ReadOnlySpan<byte>(frameHeaderBuffer, 2, 4));
+            if ((maxMessageSize > 0) && (payloadSize > maxMessageSize))
+            {
+                throw new MalformedFrameException($"Frame payload size '{payloadSize}' exceeds maximum of '{maxMessageSize}' bytes");
+            }
 
             const int EndMarkerLength = 1;
             // Is returned by InboundFrame.Dispose in Connection.MainLoopIteration

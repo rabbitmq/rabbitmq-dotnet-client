@@ -13,6 +13,7 @@ namespace RabbitMQ.Client
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl) { }
         public System.Net.Sockets.AddressFamily AddressFamily { get; set; }
         public string HostName { get; set; }
+        public uint MaxMessageSize { get; set; }
         public int Port { get; set; }
         public RabbitMQ.Client.IProtocol Protocol { get; }
         public RabbitMQ.Client.SslOption Ssl { get; set; }

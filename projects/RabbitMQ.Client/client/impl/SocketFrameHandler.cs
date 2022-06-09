@@ -62,6 +62,7 @@ namespace RabbitMQ.Client.Impl
 
     class SocketFrameHandler : IFrameHandler
     {
+        private readonly AmqpTcpEndpoint _endpoint;
         // Socket poll timeout in ms. If the socket does not
         // become writeable in this amount of time, we throw
         // an exception.
@@ -82,7 +83,7 @@ namespace RabbitMQ.Client.Impl
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
-            Endpoint = endpoint;
+            _endpoint = endpoint;
             _frameHeaderBuffer = new byte[6];
             var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
                 new UnboundedChannelOptions
@@ -135,7 +136,11 @@ namespace RabbitMQ.Client.Impl
             WriteTimeout = writeTimeout;
             _writerTask = Task.Run(WriteLoop, CancellationToken.None);
         }
-        public AmqpTcpEndpoint Endpoint { get; set; }
+
+        public AmqpTcpEndpoint Endpoint
+        {
+            get { return _endpoint; }
+        }
 
         internal ArrayPool<byte> MemoryPool
         {
@@ -229,7 +234,7 @@ namespace RabbitMQ.Client.Impl
 
         public InboundFrame ReadFrame()
         {
-            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer, MemoryPool);
+            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer, MemoryPool, _endpoint.MaxMessageSize);
         }
 
         public void SendHeader()
