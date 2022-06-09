@@ -65,6 +65,7 @@ namespace RabbitMQ.Client.Impl
 
     internal sealed class SocketFrameHandler : IFrameHandler
     {
+        private readonly AmqpTcpEndpoint _amqpTcpEndpoint;
         private readonly ITcpClient _socket;
         private readonly Stream _reader;
         private readonly Stream _writer;
@@ -79,7 +80,7 @@ namespace RabbitMQ.Client.Impl
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
-            Endpoint = endpoint;
+            _amqpTcpEndpoint = endpoint;
             _frameHeaderBuffer = new byte[7];
             var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
                 new UnboundedChannelOptions
@@ -149,7 +150,11 @@ namespace RabbitMQ.Client.Impl
             WriteTimeout = writeTimeout;
             _writerTask = Task.Run(WriteLoop);
         }
-        public AmqpTcpEndpoint Endpoint { get; set; }
+
+        public AmqpTcpEndpoint Endpoint
+        {
+            get { return _amqpTcpEndpoint; }
+        }
 
         public EndPoint LocalEndPoint
         {
@@ -235,7 +240,7 @@ namespace RabbitMQ.Client.Impl
 
         public InboundFrame ReadFrame()
         {
-            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer);
+            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer, _amqpTcpEndpoint.MaxMessageSize);
         }
 
         public void SendHeader()

@@ -61,6 +61,7 @@ namespace RabbitMQ.Client
         public const int UseDefaultPort = -1;
 
         private int _port;
+        private uint _maxMessageSize = Constants.DefaultMaxMessageSizeInBytes;
 
         /// <summary>
         /// Creates a new instance of the <see cref="AmqpTcpEndpoint"/>.
@@ -176,6 +177,25 @@ namespace RabbitMQ.Client
         /// Retrieve the TLS options for this AmqpTcpEndpoint. If not set, null is returned.
         /// </summary>
         public SslOption Ssl { get; set; }
+
+        /// <summary>
+        /// Set the maximum size for a message in bytes. Setting it to 0 reverts to the default of 128MiB
+        /// </summary>
+        public uint MaxMessageSize
+        {
+            get { return _maxMessageSize; }
+            set
+            {
+                if (value == default(uint))
+                {
+                    _maxMessageSize = Constants.DefaultMaxMessageSizeInBytes;
+                }
+                else
+                {
+                    _maxMessageSize = value;
+                }
+            }
+        }
 
         /// <summary>
         /// Construct an instance from a protocol and an address in "hostname:port" format.
