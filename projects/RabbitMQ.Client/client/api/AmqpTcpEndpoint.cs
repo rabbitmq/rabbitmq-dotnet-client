@@ -176,6 +176,11 @@ namespace RabbitMQ.Client
         public SslOption Ssl { get; set; }
 
         /// <summary>
+        /// Set the maximum size for a message in bytes. The default value is 0 (unlimited)
+        /// </summary>
+        public uint MaxMessageSize { get; set; }
+
+        /// <summary>
         /// Construct an instance from a protocol and an address in "hostname:port" format.
         /// </summary>
         /// <remarks>
