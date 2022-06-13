@@ -48,6 +48,7 @@ namespace RabbitMQ.Client.Unit
             string v  = "vhost";
             string h  = "192.168.0.1";
             int p  = 5674;
+            uint mms  = 512 * 1024 * 1024;
 
             var cf = new ConnectionFactory
             {
@@ -55,7 +56,8 @@ namespace RabbitMQ.Client.Unit
                 Password = pw,
                 VirtualHost = v,
                 HostName = h,
-                Port = p
+                Port = p,
+                MaxMessageSize = mms
             };
 
             Assert.AreEqual(cf.UserName, u);
@@ -63,6 +65,11 @@ namespace RabbitMQ.Client.Unit
             Assert.AreEqual(cf.VirtualHost, v);
             Assert.AreEqual(cf.HostName, h);
             Assert.AreEqual(cf.Port, p);
+            Assert.AreEqual(cf.MaxMessageSize, mms);
+
+            Assert.AreEqual(cf.Endpoint.HostName, h);
+            Assert.AreEqual(cf.Endpoint.Port, p);
+            Assert.AreEqual(cf.Endpoint.MaxMessageSize, mms);
         }
 
         [Test]
@@ -163,6 +170,24 @@ namespace RabbitMQ.Client.Unit
             };
             using (IConnection conn = cf.CreateConnection()){
                 Assert.AreEqual(5672, conn.Endpoint.Port);
+            }
+        }
+
+        [Test]
+        public void TestCreateConnectionUsesDefaultMaxMessageSize()
+        {
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                HostName = "localhost"
+            };
+
+            Assert.AreEqual(0, cf.MaxMessageSize);
+            Assert.AreEqual(0, cf.Endpoint.MaxMessageSize);
+
+            using (IConnection conn = cf.CreateConnection())
+            {
+                Assert.AreEqual(0, conn.Endpoint.MaxMessageSize);
             }
         }
 

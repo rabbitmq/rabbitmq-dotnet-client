@@ -11,9 +11,10 @@ namespace RabbitMQ.Client
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne = -1) { }
         public AmqpTcpEndpoint(System.Uri uri, RabbitMQ.Client.SslOption ssl) { }
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl) { }
+        public AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl, uint maxMessageSize) { }
         public System.Net.Sockets.AddressFamily AddressFamily { get; set; }
         public string HostName { get; set; }
-        public uint MaxMessageSize { get; set; }
+        public uint MaxMessageSize { get; }
         public int Port { get; set; }
         public RabbitMQ.Client.IProtocol Protocol { get; }
         public RabbitMQ.Client.SslOption Ssl { get; set; }
@@ -72,6 +73,7 @@ namespace RabbitMQ.Client
     {
         public const ushort DefaultChannelMax = 2047;
         public const uint DefaultFrameMax = 0u;
+        public const uint DefaultMaxMessageSize = 0u;
         public const string DefaultPass = "guest";
         public const string DefaultUser = "guest";
         public const string DefaultVHost = "/";
@@ -91,6 +93,7 @@ namespace RabbitMQ.Client
         public System.Func<System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>, RabbitMQ.Client.IEndpointResolver> EndpointResolverFactory { get; set; }
         public System.TimeSpan HandshakeContinuationTimeout { get; set; }
         public string HostName { get; set; }
+        public uint MaxMessageSize { get; set; }
         public System.Buffers.ArrayPool<byte> MemoryPool { get; set; }
         public System.TimeSpan NetworkRecoveryInterval { get; set; }
         public string Password { get; set; }
@@ -728,11 +731,15 @@ namespace RabbitMQ.Client.Exceptions
     }
     public abstract class HardProtocolException : RabbitMQ.Client.Exceptions.ProtocolException
     {
+        protected readonly bool _canShutdownCleanly;
         protected HardProtocolException(string message) { }
+        protected HardProtocolException(string message, bool canShutdownCleanly) { }
+        public bool CanShutdownCleanly { get; }
     }
     public class MalformedFrameException : RabbitMQ.Client.Exceptions.HardProtocolException
     {
         public MalformedFrameException(string message) { }
+        public MalformedFrameException(string message, bool canShutdownCleanly) { }
         public override ushort ReplyCode { get; }
     }
     [System.Serializable]
