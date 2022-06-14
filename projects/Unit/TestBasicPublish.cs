@@ -159,7 +159,7 @@ namespace RabbitMQ.Client.Unit
             {
                 c.ConnectionShutdown += (o, a) =>
                 {
-                    sawConnectionShutdown= true;
+                    sawConnectionShutdown = true;
                 };
 
                 Assert.Equal(maxMsgSize, cf.MaxMessageSize);
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client.Unit
                 {
                     m.ModelShutdown += (o, a) =>
                     {
-                        sawModelShutdown= true;
+                        sawModelShutdown = true;
                     };
 
                     m.CallbackException += (o, a) =>

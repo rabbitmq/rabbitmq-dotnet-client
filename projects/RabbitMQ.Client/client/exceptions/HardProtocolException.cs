@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Exceptions
 
         protected HardProtocolException(string message, bool canShutdownCleanly) : base(message)
         {
-            _canShutdownCleanly= canShutdownCleanly;
+            _canShutdownCleanly = canShutdownCleanly;
         }
 
         public bool CanShutdownCleanly

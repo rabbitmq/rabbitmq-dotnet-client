@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
             string v = "vhost";
             string h = "192.168.0.1";
             int p = 5674;
-            uint mms  = 512 * 1024 * 1024;
+            uint mms = 512 * 1024 * 1024;
 
             var cf = new ConnectionFactory
             {
