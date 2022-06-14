@@ -60,17 +60,32 @@ namespace RabbitMQ.Client
 
         private int _port;
 
+        private readonly uint _maxMessageSize;
+
         /// <summary>
         /// Creates a new instance of the <see cref="AmqpTcpEndpoint"/>.
         /// </summary>
         /// <param name="hostName">Hostname.</param>
         /// <param name="portOrMinusOne"> Port number. If the port number is -1, the default port number will be used.</param>
         /// <param name="ssl">Ssl option.</param>
-        public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl)
+        /// <param name="maxMessageSize">Maximum message size from RabbitMQ. 0 means "unlimited"</param>
+        public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl, uint maxMessageSize)
         {
             HostName = hostName;
             _port = portOrMinusOne;
             Ssl = ssl;
+            _maxMessageSize = maxMessageSize;
+        }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="AmqpTcpEndpoint"/>.
+        /// </summary>
+        /// <param name="hostName">Hostname.</param>
+        /// <param name="portOrMinusOne"> Port number. If the port number is -1, the default port number will be used.</param>
+        /// <param name="ssl">Ssl option.</param>
+        public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl) :
+            this(hostName, portOrMinusOne, ssl, 0)
+        {
         }
 
         /// <summary>
@@ -116,7 +131,7 @@ namespace RabbitMQ.Client
         /// <returns>A copy with the same hostname, port, and TLS settings</returns>
         public object Clone()
         {
-            return new AmqpTcpEndpoint(HostName, _port, Ssl);
+            return new AmqpTcpEndpoint(HostName, _port, Ssl, _maxMessageSize);
         }
 
         /// <summary>
@@ -126,7 +141,7 @@ namespace RabbitMQ.Client
         /// <returns>A copy with the provided hostname and port/TLS settings of this endpoint</returns>
         public AmqpTcpEndpoint CloneWithHostname(string hostname)
         {
-            return new AmqpTcpEndpoint(hostname, _port, Ssl);
+            return new AmqpTcpEndpoint(hostname, _port, Ssl, _maxMessageSize);
         }
 
         /// <summary>
@@ -176,9 +191,12 @@ namespace RabbitMQ.Client
         public SslOption Ssl { get; set; }
 
         /// <summary>
-        /// Set the maximum size for a message in bytes. The default value is 0 (unlimited)
+        /// Get the maximum size for a message in bytes. The default value is 0 (unlimited)
         /// </summary>
-        public uint MaxMessageSize { get; set; }
+        public uint MaxMessageSize
+        {
+            get { return _maxMessageSize; }
+        }
 
         /// <summary>
         /// Construct an instance from a protocol and an address in "hostname:port" format.

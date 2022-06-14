@@ -479,7 +479,7 @@ namespace RabbitMQ.Client.Framing.Impl
                             hpe.ShutdownReason.ReplyCode,
                             hpe.ShutdownReason.ReplyText));
                     }
-                    return true;
+                    return hpe.CanShutdownCleanly;
                 }
                 catch (IOException ioe)
                 {
