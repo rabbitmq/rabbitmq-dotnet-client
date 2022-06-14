@@ -86,7 +86,7 @@ namespace RabbitMQ.Client
         /// <param name="portOrMinusOne"> Port number. If the port number is -1, the default port number will be used.</param>
         /// <param name="ssl">Ssl option.</param>
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl) :
-            this(hostName, portOrMinusOne, ssl, 0)
+            this(hostName, portOrMinusOne, ssl, ConnectionFactory.DefaultMaxMessageSize)
         {
         }
 
@@ -193,7 +193,7 @@ namespace RabbitMQ.Client
         public SslOption Ssl { get; set; }
 
         /// <summary>
-        /// Get the maximum size for a message in bytes. The default value is 0 (unlimited)
+        /// Get the maximum size for a message in bytes. The default value is 128MiB to match RabbitMQ's default
         /// </summary>
         public uint MaxMessageSize
         {

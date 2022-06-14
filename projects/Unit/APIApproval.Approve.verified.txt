@@ -152,7 +152,7 @@ namespace RabbitMQ.Client
     {
         public const ushort DefaultChannelMax = 2047;
         public const uint DefaultFrameMax = 0u;
-        public const uint DefaultMaxMessageSize = 0u;
+        public const uint DefaultMaxMessageSize = 134217728u;
         public const string DefaultPass = "guest";
         public const string DefaultUser = "guest";
         public const string DefaultVHost = "/";
@@ -211,7 +211,6 @@ namespace RabbitMQ.Client
         public const int CommandInvalid = 503;
         public const int ConnectionForced = 320;
         public const int ContentTooLarge = 311;
-        public const uint DefaultMaxMessageSizeInBytes = 134217728u;
         public const int FrameBody = 3;
         public const int FrameEnd = 206;
         public const int FrameError = 501;
