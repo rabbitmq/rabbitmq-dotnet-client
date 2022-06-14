@@ -1,3 +1,26 @@
+## Changes Between 6.3.1 and 6.4.0
+
+This release adds the ability to specify a maximum message size when receiving data. The default
+values are:
+
+* RabbitMQ .NET client 7.0.0 and beyond: 128MiB
+* RabbitMQ .NET client 6.4.0 up to 7.0.0: no limit by default
+
+Receiving a frame that specifies a content larger than the limit will throw an execption. This is to
+help prevent situations as described in [this discussion](https://github.com/rabbitmq/rabbitmq-dotnet-client/discussions/1213).
+
+To set a limit, use the set `MaxMessageSize` on your `ConnectionFactory` before opening connections:
+
+```
+// This sets the limit to 512MiB
+var cf = new ConnectionFactory();
+cf.MaxMessageSize = 536870912;
+var conn = cf.CreateConnection()`
+```
+
+GitHub milestone: [`6.4.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/58?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.3.1...v6.4.0)
+
 ## Changes Between 6.3.0 and 6.3.1
 
 GitHub milestone: [`6.3.1`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/57?closed=1)

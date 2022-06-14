@@ -44,6 +44,11 @@ namespace RabbitMQ.Client.Exceptions
         {
         }
 
+        public MalformedFrameException(string message, bool canShutdownCleanly) :
+            base(message, canShutdownCleanly)
+        {
+        }
+
         public override ushort ReplyCode
         {
             get { return Constants.FrameError; }

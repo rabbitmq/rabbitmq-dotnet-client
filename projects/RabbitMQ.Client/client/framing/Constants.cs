@@ -81,8 +81,5 @@ namespace RabbitMQ.Client
         public const int NotImplemented = 540;
         ///<summary>(= 541)</summary>
         public const int InternalError = 541;
-
-        ///<summary>(= 134217728)</summary>
-        public const uint DefaultMaxMessageSizeInBytes = 134217728;
     }
 }
