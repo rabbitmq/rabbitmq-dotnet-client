@@ -35,8 +35,20 @@ namespace RabbitMQ.Client.Exceptions
     ///requiring a connection.close.</summary>
     public abstract class HardProtocolException : ProtocolException
     {
+        protected readonly bool _canShutdownCleanly = true;
+
         protected HardProtocolException(string message) : base(message)
         {
+        }
+
+        protected HardProtocolException(string message, bool canShutdownCleanly) : base(message)
+        {
+            _canShutdownCleanly = canShutdownCleanly;
+        }
+
+        public bool CanShutdownCleanly
+        {
+            get { return _canShutdownCleanly; }
         }
     }
 }

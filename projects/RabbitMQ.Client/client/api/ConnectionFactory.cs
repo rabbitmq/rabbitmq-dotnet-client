@@ -57,6 +57,7 @@ namespace RabbitMQ.Client
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
     ///     factory.HostName = hostName;
     ///     factory.Port     = AmqpTcpEndpoint.UseDefaultPort;
+    ///     factory.MaxMessageSize = 512 * 1024 * 1024;
     ///     //
     ///     IConnection conn = factory.CreateConnection();
     ///     //
@@ -102,6 +103,13 @@ namespace RabbitMQ.Client
         /// Default value for the desired maximum frame size. Default is 0 ("no limit").
         /// </summary>
         public const uint DefaultFrameMax = 0;
+
+        /// <summary>
+        /// Default value for the maximum allowed message size, in bytes, from RabbitMQ.
+        /// Corresponds to the <code>rabbit.max_message_size</code> setting.
+        /// Note: the default is 0 which means "unlimited".
+        /// </summary>
+        public const uint DefaultMaxMessageSize = 134217728;
 
         /// <summary>
         /// Default value for desired heartbeat interval. Default is 60 seconds,
@@ -264,12 +272,13 @@ namespace RabbitMQ.Client
         /// </summary>
         public AmqpTcpEndpoint Endpoint
         {
-            get { return new AmqpTcpEndpoint(HostName, Port, Ssl); }
+            get { return new AmqpTcpEndpoint(HostName, Port, Ssl, MaxMessageSize); }
             set
             {
                 Port = value.Port;
                 HostName = value.HostName;
                 Ssl = value.Ssl;
+                MaxMessageSize = value.MaxMessageSize;
             }
         }
 
@@ -316,6 +325,12 @@ namespace RabbitMQ.Client
         /// Virtual host to access during this connection.
         /// </summary>
         public string VirtualHost { get; set; } = DefaultVHost;
+
+        /// <summary>
+        /// Maximum allowed message size, in bytes, from RabbitMQ.
+        /// Corresponds to the <code>rabbit.max_message_size</code> setting.
+        /// </summary>
+        public uint MaxMessageSize { get; set; } = DefaultMaxMessageSize;
 
         /// <summary>
         /// The uri to use for the connection.

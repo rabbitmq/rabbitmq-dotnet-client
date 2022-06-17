@@ -278,9 +278,10 @@ namespace RabbitMQ.Client.Impl
             var frameHeaderSpan = new ReadOnlySpan<byte>(frameHeaderBuffer, 1, 6);
             int channel = NetworkOrderDeserializer.ReadUInt16(frameHeaderSpan);
             int payloadSize = NetworkOrderDeserializer.ReadInt32(frameHeaderSpan.Slice(2, 4));
-            if (payloadSize > maxMessageSize)
+            if ((maxMessageSize > 0) && (payloadSize > maxMessageSize))
             {
-                throw new MalformedFrameException($"Frame payload size '{payloadSize}' exceeds maximum of '{maxMessageSize}' bytes");
+                string msg = $"Frame payload size '{payloadSize}' exceeds maximum of '{maxMessageSize}' bytes";
+                throw new MalformedFrameException(message: msg, canShutdownCleanly: false);
             }
 
             const int EndMarkerLength = 1;

@@ -1,10 +1,11 @@
 using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Framing;
 using Xunit;
+using Xunit.Sdk;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -128,6 +129,96 @@ namespace RabbitMQ.Client.Unit
                 Assert.False(modified, "Payload was modified after the return of BasicPublish");
 
                 m.BasicCancel(tag);
+            }
+        }
+
+        [Fact]
+        public void TestMaxMessageSize()
+        {
+            var re = new ManualResetEventSlim();
+            const ushort maxMsgSize = 1024;
+
+            int count = 0;
+            byte[] msg0 = Encoding.UTF8.GetBytes("hi");
+
+            var r = new System.Random();
+            byte[] msg1 = new byte[maxMsgSize * 2];
+            r.NextBytes(msg1);
+
+            var cf = new ConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            cf.TopologyRecoveryEnabled = false;
+            cf.MaxMessageSize = maxMsgSize;
+
+            bool sawConnectionShutdown = false;
+            bool sawModelShutdown = false;
+            bool sawConsumerRegistered = false;
+            bool sawConsumerCancelled = false;
+
+            using (IConnection c = cf.CreateConnection())
+            {
+                c.ConnectionShutdown += (o, a) =>
+                {
+                    sawConnectionShutdown = true;
+                };
+
+                Assert.Equal(maxMsgSize, cf.MaxMessageSize);
+                Assert.Equal(maxMsgSize, cf.Endpoint.MaxMessageSize);
+                Assert.Equal(maxMsgSize, c.Endpoint.MaxMessageSize);
+
+                using (IModel m = c.CreateModel())
+                {
+                    m.ModelShutdown += (o, a) =>
+                    {
+                        sawModelShutdown = true;
+                    };
+
+                    m.CallbackException += (o, a) =>
+                    {
+                        throw new XunitException("Unexpected m.CallbackException");
+                    };
+
+                    QueueDeclareOk q = m.QueueDeclare();
+
+                    var consumer = new EventingBasicConsumer(m);
+
+                    consumer.Shutdown += (o, a) =>
+                    {
+                        re.Set();
+                    };
+
+                    consumer.Registered += (o, a) =>
+                    {
+                        sawConsumerRegistered = true;
+                    };
+
+                    consumer.Unregistered += (o, a) =>
+                    {
+                        throw new XunitException("Unexpected consumer.Unregistered");
+                    };
+
+                    consumer.ConsumerCancelled += (o, a) =>
+                    {
+                        sawConsumerCancelled = true;
+                    };
+
+                    consumer.Received += (o, a) =>
+                    {
+                        Interlocked.Increment(ref count);
+                    };
+
+                    string tag = m.BasicConsume(q.QueueName, true, consumer);
+
+                    m.BasicPublish("", q.QueueName, msg0);
+                    m.BasicPublish("", q.QueueName, msg1);
+                    Assert.True(re.Wait(TimeSpan.FromSeconds(5)));
+
+                    Assert.Equal(1, count);
+                    Assert.True(sawConnectionShutdown);
+                    Assert.True(sawModelShutdown);
+                    Assert.True(sawConsumerRegistered);
+                    Assert.True(sawConsumerCancelled);
+                }
             }
         }
     }
