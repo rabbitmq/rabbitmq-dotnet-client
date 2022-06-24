@@ -33,7 +33,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 

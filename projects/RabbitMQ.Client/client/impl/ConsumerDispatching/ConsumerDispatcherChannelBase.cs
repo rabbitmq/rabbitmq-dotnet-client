@@ -53,12 +53,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
+        public void HandleBasicDeliver(ReadOnlyMemory<byte> consumerTag, ulong deliveryTag, bool redelivered,
             ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
         {
             if (!IsShutdown)
             {
-                _writer.TryWrite(new WorkStruct(GetConsumerOrDefault(consumerTag), consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray));
+                var consumerPair = GetConsumerOrDefault(consumerTag);
+                _writer.TryWrite(new WorkStruct(consumerPair.consumer, consumerPair.consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray));
             }
         }
 
