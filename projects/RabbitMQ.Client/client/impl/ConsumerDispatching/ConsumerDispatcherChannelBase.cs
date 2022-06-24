@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         public void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
+            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
         {
             if (!IsShutdown)
             {
@@ -108,8 +108,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public readonly string? ConsumerTag;
             public readonly ulong DeliveryTag;
             public readonly bool Redelivered;
-            public readonly string? Exchange;
-            public readonly string? RoutingKey;
+            public readonly ReadOnlyMemory<byte> Exchange;
+            public readonly ReadOnlyMemory<byte> RoutingKey;
             public readonly ReadOnlyBasicProperties BasicProperties;
             public readonly ReadOnlyMemory<byte> Body;
             public readonly byte[]? RentedArray;
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
 
             public WorkStruct(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
+                ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
             {
                 WorkType = WorkType.Deliver;
                 Consumer = consumer;

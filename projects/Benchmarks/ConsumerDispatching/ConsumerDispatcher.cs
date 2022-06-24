@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Text;
+using System.Threading;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
 using RabbitMQ.Client.ConsumerDispatching;
@@ -15,8 +16,8 @@ namespace RabbitMQ.Benchmarks
         private protected readonly AsyncBasicConsumerFake _consumer = new AsyncBasicConsumerFake(_autoResetEvent);
         protected readonly string _consumerTag = "ConsumerTag";
         protected readonly ulong _deliveryTag = 500UL;
-        protected readonly string _exchange = "Exchange";
-        protected readonly string _routingKey = "RoutingKey";
+        protected static readonly byte[] _exchange = Encoding.UTF8.GetBytes("Exchange");
+        protected static readonly byte[] _routingKey = Encoding.UTF8.GetBytes("RoutingKey");
         protected readonly ReadOnlyBasicProperties _properties = new ReadOnlyBasicProperties();
         protected readonly byte[] _body = new byte[512];
     }

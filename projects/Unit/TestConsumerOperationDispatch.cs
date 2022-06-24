@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Unit
             }
 
             public override void HandleBasicDeliver(string consumerTag,
-                ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+                ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
                 in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
             {
                 // we test concurrent dispatch from the moment basic.delivery is returned.
