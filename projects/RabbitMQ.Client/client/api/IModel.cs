@@ -536,23 +536,25 @@ namespace RabbitMQ.Client
         bool WaitForConfirms(TimeSpan timeout, out bool timedOut);
 
         /// <summary>
-        /// Wait until all published messages have been confirmed.
+        /// Wait until all published messages on this channel have been confirmed.
         /// </summary>
         /// <remarks>
-        /// Waits until all messages published since the last call have
-        /// been ack'd by the broker.  If a nack is received, throws an
-        /// OperationInterrupedException exception immediately.
+        /// Waits until all messages published on this channel since the last call have
+        /// been ack'd by the broker. If a nack is received, throws an
+        /// OperationInterrupedException exception immediately
+        /// and closes the channel.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie();
 
         /// <summary>
-        /// Wait until all published messages have been confirmed.
+        /// Wait until all published messages on this channel have been confirmed.
         /// </summary>
         /// <remarks>
-        /// Waits until all messages published since the last call have
-        /// been ack'd by the broker.  If a nack is received or the timeout
-        /// elapses, throws an OperationInterruptedException exception immediately.
+        /// Waits until all messages published on this channel since the last call have
+        /// been ack'd by the broker. If a nack is received or the timeout
+        /// elapses, throws an OperationInterruptedException exception immediately
+        /// and closes the channel.
         /// </remarks>
         [AmqpMethodDoNotImplement(null)]
         void WaitForConfirmsOrDie(TimeSpan timeout);
