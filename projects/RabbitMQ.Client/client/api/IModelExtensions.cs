@@ -82,17 +82,17 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
-        public static void BasicPublish<T>(this IModel model, PublicationAddress addr, ref T basicProperties, ReadOnlyMemory<byte> body)
+        public static void BasicPublish<T>(this IModel model, PublicationAddress addr, in T basicProperties, ReadOnlyMemory<byte> body)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
-            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, ref basicProperties, body);
+            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, in basicProperties, body);
         }
 
         public static void BasicPublish(this IModel model, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => model.BasicPublish(exchange, routingKey, ref EmptyBasicProperty.Empty, body, mandatory);
+            => model.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
 
         public static void BasicPublish(this IModel model, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => model.BasicPublish(exchange, routingKey, ref EmptyBasicProperty.Empty, body, mandatory);
+            => model.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
 #nullable disable
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Extension method) Like exchange bind but sets nowait to true. 
+        /// (Extension method) Like exchange bind but sets nowait to true.
         /// </summary>
         public static void ExchangeBindNoWait(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
         {
@@ -130,7 +130,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Extension method) Like ExchangeDeclare but sets nowait to true. 
+        /// (Extension method) Like ExchangeDeclare but sets nowait to true.
         /// </summary>
         public static void ExchangeDeclareNoWait(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)

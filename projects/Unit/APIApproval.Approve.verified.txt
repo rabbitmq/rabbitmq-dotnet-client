@@ -456,9 +456,9 @@ namespace RabbitMQ.Client
         string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer);
         RabbitMQ.Client.BasicGetResult BasicGet(string queue, bool autoAck);
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
-        void BasicPublish<TProperties>(RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, ref TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        void BasicPublish<TProperties>(RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader;
-        void BasicPublish<TProperties>(string exchange, string routingKey, ref TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader;
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
         void BasicRecover(bool requeue);
@@ -502,7 +502,7 @@ namespace RabbitMQ.Client
         public static string BasicConsume(this RabbitMQ.Client.IModel model, RabbitMQ.Client.IBasicConsumer consumer, string queue, bool autoAck = false, string consumerTag = "", bool noLocal = false, bool exclusive = false, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
         public static void BasicPublish(this RabbitMQ.Client.IModel model, RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, System.ReadOnlyMemory<byte> body = default, bool mandatory = false) { }
         public static void BasicPublish(this RabbitMQ.Client.IModel model, string exchange, string routingKey, System.ReadOnlyMemory<byte> body = default, bool mandatory = false) { }
-        public static void BasicPublish<T>(this RabbitMQ.Client.IModel model, RabbitMQ.Client.PublicationAddress addr, ref T basicProperties, System.ReadOnlyMemory<byte> body)
+        public static void BasicPublish<T>(this RabbitMQ.Client.IModel model, RabbitMQ.Client.PublicationAddress addr, in T basicProperties, System.ReadOnlyMemory<byte> body)
             where T : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader { }
         public static void Close(this RabbitMQ.Client.IModel model) { }
         public static void Close(this RabbitMQ.Client.IModel model, ushort replyCode, string replyText) { }

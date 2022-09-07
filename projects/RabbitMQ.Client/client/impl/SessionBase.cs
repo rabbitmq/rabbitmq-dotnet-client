@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Exceptions;
@@ -129,17 +130,17 @@ namespace RabbitMQ.Client.Impl
             OnSessionShutdown(reason);
         }
 
-        public virtual void Transmit<T>(ref T cmd) where T : struct, IOutgoingAmqpMethod
+        public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingAmqpMethod
         {
             if (!IsOpen && cmd.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
             {
                 ThrowAlreadyClosedException();
             }
 
-            Connection.Write(Framing.SerializeToFrames(ref cmd, ChannelNumber));
+            Connection.Write(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ChannelNumber));
         }
 
-        public void Transmit<TMethod, THeader>(ref TMethod cmd, ref THeader header, ReadOnlyMemory<byte> body)
+        public void Transmit<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -148,7 +149,7 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-            Connection.Write(Framing.SerializeToFrames(ref cmd, ref header, body, ChannelNumber, Connection.MaxPayloadSize));
+            Connection.Write(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize));
         }
 
         private void ThrowAlreadyClosedException()

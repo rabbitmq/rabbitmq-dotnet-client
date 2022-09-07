@@ -877,7 +877,7 @@ namespace RabbitMQ.Client.Unit
             {
                 try
                 {
-                    _model.BasicPublish(string.Empty, testQueueName, ref properties, _messageBody);
+                    _model.BasicPublish(string.Empty, testQueueName, properties, _messageBody);
                 }
                 catch (Exception e)
                 {

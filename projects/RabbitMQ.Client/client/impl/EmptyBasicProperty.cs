@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.client.impl
 #nullable enable
     internal readonly struct EmptyBasicProperty : IReadOnlyBasicProperties, IAmqpHeader
     {
-        internal static EmptyBasicProperty Empty;
+        internal static readonly EmptyBasicProperty Empty;
 
         ushort IAmqpHeader.ProtocolClassId => ClassConstants.Basic;
 

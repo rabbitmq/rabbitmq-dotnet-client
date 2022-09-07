@@ -284,8 +284,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // Try to send connection.close wait for CloseOk in the MainLoop
                     if (!_closed)
                     {
-                        var cmd = new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0);
-                        _session0.Transmit(ref cmd);
+                        _session0.Transmit(new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0));
                     }
                 }
                 catch (AlreadyClosedException)

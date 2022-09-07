@@ -333,7 +333,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void ModelRpc<TMethod>(ref TMethod method, ProtocolCommandId returnCommandId)
+        protected void ModelRpc<TMethod>(in TMethod method, ProtocolCommandId returnCommandId)
             where TMethod : struct, IOutgoingAmqpMethod
         {
             var k = new SimpleBlockingRpcContinuation();
@@ -341,7 +341,7 @@ namespace RabbitMQ.Client.Impl
             lock (_rpcLock)
             {
                 Enqueue(k);
-                Session.Transmit(ref method);
+                Session.Transmit(in method);
                 k.GetReply(ContinuationTimeout, out reply);
             }
 
@@ -353,7 +353,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected TReturn ModelRpc<TMethod, TReturn>(ref TMethod method, ProtocolCommandId returnCommandId, Func<ReadOnlyMemory<byte>, TReturn> createFunc)
+        protected TReturn ModelRpc<TMethod, TReturn>(in TMethod method, ProtocolCommandId returnCommandId, Func<ReadOnlyMemory<byte>, TReturn> createFunc)
             where TMethod : struct, IOutgoingAmqpMethod
         {
             var k = new SimpleBlockingRpcContinuation();
@@ -362,7 +362,7 @@ namespace RabbitMQ.Client.Impl
             lock (_rpcLock)
             {
                 Enqueue(k);
-                Session.Transmit(ref method);
+                Session.Transmit(in method);
                 k.GetReply(ContinuationTimeout, out reply);
             }
 
@@ -378,13 +378,13 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ModelSend<T>(ref T method) where T : struct, IOutgoingAmqpMethod
+        protected void ModelSend<T>(in T method) where T : struct, IOutgoingAmqpMethod
         {
-            Session.Transmit(ref method);
+            Session.Transmit(in method);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ModelSend<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body)
+        protected void ModelSend<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -392,7 +392,7 @@ namespace RabbitMQ.Client.Impl
             {
                 _flowControlBlock.Wait();
             }
-            Session.Transmit(ref method, ref header, body);
+            Session.Transmit(in method, in header, body);
         }
 
         internal void OnCallbackException(CallbackExceptionEventArgs args)
@@ -898,7 +898,7 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
 
-        public void BasicPublish<TProperties>(string exchange, string routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (NextPublishSeqNo > 0)
@@ -910,10 +910,10 @@ namespace RabbitMQ.Client.Impl
             }
 
             var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            ModelSend(ref cmd, ref basicProperties, body);
+            ModelSend(in cmd, in basicProperties, body);
         }
 
-        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, ref TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (NextPublishSeqNo > 0)
@@ -925,7 +925,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            ModelSend(ref cmd, ref basicProperties, body);
+            ModelSend(in cmd, in basicProperties, body);
         }
 
         public void UpdateSecret(string newSecret, string reason)
