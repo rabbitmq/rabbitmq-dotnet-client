@@ -57,7 +57,6 @@ namespace RabbitMQ.Client.Impl
         private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
 
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
-        private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
         private readonly object _shutdownLock = new object();
         private readonly object _rpcLock = new object();
@@ -341,7 +340,6 @@ namespace RabbitMQ.Client.Impl
         {
             if (method.HasContent)
             {
-                _flowControlBlock.Wait();
                 Session.Transmit(new OutgoingCommand(method, header, body));
             }
             else
@@ -450,7 +448,6 @@ namespace RabbitMQ.Client.Impl
             }
 
             _deliveryTagsCountdown.Reset(0);
-            _flowControlBlock.Set();
         }
 
         public void OnSessionShutdown(object sender, ShutdownEventArgs reason)
@@ -800,12 +797,10 @@ namespace RabbitMQ.Client.Impl
         {
             if (active)
             {
-                _flowControlBlock.Set();
                 _Private_ChannelFlowOk(active);
             }
             else
             {
-                _flowControlBlock.Reset();
                 _Private_ChannelFlowOk(active);
             }
             OnFlowControl(new FlowControlEventArgs(active));
@@ -1466,7 +1461,6 @@ namespace RabbitMQ.Client.Impl
 
         internal void SendCommands(IList<OutgoingCommand> commands)
         {
-            _flowControlBlock.Wait();
             AllocatePublishSeqNos(commands.Count);
             Session.Transmit(commands);
         }
