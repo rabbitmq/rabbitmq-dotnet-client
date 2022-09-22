@@ -48,7 +48,7 @@ namespace MassPublish
                         {
                             AppId = "testapp",
                         };
-                        publisher.BasicPublish("test", "myawesome.routing.key", ref properties, payload);
+                        publisher.BasicPublish("test", "myawesome.routing.key", properties, payload);
                     }
                     messagesSent += ItemsPerBatch;
                     await publisher.WaitForConfirmsOrDieAsync().ConfigureAwait(false);

@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     var cmd = new ConnectionClose(hpe.ShutdownReason.ReplyCode, hpe.ShutdownReason.ReplyText, 0, 0);
-                    _session0.Transmit(ref cmd);
+                    _session0.Transmit(in cmd);
                     if (hpe.CanShutdownCleanly)
                     {
                         ClosingLoop();
