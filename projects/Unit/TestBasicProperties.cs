@@ -210,7 +210,7 @@ namespace RabbitMQ.Client.Unit
             using (IModel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
-                var bp = new BasicProperties() { Headers = new Dictionary<string, object>()};
+                var bp = new BasicProperties() { Headers = new Dictionary<string, object>() };
                 bp.Headers["Hello"] = "World";
                 byte[] sendBody = Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
