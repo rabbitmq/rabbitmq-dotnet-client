@@ -149,7 +149,7 @@ namespace RabbitMQ.Client.Impl
             }
             _rentedHeaderArray = totalBodyBytes != 0 ? frame.TakeoverPayload() : Array.Empty<byte>();
 
-            _headerBytes = frame.Payload;
+            _headerBytes = frame.Payload.Slice(12);
 
             _remainingBodyBytes = (int)totalBodyBytes;
             UpdateContentBodyState();
