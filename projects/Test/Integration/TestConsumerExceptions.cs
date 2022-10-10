@@ -108,7 +108,7 @@ namespace Test.Integration
         protected async Task TestExceptionHandlingWithAsync(IBasicConsumer consumer,
             Func<IChannel, string, IBasicConsumer, string, Task> action)
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool notified = false;
             string q = await _channel.QueueDeclareAsync();
 

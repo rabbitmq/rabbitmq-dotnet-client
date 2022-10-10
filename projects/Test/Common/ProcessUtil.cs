@@ -32,7 +32,7 @@ namespace Test
                 var processTasks = new List<Task>();
 
                 // === EXITED Event handling ===
-                var processExitEvent = new TaskCompletionSource<bool>();
+                var processExitEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 process.Exited += (sender, args) =>
                 {
@@ -46,7 +46,7 @@ namespace Test
 
                 if (process.StartInfo.RedirectStandardOutput)
                 {
-                    var stdOutCloseEvent = new TaskCompletionSource<bool>();
+                    var stdOutCloseEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                     process.OutputDataReceived += (s, e) =>
                     {
@@ -72,7 +72,7 @@ namespace Test
 
                 if (process.StartInfo.RedirectStandardError)
                 {
-                    var stdErrCloseEvent = new TaskCompletionSource<bool>();
+                    var stdErrCloseEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                     process.ErrorDataReceived += (s, e) =>
                     {

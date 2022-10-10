@@ -290,13 +290,13 @@ namespace RabbitMQ.Client.Impl
         public ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
             => InnerChannel.BasicNackAsync(deliveryTag, multiple, requeue);
 
-        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory);
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory);
 
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory);
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory);
 
         public Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global)
         {

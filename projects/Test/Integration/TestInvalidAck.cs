@@ -45,7 +45,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestAckWithUnknownConsumerTagAndMultipleFalse()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool shutdownFired = false;
             ShutdownEventArgs shutdownArgs = null;
             _channel.ChannelShutdown += (s, args) =>

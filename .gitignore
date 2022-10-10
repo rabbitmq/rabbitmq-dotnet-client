@@ -1,3 +1,4 @@
+*.orig
 *.log
 _site/
 
@@ -28,6 +29,11 @@ test.sh
 test-output.log
 InternalTrace*
 nunit-agent*
+#################
+## JetBrains Rider
+#################
+.idea/
+
 #################
 ## Visual Studio
 #################

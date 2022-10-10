@@ -229,7 +229,7 @@ namespace Test.SequentialIntegration
 
         protected static TaskCompletionSource<bool> PrepareForShutdown(IConnection conn)
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
             aconn.ConnectionShutdown += (c, args) => tcs.SetResult(true);
@@ -239,7 +239,7 @@ namespace Test.SequentialIntegration
 
         protected static TaskCompletionSource<bool> PrepareForRecovery(IConnection conn)
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
             aconn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
@@ -392,7 +392,7 @@ namespace Test.SequentialIntegration
             {
                 await ch.ConfirmSelectAsync();
 
-                var tcs = new TaskCompletionSource<bool>();
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 var consumer = new AckingBasicConsumer(ch, 1, tcs);
 

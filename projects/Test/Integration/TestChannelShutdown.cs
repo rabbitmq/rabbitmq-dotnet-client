@@ -48,7 +48,7 @@ namespace Test.Integration
         public async Task TestConsumerDispatcherShutdown()
         {
             var autorecoveringChannel = (AutorecoveringChannel)_channel;
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _channel.ChannelShutdown += (channel, args) =>
             {

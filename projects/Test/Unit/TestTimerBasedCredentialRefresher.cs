@@ -129,7 +129,7 @@ namespace Test.Unit
         [Fact]
         public async Task TestRefreshToken()
         {
-            var cbtcs = new TaskCompletionSource<bool>();
+            var cbtcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool? callbackArg = null;
             var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
             Task cb(bool arg)
@@ -158,7 +158,7 @@ namespace Test.Unit
         [Fact]
         public async Task TestRefreshTokenFailed()
         {
-            var cbtcs = new TaskCompletionSource<bool>();
+            var cbtcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool? callbackArg = null;
             var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
             Task cb(bool arg)
