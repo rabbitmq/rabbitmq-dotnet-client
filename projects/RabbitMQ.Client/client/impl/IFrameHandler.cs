@@ -31,6 +31,7 @@
 
 using System;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -57,7 +58,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out
         ///(see Timeout property).</summary>
-        InboundFrame ReadFrame();
+        ValueTask<InboundFrame> ReadFrame();
 
         void SendHeader();
 

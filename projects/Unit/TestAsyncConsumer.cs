@@ -250,7 +250,7 @@ namespace RabbitMQ.Client.Unit
                         };
                     string tag = m.BasicConsume(q.QueueName, true, consumer);
                     // ensure we get a delivery
-                    bool waitRes = are.WaitOne(2000);
+                    bool waitRes = are.WaitOne(10000);
                     Assert.True(waitRes);
                     // unsubscribe and ensure no further deliveries
                     m.BasicCancelNoWait(tag);
