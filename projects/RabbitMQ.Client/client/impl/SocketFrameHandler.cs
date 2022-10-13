@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
                     SingleReader = true,
                     SingleWriter = false
                 });
-
+            
             _channelReader = channel.Reader;
             _channelWriter = channel.Writer;
 
@@ -294,7 +294,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
 #if NETSTANDARD
-                    await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
+                        await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
 #else
                         await _writer.WriteAsync(memory).ConfigureAwait(false);
 #endif
