@@ -47,7 +47,7 @@ namespace RabbitMQ.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ushort ReadUInt16(ReadOnlySequence<byte> buffer)
         {
-            if(!BinaryPrimitives.TryReadUInt16BigEndian(buffer.First.Span, out ushort value))
+            if (!BinaryPrimitives.TryReadUInt16BigEndian(buffer.First.Span, out ushort value))
             {
                 Span<byte> bytes = stackalloc byte[2];
                 buffer.Slice(0, 2).CopyTo(bytes);

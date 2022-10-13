@@ -277,7 +277,7 @@ namespace RabbitMQ.Client.Impl
             while (!TryReadFrame(ref buffer, maxMessageSize, out frame))
             {
                 reader.AdvanceTo(buffer.Start, buffer.End);
-                
+
                 // No need to try a synchronous read since we have an incomplete frame anyway, so we'll always need to go async
                 result = await reader.ReadAsync().ConfigureAwait(false);
 
@@ -295,7 +295,7 @@ namespace RabbitMQ.Client.Impl
 
         internal static bool TryReadFrame(ref ReadOnlySequence<byte> buffer, uint maxMessageSize, out InboundFrame frame)
         {
-            if(buffer.Length < 7)
+            if (buffer.Length < 7)
             {
                 frame = default;
                 return false;
