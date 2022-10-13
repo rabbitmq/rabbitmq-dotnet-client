@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
                     SingleReader = true,
                     SingleWriter = false
                 });
-            
+
             _channelReader = channel.Reader;
             _channelWriter = channel.Writer;
 
