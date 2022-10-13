@@ -286,21 +286,29 @@ namespace RabbitMQ.Client.Impl
 
         private async Task WriteLoop()
         {
-            while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
+            try
             {
-                while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
+                while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
+                    while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
+                    {
+                        MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
 #if NETSTANDARD
-                    await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
+                        await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
 #else
-                    await _writer.WriteAsync(memory).ConfigureAwait(false);
+                        await _writer.WriteAsync(memory).ConfigureAwait(false);
 #endif
-                    RabbitMqClientEventSource.Log.CommandSent(segment.Count);
-                    ArrayPool<byte>.Shared.Return(segment.Array);
-                }
+                        RabbitMqClientEventSource.Log.CommandSent(segment.Count);
+                        ArrayPool<byte>.Shared.Return(segment.Array);
+                    }
 
-                await _writer.FlushAsync().ConfigureAwait(false);
+                    await _writer.FlushAsync().ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                ESLog.Error("Background socket write loop has crashed", ex);
+                throw;
             }
         }
 
