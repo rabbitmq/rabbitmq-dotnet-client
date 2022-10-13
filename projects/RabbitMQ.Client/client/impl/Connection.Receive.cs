@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                await ReceiveLoop();
+                await ReceiveLoop().ConfigureAwait(false);
             }
             catch (EndOfStreamException eose)
             {
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (HardProtocolException hpe)
             {
-                await HardProtocolExceptionHandler(hpe);
+                await HardProtocolExceptionHandler(hpe).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             while (!_closed)
             {
-                InboundFrame frame = await _frameHandler.ReadFrame();
+                InboundFrame frame = await _frameHandler.ReadFrame().ConfigureAwait(false);
                 NotifyHeartbeatListener();
 
                 bool shallReturn = true;
@@ -151,7 +151,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     _session0.Transmit(in cmd);
                     if (hpe.CanShutdownCleanly)
                     {
-                        await ClosingLoop();
+                        await ClosingLoop().ConfigureAwait(false);
                     }
                 }
                 catch (IOException ioe)
@@ -174,7 +174,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 _frameHandler.ReadTimeout = TimeSpan.Zero;
                 // Wait for response/socket closure or timeout
-                await ReceiveLoop();
+                await ReceiveLoop().ConfigureAwait(false);
             }
             catch (ObjectDisposedException ode)
             {
