@@ -27,7 +27,7 @@ jobs:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
           path: ~/installers
-          key: ${{ runner.os }}-v0-${{ hashFiles('tools/versions.json') }}
+          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
       - name: Cache NuGet packages
         uses: actions/cache@v3
         with:
@@ -38,7 +38,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-v0-nuget-
       - name: Install and start RabbitMQ
-        run: ./tools/install.ps1
+        run: ./.ci/install.ps1
       - name: List NuGet sources
         run: dotnet nuget locals all --list
       - name: Restore
@@ -48,7 +48,7 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --verbosity=normal
       - name: Test
-        run: ./tools/gha-run-tests.ps1
+        run: ./.ci/gha-run-tests.ps1
 
   build:
     name: build/test on ubuntu-latest
