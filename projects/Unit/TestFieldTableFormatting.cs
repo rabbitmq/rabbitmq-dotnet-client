@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Unit
                 ["f"] = (float)123,  // 2+5
                 ["l"] = (long)123, // 2+9
                 ["s"] = (short)123, // 2+2
-                ["u"] = (ushort)123
+                ["u"] = (ushort)123,
                 ["t"] = true // 2+2
             };
             byte[] xbytes = { 0xaa, 0x55 };

@@ -200,6 +200,10 @@ namespace RabbitMQ.Client.Impl
                     case BinaryTableValue val:
                         destination = (byte)'x';
                         return 1 + WriteLongstr(ref fieldValue, val.Bytes);
+                    case ushort val:
+                        destination = (byte)'u';
+                        NetworkOrderSerializer.WriteUInt16(ref fieldValue, val);
+                        return 3;
                     default:
                         return ThrowInvalidTableValue(value);
                 }
@@ -234,6 +238,8 @@ namespace RabbitMQ.Client.Impl
                 case sbyte _:
                     return 2;
                 case short _:
+                    return 3;
+                case ushort _:
                     return 3;
                 case uint _:
                     return 5;
