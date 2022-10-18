@@ -130,6 +130,9 @@ namespace RabbitMQ.Client.Impl
                     case 's':
                         bytesRead = 3;
                         return NetworkOrderDeserializer.ReadInt16(slice);
+                    case 'u':
+                        bytesRead = 3;
+                        return NetworkOrderDeserializer.ReadUInt16(slice);
                     case 'T':
                         bytesRead = 1 + ReadTimestamp(slice, out var timestamp);
                         return timestamp;

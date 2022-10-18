@@ -131,6 +131,7 @@ namespace RabbitMQ.Client.Unit
                 ["f"] = (float)123,
                 ["l"] = (long)123,
                 ["s"] = (short)123,
+                ["u"] = (ushort)123,
                 ["t"] = true
             };
             byte[] xbytes = new byte[] { 0xaa, 0x55 };
@@ -147,6 +148,7 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(typeof(float), nt["f"].GetType()); Assert.Equal((float)123, nt["f"]);
             Assert.Equal(typeof(long), nt["l"].GetType()); Assert.Equal((long)123, nt["l"]);
             Assert.Equal(typeof(short), nt["s"].GetType()); Assert.Equal((short)123, nt["s"]);
+            Assert.Equal(typeof(ushort), nt["u"].GetType()); Assert.Equal((ushort)123, nt["u"]);
             Assert.Equal(true, nt["t"]);
             Assert.Equal(xbytes, ((BinaryTableValue)nt["x"]).Bytes);
             Assert.Null(nt["V"]);
