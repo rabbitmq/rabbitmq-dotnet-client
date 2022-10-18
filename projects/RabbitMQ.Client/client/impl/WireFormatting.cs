@@ -152,6 +152,9 @@ namespace RabbitMQ.Client.Impl
                 case 's':
                     bytesRead += 2;
                     return NetworkOrderDeserializer.ReadInt16(span.Slice(1));
+                case 'u':
+                    bytesRead += 2;
+                    return NetworkOrderDeserializer.ReadUInt16(span.Slice(1));
                 case 't':
                     bytesRead += 1;
                     return span[1] != 0;
@@ -342,6 +345,10 @@ namespace RabbitMQ.Client.Impl
                     span[0] = (byte)'s';
                     NetworkOrderSerializer.WriteInt16(slice, val);
                     return 3;
+                case ushort val:
+                    span[0] = (byte)'u';
+                    NetworkOrderSerializer.WriteUInt16(slice, val);
+                    return 3;
                 case bool val:
                     span[0] = (byte)'t';
                     span[1] = (byte)(val ? 1 : 0);
@@ -365,6 +372,7 @@ namespace RabbitMQ.Client.Impl
                 case bool _:
                     return 2;
                 case short _:
+                case ushort _:
                     return 3;
                 case int _:
                 case uint _:
