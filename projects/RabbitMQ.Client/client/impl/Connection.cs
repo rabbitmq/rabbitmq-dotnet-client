@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 ["connection_name"] = ClientProvidedName
             };
 
-            _mainLoopTask = Task.Run(MainLoop);
+            _mainLoopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning).Unwrap();
             try
             {
                 Open();

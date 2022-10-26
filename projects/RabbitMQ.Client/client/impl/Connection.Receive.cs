@@ -70,52 +70,63 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             while (!_closed)
             {
-                InboundFrame frame = await _frameHandler.ReadFrame().ConfigureAwait(false);
-                NotifyHeartbeatListener();
-
-                bool shallReturn = true;
-                if (frame.Channel == 0)
+                while (_frameHandler.TryReadFrame(out InboundFrame frame))
                 {
-                    if (frame.Type == FrameType.FrameHeartbeat)
-                    {
-                        // Ignore it: we've already just reset the heartbeat
-                    }
-                    else
-                    {
-                        // In theory, we could get non-connection.close-ok
-                        // frames here while we're quiescing (m_closeReason !=
-                        // null). In practice, there's a limited number of
-                        // things the server can ask of us on channel 0 -
-                        // essentially, just connection.close. That, combined
-                        // with the restrictions on pipelining, mean that
-                        // we're OK here to handle channel 0 traffic in a
-                        // quiescing situation, even though technically we
-                        // should be ignoring everything except
-                        // connection.close-ok.
-                        shallReturn = _session0.HandleFrame(in frame);
-                    }
+                    NotifyHeartbeatListener();
+                    ProcessFrame(frame);
+                }
+
+                // Done reading frames synchronously, go async
+                InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync().ConfigureAwait(false);
+                NotifyHeartbeatListener();
+                ProcessFrame(asyncFrame);
+            }
+        }
+
+        private void ProcessFrame(InboundFrame frame)
+        {
+            bool shallReturn = true;
+            if (frame.Channel == 0)
+            {
+                if (frame.Type == FrameType.FrameHeartbeat)
+                {
+                    // Ignore it: we've already just reset the heartbeat
                 }
                 else
                 {
-                    // If we're still m_running, but have a m_closeReason,
-                    // then we must be quiescing, which means any inbound
-                    // frames for non-zero channels (and any inbound
-                    // commands on channel zero that aren't
-                    // Connection.CloseOk) must be discarded.
-                    if (_closeReason is null)
-                    {
-                        // No close reason, not quiescing the
-                        // connection. Handle the frame. (Of course, the
-                        // Session itself may be quiescing this particular
-                        // channel, but that's none of our concern.)
-                        shallReturn = _sessionManager.Lookup(frame.Channel).HandleFrame(in frame);
-                    }
+                    // In theory, we could get non-connection.close-ok
+                    // frames here while we're quiescing (m_closeReason !=
+                    // null). In practice, there's a limited number of
+                    // things the server can ask of us on channel 0 -
+                    // essentially, just connection.close. That, combined
+                    // with the restrictions on pipelining, mean that
+                    // we're OK here to handle channel 0 traffic in a
+                    // quiescing situation, even though technically we
+                    // should be ignoring everything except
+                    // connection.close-ok.
+                    shallReturn = _session0.HandleFrame(in frame);
                 }
-
-                if (shallReturn)
+            }
+            else
+            {
+                // If we're still m_running, but have a m_closeReason,
+                // then we must be quiescing, which means any inbound
+                // frames for non-zero channels (and any inbound
+                // commands on channel zero that aren't
+                // Connection.CloseOk) must be discarded.
+                if (_closeReason is null)
                 {
-                    frame.ReturnPayload();
+                    // No close reason, not quiescing the
+                    // connection. Handle the frame. (Of course, the
+                    // Session itself may be quiescing this particular
+                    // channel, but that's none of our concern.)
+                    shallReturn = _sessionManager.Lookup(frame.Channel).HandleFrame(in frame);
                 }
+            }
+
+            if (shallReturn)
+            {
+                frame.ReturnPayload();
             }
         }
 

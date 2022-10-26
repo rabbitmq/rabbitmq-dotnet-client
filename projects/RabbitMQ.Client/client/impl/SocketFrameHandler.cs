@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Impl
             _pipeReader = PipeReader.Create(netstream);
 
             WriteTimeout = writeTimeout;
-            _writerTask = Task.Run(WriteLoop);
+            _writerTask = Task.Factory.StartNew(WriteLoop, TaskCreationOptions.LongRunning).Unwrap();
         }
 
         public AmqpTcpEndpoint Endpoint
@@ -238,9 +238,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ValueTask<InboundFrame> ReadFrame()
+        public ValueTask<InboundFrame> ReadFrameAsync()
         {
-            return InboundFrame.ReadFromPipe(_pipeReader, _amqpTcpEndpoint.MaxMessageSize);
+            return InboundFrame.ReadFromPipeAsync(_pipeReader, _amqpTcpEndpoint.MaxMessageSize);
+        }
+
+        public bool TryReadFrame(out InboundFrame frame)
+        {
+            return InboundFrame.TryReadFrameFromPipe(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, out frame);
         }
 
         public void SendHeader()

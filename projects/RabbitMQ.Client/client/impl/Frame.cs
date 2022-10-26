@@ -251,34 +251,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static async ValueTask<InboundFrame> ReadFromPipe(PipeReader reader, uint maxMessageSize)
+        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize)
         {
-            // Try a synchronous read first, then go async
-            if (!reader.TryRead(out ReadResult result))
-            {
-                result = await reader.ReadAsync().ConfigureAwait(false);
-            }
+            ReadResult result = await reader.ReadAsync().ConfigureAwait(false);
 
             ReadOnlySequence<byte> buffer = result.Buffer;
-
             if (result.IsCompleted || buffer.Length == 0)
             {
                 throw new EndOfStreamException("Pipe is completed.");
             }
 
-            byte firstByte = buffer.First.Span[0];
-            if (firstByte == 'A')
-            {
-                ProcessProtocolHeader(buffer);
-            }
-
             InboundFrame frame;
-
+            // Loop until we have enough data to read an entire frame, or until the pipe is completed.
             while (!TryReadFrame(ref buffer, maxMessageSize, out frame))
             {
                 reader.AdvanceTo(buffer.Start, buffer.End);
 
-                // No need to try a synchronous read since we have an incomplete frame anyway, so we'll always need to go async
+                // Not enough 
                 result = await reader.ReadAsync().ConfigureAwait(false);
 
                 if (result.IsCompleted || buffer.Length == 0)
@@ -293,6 +282,31 @@ namespace RabbitMQ.Client.Impl
             return frame;
         }
 
+        internal static bool TryReadFrameFromPipe(PipeReader reader, uint maxMessageSize, out InboundFrame frame)
+        {
+            if (reader.TryRead(out ReadResult result))
+            {
+                ReadOnlySequence<byte> buffer = result.Buffer;
+                if (result.IsCompleted || buffer.Length == 0)
+                {
+                    throw new EndOfStreamException("Pipe is completed.");
+                }
+
+                if (TryReadFrame(ref buffer, maxMessageSize, out frame))
+                {
+                    reader.AdvanceTo(buffer.Start);
+                    return true;
+                }
+
+                // We didn't read enough, so let's signal how much of the buffer we examined.
+                reader.AdvanceTo(buffer.Start, buffer.End);
+            }
+
+            // Failed to synchronously read sufficient data from the pipe. We'll need to go async.
+            frame = default;
+            return false;
+        }
+
         internal static bool TryReadFrame(ref ReadOnlySequence<byte> buffer, uint maxMessageSize, out InboundFrame frame)
         {
             if (buffer.Length < 7)
@@ -301,7 +315,13 @@ namespace RabbitMQ.Client.Impl
                 return false;
             }
 
-            FrameType type = (FrameType)buffer.First.Span[0];
+            byte firstByte = buffer.First.Span[0];
+            if (firstByte == 'A')
+            {
+                ProcessProtocolHeader(buffer);
+            }
+
+            FrameType type = (FrameType)firstByte;
             int channel = NetworkOrderDeserializer.ReadUInt16(buffer.Slice(1));
             int payloadSize = NetworkOrderDeserializer.ReadInt32(buffer.Slice(3));
             if ((maxMessageSize > 0) && (payloadSize > maxMessageSize))
