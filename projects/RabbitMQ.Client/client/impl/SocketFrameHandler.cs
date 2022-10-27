@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Impl
             _pipeReader = PipeReader.Create(netstream);
 
             WriteTimeout = writeTimeout;
-            _writerTask = Task.Factory.StartNew(WriteLoop, TaskCreationOptions.LongRunning).Unwrap();
+            _writerTask = Task.Run(WriteLoop);
         }
 
         public AmqpTcpEndpoint Endpoint
