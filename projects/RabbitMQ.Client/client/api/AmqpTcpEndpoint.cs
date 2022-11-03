@@ -48,7 +48,7 @@ namespace RabbitMQ.Client
     /// "Port" properties are extracted.
     /// </para>
     /// </remarks>
-    public class AmqpTcpEndpoint// : ICloneable
+    public class AmqpTcpEndpoint
     {
         /// <summary>
         /// Default Amqp ssl port.
