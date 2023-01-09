@@ -84,7 +84,7 @@ namespace RabbitMQ.Client.Unit
 
             string hostName = System.Net.Dns.GetHostName();
             cf.Ssl.ServerName = hostName;
-            cf.Ssl.CertPath = $"{sslDir}/client_{hostName}_key.p12";
+            cf.Ssl.CertPath = $"{sslDir}/client_{hostName}.p12";
             cf.Ssl.CertPassphrase = certPassphrase;
             cf.Ssl.Enabled = true;
 
