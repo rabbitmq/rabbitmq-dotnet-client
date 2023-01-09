@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Unit
             string hostName = System.Net.Dns.GetHostName();
             ConnectionFactory cf = new ConnectionFactory { Port = 5671 };
             cf.Ssl.ServerName = hostName;
-            cf.Ssl.CertPath = $"{_sslDir}/client_{hostName}_key.p12";
+            cf.Ssl.CertPath = $"{_sslDir}/client_{hostName}.p12";
             cf.Ssl.CertPassphrase = _certPassphrase;
             cf.Ssl.Enabled = true;
             SendReceive(cf);
