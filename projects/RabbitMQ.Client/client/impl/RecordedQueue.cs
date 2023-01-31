@@ -37,7 +37,7 @@ namespace RabbitMQ.Client.Impl
     internal readonly struct RecordedQueue
     {
         private readonly string _name;
-        private readonly IDictionary<string, object>? _arguments;
+        private readonly IReadOnlyDictionary<string, object>? _arguments;
         private readonly bool _durable;
         private readonly bool _exclusive;
         private readonly bool _isAutoDelete;
@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Impl
         public bool IsAutoDelete => _isAutoDelete;
         public bool IsServerNamed => _isServerNamed;
 
-        public RecordedQueue(string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
+        public RecordedQueue(string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IReadOnlyDictionary<string, object>? arguments)
         {
             _name = name;
             _isServerNamed = isServerNamed;

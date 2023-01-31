@@ -42,9 +42,9 @@ namespace RabbitMQ.Client.Impl
         public bool AutoAck { get; }
         public string ConsumerTag { get; }
         public bool Exclusive { get; }
-        public IDictionary<string, object>? Arguments { get; }
+        public IReadOnlyDictionary<string, object>? Arguments { get; }
 
-        public RecordedConsumer(AutorecoveringModel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IDictionary<string, object>? arguments)
+        public RecordedConsumer(AutorecoveringModel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IReadOnlyDictionary<string, object>? arguments)
         {
             Channel = channel;
             Consumer = consumer;

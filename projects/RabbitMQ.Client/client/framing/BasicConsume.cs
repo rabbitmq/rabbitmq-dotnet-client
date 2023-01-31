@@ -47,9 +47,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public readonly bool _noAck;
         public readonly bool _exclusive;
         public readonly bool _nowait;
-        public readonly IDictionary<string, object> _arguments;
+        public readonly IReadOnlyDictionary<string, object> _arguments;
 
-        public BasicConsume(string Queue, string ConsumerTag, bool NoLocal, bool NoAck, bool Exclusive, bool Nowait, IDictionary<string, object> Arguments)
+        public BasicConsume(string Queue, string ConsumerTag, bool NoLocal, bool NoAck, bool Exclusive, bool Nowait, IReadOnlyDictionary<string, object> Arguments)
         {
             _queue = Queue;
             _consumerTag = ConsumerTag;

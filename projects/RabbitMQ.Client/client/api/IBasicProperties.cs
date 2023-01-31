@@ -79,7 +79,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Message header field table. Is of type <see cref="IDictionary{TKey,TValue}" />.
         /// </summary>
-        IDictionary<string, object?>? Headers { get; }
+        IReadOnlyDictionary<string, object?>? Headers { get; }
 
         /// <summary>
         /// Application message Id.
@@ -244,9 +244,9 @@ namespace RabbitMQ.Client
         new string? Expiration { get; set; }
 
         /// <summary>
-        /// Message header field table. Is of type <see cref="IDictionary{TKey,TValue}" />.
+        /// Message header field table. Is of type <see cref="IReadOnlyDictionary{TKey,TValue}" />.
         /// </summary>
-        new IDictionary<string, object?>? Headers { get; set; }
+        new IReadOnlyDictionary<string, object?>? Headers { get; set; }
 
         /// <summary>
         /// Application message Id.

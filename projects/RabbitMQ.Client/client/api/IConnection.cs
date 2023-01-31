@@ -64,7 +64,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// A copy of the client properties that has been sent to the server.
         /// </summary>
-        IDictionary<string, object> ClientProperties { get; }
+        IReadOnlyDictionary<string, object> ClientProperties { get; }
 
         /// <summary>
         /// Returns null if the connection is still in a state
@@ -116,7 +116,7 @@ namespace RabbitMQ.Client
         /// A dictionary of the server properties sent by the server while establishing the connection.
         /// This typically includes the product name and version of the server.
         /// </summary>
-        IDictionary<string, object> ServerProperties { get; }
+        IReadOnlyDictionary<string, object> ServerProperties { get; }
 
         /// <summary>
         /// Returns the list of <see cref="ShutdownReportEntry"/> objects that contain information

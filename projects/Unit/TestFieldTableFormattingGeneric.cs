@@ -46,23 +46,23 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestStandardTypes()
         {
-            IDictionary<string, object> t = new Dictionary<string, object>
+            IReadOnlyDictionary<string, object> t = new Dictionary<string, object>
             {
                 ["string"] = "Hello",
                 ["int"] = 1234,
                 ["uint"] = 1234u,
                 ["decimal"] = 12.34m,
-                ["timestamp"] = new AmqpTimestamp(0)
+                ["timestamp"] = new AmqpTimestamp(0),
+                ["fieldarray"] = new List<object>
+                {
+                    "longstring",
+                    1234
+                },
+                ["fieldtable"] = new Dictionary<string, object>()
+                {
+                    ["test"] = "test",
+                },
             };
-            IDictionary<string, object> t2 = new Dictionary<string, object>();
-            t["fieldtable"] = t2;
-            t2["test"] = "test";
-            IList array = new List<object>
-            {
-                "longstring",
-                1234
-            };
-            t["fieldarray"] = array;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(ref bytes.GetStart(), t);
@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestTableEncoding_S()
         {
-            IDictionary<string, object> t = new Dictionary<string, object>
+            IReadOnlyDictionary<string, object> t = new Dictionary<string, object>
             {
                 ["a"] = "bc"
             };
@@ -103,7 +103,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestTableEncoding_x()
         {
-            IDictionary<string, object> t = new Dictionary<string, object>
+            IReadOnlyDictionary<string, object> t = new Dictionary<string, object>
             {
                 ["a"] = new BinaryTableValue(new byte[] { 0xaa, 0x55 })
             };
@@ -123,7 +123,8 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestQpidJmsTypes()
         {
-            IDictionary<string, object> t = new Dictionary<string, object>
+            byte[] xbytes = new byte[] { 0xaa, 0x55 };
+            IReadOnlyDictionary<string, object> t = new Dictionary<string, object>
             {
                 ["B"] = (byte)255,
                 ["b"] = (sbyte)-128,
@@ -132,11 +133,11 @@ namespace RabbitMQ.Client.Unit
                 ["l"] = (long)123,
                 ["s"] = (short)123,
                 ["u"] = (ushort)123,
-                ["t"] = true
+                ["t"] = true,
+                ["x"] = new BinaryTableValue(xbytes),
+                ["V"] = null,
             };
-            byte[] xbytes = new byte[] { 0xaa, 0x55 };
-            t["x"] = new BinaryTableValue(xbytes);
-            t["V"] = null;
+
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
             WireFormatting.WriteTable(ref bytes.GetStart(), t);

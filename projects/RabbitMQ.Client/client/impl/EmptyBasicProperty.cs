@@ -29,7 +29,7 @@ namespace RabbitMQ.Client.client.impl
         public string? CorrelationId => default;
         public DeliveryModes DeliveryMode => default;
         public string? Expiration => default;
-        public IDictionary<string, object?>? Headers => default;
+        public IReadOnlyDictionary<string, object?>? Headers => default;
         public string? MessageId => default;
         public bool Persistent => default;
         public byte Priority => default;

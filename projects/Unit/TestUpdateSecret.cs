@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Unit
 
         private bool RabbitMQ380OrHigher()
         {
-            System.Collections.Generic.IDictionary<string, object> properties = _conn.ServerProperties;
+            System.Collections.Generic.IReadOnlyDictionary<string, object> properties = _conn.ServerProperties;
 
             if (properties.TryGetValue("version", out object versionVal))
             {

@@ -235,7 +235,7 @@ namespace RabbitMQ.Client.Impl
             string consumerTag,
             bool noLocal,
             bool exclusive,
-            IDictionary<string, object> arguments,
+            IReadOnlyDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
             string result = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
@@ -286,24 +286,24 @@ namespace RabbitMQ.Client.Impl
             _usesPublisherConfirms = true;
         }
 
-        public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        public void ExchangeBind(string destination, string source, string routingKey, IReadOnlyDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _connection.RecordBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
             _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
         }
 
-        public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        public void ExchangeBindNoWait(string destination, string source, string routingKey, IReadOnlyDictionary<string, object> arguments)
             => InnerChannel.ExchangeBindNoWait(destination, source, routingKey, arguments);
 
-        public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IReadOnlyDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _innerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
             _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
         }
 
-        public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IReadOnlyDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _innerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
@@ -325,7 +325,7 @@ namespace RabbitMQ.Client.Impl
             _connection.DeleteRecordedExchange(exchange);
         }
 
-        public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        public void ExchangeUnbind(string destination, string source, string routingKey, IReadOnlyDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _connection.DeleteRecordedBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
@@ -333,20 +333,20 @@ namespace RabbitMQ.Client.Impl
             _connection.DeleteAutoDeleteExchange(source);
         }
 
-        public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IReadOnlyDictionary<string, object> arguments)
             => InnerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
 
-        public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        public void QueueBind(string queue, string exchange, string routingKey, IReadOnlyDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _connection.RecordBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
             _innerChannel.QueueBind(queue, exchange, routingKey, arguments);
         }
 
-        public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        public void QueueBindNoWait(string queue, string exchange, string routingKey, IReadOnlyDictionary<string, object> arguments)
             => InnerChannel.QueueBind(queue, exchange, routingKey, arguments);
 
-        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IReadOnlyDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             QueueDeclareOk result = _innerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
@@ -354,7 +354,7 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IReadOnlyDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _innerChannel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
@@ -387,7 +387,7 @@ namespace RabbitMQ.Client.Impl
         public uint QueuePurge(string queue)
             => InnerChannel.QueuePurge(queue);
 
-        public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        public void QueueUnbind(string queue, string exchange, string routingKey, IReadOnlyDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
             _connection.DeleteRecordedBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));

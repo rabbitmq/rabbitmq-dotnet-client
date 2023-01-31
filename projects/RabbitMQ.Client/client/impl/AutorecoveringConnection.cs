@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ushort ChannelMax => InnerConnection.ChannelMax;
 
-        public IDictionary<string, object> ClientProperties => InnerConnection.ClientProperties;
+        public IReadOnlyDictionary<string, object> ClientProperties => InnerConnection.ClientProperties;
 
         public ShutdownEventArgs CloseReason => InnerConnection.CloseReason;
 
@@ -149,7 +149,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public int RemotePort => InnerConnection.RemotePort;
 
-        public IDictionary<string, object> ServerProperties => InnerConnection.ServerProperties;
+        public IReadOnlyDictionary<string, object> ServerProperties => InnerConnection.ServerProperties;
 
         public IList<ShutdownReportEntry> ShutdownReport => InnerConnection.ShutdownReport;
 

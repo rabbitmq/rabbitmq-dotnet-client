@@ -44,7 +44,7 @@ namespace RabbitMQ.Client
     {
         public string? ContentType { get; set; }
         public string? ContentEncoding { get; set; }
-        public IDictionary<string, object?>? Headers { get; set; }
+        public IReadOnlyDictionary<string, object?>? Headers { get; set; }
         public DeliveryModes DeliveryMode { get; set; }
         public byte Priority { get; set; }
         public string? CorrelationId { get; set; }

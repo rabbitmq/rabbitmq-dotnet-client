@@ -45,9 +45,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public readonly string _source;
         public readonly string _routingKey;
         public readonly bool _nowait;
-        public readonly IDictionary<string, object> _arguments;
+        public readonly IReadOnlyDictionary<string, object> _arguments;
 
-        public ExchangeUnbind(string Destination, string Source, string RoutingKey, bool Nowait, IDictionary<string, object> Arguments)
+        public ExchangeUnbind(string Destination, string Source, string RoutingKey, bool Nowait, IReadOnlyDictionary<string, object> Arguments)
         {
             _destination = Destination;
             _source = Source;

@@ -45,9 +45,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public readonly string _exchange;
         public readonly string _routingKey;
         public readonly bool _nowait;
-        public readonly IDictionary<string, object> _arguments;
+        public readonly IReadOnlyDictionary<string, object> _arguments;
 
-        public QueueBind(string Queue, string Exchange, string RoutingKey, bool Nowait, IDictionary<string, object> Arguments)
+        public QueueBind(string Queue, string Exchange, string RoutingKey, bool Nowait, IReadOnlyDictionary<string, object> Arguments)
         {
             _queue = Queue;
             _exchange = Exchange;

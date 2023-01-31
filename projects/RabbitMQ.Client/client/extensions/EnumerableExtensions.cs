@@ -26,19 +26,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client.Extensions
 {
-    internal class ConnectionStartDetails
+    internal static class EnumerableExtensions
     {
-        public byte[] m_locales;
-        public byte[] m_mechanisms;
-        public IReadOnlyDictionary<string, object> m_serverProperties;
-        public byte m_versionMajor;
-        public byte m_versionMinor;
+        public static bool Any(this IEnumerable source)
+        {
+            var enumerator = source.GetEnumerator();
+            return enumerator.MoveNext();
+        }
     }
 }

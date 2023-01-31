@@ -158,7 +158,7 @@ namespace RabbitMQ.Client.Impl
                         destination = (byte)'f';
                         NetworkOrderSerializer.WriteSingle(ref fieldValue, val);
                         return 5;
-                    case IDictionary<string, object> val:
+                    case IReadOnlyDictionary<string, object> val:
                         destination = (byte)'F';
                         return 1 + WriteTable(ref fieldValue, val);
                     case IList val:
@@ -226,7 +226,7 @@ namespace RabbitMQ.Client.Impl
                     return 5;
                 case byte[] val:
                     return 5 + val.Length;
-                case IDictionary<string, object> val:
+                case IReadOnlyDictionary<string, object> val:
                     return 1 + GetTableByteCount(val);
                 case IList val:
                     return 1 + GetArrayByteCount(val);
@@ -399,7 +399,7 @@ namespace RabbitMQ.Client.Impl
             return bytesWritten;
         }
 
-        public static int WriteTable(ref byte destination, IDictionary<string, object> val)
+        public static int WriteTable(ref byte destination, IReadOnlyDictionary<string, object> val)
         {
             if (val is null || val.Count == 0)
             {
@@ -447,7 +447,7 @@ namespace RabbitMQ.Client.Impl
             return byteCount;
         }
 
-        public static int GetTableByteCount(IDictionary<string, object> val)
+        public static int GetTableByteCount(IReadOnlyDictionary<string, object> val)
         {
             if (val is null || val.Count == 0)
             {

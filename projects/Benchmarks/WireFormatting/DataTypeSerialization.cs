@@ -128,8 +128,8 @@ namespace RabbitMQ.Benchmarks
 
     public class DataTypeTableSerialization : DataTypeSerialization
     {
-        private IDictionary<string, object> _emptyDict = new Dictionary<string, object>();
-        private IDictionary<string, object> _populatedDict;
+        private IReadOnlyDictionary<string, object> _emptyDict = new Dictionary<string, object>();
+        private IReadOnlyDictionary<string, object> _populatedDict;
         private Memory<byte> _emptyDictionaryBuffer;
         private Memory<byte> _populatedDictionaryBuffer;
 

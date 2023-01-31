@@ -41,12 +41,12 @@ namespace RabbitMQ.Client.Impl
         private readonly string _destination;
         private readonly string _source;
         private readonly string _routingKey;
-        private readonly IDictionary<string, object>? _arguments;
+        private readonly IReadOnlyDictionary<string, object>? _arguments;
 
         public string Destination => _destination;
         public string Source => _source;
 
-        public RecordedBinding(bool isQueueBinding, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+        public RecordedBinding(bool isQueueBinding, string destination, string source, string routingKey, IReadOnlyDictionary<string, object>? arguments)
         {
             _isQueueBinding = isQueueBinding;
             _destination = destination;

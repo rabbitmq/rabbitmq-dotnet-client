@@ -166,7 +166,7 @@ namespace RabbitMQ.Client
             string consumerTag,
             bool noLocal,
             bool exclusive,
-            IDictionary<string, object> arguments,
+            IReadOnlyDictionary<string, object> arguments,
             IBasicConsumer consumer);
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+        void ExchangeBind(string destination, string source, string routingKey, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>
         /// Like ExchangeBind but sets nowait to true.
@@ -251,20 +251,20 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+        void ExchangeBindNoWait(string destination, string source, string routingKey, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>Declare an exchange.</summary>
         /// <remarks>
         /// The exchange is declared non-passive and non-internal.
         /// The "nowait" option is not exercised.
         /// </remarks>
-        void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
+        void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>
         /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
-        void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
+        void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>
         /// Do a passive exchange declaration.
@@ -293,7 +293,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+        void ExchangeUnbind(string destination, string source, string routingKey, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>
         /// Like ExchangeUnbind but sets nowait to true.
@@ -303,7 +303,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+        void ExchangeUnbindNoWait(string destination, string source, string routingKey, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>
         /// Bind a queue to an exchange.
@@ -313,7 +313,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+        void QueueBind(string queue, string exchange, string routingKey, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
         /// <remarks>
@@ -321,7 +321,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+        void QueueBindNoWait(string queue, string exchange, string routingKey, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>
         /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
@@ -331,7 +331,7 @@ namespace RabbitMQ.Client
         /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
         /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
         /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
-        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
+        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>
         /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
@@ -341,7 +341,7 @@ namespace RabbitMQ.Client
         /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
         /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
         /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
-        void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
+        void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>Declare a queue passively.</summary>
         /// <remarks>
@@ -397,7 +397,7 @@ namespace RabbitMQ.Client
         ///     Routing key must be shorter than 255 bytes.
         ///   </para>
         /// </remarks>
-        void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+        void QueueUnbind(string queue, string exchange, string routingKey, IReadOnlyDictionary<string, object> arguments);
 
         /// <summary>
         /// Commit this session's active TX transaction.

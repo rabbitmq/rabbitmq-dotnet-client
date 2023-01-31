@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public ushort ChannelMax => _sessionManager.ChannelMax;
 
-        public IDictionary<string, object?> ClientProperties { get; private set; }
+        public IReadOnlyDictionary<string, object?> ClientProperties { get; private set; }
 
         public AmqpTcpEndpoint Endpoint => _frameHandler.Endpoint;
 
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public int LocalPort => _frameHandler.LocalPort;
         public int RemotePort => _frameHandler.RemotePort;
 
-        public IDictionary<string, object?>? ServerProperties { get; private set; }
+        public IReadOnlyDictionary<string, object?>? ServerProperties { get; private set; }
 
         public IList<ShutdownReportEntry> ShutdownReport => _shutdownReport;
         private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();

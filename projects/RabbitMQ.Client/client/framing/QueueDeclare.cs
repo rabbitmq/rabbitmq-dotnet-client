@@ -47,9 +47,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public readonly bool _exclusive;
         public readonly bool _autoDelete;
         public readonly bool _nowait;
-        public readonly IDictionary<string, object> _arguments;
+        public readonly IReadOnlyDictionary<string, object> _arguments;
 
-        public QueueDeclare(string Queue, bool Passive, bool Durable, bool Exclusive, bool AutoDelete, bool Nowait, IDictionary<string, object> Arguments)
+        public QueueDeclare(string Queue, bool Passive, bool Durable, bool Exclusive, bool AutoDelete, bool Nowait, IReadOnlyDictionary<string, object> Arguments)
         {
             _queue = Queue;
             _passive = Passive;

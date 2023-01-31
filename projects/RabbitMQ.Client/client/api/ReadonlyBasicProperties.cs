@@ -43,7 +43,7 @@ namespace RabbitMQ.Client
     {
         private readonly string? _contentType;
         private readonly string? _contentEncoding;
-        private readonly IDictionary<string, object?>? _headers;
+        private readonly IReadOnlyDictionary<string, object?>? _headers;
         private readonly DeliveryModes _deliveryMode;
         private readonly byte _priority;
         private readonly string? _correlationId;
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client
 
         public string? ContentType => _contentType;
         public string? ContentEncoding => _contentEncoding;
-        public IDictionary<string, object?>? Headers => _headers;
+        public IReadOnlyDictionary<string, object?>? Headers => _headers;
         public DeliveryModes DeliveryMode => _deliveryMode;
         public byte Priority => _priority;
         public string? CorrelationId => _correlationId;

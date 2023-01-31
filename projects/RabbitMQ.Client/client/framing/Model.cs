@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ModelSend(new BasicCancel(consumerTag, nowait));
         }
 
-        public override void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IDictionary<string, object> arguments)
+        public override void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IReadOnlyDictionary<string, object> arguments)
         {
             ModelSend(new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, nowait, arguments));
         }
@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ModelSend(new ConnectionSecureOk(response));
         }
 
-        public override void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
+        public override void _Private_ConnectionStartOk(IReadOnlyDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
         {
             ModelSend(new ConnectionStartOk(clientProperties, mechanism, response, locale));
         }
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ModelRpc(new ConnectionUpdateSecret(newSecret, reason), ProtocolCommandId.ConnectionUpdateSecretOk);
         }
 
-        public override void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
+        public override void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IReadOnlyDictionary<string, object> arguments)
         {
             var method = new ExchangeBind(destination, source, routingKey, nowait, arguments);
             if (nowait)
@@ -138,7 +138,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public override void _Private_ExchangeDeclare(string exchange, string type, bool passive, bool durable, bool autoDelete, bool @internal, bool nowait, IDictionary<string, object> arguments)
+        public override void _Private_ExchangeDeclare(string exchange, string type, bool passive, bool durable, bool autoDelete, bool @internal, bool nowait, IReadOnlyDictionary<string, object> arguments)
         {
             var method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, @internal, nowait, arguments);
             if (nowait)
@@ -164,7 +164,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public override void _Private_ExchangeUnbind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
+        public override void _Private_ExchangeUnbind(string destination, string source, string routingKey, bool nowait, IReadOnlyDictionary<string, object> arguments)
         {
             var method = new ExchangeUnbind(destination, source, routingKey, nowait, arguments);
             if (nowait)
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public override void _Private_QueueBind(string queue, string exchange, string routingKey, bool nowait, IDictionary<string, object> arguments)
+        public override void _Private_QueueBind(string queue, string exchange, string routingKey, bool nowait, IReadOnlyDictionary<string, object> arguments)
         {
             var method = new QueueBind(queue, exchange, routingKey, nowait, arguments);
             if (nowait)
@@ -190,7 +190,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public override void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, IDictionary<string, object> arguments)
+        public override void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, IReadOnlyDictionary<string, object> arguments)
         {
             var method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, nowait, arguments);
             if (nowait)
@@ -252,7 +252,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ModelSend(new BasicReject(deliveryTag, requeue));
         }
 
-        public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        public override void QueueUnbind(string queue, string exchange, string routingKey, IReadOnlyDictionary<string, object> arguments)
         {
             ModelRpc(new QueueUnbind(queue, exchange, routingKey, arguments), ProtocolCommandId.QueueUnbindOk);
         }
