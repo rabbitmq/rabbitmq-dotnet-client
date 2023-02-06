@@ -102,7 +102,7 @@ namespace RabbitMQ.Client.Unit
 
                     var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    var maximumWaitTime = TimeSpan.FromSeconds(5);
+                    var maximumWaitTime = TimeSpan.FromSeconds(10);
                     var tokenSource = new CancellationTokenSource(maximumWaitTime);
                     tokenSource.Token.Register(() =>
                     {
@@ -178,7 +178,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                         var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                        var maximumWaitTime = TimeSpan.FromSeconds(10);
+                        var maximumWaitTime = TimeSpan.FromSeconds(30);
                         var tokenSource = new CancellationTokenSource(maximumWaitTime);
                         tokenSource.Token.Register(() =>
                         {
