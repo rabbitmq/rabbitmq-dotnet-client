@@ -250,7 +250,7 @@ namespace RabbitMQ.Client.Impl
 
         public void SendHeader()
         {
-#if NET6_0_OR_GREATER
+#if NET
             _pipeWriter.AsStream().Write(ProtocolHeader);
 #else
             _pipeWriter.AsStream().Write(ProtocolHeader.ToArray(), 0, ProtocolHeader.Length);

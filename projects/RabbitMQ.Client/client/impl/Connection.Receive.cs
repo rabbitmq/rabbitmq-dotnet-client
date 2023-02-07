@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void ProcessFrame(InboundFrame frame)
         {
-            bool shallReturn = true;
+            bool shallReturnPayload = true;
             if (frame.Channel == 0)
             {
                 if (frame.Type == FrameType.FrameHeartbeat)
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // quiescing situation, even though technically we
                     // should be ignoring everything except
                     // connection.close-ok.
-                    shallReturn = _session0.HandleFrame(in frame);
+                    shallReturnPayload = _session0.HandleFrame(in frame);
                 }
             }
             else
@@ -121,11 +121,12 @@ namespace RabbitMQ.Client.Framing.Impl
                     // connection. Handle the frame. (Of course, the
                     // Session itself may be quiescing this particular
                     // channel, but that's none of our concern.)
-                    shallReturn = _sessionManager.Lookup(frame.Channel).HandleFrame(in frame);
+                    ISession session = _sessionManager.Lookup(frame.Channel);
+                    shallReturnPayload = session.HandleFrame(in frame);
                 }
             }
 
-            if (shallReturn)
+            if (shallReturnPayload)
             {
                 frame.ReturnPayload();
             }
