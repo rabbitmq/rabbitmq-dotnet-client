@@ -164,7 +164,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     _session0.Transmit(in cmd);
                     if (hpe.CanShutdownCleanly)
                     {
-                        await ClosingLoop().ConfigureAwait(false);
+                        await ClosingLoop()
+                           .ConfigureAwait(false);
                     }
                 }
                 catch (IOException ioe)
