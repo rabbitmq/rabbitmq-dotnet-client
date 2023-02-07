@@ -77,7 +77,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
 
                 // Done reading frames synchronously, go async
-                InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync().ConfigureAwait(false);
+                InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync()
+                   .ConfigureAwait(false);
                 NotifyHeartbeatListener();
                 ProcessFrame(asyncFrame);
             }
