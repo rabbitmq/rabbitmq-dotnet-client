@@ -253,7 +253,8 @@ namespace RabbitMQ.Client.Impl
 
         internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize)
         {
-            ReadResult result = await reader.ReadAsync().ConfigureAwait(false);
+            ReadResult result = await reader.ReadAsync()
+               .ConfigureAwait(false);
 
             ReadOnlySequence<byte> buffer = result.Buffer;
             if (result.IsCompleted || buffer.Length == 0)
@@ -267,8 +268,9 @@ namespace RabbitMQ.Client.Impl
             {
                 reader.AdvanceTo(buffer.Start, buffer.End);
 
-                // Not enough 
-                result = await reader.ReadAsync().ConfigureAwait(false);
+                // Not enough data, read a bit more
+                result = await reader.ReadAsync()
+                   .ConfigureAwait(false);
 
                 if (result.IsCompleted || buffer.Length == 0)
                 {

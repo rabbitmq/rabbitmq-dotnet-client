@@ -188,7 +188,8 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 _frameHandler.ReadTimeout = TimeSpan.Zero;
                 // Wait for response/socket closure or timeout
-                await ReceiveLoop().ConfigureAwait(false);
+                await ReceiveLoop()
+                   .ConfigureAwait(false);
             }
             catch (ObjectDisposedException ode)
             {
