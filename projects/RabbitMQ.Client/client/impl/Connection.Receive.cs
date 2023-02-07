@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (frame.Type == FrameType.FrameHeartbeat)
                 {
-                    // Ignore it: we've already just reset the heartbeat
+                    // Ignore it: we've already recently reset the heartbeat
                 }
                 else
                 {
