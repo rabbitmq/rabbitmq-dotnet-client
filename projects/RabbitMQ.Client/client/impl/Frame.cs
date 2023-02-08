@@ -344,8 +344,9 @@ namespace RabbitMQ.Client.Impl
 
                 if (payloadBytes[payloadSize] != Constants.FrameEnd)
                 {
-                    ArrayPool<byte>.Shared.Return(array: payloadBytes, clearArray: true);
-                    throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
+                    var frameEndMarker = payloadBytes[payloadSize];
+                    ArrayPool<byte>.Shared.Return(payloadBytes);
+                    throw new MalformedFrameException($"Bad frame end marker: {frameEndMarker}");
                 }
 
                 RabbitMqClientEventSource.Log.DataReceived(payloadSize + Framing.BaseFrameSize);
