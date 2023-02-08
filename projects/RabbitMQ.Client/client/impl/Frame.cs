@@ -259,10 +259,8 @@ namespace RabbitMQ.Client.Impl
                .ConfigureAwait(false);
 
             ReadOnlySequence<byte> buffer = result.Buffer;
-            if (result.IsCompleted || buffer.Length == 0)
-            {
-                throw new EndOfStreamException("Pipe is completed.");
-            }
+
+            MaybeThrowEndOfStream(result, buffer);
 
             InboundFrame frame;
             // Loop until we have enough data to read an entire frame, or until the pipe is completed.
@@ -274,10 +272,7 @@ namespace RabbitMQ.Client.Impl
                 result = await reader.ReadAsync()
                    .ConfigureAwait(false);
 
-                if (result.IsCompleted || buffer.Length == 0)
-                {
-                    throw new EndOfStreamException("Pipe is completed.");
-                }
+                MaybeThrowEndOfStream(result, buffer);
 
                 buffer = result.Buffer;
             }
@@ -291,10 +286,8 @@ namespace RabbitMQ.Client.Impl
             if (reader.TryRead(out ReadResult result))
             {
                 ReadOnlySequence<byte> buffer = result.Buffer;
-                if (result.IsCompleted || buffer.Length == 0)
-                {
-                    throw new EndOfStreamException("Pipe is completed.");
-                }
+
+                MaybeThrowEndOfStream(result, buffer);
 
                 if (TryReadFrame(ref buffer, maxMessageSize, out frame))
                 {
@@ -376,6 +369,15 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
         {
             return $"(type={Type}, channel={Channel}, {Payload.Length} bytes of payload)";
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void MaybeThrowEndOfStream(ReadResult result, ReadOnlySequence<byte> buffer)
+        {
+            if (result.IsCompleted || buffer.Length == 0)
+            {
+                throw new EndOfStreamException("Pipe is completed.");
+            }
         }
     }
 
