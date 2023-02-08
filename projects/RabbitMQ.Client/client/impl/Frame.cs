@@ -221,6 +221,9 @@ namespace RabbitMQ.Client.Impl
 
         private static void ProcessProtocolHeader(ReadOnlySequence<byte> buffer)
         {
+            // Probably an AMQP.... header indicating a version mismatch.
+            // Otherwise meaningless, so try to read the version and throw an exception, whether we
+            // read the version correctly or not.
             try
             {
                 if (buffer.Length < 8)
@@ -228,15 +231,14 @@ namespace RabbitMQ.Client.Impl
                     throw new EndOfStreamException();
                 }
 
-                Span<byte> tempSpan = stackalloc byte[8];
-                buffer.Slice(0, 8).CopyTo(tempSpan);
+                var bufferSpan = buffer.First.Span;
 
-                if (tempSpan[1] != 'M' || tempSpan[2] != 'Q' || tempSpan[3] != 'P')
+                if (bufferSpan[1] != 'M' || bufferSpan[2] != 'Q' || bufferSpan[3] != 'P')
                 {
                     throw new MalformedFrameException("Invalid AMQP protocol header from server");
                 }
 
-                throw new PacketNotRecognizedException(tempSpan[4], tempSpan[5], tempSpan[6], tempSpan[7]);
+                throw new PacketNotRecognizedException(bufferSpan[4], bufferSpan[5], bufferSpan[6], bufferSpan[7]);
             }
             catch (EndOfStreamException)
             {
