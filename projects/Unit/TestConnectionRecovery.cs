@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
     public class TestConnectionRecovery : IntegrationFixture
     {
         private readonly byte[] _messageBody;
-        private readonly ushort _totalMessageCount = 1024;
+        private readonly ushort _totalMessageCount = 8192;
         private readonly ushort _closeAtCount = 16;
         private string _queueName;
 
