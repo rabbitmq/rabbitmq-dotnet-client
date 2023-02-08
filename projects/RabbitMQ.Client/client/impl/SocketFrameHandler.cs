@@ -250,7 +250,11 @@ namespace RabbitMQ.Client.Impl
 
         public void SendHeader()
         {
-            _pipeWriter.Write(ProtocolHeader);
+#if NET
+            _pipeWriter.AsStream().Write(ProtocolHeader);
+#else
+            _pipeWriter.AsStream().Write(ProtocolHeader.ToArray(), 0, ProtocolHeader.Length);
+#endif
         }
 
         public void Write(ReadOnlyMemory<byte> memory)
