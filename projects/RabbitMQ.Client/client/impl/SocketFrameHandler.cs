@@ -259,6 +259,12 @@ namespace RabbitMQ.Client.Impl
 
         public void Write(ReadOnlyMemory<byte> memory)
         {
+            if (_closed)
+            {
+                return;
+
+            }
+
             if (!_channelWriter.TryWrite(memory))
             {
                 throw new ApplicationException("Please report this bug here: https://github.com/rabbitmq/rabbitmq-dotnet-client/issues");
