@@ -250,16 +250,15 @@ namespace RabbitMQ.Client.Impl
 
         public void SendHeader()
         {
-#if NET
-            _pipeWriter.AsStream().Write(ProtocolHeader);
-#else
-            _pipeWriter.AsStream().Write(ProtocolHeader.ToArray(), 0, ProtocolHeader.Length);
-#endif
+            _pipeWriter.Write(ProtocolHeader);
         }
 
         public void Write(ReadOnlyMemory<byte> memory)
         {
-            _channelWriter.TryWrite(memory);
+            if (!_channelWriter.TryWrite(memory))
+            {
+                throw new ApplicationException("Please report this bug here: https://github.com/rabbitmq/rabbitmq-dotnet-client/issues");
+            }
         }
 
         private async Task WriteLoop()
