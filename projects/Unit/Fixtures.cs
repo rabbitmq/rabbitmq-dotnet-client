@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Unit
         internal Encoding _encoding = new UTF8Encoding();
 
         public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
-
+        protected readonly TimeSpan _waitSpan;
         protected readonly ITestOutputHelper _output;
         protected readonly string _testDisplayName;
 
@@ -64,6 +64,15 @@ namespace RabbitMQ.Client.Unit
             _testDisplayName = test.DisplayName;
 
             SetUp();
+
+            if (IsRunningInCI())
+            {
+                _waitSpan = TimeSpan.FromSeconds(30);
+            }
+            else
+            {
+                _waitSpan = TimeSpan.FromSeconds(10);
+            }
         }
 
         protected virtual void SetUp()
@@ -400,7 +409,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void Wait(ManualResetEventSlim latch)
         {
-            Assert.True(latch.Wait(TimeSpan.FromSeconds(10)), "waiting on a latch timed out");
+            Assert.True(latch.Wait(_waitSpan), "waiting on a latch timed out");
         }
 
         internal void Wait(ManualResetEventSlim latch, TimeSpan timeSpan)
@@ -415,6 +424,17 @@ namespace RabbitMQ.Client.Unit
         public static string CertificatesDirectory()
         {
             return Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        }
+
+        private static bool IsRunningInCI()
+        {
+            string concourse = Environment.GetEnvironmentVariable("CONCOURSE_CI_BUILD");
+            string gha = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
+            if (String.IsNullOrWhiteSpace(concourse) && String.IsNullOrWhiteSpace(gha))
+            {
+                return false;
+            }
+            return true;
         }
     }
 
