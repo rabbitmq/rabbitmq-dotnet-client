@@ -79,26 +79,26 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(expectedTableSizeBytes, actualTableSizeBytes);
             Assert.Equal(expectedTable.Count, actualTable.Count);
 
-            Assert.Equal(actualTable["string"], "Hello"u8.ToArray());
-            Assert.Equal(actualTable["int"], 1234);
-            Assert.Equal(actualTable["bool"], true);
-            Assert.Equal(actualTable["byte[]"], new[] {1, 2, 3, 4});
-            Assert.Equal(actualTable["float"], 1234f);
-            Assert.Equal(actualTable["double"], 1234D);
-            Assert.Equal(actualTable["long"], 1234L);
-            Assert.Equal(actualTable["byte"], (byte)123);
-            Assert.Equal(actualTable["sbyte"], (sbyte)123);
-            Assert.Equal(actualTable["short"], (short)1234);
-            Assert.Equal(actualTable["uint"], 1234u);
-            Assert.Equal(actualTable["decimal"], 12.34m);
-            Assert.Equal(actualTable["ushort"], (ushort)1234);
+            Assert.Equal("Hello"u8.ToArray(), actualTable["string"]);
+            Assert.Equal(1234, actualTable["int"]);
+            Assert.Equal(true, actualTable["bool"]);
+            Assert.Equal(new[] {1, 2, 3, 4}, actualTable["byte[]"]);
+            Assert.Equal(1234f, actualTable["float"]);
+            Assert.Equal(1234D, actualTable["double"]);
+            Assert.Equal(1234L, actualTable["long"]);
+            Assert.Equal((byte)123, actualTable["byte"]);
+            Assert.Equal((sbyte)123, actualTable["sbyte"]);
+            Assert.Equal((short)1234, actualTable["short"]);
+            Assert.Equal(1234u, actualTable["uint"]);
+            Assert.Equal(12.34m, actualTable["decimal"]);
+            Assert.Equal((ushort)1234, actualTable["ushort"]);
 
             Assert.IsType<BinaryTableValue>(actualTable["BinaryTableValue"]);
             Assert.True(((BinaryTableValue)actualTable["BinaryTableValue"]).Bytes.SequenceEqual(new byte[] { 1, 2, 3, 4 }));
-            Assert.Equal(actualTable["AmqpTimestamp"], new AmqpTimestamp(0));
-            Assert.Equal(((IDictionary)expectedTable["Dictionary"])["DictionaryKey"], "DictionaryValue");
-            Assert.Equal(((IList)expectedTable["List"])[0], "longstring");
-            Assert.Equal(((IList)expectedTable["List"])[1], 1234);
+            Assert.Equal(new AmqpTimestamp(0), actualTable["AmqpTimestamp"]);
+            Assert.Equal("DictionaryValue", ((IDictionary)expectedTable["Dictionary"])["DictionaryKey"]);
+            Assert.Equal("longstring", ((IList)expectedTable["List"])[0]);
+            Assert.Equal(1234, ((IList)expectedTable["List"])[1]);
         }
 
         [Fact]
