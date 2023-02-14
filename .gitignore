@@ -122,3 +122,6 @@ projects/Unit*/TestResult.xml
 # Vim
 .sw?
 .*.sw?
+
+# Rider
+.idea
