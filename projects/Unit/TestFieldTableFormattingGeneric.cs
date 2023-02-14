@@ -32,6 +32,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 using RabbitMQ.Client.Impl;
@@ -63,11 +64,10 @@ namespace RabbitMQ.Client.Unit
                 ["decimal"] = 12.34m,
                 ["ushort"] = (ushort)1234,
             };
+            expectedTable["BinaryTableValue"] = new BinaryTableValue(new byte[] { 1, 2, 3, 4 });
             expectedTable["AmqpTimestamp"] = new AmqpTimestamp(0);
-            var expectedDic = new Hashtable { ["DictionaryKey"] = "DictionaryValue" };
-            expectedTable["Dictionary"] = expectedDic;
-            var expectedList = new List<object> { "longstring", 1234 };
-            expectedTable["List"] = expectedList;
+            expectedTable["Dictionary"] = new Hashtable { ["DictionaryKey"] = "DictionaryValue" };
+            expectedTable["List"] = new List<object> { "longstring", 1234 };
 
             // Act
             int expectedTableSizeBytes = WireFormatting.GetTableByteCount(expectedTable);
@@ -93,6 +93,8 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(actualTable["decimal"], 12.34m);
             Assert.Equal(actualTable["ushort"], (ushort)1234);
 
+            Assert.IsType<BinaryTableValue>(actualTable["BinaryTableValue"]);
+            Assert.True(((BinaryTableValue)actualTable["BinaryTableValue"]).Bytes.SequenceEqual(new byte[] { 1, 2, 3, 4 }));
             Assert.Equal(actualTable["AmqpTimestamp"], new AmqpTimestamp(0));
             Assert.Equal(((IDictionary)expectedTable["Dictionary"])["DictionaryKey"], "DictionaryValue");
             Assert.Equal(((IList)expectedTable["List"])[0], "longstring");

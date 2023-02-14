@@ -32,6 +32,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 using RabbitMQ.Client.Impl;
@@ -51,7 +52,7 @@ namespace RabbitMQ.Client.Unit
                 ["string"] = "Hello",
                 ["int"] = 1234,
                 ["bool"] = true,
-                ["byte[]"] = new[] {1, 2, 3, 4},
+                ["byte[]"] = new[] { 1, 2, 3, 4 },
                 ["float"] = 1234f,
                 ["double"] = 1234D,
                 ["long"] = 1234L,
@@ -62,11 +63,10 @@ namespace RabbitMQ.Client.Unit
                 ["decimal"] = 12.34m,
                 ["ushort"] = (ushort)1234,
             };
+            expectedTable["BinaryTableValue"] = new BinaryTableValue(new byte[] { 1, 2, 3, 4 });
             expectedTable["AmqpTimestamp"] = new AmqpTimestamp(0);
-            var expectedDic = new Hashtable { ["HashtableKey"] = "HashtableValue" };
-            expectedTable["Hashtable"] = expectedDic;
-            var expectedList = new ArrayList { "longstring", 1234 };
-            expectedTable["ArrayList"] = expectedList;
+            expectedTable["Hashtable"] = new Hashtable { ["HashtableKey"] = "HashtableValue" };
+            expectedTable["ArrayList"] = new ArrayList { "longstring", 1234 };
 
             // Act
             int expectedTableSizeBytes = WireFormatting.GetTableByteCount(expectedTable);
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(actualTable["string"], "Hello"u8.ToArray());
             Assert.Equal(actualTable["int"], 1234);
             Assert.Equal(actualTable["bool"], true);
-            Assert.Equal(actualTable["byte[]"], new[] {1, 2, 3, 4});
+            Assert.Equal(actualTable["byte[]"], new[] { 1, 2, 3, 4 });
             Assert.Equal(actualTable["float"], 1234f);
             Assert.Equal(actualTable["double"], 1234D);
             Assert.Equal(actualTable["long"], 1234L);
@@ -92,6 +92,9 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(actualTable["decimal"], 12.34m);
             Assert.Equal(actualTable["ushort"], (ushort)1234);
 
+
+            Assert.IsType<BinaryTableValue>(actualTable["BinaryTableValue"]);
+            Assert.True(((BinaryTableValue)actualTable["BinaryTableValue"]).Bytes.SequenceEqual(new byte[] { 1, 2, 3, 4 }));
             Assert.Equal(actualTable["AmqpTimestamp"], new AmqpTimestamp(0));
             Assert.Equal(((IDictionary)expectedTable["Hashtable"])["HashtableKey"], "HashtableValue");
             Assert.Equal(((IList)expectedTable["ArrayList"])[0], "longstring");
