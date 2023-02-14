@@ -63,6 +63,7 @@ namespace RabbitMQ.Client.Unit
                 ["uint"] = 1234u,
                 ["decimal"] = 12.34m,
                 ["ushort"] = (ushort)1234,
+                ["ulong"] = 1234UL,
             };
             expectedTable["BinaryTableValue"] = new BinaryTableValue(new byte[] { 1, 2, 3, 4 });
             expectedTable["AmqpTimestamp"] = new AmqpTimestamp(0);
@@ -92,6 +93,7 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(1234u, actualTable["uint"]);
             Assert.Equal(12.34m, actualTable["decimal"]);
             Assert.Equal((ushort)1234, actualTable["ushort"]);
+            Assert.Equal(1234UL, actualTable["ulong"]);
 
             Assert.IsType<BinaryTableValue>(actualTable["BinaryTableValue"]);
             Assert.True(((BinaryTableValue)actualTable["BinaryTableValue"]).Bytes.SequenceEqual(new byte[] { 1, 2, 3, 4 }));

@@ -204,6 +204,10 @@ namespace RabbitMQ.Client.Impl
                         destination = (byte)'u';
                         NetworkOrderSerializer.WriteUInt16(ref fieldValue, val);
                         return 3;
+                    case ulong val:
+                        destination = (byte)'U';
+                        NetworkOrderSerializer.WriteUInt64(ref fieldValue, val);
+                        return 9;
                     default:
                         return ThrowInvalidTableValue(value);
                 }
@@ -241,6 +245,8 @@ namespace RabbitMQ.Client.Impl
                     return 3;
                 case ushort _:
                     return 3;
+                case ulong _:
+                    return 9;
                 case uint _:
                     return 5;
                 case decimal _:
