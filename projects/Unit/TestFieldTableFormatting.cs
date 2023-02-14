@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections;
+using System.IO;
 using System.Text;
 
 using RabbitMQ.Client.Impl;
@@ -44,38 +45,57 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestStandardTypes()
         {
-            Hashtable t = new Hashtable
+            // Arrange
+            var expectedTable = new Hashtable
             {
                 ["string"] = "Hello",
                 ["int"] = 1234,
+                ["bool"] = true,
+                ["byte[]"] = new[] {1, 2, 3, 4},
+                ["float"] = 1234f,
+                ["double"] = 1234D,
+                ["long"] = 1234L,
+                ["byte"] = (byte)123,
+                ["sbyte"] = (sbyte)123,
+                ["short"] = (short)1234,
                 ["uint"] = 1234u,
                 ["decimal"] = 12.34m,
-                ["timestamp"] = new AmqpTimestamp(0)
+                ["ushort"] = (ushort)1234,
             };
-            Hashtable t2 = new Hashtable();
-            t["fieldtable"] = t2;
-            t2["test"] = "test";
-            IList array = new ArrayList
-            {
-                "longstring",
-                1234
-            };
-            t["fieldarray"] = array;
-            int bytesNeeded = WireFormatting.GetTableByteCount(t);
-            byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(ref bytes.GetStart(), t);
-            int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
-            Assert.Equal(bytesNeeded, bytesRead);
-            Assert.Equal(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
-            Assert.Equal(1234, nt["int"]);
-            Assert.Equal(1234u, nt["uint"]);
-            Assert.Equal(12.34m, nt["decimal"]);
-            Assert.Equal(0, ((AmqpTimestamp)nt["timestamp"]).UnixTime);
-            IDictionary nt2 = (IDictionary)nt["fieldtable"];
-            Assert.Equal(Encoding.UTF8.GetBytes("test"), nt2["test"]);
-            IList narray = (IList)nt["fieldarray"];
-            Assert.Equal(Encoding.UTF8.GetBytes("longstring"), narray[0]);
-            Assert.Equal(1234, narray[1]);
+            expectedTable["AmqpTimestamp"] = new AmqpTimestamp(0);
+            var expectedDic = new Hashtable { ["HashtableKey"] = "HashtableValue" };
+            expectedTable["Hashtable"] = expectedDic;
+            var expectedList = new ArrayList { "longstring", 1234 };
+            expectedTable["ArrayList"] = expectedList;
+
+            // Act
+            int expectedTableSizeBytes = WireFormatting.GetTableByteCount(expectedTable);
+            byte[] testTableBytes = new byte[expectedTableSizeBytes];
+            WireFormatting.WriteTable(ref testTableBytes.GetStart(), expectedTable);
+            int actualTableSizeBytes = WireFormatting.ReadDictionary(testTableBytes, out var actualTable);
+
+            // Assert
+            Assert.Equal(expectedTableSizeBytes, actualTableSizeBytes);
+            Assert.Equal(expectedTable.Count, actualTable.Count);
+
+            Assert.Equal(actualTable["string"], "Hello"u8.ToArray());
+            Assert.Equal(actualTable["int"], 1234);
+            Assert.Equal(actualTable["bool"], true);
+            Assert.Equal(actualTable["byte[]"], new[] {1, 2, 3, 4});
+            Assert.Equal(actualTable["float"], 1234f);
+            Assert.Equal(actualTable["double"], 1234D);
+            Assert.Equal(actualTable["long"], 1234L);
+            Assert.Equal(actualTable["byte"], (byte)123);
+            Assert.Equal(actualTable["sbyte"], (sbyte)123);
+            Assert.Equal(actualTable["short"], (short)1234);
+            Assert.Equal(actualTable["uint"], 1234u);
+            Assert.Equal(actualTable["decimal"], 12.34m);
+            Assert.Equal(actualTable["ushort"], (ushort)1234);
+
+            Assert.Equal(actualTable["AmqpTimestamp"], new AmqpTimestamp(0));
+            Assert.Equal(((IDictionary)expectedTable["Hashtable"])["HashtableKey"], "HashtableValue");
+            Assert.Equal(((IList)expectedTable["ArrayList"])[0], "longstring");
+            Assert.Equal(((IList)expectedTable["ArrayList"])[1], 1234);
         }
 
         [Fact]
