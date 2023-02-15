@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Unit
                 ["string"] = "Hello",
                 ["int"] = 1234,
                 ["bool"] = true,
-                ["byte[]"] = new[] {1, 2, 3, 4},
+                ["byte[]"] = new[] { 1, 2, 3, 4 },
                 ["float"] = 1234f,
                 ["double"] = 1234D,
                 ["long"] = 1234L,
@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(Encoding.UTF8.GetBytes("Hello"), actualTable["string"]);
             Assert.Equal(1234, actualTable["int"]);
             Assert.Equal(true, actualTable["bool"]);
-            Assert.Equal(new[] {1, 2, 3, 4}, actualTable["byte[]"]);
+            Assert.Equal(new[] { 1, 2, 3, 4 }, actualTable["byte[]"]);
             Assert.Equal(1234f, actualTable["float"]);
             Assert.Equal(1234D, actualTable["double"]);
             Assert.Equal(1234L, actualTable["long"]);
