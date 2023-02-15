@@ -32,7 +32,7 @@
 using System;
 using System.Collections;
 using System.Linq;
-
+using System.Text;
 using RabbitMQ.Client.Impl;
 
 using Xunit;
@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(expectedTableSizeBytes, actualTableSizeBytes);
             Assert.Equal(expectedTable.Count, actualTable.Count);
 
-            Assert.Equal("Hello"u8.ToArray(), actualTable["string"]);
+            Assert.Equal(Encoding.UTF8.GetBytes("Hello"), actualTable["string"]);
             Assert.Equal(1234, actualTable["int"]);
             Assert.Equal(true, actualTable["bool"]);
             Assert.Equal(new[] { 1, 2, 3, 4 }, actualTable["byte[]"]);
