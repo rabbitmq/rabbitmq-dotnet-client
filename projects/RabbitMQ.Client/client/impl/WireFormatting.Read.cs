@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Impl
                         IList arrayResult = ReadArray(slice, out int arrayBytesRead);
                         bytesRead = 1 + arrayBytesRead;
                         return arrayResult;
-                    case 'l':
+                    case 'L':
                         bytesRead = 9;
                         return NetworkOrderDeserializer.ReadInt64(slice);
                     case 'i':
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Impl
                     case 'u':
                         bytesRead = 3;
                         return NetworkOrderDeserializer.ReadUInt16(slice);
-                    case 'U':
+                    case 'l':
                         bytesRead = 9;
                         return NetworkOrderDeserializer.ReadUInt64(slice);
                     case 'T':

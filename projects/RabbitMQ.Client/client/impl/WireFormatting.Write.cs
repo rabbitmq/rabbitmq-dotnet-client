@@ -172,7 +172,7 @@ namespace RabbitMQ.Client.Impl
                         NetworkOrderSerializer.WriteDouble(ref fieldValue, val);
                         return 9;
                     case long val:
-                        destination = (byte)'l';
+                        destination = (byte)'L';
                         NetworkOrderSerializer.WriteInt64(ref fieldValue, val);
                         return 9;
                     case byte val:
@@ -205,7 +205,7 @@ namespace RabbitMQ.Client.Impl
                         NetworkOrderSerializer.WriteUInt16(ref fieldValue, val);
                         return 3;
                     case ulong val:
-                        destination = (byte)'U';
+                        destination = (byte)'l';
                         NetworkOrderSerializer.WriteUInt64(ref fieldValue, val);
                         return 9;
                     default:
