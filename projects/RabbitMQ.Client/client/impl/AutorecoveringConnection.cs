@@ -198,6 +198,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        public event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer;
         public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
         public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
 
@@ -1099,6 +1100,20 @@ namespace RabbitMQ.Client.Framing.Impl
                 string tag = pair.Key;
                 try
                 {
+                    foreach (EventHandler<RecoveringConsumerEventArgs> eh in RecoveringConsumer?.GetInvocationList() ?? Array.Empty<Delegate>())
+                    {
+                        try
+                        {
+                            var eventArgs = new RecoveringConsumerEventArgs(cons.Arguments, cons.ConsumerTag);
+                            eh(this, eventArgs);
+                        }
+                        catch (Exception e)
+                        {
+                            var args = new CallbackExceptionEventArgs(e) { Detail = { ["context"] = "OnBeforeRecoveringConsumer" } };
+                            _delegate.OnCallbackException(args);
+                        }
+                    }
+
                     string newTag = cons.Recover(channelToUse);
                     lock (_recordedConsumers)
                     {

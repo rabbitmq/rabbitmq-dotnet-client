@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2023 VMware, Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -26,25 +26,39 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
+//  Copyright (c) 2007-2023 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
-using RabbitMQ.Client.Events;
-
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Events
 {
     /// <summary>
-    /// Interface to an auto-recovering AMQP connection.
+    /// Event related to consumer recovery, during automatic recovery.
     /// </summary>
-    public interface IAutorecoveringConnection : IConnection
+    public class RecoveringConsumerEventArgs : EventArgs
     {
-        event EventHandler<EventArgs> RecoverySucceeded;
-        event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+        /// <summary>
+        /// Constructs an event containing the consumer arguments and consumer
+        /// tag of the consumer this event relates to.
+        /// </summary>
+        /// <param name="consumerArguments">Consumer arguments of the consumer for this event</param>
+        /// <param name="consumerTag">Consumer tag of the consumer for this event</param>
+        public RecoveringConsumerEventArgs(IDictionary<string, object> consumerArguments, string consumerTag)
+        {
+            ConsumerArguments = consumerArguments;
+            ConsumerTag = consumerTag;
+        }
 
-        event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
-        event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
-        event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer;
+        /// <summary>
+        /// Access the consumer arguments of the consumer this event relates to.
+        /// </summary>
+        public IDictionary<string, object> ConsumerArguments { get; }
+
+        /// <summary>
+        /// Access the consumer tag of the consumer this event relates to.
+        /// </summary>
+        public string ConsumerTag { get; }
     }
 }

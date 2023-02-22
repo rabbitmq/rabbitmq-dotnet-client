@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -686,6 +687,52 @@ namespace RabbitMQ.Client.Unit
             Assert.IsTrue(Conn.IsOpen);
 
             Assert.IsTrue(counter >= 3);
+        }
+
+        [Test]
+        public void TestRecoveringConsumerHandlerOnConnection()
+        {
+            string q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var cons = new EventingBasicConsumer(Model);
+            Model.BasicConsume(q, true, cons);
+
+            int counter = 0;
+            ((AutorecoveringConnection)Conn).RecoveringConsumer += (sender, args) => Interlocked.Increment(ref counter);
+
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Conn.IsOpen, "expected connection to be open");
+            Assert.AreEqual(1, counter);
+
+            CloseAndWaitForRecovery();
+            CloseAndWaitForRecovery();
+            Assert.IsTrue(Conn.IsOpen, "expected connection to be open");
+            Assert.AreEqual(3, counter);
+        }
+
+        [Test]
+        public void TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown()
+        {
+            var myArgs = new Dictionary<string, object> { { "first-argument", "some-value" } };
+            string q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var cons = new EventingBasicConsumer(Model);
+            string expectedCTag = Model.BasicConsume(cons, q, arguments: myArgs);
+
+            bool ctagMatches = false;
+            bool consumerArgumentMatches = false;
+            ((AutorecoveringConnection)Conn).RecoveringConsumer += (sender, args) =>
+            {
+                // We cannot assert here because NUnit throws when an assertion fails. This exception is caught and
+                // passed to a CallbackExceptionHandler, instead of failing the test. Instead, we have to do this trick
+                // and assert in the test function.
+                ctagMatches = args.ConsumerTag == expectedCTag;
+                consumerArgumentMatches = (string)args.ConsumerArguments["first-argument"] == "some-value";
+                args.ConsumerArguments["first-argument"] = "event-handler-set-this-value";
+            };
+
+            CloseAndWaitForRecovery();
+            Assert.That(ctagMatches, Is.True, "expected consumer tag to match");
+            Assert.That(consumerArgumentMatches, Is.True, "expected consumer arguments to match");
+            Assert.That(myArgs, Does.ContainKey("first-argument").WithValue("event-handler-set-this-value"));
         }
 
         [Test]
