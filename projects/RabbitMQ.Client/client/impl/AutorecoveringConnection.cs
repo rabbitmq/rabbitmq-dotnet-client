@@ -129,6 +129,13 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private EventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangeAfterRecoveryWrapper;
 
+        public event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer
+        {
+            add => _consumerAboutToBeRecovered.AddHandler(value);
+            remove => _consumerAboutToBeRecovered.RemoveHandler(value);
+        }
+        private EventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecovered;
+
         public string ClientProvidedName => _config.ClientProvidedName;
 
         public ushort ChannelMax => InnerConnection.ChannelMax;

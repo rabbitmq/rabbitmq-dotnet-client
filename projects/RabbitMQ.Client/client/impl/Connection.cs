@@ -148,6 +148,13 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private EventingWrapper<EventArgs> _connectionUnblockedWrapper;
 
+        public event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer
+        {
+            add => _consumerAboutToBeRecovered.AddHandler(value);
+            remove => _consumerAboutToBeRecovered.RemoveHandler(value);
+        }
+        private EventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecovered;
+
         public event EventHandler<ShutdownEventArgs> ConnectionShutdown
         {
             add
