@@ -243,6 +243,7 @@ namespace RabbitMQ.Client
         event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
         event System.EventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
         event System.EventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
+        event System.EventHandler<RabbitMQ.Client.Events.RecoveringConsumerEventArgs> RecoveringConsumer;
         event System.EventHandler<System.EventArgs> RecoverySucceeded;
     }
     public interface IBasicConsumer
@@ -688,6 +689,12 @@ namespace RabbitMQ.Client.Events
         public QueueNameChangedAfterRecoveryEventArgs(string nameBefore, string nameAfter) { }
         public string NameAfter { get; }
         public string NameBefore { get; }
+    }
+    public class RecoveringConsumerEventArgs : System.EventArgs
+    {
+        public RecoveringConsumerEventArgs(System.Collections.Generic.IDictionary<string, object> consumerArguments, string consumerTag) { }
+        public System.Collections.Generic.IDictionary<string, object> ConsumerArguments { get; }
+        public string ConsumerTag { get; }
     }
     public class RecoveryExceptionEventArgs : RabbitMQ.Client.Events.BaseExceptionEventArgs
     {
