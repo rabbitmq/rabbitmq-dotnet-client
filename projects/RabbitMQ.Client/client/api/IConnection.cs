@@ -192,6 +192,18 @@ namespace RabbitMQ.Client
         /// </remarks>
         event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
 
+        /// <summary>
+        /// Raised when a consumer is about to be recovered. This event raises when topology recovery
+        /// is enabled, and just before the consumer is recovered. This allows applications to update
+        /// the consumer arguments before the consumer is recovered. It could be particularly useful
+        /// when consuming from a stream queue, as it allows to update the consumer offset argument
+        /// just before the consumer is recovered.
+        /// </summary>
+        /// <remarks>
+        /// This event will never fire for connections that disable automatic recovery.
+        /// </remarks>
+        public event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer;
+
         event EventHandler<EventArgs> ConnectionUnblocked;
 
         /// <summary>

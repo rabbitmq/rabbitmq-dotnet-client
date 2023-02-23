@@ -288,6 +288,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     continue;
                 }
 
+                _consumerAboutToBeRecovered.Invoke(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments));
+
                 var oldTag = consumer.ConsumerTag;
                 try
                 {

@@ -703,6 +703,53 @@ namespace RabbitMQ.Client.Unit
             Assert.True(counter >= 3);
         }
 
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        public void TestRecoveringConsumerHandlerOnConnection(int iterations)
+        {
+            string q = _model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var cons = new EventingBasicConsumer(_model);
+            _model.BasicConsume(q, true, cons);
+
+            int counter = 0;
+            ((AutorecoveringConnection)_conn).RecoveringConsumer += (sender, args) => Interlocked.Increment(ref counter);
+
+            for (int i = 0; i < iterations; i++)
+            {
+                CloseAndWaitForRecovery();
+            }
+
+            Assert.Equal(iterations, counter);
+        }
+
+        [Fact]
+        public void TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown()
+        {
+            var myArgs = new Dictionary<string, object> { { "first-argument", "some-value" } };
+            string q = _model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
+            var cons = new EventingBasicConsumer(_model);
+            string expectedCTag = _model.BasicConsume(cons, q, arguments: myArgs);
+
+            bool ctagMatches = false;
+            bool consumerArgumentMatches = false;
+            ((AutorecoveringConnection)_conn).RecoveringConsumer += (sender, args) =>
+            {
+                // We cannot assert here because NUnit throws when an assertion fails. This exception is caught and
+                // passed to a CallbackExceptionHandler, instead of failing the test. Instead, we have to do this trick
+                // and assert in the test function.
+                ctagMatches = args.ConsumerTag == expectedCTag;
+                consumerArgumentMatches = (string)args.ConsumerArguments["first-argument"] == "some-value";
+                args.ConsumerArguments["first-argument"] = "event-handler-set-this-value";
+            };
+
+            CloseAndWaitForRecovery();
+            Assert.True(ctagMatches, "expected consumer tag to match");
+            Assert.True(consumerArgumentMatches, "expected consumer arguments to match");
+            string actualVal = (string)Assert.Contains("first-argument", myArgs as IDictionary<string, object>);
+            Assert.Equal("event-handler-set-this-value", actualVal);
+        }
+
         [Fact]
         public void TestRecoveryWithTopologyDisabled()
         {
