@@ -32,6 +32,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -67,21 +68,20 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly AmqpTcpEndpoint _amqpTcpEndpoint;
         private readonly ITcpClient _socket;
-        private readonly Stream _reader;
-        private readonly Stream _writer;
         private readonly ChannelWriter<ReadOnlyMemory<byte>> _channelWriter;
         private readonly ChannelReader<ReadOnlyMemory<byte>> _channelReader;
+        private readonly PipeWriter _pipeWriter;
+        private readonly PipeReader _pipeReader;
         private readonly Task _writerTask;
         private readonly object _semaphore = new object();
-        private readonly byte[] _frameHeaderBuffer;
         private bool _closed;
+        private static ReadOnlySpan<byte> ProtocolHeader => new byte[] { (byte)'A', (byte)'M', (byte)'Q', (byte)'P', 0, 0, 9, 1 };
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             _amqpTcpEndpoint = endpoint;
-            _frameHeaderBuffer = new byte[7];
             var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
                 new UnboundedChannelOptions
                 {
@@ -144,8 +144,8 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            _reader = new BufferedStream(netstream, _socket.Client.ReceiveBufferSize);
-            _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
+            _pipeWriter = PipeWriter.Create(netstream);
+            _pipeReader = PipeReader.Create(netstream);
 
             WriteTimeout = writeTimeout;
             _writerTask = Task.Run(WriteLoop);
@@ -216,6 +216,8 @@ namespace RabbitMQ.Client.Impl
                     {
                         _channelWriter.Complete();
                         _writerTask?.GetAwaiter().GetResult();
+                        _pipeWriter.Complete();
+                        _pipeReader.Complete();
                     }
                     catch
                     {
@@ -238,50 +240,41 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public InboundFrame ReadFrame()
+        public ValueTask<InboundFrame> ReadFrameAsync()
         {
-            return InboundFrame.ReadFrom(_reader, _frameHeaderBuffer, _amqpTcpEndpoint.MaxMessageSize);
+            return InboundFrame.ReadFromPipeAsync(_pipeReader, _amqpTcpEndpoint.MaxMessageSize);
+        }
+
+        public bool TryReadFrame(out InboundFrame frame)
+        {
+            return InboundFrame.TryReadFrameFromPipe(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, out frame);
         }
 
         public void SendHeader()
         {
-#if NETSTANDARD
-            var headerBytes = new byte[8];
+            /*
+             * Note: this stream is deliberately not disposed
+             * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1264#discussion_r1100742748
+             */
+#if NET
+            _pipeWriter.AsStream().Write(ProtocolHeader);
 #else
-            Span<byte> headerBytes = stackalloc byte[8];
+            _pipeWriter.AsStream().Write(ProtocolHeader.ToArray(), 0, ProtocolHeader.Length);
 #endif
-
-            headerBytes[0] = (byte)'A';
-            headerBytes[1] = (byte)'M';
-            headerBytes[2] = (byte)'Q';
-            headerBytes[3] = (byte)'P';
-
-            if (Endpoint.Protocol.Revision != 0)
-            {
-                headerBytes[4] = 0;
-                headerBytes[5] = (byte)Endpoint.Protocol.MajorVersion;
-                headerBytes[6] = (byte)Endpoint.Protocol.MinorVersion;
-                headerBytes[7] = (byte)Endpoint.Protocol.Revision;
-            }
-            else
-            {
-                headerBytes[4] = 1;
-                headerBytes[5] = 1;
-                headerBytes[6] = (byte)Endpoint.Protocol.MajorVersion;
-                headerBytes[7] = (byte)Endpoint.Protocol.MinorVersion;
-            }
-
-#if NETSTANDARD
-            _writer.Write(headerBytes, 0, 8);
-#else
-            _writer.Write(headerBytes);
-#endif
-            _writer.Flush();
         }
 
         public void Write(ReadOnlyMemory<byte> memory)
         {
-            _channelWriter.TryWrite(memory);
+            if (_closed)
+            {
+                return;
+
+            }
+
+            if (!_channelWriter.TryWrite(memory))
+            {
+                throw new ApplicationException("Please report this bug here: https://github.com/rabbitmq/rabbitmq-dotnet-client/issues");
+            }
         }
 
         private async Task WriteLoop()
@@ -293,16 +286,13 @@ namespace RabbitMQ.Client.Impl
                     while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
                     {
                         MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
-#if NETSTANDARD
-                        await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
-#else
-                        await _writer.WriteAsync(memory).ConfigureAwait(false);
-#endif
+                        _pipeWriter.Write(memory.Span);
                         RabbitMqClientEventSource.Log.CommandSent(segment.Count);
                         ArrayPool<byte>.Shared.Return(segment.Array);
                     }
 
-                    await _writer.FlushAsync().ConfigureAwait(false);
+                    await _pipeWriter.FlushAsync()
+                       .ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

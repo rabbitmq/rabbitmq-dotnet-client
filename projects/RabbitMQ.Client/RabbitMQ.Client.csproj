@@ -63,6 +63,7 @@
     <PackageReference Include="MinVer" Version="4.3.0" PrivateAssets="all" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

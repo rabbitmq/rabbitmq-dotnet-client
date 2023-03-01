@@ -31,10 +31,13 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -130,14 +133,14 @@ namespace RabbitMQ.Client.Impl
 
             /// <summary>
             /// Compiler trick to directly refer to static data in the assembly, see here: https://github.com/dotnet/roslyn/pull/24621
-            /// </summary>
-            private static ReadOnlySpan<byte> Payload => new byte[]
-            {
-                Constants.FrameHeartbeat,
-                0, 0, // channel
-                0, 0, 0, 0, // payload length
-                Constants.FrameEnd
-            };
+            /// A heartbeat frame has the following layout:
+            /// +--------------------+------------------+-----------------+--------------------------+
+            /// | Frame Type(1 byte) | Channel(2 bytes) | Length(4 bytes) | End Frame Marker(1 byte) |
+            /// +--------------------+------------------+-----------------+--------------------------+
+            /// | 0x08               | 0x0000           | 0x00000000      | 0xCE                     |
+            /// +--------------------+------------------+-----------------+--------------------------+
+            ///</summary>
+            private static ReadOnlySpan<byte> Payload => new byte[] { Constants.FrameHeartbeat, 0, 0, 0, 0, 0, 0, Constants.FrameEnd };
 
             public static Memory<byte> GetHeartbeatFrame()
             {
@@ -201,7 +204,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal readonly ref struct InboundFrame
+    internal readonly struct InboundFrame
     {
         public readonly FrameType Type;
         public readonly int Channel;
@@ -216,22 +219,26 @@ namespace RabbitMQ.Client.Impl
             _rentedArray = rentedArray;
         }
 
-        private static void ProcessProtocolHeader(Stream reader, ReadOnlySpan<byte> frameHeader)
+        private static void ProcessProtocolHeader(ReadOnlySequence<byte> buffer)
         {
+            // Probably an AMQP.... header indicating a version mismatch.
+            // Otherwise meaningless, so try to read the version and throw an exception, whether we
+            // read the version correctly or not.
             try
             {
-                if (frameHeader[0] != 'M' || frameHeader[1] != 'Q' || frameHeader[2] != 'P')
-                {
-                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
-                }
-
-                int serverMinor = reader.ReadByte();
-                if (serverMinor == -1)
+                if (buffer.Length < 8)
                 {
                     throw new EndOfStreamException();
                 }
 
-                throw new PacketNotRecognizedException(frameHeader[3], frameHeader[4], frameHeader[5], serverMinor);
+                var bufferSpan = buffer.First.Span;
+
+                if (bufferSpan[1] != 'M' || bufferSpan[2] != 'Q' || bufferSpan[3] != 'P')
+                {
+                    throw new MalformedFrameException("Invalid AMQP protocol header from server");
+                }
+
+                throw new PacketNotRecognizedException(bufferSpan[4], bufferSpan[5], bufferSpan[6], bufferSpan[7]);
             }
             catch (EndOfStreamException)
             {
@@ -246,38 +253,74 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static InboundFrame ReadFrom(Stream reader, byte[] frameHeaderBuffer, uint maxMessageSize)
+        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize)
         {
-            try
+            ReadResult result = await reader.ReadAsync()
+               .ConfigureAwait(false);
+
+            ReadOnlySequence<byte> buffer = result.Buffer;
+
+            MaybeThrowEndOfStream(result, buffer);
+
+            InboundFrame frame;
+            // Loop until we have enough data to read an entire frame, or until the pipe is completed.
+            while (!TryReadFrame(ref buffer, maxMessageSize, out frame))
             {
-                ReadFromStream(reader, frameHeaderBuffer, frameHeaderBuffer.Length);
-            }
-            catch (IOException ioe)
-            {
-                // If it's a WSAETIMEDOUT SocketException, unwrap it.
-                // This might happen when the limit of half-open connections is
-                // reached.
-                if (ioe?.InnerException is SocketException exception && exception.SocketErrorCode == SocketError.TimedOut)
-                {
-                    ExceptionDispatchInfo.Capture(exception).Throw();
-                }
-                else
-                {
-                    throw;
-                }
+                reader.AdvanceTo(buffer.Start, buffer.End);
+
+                // Not enough data, read a bit more
+                result = await reader.ReadAsync()
+                   .ConfigureAwait(false);
+
+                MaybeThrowEndOfStream(result, buffer);
+
+                buffer = result.Buffer;
             }
 
-            byte firstByte = frameHeaderBuffer[0];
+            reader.AdvanceTo(buffer.Start);
+            return frame;
+        }
+
+        internal static bool TryReadFrameFromPipe(PipeReader reader, uint maxMessageSize, out InboundFrame frame)
+        {
+            if (reader.TryRead(out ReadResult result))
+            {
+                ReadOnlySequence<byte> buffer = result.Buffer;
+
+                MaybeThrowEndOfStream(result, buffer);
+
+                if (TryReadFrame(ref buffer, maxMessageSize, out frame))
+                {
+                    reader.AdvanceTo(buffer.Start);
+                    return true;
+                }
+
+                // We didn't read enough, so let's signal how much of the buffer we examined.
+                reader.AdvanceTo(buffer.Start, buffer.End);
+            }
+
+            // Failed to synchronously read sufficient data from the pipe. We'll need to go async.
+            frame = default;
+            return false;
+        }
+
+        internal static bool TryReadFrame(ref ReadOnlySequence<byte> buffer, uint maxMessageSize, out InboundFrame frame)
+        {
+            if (buffer.Length < 7)
+            {
+                frame = default;
+                return false;
+            }
+
+            byte firstByte = buffer.First.Span[0];
             if (firstByte == 'A')
             {
-                // Probably an AMQP protocol header, otherwise meaningless
-                ProcessProtocolHeader(reader, frameHeaderBuffer.AsSpan(1, 6));
+                ProcessProtocolHeader(buffer);
             }
 
             FrameType type = (FrameType)firstByte;
-            var frameHeaderSpan = new ReadOnlySpan<byte>(frameHeaderBuffer, 1, 6);
-            int channel = NetworkOrderDeserializer.ReadUInt16(frameHeaderSpan);
-            int payloadSize = NetworkOrderDeserializer.ReadInt32(frameHeaderSpan.Slice(2, 4));
+            int channel = NetworkOrderDeserializer.ReadUInt16(buffer.Slice(1));
+            int payloadSize = NetworkOrderDeserializer.ReadInt32(buffer.Slice(3));
             if ((maxMessageSize > 0) && (payloadSize > maxMessageSize))
             {
                 string msg = $"Frame payload size '{payloadSize}' exceeds maximum of '{maxMessageSize}' bytes";
@@ -287,46 +330,30 @@ namespace RabbitMQ.Client.Impl
             const int EndMarkerLength = 1;
             // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
             int readSize = payloadSize + EndMarkerLength;
-            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
-            try
-            {
-                ReadFromStream(reader, payloadBytes, readSize);
-            }
-            catch (Exception)
-            {
-                // Early EOF.
-                ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException($"Short frame - expected to read {readSize} bytes");
-            }
 
-            if (payloadBytes[payloadSize] != Constants.FrameEnd)
+            if ((buffer.Length - 7) < readSize)
             {
-                ArrayPool<byte>.Shared.Return(payloadBytes);
-                throw new MalformedFrameException($"Bad frame end marker: {payloadBytes[payloadSize]}");
+                frame = default;
+                return false;
             }
-
-            RabbitMqClientEventSource.Log.DataReceived(payloadSize + Framing.BaseFrameSize);
-            return new InboundFrame(type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ReadFromStream(Stream reader, byte[] buffer, int toRead)
-        {
-            int bytesRead = 0;
-            do
+            else
             {
-                int read = reader.Read(buffer, bytesRead, toRead - bytesRead);
-                if (read == 0)
+                byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
+                ReadOnlySequence<byte> framePayload = buffer.Slice(7, readSize);
+                framePayload.CopyTo(payloadBytes);
+
+                if (payloadBytes[payloadSize] != Constants.FrameEnd)
                 {
-                    ThrowEndOfStream();
+                    var frameEndMarker = payloadBytes[payloadSize];
+                    ArrayPool<byte>.Shared.Return(payloadBytes);
+                    throw new MalformedFrameException($"Bad frame end marker: {frameEndMarker}");
                 }
 
-                bytesRead += read;
-            } while (bytesRead != toRead);
-
-            static void ThrowEndOfStream()
-            {
-                throw new EndOfStreamException("Reached the end of the stream. Possible authentication failure.");
+                RabbitMqClientEventSource.Log.DataReceived(payloadSize + Framing.BaseFrameSize);
+                frame = new InboundFrame(type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
+                // Advance the buffer
+                buffer = buffer.Slice(7 + readSize);
+                return true;
             }
         }
 
@@ -343,6 +370,15 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
         {
             return $"(type={Type}, channel={Channel}, {Payload.Length} bytes of payload)";
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void MaybeThrowEndOfStream(ReadResult result, ReadOnlySequence<byte> buffer)
+        {
+            if (result.IsCompleted || buffer.Length == 0)
+            {
+                throw new EndOfStreamException("Pipe is completed.");
+            }
         }
     }
 
