@@ -216,6 +216,8 @@ namespace RabbitMQ.Client.Impl
                     {
                         _channelWriter.Complete();
                         _writerTask?.GetAwaiter().GetResult();
+                        _pipeWriter.Complete();
+                        _pipeReader.Complete();
                     }
                     catch
                     {
@@ -250,6 +252,10 @@ namespace RabbitMQ.Client.Impl
 
         public void SendHeader()
         {
+            /*
+             * Note: this stream is deliberately not disposed
+             * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1264#discussion_r1100742748
+             */
 #if NET
             _pipeWriter.AsStream().Write(ProtocolHeader);
 #else
