@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.4" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.5" />
     <PackageReference Include="Ductus.FluentDocker" Version="2.10.59" />
   </ItemGroup>
 

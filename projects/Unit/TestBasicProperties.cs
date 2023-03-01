@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -202,7 +201,7 @@ namespace RabbitMQ.Client.Unit
             // Arrange
             var subject = new BasicProperties
             {
-                Headers = new Dictionary<string, object?>()
+                Headers = new Dictionary<string, object>()
             };
 
             var cf = new ConnectionFactory();
