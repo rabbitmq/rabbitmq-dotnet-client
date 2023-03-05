@@ -77,7 +77,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             lock (_recordedEntitiesLock)
             {
-                if (_recordedExchanges.TryGetValue(exchangeName, out var recordedExchange) && recordedExchange.IsAutoDelete)
+                if (_recordedExchanges.TryGetValue(exchangeName, out var recordedExchange) && recordedExchange.AutoDelete)
                 {
                     if (!AnyBindingsOnExchange(exchangeName))
                     {
@@ -204,7 +204,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             void DeleteAutoDeleteQueue(string queue)
             {
-                if (_recordedQueues.TryGetValue(queue, out var recordedQueue) && recordedQueue.IsAutoDelete)
+                if (_recordedQueues.TryGetValue(queue, out var recordedQueue) && recordedQueue.AutoDelete)
                 {
                     // last consumer on this connection is gone, remove recorded queue if it is auto-deleted.
                     if (!AnyConsumersOnQueue(queue))

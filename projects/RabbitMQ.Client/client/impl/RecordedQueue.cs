@@ -34,7 +34,7 @@ using System.Collections.Generic;
 namespace RabbitMQ.Client.Impl
 {
 #nullable enable
-    internal readonly struct RecordedQueue
+    internal readonly struct RecordedQueue : IRecordedQueue
     {
         private readonly string _name;
         private readonly IDictionary<string, object>? _arguments;
@@ -44,8 +44,11 @@ namespace RabbitMQ.Client.Impl
         private readonly bool _isServerNamed;
 
         public string Name => _name;
-        public bool IsAutoDelete => _isAutoDelete;
+        public bool AutoDelete => _isAutoDelete;
         public bool IsServerNamed => _isServerNamed;
+        public bool Durable => _durable;
+        public bool Exclusive => _exclusive;
+        public IDictionary<string, object>? Arguments => _arguments;
 
         public RecordedQueue(string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
         {
@@ -70,12 +73,12 @@ namespace RabbitMQ.Client.Impl
         public string Recover(IChannel channel)
         {
             var queueName = IsServerNamed ? string.Empty : Name;
-            return channel.QueueDeclare(queueName, _durable, _exclusive, IsAutoDelete, _arguments).QueueName;
+            return channel.QueueDeclare(queueName, _durable, _exclusive, AutoDelete, _arguments).QueueName;
         }
 
         public override string ToString()
         {
-            return $"{nameof(RecordedQueue)}: name = '{Name}', durable = {_durable}, exclusive = {_exclusive}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
+            return $"{nameof(RecordedQueue)}: name = '{Name}', durable = {_durable}, exclusive = {_exclusive}, autoDelete = {AutoDelete}, arguments = '{_arguments}'";
         }
     }
 }

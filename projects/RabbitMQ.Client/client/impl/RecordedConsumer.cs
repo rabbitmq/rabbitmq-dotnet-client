@@ -34,7 +34,7 @@ using System.Collections.Generic;
 namespace RabbitMQ.Client.Impl
 {
 #nullable enable
-    internal readonly struct RecordedConsumer
+    internal readonly struct RecordedConsumer : IRecordedConsumer
     {
         public AutorecoveringChannel Channel { get; }
         public IBasicConsumer Consumer { get; }

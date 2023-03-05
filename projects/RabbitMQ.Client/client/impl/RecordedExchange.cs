@@ -34,7 +34,7 @@ using System.Collections.Generic;
 namespace RabbitMQ.Client.Impl
 {
 #nullable enable
-    internal readonly struct RecordedExchange
+    internal readonly struct RecordedExchange : IRecordedExchange
     {
         private readonly string _name;
         private readonly string _type;
@@ -43,7 +43,10 @@ namespace RabbitMQ.Client.Impl
         private readonly IDictionary<string, object>? _arguments;
 
         public string Name => _name;
-        public bool IsAutoDelete => _isAutoDelete;
+        public bool AutoDelete => _isAutoDelete;
+        public string Type => _type;
+        public bool Durable => _durable;
+        public IDictionary<string, object>? Arguments => _arguments;
 
         public RecordedExchange(string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
         {
@@ -56,12 +59,12 @@ namespace RabbitMQ.Client.Impl
 
         public void Recover(IChannel channel)
         {
-            channel.ExchangeDeclare(Name, _type, _durable, IsAutoDelete, _arguments);
+            channel.ExchangeDeclare(Name, _type, _durable, AutoDelete, _arguments);
         }
 
         public override string ToString()
         {
-            return $"{nameof(RecordedExchange)}: name = '{Name}', type = '{_type}', durable = {_durable}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
+            return $"{nameof(RecordedExchange)}: name = '{Name}', type = '{_type}', durable = {_durable}, autoDelete = {AutoDelete}, arguments = '{_arguments}'";
         }
     }
 }

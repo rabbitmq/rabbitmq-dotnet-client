@@ -213,7 +213,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverExchanges(IChannel channel)
         {
-            foreach (var recordedExchange in _recordedExchanges.Values)
+            foreach (var recordedExchange in _recordedExchanges.Values.Where(x => _config.TopologyRecoveryFilter?.ExchangeFilter(x) ?? true))
             {
                 try
                 {
@@ -228,7 +228,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverQueues(IChannel channel)
         {
-            foreach (var recordedQueue in _recordedQueues.Values.ToArray())
+            foreach (var recordedQueue in _recordedQueues.Values.Where(x => _config.TopologyRecoveryFilter?.QueueFilter(x) ?? true).ToArray())
             {
                 try
                 {
@@ -266,7 +266,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void RecoverBindings(IChannel channel)
         {
-            foreach (var binding in _recordedBindings)
+            foreach (var binding in _recordedBindings.Where(x => _config.TopologyRecoveryFilter?.BindingFilter(x) ?? true))
             {
                 try
                 {
@@ -281,7 +281,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void RecoverConsumers(AutorecoveringChannel channelToRecover, IChannel channelToUse)
         {
-            foreach (var consumer in _recordedConsumers.Values.ToArray())
+            foreach (var consumer in _recordedConsumers.Values.Where(x => _config.TopologyRecoveryFilter?.ConsumerFilter(x) ?? true).ToArray())
             {
                 if (consumer.Channel != channelToRecover)
                 {
