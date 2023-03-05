@@ -576,7 +576,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // last binding where this exchange is the source is gone,
                     // remove recorded exchange
                     // if it is auto-deleted. See bug 26364.
-                    if ((rx != null) && rx.IsAutoDelete)
+                    if ((rx != null) && rx.AutoDelete)
                     {
                         DeleteRecordedExchange(exchange);
                     }
@@ -593,7 +593,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     _recordedQueues.TryGetValue(queue, out RecordedQueue rq);
                     // last consumer on this connection is gone, remove recorded queue
                     // if it is auto-deleted. See bug 26364.
-                    if ((rq != null) && rq.IsAutoDelete)
+                    if ((rq != null) && rq.AutoDelete)
                     {
                         DeleteRecordedQueue(queue);
                     }
@@ -993,7 +993,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 recordedBindingsCopy = new Dictionary<RecordedBinding, byte>(_recordedBindings);
             }
 
-            foreach (RecordedBinding b in recordedBindingsCopy.Keys)
+            foreach (RecordedBinding b in recordedBindingsCopy.Keys.Where(x => _factory.TopologyRecoveryFilter?.BindingFilter(x) ?? true))
             {
                 try
                 {
@@ -1089,7 +1089,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 recordedConsumersCopy = new Dictionary<string, RecordedConsumer>(_recordedConsumers);
             }
 
-            foreach (KeyValuePair<string, RecordedConsumer> pair in recordedConsumersCopy)
+            foreach (KeyValuePair<string, RecordedConsumer> pair in recordedConsumersCopy.Where(x => _factory.TopologyRecoveryFilter?.ConsumerFilter(x.Value) ?? true))
             {
                 RecordedConsumer cons = pair.Value;
                 if (cons.Model != modelToRecover)
@@ -1154,7 +1154,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 recordedExchangesCopy = new Dictionary<string, RecordedExchange>(_recordedExchanges);
             }
 
-            foreach (RecordedExchange rx in recordedExchangesCopy.Values)
+            foreach (RecordedExchange rx in recordedExchangesCopy.Values.Where(x => _factory.TopologyRecoveryFilter?.ExchangeFilter(x) ?? true))
             {
                 try
                 {
@@ -1188,7 +1188,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 recordedQueuesCopy = new Dictionary<string, RecordedQueue>(_recordedQueues);
             }
 
-            foreach (KeyValuePair<string, RecordedQueue> pair in recordedQueuesCopy)
+            foreach (KeyValuePair<string, RecordedQueue> pair in recordedQueuesCopy.Where(x => _factory.TopologyRecoveryFilter?.QueueFilter(x.Value) ?? true))
             {
                 string oldName = pair.Key;
                 RecordedQueue rq = pair.Value;

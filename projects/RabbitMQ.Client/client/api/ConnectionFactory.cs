@@ -272,6 +272,12 @@ namespace RabbitMQ.Client
         public bool TopologyRecoveryEnabled { get; set; } = true;
 
         /// <summary>
+        /// Filter to include/exclude entities from topology recovery.
+        /// Default filter includes all entities in topology recovery.
+        /// </summary>
+        public TopologyRecoveryFilter TopologyRecoveryFilter { get; set; } = new TopologyRecoveryFilter();
+
+        /// <summary>
         /// Construct a fresh instance, with all fields set to their respective defaults.
         /// </summary>
         public ConnectionFactory()
