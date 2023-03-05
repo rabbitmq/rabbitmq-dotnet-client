@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -1051,6 +1052,246 @@ namespace RabbitMQ.Client.Unit
             Block();
             Unblock();
             Wait(latch);
+        }
+
+        [Fact]
+        public void TestTopologyRecoveryQueueFilter()
+        {
+            var filter = new TopologyRecoveryFilter
+            {
+                QueueFilter = queue => !queue.Name.Contains("filtered")
+            };
+            var latch = new ManualResetEventSlim(false);
+            AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
+            conn.RecoverySucceeded += (source, ea) => latch.Set();
+            IModel ch = conn.CreateModel();
+
+            var queueToRecover = "recovered.queue";
+            var queueToIgnore = "filtered.queue";
+            ch.QueueDeclare(queueToRecover, false, false, false, null);
+            ch.QueueDeclare(queueToIgnore, false, false, false, null);
+
+            
+            _model.QueueDelete(queueToRecover);
+            _model.QueueDelete(queueToIgnore);
+
+            CloseAndWaitForRecovery(conn);
+            Wait(latch);
+
+            Assert.True(ch.IsOpen);
+            AssertQueueRecovery(ch, queueToRecover, false);
+
+            try
+            {
+                ch.QueueDeclarePassive(queueToIgnore);
+                Assert.Fail("Expected an exception");
+            }
+            catch (OperationInterruptedException e)
+            {
+                AssertShutdownError(e.ShutdownReason, 404);
+            }
+        }
+
+        [Fact]
+        public void TestTopologyRecoveryExchangeFilter()
+        {
+            var filter = new TopologyRecoveryFilter
+            {
+                ExchangeFilter = exchange => exchange.Type == "topic" && !exchange.Name.Contains("filtered")
+            };
+            var latch = new ManualResetEventSlim(false);
+            AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
+            conn.RecoverySucceeded += (source, ea) => latch.Set();
+            IModel ch = conn.CreateModel();
+
+            var exchangeToRecover = "recovered.exchange";
+            var exchangeToIgnore = "filtered.exchange";
+            ch.ExchangeDeclare(exchangeToRecover, "topic", false, true);
+            ch.ExchangeDeclare(exchangeToIgnore, "direct", false, true);
+
+            _model.ExchangeDelete(exchangeToRecover);
+            _model.ExchangeDelete(exchangeToIgnore);
+
+            CloseAndWaitForRecovery(conn);
+            Wait(latch);
+
+            Assert.True(ch.IsOpen);
+            AssertExchangeRecovery(ch, exchangeToRecover);
+
+            try
+            {
+                ch.ExchangeDeclarePassive(exchangeToIgnore);
+                Assert.Fail("Expected an exception");
+            }
+            catch (OperationInterruptedException e)
+            {
+                AssertShutdownError(e.ShutdownReason, 404);
+            }
+        }
+
+        [Fact]
+        public void TestTopologyRecoveryBindingFilter()
+        {
+            var filter = new TopologyRecoveryFilter
+            {
+                BindingFilter = binding => !binding.RoutingKey.Contains("filtered")
+            };
+            var latch = new ManualResetEventSlim(false);
+            AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
+            conn.RecoverySucceeded += (source, ea) => latch.Set();
+            IModel ch = conn.CreateModel();
+
+            var exchange = "topology.recovery.exchange";
+            var queueWithRecoveredBinding = "topology.recovery.queue.1";
+            var queueWithIgnoredBinding = "topology.recovery.queue.2";
+            var bindingToRecover = "recovered.binding";
+            var bindingToIgnore = "filtered.binding";
+
+            ch.ExchangeDeclare(exchange, "direct");
+            ch.QueueDeclare(queueWithRecoveredBinding, false, false, false, null);
+            ch.QueueDeclare(queueWithIgnoredBinding, false, false, false, null);
+            ch.QueueBind(queueWithRecoveredBinding, exchange, bindingToRecover);
+            ch.QueueBind(queueWithIgnoredBinding, exchange, bindingToIgnore);
+            ch.QueuePurge(queueWithRecoveredBinding);
+            ch.QueuePurge(queueWithIgnoredBinding);
+
+            _model.QueueUnbind(queueWithRecoveredBinding, exchange, bindingToRecover);
+            _model.QueueUnbind(queueWithIgnoredBinding, exchange, bindingToIgnore);
+
+            CloseAndWaitForRecovery(conn);
+            Wait(latch);
+
+            Assert.True(ch.IsOpen);
+            Assert.True(SendAndConsumeMessage(queueWithRecoveredBinding, exchange, bindingToRecover));
+            Assert.False(SendAndConsumeMessage(queueWithIgnoredBinding, exchange, bindingToIgnore));
+        }
+
+        [Fact]
+        public void TestTopologyRecoveryConsumerFilter()
+        {
+            var filter = new TopologyRecoveryFilter
+            {
+                ConsumerFilter = consumer => !consumer.ConsumerTag.Contains("filtered")
+            };
+            var latch = new ManualResetEventSlim(false);
+            AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
+            conn.RecoverySucceeded += (source, ea) => latch.Set();
+            IModel ch = conn.CreateModel();
+            ch.ConfirmSelect();
+
+            var exchange = "topology.recovery.exchange";
+            var queueWithRecoveredConsumer = "topology.recovery.queue.1";
+            var queueWithIgnoredConsumer = "topology.recovery.queue.2";
+            var binding1 = "recovered.binding";
+            var binding2 = "filtered.binding";
+
+            ch.ExchangeDeclare(exchange, "direct");
+            ch.QueueDeclare(queueWithRecoveredConsumer, false, false, false, null);
+            ch.QueueDeclare(queueWithIgnoredConsumer, false, false, false, null);
+            ch.QueueBind(queueWithRecoveredConsumer, exchange, binding1);
+            ch.QueueBind(queueWithIgnoredConsumer, exchange, binding2);
+            ch.QueuePurge(queueWithRecoveredConsumer);
+            ch.QueuePurge(queueWithIgnoredConsumer);
+
+            var recoverLatch = new ManualResetEventSlim(false);
+            var consumerToRecover = new EventingBasicConsumer(ch);
+            consumerToRecover.Received += (source, ea) => recoverLatch.Set();
+            ch.BasicConsume(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover);
+
+            var ignoredLatch = new ManualResetEventSlim(false);
+            var consumerToIgnore = new EventingBasicConsumer(ch);
+            consumerToIgnore.Received += (source, ea) => ignoredLatch.Set();
+            ch.BasicConsume(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
+
+            CloseAndWaitForRecovery(conn);
+            Wait(latch);
+
+            Assert.True(ch.IsOpen);
+            ch.BasicPublish(exchange, binding1, Encoding.UTF8.GetBytes("test message"));
+            ch.BasicPublish(exchange, binding2, Encoding.UTF8.GetBytes("test message"));
+
+            Assert.True(recoverLatch.Wait(TimeSpan.FromSeconds(5)));
+            Assert.False(ignoredLatch.Wait(TimeSpan.FromSeconds(5)));
+
+            ch.BasicConsume(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
+
+            try
+            {
+                ch.BasicConsume(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover);
+                Assert.Fail("Expected an exception");
+            }
+            catch (OperationInterruptedException e)
+            {
+                AssertShutdownError(e.ShutdownReason, 530); // NOT_ALLOWED - not allowed to reuse consumer tag
+            }
+        }
+
+        [Fact]
+        public void TestTopologyRecoveryDefaultFilterRecoversAllEntities()
+        {
+            var filter = new TopologyRecoveryFilter();
+            var latch = new ManualResetEventSlim(false);
+            AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
+            conn.RecoverySucceeded += (source, ea) => latch.Set();
+            IModel ch = conn.CreateModel();
+
+            var exchange = "topology.recovery.exchange";
+            var queue1 = "topology.recovery.queue.1";
+            var queue2 = "topology.recovery.queue.2";
+            var binding1 = "recovered.binding";
+            var binding2 = "filtered.binding";
+
+            ch.ExchangeDeclare(exchange, "direct");
+            ch.QueueDeclare(queue1, false, false, false, null);
+            ch.QueueDeclare(queue2, false, false, false, null);
+            ch.QueueBind(queue1, exchange, binding1);
+            ch.QueueBind(queue2, exchange, binding2);
+            ch.QueuePurge(queue1);
+            ch.QueuePurge(queue2);
+
+            var consumerLatch1 = new ManualResetEventSlim(false);
+            var consumer1 = new EventingBasicConsumer(ch);
+            consumer1.Received += (source, ea) => consumerLatch1.Set();
+            ch.BasicConsume(queue1, true, "recovered.consumer", consumer1);
+
+            var consumerLatch2 = new ManualResetEventSlim(false);
+            var consumer2 = new EventingBasicConsumer(ch);
+            consumer2.Received += (source, ea) => consumerLatch2.Set();
+            ch.BasicConsume(queue2, true, "filtered.consumer", consumer2);
+
+            _model.ExchangeDelete(exchange);
+            _model.QueueDelete(queue1);
+            _model.QueueDelete(queue2);
+
+            CloseAndWaitForRecovery(conn);
+            Wait(latch);
+
+            Assert.True(ch.IsOpen);
+            AssertExchangeRecovery(ch, exchange);
+            ch.QueueDeclarePassive(queue1);
+            ch.QueueDeclarePassive(queue2);
+
+            ch.BasicPublish(exchange, binding1, Encoding.UTF8.GetBytes("test message"));
+            ch.BasicPublish(exchange, binding2, Encoding.UTF8.GetBytes("test message"));
+
+            Assert.True(consumerLatch1.Wait(TimeSpan.FromSeconds(5)));
+            Assert.True(consumerLatch2.Wait(TimeSpan.FromSeconds(5)));
+        }
+
+        internal bool SendAndConsumeMessage(string queue, string exchange, string routingKey)
+        {
+            using (var ch = _conn.CreateModel())
+            {
+                var latch = new ManualResetEventSlim(false);
+
+                var consumer = new AckingBasicConsumer(ch, 1, latch);
+
+                ch.BasicConsume(queue, true, consumer);
+
+                ch.BasicPublish(exchange, routingKey, Encoding.UTF8.GetBytes("test message"));
+
+                return latch.Wait(TimeSpan.FromSeconds(5));
+            }
         }
 
         internal void AssertExchangeRecovery(IChannel m, string x)

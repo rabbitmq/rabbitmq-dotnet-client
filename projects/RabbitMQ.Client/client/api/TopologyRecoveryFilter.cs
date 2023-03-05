@@ -8,20 +8,28 @@ namespace RabbitMQ.Client
     /// </summary>
     public class TopologyRecoveryFilter
     {
-        private Func<IRecordedExchange, bool> _exchangeFilter = exchange => true;
-        private Func<IRecordedQueue, bool> _queueFilter = queue => true;
-        private Func<IRecordedBinding, bool> _bindingFilter = binding => true;
-        private Func<IRecordedConsumer, bool> _consumerFilter = consumer => true;
+        private static readonly Func<IRecordedExchange, bool> s_defaultExchangeFilter = exchange => true;
+        private static readonly Func<IRecordedQueue, bool> s_defaultQueueFilter = queue => true;
+        private static readonly Func<IRecordedBinding, bool> s_defaultBindingFilter = binding => true;
+        private static readonly Func<IRecordedConsumer, bool> s_defaultConsumerFilter = consumer => true;
+
+        private Func<IRecordedExchange, bool> _exchangeFilter;
+        private Func<IRecordedQueue, bool> _queueFilter;
+        private Func<IRecordedBinding, bool> _bindingFilter;
+        private Func<IRecordedConsumer, bool> _consumerFilter;
 
         /// <summary>
         /// Decides whether an exchange is recovered or not.
         /// </summary>
         public Func<IRecordedExchange, bool> ExchangeFilter
         {
-            get => _exchangeFilter;
+            get => _exchangeFilter ?? s_defaultExchangeFilter;
 
-            init
+            set
             {
+                if (_exchangeFilter != null)
+                    throw new InvalidOperationException($"Cannot modify {nameof(ExchangeFilter)} after it has been initialized.");
+
                 _exchangeFilter = value ?? throw new ArgumentNullException(nameof(ExchangeFilter));
             }
         }
@@ -31,10 +39,13 @@ namespace RabbitMQ.Client
         /// </summary>
         public Func<IRecordedQueue, bool> QueueFilter
         {
-            get => _queueFilter;
+            get => _queueFilter ?? s_defaultQueueFilter;
 
-            init
+            set
             {
+                if (_queueFilter != null)
+                    throw new InvalidOperationException($"Cannot modify {nameof(QueueFilter)} after it has been initialized.");
+
                 _queueFilter = value ?? throw new ArgumentNullException(nameof(QueueFilter));
             }
         }
@@ -44,10 +55,13 @@ namespace RabbitMQ.Client
         /// </summary>
         public Func<IRecordedBinding, bool> BindingFilter
         {
-            get => _bindingFilter;
+            get => _bindingFilter ?? s_defaultBindingFilter;
 
-            init
+            set
             {
+                if (_bindingFilter != null)
+                    throw new InvalidOperationException($"Cannot modify {nameof(BindingFilter)} after it has been initialized.");
+
                 _bindingFilter = value ?? throw new ArgumentNullException(nameof(BindingFilter));
             }
         }
@@ -57,10 +71,13 @@ namespace RabbitMQ.Client
         /// </summary>
         public Func<IRecordedConsumer, bool> ConsumerFilter
         {
-            get => _consumerFilter;
+            get => _consumerFilter ?? s_defaultConsumerFilter;
 
-            init
+            set
             {
+                if (_consumerFilter != null)
+                    throw new InvalidOperationException($"Cannot modify {nameof(ConsumerFilter)} after it has been initialized.");
+
                 _consumerFilter = value ?? throw new ArgumentNullException(nameof(ConsumerFilter));
             }
         }
