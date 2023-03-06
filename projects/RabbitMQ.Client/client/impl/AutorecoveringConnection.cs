@@ -428,11 +428,11 @@ namespace RabbitMQ.Client.Framing.Impl
                             // 2. Recover queues
                             // 3. Recover bindings
                             // 4. Recover consumers
-                            using (var recoveryModel = _delegate.CreateModel())
+                            using (var recoveryModelFactory = new RecoveryModelFactory(_delegate))
                             {
-                                RecoverExchanges(recoveryModel);
-                                RecoverQueues(recoveryModel);
-                                RecoverBindings(recoveryModel);
+                                RecoverExchanges(recoveryModelFactory);
+                                RecoverQueues(recoveryModelFactory);
+                                RecoverBindings(recoveryModelFactory);
                             }
                         }
 
@@ -985,7 +985,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverBindings(IModel model)
+        private void RecoverBindings(RecoveryModelFactory recoveryModelFactory)
         {
             Dictionary<RecordedBinding, byte> recordedBindingsCopy;
             lock (_recordedEntitiesLock)
@@ -997,13 +997,21 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    b.Recover(model);
+                    b.Recover(recoveryModelFactory.RecoveryModel);
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
-                        b.Source, b.Destination, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    if (_factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler != null
+                        && _factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition(b, cause))
+                    {
+                        _factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler(b, cause);
+                    }
+                    else
+                    {
+                        string s = string.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
+                            b.Source, b.Destination, cause.Message);
+                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    }
                 }
             }
         }
@@ -1139,14 +1147,23 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
-                        tag, cons.Queue, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    if (channelToUse.IsOpen
+                        && _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler != null
+                        && _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition(cons, cause))
+                    {
+                        _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler(cons, cause);
+                    }
+                    else
+                    {
+                        string s = string.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
+                            tag, cons.Queue, cause.Message);
+                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    }
                 }
             }
         }
 
-        private void RecoverExchanges(IModel model)
+        private void RecoverExchanges(RecoveryModelFactory recoveryModelFactory)
         {
             Dictionary<string, RecordedExchange> recordedExchangesCopy;
             lock (_recordedEntitiesLock)
@@ -1158,13 +1175,21 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    rx.Recover(model);
+                    rx.Recover(recoveryModelFactory.RecoveryModel);
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering exchange {0}: {1}",
-                        rx.Name, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    if (_factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler != null
+                        && _factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition(rx, cause))
+                    {
+                        _factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler(rx, cause);
+                    }
+                    else
+                    {
+                        string s = string.Format("Caught an exception while recovering exchange {0}: {1}",
+                            rx.Name, cause.Message);
+                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    }
                 }
             }
         }
@@ -1180,7 +1205,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverQueues(IModel model)
+        private void RecoverQueues(RecoveryModelFactory recoveryModelFactory)
         {
             Dictionary<string, RecordedQueue> recordedQueuesCopy;
             lock (_recordedEntitiesLock)
@@ -1195,7 +1220,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 try
                 {
-                    rq.Recover(model);
+                    rq.Recover(recoveryModelFactory.RecoveryModel);
                     string newName = rq.Name;
 
                     if (!oldName.Equals(newName))
@@ -1232,9 +1257,17 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering queue {0}: {1}",
-                        oldName, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    if (_factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler != null
+                        && _factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition(rq, cause))
+                    {
+                        _factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler(rq, cause);
+                    }
+                    else
+                    {
+                        string s = string.Format("Caught an exception while recovering queue {0}: {1}",
+                            oldName, cause.Message);
+                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    }
                 }
             }
         }
@@ -1293,6 +1326,45 @@ namespace RabbitMQ.Client.Framing.Impl
             /// In the process of recovering underlying connection.
             /// </summary>
             Recovering
+        }
+
+        private sealed class RecoveryModelFactory : IDisposable
+        {
+            private readonly IConnection _connection;
+            private IModel _recoveryModel;
+
+            public RecoveryModelFactory(IConnection connection)
+            {
+                _connection = connection;
+            }
+
+            public IModel RecoveryModel
+            {
+                get
+                {
+                    if (_recoveryModel == null)
+                    {
+                        _recoveryModel = _connection.CreateModel();
+                    }
+
+                    if (_recoveryModel.IsClosed)
+                    {
+                        _recoveryModel.Dispose();
+                        _recoveryModel = _connection.CreateModel();
+                    }
+
+                    return _recoveryModel;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (_recoveryModel != null)
+                {
+                    _recoveryModel.Close();
+                    _recoveryModel.Dispose();
+                }
+            }
         }
 
         private Task _recoveryTask;
