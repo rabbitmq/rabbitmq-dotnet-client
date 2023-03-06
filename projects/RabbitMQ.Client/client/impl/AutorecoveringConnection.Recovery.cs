@@ -143,11 +143,11 @@ namespace RabbitMQ.Client.Framing.Impl
                             // 2. Recover queues
                             // 3. Recover bindings
                             // 4. Recover consumers
-                            using (var recoveryChannel = _innerConnection.CreateChannel())
+                            using (var recoveryChannelFactory = new RecoveryChannelFactory(_innerConnection))
                             {
-                                RecoverExchanges(recoveryChannel);
-                                RecoverQueues(recoveryChannel);
-                                RecoverBindings(recoveryChannel);
+                                RecoverExchanges(recoveryChannelFactory);
+                                RecoverQueues(recoveryChannelFactory);
+                                RecoverBindings(recoveryChannelFactory);
                             }
 
                         }
@@ -211,28 +211,36 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private void RecoverExchanges(IChannel channel)
+        private void RecoverExchanges(RecoveryChannelFactory recoveryChannelFactory)
         {
             foreach (var recordedExchange in _recordedExchanges.Values.Where(x => _config.TopologyRecoveryFilter?.ExchangeFilter(x) ?? true))
             {
                 try
                 {
-                    recordedExchange.Recover(channel);
+                    recordedExchange.Recover(recoveryChannelFactory.RecoveryChannel);
                 }
                 catch (Exception ex)
                 {
-                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering exchange '{recordedExchange}'", ex));
+                    if (_config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler != null
+                        && _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition(recordedExchange, ex))
+                    {
+                        _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler(recordedExchange, ex);
+                    }
+                    else
+                    {
+                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering exchange '{recordedExchange}'", ex));
+                    }
                 }
             }
         }
 
-        private void RecoverQueues(IChannel channel)
+        private void RecoverQueues(RecoveryChannelFactory recoveryChannelFactory)
         {
             foreach (var recordedQueue in _recordedQueues.Values.Where(x => _config.TopologyRecoveryFilter?.QueueFilter(x) ?? true).ToArray())
             {
                 try
                 {
-                    var newName = recordedQueue.Recover(channel);
+                    var newName = recordedQueue.Recover(recoveryChannelFactory.RecoveryChannel);
                     var oldName = recordedQueue.Name;
 
                     if (oldName != newName)
@@ -259,22 +267,38 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception ex)
                 {
-                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering queue '{recordedQueue}'", ex));
+                    if (_config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler != null
+                        && _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition(recordedQueue, ex))
+                    {
+                        _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler(recordedQueue, ex);
+                    }
+                    else
+                    {
+                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering queue '{recordedQueue}'", ex));
+                    }
                 }
             }
         }
 
-        private void RecoverBindings(IChannel channel)
+        private void RecoverBindings(RecoveryChannelFactory recoveryChannelFactory)
         {
             foreach (var binding in _recordedBindings.Where(x => _config.TopologyRecoveryFilter?.BindingFilter(x) ?? true))
             {
                 try
                 {
-                    binding.Recover(channel);
+                    binding.Recover(recoveryChannelFactory.RecoveryChannel);
                 }
                 catch (Exception ex)
                 {
-                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering binding between {binding.Source} and {binding.Destination}", ex));
+                    if (_config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler != null
+                        && _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition(binding, ex))
+                    {
+                        _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler(binding, ex);
+                    }
+                    else
+                    {
+                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering binding between {binding.Source} and {binding.Destination}", ex));
+                    }
                 }
             }
         }
@@ -303,7 +327,15 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception ex)
                 {
-                    HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering consumer {oldTag} on queue {consumer.Queue}", ex));
+                    if (_config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler != null
+                        && _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition(consumer, ex))
+                    {
+                        _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler(consumer, ex);
+                    }
+                    else
+                    {
+                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering consumer {oldTag} on queue {consumer.Queue}", ex));
+                    }
                 }
             }
         }
@@ -315,6 +347,45 @@ namespace RabbitMQ.Client.Framing.Impl
                 foreach (AutorecoveringChannel m in _channels)
                 {
                     m.AutomaticallyRecover(this, _config.TopologyRecoveryEnabled);
+                }
+            }
+        }
+
+        private sealed class RecoveryChannelFactory : IDisposable
+        {
+            private readonly IConnection _connection;
+            private IModel? _recoveryChannel;
+
+            public RecoveryChannelFactory(IConnection connection)
+            {
+                _connection = connection;
+            }
+
+            public IModel RecoveryChannel
+            {
+                get
+                {
+                    if (_recoveryChannel == null)
+                    {
+                        _recoveryChannel = _connection.CreateModel();
+                    }
+
+                    if (_recoveryChannel.IsClosed)
+                    {
+                        _recoveryChannel.Dispose();
+                        _recoveryChannel = _connection.CreateModel();
+                    }
+
+                    return _recoveryChannel;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (_recoveryChannel != null)
+                {
+                    _recoveryChannel.Close();
+                    _recoveryChannel.Dispose();
                 }
             }
         }

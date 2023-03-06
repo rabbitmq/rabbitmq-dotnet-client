@@ -93,6 +93,11 @@ namespace RabbitMQ.Client
         public TopologyRecoveryFilter TopologyRecoveryFilter { get; }
 
         /// <summary>
+        /// Custom logic for handling topology recovery exceptions that match the specified filters.
+        /// </summary>
+        public TopologyRecoveryExceptionHandler TopologyRecoveryExceptionHandler { get; }
+
+        /// <summary>
         /// Amount of time client will wait for before re-trying  to recover connection.
         /// </summary>
         public TimeSpan NetworkRecoveryInterval { get; }
@@ -133,7 +138,8 @@ namespace RabbitMQ.Client
 
         internal ConnectionConfig(string virtualHost, string userName, string password, IList<IAuthMechanismFactory> authMechanisms,
             IDictionary<string, object?> clientProperties, string? clientProvidedName,
-            ushort maxChannelCount, uint maxFrameSize, bool topologyRecoveryEnabled, TopologyRecoveryFilter topologyRecoveryFilter,
+            ushort maxChannelCount, uint maxFrameSize, bool topologyRecoveryEnabled,
+            TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
             bool dispatchConsumersAsync, int dispatchConsumerConcurrency,
             Func<AmqpTcpEndpoint, IFrameHandler> frameHandlerFactory)
@@ -148,6 +154,7 @@ namespace RabbitMQ.Client
             MaxFrameSize = maxFrameSize;
             TopologyRecoveryEnabled = topologyRecoveryEnabled;
             TopologyRecoveryFilter = topologyRecoveryFilter;
+            TopologyRecoveryExceptionHandler = topologyRecoveryExceptionHandler;
             NetworkRecoveryInterval = networkRecoveryInterval;
             HeartbeatInterval = heartbeatInterval;
             ContinuationTimeout = continuationTimeout;

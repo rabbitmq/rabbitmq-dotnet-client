@@ -266,6 +266,11 @@ namespace RabbitMQ.Client
         public TopologyRecoveryFilter TopologyRecoveryFilter { get; set; } = new TopologyRecoveryFilter();
 
         /// <summary>
+        /// Custom logic for handling topology recovery exceptions that match the specified filters.
+        /// </summary>
+        public TopologyRecoveryExceptionHandler TopologyRecoveryExceptionHandler { get; set; } = new TopologyRecoveryExceptionHandler();
+
+        /// <summary>
         /// Construct a fresh instance, with all fields set to their respective defaults.
         /// </summary>
         public ConnectionFactory()
@@ -542,6 +547,7 @@ namespace RabbitMQ.Client
                 RequestedFrameMax,
                 TopologyRecoveryEnabled,
                 TopologyRecoveryFilter,
+                TopologyRecoveryExceptionHandler,
                 NetworkRecoveryInterval,
                 RequestedHeartbeat,
                 ContinuationTimeout,
