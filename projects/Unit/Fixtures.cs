@@ -163,6 +163,18 @@ namespace RabbitMQ.Client.Unit
             return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
         }
 
+        internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandler(TopologyRecoveryExceptionHandler handler)
+        {
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                TopologyRecoveryEnabled = true,
+                TopologyRecoveryExceptionHandler = handler
+            };
+
+            return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
+        }
+
         internal IConnection CreateNonRecoveringConnection()
         {
             var cf = new ConnectionFactory

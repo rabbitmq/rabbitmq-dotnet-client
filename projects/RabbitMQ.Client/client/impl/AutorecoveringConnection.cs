@@ -1004,7 +1004,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (_factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler != null
                         && _factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition(b, cause))
                     {
-                        _factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler(b, cause);
+                        _factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler(b, cause, this);
                     }
                     else
                     {
@@ -1147,11 +1147,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    if (channelToUse.IsOpen
-                        && _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler != null
+                    if (_factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler != null
                         && _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition(cons, cause))
                     {
-                        _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler(cons, cause);
+                        _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler(cons, cause, this);
                     }
                     else
                     {
@@ -1182,7 +1181,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (_factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler != null
                         && _factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition(rx, cause))
                     {
-                        _factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler(rx, cause);
+                        _factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler(rx, cause, this);
                     }
                     else
                     {
@@ -1260,7 +1259,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (_factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler != null
                         && _factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition(rq, cause))
                     {
-                        _factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler(rq, cause);
+                        _factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler(rq, cause, this);
                     }
                     else
                     {
