@@ -70,15 +70,15 @@ namespace RabbitMQ.Client.Unit
                     }
                 };
 
-                using (IChannel model = conn.CreateModel())
+                using (IChannel channel = conn.CreateModel())
                 {
-                    model.ExchangeDeclare(ExchangeName.Value, "topic", durable: false, autoDelete: true);
-                    model.QueueDeclare(QueueName, false, false, true, null);
-                    model.QueueBind(QueueName, ExchangeName.Value, PublishKey.Value, null);
+                    channel.ExchangeDeclare(ExchangeName.Value, "topic", durable: false, autoDelete: true);
+                    channel.QueueDeclare(QueueName, false, false, true, null);
+                    channel.QueueBind(QueueName, ExchangeName.Value, PublishKey.Value, null);
 
                     // Act
-                    var pubTask = Task.Run(() => NewFunction(model));
-                    var pubTask2 = Task.Run(() => NewFunction(model));
+                    var pubTask = Task.Run(() => NewFunction(channel));
+                    var pubTask2 = Task.Run(() => NewFunction(channel));
 
                     await Task.WhenAll(pubTask, pubTask2);
                 }
@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Unit
             // Assert
             Assert.Null(_raisedException);
 
-            void NewFunction(IChannel model)
+            void NewFunction(IChannel channel)
             {
                 try
                 {
@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         for (int j = 0; j < Repeats; j++)
                         {
-                            model.BasicPublish(ExchangeName, PublishKey, _body, false);
+                            channel.BasicPublish(ExchangeName, PublishKey, _body, false);
                         }
 
                         Thread.Sleep(1);

@@ -49,15 +49,15 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestConsumerDispatcherShutdown()
         {
-            var m = (AutorecoveringModel)_model;
+            var m = (AutorecoveringModel)_channel;
             var latch = new ManualResetEventSlim(false);
 
-            _model.ModelShutdown += (model, args) =>
+            _channel.ModelShutdown += (channel, args) =>
             {
                 latch.Set();
             };
             Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
-            _model.Close();
+            _channel.Close();
             Wait(latch, TimeSpan.FromSeconds(3));
             Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }

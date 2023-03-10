@@ -83,12 +83,12 @@ namespace RabbitMQ.Client
         IBasicConsumer DefaultConsumer { get; set; }
 
         /// <summary>
-        /// Returns true if the model is no longer in a state where it can be used.
+        /// Returns true if the channel is no longer in a state where it can be used.
         /// </summary>
         bool IsClosed { get; }
 
         /// <summary>
-        /// Returns true if the model is still in a state where it can be used.
+        /// Returns true if the channel is still in a state where it can be used.
         /// Identical to checking if <see cref="CloseReason"/> equals null.</summary>
         bool IsOpen { get; }
 
@@ -124,7 +124,7 @@ namespace RabbitMQ.Client
         event EventHandler<BasicReturnEventArgs> BasicReturn;
 
         /// <summary>
-        /// Signalled when an exception occurs in a callback invoked by the model.
+        /// Signalled when an exception occurs in a callback invoked by the channel.
         ///
         /// Examples of cases where this event will be signalled
         /// include exceptions thrown in <see cref="IBasicConsumer"/> methods, or
@@ -135,10 +135,10 @@ namespace RabbitMQ.Client
         event EventHandler<FlowControlEventArgs> FlowControl;
 
         /// <summary>
-        /// Notifies the destruction of the model.
+        /// Notifies the destruction of the channel.
         /// </summary>
         /// <remarks>
-        /// If the model is already destroyed at the time an event
+        /// If the channel is already destroyed at the time an event
         /// handler is added to this event, the event handler will be fired immediately.
         /// </remarks>
         event EventHandler<ShutdownEventArgs> ModelShutdown;

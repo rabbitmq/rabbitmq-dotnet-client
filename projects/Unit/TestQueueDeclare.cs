@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
                                 Thread.Sleep(rnd.Next(5, 50));
-                                _model.QueueDeclare(q, false, false, false, null);
+                                _channel.QueueDeclare(q, false, false, false, null);
                             }
                             catch (NotSupportedException e)
                             {
@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Unit
             }
 
             Assert.Null(nse);
-            _model.QueueDelete(q);
+            _channel.QueueDelete(q);
         }
     }
 }

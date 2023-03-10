@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
-        private readonly ModelBase _model0;
+        private readonly ChannelBase _model0;
         private readonly MainSession _session0;
 
         private Guid _id = Guid.NewGuid();
@@ -226,9 +226,9 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = new Model(_config, session);
-            model._Private_ChannelOpen();
-            return model;
+            var channel = new Model(_config, session);
+            channel._Private_ChannelOpen();
+            return channel;
         }
 
         internal ISession CreateSession()

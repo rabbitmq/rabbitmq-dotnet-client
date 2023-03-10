@@ -80,8 +80,8 @@ namespace RabbitMQ.Client.Unit
         {
             public List<ulong> DeliveryTags { get; }
 
-            public CollectingConsumer(IChannel model)
-                : base(model)
+            public CollectingConsumer(IChannel channel)
+                : base(channel)
             {
                 DeliveryTags = new List<ulong>();
             }
@@ -150,7 +150,7 @@ namespace RabbitMQ.Client.Unit
         {
             IChannel ch1 = _conn.CreateModel();
             IChannel ch2 = _conn.CreateModel();
-            _model.ExchangeDeclare(_x, "fanout", durable: false);
+            _channel.ExchangeDeclare(_x, "fanout", durable: false);
 
             string q1 = ch1.QueueDeclare().QueueName;
             string q2 = ch2.QueueDeclare().QueueName;
@@ -182,7 +182,7 @@ namespace RabbitMQ.Client.Unit
                 DuplicateLatch = duplicateLatch;
             }
 
-            public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
+            public override void HandleModelShutdown(object channel, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
                 if (Latch.Wait(0))
@@ -201,11 +201,11 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEventSlim(false);
             var duplicateLatch = new ManualResetEventSlim(false);
-            string q = _model.QueueDeclare().QueueName;
+            string q = _channel.QueueDeclare().QueueName;
             var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
-            _model.BasicConsume(queue: q, autoAck: true, consumer: c);
-            _model.Close();
+            _channel.BasicConsume(queue: q, autoAck: true, consumer: c);
+            _channel.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
             Assert.False(duplicateLatch.Wait(TimeSpan.FromSeconds(5)),
                            "event handler fired more than once");

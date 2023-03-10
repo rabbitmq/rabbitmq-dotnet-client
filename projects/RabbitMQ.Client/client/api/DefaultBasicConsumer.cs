@@ -60,10 +60,10 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Constructor which sets the Model property to the given value.
         /// </summary>
-        /// <param name="model">Common AMQP model.</param>
-        public DefaultBasicConsumer(IChannel model)
+        /// <param name="channel">Common AMQP channel.</param>
+        public DefaultBasicConsumer(IChannel channel)
         {
-            Model = model;
+            Model = channel;
         }
 
         /// <summary>
@@ -159,11 +159,11 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Called when the model (channel) this consumer was registered on terminates.
+        /// Called when the channel (channel) this consumer was registered on terminates.
         /// </summary>
-        /// <param name="model">A channel this consumer was registered on.</param>
+        /// <param name="channel">A channel this consumer was registered on.</param>
         /// <param name="reason">Shutdown context.</param>
-        public virtual void HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public virtual void HandleModelShutdown(object channel, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
             OnCancel(_consumerTags.ToArray());

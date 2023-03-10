@@ -44,9 +44,9 @@ namespace RabbitMQ.Client.Unit
 
         IConnection _c;
 
-        public int ModelNumber(IChannel model)
+        public int ModelNumber(IChannel channel)
         {
-            return ((AutorecoveringModel)model).ChannelNumber;
+            return ((AutorecoveringModel)channel).ChannelNumber;
         }
 
         public TestIModelAllocation()

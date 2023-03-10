@@ -46,7 +46,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class ModelBase : IChannel, IRecoverable
+    internal abstract class ChannelBase : IChannel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
 
         internal IConsumerDispatcher ConsumerDispatcher { get; }
 
-        protected ModelBase(ConnectionConfig config, ISession session)
+        protected ChannelBase(ConnectionConfig config, ISession session)
         {
             ContinuationTimeout = config.ContinuationTimeout;
             ConsumerDispatcher = config.DispatchConsumersAsync ?
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Impl
 
         public ISession Session { get; private set; }
 
-        protected void TakeOver(ModelBase other)
+        protected void TakeOver(ChannelBase other)
         {
             _basicAcksWrapper.Takeover(other._basicAcksWrapper);
             _basicNacksWrapper.Takeover(other._basicNacksWrapper);
@@ -400,7 +400,7 @@ namespace RabbitMQ.Client.Impl
             _callbackExceptionWrapper.Invoke(this, args);
         }
 
-        ///<summary>Broadcasts notification of the final shutdown of the model.</summary>
+        ///<summary>Broadcasts notification of the final shutdown of the channel.</summary>
         ///<remarks>
         ///<para>
         ///Do not call anywhere other than at the end of OnSessionShutdown.

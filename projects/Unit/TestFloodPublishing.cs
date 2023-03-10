@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit
             var closeWatch = new Stopwatch();
             using (IConnection conn = connFactory.CreateConnection())
             {
-                using (IChannel model = conn.CreateModel())
+                using (IChannel channel = conn.CreateModel())
                 {
                     conn.ConnectionShutdown += (_, args) =>
                     {
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Unit
                                 }
                             }
 
-                            model.BasicPublish(CachedString.Empty, CachedString.Empty, _body);
+                            channel.BasicPublish(CachedString.Empty, CachedString.Empty, _body);
                         }
                     }
                     finally

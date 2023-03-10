@@ -69,12 +69,12 @@ namespace RabbitMQ.Client.Unit
             string q1 = GenerateQueueName();
             string q2 = GenerateQueueName();
 
-            _model.QueueDeclare(q1, false, false, false, null);
-            _model.QueueDeclare(q2, false, false, false, null);
+            _channel.QueueDeclare(q1, false, false, false, null);
+            _channel.QueueDeclare(q2, false, false, false, null);
 
-            EventingBasicConsumer consumer = new EventingBasicConsumer(_model);
-            string consumerTag1 = _model.BasicConsume(q1, true, consumer);
-            string consumerTag2 = _model.BasicConsume(q2, true, consumer);
+            EventingBasicConsumer consumer = new EventingBasicConsumer(_channel);
+            string consumerTag1 = _channel.BasicConsume(q1, true, consumer);
+            string consumerTag2 = _channel.BasicConsume(q2, true, consumer);
 
             string notifiedConsumerTag = null;
             consumer.ConsumerCancelled += (sender, args) =>
@@ -86,20 +86,20 @@ namespace RabbitMQ.Client.Unit
                 }
             };
 
-            _model.QueueDelete(q1);
+            _channel.QueueDelete(q1);
             WaitOn(lockObject);
             Assert.Equal(consumerTag1, notifiedConsumerTag);
 
-            _model.QueueDelete(q2);
+            _channel.QueueDelete(q2);
         }
 
         private void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
         {
-            _model.QueueDeclare(queue, false, true, false, null);
-            IBasicConsumer consumer = new CancelNotificationConsumer(_model, this, EventMode);
-            string actualConsumerTag = _model.BasicConsume(queue, false, consumer);
+            _channel.QueueDeclare(queue, false, true, false, null);
+            IBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, EventMode);
+            string actualConsumerTag = _channel.BasicConsume(queue, false, consumer);
 
-            _model.QueueDelete(queue);
+            _channel.QueueDelete(queue);
             WaitOn(lockObject);
             Assert.True(notified);
             Assert.Equal(actualConsumerTag, consumerTag);
@@ -110,8 +110,8 @@ namespace RabbitMQ.Client.Unit
             private readonly TestConsumerCancelNotify _testClass;
             private readonly bool _eventMode;
 
-            public CancelNotificationConsumer(IChannel model, TestConsumerCancelNotify tc, bool EventMode)
-                : base(model)
+            public CancelNotificationConsumer(IChannel channel, TestConsumerCancelNotify tc, bool EventMode)
+                : base(channel)
             {
                 _testClass = tc;
                 _eventMode = EventMode;

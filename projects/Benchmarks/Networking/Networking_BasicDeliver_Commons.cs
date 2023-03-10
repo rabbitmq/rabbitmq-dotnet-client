@@ -12,11 +12,11 @@ namespace Benchmarks.Networking
         public static async Task Publish_Hello_World(IConnection connection, uint messageCount, byte[] body)
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            using (var model = connection.CreateModel())
+            using (var channel = connection.CreateModel())
             {
-                var queue = model.QueueDeclare();
+                var queue = channel.QueueDeclare();
                 var consumed = 0;
-                var consumer = new EventingBasicConsumer(model);
+                var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (s, args) =>
                 {
                     if (Interlocked.Increment(ref consumed) == messageCount)
@@ -24,11 +24,11 @@ namespace Benchmarks.Networking
                         tcs.SetResult(true);
                     }
                 };
-                model.BasicConsume(queue.QueueName, true, consumer);
+                channel.BasicConsume(queue.QueueName, true, consumer);
 
                 for (int i = 0; i < messageCount; i++)
                 {
-                    model.BasicPublish("", queue.QueueName, body);
+                    channel.BasicPublish("", queue.QueueName, body);
                 }
 
                 await tcs.Task;

@@ -57,9 +57,9 @@ namespace RabbitMQ.Client.Unit
             _queue = _channel.QueueDeclare("", false, true, false, null);
         }
 
-        public int ModelNumber(IChannel model)
+        public int ModelNumber(IChannel channel)
         {
-            return ((ModelBase)model).Session.ChannelNumber;
+            return ((ChannelBase)channel).Session.ChannelNumber;
         }
 
         public void Dispose()

@@ -36,7 +36,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-    internal class Model : ModelBase
+    internal class Model : ChannelBase
     {
         public Model(ConnectionConfig config, ISession session) : base(config, session)
         {

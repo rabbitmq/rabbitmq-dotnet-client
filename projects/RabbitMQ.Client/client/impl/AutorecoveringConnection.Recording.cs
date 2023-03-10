@@ -246,11 +246,11 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal void DeleteRecordedChannel(AutorecoveringModel model)
+        internal void DeleteRecordedChannel(AutorecoveringModel channel)
         {
             lock (_models)
             {
-                _models.Remove(model);
+                _models.Remove(channel);
             }
         }
     }

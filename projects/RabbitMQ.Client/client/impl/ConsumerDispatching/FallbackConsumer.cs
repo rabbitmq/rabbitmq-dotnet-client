@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicDeliver)} for tag {consumerTag}");
         }
 
-        void IBasicConsumer.HandleModelShutdown(object model, ShutdownEventArgs reason)
+        void IBasicConsumer.HandleModelShutdown(object channel, ShutdownEventArgs reason)
         {
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleModelShutdown)}");
         }
@@ -73,9 +73,9 @@ namespace RabbitMQ.Client.ConsumerDispatching
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleModelShutdown(object model, ShutdownEventArgs reason)
+        Task IAsyncBasicConsumer.HandleModelShutdown(object channel, ShutdownEventArgs reason)
         {
-            ((IBasicConsumer)this).HandleModelShutdown(model, reason);
+            ((IBasicConsumer)this).HandleModelShutdown(channel, reason);
             return Task.CompletedTask;
         }
     }

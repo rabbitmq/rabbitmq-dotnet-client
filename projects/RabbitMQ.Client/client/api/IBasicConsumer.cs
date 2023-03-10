@@ -98,10 +98,10 @@ namespace RabbitMQ.Client
             ReadOnlyMemory<byte> body);
 
         /// <summary>
-        ///  Called when the model shuts down.
+        ///  Called when the channel shuts down.
         ///  </summary>
-        ///  <param name="model"> Common AMQP model.</param>
-        /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
-        void HandleModelShutdown(object model, ShutdownEventArgs reason);
+        ///  <param name="channel"> Common AMQP channel.</param>
+        /// <param name="reason"> Information about the reason why a particular channel, session, or connection was destroyed.</param>
+        void HandleModelShutdown(object channel, ShutdownEventArgs reason);
     }
 }

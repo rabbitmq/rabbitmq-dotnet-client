@@ -9,24 +9,24 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal abstract class ConsumerDispatcherChannelBase : ConsumerDispatcherBase, IConsumerDispatcher
     {
-        protected readonly ModelBase _model;
+        protected readonly ChannelBase _channel;
         protected readonly ChannelReader<WorkStruct> _reader;
         private readonly ChannelWriter<WorkStruct> _writer;
         private readonly Task _worker;
 
         public bool IsShutdown { get; private set; }
 
-        protected ConsumerDispatcherChannelBase(ModelBase model, int concurrency)
+        protected ConsumerDispatcherChannelBase(ChannelBase channel, int concurrency)
         {
-            _model = model;
-            var channel = Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
+            _channel = channel;
+            var workChannel = Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
             {
                 SingleReader = concurrency == 1,
                 SingleWriter = false,
                 AllowSynchronousContinuations = false
             });
-            _reader = channel.Reader;
-            _writer = channel.Writer;
+            _reader = workChannel.Reader;
+            _writer = workChannel.Writer;
 
             Func<Task> loopStart = ProcessChannelAsync;
             if (concurrency == 1)

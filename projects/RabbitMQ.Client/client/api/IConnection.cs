@@ -226,7 +226,7 @@ namespace RabbitMQ.Client
         void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort);
 
         /// <summary>
-        /// Create and return a fresh channel, session, and model.
+        /// Create and return a fresh channel, session, and channel.
         /// </summary>
         IChannel CreateModel();
     }

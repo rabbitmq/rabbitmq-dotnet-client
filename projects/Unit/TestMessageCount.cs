@@ -45,14 +45,14 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public async Task TestMessageCountMethod()
         {
-            _model.ConfirmSelect();
+            _channel.ConfirmSelect();
             string q = GenerateQueueName();
-            _model.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.Equal(0u, _model.MessageCount(q));
+            _channel.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
+            Assert.Equal(0u, _channel.MessageCount(q));
 
-            _model.BasicPublish("", q, _encoding.GetBytes("msg"));
-            await _model.WaitForConfirmsAsync().ConfigureAwait(false);
-            Assert.Equal(1u, _model.MessageCount(q));
+            _channel.BasicPublish("", q, _encoding.GetBytes("msg"));
+            await _channel.WaitForConfirmsAsync().ConfigureAwait(false);
+            Assert.Equal(1u, _channel.MessageCount(q));
         }
     }
 }
