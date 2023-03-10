@@ -53,11 +53,11 @@ namespace RabbitMQ.Client.Unit
         public TestRecoverAfterCancel()
         {
             _connection = new ConnectionFactory().CreateConnection();
-            _channel = _connection.CreateModel();
+            _channel = _connection.CreateChannel();
             _queue = _channel.QueueDeclare("", false, true, false, null);
         }
 
-        public int ModelNumber(IChannel channel)
+        public int ChannelNumber(IChannel channel)
         {
             return ((ChannelBase)channel).Session.ChannelNumber;
         }

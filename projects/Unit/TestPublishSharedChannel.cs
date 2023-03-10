@@ -38,11 +38,11 @@ using Xunit;
 namespace RabbitMQ.Client.Unit
 {
 
-    public class TestPublishSharedModel
+    public class TestPublishSharedChannel
     {
-        private const string QueueName = "TestPublishSharedModel_Queue";
-        private static readonly CachedString ExchangeName = new CachedString("TestPublishSharedModel_Ex");
-        private static readonly CachedString PublishKey = new CachedString("TestPublishSharedModel_RoutePub");
+        private const string QueueName = "TestPublishSharedChannel_Queue";
+        private static readonly CachedString ExchangeName = new CachedString("TestPublishSharedChannel_Ex");
+        private static readonly CachedString PublishKey = new CachedString("TestPublishSharedChannel_RoutePub");
         private const int Loops = 20;
         private const int Repeats = 1000;
 
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Unit
         private Exception _raisedException;
 
         [Fact]
-        public async Task MultiThreadPublishOnSharedModel()
+        public async Task MultiThreadPublishOnSharedChannel()
         {
             // Arrange
             var connFactory = new ConnectionFactory
@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Unit
                     }
                 };
 
-                using (IChannel channel = conn.CreateModel())
+                using (IChannel channel = conn.CreateChannel())
                 {
                     channel.ExchangeDeclare(ExchangeName.Value, "topic", durable: false, autoDelete: true);
                     channel.QueueDeclare(QueueName, false, false, true, null);

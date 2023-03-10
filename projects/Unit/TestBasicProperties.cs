@@ -206,7 +206,7 @@ namespace RabbitMQ.Client.Unit
 
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IChannel m = c.CreateModel())
+            using (IChannel m = c.CreateChannel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 var bp = new BasicProperties() { Headers = new Dictionary<string, object>() };

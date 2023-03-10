@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
         private readonly HashSet<RecordedBinding> _recordedBindings = new HashSet<RecordedBinding>();
         private readonly Dictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
-        private readonly List<AutorecoveringModel> _models = new List<AutorecoveringModel>();
+        private readonly List<AutorecoveringChannel> _channels = new List<AutorecoveringChannel>();
 
         internal int RecordedExchangesCount => _recordedExchanges.Count;
 
@@ -238,19 +238,19 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecordChannel(AutorecoveringModel m)
+        private void RecordChannel(AutorecoveringChannel m)
         {
-            lock (_models)
+            lock (_channels)
             {
-                _models.Add(m);
+                _channels.Add(m);
             }
         }
 
-        internal void DeleteRecordedChannel(AutorecoveringModel channel)
+        internal void DeleteRecordedChannel(AutorecoveringChannel channel)
         {
-            lock (_models)
+            lock (_channels)
             {
-                _models.Remove(channel);
+                _channels.Remove(channel);
             }
         }
     }

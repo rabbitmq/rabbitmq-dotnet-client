@@ -10,7 +10,7 @@ namespace RabbitMQ.Client
         /// Close this connection and all its channels.
         /// </summary>
         /// <remarks>
-        /// Note that all active channels, sessions, and models will be
+        /// Note that all active channels and sessions will be
         /// closed if this method is called. It will wait for the in-progress
         /// close operation to complete. This method will not return to the caller
         /// until the shutdown is complete. If the connection is already closed
@@ -45,7 +45,7 @@ namespace RabbitMQ.Client
         /// and wait with a timeout for all the in-progress close operations to complete.
         /// </summary>
         /// <remarks>
-        /// Note that all active channels, sessions, and models will be
+        /// Note that all active channels and sessions will be
         /// closed if this method is called. It will wait for the in-progress
         /// close operation to complete with a timeout. If the connection is
         /// already closed (or closing), then this method will do nothing.
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client
         /// Abort this connection and all its channels.
         /// </summary>
         /// <remarks>
-        /// Note that all active channels, sessions, and models will be closed if this method is called.
+        /// Note that all active channels and sessions will be closed if this method is called.
         /// In comparison to normal <see cref="Close(IConnection)"/> method, <see cref="Abort(IConnection)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
         ///This method waits infinitely for the in-progress close operation to complete.

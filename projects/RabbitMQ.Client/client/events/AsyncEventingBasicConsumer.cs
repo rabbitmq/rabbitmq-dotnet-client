@@ -6,7 +6,7 @@ namespace RabbitMQ.Client.Events
 {
     public class AsyncEventingBasicConsumer : AsyncDefaultBasicConsumer
     {
-        ///<summary>Constructor which sets the Model property to the given value.</summary>
+        ///<summary>Constructor which sets the Channel property to the given value.</summary>
         public AsyncEventingBasicConsumer(IChannel channel) : base(channel)
         {
         }
@@ -78,9 +78,9 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override async Task HandleModelShutdown(object channel, ShutdownEventArgs reason)
+        public override async Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
-            await base.HandleModelShutdown(channel, reason).ConfigureAwait(false);
+            await base.HandleChannelShutdown(channel, reason).ConfigureAwait(false);
             if (!_shutdownWrapper.IsEmpty)
             {
                 await _shutdownWrapper.InvokeAsync(this, reason).ConfigureAwait(false);

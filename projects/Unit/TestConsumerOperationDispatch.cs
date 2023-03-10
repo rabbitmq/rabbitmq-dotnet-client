@@ -100,19 +100,19 @@ namespace RabbitMQ.Client.Unit
                     counter.Signal();
                 }
 
-                Model.BasicAck(deliveryTag: deliveryTag, multiple: false);
+                Channel.BasicAck(deliveryTag: deliveryTag, multiple: false);
             }
         }
 
         [Fact]
         public void TestDeliveryOrderingWithSingleChannel()
         {
-            IChannel Ch = _conn.CreateModel();
+            IChannel Ch = _conn.CreateChannel();
             Ch.ExchangeDeclare(_x, "fanout", durable: false);
 
             for (int i = 0; i < Y; i++)
             {
-                IChannel ch = _conn.CreateModel();
+                IChannel ch = _conn.CreateChannel();
                 QueueDeclareOk q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
                 ch.QueueBind(queue: q, exchange: _x, routingKey: "");
                 _channels.Add(ch);
@@ -148,8 +148,8 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestChannelShutdownDoesNotShutDownDispatcher()
         {
-            IChannel ch1 = _conn.CreateModel();
-            IChannel ch2 = _conn.CreateModel();
+            IChannel ch1 = _conn.CreateChannel();
+            IChannel ch2 = _conn.CreateChannel();
             _channel.ExchangeDeclare(_x, "fanout", durable: false);
 
             string q1 = ch1.QueueDeclare().QueueName;
@@ -182,7 +182,7 @@ namespace RabbitMQ.Client.Unit
                 DuplicateLatch = duplicateLatch;
             }
 
-            public override void HandleModelShutdown(object channel, ShutdownEventArgs reason)
+            public override void HandleChannelShutdown(object channel, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
                 if (Latch.Wait(0))
@@ -197,7 +197,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestModelShutdownHandler()
+        public void TestChannelShutdownHandler()
         {
             var latch = new ManualResetEventSlim(false);
             var duplicateLatch = new ManualResetEventSlim(false);

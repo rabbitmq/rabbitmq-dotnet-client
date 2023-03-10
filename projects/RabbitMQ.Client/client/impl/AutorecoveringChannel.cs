@@ -40,10 +40,10 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal sealed class AutorecoveringModel : IChannel, IRecoverable
+    internal sealed class AutorecoveringChannel : IChannel, IRecoverable
     {
         private AutorecoveringConnection _connection;
-        private RecoveryAwareModel _innerChannel;
+        private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
 
         private ushort _prefetchCountConsumer;
@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Impl
 
         internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
 
-        internal RecoveryAwareModel InnerChannel
+        internal RecoveryAwareChannel InnerChannel
         {
             get
             {
@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Impl
             set => InnerChannel.ContinuationTimeout = value;
         }
 
-        public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel innerChannel)
+        public AutorecoveringChannel(AutorecoveringConnection conn, RecoveryAwareChannel innerChannel)
         {
             _connection = conn;
             _innerChannel = innerChannel;
@@ -110,10 +110,10 @@ namespace RabbitMQ.Client.Impl
             remove { InnerChannel.FlowControl -= value; }
         }
 
-        public event EventHandler<ShutdownEventArgs> ModelShutdown
+        public event EventHandler<ShutdownEventArgs> ChannelShutdown
         {
-            add => InnerChannel.ModelShutdown += value;
-            remove => InnerChannel.ModelShutdown -= value;
+            add => InnerChannel.ChannelShutdown += value;
+            remove => InnerChannel.ChannelShutdown -= value;
         }
 
         public event EventHandler<EventArgs> Recovery
@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Impl
             ThrowIfDisposed();
             _connection = conn;
 
-            var newChannel = conn.CreateNonRecoveringModel();
+            var newChannel = conn.CreateNonRecoveringChannel();
             newChannel.TakeOver(_innerChannel);
 
             if (_prefetchCountConsumer != 0)
@@ -169,7 +169,7 @@ namespace RabbitMQ.Client.Impl
             /*
              * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140
              * If this assignment is not done before recovering consumers, there is a good
-             * chance that an invalid Model will be used to handle a basic.deliver frame,
+             * chance that an invalid Channel will be used to handle a basic.deliver frame,
              * with the resulting basic.ack never getting sent out.
              */
             _innerChannel = newChannel;
@@ -421,7 +421,7 @@ namespace RabbitMQ.Client.Impl
                 ThrowDisposed();
             }
 
-            static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringModel).FullName);
+            static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringChannel).FullName);
         }
     }
 }

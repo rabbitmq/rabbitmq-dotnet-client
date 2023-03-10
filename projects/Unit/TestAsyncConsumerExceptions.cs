@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Unit
             };
 
             _conn = _connFactory.CreateConnection();
-            _channel = _conn.CreateModel();
+            _channel = _conn.CreateChannel();
         }
 
         [Fact]
@@ -152,7 +152,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override Task HandleModelShutdown(object channel, ShutdownEventArgs reason)
+            public override Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
             {
                 return Task.FromException(TestException);
             }

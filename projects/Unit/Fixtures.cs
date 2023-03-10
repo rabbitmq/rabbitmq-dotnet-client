@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Unit
         {
             _connFactory = new ConnectionFactory();
             _conn = _connFactory.CreateConnection();
-            _channel = _conn.CreateModel();
+            _channel = _conn.CreateChannel();
         }
 
         public virtual void Dispose()
@@ -177,9 +177,9 @@ namespace RabbitMQ.Client.Unit
         // Channels
         //
 
-        internal void WithTemporaryModel(Action<IChannel> action)
+        internal void WithTemporaryChannel(Action<IChannel> action)
         {
-            IChannel channel = _conn.CreateModel();
+            IChannel channel = _conn.CreateChannel();
 
             try
             {
@@ -191,9 +191,9 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        internal void WithClosedModel(Action<IChannel> action)
+        internal void WithClosedChannel(Action<IChannel> action)
         {
-            IChannel channel = _conn.CreateModel();
+            IChannel channel = _conn.CreateChannel();
             channel.Close();
 
             action(channel);
@@ -259,7 +259,7 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                WithTemporaryModel(tm => tm.QueueDelete(queue));
+                WithTemporaryChannel(tm => tm.QueueDelete(queue));
             }
         }
 
@@ -272,13 +272,13 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                WithTemporaryModel(x => x.QueueDelete(queue));
+                WithTemporaryChannel(x => x.QueueDelete(queue));
             }
         }
 
         internal void EnsureNotEmpty(string q, string body)
         {
-            WithTemporaryModel(x => x.BasicPublish("", q, _encoding.GetBytes(body)));
+            WithTemporaryChannel(x => x.BasicPublish("", q, _encoding.GetBytes(body)));
         }
 
         internal void WithNonEmptyQueue(Action<IChannel, string> action)
@@ -306,7 +306,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void AssertMessageCount(string q, uint count)
         {
-            WithTemporaryModel((m) =>
+            WithTemporaryChannel((m) =>
             {
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
                 Assert.Equal(count, ok.MessageCount);
@@ -315,7 +315,7 @@ namespace RabbitMQ.Client.Unit
 
         internal void AssertConsumerCount(string q, int count)
         {
-            WithTemporaryModel((m) =>
+            WithTemporaryChannel((m) =>
             {
                 QueueDeclareOk ok = m.QueueDeclarePassive(q);
                 Assert.Equal((uint)count, ok.ConsumerCount);

@@ -37,7 +37,7 @@ namespace RabbitMQ.Client.Events
     ///methods as separate events.</summary>
     public class EventingBasicConsumer : DefaultBasicConsumer
     {
-        ///<summary>Constructor which sets the Model property to the
+        ///<summary>Constructor which sets the Channel property to the
         ///given value.</summary>
         public EventingBasicConsumer(IChannel channel) : base(channel)
         {
@@ -93,9 +93,9 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override void HandleModelShutdown(object channel, ShutdownEventArgs reason)
+        public override void HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
-            base.HandleModelShutdown(channel, reason);
+            base.HandleChannelShutdown(channel, reason);
             Shutdown?.Invoke(this, reason);
         }
     }

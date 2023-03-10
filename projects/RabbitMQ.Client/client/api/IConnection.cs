@@ -228,6 +228,6 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Create and return a fresh channel, session, and channel.
         /// </summary>
-        IChannel CreateModel();
+        IChannel CreateChannel();
     }
 }

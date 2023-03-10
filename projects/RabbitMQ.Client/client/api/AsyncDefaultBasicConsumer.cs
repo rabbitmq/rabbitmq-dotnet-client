@@ -19,12 +19,12 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Constructor which sets the Model property to the given value.
+        /// Constructor which sets the Channel property to the given value.
         /// </summary>
         /// <param name="channel">Common AMQP channel.</param>
         public AsyncDefaultBasicConsumer(IChannel channel)
         {
-            Model = channel;
+            Channel = channel;
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client
         /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        public IChannel Model { get; set; }
+        public IChannel Channel { get; set; }
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
@@ -124,7 +124,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="channel">A channel this consumer was registered on.</param>
         /// <param name="reason">Shutdown context.</param>
-        public virtual Task HandleModelShutdown(object channel, ShutdownEventArgs reason)
+        public virtual Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
             return OnCancel(_consumerTags.ToArray());
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
-        void IBasicConsumer.HandleModelShutdown(object channel, ShutdownEventArgs reason)
+        void IBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }

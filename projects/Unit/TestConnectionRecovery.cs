@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Unit
         {
             _queueName = $"TestConnectionRecovery-queue-{Guid.NewGuid()}";
             _conn = CreateAutorecoveringConnection();
-            _channel = _conn.CreateModel();
+            _channel = _conn.CreateChannel();
             _channel.QueueDelete(_queueName);
         }
 
@@ -172,8 +172,8 @@ namespace RabbitMQ.Client.Unit
         {
             _channel.ConfirmSelect();
             var latch = new ManualResetEventSlim(false);
-            ((AutorecoveringModel)_channel).BasicAcks += (m, args) => latch.Set();
-            ((AutorecoveringModel)_channel).BasicNacks += (m, args) => latch.Set();
+            ((AutorecoveringChannel)_channel).BasicAcks += (m, args) => latch.Set();
+            ((AutorecoveringChannel)_channel).BasicNacks += (m, args) => latch.Set();
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
@@ -280,7 +280,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestBasicModelRecovery()
+        public void TestBasicChannelRecovery()
         {
             Assert.True(_channel.IsOpen);
             CloseAndWaitForRecovery();
@@ -288,7 +288,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestBasicModelRecoveryOnServerRestart()
+        public void TestBasicChannelRecoveryOnServerRestart()
         {
             Assert.True(_channel.IsOpen);
             RestartServerAndWaitForRecovery();
@@ -349,7 +349,7 @@ namespace RabbitMQ.Client.Unit
         {
             using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
-                IChannel m = c.CreateModel();
+                IChannel m = c.CreateChannel();
                 string q = m.QueueDeclare("dotnet-client.recovery.consumer_work_pool1",
                     false, false, false, null).QueueName;
                 var cons = new EventingBasicConsumer(m);
@@ -375,7 +375,7 @@ namespace RabbitMQ.Client.Unit
             string q0 = "dotnet-client.recovery.queue1";
             using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
-                IChannel m = c.CreateModel();
+                IChannel m = c.CreateChannel();
                 string q1 = m.QueueDeclare(q0, false, false, false, null).QueueName;
                 Assert.Equal(q0, q1);
 
@@ -431,7 +431,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang()
+        public void TestCreateChannelOnClosedAutorecoveringConnectionDoesNotHang()
         {
             // we don't want this to recover quickly in this test
             AutorecoveringConnection c = CreateAutorecoveringConnection(TimeSpan.FromSeconds(20));
@@ -441,7 +441,7 @@ namespace RabbitMQ.Client.Unit
                 c.Close();
                 WaitForShutdown(c);
                 Assert.False(c.IsOpen);
-                c.CreateModel();
+                c.CreateChannel();
                 Assert.True(false, "Expected an exception");
             }
             catch (AlreadyClosedException)
@@ -576,7 +576,7 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                WithTemporaryModel(m =>
+                WithTemporaryChannel(m =>
                 {
                     m.ExchangeDelete(x2);
                     m.QueueDelete(q);
@@ -608,7 +608,7 @@ namespace RabbitMQ.Client.Unit
         {
             string q = Guid.NewGuid().ToString();
             string x = "tmp-fanout";
-            IChannel ch = _conn.CreateModel();
+            IChannel ch = _conn.CreateChannel();
             ch.QueueDelete(q);
             ch.ExchangeDelete(x);
             ch.ExchangeDeclare(exchange: x, type: "fanout");
@@ -632,7 +632,7 @@ namespace RabbitMQ.Client.Unit
         public void TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()
         {
             string x = "tmp-fanout";
-            IChannel ch = _conn.CreateModel();
+            IChannel ch = _conn.CreateChannel();
             ch.ExchangeDelete(x);
             ch.ExchangeDeclare(exchange: x, type: "fanout");
             string q = ch.QueueDeclare(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null).QueueName;
@@ -661,19 +661,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestRecoveryEventHandlersOnChannel()
-        {
-            int counter = 0;
-            ((AutorecoveringModel)_channel).Recovery += (source, ea) => Interlocked.Increment(ref counter);
-
-            CloseAndWaitForRecovery();
-            CloseAndWaitForRecovery();
-            Assert.True(_conn.IsOpen);
-
-            Assert.True(counter >= 1);
-        }
-
-        [Fact]
         public void TestRecoveryEventHandlersOnConnection()
         {
             int counter = 0;
@@ -684,22 +671,20 @@ namespace RabbitMQ.Client.Unit
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
             Assert.True(_conn.IsOpen);
-
             Assert.True(counter >= 3);
         }
 
         [Fact]
-        public void TestRecoveryEventHandlersOnModel()
+        public void TestRecoveryEventHandlersOnChannel()
         {
             int counter = 0;
-            ((AutorecoveringModel)_channel).Recovery += (source, ea) => Interlocked.Increment(ref counter);
+            ((AutorecoveringChannel)_channel).Recovery += (source, ea) => Interlocked.Increment(ref counter);
 
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
             CloseAndWaitForRecovery();
             Assert.True(_channel.IsOpen);
-
             Assert.True(counter >= 3);
         }
 
@@ -754,7 +739,7 @@ namespace RabbitMQ.Client.Unit
         public void TestRecoveryWithTopologyDisabled()
         {
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryDisabled();
-            IChannel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
             string s = "dotnet-client.test.recovery.q2";
             ch.QueueDelete(s);
             ch.QueueDeclare(s, false, true, false, null);
@@ -848,10 +833,10 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestShutdownEventHandlersRecoveryOnModel()
+        public void TestShutdownEventHandlersRecoveryOnChannel()
         {
             int counter = 0;
-            _channel.ModelShutdown += (c, args) => Interlocked.Increment(ref counter);
+            _channel.ChannelShutdown += (c, args) => Interlocked.Increment(ref counter);
 
             Assert.True(_channel.IsOpen);
             CloseAndWaitForRecovery();
@@ -870,7 +855,7 @@ namespace RabbitMQ.Client.Unit
             string q = GenerateQueueName();
             const string rk = "routing-key";
 
-            using (IChannel m = _conn.CreateModel())
+            using (IChannel m = _conn.CreateChannel())
             {
                 m.ExchangeDeclare(exchange: x, type: "fanout");
                 m.QueueDeclare(q, false, false, false, null);
@@ -976,7 +961,7 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                WithTemporaryModel(m =>
+                WithTemporaryChannel(m =>
                 {
                     m.ExchangeDelete(x2);
                     m.QueueDelete(q);
@@ -1026,7 +1011,7 @@ namespace RabbitMQ.Client.Unit
             }
             finally
             {
-                WithTemporaryModel(m =>
+                WithTemporaryChannel(m =>
                 {
                     m.ExchangeDelete(x2);
                     m.QueueDelete(q);
@@ -1188,7 +1173,7 @@ namespace RabbitMQ.Client.Unit
         {
             using (AutorecoveringConnection publishingConn = CreateAutorecoveringConnection())
             {
-                using (IChannel publishingModel = publishingConn.CreateModel())
+                using (IChannel publishingChannel = publishingConn.CreateChannel())
                 {
                     for (ushort i = 0; i < _totalMessageCount; i++)
                     {
@@ -1196,7 +1181,7 @@ namespace RabbitMQ.Client.Unit
                         {
                             CloseConnection(_conn);
                         }
-                        publishingModel.BasicPublish(string.Empty, queueName, _messageBody);
+                        publishingChannel.BasicPublish(string.Empty, queueName, _messageBody);
                     }
                 }
             }
@@ -1211,7 +1196,7 @@ namespace RabbitMQ.Client.Unit
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
-                Model.BasicAck(deliveryTag, false);
+                Channel.BasicAck(deliveryTag, false);
             }
         }
 
@@ -1224,7 +1209,7 @@ namespace RabbitMQ.Client.Unit
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
-                Model.BasicNack(deliveryTag, false, false);
+                Channel.BasicNack(deliveryTag, false, false);
             }
         }
 
@@ -1237,7 +1222,7 @@ namespace RabbitMQ.Client.Unit
 
             public override void PostHandleDelivery(ulong deliveryTag)
             {
-                Model.BasicReject(deliveryTag, false);
+                Channel.BasicReject(deliveryTag, false);
             }
         }
 

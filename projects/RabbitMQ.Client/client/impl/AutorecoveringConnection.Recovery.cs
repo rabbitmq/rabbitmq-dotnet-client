@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Framing.Impl
                             // 2. Recover queues
                             // 3. Recover bindings
                             // 4. Recover consumers
-                            using (var recoveryChannel = _innerConnection.CreateModel())
+                            using (var recoveryChannel = _innerConnection.CreateChannel())
                             {
                                 RecoverExchanges(recoveryChannel);
                                 RecoverQueues(recoveryChannel);
@@ -151,7 +151,7 @@ namespace RabbitMQ.Client.Framing.Impl
                             }
 
                         }
-                        RecoverModelsAndItsConsumers();
+                        RecoverChannelsAndItsConsumers();
                     }
 
                     ESLog.Info("Connection recovery completed");
@@ -279,7 +279,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal void RecoverConsumers(AutorecoveringModel channelToRecover, IChannel channelToUse)
+        internal void RecoverConsumers(AutorecoveringChannel channelToRecover, IChannel channelToUse)
         {
             foreach (var consumer in _recordedConsumers.Values.ToArray())
             {
@@ -308,11 +308,11 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverModelsAndItsConsumers()
+        private void RecoverChannelsAndItsConsumers()
         {
-            lock (_models)
+            lock (_channels)
             {
-                foreach (AutorecoveringModel m in _models)
+                foreach (AutorecoveringChannel m in _channels)
                 {
                     m.AutomaticallyRecover(this, _config.TopologyRecoveryEnabled);
                 }

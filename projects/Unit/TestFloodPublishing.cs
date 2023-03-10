@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit
             var closeWatch = new Stopwatch();
             using (IConnection conn = connFactory.CreateConnection())
             {
-                using (IChannel channel = conn.CreateModel())
+                using (IChannel channel = conn.CreateChannel())
                 {
                     conn.ConnectionShutdown += (_, args) =>
                     {
@@ -125,26 +125,26 @@ namespace RabbitMQ.Client.Unit
             using (IConnection c = cf.CreateConnection())
             {
                 string queueName = null;
-                using (IChannel m = c.CreateModel())
+                using (IChannel m = c.CreateChannel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
                     queueName = q.QueueName;
                 }
 
-                Task pub = Task.Run(() =>
+                Task pub = Task.Run((Action)(() =>
                 {
-                    using (IChannel m = c.CreateModel())
+                    using (IChannel pubCh = c.CreateChannel())
                     {
                         for (int i = 0; i < publishCount; i++)
                         {
-                            m.BasicPublish(string.Empty, queueName, sendBody);
+                            pubCh.BasicPublish(string.Empty, queueName, sendBody);
                         }
                     }
-                });
+                }));
 
-                using (IChannel consumerModel = c.CreateModel())
+                using (IChannel consumeCh = c.CreateChannel())
                 {
-                    var consumer = new EventingBasicConsumer(consumerModel);
+                    var consumer = new EventingBasicConsumer(consumeCh);
                     consumer.Received += (o, a) =>
                     {
                         string receivedMessage = Encoding.UTF8.GetString(a.Body.ToArray());
@@ -155,7 +155,7 @@ namespace RabbitMQ.Client.Unit
                             autoResetEvent.Set();
                         }
                     };
-                    consumerModel.BasicConsume(queueName, true, consumer);
+                    consumeCh.BasicConsume(queueName, true, consumer);
                     Assert.True(pub.Wait(_tenSeconds));
                     Assert.True(autoResetEvent.WaitOne(_tenSeconds));
                 }

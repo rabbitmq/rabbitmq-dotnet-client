@@ -200,7 +200,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (EndOfStreamException eose)
             {
-                if (_model0.CloseReason is null)
+                if (_channel0.CloseReason is null)
                 {
                     LogCloseError("Connection didn't close cleanly. Socket closed unexpectedly", eose);
                 }

@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Impl
             {
             }
 
-            public void HandleModelShutdown(ShutdownEventArgs reason)
+            public void HandleChannelShutdown(ShutdownEventArgs reason)
             {
             }
         }
@@ -87,9 +87,9 @@ namespace RabbitMQ.Client.Impl
         /// implementation.
         ///</para>
         ///</remarks>
-        public void HandleModelShutdown(ShutdownEventArgs reason)
+        public void HandleChannelShutdown(ShutdownEventArgs reason)
         {
-            Next().HandleModelShutdown(reason);
+            Next().HandleChannelShutdown(reason);
         }
 
         ///<summary>Retrieve the next waiting continuation.</summary>

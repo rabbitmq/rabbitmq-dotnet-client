@@ -93,11 +93,11 @@ namespace RabbitMQ.Client.Unit
         {
             TestWaitForConfirms(2000, (ch) =>
             {
-                IChannel actualModel = ((AutorecoveringModel)ch).InnerChannel;
-                actualModel
+                IChannel actualChannel = ((AutorecoveringChannel)ch).InnerChannel;
+                actualChannel
                     .GetType()
                     .GetMethod("HandleAckNack", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .Invoke(actualModel, new object[] { 10UL, false, true });
+                    .Invoke(actualChannel, new object[] { 10UL, false, true });
 
                 using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
                 {
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public async Task TestWaitForConfirmsWithEvents()
         {
-            using (IChannel ch = _conn.CreateModel())
+            using (IChannel ch = _conn.CreateChannel())
             {
                 ch.ConfirmSelect();
 
@@ -145,7 +145,7 @@ namespace RabbitMQ.Client.Unit
 
         protected void TestWaitForConfirms(int numberOfMessagesToPublish, Action<IChannel> fn)
         {
-            using (IChannel ch = _conn.CreateModel())
+            using (IChannel ch = _conn.CreateChannel())
             {
                 ch.ConfirmSelect();
                 ch.QueueDeclare(QueueName);

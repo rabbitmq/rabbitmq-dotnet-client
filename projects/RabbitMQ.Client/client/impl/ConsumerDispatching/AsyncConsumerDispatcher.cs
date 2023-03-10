@@ -28,7 +28,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             WorkType.Cancel => work.AsyncConsumer.HandleBasicCancel(work.ConsumerTag),
                             WorkType.CancelOk => work.AsyncConsumer.HandleBasicCancelOk(work.ConsumerTag),
                             WorkType.ConsumeOk => work.AsyncConsumer.HandleBasicConsumeOk(work.ConsumerTag),
-                            WorkType.Shutdown => work.AsyncConsumer.HandleModelShutdown(_channel, work.Reason),
+                            WorkType.Shutdown => work.AsyncConsumer.HandleChannelShutdown(_channel, work.Reason),
                             _ => Task.CompletedTask
                         };
                         await task.ConfigureAwait(false);

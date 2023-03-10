@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Unit
             object o = new object();
             bool shutdownFired = false;
             ShutdownEventArgs shutdownArgs = null;
-            _channel.ModelShutdown += (s, args) =>
+            _channel.ChannelShutdown += (s, args) =>
             {
                 shutdownFired = true;
                 shutdownArgs = args;

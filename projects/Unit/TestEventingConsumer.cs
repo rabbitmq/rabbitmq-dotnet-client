@@ -72,13 +72,13 @@ namespace RabbitMQ.Client.Unit
 
             Assert.NotNull(registeredSender);
             Assert.Equal(ec, registeredSender);
-            Assert.Equal(_channel, ((EventingBasicConsumer)registeredSender).Model);
+            Assert.Equal(_channel, ((EventingBasicConsumer)registeredSender).Channel);
 
             _channel.BasicCancel(tag);
             Wait(unregisteredLatch);
             Assert.NotNull(unregisteredSender);
             Assert.Equal(ec, unregisteredSender);
-            Assert.Equal(_channel, ((EventingBasicConsumer)unregisteredSender).Model);
+            Assert.Equal(_channel, ((EventingBasicConsumer)unregisteredSender).Channel);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Unit
             Assert.True(receivedInvoked);
             Assert.NotNull(receivedSender);
             Assert.Equal(ec, receivedSender);
-            Assert.Equal(_channel, ((EventingBasicConsumer)receivedSender).Model);
+            Assert.Equal(_channel, ((EventingBasicConsumer)receivedSender).Channel);
 
             bool shutdownInvoked = false;
             object shutdownSender = null;
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Unit
             Assert.True(shutdownInvoked);
             Assert.NotNull(shutdownSender);
             Assert.Equal(ec, shutdownSender);
-            Assert.Equal(_channel, ((EventingBasicConsumer)shutdownSender).Model);
+            Assert.Equal(_channel, ((EventingBasicConsumer)shutdownSender).Channel);
         }
     }
 }

@@ -44,9 +44,9 @@ namespace RabbitMQ.Benchmarks
 
         public Task HandleBasicConsumeOk(string consumerTag) => Task.CompletedTask;
 
-        public Task HandleModelShutdown(object channel, ShutdownEventArgs reason) => Task.CompletedTask;
+        public Task HandleChannelShutdown(object channel, ShutdownEventArgs reason) => Task.CompletedTask;
 
-        public IChannel Model { get; }
+        public IChannel Channel { get; }
 
         event EventHandler<ConsumerEventArgs> IBasicConsumer.ConsumerCancelled
         {
@@ -68,7 +68,7 @@ namespace RabbitMQ.Benchmarks
         {
         }
 
-        void IBasicConsumer.HandleModelShutdown(object channel, ShutdownEventArgs reason)
+        void IBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
         }
 

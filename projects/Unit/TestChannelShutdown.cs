@@ -40,19 +40,19 @@ using Xunit.Abstractions;
 namespace RabbitMQ.Client.Unit
 {
 
-    public class TestModelShutdown : IntegrationFixture
+    public class TestChannelShutdown : IntegrationFixture
     {
-        public TestModelShutdown(ITestOutputHelper output) : base(output)
+        public TestChannelShutdown(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
         public void TestConsumerDispatcherShutdown()
         {
-            var m = (AutorecoveringModel)_channel;
+            var m = (AutorecoveringChannel)_channel;
             var latch = new ManualResetEventSlim(false);
 
-            _channel.ModelShutdown += (channel, args) =>
+            _channel.ChannelShutdown += (channel, args) =>
             {
                 latch.Set();
             };

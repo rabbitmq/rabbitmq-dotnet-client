@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                 consumer.HandleBasicConsumeOk(consumerTag);
                                 break;
                             case WorkType.Shutdown:
-                                consumer.HandleModelShutdown(_channel, work.Reason);
+                                consumer.HandleChannelShutdown(_channel, work.Reason);
                                 break;
                         }
                     }

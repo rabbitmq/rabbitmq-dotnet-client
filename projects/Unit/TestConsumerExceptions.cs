@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Unit
             {
             }
 
-            public override void HandleModelShutdown(object channel, ShutdownEventArgs reason)
+            public override void HandleChannelShutdown(object channel, ShutdownEventArgs reason)
             {
                 throw new Exception("oops");
             }

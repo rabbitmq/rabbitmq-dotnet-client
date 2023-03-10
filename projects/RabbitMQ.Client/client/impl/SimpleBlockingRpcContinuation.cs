@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Impl
             m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Left(cmd));
         }
 
-        public void HandleModelShutdown(ShutdownEventArgs reason)
+        public void HandleChannelShutdown(ShutdownEventArgs reason)
         {
             m_cell.ContinueWithValue(Either<IncomingCommand, ShutdownEventArgs>.Right(reason));
         }

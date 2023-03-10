@@ -16,7 +16,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IChannel m = c.CreateModel())
+            using (IChannel m = c.CreateChannel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 var bp = new BasicProperties();
@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IChannel m = c.CreateModel())
+            using (IChannel m = c.CreateChannel())
             {
                 CachedString exchangeName = new CachedString(string.Empty);
                 CachedString queueName = new CachedString(m.QueueDeclare().QueueName);
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IChannel m = c.CreateModel())
+            using (IChannel m = c.CreateChannel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IChannel m = c.CreateModel())
+            using (IChannel m = c.CreateChannel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 byte[] sendBody = new byte[1000];
@@ -151,7 +151,7 @@ namespace RabbitMQ.Client.Unit
             cf.MaxMessageSize = maxMsgSize;
 
             bool sawConnectionShutdown = false;
-            bool sawModelShutdown = false;
+            bool sawChannelShutdown = false;
             bool sawConsumerRegistered = false;
             bool sawConsumerCancelled = false;
 
@@ -166,11 +166,11 @@ namespace RabbitMQ.Client.Unit
                 Assert.Equal(maxMsgSize, cf.Endpoint.MaxMessageSize);
                 Assert.Equal(maxMsgSize, c.Endpoint.MaxMessageSize);
 
-                using (IChannel m = c.CreateModel())
+                using (IChannel m = c.CreateChannel())
                 {
-                    m.ModelShutdown += (o, a) =>
+                    m.ChannelShutdown += (o, a) =>
                     {
-                        sawModelShutdown = true;
+                        sawChannelShutdown = true;
                     };
 
                     m.CallbackException += (o, a) =>
@@ -215,7 +215,7 @@ namespace RabbitMQ.Client.Unit
 
                     Assert.Equal(1, count);
                     Assert.True(sawConnectionShutdown);
-                    Assert.True(sawModelShutdown);
+                    Assert.True(sawChannelShutdown);
                     Assert.True(sawConsumerRegistered);
                     Assert.True(sawConsumerCancelled);
                 }

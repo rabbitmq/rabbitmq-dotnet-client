@@ -35,7 +35,7 @@ using RabbitMQ.Client.client.impl;
 
 namespace RabbitMQ.Client
 {
-    public static class IModelExtensions
+    public static class IChannelExtensions
     {
         /// <summary>Start a Basic content-class consumer.</summary>
         public static string BasicConsume(this IChannel channel,

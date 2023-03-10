@@ -32,7 +32,7 @@ namespace CreateChannel
                 {
                     for (int j = 0; j < channels.Length; j++)
                     {
-                        channels[j] = connection.CreateModel();
+                        channels[j] = connection.CreateChannel();
                         channelsOpened++;
                     }
 

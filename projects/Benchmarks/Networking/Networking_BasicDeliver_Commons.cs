@@ -12,7 +12,7 @@ namespace Benchmarks.Networking
         public static async Task Publish_Hello_World(IConnection connection, uint messageCount, byte[] body)
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            using (var channel = connection.CreateModel())
+            using (var channel = connection.CreateChannel())
             {
                 var queue = channel.QueueDeclare();
                 var consumed = 0;

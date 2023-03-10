@@ -38,18 +38,18 @@ using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    public class TestIModelAllocation : IDisposable
+    public class TestIChannelAllocation : IDisposable
     {
         public const int CHANNEL_COUNT = 100;
 
         IConnection _c;
 
-        public int ModelNumber(IChannel channel)
+        public int ChannelNumber(IChannel channel)
         {
-            return ((AutorecoveringModel)channel).ChannelNumber;
+            return ((AutorecoveringChannel)channel).ChannelNumber;
         }
 
-        public TestIModelAllocation()
+        public TestIChannelAllocation()
         {
             _c = new ConnectionFactory().CreateConnection();
 
@@ -62,23 +62,23 @@ namespace RabbitMQ.Client.Unit
         public void AllocateInOrder()
         {
             for (int i = 1; i <= CHANNEL_COUNT; i++)
-                Assert.Equal(i, ModelNumber(_c.CreateModel()));
+                Assert.Equal(i, ChannelNumber(_c.CreateChannel()));
         }
 
         [Fact]
         public void AllocateAfterFreeingLast()
         {
-            IChannel ch = _c.CreateModel();
-            Assert.Equal(1, ModelNumber(ch));
+            IChannel ch = _c.CreateChannel();
+            Assert.Equal(1, ChannelNumber(ch));
             ch.Close();
-            ch = _c.CreateModel();
-            Assert.Equal(1, ModelNumber(ch));
+            ch = _c.CreateChannel();
+            Assert.Equal(1, ChannelNumber(ch));
         }
 
-        public int CompareModels(IChannel x, IChannel y)
+        public int CompareChannels(IChannel x, IChannel y)
         {
-            int i = ModelNumber(x);
-            int j = ModelNumber(y);
+            int i = ChannelNumber(x);
+            int j = ChannelNumber(y);
             return (i < j) ? -1 : (i == j) ? 0 : 1;
         }
 
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Unit
             List<IChannel> channels = new List<IChannel>();
 
             for (int i = 1; i <= CHANNEL_COUNT; i++)
-                channels.Add(_c.CreateModel());
+                channels.Add(_c.CreateChannel());
 
             foreach (IChannel channel in channels)
             {
@@ -98,15 +98,15 @@ namespace RabbitMQ.Client.Unit
             channels = new List<IChannel>();
 
             for (int j = 1; j <= CHANNEL_COUNT; j++)
-                channels.Add(_c.CreateModel());
+                channels.Add(_c.CreateChannel());
 
             // In the current implementation the list should actually
             // already be sorted, but we don't want to force that behaviour
-            channels.Sort(CompareModels);
+            channels.Sort(CompareChannels);
 
             int k = 1;
             foreach (IChannel channel in channels)
-                Assert.Equal(k++, ModelNumber(channel));
+                Assert.Equal(k++, ChannelNumber(channel));
         }
 
     }

@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Unit
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection c = connFactory.CreateConnection();
-            IChannel m = _conn.CreateModel();
+            IChannel m = _conn.CreateChannel();
             object o = new object();
             string q = GenerateQueueName();
             m.QueueDeclare(q, false, false, false, null);

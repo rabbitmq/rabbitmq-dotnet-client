@@ -128,7 +128,7 @@ namespace RabbitMQ.Client
         ///
         /// Examples of cases where this event will be signalled
         /// include exceptions thrown in <see cref="IBasicConsumer"/> methods, or
-        /// exceptions thrown in <see cref="ModelShutdown"/> delegates etc.
+        /// exceptions thrown in <see cref="ChannelShutdown"/> delegates etc.
         /// </summary>
         event EventHandler<CallbackExceptionEventArgs> CallbackException;
 
@@ -141,7 +141,7 @@ namespace RabbitMQ.Client
         /// If the channel is already destroyed at the time an event
         /// handler is added to this event, the event handler will be fired immediately.
         /// </remarks>
-        event EventHandler<ShutdownEventArgs> ModelShutdown;
+        event EventHandler<ShutdownEventArgs> ChannelShutdown;
 
         /// <summary>
         /// Acknowledge one or more delivered message(s).

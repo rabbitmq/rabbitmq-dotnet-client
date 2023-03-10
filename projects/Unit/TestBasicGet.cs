@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Unit
         {
             WithNonEmptyQueue((_, q) =>
                {
-                   WithClosedModel(cm =>
+                   WithClosedChannel(cm =>
                    {
                        Assert.Throws<AlreadyClosedException>(() => cm.BasicGet(q, true));
                    });
