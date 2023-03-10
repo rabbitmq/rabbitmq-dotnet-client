@@ -42,7 +42,7 @@ namespace RabbitMQ.Client.Unit
     {
         private class ConsumerFailingOnDelivery : DefaultBasicConsumer
         {
-            public ConsumerFailingOnDelivery(IModel model) : base(model)
+            public ConsumerFailingOnDelivery(IChannel model) : base(model)
             {
             }
 
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnCancel : DefaultBasicConsumer
         {
-            public ConsumerFailingOnCancel(IModel model) : base(model)
+            public ConsumerFailingOnCancel(IChannel model) : base(model)
             {
             }
 
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnShutdown : DefaultBasicConsumer
         {
-            public ConsumerFailingOnShutdown(IModel model) : base(model)
+            public ConsumerFailingOnShutdown(IChannel model) : base(model)
             {
             }
 
@@ -84,7 +84,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnConsumeOk : DefaultBasicConsumer
         {
-            public ConsumerFailingOnConsumeOk(IModel model) : base(model)
+            public ConsumerFailingOnConsumeOk(IChannel model) : base(model)
             {
             }
 
@@ -96,7 +96,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnCancelOk : DefaultBasicConsumer
         {
-            public ConsumerFailingOnCancelOk(IModel model) : base(model)
+            public ConsumerFailingOnCancelOk(IChannel model) : base(model)
             {
             }
 
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         protected void TestExceptionHandlingWith(IBasicConsumer consumer,
-            Action<IModel, string, IBasicConsumer, string> action)
+            Action<IChannel, string, IBasicConsumer, string> action)
         {
             object o = new object();
             bool notified = false;

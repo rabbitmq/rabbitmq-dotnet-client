@@ -46,7 +46,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class ModelBase : IModel, IRecoverable
+    internal abstract class ModelBase : IChannel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>

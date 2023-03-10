@@ -222,7 +222,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
         }
 
-        public IModel CreateModel()
+        public IChannel CreateModel()
         {
             EnsureIsOpen();
             ISession session = CreateSession();

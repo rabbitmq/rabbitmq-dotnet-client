@@ -40,7 +40,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal sealed class AutorecoveringModel : IModel, IRecoverable
+    internal sealed class AutorecoveringModel : IChannel, IRecoverable
     {
         private AutorecoveringConnection _connection;
         private RecoveryAwareModel _innerChannel;

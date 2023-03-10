@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Unit
                     }
                 };
 
-                using (IModel model = conn.CreateModel())
+                using (IChannel model = conn.CreateModel())
                 {
                     model.ExchangeDeclare(ExchangeName.Value, "topic", durable: false, autoDelete: true);
                     model.QueueDeclare(QueueName, false, false, true, null);
@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Unit
             // Assert
             Assert.Null(_raisedException);
 
-            void NewFunction(IModel model)
+            void NewFunction(IChannel model)
             {
                 try
                 {

@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
 
         private sealed class FaultyConsumer : DefaultBasicConsumer
         {
-            public FaultyConsumer(IModel model) : base(model) { }
+            public FaultyConsumer(IChannel model) : base(model) { }
 
             public override void HandleBasicDeliver(string consumerTag,
                                                ulong deliveryTag,
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Unit
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection c = connFactory.CreateConnection();
-            IModel m = _conn.CreateModel();
+            IChannel m = _conn.CreateModel();
             object o = new object();
             string q = GenerateQueueName();
             m.QueueDeclare(q, false, false, false, null);

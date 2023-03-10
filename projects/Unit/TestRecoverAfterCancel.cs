@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Unit
     public class TestRecoverAfterCancel : IDisposable
     {
         IConnection _connection;
-        IModel _channel;
+        IChannel _channel;
         string _queue;
         int _callbackCount;
 
@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Unit
             _queue = _channel.QueueDeclare("", false, true, false, null);
         }
 
-        public int ModelNumber(IModel model)
+        public int ModelNumber(IChannel model)
         {
             return ((ModelBase)model).Session.ChannelNumber;
         }

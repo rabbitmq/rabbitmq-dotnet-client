@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
             _arguments = arguments;
         }
 
-        public void Recover(IModel model)
+        public void Recover(IChannel model)
         {
             model.ExchangeDeclare(Name, _type, _durable, IsAutoDelete, _arguments);
         }

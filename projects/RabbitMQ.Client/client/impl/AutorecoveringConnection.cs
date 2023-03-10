@@ -197,7 +197,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public IModel CreateModel()
+        public IChannel CreateModel()
         {
             EnsureIsOpen();
             AutorecoveringModel m = new AutorecoveringModel(this, CreateNonRecoveringModel());

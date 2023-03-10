@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Unit
             var closeWatch = new Stopwatch();
             using (IConnection conn = connFactory.CreateConnection())
             {
-                using (IModel model = conn.CreateModel())
+                using (IChannel model = conn.CreateModel())
                 {
                     conn.ConnectionShutdown += (_, args) =>
                     {
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Unit
             using (IConnection c = cf.CreateConnection())
             {
                 string queueName = null;
-                using (IModel m = c.CreateModel())
+                using (IChannel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
                     queueName = q.QueueName;
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Unit
 
                 Task pub = Task.Run(() =>
                 {
-                    using (IModel m = c.CreateModel())
+                    using (IChannel m = c.CreateModel())
                     {
                         for (int i = 0; i < publishCount; i++)
                         {
@@ -142,7 +142,7 @@ namespace RabbitMQ.Client.Unit
                     }
                 });
 
-                using (IModel consumerModel = c.CreateModel())
+                using (IChannel consumerModel = c.CreateModel())
                 {
                     var consumer = new EventingBasicConsumer(consumerModel);
                     consumer.Received += (o, a) =>

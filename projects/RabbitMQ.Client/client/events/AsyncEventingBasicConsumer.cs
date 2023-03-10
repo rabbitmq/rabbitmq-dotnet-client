@@ -7,7 +7,7 @@ namespace RabbitMQ.Client.Events
     public class AsyncEventingBasicConsumer : AsyncDefaultBasicConsumer
     {
         ///<summary>Constructor which sets the Model property to the given value.</summary>
-        public AsyncEventingBasicConsumer(IModel model) : base(model)
+        public AsyncEventingBasicConsumer(IChannel model) : base(model)
         {
         }
 

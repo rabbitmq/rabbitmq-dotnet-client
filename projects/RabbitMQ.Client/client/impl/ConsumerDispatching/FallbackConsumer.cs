@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal sealed class FallbackConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
-        public IModel? Model { get; } = null;
+        public IChannel? Model { get; } = null;
 
         event AsyncEventHandler<ConsumerEventArgs> IAsyncBasicConsumer.ConsumerCancelled
         {

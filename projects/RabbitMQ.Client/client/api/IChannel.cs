@@ -45,7 +45,7 @@ namespace RabbitMQ.Client
     /// Extends the <see cref="IDisposable"/> interface, so that the "using"
     /// statement can be used to scope the lifetime of a channel when appropriate.
     /// </remarks>
-    public interface IModel : IDisposable
+    public interface IChannel : IDisposable
     {
         /// <summary>
         /// Channel number, unique per connections.
@@ -172,7 +172,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve an individual message, if
         /// one is available; returns null if the server answers that
-        /// no messages are currently available. See also <see cref="IModel.BasicAck"/>.
+        /// no messages are currently available. See also <see cref="IChannel.BasicAck"/>.
         /// </summary>
         BasicGetResult BasicGet(string queue, bool autoAck);
 

@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Impl
             return new RecordedConsumer(old.Channel, old.Consumer, newQueueName, old.AutoAck, old.ConsumerTag, old.Exclusive, old.Arguments);
         }
 
-        public string Recover(IModel channel)
+        public string Recover(IChannel channel)
         {
             return channel.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
         }

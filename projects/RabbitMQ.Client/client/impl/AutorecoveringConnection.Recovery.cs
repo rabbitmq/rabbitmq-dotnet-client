@@ -211,7 +211,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private void RecoverExchanges(IModel channel)
+        private void RecoverExchanges(IChannel channel)
         {
             foreach (var recordedExchange in _recordedExchanges.Values)
             {
@@ -226,7 +226,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverQueues(IModel channel)
+        private void RecoverQueues(IChannel channel)
         {
             foreach (var recordedQueue in _recordedQueues.Values.ToArray())
             {
@@ -264,7 +264,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverBindings(IModel channel)
+        private void RecoverBindings(IChannel channel)
         {
             foreach (var binding in _recordedBindings)
             {
@@ -279,7 +279,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal void RecoverConsumers(AutorecoveringModel channelToRecover, IModel channelToUse)
+        internal void RecoverConsumers(AutorecoveringModel channelToRecover, IChannel channelToUse)
         {
             foreach (var consumer in _recordedConsumers.Values.ToArray())
             {

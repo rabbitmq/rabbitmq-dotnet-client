@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
             using (IConnection c = cf.CreateConnection())
             {
-                using (IModel m = c.CreateModel())
+                using (IChannel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
                     byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory { DispatchConsumersAsync = true, ConsumerDispatchConcurrency = 2 };
             using (IConnection c = cf.CreateConnection())
             {
-                using (IModel m = c.CreateModel())
+                using (IChannel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
                     string publish1 = get_unique_string(1024);
@@ -151,7 +151,7 @@ namespace RabbitMQ.Client.Unit
 
             using (IConnection c = cf.CreateConnection())
             {
-                using (IModel m = c.CreateModel())
+                using (IChannel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare(queue: queueName, exclusive: false, durable: true);
                     Assert.Equal(q.QueueName, queueName);
@@ -162,7 +162,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         using (IConnection c = cf.CreateConnection())
                         {
-                            using (IModel m = c.CreateModel())
+                            using (IChannel m = c.CreateModel())
                             {
                                 QueueDeclareOk q = m.QueueDeclare(queue: queueName, exclusive: false, durable: true);
                                 for (int i = 0; i < publish_total; i++)
@@ -188,7 +188,7 @@ namespace RabbitMQ.Client.Unit
 
                         using (IConnection c = cf.CreateConnection())
                         {
-                            using (IModel m = c.CreateModel())
+                            using (IChannel m = c.CreateModel())
                             {
                                 var consumer = new AsyncEventingBasicConsumer(m);
 
@@ -236,7 +236,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
             using (IConnection c = cf.CreateConnection())
             {
-                using (IModel m = c.CreateModel())
+                using (IChannel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
                     byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");
@@ -272,7 +272,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
             using (IConnection c = cf.CreateConnection())
             {
-                using (IModel m = c.CreateModel())
+                using (IChannel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
                     var consumer = new AsyncEventingBasicConsumer(m);
@@ -326,7 +326,7 @@ namespace RabbitMQ.Client.Unit
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
             using (IConnection c = cf.CreateConnection())
             {
-                using (IModel m = c.CreateModel())
+                using (IChannel m = c.CreateModel())
                 {
                     QueueDeclareOk q = m.QueueDeclare();
                     byte[] body = System.Text.Encoding.UTF8.GetBytes("async-hi");

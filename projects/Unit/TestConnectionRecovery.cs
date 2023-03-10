@@ -349,7 +349,7 @@ namespace RabbitMQ.Client.Unit
         {
             using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
-                IModel m = c.CreateModel();
+                IChannel m = c.CreateModel();
                 string q = m.QueueDeclare("dotnet-client.recovery.consumer_work_pool1",
                     false, false, false, null).QueueName;
                 var cons = new EventingBasicConsumer(m);
@@ -375,7 +375,7 @@ namespace RabbitMQ.Client.Unit
             string q0 = "dotnet-client.recovery.queue1";
             using (AutorecoveringConnection c = CreateAutorecoveringConnection())
             {
-                IModel m = c.CreateModel();
+                IChannel m = c.CreateModel();
                 string q1 = m.QueueDeclare(q0, false, false, false, null).QueueName;
                 Assert.Equal(q0, q1);
 
@@ -608,7 +608,7 @@ namespace RabbitMQ.Client.Unit
         {
             string q = Guid.NewGuid().ToString();
             string x = "tmp-fanout";
-            IModel ch = _conn.CreateModel();
+            IChannel ch = _conn.CreateModel();
             ch.QueueDelete(q);
             ch.ExchangeDelete(x);
             ch.ExchangeDeclare(exchange: x, type: "fanout");
@@ -632,7 +632,7 @@ namespace RabbitMQ.Client.Unit
         public void TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()
         {
             string x = "tmp-fanout";
-            IModel ch = _conn.CreateModel();
+            IChannel ch = _conn.CreateModel();
             ch.ExchangeDelete(x);
             ch.ExchangeDeclare(exchange: x, type: "fanout");
             string q = ch.QueueDeclare(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null).QueueName;
@@ -754,7 +754,7 @@ namespace RabbitMQ.Client.Unit
         public void TestRecoveryWithTopologyDisabled()
         {
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryDisabled();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateModel();
             string s = "dotnet-client.test.recovery.q2";
             ch.QueueDelete(s);
             ch.QueueDeclare(s, false, true, false, null);
@@ -870,7 +870,7 @@ namespace RabbitMQ.Client.Unit
             string q = GenerateQueueName();
             const string rk = "routing-key";
 
-            using (IModel m = _conn.CreateModel())
+            using (IChannel m = _conn.CreateModel())
             {
                 m.ExchangeDeclare(exchange: x, type: "fanout");
                 m.QueueDeclare(q, false, false, false, null);
@@ -1068,7 +1068,7 @@ namespace RabbitMQ.Client.Unit
             Wait(latch);
         }
 
-        internal void AssertExchangeRecovery(IModel m, string x)
+        internal void AssertExchangeRecovery(IChannel m, string x)
         {
             m.ConfirmSelect();
             WithTemporaryNonExclusiveQueue(m, (_, q) =>
@@ -1082,12 +1082,12 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        internal void AssertQueueRecovery(IModel m, string q)
+        internal void AssertQueueRecovery(IChannel m, string q)
         {
             AssertQueueRecovery(m, q, true);
         }
 
-        internal void AssertQueueRecovery(IModel m, string q, bool exclusive)
+        internal void AssertQueueRecovery(IChannel m, string q, bool exclusive)
         {
             m.ConfirmSelect();
             m.QueueDeclarePassive(q);
@@ -1188,7 +1188,7 @@ namespace RabbitMQ.Client.Unit
         {
             using (AutorecoveringConnection publishingConn = CreateAutorecoveringConnection())
             {
-                using (IModel publishingModel = publishingConn.CreateModel())
+                using (IChannel publishingModel = publishingConn.CreateModel())
                 {
                     for (ushort i = 0; i < _totalMessageCount; i++)
                     {
@@ -1204,7 +1204,7 @@ namespace RabbitMQ.Client.Unit
 
         public class AckingBasicConsumer : TestBasicConsumer
         {
-            public AckingBasicConsumer(IModel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
+            public AckingBasicConsumer(IChannel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
                 : base(model, totalMessageCount, allMessagesSeenLatch)
             {
             }
@@ -1217,7 +1217,7 @@ namespace RabbitMQ.Client.Unit
 
         public class NackingBasicConsumer : TestBasicConsumer
         {
-            public NackingBasicConsumer(IModel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
+            public NackingBasicConsumer(IChannel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
                 : base(model, totalMessageCount, allMessagesSeenLatch)
             {
             }
@@ -1230,7 +1230,7 @@ namespace RabbitMQ.Client.Unit
 
         public class RejectingBasicConsumer : TestBasicConsumer
         {
-            public RejectingBasicConsumer(IModel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
+            public RejectingBasicConsumer(IChannel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
                 : base(model, totalMessageCount, allMessagesSeenLatch)
             {
             }
@@ -1247,7 +1247,7 @@ namespace RabbitMQ.Client.Unit
             private readonly ushort _totalMessageCount;
             private ushort _counter = 0;
 
-            public TestBasicConsumer(IModel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
+            public TestBasicConsumer(IChannel model, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
                 : base(model)
             {
                 _totalMessageCount = totalMessageCount;

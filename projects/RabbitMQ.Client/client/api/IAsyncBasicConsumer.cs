@@ -8,10 +8,10 @@ namespace RabbitMQ.Client
     public interface IAsyncBasicConsumer
     {
         /// <summary>
-        /// Retrieve the <see cref="IModel"/> this consumer is associated with,
+        /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        IModel Model { get; }
+        IChannel Model { get; }
 
         /// <summary>
         /// Signalled when the consumer gets cancelled.
@@ -43,7 +43,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// Does nothing with the passed in information.
-        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IModel.BasicAck"/>.
+        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAck"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
         Task HandleBasicDeliver(string consumerTag,

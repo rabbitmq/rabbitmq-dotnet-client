@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Unit
             private readonly TestConsumerCancelNotify _testClass;
             private readonly bool _eventMode;
 
-            public CancelNotificationConsumer(IModel model, TestConsumerCancelNotify tc, bool EventMode)
+            public CancelNotificationConsumer(IChannel model, TestConsumerCancelNotify tc, bool EventMode)
                 : base(model)
             {
                 _testClass = tc;

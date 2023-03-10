@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Unit
     {
         internal IConnectionFactory _connFactory;
         internal IConnection _conn;
-        internal IModel _model;
+        internal IChannel _model;
         internal Encoding _encoding = new UTF8Encoding();
 
         public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
@@ -177,9 +177,9 @@ namespace RabbitMQ.Client.Unit
         // Channels
         //
 
-        internal void WithTemporaryModel(Action<IModel> action)
+        internal void WithTemporaryModel(Action<IChannel> action)
         {
-            IModel model = _conn.CreateModel();
+            IChannel model = _conn.CreateModel();
 
             try
             {
@@ -191,15 +191,15 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        internal void WithClosedModel(Action<IModel> action)
+        internal void WithClosedModel(Action<IChannel> action)
         {
-            IModel model = _conn.CreateModel();
+            IChannel model = _conn.CreateModel();
             model.Close();
 
             action(model);
         }
 
-        internal bool WaitForConfirms(IModel m)
+        internal bool WaitForConfirms(IChannel m)
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
             return m.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult();
@@ -219,13 +219,13 @@ namespace RabbitMQ.Client.Unit
             return _encoding.GetBytes(Guid.NewGuid().ToString());
         }
 
-        internal string DeclareNonDurableExchange(IModel m, string x)
+        internal string DeclareNonDurableExchange(IChannel m, string x)
         {
             m.ExchangeDeclare(x, "fanout", false);
             return x;
         }
 
-        internal string DeclareNonDurableExchangeNoWait(IModel m, string x)
+        internal string DeclareNonDurableExchangeNoWait(IChannel m, string x)
         {
             m.ExchangeDeclareNoWait(x, "fanout", false, false, null);
             return x;
@@ -240,17 +240,17 @@ namespace RabbitMQ.Client.Unit
             return $"queue{Guid.NewGuid()}";
         }
 
-        internal void WithTemporaryNonExclusiveQueue(Action<IModel, string> action)
+        internal void WithTemporaryNonExclusiveQueue(Action<IChannel, string> action)
         {
             WithTemporaryNonExclusiveQueue(_model, action);
         }
 
-        internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action)
+        internal void WithTemporaryNonExclusiveQueue(IChannel model, Action<IChannel, string> action)
         {
             WithTemporaryNonExclusiveQueue(model, action, GenerateQueueName());
         }
 
-        internal void WithTemporaryNonExclusiveQueue(IModel model, Action<IModel, string> action, string queue)
+        internal void WithTemporaryNonExclusiveQueue(IChannel model, Action<IChannel, string> action, string queue)
         {
             try
             {
@@ -263,7 +263,7 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
-        internal void WithTemporaryQueueNoWait(IModel model, Action<IModel, string> action, string queue)
+        internal void WithTemporaryQueueNoWait(IChannel model, Action<IChannel, string> action, string queue)
         {
             try
             {
@@ -281,12 +281,12 @@ namespace RabbitMQ.Client.Unit
             WithTemporaryModel(x => x.BasicPublish("", q, _encoding.GetBytes(body)));
         }
 
-        internal void WithNonEmptyQueue(Action<IModel, string> action)
+        internal void WithNonEmptyQueue(Action<IChannel, string> action)
         {
             WithNonEmptyQueue(action, "msg");
         }
 
-        internal void WithNonEmptyQueue(Action<IModel, string> action, string msg)
+        internal void WithNonEmptyQueue(Action<IChannel, string> action, string msg)
         {
             WithTemporaryNonExclusiveQueue((m, q) =>
             {
@@ -295,7 +295,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        internal void WithEmptyQueue(Action<IModel, string> action)
+        internal void WithEmptyQueue(Action<IChannel, string> action)
         {
             WithTemporaryNonExclusiveQueue((model, queue) =>
             {
@@ -322,7 +322,7 @@ namespace RabbitMQ.Client.Unit
             });
         }
 
-        internal void AssertConsumerCount(IModel m, string q, uint count)
+        internal void AssertConsumerCount(IChannel m, string q, uint count)
         {
             QueueDeclareOk ok = m.QueueDeclarePassive(q);
             Assert.Equal(count, ok.ConsumerCount);

@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Unit
 
         IConnection _c;
 
-        public int ModelNumber(IModel model)
+        public int ModelNumber(IChannel model)
         {
             return ((AutorecoveringModel)model).ChannelNumber;
         }
@@ -68,14 +68,14 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void AllocateAfterFreeingLast()
         {
-            IModel ch = _c.CreateModel();
+            IChannel ch = _c.CreateModel();
             Assert.Equal(1, ModelNumber(ch));
             ch.Close();
             ch = _c.CreateModel();
             Assert.Equal(1, ModelNumber(ch));
         }
 
-        public int CompareModels(IModel x, IModel y)
+        public int CompareModels(IChannel x, IChannel y)
         {
             int i = ModelNumber(x);
             int j = ModelNumber(y);
@@ -85,17 +85,17 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void AllocateAfterFreeingMany()
         {
-            List<IModel> channels = new List<IModel>();
+            List<IChannel> channels = new List<IChannel>();
 
             for (int i = 1; i <= CHANNEL_COUNT; i++)
                 channels.Add(_c.CreateModel());
 
-            foreach (IModel channel in channels)
+            foreach (IChannel channel in channels)
             {
                 channel.Close();
             }
 
-            channels = new List<IModel>();
+            channels = new List<IChannel>();
 
             for (int j = 1; j <= CHANNEL_COUNT; j++)
                 channels.Add(_c.CreateModel());
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Unit
             channels.Sort(CompareModels);
 
             int k = 1;
-            foreach (IModel channel in channels)
+            foreach (IChannel channel in channels)
                 Assert.Equal(k++, ModelNumber(channel));
         }
 

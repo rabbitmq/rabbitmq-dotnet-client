@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public void Recover(IModel channel)
+        public void Recover(IChannel channel)
         {
             if (_isQueueBinding)
             {

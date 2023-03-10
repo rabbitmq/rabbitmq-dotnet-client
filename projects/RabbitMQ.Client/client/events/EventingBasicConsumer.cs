@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.Events
     {
         ///<summary>Constructor which sets the Model property to the
         ///given value.</summary>
-        public EventingBasicConsumer(IModel model) : base(model)
+        public EventingBasicConsumer(IChannel model) : base(model)
         {
         }
 

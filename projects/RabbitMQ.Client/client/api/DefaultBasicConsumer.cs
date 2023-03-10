@@ -61,14 +61,14 @@ namespace RabbitMQ.Client
         /// Constructor which sets the Model property to the given value.
         /// </summary>
         /// <param name="model">Common AMQP model.</param>
-        public DefaultBasicConsumer(IModel model)
+        public DefaultBasicConsumer(IChannel model)
         {
             Model = model;
         }
 
         /// <summary>
         /// Retrieve the consumer tags this consumer is registered as; to be used to identify
-        /// this consumer, for example, when cancelling it with <see cref="IModel.BasicCancel"/>.
+        /// this consumer, for example, when cancelling it with <see cref="IChannel.BasicCancel"/>.
         /// This value is an array because a single consumer instance can be reused to consume on
         /// multiple channels.
         /// </summary>
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client
         public bool IsRunning { get; protected set; }
 
         /// <summary>
-        /// If our <see cref="IModel"/> shuts down, this property will contain a description of the reason for the
+        /// If our <see cref="IChannel"/> shuts down, this property will contain a description of the reason for the
         /// shutdown. Otherwise it will contain null. See <see cref="ShutdownEventArgs"/>.
         /// </summary>
         public ShutdownEventArgs ShutdownReason { get; protected set; }
@@ -102,10 +102,10 @@ namespace RabbitMQ.Client
         private EventingWrapper<ConsumerEventArgs> _consumerCancelledWrapper;
 
         /// <summary>
-        /// Retrieve the <see cref="IModel"/> this consumer is associated with,
+        /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        public IModel Model { get; set; }
+        public IChannel Model { get; set; }
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
@@ -141,7 +141,7 @@ namespace RabbitMQ.Client
         /// Called each time a message is delivered for this consumer.
         /// </summary>
         /// <remarks>
-        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IModel.BasicAck"/>
+        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IChannel.BasicAck"/>
         /// if consuming in automatic acknowledgement mode.
         /// Subclasses must copy or fully use delivery body before returning.
         /// Accessing the body at a later point is unsafe as its memory can

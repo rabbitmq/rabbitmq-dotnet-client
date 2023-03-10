@@ -46,7 +46,7 @@ namespace RabbitMQ.Benchmarks
 
         public Task HandleModelShutdown(object model, ShutdownEventArgs reason) => Task.CompletedTask;
 
-        public IModel Model { get; }
+        public IChannel Model { get; }
 
         event EventHandler<ConsumerEventArgs> IBasicConsumer.ConsumerCancelled
         {

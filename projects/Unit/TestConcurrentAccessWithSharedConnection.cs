@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Unit
         {
             TestConcurrentChannelOperations((conn) =>
             {
-                IModel ch = conn.CreateModel();
+                IChannel ch = conn.CreateModel();
                 ch.Close();
             }, 50);
         }
@@ -108,7 +108,7 @@ namespace RabbitMQ.Client.Unit
             {
                 // publishing on a shared channel is not supported
                 // and would missing the point of this test anyway
-                IModel ch = _conn.CreateModel();
+                IChannel ch = _conn.CreateModel();
                 ch.ConfirmSelect();
                 for (int j = 0; j < 200; j++)
                 {

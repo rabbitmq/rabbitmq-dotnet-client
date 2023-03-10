@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         protected void TestExceptionHandlingWith(IBasicConsumer consumer,
-            Action<IModel, string, IBasicConsumer, string> action)
+            Action<IChannel, string, IBasicConsumer, string> action)
         {
             var resetEvent = new AutoResetEvent(false);
             bool notified = false;
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnDelivery : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnDelivery(IModel model) : base(model)
+            public ConsumerFailingOnDelivery(IChannel model) : base(model)
             {
             }
 
@@ -136,7 +136,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnCancel : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnCancel(IModel model) : base(model)
+            public ConsumerFailingOnCancel(IChannel model) : base(model)
             {
             }
 
@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnShutdown : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnShutdown(IModel model) : base(model)
+            public ConsumerFailingOnShutdown(IChannel model) : base(model)
             {
             }
 
@@ -160,7 +160,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnConsumeOk : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnConsumeOk(IModel model) : base(model)
+            public ConsumerFailingOnConsumeOk(IChannel model) : base(model)
             {
             }
 
@@ -172,7 +172,7 @@ namespace RabbitMQ.Client.Unit
 
         private class ConsumerFailingOnCancelOk : AsyncEventingBasicConsumer
         {
-            public ConsumerFailingOnCancelOk(IModel model) : base(model)
+            public ConsumerFailingOnCancelOk(IChannel model) : base(model)
             {
             }
 

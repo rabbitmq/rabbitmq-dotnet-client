@@ -16,7 +16,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IModel m = c.CreateModel())
+            using (IChannel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 var bp = new BasicProperties();
@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IModel m = c.CreateModel())
+            using (IChannel m = c.CreateModel())
             {
                 CachedString exchangeName = new CachedString(string.Empty);
                 CachedString queueName = new CachedString(m.QueueDeclare().QueueName);
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IModel m = c.CreateModel())
+            using (IChannel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 byte[] sendBody = System.Text.Encoding.UTF8.GetBytes("hi");
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory();
             using (IConnection c = cf.CreateConnection())
-            using (IModel m = c.CreateModel())
+            using (IChannel m = c.CreateModel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 byte[] sendBody = new byte[1000];
@@ -166,7 +166,7 @@ namespace RabbitMQ.Client.Unit
                 Assert.Equal(maxMsgSize, cf.Endpoint.MaxMessageSize);
                 Assert.Equal(maxMsgSize, c.Endpoint.MaxMessageSize);
 
-                using (IModel m = c.CreateModel())
+                using (IChannel m = c.CreateModel())
                 {
                     m.ModelShutdown += (o, a) =>
                     {

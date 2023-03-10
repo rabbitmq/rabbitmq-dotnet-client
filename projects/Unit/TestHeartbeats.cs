@@ -104,7 +104,7 @@ namespace RabbitMQ.Client.Unit
                 };
                 IConnection conn = cf.CreateConnection();
                 xs.Add(conn);
-                IModel ch = conn.CreateModel();
+                IChannel ch = conn.CreateModel();
 
                 conn.ConnectionShutdown += (sender, evt) =>
                     {
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Unit
         protected void RunSingleConnectionTest(ConnectionFactory cf)
         {
             IConnection conn = cf.CreateConnection();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateModel();
             bool wasShutdown = false;
 
             conn.ConnectionShutdown += (sender, evt) =>
