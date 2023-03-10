@@ -41,9 +41,9 @@ namespace RabbitMQ.Client
     {
         public AsyncDefaultBasicConsumer() { }
         public AsyncDefaultBasicConsumer(RabbitMQ.Client.IChannel channel) { }
+        public RabbitMQ.Client.IChannel Channel { get; set; }
         public string[] ConsumerTags { get; }
         public bool IsRunning { get; set; }
-        public RabbitMQ.Client.IChannel Channel { get; set; }
         public RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; set; }
         public event RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> ConsumerCancelled;
         public virtual System.Threading.Tasks.Task HandleBasicCancel(string consumerTag) { }
@@ -235,9 +235,9 @@ namespace RabbitMQ.Client
     {
         public DefaultBasicConsumer() { }
         public DefaultBasicConsumer(RabbitMQ.Client.IChannel channel) { }
+        public RabbitMQ.Client.IChannel Channel { get; set; }
         public string[] ConsumerTags { get; }
         public bool IsRunning { get; set; }
-        public RabbitMQ.Client.IChannel Channel { get; set; }
         public RabbitMQ.Client.ShutdownEventArgs ShutdownReason { get; set; }
         public event System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> ConsumerCancelled;
         public virtual void HandleBasicCancel(string consumerTag) { }
@@ -371,70 +371,6 @@ namespace RabbitMQ.Client
         void ClearType();
         void ClearUserId();
     }
-    public interface IConnection : RabbitMQ.Client.INetworkConnection, System.IDisposable
-    {
-        ushort ChannelMax { get; }
-        System.Collections.Generic.IDictionary<string, object> ClientProperties { get; }
-        string ClientProvidedName { get; }
-        RabbitMQ.Client.ShutdownEventArgs CloseReason { get; }
-        RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; }
-        uint FrameMax { get; }
-        System.TimeSpan Heartbeat { get; }
-        bool IsOpen { get; }
-        RabbitMQ.Client.IProtocol Protocol { get; }
-        System.Collections.Generic.IDictionary<string, object> ServerProperties { get; }
-        System.Collections.Generic.IList<RabbitMQ.Client.ShutdownReportEntry> ShutdownReport { get; }
-        event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
-        event System.EventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs> ConnectionBlocked;
-        event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
-        event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ConnectionShutdown;
-        event System.EventHandler<System.EventArgs> ConnectionUnblocked;
-        event System.EventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
-        event System.EventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
-        event System.EventHandler<RabbitMQ.Client.Events.RecoveringConsumerEventArgs> RecoveringConsumer;
-        event System.EventHandler<System.EventArgs> RecoverySucceeded;
-        void Close(ushort reasonCode, string reasonText, System.TimeSpan timeout, bool abort);
-        RabbitMQ.Client.IChannel CreateChannel();
-        void UpdateSecret(string newSecret, string reason);
-    }
-    public static class IConnectionExtensions
-    {
-        public static void Abort(this RabbitMQ.Client.IConnection connection) { }
-        public static void Abort(this RabbitMQ.Client.IConnection connection, System.TimeSpan timeout) { }
-        public static void Abort(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText) { }
-        public static void Abort(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
-        public static void Close(this RabbitMQ.Client.IConnection connection) { }
-        public static void Close(this RabbitMQ.Client.IConnection connection, System.TimeSpan timeout) { }
-        public static void Close(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText) { }
-        public static void Close(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
-    }
-    public interface IConnectionFactory
-    {
-        System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
-        string ClientProvidedName { get; set; }
-        int ConsumerDispatchConcurrency { get; set; }
-        System.TimeSpan ContinuationTimeout { get; set; }
-        bool DispatchConsumersAsync { get; set; }
-        System.TimeSpan HandshakeContinuationTimeout { get; set; }
-        string Password { get; set; }
-        ushort RequestedChannelMax { get; set; }
-        uint RequestedFrameMax { get; set; }
-        System.TimeSpan RequestedHeartbeat { get; set; }
-        System.Uri Uri { get; set; }
-        string UserName { get; set; }
-        string VirtualHost { get; set; }
-        RabbitMQ.Client.IAuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames);
-        RabbitMQ.Client.IConnection CreateConnection();
-        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints);
-        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames);
-        RabbitMQ.Client.IConnection CreateConnection(string clientProvidedName);
-        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName);
-        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames, string clientProvidedName);
-    }
-    public interface IEndpointResolver
-    {
-        System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> All();
-    }
     public interface IChannel : System.IDisposable
     {
         int ChannelNumber { get; }
@@ -449,8 +385,8 @@ namespace RabbitMQ.Client
         event System.EventHandler<System.EventArgs> BasicRecoverOk;
         event System.EventHandler<RabbitMQ.Client.Events.BasicReturnEventArgs> BasicReturn;
         event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
-        event System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs> FlowControl;
         event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ChannelShutdown;
+        event System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs> FlowControl;
         void BasicAck(ulong deliveryTag, bool multiple);
         void BasicCancel(string consumerTag);
         void BasicCancelNoWait(string consumerTag);
@@ -519,6 +455,70 @@ namespace RabbitMQ.Client
         public static uint QueueDelete(this RabbitMQ.Client.IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false) { }
         public static void QueueDeleteNoWait(this RabbitMQ.Client.IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false) { }
         public static void QueueUnbind(this RabbitMQ.Client.IChannel channel, string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
+    }
+    public interface IConnection : RabbitMQ.Client.INetworkConnection, System.IDisposable
+    {
+        ushort ChannelMax { get; }
+        System.Collections.Generic.IDictionary<string, object> ClientProperties { get; }
+        string ClientProvidedName { get; }
+        RabbitMQ.Client.ShutdownEventArgs CloseReason { get; }
+        RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; }
+        uint FrameMax { get; }
+        System.TimeSpan Heartbeat { get; }
+        bool IsOpen { get; }
+        RabbitMQ.Client.IProtocol Protocol { get; }
+        System.Collections.Generic.IDictionary<string, object> ServerProperties { get; }
+        System.Collections.Generic.IList<RabbitMQ.Client.ShutdownReportEntry> ShutdownReport { get; }
+        event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
+        event System.EventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs> ConnectionBlocked;
+        event System.EventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+        event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ConnectionShutdown;
+        event System.EventHandler<System.EventArgs> ConnectionUnblocked;
+        event System.EventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
+        event System.EventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
+        event System.EventHandler<RabbitMQ.Client.Events.RecoveringConsumerEventArgs> RecoveringConsumer;
+        event System.EventHandler<System.EventArgs> RecoverySucceeded;
+        void Close(ushort reasonCode, string reasonText, System.TimeSpan timeout, bool abort);
+        RabbitMQ.Client.IChannel CreateChannel();
+        void UpdateSecret(string newSecret, string reason);
+    }
+    public static class IConnectionExtensions
+    {
+        public static void Abort(this RabbitMQ.Client.IConnection connection) { }
+        public static void Abort(this RabbitMQ.Client.IConnection connection, System.TimeSpan timeout) { }
+        public static void Abort(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText) { }
+        public static void Abort(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
+        public static void Close(this RabbitMQ.Client.IConnection connection) { }
+        public static void Close(this RabbitMQ.Client.IConnection connection, System.TimeSpan timeout) { }
+        public static void Close(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText) { }
+        public static void Close(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout) { }
+    }
+    public interface IConnectionFactory
+    {
+        System.Collections.Generic.IDictionary<string, object> ClientProperties { get; set; }
+        string ClientProvidedName { get; set; }
+        int ConsumerDispatchConcurrency { get; set; }
+        System.TimeSpan ContinuationTimeout { get; set; }
+        bool DispatchConsumersAsync { get; set; }
+        System.TimeSpan HandshakeContinuationTimeout { get; set; }
+        string Password { get; set; }
+        ushort RequestedChannelMax { get; set; }
+        uint RequestedFrameMax { get; set; }
+        System.TimeSpan RequestedHeartbeat { get; set; }
+        System.Uri Uri { get; set; }
+        string UserName { get; set; }
+        string VirtualHost { get; set; }
+        RabbitMQ.Client.IAuthMechanismFactory AuthMechanismFactory(System.Collections.Generic.IList<string> mechanismNames);
+        RabbitMQ.Client.IConnection CreateConnection();
+        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints);
+        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames);
+        RabbitMQ.Client.IConnection CreateConnection(string clientProvidedName);
+        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName);
+        RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames, string clientProvidedName);
+    }
+    public interface IEndpointResolver
+    {
+        System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> All();
     }
     public interface INetworkConnection
     {
