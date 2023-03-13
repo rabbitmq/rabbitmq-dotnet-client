@@ -4,8 +4,6 @@ namespace RabbitMQ.Client
 {
     public interface IRecordedConsumer
     {
-        IBasicConsumer Consumer { get; }
-
         string ConsumerTag { get; }
 
         string Queue { get; }

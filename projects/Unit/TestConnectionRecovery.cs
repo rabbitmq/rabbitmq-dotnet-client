@@ -1121,20 +1121,27 @@ namespace RabbitMQ.Client.Unit
             Model.QueueDelete(queueToRecover);
             Model.QueueDelete(queueToIgnore);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
-
-            Assert.IsTrue(ch.IsOpen);
-            AssertQueueRecovery(ch, queueToRecover, false);
-
             try
             {
-                ch.QueueDeclarePassive(queueToIgnore);
-                Assert.Fail("Expected an exception");
+                CloseAndWaitForRecovery(conn);
+                Wait(latch);
+
+                Assert.IsTrue(ch.IsOpen);
+                AssertQueueRecovery(ch, queueToRecover, false);
+
+                try
+                {
+                    AssertQueueRecovery(ch, queueToIgnore, false);
+                    Assert.Fail("Expected an exception");
+                }
+                catch (OperationInterruptedException e)
+                {
+                    AssertShutdownError(e.ShutdownReason, 404);
+                }
             }
-            catch (OperationInterruptedException e)
+            finally
             {
-                AssertShutdownError(e.ShutdownReason, 404);
+                conn.Abort();
             }
         }
 
@@ -1158,20 +1165,27 @@ namespace RabbitMQ.Client.Unit
             Model.ExchangeDelete(exchangeToRecover);
             Model.ExchangeDelete(exchangeToIgnore);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
-
-            Assert.IsTrue(ch.IsOpen);
-            AssertExchangeRecovery(ch, exchangeToRecover);
-
             try
             {
-                ch.ExchangeDeclarePassive(exchangeToIgnore);
-                Assert.Fail("Expected an exception");
+                CloseAndWaitForRecovery(conn);
+                Wait(latch);
+
+                Assert.IsTrue(ch.IsOpen);
+                AssertExchangeRecovery(ch, exchangeToRecover);
+
+                try
+                {
+                    AssertExchangeRecovery(ch, exchangeToIgnore);
+                    Assert.Fail("Expected an exception");
+                }
+                catch (OperationInterruptedException e)
+                {
+                    AssertShutdownError(e.ShutdownReason, 404);
+                }
             }
-            catch (OperationInterruptedException e)
+            finally
             {
-                AssertShutdownError(e.ShutdownReason, 404);
+                conn.Abort();
             }
         }
 
@@ -1204,12 +1218,19 @@ namespace RabbitMQ.Client.Unit
             Model.QueueUnbind(queueWithRecoveredBinding, exchange, bindingToRecover);
             Model.QueueUnbind(queueWithIgnoredBinding, exchange, bindingToIgnore);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
+            try
+            {
+                CloseAndWaitForRecovery(conn);
+                Wait(latch);
 
-            Assert.IsTrue(ch.IsOpen);
-            Assert.IsTrue(SendAndConsumeMessage(queueWithRecoveredBinding, exchange, bindingToRecover));
-            Assert.IsFalse(SendAndConsumeMessage(queueWithIgnoredBinding, exchange, bindingToIgnore));
+                Assert.IsTrue(ch.IsOpen);
+                Assert.IsTrue(SendAndConsumeMessage(queueWithRecoveredBinding, exchange, bindingToRecover));
+                Assert.IsFalse(SendAndConsumeMessage(queueWithIgnoredBinding, exchange, bindingToIgnore));
+            }
+            finally
+            {
+                conn.Abort();
+            }
         }
 
         [Test]
@@ -1249,26 +1270,33 @@ namespace RabbitMQ.Client.Unit
             consumerToIgnore.Received += (source, ea) => ignoredLatch.Set();
             ch.BasicConsume(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
-
-            Assert.IsTrue(ch.IsOpen);
-            ch.BasicPublish(exchange, binding1, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
-            ch.BasicPublish(exchange, binding2, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
-
-            Assert.IsTrue(recoverLatch.Wait(TimeSpan.FromSeconds(5)));
-            Assert.IsFalse(ignoredLatch.Wait(TimeSpan.FromSeconds(5)));
-
-            ch.BasicConsume(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
-
             try
             {
-                ch.BasicConsume(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover);
-                Assert.Fail("Expected an exception");
+                CloseAndWaitForRecovery(conn);
+                Wait(latch);
+
+                Assert.IsTrue(ch.IsOpen);
+                ch.BasicPublish(exchange, binding1, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
+                ch.BasicPublish(exchange, binding2, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
+
+                Assert.IsTrue(recoverLatch.Wait(TimeSpan.FromSeconds(5)));
+                Assert.IsFalse(ignoredLatch.Wait(TimeSpan.FromSeconds(5)));
+
+                ch.BasicConsume(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
+
+                try
+                {
+                    ch.BasicConsume(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover);
+                    Assert.Fail("Expected an exception");
+                }
+                catch (OperationInterruptedException e)
+                {
+                    AssertShutdownError(e.ShutdownReason, 530); // NOT_ALLOWED - not allowed to reuse consumer tag
+                }
             }
-            catch (OperationInterruptedException e)
+            finally
             {
-                AssertShutdownError(e.ShutdownReason, 530); // NOT_ALLOWED - not allowed to reuse consumer tag
+                conn.Abort();
             }
         }
 
@@ -1310,19 +1338,26 @@ namespace RabbitMQ.Client.Unit
             Model.QueueDelete(queue1);
             Model.QueueDelete(queue2);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
+            try
+            {
+                CloseAndWaitForRecovery(conn);
+                Wait(latch);
 
-            Assert.IsTrue(ch.IsOpen);
-            AssertExchangeRecovery(ch, exchange);
-            ch.QueueDeclarePassive(queue1);
-            ch.QueueDeclarePassive(queue2);
+                Assert.IsTrue(ch.IsOpen);
+                AssertExchangeRecovery(ch, exchange);
+                ch.QueueDeclarePassive(queue1);
+                ch.QueueDeclarePassive(queue2);
 
-            ch.BasicPublish(exchange, binding1, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
-            ch.BasicPublish(exchange, binding2, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
+                ch.BasicPublish(exchange, binding1, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
+                ch.BasicPublish(exchange, binding2, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
 
-            Assert.IsTrue(consumerLatch1.Wait(TimeSpan.FromSeconds(5)));
-            Assert.IsTrue(consumerLatch2.Wait(TimeSpan.FromSeconds(5)));
+                Assert.IsTrue(consumerLatch1.Wait(TimeSpan.FromSeconds(5)));
+                Assert.IsTrue(consumerLatch2.Wait(TimeSpan.FromSeconds(5)));
+            }
+            finally
+            {
+                conn.Abort();
+            }
         }
 
         [Test]
@@ -1362,15 +1397,22 @@ namespace RabbitMQ.Client.Unit
             Model.QueueDelete(queueToRecoverWithException);
             Model.QueueDeclare(queueToRecoverWithException, false, false, false, changedQueueArguments);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
+            try
+            {
+                CloseAndWaitForRecovery(conn);
+                Wait(latch);
 
-            Assert.IsTrue(ch.IsOpen);
-            AssertQueueRecovery(ch, queueToRecoverSuccessfully, false);
-            AssertQueueRecovery(ch, queueToRecoverWithException, false, changedQueueArguments);
+                Assert.IsTrue(ch.IsOpen);
+                AssertQueueRecovery(ch, queueToRecoverSuccessfully, false);
+                AssertQueueRecovery(ch, queueToRecoverWithException, false, changedQueueArguments);
+            }
+            finally
+            {
+                //Cleanup
+                Model.QueueDelete(queueToRecoverWithException);
 
-            //Cleanup
-            Model.QueueDelete(queueToRecoverWithException);
+                conn.Abort();
+            }
         }
 
         [Test]
@@ -1406,15 +1448,22 @@ namespace RabbitMQ.Client.Unit
             Model.ExchangeDelete(exchangeToRecoverWithException);
             Model.ExchangeDeclare(exchangeToRecoverWithException, "topic", false, false);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
+            try
+            {
+                CloseAndWaitForRecovery(conn);
+                Wait(latch);
 
-            Assert.IsTrue(ch.IsOpen);
-            AssertExchangeRecovery(ch, exchangeToRecoverSuccessfully);
-            AssertExchangeRecovery(ch, exchangeToRecoverWithException);
+                Assert.IsTrue(ch.IsOpen);
+                AssertExchangeRecovery(ch, exchangeToRecoverSuccessfully);
+                AssertExchangeRecovery(ch, exchangeToRecoverWithException);
+            }
+            finally
+            {
+                //Cleanup
+                Model.ExchangeDelete(exchangeToRecoverWithException);
 
-            //Cleanup
-            Model.ExchangeDelete(exchangeToRecoverWithException);
+                conn.Abort();
+            }
         }
 
         [Test]
@@ -1462,12 +1511,19 @@ namespace RabbitMQ.Client.Unit
             Model.QueueUnbind(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
             Model.QueueDelete(queueWithExceptionBinding);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
+            try
+            {
+                CloseAndWaitForRecovery(conn);
+                Wait(latch);
 
-            Assert.IsTrue(ch.IsOpen);
-            Assert.IsTrue(SendAndConsumeMessage(queueWithRecoveredBinding, exchange, bindingToRecoverSuccessfully));
-            Assert.IsFalse(SendAndConsumeMessage(queueWithExceptionBinding, exchange, bindingToRecoverWithException));
+                Assert.IsTrue(ch.IsOpen);
+                Assert.IsTrue(SendAndConsumeMessage(queueWithRecoveredBinding, exchange, bindingToRecoverSuccessfully));
+                Assert.IsTrue(SendAndConsumeMessage(queueWithExceptionBinding, exchange, bindingToRecoverWithException));
+            }
+            finally
+            {
+                conn.Abort();
+            }
         }
 
         [Test]
@@ -1488,8 +1544,11 @@ namespace RabbitMQ.Client.Unit
                     using (var model = connection.CreateModel())
                     {
                         model.QueueDeclare(queueWithExceptionConsumer, false, false, false, null);
-                        model.BasicConsume(queueWithExceptionConsumer, true, c.ConsumerTag, c.Consumer);
                     }
+
+                    // So topology recovery runs again. This time he missing queue should exist, making
+                    // it possible to recover the consumer successfully.
+                    throw ex;
                 }
             };
             var latch = new ManualResetEventSlim(false);
@@ -1508,23 +1567,30 @@ namespace RabbitMQ.Client.Unit
 
             Model.QueueDelete(queueWithExceptionConsumer);
 
-            CloseAndWaitForRecovery(conn);
-            Wait(latch);
-
-            Assert.IsTrue(ch.IsOpen);
-
-            ch.BasicPublish("", queueWithExceptionConsumer, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
-
-            Assert.IsTrue(recoverLatch.Wait(TimeSpan.FromSeconds(5)));
-
             try
             {
-                ch.BasicConsume(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover);
-                Assert.Fail("Expected an exception");
+                CloseAndWaitForShutdown(conn);
+                Wait(latch, TimeSpan.FromSeconds(20));
+
+                Assert.IsTrue(ch.IsOpen);
+
+                ch.BasicPublish("", queueWithExceptionConsumer, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
+
+                Assert.IsTrue(recoverLatch.Wait(TimeSpan.FromSeconds(5)));
+
+                try
+                {
+                    ch.BasicConsume(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover);
+                    Assert.Fail("Expected an exception");
+                }
+                catch (OperationInterruptedException e)
+                {
+                    AssertShutdownError(e.ShutdownReason, 530); // NOT_ALLOWED - not allowed to reuse consumer tag
+                }
             }
-            catch (OperationInterruptedException e)
+            finally
             {
-                AssertShutdownError(e.ShutdownReason, 530); // NOT_ALLOWED - not allowed to reuse consumer tag
+                conn.Abort();
             }
         }
 
@@ -1532,15 +1598,13 @@ namespace RabbitMQ.Client.Unit
         {
             using (var ch = Conn.CreateModel())
             {
-                ch.ConfirmSelect();
                 var latch = new ManualResetEventSlim(false);
 
                 var consumer = new AckingBasicConsumer(ch, 1, latch);
 
-                ch.BasicConsume(queue, true, consumer);
+                ch.BasicConsume(queue, false, consumer);
 
                 ch.BasicPublish(exchange, routingKey, ch.CreateBasicProperties(), Encoding.UTF8.GetBytes("test message"));
-                ch.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
 
                 return latch.Wait(TimeSpan.FromSeconds(5));
             }

@@ -139,7 +139,6 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a consumer.
-        /// Is only called when the exception did not cause the consumer's channel to close.
         /// </summary>
         public Action<IRecordedConsumer, Exception, IConnection> ConsumerRecoveryExceptionHandler
         {
