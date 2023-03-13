@@ -16,10 +16,10 @@ namespace RabbitMQ.Client
         private Func<IRecordedQueue, Exception, bool> _queueRecoveryExceptionCondition;
         private Func<IRecordedBinding, Exception, bool> _bindingRecoveryExceptionCondition;
         private Func<IRecordedConsumer, Exception, bool> _consumerRecoveryExceptionCondition;
-        private Action<IRecordedExchange, Exception> _exchangeRecoveryExceptionHandler;
-        private Action<IRecordedQueue, Exception> _queueRecoveryExceptionHandler;
-        private Action<IRecordedBinding, Exception> _bindingRecoveryExceptionHandler;
-        private Action<IRecordedConsumer, Exception> _consumerRecoveryExceptionHandler;
+        private Action<IRecordedExchange, Exception, IConnection> _exchangeRecoveryExceptionHandler;
+        private Action<IRecordedQueue, Exception, IConnection> _queueRecoveryExceptionHandler;
+        private Action<IRecordedBinding, Exception, IConnection> _bindingRecoveryExceptionHandler;
+        private Action<IRecordedConsumer, Exception, IConnection> _consumerRecoveryExceptionHandler;
 
         /// <summary>
         /// Decides which exchange recovery exceptions the custom exception handler is applied to.
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover an exchange.
         /// </summary>
-        public Action<IRecordedExchange, Exception> ExchangeRecoveryExceptionHandler
+        public Action<IRecordedExchange, Exception, IConnection> ExchangeRecoveryExceptionHandler
         {
             get => _exchangeRecoveryExceptionHandler;
 
@@ -108,7 +108,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a queue.
         /// </summary>
-        public Action<IRecordedQueue, Exception> QueueRecoveryExceptionHandler
+        public Action<IRecordedQueue, Exception, IConnection> QueueRecoveryExceptionHandler
         {
             get => _queueRecoveryExceptionHandler;
 
@@ -124,7 +124,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a binding.
         /// </summary>
-        public Action<IRecordedBinding, Exception> BindingRecoveryExceptionHandler
+        public Action<IRecordedBinding, Exception, IConnection> BindingRecoveryExceptionHandler
         {
             get => _bindingRecoveryExceptionHandler;
 
@@ -141,7 +141,7 @@ namespace RabbitMQ.Client
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a consumer.
         /// Is only called when the exception did not cause the consumer's channel to close.
         /// </summary>
-        public Action<IRecordedConsumer, Exception> ConsumerRecoveryExceptionHandler
+        public Action<IRecordedConsumer, Exception, IConnection> ConsumerRecoveryExceptionHandler
         {
             get => _consumerRecoveryExceptionHandler;
 

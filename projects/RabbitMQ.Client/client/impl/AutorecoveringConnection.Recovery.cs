@@ -224,7 +224,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (_config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler != null
                         && _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition(recordedExchange, ex))
                     {
-                        _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler(recordedExchange, ex);
+                        _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler(recordedExchange, ex, this);
                     }
                     else
                     {
@@ -270,7 +270,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (_config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler != null
                         && _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition(recordedQueue, ex))
                     {
-                        _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler(recordedQueue, ex);
+                        _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler(recordedQueue, ex, this);
                     }
                     else
                     {
@@ -293,7 +293,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (_config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler != null
                         && _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition(binding, ex))
                     {
-                        _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler(binding, ex);
+                        _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler(binding, ex, this);
                     }
                     else
                     {
@@ -330,7 +330,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (_config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler != null
                         && _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition(consumer, ex))
                     {
-                        _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler(consumer, ex);
+                        _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler(consumer, ex, this);
                     }
                     else
                     {
