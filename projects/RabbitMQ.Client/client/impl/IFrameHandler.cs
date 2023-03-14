@@ -65,8 +65,8 @@ namespace RabbitMQ.Client.Impl
         ///</summary>
         bool TryReadFrame(out InboundFrame frame);
 
-        void SendHeader();
+        ValueTask SendHeader();
 
-        void Write(ReadOnlyMemory<byte> memory);
+        ValueTask WriteAsync(ReadOnlyMemory<byte> memory);
     }
 }

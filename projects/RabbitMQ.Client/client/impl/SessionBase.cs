@@ -32,6 +32,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -140,6 +141,16 @@ namespace RabbitMQ.Client.Impl
             Connection.Write(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ChannelNumber));
         }
 
+        public virtual ValueTask TransmitAsync<T>(in T cmd) where T : struct, IOutgoingAmqpMethod
+        {
+            if (!IsOpen && cmd.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
+            {
+                ThrowAlreadyClosedException();
+            }
+
+            return Connection.WriteAsync(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ChannelNumber));
+        }
+
         public void Transmit<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
@@ -150,6 +161,18 @@ namespace RabbitMQ.Client.Impl
             }
 
             Connection.Write(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize));
+        }
+        
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
+            {
+                ThrowAlreadyClosedException();
+            }
+
+            return Connection.WriteAsync(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize));
         }
 
         private void ThrowAlreadyClosedException()

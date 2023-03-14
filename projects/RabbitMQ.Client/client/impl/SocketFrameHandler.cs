@@ -82,8 +82,8 @@ namespace RabbitMQ.Client.Impl
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             _amqpTcpEndpoint = endpoint;
-            var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
-                new UnboundedChannelOptions
+            var channel = Channel.CreateBounded<ReadOnlyMemory<byte>>(
+                new BoundedChannelOptions(128)
                 {
                     AllowSynchronousContinuations = false,
                     SingleReader = true,
@@ -250,31 +250,24 @@ namespace RabbitMQ.Client.Impl
             return InboundFrame.TryReadFrameFromPipe(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, out frame);
         }
 
-        public void SendHeader()
+        public async ValueTask SendHeader()
         {
-            /*
-             * Note: this stream is deliberately not disposed
-             * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1264#discussion_r1100742748
-             */
-#if NET
-            _pipeWriter.AsStream().Write(ProtocolHeader);
-#else
-            _pipeWriter.AsStream().Write(ProtocolHeader.ToArray(), 0, ProtocolHeader.Length);
-#endif
+            _pipeWriter.Write(ProtocolHeader);
+            await _pipeWriter.FlushAsync().ConfigureAwait(false);
         }
 
-        public void Write(ReadOnlyMemory<byte> memory)
+        public ValueTask WriteAsync(ReadOnlyMemory<byte> memory)
         {
             if (_closed)
             {
-                return;
-
+#if NET6_0_OR_GREATER
+                return ValueTask.CompletedTask;
+#else
+                return new ValueTask(Task.CompletedTask);
+#endif
             }
 
-            if (!_channelWriter.TryWrite(memory))
-            {
-                throw new ApplicationException("Please report this bug here: https://github.com/rabbitmq/rabbitmq-dotnet-client/issues");
-            }
+            return _channelWriter.WriteAsync(memory);
         }
 
         private async Task WriteLoop()
@@ -291,8 +284,7 @@ namespace RabbitMQ.Client.Impl
                         ArrayPool<byte>.Shared.Return(segment.Array);
                     }
 
-                    await _pipeWriter.FlushAsync()
-                       .ConfigureAwait(false);
+                    await _pipeWriter.FlushAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

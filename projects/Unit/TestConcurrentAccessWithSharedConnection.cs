@@ -86,6 +86,30 @@ namespace RabbitMQ.Client.Unit
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
         }
+        
+        [Fact]
+        public Task TestConcurrentChannelOpenAndPublishingWithBlankMessagesAsync()
+        {
+            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(Array.Empty<byte>(), 30);
+        }
+
+        [Fact]
+        public Task TestConcurrentChannelOpenAndPublishingSize64Async()
+        {
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(64);
+        }
+
+        [Fact]
+        public Task TestConcurrentChannelOpenAndPublishingSize256Async()
+        {
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(256);
+        }
+
+        [Fact]
+        public Task TestConcurrentChannelOpenAndPublishingSize1024Async()
+        {
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(1024);
+        }
 
         [Fact]
         public void TestConcurrentChannelOpenCloseLoop()
@@ -100,6 +124,11 @@ namespace RabbitMQ.Client.Unit
         internal void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(int length, int iterations = 30)
         {
             TestConcurrentChannelOpenAndPublishingWithBody(new byte[length], iterations);
+        }
+        
+        internal Task TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(int length, int iterations = 30)
+        {
+            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(new byte[length], iterations);
         }
 
         internal void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
@@ -118,11 +147,33 @@ namespace RabbitMQ.Client.Unit
                 ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult();
             }, iterations);
         }
+        
+        internal Task TestConcurrentChannelOpenAndPublishingWithBodyAsync(byte[] body, int iterations)
+        {
+            return TestConcurrentChannelOperationsAsync(async (conn) =>
+            {
+                // publishing on a shared channel is not supported
+                // and would missing the point of this test anyway
+                IChannel ch = _conn.CreateChannel();
+                ch.ConfirmSelect();
+                for (int j = 0; j < 200; j++)
+                {
+                    await ch.BasicPublishAsync("", "_______", body).ConfigureAwait(false);
+                }
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40));
+                await ch.WaitForConfirmsAsync(cts.Token).ConfigureAwait(false);
+            }, iterations);
+        }
 
         internal void TestConcurrentChannelOperations(Action<IConnection> actions,
             int iterations)
         {
             TestConcurrentChannelOperations(actions, iterations, _completionTimeout);
+        }
+        
+        internal Task TestConcurrentChannelOperationsAsync(Func<IConnection, Task> actions, int iterations)
+        {
+            return TestConcurrentChannelOperationsAsync(actions, iterations, _completionTimeout);
         }
 
         internal void TestConcurrentChannelOperations(Action<IConnection> actions,
@@ -140,6 +191,29 @@ namespace RabbitMQ.Client.Unit
                     _latch.Signal();
                 });
             }).ToArray();
+
+            Assert.True(_latch.Wait(timeout));
+            // incorrect frame interleaving in these tests will result
+            // in an unrecoverable connection-level exception, thus
+            // closing the connection
+            Assert.True(_conn.IsOpen);
+        }
+        
+        internal async Task TestConcurrentChannelOperationsAsync(Func<IConnection, Task> actions,
+            int iterations, TimeSpan timeout)
+        {
+            await Task.WhenAll(Enumerable.Range(0, Threads).Select(x =>
+            {
+                return Task.Run(() =>
+                {
+                    for (int j = 0; j < iterations; j++)
+                    {
+                        actions(_conn);
+                    }
+
+                    _latch.Signal();
+                });
+            }).ToArray());
 
             Assert.True(_latch.Wait(timeout));
             // incorrect frame interleaving in these tests will result

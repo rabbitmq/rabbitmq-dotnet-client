@@ -49,9 +49,11 @@ namespace RabbitMQ.Client.Impl
     internal abstract class ChannelBase : IChannel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
-        ///sequence. See <see cref="Connection.Open"/> </summary>
-        internal BlockingCell<ConnectionStartDetails> m_connectionStartCell;
+        ///sequence. See <see cref="Connection.OpenAsync"/> </summary>
+        internal TaskCompletionSource<ConnectionStartDetails> m_connectionStartCell;
 
+        // AMQP only allows one RPC operation to be active at a time. 
+        private readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
@@ -258,13 +260,19 @@ namespace RabbitMQ.Client.Impl
                 k.GetReply(HandshakeContinuationTimeout);
             }
         }
-
-        internal ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
+        
+        internal ValueTask ConnectionOpenAsync(string virtualHost)
         {
-            var k = new ConnectionStartRpcContinuation();
-            lock (_rpcLock)
+            return _Private_ConnectionOpenAsync(virtualHost);
+        }
+
+        internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response)
+        {
+            var k = new ConnectionSecureOrTuneContinuation();
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            Enqueue(k);
+            try
             {
-                Enqueue(k);
                 try
                 {
                     _Private_ConnectionSecureOk(response);
@@ -275,21 +283,26 @@ namespace RabbitMQ.Client.Impl
                     // which is a much more suitable exception before connection
                     // negotiation finishes
                 }
-                k.GetReply(HandshakeContinuationTimeout);
+
+                return await k;
             }
-            return k.m_result;
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
         }
 
-        internal ConnectionSecureOrTune ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
+        internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(IDictionary<string, object> clientProperties, string mechanism, byte[] response,
+            string locale)
         {
-            var k = new ConnectionStartRpcContinuation();
-            lock (_rpcLock)
+            var k = new ConnectionSecureOrTuneContinuation();
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            Enqueue(k);
+            try
             {
-                Enqueue(k);
                 try
                 {
-                    _Private_ConnectionStartOk(clientProperties, mechanism,
-                        response, locale);
+                    _Private_ConnectionStartOk(clientProperties, mechanism, response, locale);
                 }
                 catch (AlreadyClosedException)
                 {
@@ -297,9 +310,13 @@ namespace RabbitMQ.Client.Impl
                     // which is a much more suitable exception before connection
                     // negotiation finishes
                 }
-                k.GetReply(HandshakeContinuationTimeout);
+
+                return await k;
             }
-            return k.m_result;
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
         }
 
         protected abstract bool DispatchAsynchronous(in IncomingCommand cmd);
@@ -324,7 +341,7 @@ namespace RabbitMQ.Client.Impl
                 Session.Close(reason);
             }
 
-            m_connectionStartCell?.ContinueWithValue(null);
+            m_connectionStartCell?.TrySetResult(null);
         }
 
         private void HandleCommand(in IncomingCommand cmd)
@@ -384,6 +401,12 @@ namespace RabbitMQ.Client.Impl
         {
             Session.Transmit(in method);
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected ValueTask ModelSendAsync<T>(in T method) where T : struct, IOutgoingAmqpMethod
+        {
+            return Session.TransmitAsync(in method);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ChannelSend<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body)
@@ -395,6 +418,19 @@ namespace RabbitMQ.Client.Impl
                 _flowControlBlock.Wait();
             }
             Session.Transmit(in method, in header, body);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (!_flowControlBlock.IsSet)
+            {
+                _flowControlBlock.Wait();
+            }
+            
+            return Session.TransmitAsync(in method, in header, body);
         }
 
         internal void OnCallbackException(CallbackExceptionEventArgs args)
@@ -730,13 +766,7 @@ namespace RabbitMQ.Client.Impl
 
         protected void HandleConnectionSecure(in IncomingCommand cmd)
         {
-            var challenge = new ConnectionSecure(cmd.MethodBytes.Span)._challenge;
-            cmd.ReturnMethodBuffer();
-            var k = (ConnectionStartRpcContinuation)_continuationQueue.Next();
-            k.m_result = new ConnectionSecureOrTune
-            {
-                m_challenge = challenge
-            };
+            var k = (ConnectionSecureOrTuneContinuation)_continuationQueue.Next();
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
@@ -758,25 +788,14 @@ namespace RabbitMQ.Client.Impl
                 m_mechanisms = method._mechanisms,
                 m_locales = method._locales
             };
-            m_connectionStartCell.ContinueWithValue(details);
+            m_connectionStartCell?.SetResult(details);
             m_connectionStartCell = null;
         }
 
         protected void HandleConnectionTune(in IncomingCommand cmd)
         {
-            var connectionTune = new ConnectionTune(cmd.MethodBytes.Span);
-            cmd.ReturnMethodBuffer();
-            var k = (ConnectionStartRpcContinuation)_continuationQueue.Next();
-            k.m_result = new ConnectionSecureOrTune
-            {
-                m_tuneDetails =
-                {
-                    m_channelMax = connectionTune._channelMax,
-                    m_frameMax = connectionTune._frameMax,
-                    m_heartbeatInSeconds = connectionTune._heartbeat
-                }
-            };
-            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+            var k = (ConnectionSecureOrTuneContinuation)_continuationQueue.Next();
+            k.HandleCommand(cmd); // release the continuation.
         }
 
         protected void HandleConnectionUnblocked()
@@ -814,6 +833,8 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_ConnectionCloseOk();
 
         public abstract void _Private_ConnectionOpen(string virtualHost);
+
+        public abstract ValueTask _Private_ConnectionOpenAsync(string virtualHost);
 
         public abstract void _Private_ConnectionSecureOk(byte[] response);
 
@@ -928,6 +949,36 @@ namespace RabbitMQ.Client.Impl
 
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
             ChannelSend(in cmd, in basicProperties, body);
+        }
+        
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            if (NextPublishSeqNo > 0)
+            {
+                lock (_confirmLock)
+                {
+                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+            }
+
+            var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+            return ModelSendAsync(in cmd, in basicProperties, body);
+        }
+        
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            if (NextPublishSeqNo > 0)
+            {
+                lock (_confirmLock)
+                {
+                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+            }
+
+            var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+            return ModelSendAsync(in cmd, in basicProperties, body);
         }
 
         public void UpdateSecret(string newSecret, string reason)

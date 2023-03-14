@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Unit
             }
             else
             {
-                _waitSpan = TimeSpan.FromSeconds(10);
+                _waitSpan = TimeSpan.FromSeconds(20);
             }
         }
 

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -73,7 +74,12 @@ namespace RabbitMQ.Client.Impl
         bool HandleFrame(in InboundFrame frame);
         void Notify();
         void Transmit<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
+        ValueTask TransmitAsync<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
         void Transmit<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader;
+        
+        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader;
     }

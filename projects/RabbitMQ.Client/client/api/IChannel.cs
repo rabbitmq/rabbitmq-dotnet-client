@@ -208,6 +208,26 @@ namespace RabbitMQ.Client
         /// </remarks>
         void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+        /// <summary>
+        /// Asynchronously publishes a message.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>
+        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+        /// <summary>
+        /// Asynchronously publishes a message.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>
+        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 #nullable disable
 
         /// <summary>
