@@ -354,26 +354,26 @@ namespace RabbitMQ.Client.Framing.Impl
         private sealed class RecoveryChannelFactory : IDisposable
         {
             private readonly IConnection _connection;
-            private IModel? _recoveryChannel;
+            private IChannel? _recoveryChannel;
 
             public RecoveryChannelFactory(IConnection connection)
             {
                 _connection = connection;
             }
 
-            public IModel RecoveryChannel
+            public IChannel RecoveryChannel
             {
                 get
                 {
                     if (_recoveryChannel == null)
                     {
-                        _recoveryChannel = _connection.CreateModel();
+                        _recoveryChannel = _connection.CreateChannel();
                     }
 
                     if (_recoveryChannel.IsClosed)
                     {
                         _recoveryChannel.Dispose();
-                        _recoveryChannel = _connection.CreateModel();
+                        _recoveryChannel = _connection.CreateChannel();
                     }
 
                     return _recoveryChannel;

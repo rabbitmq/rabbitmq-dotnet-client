@@ -1064,15 +1064,15 @@ namespace RabbitMQ.Client.Unit
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
 
             var queueToRecover = "recovered.queue";
             var queueToIgnore = "filtered.queue";
             ch.QueueDeclare(queueToRecover, false, false, false, null);
             ch.QueueDeclare(queueToIgnore, false, false, false, null);
 
-            _model.QueueDelete(queueToRecover);
-            _model.QueueDelete(queueToIgnore);
+            _channel.QueueDelete(queueToRecover);
+            _channel.QueueDelete(queueToIgnore);
 
             try
             {
@@ -1108,15 +1108,15 @@ namespace RabbitMQ.Client.Unit
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
 
             var exchangeToRecover = "recovered.exchange";
             var exchangeToIgnore = "filtered.exchange";
             ch.ExchangeDeclare(exchangeToRecover, "topic", false, true);
             ch.ExchangeDeclare(exchangeToIgnore, "direct", false, true);
 
-            _model.ExchangeDelete(exchangeToRecover);
-            _model.ExchangeDelete(exchangeToIgnore);
+            _channel.ExchangeDelete(exchangeToRecover);
+            _channel.ExchangeDelete(exchangeToIgnore);
 
             try
             {
@@ -1152,7 +1152,7 @@ namespace RabbitMQ.Client.Unit
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
 
             var exchange = "topology.recovery.exchange";
             var queueWithRecoveredBinding = "topology.recovery.queue.1";
@@ -1168,8 +1168,8 @@ namespace RabbitMQ.Client.Unit
             ch.QueuePurge(queueWithRecoveredBinding);
             ch.QueuePurge(queueWithIgnoredBinding);
 
-            _model.QueueUnbind(queueWithRecoveredBinding, exchange, bindingToRecover);
-            _model.QueueUnbind(queueWithIgnoredBinding, exchange, bindingToIgnore);
+            _channel.QueueUnbind(queueWithRecoveredBinding, exchange, bindingToRecover);
+            _channel.QueueUnbind(queueWithIgnoredBinding, exchange, bindingToIgnore);
 
             try
             {
@@ -1196,7 +1196,7 @@ namespace RabbitMQ.Client.Unit
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
             ch.ConfirmSelect();
 
             var exchange = "topology.recovery.exchange";
@@ -1260,7 +1260,7 @@ namespace RabbitMQ.Client.Unit
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryFilter(filter);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
             ch.ConfirmSelect();
 
             var exchange = "topology.recovery.exchange";
@@ -1287,9 +1287,9 @@ namespace RabbitMQ.Client.Unit
             consumer2.Received += (source, ea) => consumerLatch2.Set();
             ch.BasicConsume(queue2, true, "filtered.consumer", consumer2);
 
-            _model.ExchangeDelete(exchange);
-            _model.QueueDelete(queue1);
-            _model.QueueDelete(queue2);
+            _channel.ExchangeDelete(exchange);
+            _channel.QueueDelete(queue1);
+            _channel.QueueDelete(queue2);
 
             try
             {
@@ -1330,25 +1330,25 @@ namespace RabbitMQ.Client.Unit
                 },
                 QueueRecoveryExceptionHandler = (rq, ex, connection) =>
                 {
-                    using (var model = connection.CreateModel())
+                    using (var channel = connection.CreateChannel())
                     {
-                        model.QueueDeclare(rq.Name, false, false, false, changedQueueArguments);
+                        channel.QueueDeclare(rq.Name, false, false, false, changedQueueArguments);
                     }
                 }
             };
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandler(exceptionHandler);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
 
             var queueToRecoverWithException = "recovery.exception.queue";
             var queueToRecoverSuccessfully = "successfully.recovered.queue";
             ch.QueueDeclare(queueToRecoverWithException, false, false, false, null);
             ch.QueueDeclare(queueToRecoverSuccessfully, false, false, false, null);
 
-            _model.QueueDelete(queueToRecoverSuccessfully);
-            _model.QueueDelete(queueToRecoverWithException);
-            _model.QueueDeclare(queueToRecoverWithException, false, false, false, changedQueueArguments);
+            _channel.QueueDelete(queueToRecoverSuccessfully);
+            _channel.QueueDelete(queueToRecoverWithException);
+            _channel.QueueDeclare(queueToRecoverWithException, false, false, false, changedQueueArguments);
 
             try
             {
@@ -1362,7 +1362,7 @@ namespace RabbitMQ.Client.Unit
             finally
             {
                 //Cleanup
-                _model.QueueDelete(queueToRecoverWithException);
+                _channel.QueueDelete(queueToRecoverWithException);
 
                 conn.Abort();
             }
@@ -1381,25 +1381,25 @@ namespace RabbitMQ.Client.Unit
                 },
                 ExchangeRecoveryExceptionHandler = (re, ex, connection) =>
                 {
-                    using (var model = connection.CreateModel())
+                    using (var channel = connection.CreateChannel())
                     {
-                        model.ExchangeDeclare(re.Name, "topic", false, false);
+                        channel.ExchangeDeclare(re.Name, "topic", false, false);
                     }
                 }
             };
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandler(exceptionHandler);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
 
             var exchangeToRecoverWithException = "recovery.exception.exchange";
             var exchangeToRecoverSuccessfully = "successfully.recovered.exchange";
             ch.ExchangeDeclare(exchangeToRecoverWithException, "direct", false, false);
             ch.ExchangeDeclare(exchangeToRecoverSuccessfully, "direct", false, false);
 
-            _model.ExchangeDelete(exchangeToRecoverSuccessfully);
-            _model.ExchangeDelete(exchangeToRecoverWithException);
-            _model.ExchangeDeclare(exchangeToRecoverWithException, "topic", false, false);
+            _channel.ExchangeDelete(exchangeToRecoverSuccessfully);
+            _channel.ExchangeDelete(exchangeToRecoverWithException);
+            _channel.ExchangeDeclare(exchangeToRecoverWithException, "topic", false, false);
 
             try
             {
@@ -1413,7 +1413,7 @@ namespace RabbitMQ.Client.Unit
             finally
             {
                 //Cleanup
-                _model.ExchangeDelete(exchangeToRecoverWithException);
+                _channel.ExchangeDelete(exchangeToRecoverWithException);
 
                 conn.Abort();
             }
@@ -1436,22 +1436,22 @@ namespace RabbitMQ.Client.Unit
                 },
                 BindingRecoveryExceptionHandler = (b, ex, connection) =>
                 {
-                    using (var model = connection.CreateModel())
+                    using (var channel = connection.CreateChannel())
                     {
-                        model.QueueDeclare(queueWithExceptionBinding, false, false, false, null);
-                        model.QueueBind(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
+                        channel.QueueDeclare(queueWithExceptionBinding, false, false, false, null);
+                        channel.QueueBind(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
                     }
                 }
             };
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandler(exceptionHandler);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
 
             var queueWithRecoveredBinding = "successfully.recovered.queue";
             var bindingToRecoverSuccessfully = "successfully.recovered.binding";
 
-            _model.QueueDeclare(queueWithExceptionBinding, false, false, false, null);
+            _channel.QueueDeclare(queueWithExceptionBinding, false, false, false, null);
 
             ch.ExchangeDeclare(exchange, "direct");
             ch.QueueDeclare(queueWithRecoveredBinding, false, false, false, null);
@@ -1460,9 +1460,9 @@ namespace RabbitMQ.Client.Unit
             ch.QueuePurge(queueWithRecoveredBinding);
             ch.QueuePurge(queueWithExceptionBinding);
 
-            _model.QueueUnbind(queueWithRecoveredBinding, exchange, bindingToRecoverSuccessfully);
-            _model.QueueUnbind(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
-            _model.QueueDelete(queueWithExceptionBinding);
+            _channel.QueueUnbind(queueWithRecoveredBinding, exchange, bindingToRecoverSuccessfully);
+            _channel.QueueUnbind(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
+            _channel.QueueDelete(queueWithExceptionBinding);
 
             try
             {
@@ -1494,9 +1494,9 @@ namespace RabbitMQ.Client.Unit
                 },
                 ConsumerRecoveryExceptionHandler = (c, ex, connection) =>
                 {
-                    using (var model = connection.CreateModel())
+                    using (var channel = connection.CreateChannel())
                     {
-                        model.QueueDeclare(queueWithExceptionConsumer, false, false, false, null);
+                        channel.QueueDeclare(queueWithExceptionConsumer, false, false, false, null);
                     }
 
                     // So topology recovery runs again. This time he missing queue should exist, making
@@ -1507,18 +1507,18 @@ namespace RabbitMQ.Client.Unit
             var latch = new ManualResetEventSlim(false);
             AutorecoveringConnection conn = CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandler(exceptionHandler);
             conn.RecoverySucceeded += (source, ea) => latch.Set();
-            IModel ch = conn.CreateModel();
+            IChannel ch = conn.CreateChannel();
             ch.ConfirmSelect();
 
-            _model.QueueDeclare(queueWithExceptionConsumer, false, false, false, null);
-            _model.QueuePurge(queueWithExceptionConsumer);
+            _channel.QueueDeclare(queueWithExceptionConsumer, false, false, false, null);
+            _channel.QueuePurge(queueWithExceptionConsumer);
 
             var recoverLatch = new ManualResetEventSlim(false);
             var consumerToRecover = new EventingBasicConsumer(ch);
             consumerToRecover.Received += (source, ea) => recoverLatch.Set();
             ch.BasicConsume(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover);
 
-            _model.QueueDelete(queueWithExceptionConsumer);
+            _channel.QueueDelete(queueWithExceptionConsumer);
 
             try
             {
@@ -1549,7 +1549,7 @@ namespace RabbitMQ.Client.Unit
 
         internal bool SendAndConsumeMessage(string queue, string exchange, string routingKey)
         {
-            using (var ch = _conn.CreateModel())
+            using (var ch = _conn.CreateChannel())
             {
                 var latch = new ManualResetEventSlim(false);
 
