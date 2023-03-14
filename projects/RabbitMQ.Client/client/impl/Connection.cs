@@ -82,6 +82,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _mainLoopTask = Task.Run(MainLoop);
             try
             {
+                /*
+                 * TODO FUTURE
+                 * Connection should not happen in ctor, instead change
+                 * the API so that it's awaitable
+                 */
                 OpenAsync().AsTask().GetAwaiter().GetResult();
             }
             catch

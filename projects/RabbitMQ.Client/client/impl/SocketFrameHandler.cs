@@ -306,7 +306,8 @@ namespace RabbitMQ.Client.Impl
                         ArrayPool<byte>.Shared.Return(segment.Array);
                     }
 
-                    await _pipeWriter.FlushAsync().ConfigureAwait(false);
+                    await _pipeWriter.FlushAsync()
+                        .ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

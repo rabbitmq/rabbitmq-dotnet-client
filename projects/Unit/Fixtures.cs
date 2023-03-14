@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Unit
             }
             else
             {
-                _waitSpan = TimeSpan.FromSeconds(20);
+                _waitSpan = TimeSpan.FromSeconds(10);
             }
         }
 
@@ -452,12 +452,21 @@ namespace RabbitMQ.Client.Unit
 
         private static bool IsRunningInCI()
         {
+            if (bool.TryParse(Environment.GetEnvironmentVariable("CI"), out bool ci))
+            {
+                if (ci == true)
+                {
+                    return true;
+                }
+            }
+
             string concourse = Environment.GetEnvironmentVariable("CONCOURSE_CI_BUILD");
             string gha = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
             if (String.IsNullOrWhiteSpace(concourse) && String.IsNullOrWhiteSpace(gha))
             {
                 return false;
             }
+
             return true;
         }
     }
