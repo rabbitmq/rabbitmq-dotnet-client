@@ -272,7 +272,7 @@ namespace RabbitMQ.Client.Impl
             return InboundFrame.TryReadFrameFromPipe(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, out frame);
         }
 
-        public async ValueTask SendHeader()
+        public async ValueTask SendHeaderAsync()
         {
             _pipeWriter.Write(ProtocolHeader);
             await _pipeWriter.FlushAsync().ConfigureAwait(false);
