@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         private readonly string _x = "dotnet.tests.consumer-operation-dispatch.fanout";
-        private readonly List<IModel> _channels = new List<IModel>();
+        private readonly List<IChannel> _channels = new List<IChannel>();
         private readonly List<string> _queues = new List<string>();
         private readonly List<CollectingConsumer> _consumers = new List<CollectingConsumer>();
 
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Unit
 
         public override void Dispose()
         {
-            foreach (IModel ch in _channels)
+            foreach (IChannel ch in _channels)
             {
                 if (ch.IsOpen)
                 {
@@ -80,8 +80,8 @@ namespace RabbitMQ.Client.Unit
         {
             public List<ulong> DeliveryTags { get; }
 
-            public CollectingConsumer(IModel model)
-                : base(model)
+            public CollectingConsumer(IChannel channel)
+                : base(channel)
             {
                 DeliveryTags = new List<ulong>();
             }
@@ -100,19 +100,19 @@ namespace RabbitMQ.Client.Unit
                     counter.Signal();
                 }
 
-                Model.BasicAck(deliveryTag: deliveryTag, multiple: false);
+                Channel.BasicAck(deliveryTag: deliveryTag, multiple: false);
             }
         }
 
         [Fact]
         public void TestDeliveryOrderingWithSingleChannel()
         {
-            IModel Ch = _conn.CreateModel();
+            IChannel Ch = _conn.CreateChannel();
             Ch.ExchangeDeclare(_x, "fanout", durable: false);
 
             for (int i = 0; i < Y; i++)
             {
-                IModel ch = _conn.CreateModel();
+                IChannel ch = _conn.CreateChannel();
                 QueueDeclareOk q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
                 ch.QueueBind(queue: q, exchange: _x, routingKey: "");
                 _channels.Add(ch);
@@ -148,9 +148,9 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestChannelShutdownDoesNotShutDownDispatcher()
         {
-            IModel ch1 = _conn.CreateModel();
-            IModel ch2 = _conn.CreateModel();
-            _model.ExchangeDeclare(_x, "fanout", durable: false);
+            IChannel ch1 = _conn.CreateChannel();
+            IChannel ch2 = _conn.CreateChannel();
+            _channel.ExchangeDeclare(_x, "fanout", durable: false);
 
             string q1 = ch1.QueueDeclare().QueueName;
             string q2 = ch2.QueueDeclare().QueueName;
@@ -182,7 +182,7 @@ namespace RabbitMQ.Client.Unit
                 DuplicateLatch = duplicateLatch;
             }
 
-            public override void HandleModelShutdown(object model, ShutdownEventArgs reason)
+            public override void HandleChannelShutdown(object channel, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
                 if (Latch.Wait(0))
@@ -197,15 +197,15 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestModelShutdownHandler()
+        public void TestChannelShutdownHandler()
         {
             var latch = new ManualResetEventSlim(false);
             var duplicateLatch = new ManualResetEventSlim(false);
-            string q = _model.QueueDeclare().QueueName;
+            string q = _channel.QueueDeclare().QueueName;
             var c = new ShutdownLatchConsumer(latch, duplicateLatch);
 
-            _model.BasicConsume(queue: q, autoAck: true, consumer: c);
-            _model.Close();
+            _channel.BasicConsume(queue: q, autoAck: true, consumer: c);
+            _channel.Close();
             Wait(latch, TimeSpan.FromSeconds(5));
             Assert.False(duplicateLatch.Wait(TimeSpan.FromSeconds(5)),
                            "event handler fired more than once");

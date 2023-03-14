@@ -46,7 +46,7 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class ModelBase : IModel, IRecoverable
+    internal abstract class ChannelBase : IChannel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
 
         internal IConsumerDispatcher ConsumerDispatcher { get; }
 
-        protected ModelBase(ConnectionConfig config, ISession session)
+        protected ChannelBase(ConnectionConfig config, ISession session)
         {
             ContinuationTimeout = config.ContinuationTimeout;
             ConsumerDispatcher = config.DispatchConsumersAsync ?
@@ -80,8 +80,8 @@ namespace RabbitMQ.Client.Impl
             _basicReturnWrapper = new EventingWrapper<BasicReturnEventArgs>("OnBasicReturn", onException);
             _callbackExceptionWrapper = new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
             _flowControlWrapper = new EventingWrapper<FlowControlEventArgs>("OnFlowControl", onException);
-            _modelShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnModelShutdown", onException);
-            _recoveryWrapper = new EventingWrapper<EventArgs>("OnModelRecovery", onException);
+            _channelShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnChannelShutdown", onException);
+            _recoveryWrapper = new EventingWrapper<EventArgs>("OnChannelRecovery", onException);
             session.CommandReceived = HandleCommand;
             session.SessionShutdown += OnSessionShutdown;
             Session = session;
@@ -132,22 +132,22 @@ namespace RabbitMQ.Client.Impl
         }
         private EventingWrapper<FlowControlEventArgs> _flowControlWrapper;
 
-        public event EventHandler<ShutdownEventArgs> ModelShutdown
+        public event EventHandler<ShutdownEventArgs> ChannelShutdown
         {
             add
             {
                 if (IsOpen)
                 {
-                    _modelShutdownWrapper.AddHandler(value);
+                    _channelShutdownWrapper.AddHandler(value);
                 }
                 else
                 {
                     value(this, CloseReason);
                 }
             }
-            remove => _modelShutdownWrapper.RemoveHandler(value);
+            remove => _channelShutdownWrapper.RemoveHandler(value);
         }
-        private EventingWrapper<ShutdownEventArgs> _modelShutdownWrapper;
+        private EventingWrapper<ShutdownEventArgs> _channelShutdownWrapper;
 
         public event EventHandler<EventArgs> Recovery
         {
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Impl
 
         public ISession Session { get; private set; }
 
-        protected void TakeOver(ModelBase other)
+        protected void TakeOver(ChannelBase other)
         {
             _basicAcksWrapper.Takeover(other._basicAcksWrapper);
             _basicNacksWrapper.Takeover(other._basicNacksWrapper);
@@ -185,7 +185,7 @@ namespace RabbitMQ.Client.Impl
             _basicReturnWrapper.Takeover(other._basicReturnWrapper);
             _callbackExceptionWrapper.Takeover(other._callbackExceptionWrapper);
             _flowControlWrapper.Takeover(other._flowControlWrapper);
-            _modelShutdownWrapper.Takeover(other._modelShutdownWrapper);
+            _channelShutdownWrapper.Takeover(other._channelShutdownWrapper);
             _recoveryWrapper.Takeover(other._recoveryWrapper);
         }
 
@@ -197,7 +197,7 @@ namespace RabbitMQ.Client.Impl
         private async Task CloseAsync(ShutdownEventArgs reason, bool abort)
         {
             var k = new ShutdownContinuation();
-            ModelShutdown += k.OnConnectionShutdown;
+            ChannelShutdown += k.OnConnectionShutdown;
 
             try
             {
@@ -233,7 +233,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                ModelShutdown -= k.OnConnectionShutdown;
+                ChannelShutdown -= k.OnConnectionShutdown;
             }
         }
 
@@ -310,7 +310,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                k.HandleModelShutdown(CloseReason);
+                k.HandleChannelShutdown(CloseReason);
             }
         }
 
@@ -333,7 +333,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void ModelRpc<TMethod>(in TMethod method, ProtocolCommandId returnCommandId)
+        protected void ChannelRpc<TMethod>(in TMethod method, ProtocolCommandId returnCommandId)
             where TMethod : struct, IOutgoingAmqpMethod
         {
             var k = new SimpleBlockingRpcContinuation();
@@ -353,7 +353,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected TReturn ModelRpc<TMethod, TReturn>(in TMethod method, ProtocolCommandId returnCommandId, Func<ReadOnlyMemory<byte>, TReturn> createFunc)
+        protected TReturn ChannelRpc<TMethod, TReturn>(in TMethod method, ProtocolCommandId returnCommandId, Func<ReadOnlyMemory<byte>, TReturn> createFunc)
             where TMethod : struct, IOutgoingAmqpMethod
         {
             var k = new SimpleBlockingRpcContinuation();
@@ -378,13 +378,13 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ModelSend<T>(in T method) where T : struct, IOutgoingAmqpMethod
+        protected void ChannelSend<T>(in T method) where T : struct, IOutgoingAmqpMethod
         {
             Session.Transmit(in method);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ModelSend<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body)
+        protected void ChannelSend<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -400,7 +400,7 @@ namespace RabbitMQ.Client.Impl
             _callbackExceptionWrapper.Invoke(this, args);
         }
 
-        ///<summary>Broadcasts notification of the final shutdown of the model.</summary>
+        ///<summary>Broadcasts notification of the final shutdown of the channel.</summary>
         ///<remarks>
         ///<para>
         ///Do not call anywhere other than at the end of OnSessionShutdown.
@@ -412,10 +412,10 @@ namespace RabbitMQ.Client.Impl
         ///shutdown event. See the definition of Enqueue() above.
         ///</para>
         ///</remarks>
-        private void OnModelShutdown(ShutdownEventArgs reason)
+        private void OnChannelShutdown(ShutdownEventArgs reason)
         {
-            _continuationQueue.HandleModelShutdown(reason);
-            _modelShutdownWrapper.Invoke(this, reason);
+            _continuationQueue.HandleChannelShutdown(reason);
+            _channelShutdownWrapper.Invoke(this, reason);
             lock (_confirmLock)
             {
                 if (_confirmsTaskCompletionSources?.Count > 0)
@@ -435,7 +435,7 @@ namespace RabbitMQ.Client.Impl
         {
             ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
-            OnModelShutdown(reason);
+            OnChannelShutdown(reason);
             ConsumerDispatcher.ShutdownAsync(reason).GetAwaiter().GetResult();
         }
 
@@ -910,7 +910,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            ModelSend(in cmd, in basicProperties, body);
+            ChannelSend(in cmd, in basicProperties, body);
         }
 
         public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
@@ -925,7 +925,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            ModelSend(in cmd, in basicProperties, body);
+            ChannelSend(in cmd, in basicProperties, body);
         }
 
         public void UpdateSecret(string newSecret, string reason)

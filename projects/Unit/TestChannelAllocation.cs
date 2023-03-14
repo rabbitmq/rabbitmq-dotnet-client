@@ -38,18 +38,18 @@ using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    public class TestIModelAllocation : IDisposable
+    public class TestIChannelAllocation : IDisposable
     {
         public const int CHANNEL_COUNT = 100;
 
         IConnection _c;
 
-        public int ModelNumber(IModel model)
+        public int ChannelNumber(IChannel channel)
         {
-            return ((AutorecoveringModel)model).ChannelNumber;
+            return ((AutorecoveringChannel)channel).ChannelNumber;
         }
 
-        public TestIModelAllocation()
+        public TestIChannelAllocation()
         {
             _c = new ConnectionFactory().CreateConnection();
 
@@ -62,51 +62,51 @@ namespace RabbitMQ.Client.Unit
         public void AllocateInOrder()
         {
             for (int i = 1; i <= CHANNEL_COUNT; i++)
-                Assert.Equal(i, ModelNumber(_c.CreateModel()));
+                Assert.Equal(i, ChannelNumber(_c.CreateChannel()));
         }
 
         [Fact]
         public void AllocateAfterFreeingLast()
         {
-            IModel ch = _c.CreateModel();
-            Assert.Equal(1, ModelNumber(ch));
+            IChannel ch = _c.CreateChannel();
+            Assert.Equal(1, ChannelNumber(ch));
             ch.Close();
-            ch = _c.CreateModel();
-            Assert.Equal(1, ModelNumber(ch));
+            ch = _c.CreateChannel();
+            Assert.Equal(1, ChannelNumber(ch));
         }
 
-        public int CompareModels(IModel x, IModel y)
+        public int CompareChannels(IChannel x, IChannel y)
         {
-            int i = ModelNumber(x);
-            int j = ModelNumber(y);
+            int i = ChannelNumber(x);
+            int j = ChannelNumber(y);
             return (i < j) ? -1 : (i == j) ? 0 : 1;
         }
 
         [Fact]
         public void AllocateAfterFreeingMany()
         {
-            List<IModel> channels = new List<IModel>();
+            List<IChannel> channels = new List<IChannel>();
 
             for (int i = 1; i <= CHANNEL_COUNT; i++)
-                channels.Add(_c.CreateModel());
+                channels.Add(_c.CreateChannel());
 
-            foreach (IModel channel in channels)
+            foreach (IChannel channel in channels)
             {
                 channel.Close();
             }
 
-            channels = new List<IModel>();
+            channels = new List<IChannel>();
 
             for (int j = 1; j <= CHANNEL_COUNT; j++)
-                channels.Add(_c.CreateModel());
+                channels.Add(_c.CreateChannel());
 
             // In the current implementation the list should actually
             // already be sorted, but we don't want to force that behaviour
-            channels.Sort(CompareModels);
+            channels.Sort(CompareChannels);
 
             int k = 1;
-            foreach (IModel channel in channels)
-                Assert.Equal(k++, ModelNumber(channel));
+            foreach (IChannel channel in channels)
+                Assert.Equal(k++, ChannelNumber(channel));
         }
 
     }

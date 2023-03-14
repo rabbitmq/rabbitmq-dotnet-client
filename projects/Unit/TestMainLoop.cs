@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
 
         private sealed class FaultyConsumer : DefaultBasicConsumer
         {
-            public FaultyConsumer(IModel model) : base(model) { }
+            public FaultyConsumer(IChannel channel) : base(channel) { }
 
             public override void HandleBasicDeliver(string consumerTag,
                                                ulong deliveryTag,
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Unit
         {
             ConnectionFactory connFactory = new ConnectionFactory();
             IConnection c = connFactory.CreateConnection();
-            IModel m = _conn.CreateModel();
+            IChannel m = _conn.CreateChannel();
             object o = new object();
             string q = GenerateQueueName();
             m.QueueDeclare(q, false, false, false, null);
@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.Unit
                 c.Close();
                 Monitor.PulseAll(o);
             };
-            m.BasicConsume(q, true, new FaultyConsumer(_model));
+            m.BasicConsume(q, true, new FaultyConsumer(_channel));
             m.BasicPublish("", q, _encoding.GetBytes("message"));
             WaitOn(o);
 

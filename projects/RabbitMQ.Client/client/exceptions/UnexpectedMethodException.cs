@@ -35,7 +35,7 @@ using RabbitMQ.Client.client.framing;
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary>
-    /// Thrown when the model receives an RPC reply that it wasn't expecting.
+    /// Thrown when the channel receives an RPC reply that it wasn't expecting.
     /// </summary>
     [Serializable]
     public class UnexpectedMethodException : ProtocolViolationException

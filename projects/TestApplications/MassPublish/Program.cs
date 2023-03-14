@@ -24,8 +24,8 @@ namespace MassPublish
 
             var connectionFactory = new ConnectionFactory { DispatchConsumersAsync = true };
             var connection = connectionFactory.CreateConnection();
-            var publisher = connection.CreateModel();
-            var subscriber = connection.CreateModel();
+            var publisher = connection.CreateChannel();
+            var subscriber = connection.CreateChannel();
 
             publisher.ConfirmSelect();
             publisher.ExchangeDeclare("test", ExchangeType.Topic, true, false);

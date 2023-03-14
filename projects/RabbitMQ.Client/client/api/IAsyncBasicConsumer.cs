@@ -8,10 +8,10 @@ namespace RabbitMQ.Client
     public interface IAsyncBasicConsumer
     {
         /// <summary>
-        /// Retrieve the <see cref="IModel"/> this consumer is associated with,
+        /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        IModel Model { get; }
+        IChannel Channel { get; }
 
         /// <summary>
         /// Signalled when the consumer gets cancelled.
@@ -43,7 +43,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// Does nothing with the passed in information.
-        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IModel.BasicAck"/>.
+        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAck"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
         Task HandleBasicDeliver(string consumerTag,
@@ -55,10 +55,10 @@ namespace RabbitMQ.Client
             ReadOnlyMemory<byte> body);
 
         /// <summary>
-        ///  Called when the model shuts down.
+        ///  Called when the channel shuts down.
         ///  </summary>
-        ///  <param name="model"> Common AMQP model.</param>
-        /// <param name="reason"> Information about the reason why a particular model, session, or connection was destroyed.</param>
-        Task HandleModelShutdown(object model, ShutdownEventArgs reason);
+        ///  <param name="channel"> Common AMQP channel.</param>
+        /// <param name="reason"> Information about the reason why a particular channel, session, or connection was destroyed.</param>
+        Task HandleChannelShutdown(object channel, ShutdownEventArgs reason);
     }
 }

@@ -40,24 +40,24 @@ using Xunit.Abstractions;
 namespace RabbitMQ.Client.Unit
 {
 
-    public class TestModelShutdown : IntegrationFixture
+    public class TestChannelShutdown : IntegrationFixture
     {
-        public TestModelShutdown(ITestOutputHelper output) : base(output)
+        public TestChannelShutdown(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
         public void TestConsumerDispatcherShutdown()
         {
-            var m = (AutorecoveringModel)_model;
+            var m = (AutorecoveringChannel)_channel;
             var latch = new ManualResetEventSlim(false);
 
-            _model.ModelShutdown += (model, args) =>
+            _channel.ChannelShutdown += (channel, args) =>
             {
                 latch.Set();
             };
             Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
-            _model.Close();
+            _channel.Close();
             Wait(latch, TimeSpan.FromSeconds(3));
             Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }

@@ -27,12 +27,12 @@ namespace CreateChannel
             var watch = Stopwatch.StartNew();
             _ = Task.Run(() =>
             {
-                var channels = new IModel[ChannelsToOpen];
+                var channels = new IChannel[ChannelsToOpen];
                 for (int i = 0; i < Repeats; i++)
                 {
                     for (int j = 0; j < channels.Length; j++)
                     {
-                        channels[j] = connection.CreateModel();
+                        channels[j] = connection.CreateChannel();
                         channelsOpened++;
                     }
 

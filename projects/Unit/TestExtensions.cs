@@ -47,44 +47,44 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public async Task TestConfirmBarrier()
         {
-            _model.ConfirmSelect();
+            _channel.ConfirmSelect();
             for (int i = 0; i < 10; i++)
             {
-                _model.BasicPublish("", string.Empty);
+                _channel.BasicPublish("", string.Empty);
             }
-            Assert.True(await _model.WaitForConfirmsAsync().ConfigureAwait(false));
+            Assert.True(await _channel.WaitForConfirmsAsync().ConfigureAwait(false));
         }
 
         [Fact]
         public async Task TestConfirmBeforeWait()
         {
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _model.WaitForConfirmsAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _channel.WaitForConfirmsAsync());
         }
 
         [Fact]
         public async Task TestExchangeBinding()
         {
-            _model.ConfirmSelect();
+            _channel.ConfirmSelect();
 
-            _model.ExchangeDeclare("src", ExchangeType.Direct, false, false, null);
-            _model.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
-            string queue = _model.QueueDeclare();
+            _channel.ExchangeDeclare("src", ExchangeType.Direct, false, false, null);
+            _channel.ExchangeDeclare("dest", ExchangeType.Direct, false, false, null);
+            string queue = _channel.QueueDeclare();
 
-            _model.ExchangeBind("dest", "src", string.Empty);
-            _model.ExchangeBind("dest", "src", string.Empty);
-            _model.QueueBind(queue, "dest", string.Empty);
+            _channel.ExchangeBind("dest", "src", string.Empty);
+            _channel.ExchangeBind("dest", "src", string.Empty);
+            _channel.QueueBind(queue, "dest", string.Empty);
 
-            _model.BasicPublish("src", string.Empty);
-            await _model.WaitForConfirmsAsync().ConfigureAwait(false);
-            Assert.NotNull(_model.BasicGet(queue, true));
+            _channel.BasicPublish("src", string.Empty);
+            await _channel.WaitForConfirmsAsync().ConfigureAwait(false);
+            Assert.NotNull(_channel.BasicGet(queue, true));
 
-            _model.ExchangeUnbind("dest", "src", string.Empty);
-            _model.BasicPublish("src", string.Empty);
-            await _model.WaitForConfirmsAsync().ConfigureAwait(false);
-            Assert.Null(_model.BasicGet(queue, true));
+            _channel.ExchangeUnbind("dest", "src", string.Empty);
+            _channel.BasicPublish("src", string.Empty);
+            await _channel.WaitForConfirmsAsync().ConfigureAwait(false);
+            Assert.Null(_channel.BasicGet(queue, true));
 
-            _model.ExchangeDelete("src");
-            _model.ExchangeDelete("dest");
+            _channel.ExchangeDelete("src");
+            _channel.ExchangeDelete("dest");
         }
     }
 }

@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public string Recover(IModel channel)
+        public string Recover(IChannel channel)
         {
             var queueName = IsServerNamed ? string.Empty : Name;
             return channel.QueueDeclare(queueName, _durable, _exclusive, IsAutoDelete, _arguments).QueueName;

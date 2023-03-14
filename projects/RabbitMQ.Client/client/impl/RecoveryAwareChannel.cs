@@ -29,14 +29,13 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal sealed class RecoveryAwareModel : Model
+    internal sealed class RecoveryAwareChannel : Channel
     {
-        public RecoveryAwareModel(ConnectionConfig config, ISession session) : base(config, session)
+        public RecoveryAwareChannel(ConnectionConfig config, ISession session) : base(config, session)
         {
             ActiveDeliveryTagOffset = 0;
             MaxSeenDeliveryTag = 0;
@@ -45,7 +44,7 @@ namespace RabbitMQ.Client.Impl
         public ulong ActiveDeliveryTagOffset { get; private set; }
         public ulong MaxSeenDeliveryTag { get; private set; }
 
-        internal void TakeOver(RecoveryAwareModel other)
+        internal void TakeOver(RecoveryAwareChannel other)
         {
             base.TakeOver(other);
 

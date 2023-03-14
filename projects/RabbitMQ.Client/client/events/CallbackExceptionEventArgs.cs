@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Events
     /// When an exception is thrown from a callback registered with
     /// part of the RabbitMQ .NET client library, it is caught,
     /// packaged into a CallbackExceptionEventArgs, and passed through
-    /// the appropriate IModel's or IConnection's CallbackException
+    /// the appropriate IChannel's or IConnection's CallbackException
     /// event handlers. If an exception is thrown in a
     /// CallbackException handler, it is silently swallowed, as
     /// CallbackException is the last chance to handle these kinds of

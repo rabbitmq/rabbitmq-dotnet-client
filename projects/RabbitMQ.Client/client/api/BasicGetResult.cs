@@ -99,7 +99,7 @@ namespace RabbitMQ.Client
         public ReadOnlyMemory<byte> Body { get; }
 
         /// <summary>
-        /// Retrieve the delivery tag for this message. See also <see cref="IModel.BasicAck"/>.
+        /// Retrieve the delivery tag for this message. See also <see cref="IChannel.BasicAck"/>.
         /// </summary>
         public ulong DeliveryTag { get; }
 

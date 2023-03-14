@@ -9,8 +9,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal sealed class ConsumerDispatcher : ConsumerDispatcherChannelBase
     {
-        public ConsumerDispatcher(ModelBase model, int concurrency)
-            : base(model, concurrency)
+        public ConsumerDispatcher(ChannelBase channel, int concurrency)
+            : base(channel, concurrency)
         {
         }
 
@@ -39,13 +39,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                 consumer.HandleBasicConsumeOk(consumerTag);
                                 break;
                             case WorkType.Shutdown:
-                                consumer.HandleModelShutdown(_model, work.Reason);
+                                consumer.HandleChannelShutdown(_channel, work.Reason);
                                 break;
                         }
                     }
                     catch (Exception e)
                     {
-                        _model.OnCallbackException(CallbackExceptionEventArgs.Build(e, work.WorkType.ToString(), work.Consumer));
+                        _channel.OnCallbackException(CallbackExceptionEventArgs.Build(e, work.WorkType.ToString(), work.Consumer));
                     }
                     finally
                     {

@@ -19,17 +19,17 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Constructor which sets the Model property to the given value.
+        /// Constructor which sets the Channel property to the given value.
         /// </summary>
-        /// <param name="model">Common AMQP model.</param>
-        public AsyncDefaultBasicConsumer(IModel model)
+        /// <param name="channel">Common AMQP channel.</param>
+        public AsyncDefaultBasicConsumer(IChannel channel)
         {
-            Model = model;
+            Channel = channel;
         }
 
         /// <summary>
         /// Retrieve the consumer tags this consumer is registered as; to be used when discussing this consumer
-        /// with the server, for instance with <see cref="IModel.BasicCancel"/>.
+        /// with the server, for instance with <see cref="IChannel.BasicCancel"/>.
         /// </summary>
         public string[] ConsumerTags
         {
@@ -45,7 +45,7 @@ namespace RabbitMQ.Client
         public bool IsRunning { get; protected set; }
 
         /// <summary>
-        /// If our <see cref="IModel"/> shuts down, this property will contain a description of the reason for the
+        /// If our <see cref="IChannel"/> shuts down, this property will contain a description of the reason for the
         /// shutdown. Otherwise it will contain null. See <see cref="ShutdownEventArgs"/>.
         /// </summary>
         public ShutdownEventArgs ShutdownReason { get; protected set; }
@@ -61,10 +61,10 @@ namespace RabbitMQ.Client
         private AsyncEventingWrapper<ConsumerEventArgs> _consumerCancelledWrapper;
 
         /// <summary>
-        /// Retrieve the <see cref="IModel"/> this consumer is associated with,
+        /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        public IModel Model { get; set; }
+        public IChannel Channel { get; set; }
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client
         /// Called each time a message is delivered for this consumer.
         /// </summary>
         /// <remarks>
-        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IModel.BasicAck"/>
+        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IChannel.BasicAck"/>
         /// if consuming in automatic acknowledgement mode.
         /// Subclasses must copy or fully use delivery body before returning.
         /// Accessing the body at a later point is unsafe as its memory can
@@ -120,11 +120,11 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Called when the model (channel) this consumer was registered on terminates.
+        /// Called when the channel (channel) this consumer was registered on terminates.
         /// </summary>
-        /// <param name="model">A channel this consumer was registered on.</param>
+        /// <param name="channel">A channel this consumer was registered on.</param>
         /// <param name="reason">Shutdown context.</param>
-        public virtual Task HandleModelShutdown(object model, ShutdownEventArgs reason)
+        public virtual Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
             return OnCancel(_consumerTags.ToArray());
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
-        void IBasicConsumer.HandleModelShutdown(object model, ShutdownEventArgs reason)
+        void IBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }

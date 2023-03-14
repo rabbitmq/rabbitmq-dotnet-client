@@ -61,9 +61,9 @@ namespace RabbitMQ.Client
     ///     //
     ///     IConnection conn = factory.CreateConnection();
     ///     //
-    ///     IModel ch = conn.CreateModel();
+    ///     IChannel ch = conn.CreateChannel();
     ///     //
-    ///     // ... use ch's IModel methods ...
+    ///     // ... use ch's IChannel methods ...
     ///     //
     ///     ch.Close(Constants.ReplySuccess, "Closing the channel");
     ///     conn.Close(Constants.ReplySuccess, "Closing the connection");

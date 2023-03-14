@@ -35,10 +35,10 @@ using RabbitMQ.Client.client.impl;
 
 namespace RabbitMQ.Client
 {
-    public static class IModelExtensions
+    public static class IChannelExtensions
     {
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model,
+        public static string BasicConsume(this IChannel channel,
             IBasicConsumer consumer,
             string queue,
             bool autoAck = false,
@@ -47,32 +47,32 @@ namespace RabbitMQ.Client
             bool exclusive = false,
             IDictionary<string, object> arguments = null)
         {
-            return model.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            return channel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model, string queue, bool autoAck, IBasicConsumer consumer)
+        public static string BasicConsume(this IChannel channel, string queue, bool autoAck, IBasicConsumer consumer)
         {
-            return model.BasicConsume(queue, autoAck, "", false, false, null, consumer);
+            return channel.BasicConsume(queue, autoAck, "", false, false, null, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model, string queue,
+        public static string BasicConsume(this IChannel channel, string queue,
             bool autoAck,
             string consumerTag,
             IBasicConsumer consumer)
         {
-            return model.BasicConsume(queue, autoAck, consumerTag, false, false, null, consumer);
+            return channel.BasicConsume(queue, autoAck, consumerTag, false, false, null, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IModel model, string queue,
+        public static string BasicConsume(this IChannel channel, string queue,
             bool autoAck,
             string consumerTag,
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            return model.BasicConsume(queue, autoAck, consumerTag, false, false, arguments, consumer);
+            return channel.BasicConsume(queue, autoAck, consumerTag, false, false, arguments, consumer);
         }
 
 #nullable enable
@@ -82,119 +82,119 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
-        public static void BasicPublish<T>(this IModel model, PublicationAddress addr, in T basicProperties, ReadOnlyMemory<byte> body)
+        public static void BasicPublish<T>(this IChannel channel, PublicationAddress addr, in T basicProperties, ReadOnlyMemory<byte> body)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
-            model.BasicPublish(addr.ExchangeName, addr.RoutingKey, in basicProperties, body);
+            channel.BasicPublish(addr.ExchangeName, addr.RoutingKey, in basicProperties, body);
         }
 
-        public static void BasicPublish(this IModel model, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => model.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
+        public static void BasicPublish(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            => channel.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
 
-        public static void BasicPublish(this IModel model, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => model.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
+        public static void BasicPublish(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            => channel.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
 #nullable disable
 
         /// <summary>
         /// (Spec method) Declare a queue.
         /// </summary>
-        public static QueueDeclareOk QueueDeclare(this IModel model, string queue = "", bool durable = false, bool exclusive = true,
+        public static QueueDeclareOk QueueDeclare(this IChannel channel, string queue = "", bool durable = false, bool exclusive = true,
             bool autoDelete = true, IDictionary<string, object> arguments = null)
         {
-            return model.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            return channel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
 
         /// <summary>
         /// (Extension method) Bind an exchange to an exchange.
         /// </summary>
-        public static void ExchangeBind(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
+        public static void ExchangeBind(this IChannel channel, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
         {
-            model.ExchangeBind(destination, source, routingKey, arguments);
+            channel.ExchangeBind(destination, source, routingKey, arguments);
         }
 
         /// <summary>
         /// (Extension method) Like exchange bind but sets nowait to true.
         /// </summary>
-        public static void ExchangeBindNoWait(this IModel model, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
+        public static void ExchangeBindNoWait(this IChannel channel, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
         {
-            model.ExchangeBindNoWait(destination, source, routingKey, arguments);
+            channel.ExchangeBindNoWait(destination, source, routingKey, arguments);
         }
 
         /// <summary>
         /// (Spec method) Declare an exchange.
         /// </summary>
-        public static void ExchangeDeclare(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
+        public static void ExchangeDeclare(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            model.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+            channel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
         }
 
         /// <summary>
         /// (Extension method) Like ExchangeDeclare but sets nowait to true.
         /// </summary>
-        public static void ExchangeDeclareNoWait(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false,
+        public static void ExchangeDeclareNoWait(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            model.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+            channel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
         }
 
         /// <summary>
         /// (Spec method) Unbinds an exchange.
         /// </summary>
-        public static void ExchangeUnbind(this IModel model, string destination,
+        public static void ExchangeUnbind(this IChannel channel, string destination,
             string source,
             string routingKey,
             IDictionary<string, object> arguments = null)
         {
-            model.ExchangeUnbind(destination, source, routingKey, arguments);
+            channel.ExchangeUnbind(destination, source, routingKey, arguments);
         }
 
         /// <summary>
         /// (Spec method) Deletes an exchange.
         /// </summary>
-        public static void ExchangeDelete(this IModel model, string exchange, bool ifUnused = false)
+        public static void ExchangeDelete(this IChannel channel, string exchange, bool ifUnused = false)
         {
-            model.ExchangeDelete(exchange, ifUnused);
+            channel.ExchangeDelete(exchange, ifUnused);
         }
 
         /// <summary>
         /// (Extension method) Like ExchangeDelete but sets nowait to true.
         /// </summary>
-        public static void ExchangeDeleteNoWait(this IModel model, string exchange, bool ifUnused = false)
+        public static void ExchangeDeleteNoWait(this IChannel channel, string exchange, bool ifUnused = false)
         {
-            model.ExchangeDeleteNoWait(exchange, ifUnused);
+            channel.ExchangeDeleteNoWait(exchange, ifUnused);
         }
 
         /// <summary>
         /// (Spec method) Binds a queue.
         /// </summary>
-        public static void QueueBind(this IModel model, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        public static void QueueBind(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
         {
-            model.QueueBind(queue, exchange, routingKey, arguments);
+            channel.QueueBind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
         /// (Spec method) Deletes a queue.
         /// </summary>
-        public static uint QueueDelete(this IModel model, string queue, bool ifUnused = false, bool ifEmpty = false)
+        public static uint QueueDelete(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false)
         {
-            return model.QueueDelete(queue, ifUnused, ifEmpty);
+            return channel.QueueDelete(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
         /// (Extension method) Like QueueDelete but sets nowait to true.
         /// </summary>
-        public static void QueueDeleteNoWait(this IModel model, string queue, bool ifUnused = false, bool ifEmpty = false)
+        public static void QueueDeleteNoWait(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false)
         {
-            model.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
+            channel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
         }
 
         /// <summary>
         /// (Spec method) Unbinds a queue.
         /// </summary>
-        public static void QueueUnbind(this IModel model, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        public static void QueueUnbind(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
         {
-            model.QueueUnbind(queue, exchange, routingKey, arguments);
+            channel.QueueUnbind(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -205,30 +205,30 @@ namespace RabbitMQ.Client
         /// method does nothing but wait for the in-progress close
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
-        /// In comparison to normal <see cref="Close(IModel)"/> method, <see cref="Abort(IModel)"/> will not throw
-        /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing model.
+        /// In comparison to normal <see cref="Close(IChannel)"/> method, <see cref="Abort(IChannel)"/> will not throw
+        /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing channel.
         /// </remarks>
-        public static void Abort(this IModel model)
+        public static void Abort(this IChannel channel)
         {
-            model.Close(Constants.ReplySuccess, "Goodbye", true);
+            channel.Close(Constants.ReplySuccess, "Goodbye", true);
         }
 
         /// <summary>
         /// Abort this session.
         /// </summary>
         /// <remarks>
-        /// The method behaves in the same way as <see cref="Abort(IModel)"/>, with the only
-        /// difference that the model is closed with the given model close code and message.
+        /// The method behaves in the same way as <see cref="Abort(IChannel)"/>, with the only
+        /// difference that the channel is closed with the given channel close code and message.
         /// <para>
         /// The close code (See under "Reply Codes" in the AMQP specification)
         /// </para>
         /// <para>
-        /// A message indicating the reason for closing the model
+        /// A message indicating the reason for closing the channel
         /// </para>
         /// </remarks>
-        public static void Abort(this IModel model, ushort replyCode, string replyText)
+        public static void Abort(this IChannel channel, ushort replyCode, string replyText)
         {
-            model.Close(replyCode, replyText, true);
+            channel.Close(replyCode, replyText, true);
         }
 
         /// <summary>Close this session.</summary>
@@ -238,26 +238,26 @@ namespace RabbitMQ.Client
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
         /// </remarks>
-        public static void Close(this IModel model)
+        public static void Close(this IChannel channel)
         {
-            model.Close(Constants.ReplySuccess, "Goodbye", false);
+            channel.Close(Constants.ReplySuccess, "Goodbye", false);
         }
 
         /// <summary>Close this session.</summary>
         /// <remarks>
         /// The method behaves in the same way as Close(), with the only
-        /// difference that the model is closed with the given model
+        /// difference that the channel is closed with the given channel
         /// close code and message.
         /// <para>
         /// The close code (See under "Reply Codes" in the AMQP specification)
         /// </para>
         /// <para>
-        /// A message indicating the reason for closing the model
+        /// A message indicating the reason for closing the channel
         /// </para>
         /// </remarks>
-        public static void Close(this IModel model, ushort replyCode, string replyText)
+        public static void Close(this IChannel channel, ushort replyCode, string replyText)
         {
-            model.Close(replyCode, replyText, false);
+            channel.Close(replyCode, replyText, false);
         }
     }
 }

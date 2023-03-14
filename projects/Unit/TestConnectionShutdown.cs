@@ -49,10 +49,10 @@ namespace RabbitMQ.Client.Unit
         public void TestCleanClosureWithSocketClosedOutOfBand()
         {
             _conn = CreateAutorecoveringConnection();
-            _model = _conn.CreateModel();
+            _channel = _conn.CreateChannel();
 
             var latch = new ManualResetEventSlim(false);
-            _model.ModelShutdown += (model, args) =>
+            _channel.ChannelShutdown += (channel, args) =>
             {
                 latch.Set();
             };
@@ -68,10 +68,10 @@ namespace RabbitMQ.Client.Unit
         public void TestAbortWithSocketClosedOutOfBand()
         {
             _conn = CreateAutorecoveringConnection();
-            _model = _conn.CreateModel();
+            _channel = _conn.CreateChannel();
 
             var latch = new ManualResetEventSlim(false);
-            _model.ModelShutdown += (model, args) =>
+            _channel.ChannelShutdown += (channel, args) =>
             {
                 latch.Set();
             };
@@ -88,10 +88,10 @@ namespace RabbitMQ.Client.Unit
         public void TestDisposedWithSocketClosedOutOfBand()
         {
             _conn = CreateAutorecoveringConnection();
-            _model = _conn.CreateModel();
+            _channel = _conn.CreateChannel();
 
             var latch = new ManualResetEventSlim(false);
-            _model.ModelShutdown += (model, args) =>
+            _channel.ChannelShutdown += (channel, args) =>
             {
                 latch.Set();
             };
@@ -108,7 +108,7 @@ namespace RabbitMQ.Client.Unit
         {
             var latch = new ManualResetEventSlim(false);
 
-            _model.ModelShutdown += (model, args) =>
+            _channel.ChannelShutdown += (channel, args) =>
             {
                 latch.Set();
             };
@@ -120,10 +120,10 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestConsumerDispatcherShutdown()
         {
-            var m = (AutorecoveringModel)_model;
+            var m = (AutorecoveringChannel)_channel;
             var latch = new ManualResetEventSlim(false);
 
-            _model.ModelShutdown += (model, args) =>
+            _channel.ChannelShutdown += (channel, args) =>
             {
                 latch.Set();
             };

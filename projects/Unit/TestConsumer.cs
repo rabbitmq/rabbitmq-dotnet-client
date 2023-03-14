@@ -17,7 +17,7 @@ namespace RabbitMQ.Client.Unit
         {
             var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
             using (IConnection c = cf.CreateConnection())
-            using (IModel m = c.CreateModel())
+            using (IChannel m = c.CreateChannel())
             {
                 QueueDeclareOk q = m.QueueDeclare();
                 const string publish1 = "sync-hi-1";

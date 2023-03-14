@@ -129,7 +129,7 @@ namespace RabbitMQ.Client.Unit
         {
             using (IConnection conn = cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}"))
             {
-                using (IModel ch = conn.CreateModel())
+                using (IChannel ch = conn.CreateChannel())
                 {
                     ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
                     string qName = ch.QueueDeclare();

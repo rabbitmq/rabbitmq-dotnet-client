@@ -4,7 +4,7 @@ using System.Text;
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Caches a string's byte representation to be used for certain methods like IModel.BasicPublish/>.
+    /// Caches a string's byte representation to be used for certain methods like IChannel.BasicPublish/>.
     /// </summary>
     public sealed class CachedString
     {

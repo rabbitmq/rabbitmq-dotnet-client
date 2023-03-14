@@ -162,10 +162,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IProtocol Protocol => Endpoint.Protocol;
 
-        public RecoveryAwareModel CreateNonRecoveringModel()
+        public RecoveryAwareChannel CreateNonRecoveringChannel()
         {
             ISession session = InnerConnection.CreateSession();
-            var result = new RecoveryAwareModel(_config, session);
+            var result = new RecoveryAwareChannel(_config, session);
             result._Private_ChannelOpen();
             return result;
         }
@@ -197,10 +197,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public IModel CreateModel()
+        public IChannel CreateChannel()
         {
             EnsureIsOpen();
-            AutorecoveringModel m = new AutorecoveringModel(this, CreateNonRecoveringModel());
+            AutorecoveringChannel m = new AutorecoveringChannel(this, CreateNonRecoveringChannel());
             RecordChannel(m);
             return m;
         }
@@ -222,7 +222,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             finally
             {
-                _models.Clear();
+                _channels.Clear();
                 _innerConnection = null;
                 _disposed = true;
             }

@@ -46,18 +46,18 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestBindOnNonExistingQueue()
         {
-            OperationInterruptedException exception = Assert.Throws<OperationInterruptedException>(() => _model.QueueBind("NonExistingQueue", "", string.Empty));
+            OperationInterruptedException exception = Assert.Throws<OperationInterruptedException>(() => _channel.QueueBind("NonExistingQueue", "", string.Empty));
             Assert.True(exception.Message.Contains("403"), $"Message doesn't contain the expected 403 part: {exception.Message}");
-            Assert.False(_model.IsOpen, "Channel should be closed due to the soft error");
+            Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");
         }
 
         [Fact]
         public void TestBindOnNonExistingExchange()
         {
-            OperationInterruptedException exception = Assert.Throws<OperationInterruptedException>(() => _model.ExchangeBind("NonExistingQueue", "", string.Empty));
+            OperationInterruptedException exception = Assert.Throws<OperationInterruptedException>(() => _channel.ExchangeBind("NonExistingQueue", "", string.Empty));
             Assert.True(exception.Message.Contains("403"), $"Message doesn't contain the expected 403 part: {exception.Message}");
-            Assert.False(_model.IsOpen, "Channel should be closed due to the soft error");
+            Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");
         }
 
@@ -66,11 +66,11 @@ namespace RabbitMQ.Client.Unit
         {
             OperationInterruptedException exception = Assert.Throws<OperationInterruptedException>(() =>
             {
-                var consumer = new EventingBasicConsumer(_model); _model.BasicConsume("NonExistingQueue", true, consumer);
+                var consumer = new EventingBasicConsumer(_channel); _channel.BasicConsume("NonExistingQueue", true, consumer);
             });
 
             Assert.True(exception.Message.Contains("404"), $"Message doesn't contain the expected 404 part: {exception.Message}");
-            Assert.False(_model.IsOpen, "Channel should be closed due to the soft error");
+            Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");
         }
     }

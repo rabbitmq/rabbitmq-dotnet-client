@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
-        private readonly ModelBase _model0;
+        private readonly ChannelBase _channel0;
         private readonly MainSession _session0;
 
         private Guid _id = Guid.NewGuid();
@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this);
-            _model0 = new Model(_config, _session0); ;
+            _channel0 = new Channel(_config, _session0); ;
 
             ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)
             {
@@ -222,13 +222,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
         }
 
-        public IModel CreateModel()
+        public IChannel CreateChannel()
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = new Model(_config, session);
-            model._Private_ChannelOpen();
-            return model;
+            var channel = new Channel(_config, session);
+            channel._Private_ChannelOpen();
+            return channel;
         }
 
         internal ISession CreateSession()
@@ -310,7 +310,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #pragma warning restore 0168
                 catch (IOException ioe)
                 {
-                    if (_model0.CloseReason is null)
+                    if (_channel0.CloseReason is null)
                     {
                         if (!abort)
                         {
@@ -365,8 +365,8 @@ namespace RabbitMQ.Client.Framing.Impl
             MaybeStopHeartbeatTimers();
 
             _frameHandler.Close();
-            _model0.SetCloseReason(CloseReason);
-            _model0.FinishClose();
+            _channel0.SetCloseReason(CloseReason);
+            _channel0.FinishClose();
             RabbitMqClientEventSource.Log.ConnectionClosed();
         }
 

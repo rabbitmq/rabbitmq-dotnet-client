@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Unit
             var continuationTimeout = TimeSpan.FromSeconds(777);
             using (IConnection c = CreateConnectionWithContinuationTimeout(true, continuationTimeout))
             {
-                Assert.Equal(continuationTimeout, c.CreateModel().ContinuationTimeout);
+                Assert.Equal(continuationTimeout, c.CreateChannel().ContinuationTimeout);
             }
         }
 
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Unit
             var continuationTimeout = TimeSpan.FromSeconds(777);
             using (IConnection c = CreateConnectionWithContinuationTimeout(false, continuationTimeout))
             {
-                Assert.Equal(continuationTimeout, c.CreateModel().ContinuationTimeout);
+                Assert.Equal(continuationTimeout, c.CreateChannel().ContinuationTimeout);
             }
         }
     }

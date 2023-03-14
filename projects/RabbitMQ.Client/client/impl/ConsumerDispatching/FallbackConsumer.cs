@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal sealed class FallbackConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
-        public IModel? Model { get; } = null;
+        public IChannel? Channel { get; } = null;
 
         event AsyncEventHandler<ConsumerEventArgs> IAsyncBasicConsumer.ConsumerCancelled
         {
@@ -43,9 +43,9 @@ namespace RabbitMQ.Client.ConsumerDispatching
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicDeliver)} for tag {consumerTag}");
         }
 
-        void IBasicConsumer.HandleModelShutdown(object model, ShutdownEventArgs reason)
+        void IBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
-            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleModelShutdown)}");
+            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleChannelShutdown)}");
         }
 
         Task IAsyncBasicConsumer.HandleBasicCancel(string consumerTag)
@@ -73,9 +73,9 @@ namespace RabbitMQ.Client.ConsumerDispatching
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleModelShutdown(object model, ShutdownEventArgs reason)
+        Task IAsyncBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
-            ((IBasicConsumer)this).HandleModelShutdown(model, reason);
+            ((IBasicConsumer)this).HandleChannelShutdown(channel, reason);
             return Task.CompletedTask;
         }
     }

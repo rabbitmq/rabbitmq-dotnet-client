@@ -47,14 +47,14 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestEventingConsumerRegistrationEvents()
         {
-            string q = _model.QueueDeclare();
+            string q = _channel.QueueDeclare();
 
             var registeredLatch = new ManualResetEventSlim(false);
             object registeredSender = null;
             var unregisteredLatch = new ManualResetEventSlim(false);
             object unregisteredSender = null;
 
-            EventingBasicConsumer ec = new EventingBasicConsumer(_model);
+            EventingBasicConsumer ec = new EventingBasicConsumer(_channel);
             ec.Registered += (s, args) =>
             {
                 registeredSender = s;
@@ -67,30 +67,30 @@ namespace RabbitMQ.Client.Unit
                 unregisteredLatch.Set();
             };
 
-            string tag = _model.BasicConsume(q, false, ec);
+            string tag = _channel.BasicConsume(q, false, ec);
             Wait(registeredLatch);
 
             Assert.NotNull(registeredSender);
             Assert.Equal(ec, registeredSender);
-            Assert.Equal(_model, ((EventingBasicConsumer)registeredSender).Model);
+            Assert.Equal(_channel, ((EventingBasicConsumer)registeredSender).Channel);
 
-            _model.BasicCancel(tag);
+            _channel.BasicCancel(tag);
             Wait(unregisteredLatch);
             Assert.NotNull(unregisteredSender);
             Assert.Equal(ec, unregisteredSender);
-            Assert.Equal(_model, ((EventingBasicConsumer)unregisteredSender).Model);
+            Assert.Equal(_channel, ((EventingBasicConsumer)unregisteredSender).Channel);
         }
 
         [Fact]
         public void TestEventingConsumerDeliveryEvents()
         {
-            string q = _model.QueueDeclare();
+            string q = _channel.QueueDeclare();
             object o = new object();
 
             bool receivedInvoked = false;
             object receivedSender = null;
 
-            EventingBasicConsumer ec = new EventingBasicConsumer(_model);
+            EventingBasicConsumer ec = new EventingBasicConsumer(_channel);
             ec.Received += (s, args) =>
             {
                 receivedInvoked = true;
@@ -99,14 +99,14 @@ namespace RabbitMQ.Client.Unit
                 Monitor.PulseAll(o);
             };
 
-            _model.BasicConsume(q, true, ec);
-            _model.BasicPublish("", q, _encoding.GetBytes("msg"));
+            _channel.BasicConsume(q, true, ec);
+            _channel.BasicPublish("", q, _encoding.GetBytes("msg"));
 
             WaitOn(o);
             Assert.True(receivedInvoked);
             Assert.NotNull(receivedSender);
             Assert.Equal(ec, receivedSender);
-            Assert.Equal(_model, ((EventingBasicConsumer)receivedSender).Model);
+            Assert.Equal(_channel, ((EventingBasicConsumer)receivedSender).Channel);
 
             bool shutdownInvoked = false;
             object shutdownSender = null;
@@ -119,13 +119,13 @@ namespace RabbitMQ.Client.Unit
                 Monitor.PulseAll(o);
             };
 
-            _model.Close();
+            _channel.Close();
             WaitOn(o);
 
             Assert.True(shutdownInvoked);
             Assert.NotNull(shutdownSender);
             Assert.Equal(ec, shutdownSender);
-            Assert.Equal(_model, ((EventingBasicConsumer)shutdownSender).Model);
+            Assert.Equal(_channel, ((EventingBasicConsumer)shutdownSender).Channel);
         }
     }
 }

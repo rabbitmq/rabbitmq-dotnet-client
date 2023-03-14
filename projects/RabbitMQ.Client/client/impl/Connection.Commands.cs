@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         public void UpdateSecret(string newSecret, string reason)
         {
-            _model0.UpdateSecret(newSecret, reason);
+            _channel0.UpdateSecret(newSecret, reason);
         }
 
         internal void NotifyReceivedCloseOk()
@@ -74,14 +74,14 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             RabbitMqClientEventSource.Log.ConnectionOpened();
             StartAndTune();
-            _model0.ConnectionOpen(_config.VirtualHost);
+            _channel0.ConnectionOpen(_config.VirtualHost);
         }
 
         private void StartAndTune()
         {
             var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
-            _model0.m_connectionStartCell = connectionStartCell;
-            _model0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
+            _channel0.m_connectionStartCell = connectionStartCell;
+            _channel0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.SendHeader();
 
@@ -117,14 +117,14 @@ namespace RabbitMQ.Client.Framing.Impl
                     ConnectionSecureOrTune res;
                     if (challenge is null)
                     {
-                        res = _model0.ConnectionStartOk(ClientProperties,
+                        res = _channel0.ConnectionStartOk(ClientProperties,
                             mechanismFactory.Name,
                             response,
                             "en_US");
                     }
                     else
                     {
-                        res = _model0.ConnectionSecureOk(response);
+                        res = _channel0.ConnectionSecureOk(response);
                     }
 
                     if (res.m_challenge is null)
@@ -159,7 +159,7 @@ namespace RabbitMQ.Client.Framing.Impl
             uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
-            _model0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
+            _channel0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
 
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();

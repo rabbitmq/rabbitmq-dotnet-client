@@ -36,7 +36,7 @@ namespace RabbitMQ.Client.Impl
 #nullable enable
     internal readonly struct RecordedConsumer
     {
-        public AutorecoveringModel Channel { get; }
+        public AutorecoveringChannel Channel { get; }
         public IBasicConsumer Consumer { get; }
         public string Queue { get; }
         public bool AutoAck { get; }
@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Impl
         public bool Exclusive { get; }
         public IDictionary<string, object>? Arguments { get; }
 
-        public RecordedConsumer(AutorecoveringModel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IDictionary<string, object>? arguments)
+        public RecordedConsumer(AutorecoveringChannel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IDictionary<string, object>? arguments)
         {
             Channel = channel;
             Consumer = consumer;
@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Impl
             return new RecordedConsumer(old.Channel, old.Consumer, newQueueName, old.AutoAck, old.ConsumerTag, old.Exclusive, old.Arguments);
         }
 
-        public string Recover(IModel channel)
+        public string Recover(IChannel channel)
         {
             return channel.BasicConsume(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
         }

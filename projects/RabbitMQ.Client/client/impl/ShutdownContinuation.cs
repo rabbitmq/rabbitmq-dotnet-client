@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Impl
         // "match" IConnection, even though there's no context in
         // which the program could Go Wrong were it to accept the
         // code. The same problem appears for
-        // ModelShutdownEventHandler. The .NET 1.1 compiler complains
+        // ChannelShutdownEventHandler. The .NET 1.1 compiler complains
         // about these two cases, and the .NET 2.0 compiler does not -
         // presumably they improved the type checker with the new
         // release of the compiler.

@@ -34,7 +34,7 @@ using System;
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Information about the reason why a particular model, session, or connection was destroyed.
+    /// Information about the reason why a particular channel, session, or connection was destroyed.
     /// </summary>
     /// <remarks>
     /// The <see cref="ClassId"/> and <see cref="Initiator"/> properties should be used to determine the originator of the shutdown event.
