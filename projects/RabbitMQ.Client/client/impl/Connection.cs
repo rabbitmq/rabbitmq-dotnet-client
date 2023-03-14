@@ -408,7 +408,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 task.AsTask().GetAwaiter().GetResult();
             }
         }
-        
+
         internal ValueTask WriteAsync(ReadOnlyMemory<byte> memory)
         {
             return _frameHandler.WriteAsync(memory);

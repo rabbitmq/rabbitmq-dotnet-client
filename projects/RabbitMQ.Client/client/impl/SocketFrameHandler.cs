@@ -62,6 +62,28 @@ namespace RabbitMQ.Client.Impl
             }
 #endif
         }
+
+        public static async ValueTask TimeoutAfter(this ValueTask task, TimeSpan timeout)
+        {
+            if (!task.IsCompletedSuccessfully)
+            {
+                var actualTask = task.AsTask();
+#if NET6_0_OR_GREATER
+                await actualTask.WaitAsync(timeout).ConfigureAwait(false);
+#else
+                if (actualTask == await Task.WhenAny(actualTask, Task.Delay(timeout)).ConfigureAwait(false))
+                {
+                    await actualTask.ConfigureAwait(false);
+                }
+                else
+                {
+                    Task supressErrorTask =
+     actualTask.ContinueWith((t, s) => t.Exception.Handle(e => true), null, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                    throw new TimeoutException();
+                }
+#endif
+            }
+        }
     }
 
     internal sealed class SocketFrameHandler : IFrameHandler

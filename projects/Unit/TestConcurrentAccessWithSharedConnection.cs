@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Unit
         {
             TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
         }
-        
+
         [Fact]
         public Task TestConcurrentChannelOpenAndPublishingWithBlankMessagesAsync()
         {
@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Unit
         {
             TestConcurrentChannelOpenAndPublishingWithBody(new byte[length], iterations);
         }
-        
+
         internal Task TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(int length, int iterations = 30)
         {
             return TestConcurrentChannelOpenAndPublishingWithBodyAsync(new byte[length], iterations);
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.Unit
                 ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult();
             }, iterations);
         }
-        
+
         internal Task TestConcurrentChannelOpenAndPublishingWithBodyAsync(byte[] body, int iterations)
         {
             return TestConcurrentChannelOperationsAsync(async (conn) =>
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client.Unit
         {
             TestConcurrentChannelOperations(actions, iterations, _completionTimeout);
         }
-        
+
         internal Task TestConcurrentChannelOperationsAsync(Func<IConnection, Task> actions, int iterations)
         {
             return TestConcurrentChannelOperationsAsync(actions, iterations, _completionTimeout);
@@ -198,7 +198,7 @@ namespace RabbitMQ.Client.Unit
             // closing the connection
             Assert.True(_conn.IsOpen);
         }
-        
+
         internal async Task TestConcurrentChannelOperationsAsync(Func<IConnection, Task> actions,
             int iterations, TimeSpan timeout)
         {

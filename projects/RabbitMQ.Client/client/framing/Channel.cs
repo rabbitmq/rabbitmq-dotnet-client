@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             ChannelSend(new ConnectionOpen(virtualHost));
         }
-        
+
         public override ValueTask _Private_ConnectionOpenAsync(string virtualHost)
         {
             return ModelSendAsync(new ConnectionOpen(virtualHost));

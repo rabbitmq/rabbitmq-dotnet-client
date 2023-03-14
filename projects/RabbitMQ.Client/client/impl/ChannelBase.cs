@@ -241,29 +241,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal void ConnectionOpen(string virtualHost)
+        internal async ValueTask ConnectionOpenAsync(string virtualHost)
         {
-            var k = new SimpleBlockingRpcContinuation();
-            lock (_rpcLock)
-            {
-                Enqueue(k);
-                try
-                {
-                    _Private_ConnectionOpen(virtualHost);
-                }
-                catch (AlreadyClosedException)
-                {
-                    // let continuation throw OperationInterruptedException,
-                    // which is a much more suitable exception before connection
-                    // negotiation finishes
-                }
-                k.GetReply(HandshakeContinuationTimeout);
-            }
-        }
-        
-        internal ValueTask ConnectionOpenAsync(string virtualHost)
-        {
-            return _Private_ConnectionOpenAsync(virtualHost);
+            await _Private_ConnectionOpenAsync(virtualHost).TimeoutAfter(HandshakeContinuationTimeout);
         }
 
         internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response)
@@ -401,7 +381,7 @@ namespace RabbitMQ.Client.Impl
         {
             Session.Transmit(in method);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected ValueTask ModelSendAsync<T>(in T method) where T : struct, IOutgoingAmqpMethod
         {
@@ -419,7 +399,7 @@ namespace RabbitMQ.Client.Impl
             }
             Session.Transmit(in method, in header, body);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod
@@ -429,7 +409,7 @@ namespace RabbitMQ.Client.Impl
             {
                 _flowControlBlock.Wait();
             }
-            
+
             return Session.TransmitAsync(in method, in header, body);
         }
 
@@ -950,7 +930,7 @@ namespace RabbitMQ.Client.Impl
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
             ChannelSend(in cmd, in basicProperties, body);
         }
-        
+
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
@@ -965,7 +945,7 @@ namespace RabbitMQ.Client.Impl
             var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
             return ModelSendAsync(in cmd, in basicProperties, body);
         }
-        
+
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
