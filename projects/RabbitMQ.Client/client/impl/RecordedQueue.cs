@@ -40,11 +40,11 @@ namespace RabbitMQ.Client.Impl
         private readonly IDictionary<string, object>? _arguments;
         private readonly bool _durable;
         private readonly bool _exclusive;
-        private readonly bool _isAutoDelete;
+        private readonly bool _autoDelete;
         private readonly bool _isServerNamed;
 
         public string Name => _name;
-        public bool AutoDelete => _isAutoDelete;
+        public bool AutoDelete => _autoDelete;
         public bool IsServerNamed => _isServerNamed;
         public bool Durable => _durable;
         public bool Exclusive => _exclusive;
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client.Impl
             _isServerNamed = isServerNamed;
             _durable = durable;
             _exclusive = exclusive;
-            _isAutoDelete = autoDelete;
+            _autoDelete = autoDelete;
             _arguments = arguments;
         }
 
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
             _isServerNamed = old._isServerNamed;
             _durable = old._durable;
             _exclusive = old._exclusive;
-            _isAutoDelete = old._isAutoDelete;
+            _autoDelete = old._autoDelete;
             _arguments = old._arguments;
         }
 

@@ -39,21 +39,21 @@ namespace RabbitMQ.Client.Impl
         private readonly string _name;
         private readonly string _type;
         private readonly bool _durable;
-        private readonly bool _isAutoDelete;
+        private readonly bool _autoDelete;
         private readonly IDictionary<string, object>? _arguments;
 
         public string Name => _name;
-        public bool AutoDelete => _isAutoDelete;
+        public bool AutoDelete => _autoDelete;
         public string Type => _type;
         public bool Durable => _durable;
         public IDictionary<string, object>? Arguments => _arguments;
 
-        public RecordedExchange(string name, string type, bool durable, bool isAutoDelete, IDictionary<string, object>? arguments)
+        public RecordedExchange(string name, string type, bool durable, bool autoDelete, IDictionary<string, object>? arguments)
         {
             _name = name;
             _type = type;
             _durable = durable;
-            _isAutoDelete = isAutoDelete;
+            _autoDelete = autoDelete;
             _arguments = arguments;
         }
 
