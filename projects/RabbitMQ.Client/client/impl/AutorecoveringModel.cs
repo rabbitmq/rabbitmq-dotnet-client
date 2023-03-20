@@ -43,6 +43,7 @@ namespace RabbitMQ.Client.Impl
         private readonly object _eventLock = new object();
         private AutorecoveringConnection _connection;
         private RecoveryAwareModel _delegate;
+        private List<string> _recordedConsumerTags = new List<string>();
 
         private EventHandler<BasicAckEventArgs> _recordedBasicAckEventHandlers;
         private EventHandler<BasicNackEventArgs> _recordedBasicNackEventHandlers;
@@ -90,6 +91,8 @@ namespace RabbitMQ.Client.Impl
                 _delegate.ContinuationTimeout = value;
             }
         }
+
+        public IEnumerable<string> ConsumerTags => _recordedConsumerTags;
 
         public AutorecoveringModel(AutorecoveringConnection conn, RecoveryAwareModel _delegate)
         {
@@ -476,7 +479,7 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                _delegate.Close(reason, abort).GetAwaiter().GetResult();;
+                _delegate.Close(reason, abort).GetAwaiter().GetResult();
             }
             finally
             {
@@ -510,6 +513,8 @@ namespace RabbitMQ.Client.Impl
             {
                 Abort();
 
+                _recordedConsumerTags.Clear();
+                _recordedConsumerTags = null;
                 _connection = null;
                 _delegate = null;
                 _recordedBasicAckEventHandlers = null;
@@ -1184,16 +1189,16 @@ namespace RabbitMQ.Client.Impl
                 throw new ObjectDisposedException(GetType().FullName);
             }
 
-            string result = _delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
+            string resultConsumerTag = _delegate.BasicConsume(queue, autoAck, consumerTag, noLocal,
                 exclusive, arguments, consumer);
-            RecordedConsumer rc = new RecordedConsumer(this, queue).
-                WithConsumerTag(result).
+            RecordedConsumer rc = new RecordedConsumer(this, queue, resultConsumerTag).
                 WithConsumer(consumer).
                 WithExclusive(exclusive).
                 WithAutoAck(autoAck).
                 WithArguments(arguments);
-            _connection.RecordConsumer(result, rc);
-            return result;
+            _connection.RecordConsumer(resultConsumerTag, rc);
+            _recordedConsumerTags.Add(resultConsumerTag);
+            return resultConsumerTag;
         }
 
         public BasicGetResult BasicGet(string queue,

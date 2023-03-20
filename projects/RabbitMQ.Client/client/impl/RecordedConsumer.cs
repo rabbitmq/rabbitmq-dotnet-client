@@ -29,16 +29,41 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
     internal class RecordedConsumer : IRecordedConsumer
     {
-        public RecordedConsumer(AutorecoveringModel model, string queue)
+        public RecordedConsumer(AutorecoveringModel model, string queue, string consumerTag)
         {
-            Model = model;
-            Queue = queue;
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
+            else
+            {
+                Model = model ?? throw new ArgumentNullException(nameof(model));
+            }
+
+            if (string.IsNullOrEmpty(queue))
+            {
+                throw new ArgumentNullException(nameof(consumerTag));
+            }
+            else
+            {
+                Queue = queue;
+            }
+
+            if (string.IsNullOrEmpty(consumerTag))
+            {
+                throw new ArgumentNullException(nameof(consumerTag));
+            }
+            else
+            {
+                ConsumerTag = consumerTag;
+            }
         }
 
         public AutorecoveringModel Model { get; }
@@ -72,13 +97,20 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedConsumer WithConsumer(IBasicConsumer value)
         {
-            Consumer = value;
+            Consumer = value ?? throw new System.ArgumentNullException(nameof(value));
             return this;
         }
 
         public RecordedConsumer WithConsumerTag(string value)
         {
-            ConsumerTag = value;
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new System.ArgumentNullException(nameof(value));
+            }
+            else
+            {
+                ConsumerTag = value;
+            }
             return this;
         }
 
@@ -90,7 +122,7 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedConsumer WithQueue(string value)
         {
-            Queue = value;
+            Queue = value ?? throw new System.ArgumentNullException(nameof(value));
             return this;
         }
     }

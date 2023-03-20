@@ -612,13 +612,23 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void RecordConsumer(string name, RecordedConsumer c)
+        public void RecordConsumer(string consumerTag, RecordedConsumer recordedConsumer)
         {
+            if (string.IsNullOrEmpty(consumerTag))
+            {
+                throw new ArgumentNullException(nameof(consumerTag));
+            }
+
+            if (recordedConsumer is null)
+            {
+                throw new ArgumentNullException(nameof(recordedConsumer));
+            }
+
             lock (_recordedEntitiesLock)
             {
-                if (!_recordedConsumers.ContainsKey(name))
+                if (!_recordedConsumers.ContainsKey(consumerTag))
                 {
-                    _recordedConsumers.Add(name, c);
+                    _recordedConsumers.Add(consumerTag, recordedConsumer);
                 }
             }
         }
@@ -651,6 +661,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void UnregisterModel(AutorecoveringModel model)
         {
+            lock (_recordedEntitiesLock)
+            {
+                foreach (string ct in model.ConsumerTags)
+                {
+                    DeleteRecordedConsumer(ct);
+                }
+            }
+
             lock (_models)
             {
                 _models.Remove(model);
