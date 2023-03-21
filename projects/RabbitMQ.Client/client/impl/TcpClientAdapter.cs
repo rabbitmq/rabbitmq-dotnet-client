@@ -27,7 +27,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ArgumentException($"No ip address could be resolved for {host}");
             }
 
-#if NET461
+#if NET462
             await Task.Run(() => _sock.Connect(ep, port)).ConfigureAwait(false);
 #else
             await _sock.ConnectAsync(ep, port).ConfigureAwait(false);
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                if(_sock == null) return false;
+                if (_sock == null) return false;
                 return _sock.Connected;
             }
         }
@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Impl
 
         private void AssertSocket()
         {
-            if(_sock == null)
+            if (_sock == null)
             {
                 throw new InvalidOperationException("Cannot perform operation as socket is null");
             }
