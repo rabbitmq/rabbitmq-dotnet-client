@@ -850,7 +850,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void StartMainLoop(bool useBackgroundThread)
         {
-            _mainLoopTask = Task.Run((Action)MainLoop);
+            _mainLoopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
         }
 
         public void HeartbeatReadTimerCallback(object state)
