@@ -122,3 +122,7 @@ projects/Unit*/TestResult.xml
 # Vim
 .sw?
 .*.sw?
+
+# .NET version configuration
+# https://learn.microsoft.com/en-us/dotnet/core/versions/selection
+global.json
