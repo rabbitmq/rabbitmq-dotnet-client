@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                Model = model ?? throw new ArgumentNullException(nameof(model));
+                Model = model;
             }
 
             if (string.IsNullOrEmpty(queue))
