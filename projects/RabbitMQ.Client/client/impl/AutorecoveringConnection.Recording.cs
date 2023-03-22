@@ -248,6 +248,14 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void DeleteRecordedChannel(AutorecoveringChannel channel)
         {
+            lock (_recordedEntitiesLock)
+            {
+                foreach (string ct in channel.ConsumerTags)
+                {
+                    DeleteRecordedConsumer(ct);
+                }
+            }
+
             lock (_channels)
             {
                 _channels.Remove(channel);
