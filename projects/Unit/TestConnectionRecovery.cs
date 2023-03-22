@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading;
 
@@ -827,7 +826,7 @@ namespace RabbitMQ.Client.Unit
             Assert.IsTrue(nameBefore.StartsWith("amq."));
             Assert.IsTrue(nameAfter.StartsWith("amq."));
             Assert.AreNotEqual(nameBefore, nameAfter);
-            Model.QueueUnbind(nameAfter,x,"");
+            Model.QueueUnbind(nameAfter, x, "");
             Model.QueueDeleteNoWait(nameAfter);
             latch.Reset();
             CloseAndWaitForRecovery();
