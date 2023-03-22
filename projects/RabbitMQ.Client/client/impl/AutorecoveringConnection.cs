@@ -428,11 +428,11 @@ namespace RabbitMQ.Client.Framing.Impl
                             // 2. Recover queues
                             // 3. Recover bindings
                             // 4. Recover consumers
-                            using (var recoveryModel = _delegate.CreateModel())
+                            using (var recoveryModelFactory = new RecoveryModelFactory(_delegate))
                             {
-                                RecoverExchanges(recoveryModel);
-                                RecoverQueues(recoveryModel);
-                                RecoverBindings(recoveryModel);
+                                RecoverExchanges(recoveryModelFactory);
+                                RecoverQueues(recoveryModelFactory);
+                                RecoverBindings(recoveryModelFactory);
                             }
                         }
 
@@ -576,7 +576,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // last binding where this exchange is the source is gone,
                     // remove recorded exchange
                     // if it is auto-deleted. See bug 26364.
-                    if ((rx != null) && rx.IsAutoDelete)
+                    if ((rx != null) && rx.AutoDelete)
                     {
                         DeleteRecordedExchange(exchange);
                     }
@@ -593,7 +593,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     _recordedQueues.TryGetValue(queue, out RecordedQueue rq);
                     // last consumer on this connection is gone, remove recorded queue
                     // if it is auto-deleted. See bug 26364.
-                    if ((rq != null) && rq.IsAutoDelete)
+                    if ((rq != null) && rq.AutoDelete)
                     {
                         DeleteRecordedQueue(queue);
                     }
@@ -985,7 +985,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverBindings(IModel model)
+        private void RecoverBindings(RecoveryModelFactory recoveryModelFactory)
         {
             Dictionary<RecordedBinding, byte> recordedBindingsCopy;
             lock (_recordedEntitiesLock)
@@ -993,17 +993,25 @@ namespace RabbitMQ.Client.Framing.Impl
                 recordedBindingsCopy = new Dictionary<RecordedBinding, byte>(_recordedBindings);
             }
 
-            foreach (RecordedBinding b in recordedBindingsCopy.Keys)
+            foreach (RecordedBinding b in recordedBindingsCopy.Keys.Where(x => _factory.TopologyRecoveryFilter?.BindingFilter(x) ?? true))
             {
                 try
                 {
-                    b.Recover(model);
+                    b.Recover(recoveryModelFactory.RecoveryModel);
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
-                        b.Source, b.Destination, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    if (_factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler != null
+                        && _factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition(b, cause))
+                    {
+                        _factory.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler(b, cause, this);
+                    }
+                    else
+                    {
+                        string s = string.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
+                            b.Source, b.Destination, cause.Message);
+                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    }
                 }
             }
         }
@@ -1089,7 +1097,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 recordedConsumersCopy = new Dictionary<string, RecordedConsumer>(_recordedConsumers);
             }
 
-            foreach (KeyValuePair<string, RecordedConsumer> pair in recordedConsumersCopy)
+            foreach (KeyValuePair<string, RecordedConsumer> pair in recordedConsumersCopy.Where(x => _factory.TopologyRecoveryFilter?.ConsumerFilter(x.Value) ?? true))
             {
                 RecordedConsumer cons = pair.Value;
                 if (cons.Model != modelToRecover)
@@ -1139,14 +1147,22 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
-                        tag, cons.Queue, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    if (_factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler != null
+                        && _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition(cons, cause))
+                    {
+                        _factory.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler(cons, cause, this);
+                    }
+                    else
+                    {
+                        string s = string.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
+                            tag, cons.Queue, cause.Message);
+                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    }
                 }
             }
         }
 
-        private void RecoverExchanges(IModel model)
+        private void RecoverExchanges(RecoveryModelFactory recoveryModelFactory)
         {
             Dictionary<string, RecordedExchange> recordedExchangesCopy;
             lock (_recordedEntitiesLock)
@@ -1154,17 +1170,25 @@ namespace RabbitMQ.Client.Framing.Impl
                 recordedExchangesCopy = new Dictionary<string, RecordedExchange>(_recordedExchanges);
             }
 
-            foreach (RecordedExchange rx in recordedExchangesCopy.Values)
+            foreach (RecordedExchange rx in recordedExchangesCopy.Values.Where(x => _factory.TopologyRecoveryFilter?.ExchangeFilter(x) ?? true))
             {
                 try
                 {
-                    rx.Recover(model);
+                    rx.Recover(recoveryModelFactory.RecoveryModel);
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering exchange {0}: {1}",
-                        rx.Name, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    if (_factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler != null
+                        && _factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition(rx, cause))
+                    {
+                        _factory.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler(rx, cause, this);
+                    }
+                    else
+                    {
+                        string s = string.Format("Caught an exception while recovering exchange {0}: {1}",
+                            rx.Name, cause.Message);
+                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    }
                 }
             }
         }
@@ -1180,7 +1204,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverQueues(IModel model)
+        private void RecoverQueues(RecoveryModelFactory recoveryModelFactory)
         {
             Dictionary<string, RecordedQueue> recordedQueuesCopy;
             lock (_recordedEntitiesLock)
@@ -1188,14 +1212,14 @@ namespace RabbitMQ.Client.Framing.Impl
                 recordedQueuesCopy = new Dictionary<string, RecordedQueue>(_recordedQueues);
             }
 
-            foreach (KeyValuePair<string, RecordedQueue> pair in recordedQueuesCopy)
+            foreach (KeyValuePair<string, RecordedQueue> pair in recordedQueuesCopy.Where(x => _factory.TopologyRecoveryFilter?.QueueFilter(x.Value) ?? true))
             {
                 string oldName = pair.Key;
                 RecordedQueue rq = pair.Value;
 
                 try
                 {
-                    rq.Recover(model);
+                    rq.Recover(recoveryModelFactory.RecoveryModel);
                     string newName = rq.Name;
 
                     if (!oldName.Equals(newName))
@@ -1232,9 +1256,17 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = string.Format("Caught an exception while recovering queue {0}: {1}",
-                        oldName, cause.Message);
-                    HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    if (_factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler != null
+                        && _factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition(rq, cause))
+                    {
+                        _factory.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler(rq, cause, this);
+                    }
+                    else
+                    {
+                        string s = string.Format("Caught an exception while recovering queue {0}: {1}",
+                            oldName, cause.Message);
+                        HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
+                    }
                 }
             }
         }
@@ -1293,6 +1325,45 @@ namespace RabbitMQ.Client.Framing.Impl
             /// In the process of recovering underlying connection.
             /// </summary>
             Recovering
+        }
+
+        private sealed class RecoveryModelFactory : IDisposable
+        {
+            private readonly IConnection _connection;
+            private IModel _recoveryModel;
+
+            public RecoveryModelFactory(IConnection connection)
+            {
+                _connection = connection;
+            }
+
+            public IModel RecoveryModel
+            {
+                get
+                {
+                    if (_recoveryModel == null)
+                    {
+                        _recoveryModel = _connection.CreateModel();
+                    }
+
+                    if (_recoveryModel.IsClosed)
+                    {
+                        _recoveryModel.Dispose();
+                        _recoveryModel = _connection.CreateModel();
+                    }
+
+                    return _recoveryModel;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (_recoveryModel != null)
+                {
+                    _recoveryModel.Close();
+                    _recoveryModel.Dispose();
+                }
+            }
         }
 
         private Task _recoveryTask;

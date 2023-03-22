@@ -33,7 +33,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class RecordedBinding
+    internal abstract class RecordedBinding : IRecordedBinding
     {
         public IDictionary<string, object> Arguments { get; protected set; }
         public string Destination { get; set; }

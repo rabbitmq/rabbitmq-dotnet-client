@@ -33,17 +33,20 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecordedQueue : RecordedNamedEntity
+    internal class RecordedQueue : RecordedNamedEntity, IRecordedQueue
     {
-        private IDictionary<string, object> _arguments;
-        private bool _durable;
-        private bool _exclusive;
-
         public RecordedQueue(string name) : base(name)
         {
         }
 
-        public bool IsAutoDelete { get; private set; }
+        public bool Durable { get; private set; }
+
+        public bool Exclusive { get; private set; }
+
+        public bool AutoDelete { get; private set; }
+
+        public IDictionary<string, object> Arguments { get; private set; }
+
         public bool IsServerNamed { get; private set; }
 
         protected string NameToUseForRecovery
@@ -61,39 +64,39 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public RecordedQueue Arguments(IDictionary<string, object> value)
+        public RecordedQueue WithArguments(IDictionary<string, object> value)
         {
-            _arguments = value;
+            Arguments = value;
             return this;
         }
 
-        public RecordedQueue AutoDelete(bool value)
+        public RecordedQueue WithAutoDelete(bool value)
         {
-            IsAutoDelete = value;
+            AutoDelete = value;
             return this;
         }
 
-        public RecordedQueue Durable(bool value)
+        public RecordedQueue WithDurable(bool value)
         {
-            _durable = value;
+            Durable = value;
             return this;
         }
 
-        public RecordedQueue Exclusive(bool value)
+        public RecordedQueue WithExclusive(bool value)
         {
-            _exclusive = value;
+            Exclusive = value;
             return this;
         }
 
         public void Recover(IModel model)
         {
-            QueueDeclareOk ok = model.QueueDeclare(NameToUseForRecovery, _durable,
-                _exclusive, IsAutoDelete,
-                _arguments);
+            QueueDeclareOk ok = model.QueueDeclare(NameToUseForRecovery, Durable,
+                Exclusive, AutoDelete,
+                Arguments);
             Name = ok.QueueName;
         }
 
-        public RecordedQueue ServerNamed(bool value)
+        public RecordedQueue WithServerNamed(bool value)
         {
             IsServerNamed = value;
             return this;
@@ -101,7 +104,7 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            return $"{GetType().Name}: name = '{Name}', durable = {_durable}, exlusive = {_exclusive}, autoDelete = {IsAutoDelete}, arguments = '{_arguments}'";
+            return $"{GetType().Name}: name = '{Name}', durable = {Durable}, exlusive = {Exclusive}, autoDelete = {AutoDelete}, arguments = '{Arguments}'";
         }
     }
 }

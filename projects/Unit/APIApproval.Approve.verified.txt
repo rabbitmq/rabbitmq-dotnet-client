@@ -106,6 +106,8 @@ namespace RabbitMQ.Client
         public System.TimeSpan SocketWriteTimeout { get; set; }
         public RabbitMQ.Client.SslOption Ssl { get; set; }
         public bool TopologyRecoveryEnabled { get; set; }
+        public RabbitMQ.Client.TopologyRecoveryExceptionHandler TopologyRecoveryExceptionHandler { get; set; }
+        public RabbitMQ.Client.TopologyRecoveryFilter TopologyRecoveryFilter { get; set; }
         public System.Uri Uri { get; set; }
         public bool UseBackgroundThreadsForIO { get; set; }
         public string UserName { get; set; }
@@ -476,6 +478,38 @@ namespace RabbitMQ.Client
         int MinorVersion { get; }
         int Revision { get; }
     }
+    public interface IRecordedBinding
+    {
+        System.Collections.Generic.IDictionary<string, object> Arguments { get; }
+        string Destination { get; }
+        string RoutingKey { get; }
+        string Source { get; }
+    }
+    public interface IRecordedConsumer
+    {
+        System.Collections.Generic.IDictionary<string, object> Arguments { get; }
+        bool AutoAck { get; }
+        string ConsumerTag { get; }
+        bool Exclusive { get; }
+        string Queue { get; }
+    }
+    public interface IRecordedExchange
+    {
+        System.Collections.Generic.IDictionary<string, object> Arguments { get; }
+        bool AutoDelete { get; }
+        bool Durable { get; }
+        string Name { get; }
+        string Type { get; }
+    }
+    public interface IRecordedQueue
+    {
+        System.Collections.Generic.IDictionary<string, object> Arguments { get; }
+        bool AutoDelete { get; }
+        bool Durable { get; }
+        bool Exclusive { get; }
+        bool IsServerNamed { get; }
+        string Name { get; }
+    }
     public interface IRecoverable
     {
         event System.EventHandler<System.EventArgs> Recovery;
@@ -581,6 +615,26 @@ namespace RabbitMQ.Client
         public bool Enabled { get; set; }
         public string ServerName { get; set; }
         public System.Security.Authentication.SslProtocols Version { get; set; }
+    }
+    public class TopologyRecoveryExceptionHandler
+    {
+        public TopologyRecoveryExceptionHandler() { }
+        public System.Func<RabbitMQ.Client.IRecordedBinding, System.Exception, bool> BindingRecoveryExceptionCondition { get; set; }
+        public System.Action<RabbitMQ.Client.IRecordedBinding, System.Exception, RabbitMQ.Client.IConnection> BindingRecoveryExceptionHandler { get; set; }
+        public System.Func<RabbitMQ.Client.IRecordedConsumer, System.Exception, bool> ConsumerRecoveryExceptionCondition { get; set; }
+        public System.Action<RabbitMQ.Client.IRecordedConsumer, System.Exception, RabbitMQ.Client.IConnection> ConsumerRecoveryExceptionHandler { get; set; }
+        public System.Func<RabbitMQ.Client.IRecordedExchange, System.Exception, bool> ExchangeRecoveryExceptionCondition { get; set; }
+        public System.Action<RabbitMQ.Client.IRecordedExchange, System.Exception, RabbitMQ.Client.IConnection> ExchangeRecoveryExceptionHandler { get; set; }
+        public System.Func<RabbitMQ.Client.IRecordedQueue, System.Exception, bool> QueueRecoveryExceptionCondition { get; set; }
+        public System.Action<RabbitMQ.Client.IRecordedQueue, System.Exception, RabbitMQ.Client.IConnection> QueueRecoveryExceptionHandler { get; set; }
+    }
+    public class TopologyRecoveryFilter
+    {
+        public TopologyRecoveryFilter() { }
+        public System.Func<RabbitMQ.Client.IRecordedBinding, bool> BindingFilter { get; set; }
+        public System.Func<RabbitMQ.Client.IRecordedConsumer, bool> ConsumerFilter { get; set; }
+        public System.Func<RabbitMQ.Client.IRecordedExchange, bool> ExchangeFilter { get; set; }
+        public System.Func<RabbitMQ.Client.IRecordedQueue, bool> QueueFilter { get; set; }
     }
 }
 namespace RabbitMQ.Client.Events

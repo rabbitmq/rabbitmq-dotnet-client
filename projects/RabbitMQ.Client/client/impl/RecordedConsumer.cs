@@ -33,7 +33,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecordedConsumer
+    internal class RecordedConsumer : IRecordedConsumer
     {
         public RecordedConsumer(AutorecoveringModel model, string queue)
         {

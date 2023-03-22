@@ -1530,11 +1530,11 @@ namespace RabbitMQ.Client.Impl
             QueueDeclareOk result = _delegate.QueueDeclare(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(result.QueueName).
-                Durable(durable).
-                Exclusive(exclusive).
-                AutoDelete(autoDelete).
-                Arguments(arguments).
-                ServerNamed(string.Empty.Equals(queue));
+                WithDurable(durable).
+                WithExclusive(exclusive).
+                WithAutoDelete(autoDelete).
+                WithArguments(arguments).
+                WithServerNamed(string.Empty.Equals(queue));
             _connection.RecordQueue(result.QueueName, rq);
             return result;
         }
@@ -1551,11 +1551,11 @@ namespace RabbitMQ.Client.Impl
             _delegate.QueueDeclareNoWait(queue, durable, exclusive,
                 autoDelete, arguments);
             RecordedQueue rq = new RecordedQueue(queue).
-                Durable(durable).
-                Exclusive(exclusive).
-                AutoDelete(autoDelete).
-                Arguments(arguments).
-                ServerNamed(string.Empty.Equals(queue));
+                WithDurable(durable).
+                WithExclusive(exclusive).
+                WithAutoDelete(autoDelete).
+                WithArguments(arguments).
+                WithServerNamed(string.Empty.Equals(queue));
             _connection.RecordQueue(queue, rq);
         }
 

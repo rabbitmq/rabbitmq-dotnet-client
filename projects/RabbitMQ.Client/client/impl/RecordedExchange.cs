@@ -33,7 +33,7 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class RecordedExchange : RecordedNamedEntity
+    internal class RecordedExchange : RecordedNamedEntity, IRecordedExchange
     {
         public RecordedExchange(string name) : base(name)
         {
@@ -41,18 +41,18 @@ namespace RabbitMQ.Client.Impl
 
         public IDictionary<string, object> Arguments { get; private set; }
         public bool Durable { get; private set; }
-        public bool IsAutoDelete { get; private set; }
+        public bool AutoDelete { get; private set; }
 
         public string Type { get; private set; }
 
         public void Recover(IModel model)
         {
-            model.ExchangeDeclare(Name, Type, Durable, IsAutoDelete, Arguments);
+            model.ExchangeDeclare(Name, Type, Durable, AutoDelete, Arguments);
         }
 
         public override string ToString()
         {
-            return $"{GetType().Name}: name = '{Name}', type = '{Type}', durable = {Durable}, autoDelete = {IsAutoDelete}, arguments = '{Arguments}'";
+            return $"{GetType().Name}: name = '{Name}', type = '{Type}', durable = {Durable}, autoDelete = {AutoDelete}, arguments = '{Arguments}'";
         }
 
         public RecordedExchange WithArguments(IDictionary<string, object> value)
@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedExchange WithAutoDelete(bool value)
         {
-            IsAutoDelete = value;
+            AutoDelete = value;
             return this;
         }
 
