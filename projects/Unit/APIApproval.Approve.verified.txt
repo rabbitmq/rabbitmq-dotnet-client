@@ -385,6 +385,7 @@ namespace RabbitMQ.Client
         int ChannelNumber { get; }
         RabbitMQ.Client.ShutdownEventArgs CloseReason { get; }
         System.TimeSpan ContinuationTimeout { get; set; }
+        string CurrentQueue { get; }
         RabbitMQ.Client.IBasicConsumer DefaultConsumer { get; set; }
         bool IsClosed { get; }
         bool IsOpen { get; }
