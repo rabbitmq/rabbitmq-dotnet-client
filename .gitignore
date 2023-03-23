@@ -51,7 +51,8 @@ build/
 
 BenchmarkDotNet.Artifacts/*
 
-APIApproval.Approve.received.txt
+projects/Unit/APIApproval.Approve.received.txt
+projects/Unit/APIApproval.Approve.*.received.txt
 
 # Visual Studio 2015 cache/options directory
 .vs/

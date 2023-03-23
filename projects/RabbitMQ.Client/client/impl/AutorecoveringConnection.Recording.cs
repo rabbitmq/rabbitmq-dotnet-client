@@ -152,7 +152,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     if (consumer.Queue == oldName)
                     {
-                        _recordedConsumers[consumer.ConsumerTag] = RecordedConsumer.WithNewQueueNameTag(newName, consumer);
+                        _recordedConsumers[consumer.ConsumerTag] = RecordedConsumer.WithNewQueueName(newName, consumer);
                     }
                 }
             }
