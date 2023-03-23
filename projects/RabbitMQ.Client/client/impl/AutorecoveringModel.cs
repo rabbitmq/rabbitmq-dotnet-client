@@ -395,6 +395,19 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public string CurrentQueue
+        {
+            get
+            {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(GetType().FullName);
+                }
+
+                return _delegate.CurrentQueue;
+            }
+        }
+
         public void AutomaticallyRecover(AutorecoveringConnection conn, bool recoverConsumers)
         {
             if (_disposed)

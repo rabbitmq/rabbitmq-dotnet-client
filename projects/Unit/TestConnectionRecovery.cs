@@ -410,6 +410,38 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
+        [Test(Description = "https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1238")]
+        public void TestConsumerRecoveryWithServerNamedQueue()
+        {
+            using (AutorecoveringConnection c = CreateAutorecoveringConnection())
+            {
+                IModel m = c.CreateModel();
+                QueueDeclareOk queueDeclareResult = m.QueueDeclare(queue: string.Empty, durable: false, exclusive: true, autoDelete: true, arguments: null);
+                string qname = queueDeclareResult.QueueName;
+                Assert.False(string.IsNullOrEmpty(qname));
+
+                var cons = new EventingBasicConsumer(m);
+                m.BasicConsume(string.Empty, true, cons);
+                AssertConsumerCount(m, qname, 1);
+
+                bool queueNameBeforeIsEqual = false;
+                bool queueNameChangeAfterRecoveryCalled = false;
+                string qnameAfterRecovery = null;
+                c.QueueNameChangeAfterRecovery += (source, ea) =>
+                {
+                    queueNameChangeAfterRecoveryCalled = true;
+                    queueNameBeforeIsEqual = qname.Equals(ea.NameBefore);
+                    qnameAfterRecovery = ea.NameAfter;
+                };
+
+                CloseAndWaitForRecovery(c);
+
+                AssertConsumerCount(m, qnameAfterRecovery, 1);
+                Assert.True(queueNameChangeAfterRecoveryCalled);
+                Assert.True(queueNameBeforeIsEqual);
+            }
+        }
+
         [Test]
         public void TestConsumerRecoveryWithManyConsumers()
         {

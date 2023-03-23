@@ -170,6 +170,8 @@ namespace RabbitMQ.Client.Impl
 
         public ulong NextPublishSeqNo { get; private set; }
 
+        public string CurrentQueue { get; private set; }
+
         public ISession Session { get; private set; }
 
         public Task Close(ushort replyCode, string replyText, bool abort)
@@ -1481,7 +1483,9 @@ namespace RabbitMQ.Client.Impl
                 _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
                 k.GetReply(ContinuationTimeout);
             }
-            return k.m_result;
+            QueueDeclareOk result = k.m_result;
+            CurrentQueue = result.QueueName;
+            return result;
         }
 
 

@@ -36,24 +36,33 @@ namespace RabbitMQ.Client.Impl
 {
     internal class RecordedConsumer : IRecordedConsumer
     {
+        private readonly AutorecoveringModel _model;
+
         public RecordedConsumer(AutorecoveringModel model, string queue, string consumerTag)
         {
-            if (model == null)
+            if (model is null)
             {
                 throw new ArgumentNullException(nameof(model));
             }
             else
             {
-                Model = model;
+                _model = model;
             }
 
-            if (string.IsNullOrEmpty(queue))
+            if (queue is null)
             {
-                throw new ArgumentNullException(nameof(consumerTag));
+                throw new ArgumentNullException(nameof(queue));
             }
             else
             {
-                Queue = queue;
+                if (queue == string.Empty)
+                {
+                    Queue = _model.CurrentQueue;
+                }
+                else
+                {
+                    Queue = queue;
+                }
             }
 
             if (string.IsNullOrEmpty(consumerTag))
@@ -66,20 +75,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public AutorecoveringModel Model { get; }
+        public AutorecoveringModel Model
+        {
+            get { return _model; }
+        }
+
+        public string Queue { get; set; }
+        public string ConsumerTag { get; set; }
         public IDictionary<string, object> Arguments { get; set; }
         public bool AutoAck { get; set; }
-        public IBasicConsumer Consumer { get; set; }
-        public string ConsumerTag { get; set; }
         public bool Exclusive { get; set; }
-        public string Queue { get; set; }
+        public IBasicConsumer Consumer { get; set; }
 
         public string Recover(IModel channelToUse)
         {
             ConsumerTag = channelToUse.BasicConsume(Queue, AutoAck,
                 ConsumerTag, false, Exclusive,
                 Arguments, Consumer);
-
             return ConsumerTag;
         }
 
@@ -101,28 +113,9 @@ namespace RabbitMQ.Client.Impl
             return this;
         }
 
-        public RecordedConsumer WithConsumerTag(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                throw new System.ArgumentNullException(nameof(value));
-            }
-            else
-            {
-                ConsumerTag = value;
-            }
-            return this;
-        }
-
         public RecordedConsumer WithExclusive(bool value)
         {
             Exclusive = value;
-            return this;
-        }
-
-        public RecordedConsumer WithQueue(string value)
-        {
-            Queue = value ?? throw new System.ArgumentNullException(nameof(value));
             return this;
         }
     }
