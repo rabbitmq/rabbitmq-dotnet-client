@@ -123,23 +123,76 @@ namespace RabbitMQ.Client.Impl
             remove { InnerChannel.Recovery -= value; }
         }
 
-        public IEnumerable<string> ConsumerTags => _recordedConsumerTags;
+        public IEnumerable<string> ConsumerTags
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _recordedConsumerTags;
+            }
+        }
 
-        public int ChannelNumber => InnerChannel.ChannelNumber;
+        public int ChannelNumber
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return InnerChannel.ChannelNumber;
+            }
+        }
 
-        public ShutdownEventArgs CloseReason => InnerChannel.CloseReason;
+        public ShutdownEventArgs CloseReason
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return InnerChannel.CloseReason;
+            }
+        }
 
         public IBasicConsumer DefaultConsumer
         {
-            get => InnerChannel.DefaultConsumer;
-            set => InnerChannel.DefaultConsumer = value;
+            get
+            {
+                ThrowIfDisposed();
+                return InnerChannel.DefaultConsumer;
+            }
+
+            set
+            {
+                ThrowIfDisposed();
+                InnerChannel.DefaultConsumer = value;
+            }
         }
 
         public bool IsClosed => !IsOpen;
 
-        public bool IsOpen => _innerChannel != null && _innerChannel.IsOpen;
+        public bool IsOpen
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _innerChannel != null && _innerChannel.IsOpen;
+            }
+        }
 
-        public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
+        public ulong NextPublishSeqNo
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return InnerChannel.NextPublishSeqNo;
+            }
+        }
+
+        public string CurrentQueue
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return InnerChannel.CurrentQueue;
+            }
+        }
 
         internal void AutomaticallyRecover(AutorecoveringConnection conn, bool recoverConsumers)
         {

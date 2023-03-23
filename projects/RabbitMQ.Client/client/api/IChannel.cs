@@ -98,6 +98,14 @@ namespace RabbitMQ.Client
         ulong NextPublishSeqNo { get; }
 
         /// <summary>
+        /// The name of the last queue declared on this channel.
+        /// </summary>
+        /// <remarks>
+        /// https://www.rabbitmq.com/amqp-0-9-1-reference.html#domain.queue-name
+        /// </remarks>
+        string CurrentQueue { get; }
+
+        /// <summary>
         /// Signalled when a Basic.Ack command arrives from the broker.
         /// </summary>
         event EventHandler<BasicAckEventArgs> BasicAcks;

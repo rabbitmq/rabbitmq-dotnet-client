@@ -59,11 +59,21 @@ namespace RabbitMQ.Client.Impl
             }
             _consumer = consumer;
 
-            if (string.IsNullOrEmpty(queue))
+            if (queue is null)
             {
                 throw new ArgumentNullException(nameof(queue));
             }
-            _queue = queue;
+            else
+            {
+                if (queue == string.Empty)
+                {
+                    _queue = _channel.CurrentQueue;
+                }
+                else
+                {
+                    _queue = queue;
+                }
+            }
 
             if (string.IsNullOrEmpty(consumerTag))
             {
@@ -89,7 +99,7 @@ namespace RabbitMQ.Client.Impl
             return new RecordedConsumer(old.Channel, old.Consumer, newTag, old.Queue, old.AutoAck, old.Exclusive, old.Arguments);
         }
 
-        public static RecordedConsumer WithNewQueueNameTag(string newQueueName, in RecordedConsumer old)
+        public static RecordedConsumer WithNewQueueName(string newQueueName, in RecordedConsumer old)
         {
             return new RecordedConsumer(old.Channel, old.Consumer, old.ConsumerTag, newQueueName, old.AutoAck, old.Exclusive, old.Arguments);
         }
