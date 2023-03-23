@@ -45,6 +45,7 @@ namespace RabbitMQ.Client.Impl
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
+        private List<string> _recordedConsumerTags = new List<string>();
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -121,6 +122,8 @@ namespace RabbitMQ.Client.Impl
             add { InnerChannel.Recovery += value; }
             remove { InnerChannel.Recovery -= value; }
         }
+
+        public IEnumerable<string> ConsumerTags => _recordedConsumerTags;
 
         public int ChannelNumber => InnerChannel.ChannelNumber;
 
@@ -207,6 +210,8 @@ namespace RabbitMQ.Client.Impl
 
             this.Abort();
 
+            _recordedConsumerTags.Clear();
+            _recordedConsumerTags = null;
             _connection = null;
             _innerChannel = null;
             _disposed = true;
@@ -238,9 +243,12 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
-            string result = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
-            _connection.RecordConsumer(new RecordedConsumer(this, consumer, queue, autoAck, result, exclusive, arguments));
-            return result;
+            string resultConsumerTag = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
+                queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
+            _connection.RecordConsumer(rc);
+            _recordedConsumerTags.Add(resultConsumerTag);
+            return resultConsumerTag;
         }
 
         public BasicGetResult BasicGet(string queue, bool autoAck)

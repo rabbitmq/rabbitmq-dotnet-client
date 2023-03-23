@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
@@ -36,33 +37,61 @@ namespace RabbitMQ.Client.Impl
 #nullable enable
     internal readonly struct RecordedConsumer : IRecordedConsumer
     {
-        public AutorecoveringChannel Channel { get; }
-        public IBasicConsumer Consumer { get; }
-        public string Queue { get; }
-        public bool AutoAck { get; }
-        public string ConsumerTag { get; }
-        public bool Exclusive { get; }
-        public IDictionary<string, object>? Arguments { get; }
+        private readonly AutorecoveringChannel _channel;
+        private readonly IBasicConsumer _consumer;
+        private readonly string _queue;
+        private readonly bool _autoAck;
+        private readonly string _consumerTag;
+        private readonly bool _exclusive;
+        private readonly IDictionary<string, object>? _arguments;
 
-        public RecordedConsumer(AutorecoveringChannel channel, IBasicConsumer consumer, string queue, bool autoAck, string consumerTag, bool exclusive, IDictionary<string, object>? arguments)
+        public RecordedConsumer(AutorecoveringChannel channel, IBasicConsumer consumer, string consumerTag, string queue, bool autoAck, bool exclusive, IDictionary<string, object>? arguments)
         {
-            Channel = channel;
-            Consumer = consumer;
-            Queue = queue;
-            AutoAck = autoAck;
-            ConsumerTag = consumerTag;
-            Exclusive = exclusive;
-            Arguments = arguments;
+            if (channel == null)
+            {
+                throw new ArgumentNullException(nameof(channel));
+            }
+            _channel = channel;
+
+            if (consumer == null)
+            {
+                throw new ArgumentNullException(nameof(consumer));
+            }
+            _consumer = consumer;
+
+            if (string.IsNullOrEmpty(queue))
+            {
+                throw new ArgumentNullException(nameof(queue));
+            }
+            _queue = queue;
+
+            if (string.IsNullOrEmpty(consumerTag))
+            {
+                throw new ArgumentNullException(nameof(consumerTag));
+            }
+            _consumerTag = consumerTag;
+
+            _autoAck = autoAck;
+            _exclusive = exclusive;
+            _arguments = arguments;
         }
+
+        public AutorecoveringChannel Channel => _channel;
+        public IBasicConsumer Consumer => _consumer;
+        public string Queue => _queue;
+        public bool AutoAck => _autoAck;
+        public string ConsumerTag => _consumerTag;
+        public bool Exclusive => _exclusive;
+        public IDictionary<string, object>? Arguments => _arguments;
 
         public static RecordedConsumer WithNewConsumerTag(string newTag, in RecordedConsumer old)
         {
-            return new RecordedConsumer(old.Channel, old.Consumer, old.Queue, old.AutoAck, newTag, old.Exclusive, old.Arguments);
+            return new RecordedConsumer(old.Channel, old.Consumer, newTag, old.Queue, old.AutoAck, old.Exclusive, old.Arguments);
         }
 
         public static RecordedConsumer WithNewQueueNameTag(string newQueueName, in RecordedConsumer old)
         {
-            return new RecordedConsumer(old.Channel, old.Consumer, newQueueName, old.AutoAck, old.ConsumerTag, old.Exclusive, old.Arguments);
+            return new RecordedConsumer(old.Channel, old.Consumer, old.ConsumerTag, newQueueName, old.AutoAck, old.Exclusive, old.Arguments);
         }
 
         public string Recover(IChannel channel)
