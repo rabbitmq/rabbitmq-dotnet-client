@@ -1,5 +1,28 @@
 # Changelog
 
+## [v6.5.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.5.0) (2023-03-24)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0-rc.1...v6.5.0)
+
+**Implemented enhancements:**
+
+- Exception during recovery causes recovery failure [\#658](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/658)
+
+**Closed issues:**
+
+- Consumer tags aren't cleaned on channel close causing memory leak. [\#1302](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1302)
+- Impossible to use a ulong as a header value [\#1298](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1298)
+- Recovery does not appear to save consumer arguments [\#1293](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1293)
+- Long delay from publish to consumer event [\#1252](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1252)
+- Timeout when opening a new channel after channel exception [\#1246](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1246)
+- Autorecovery for server-named queues loops indefinitely when consumer listen this queue [\#1238](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1238)
+- IModel.WaitForConfirmsOrDie\* methods don't document that they close [\#1234](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1234)
+- Port \#1223 to main [\#1225](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1225)
+- Better integrate max message size [\#1223](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1223)
+- 7.0 Release Checklist [\#1191](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1191)
+- Missing IRecoveryable implementation [\#998](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/998)
+- BasicGetResult body memory safety in 6.x+ [\#994](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/994)
+
 ## [v6.4.0-rc.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.4.0-rc.1) (2022-06-14)
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.4.0-rc.1)
