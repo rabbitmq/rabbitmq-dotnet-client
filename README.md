@@ -24,7 +24,7 @@ The client is [distributed via NuGet](https://www.nuget.org/packages/RabbitMQ.Cl
 
 ### 6.x
 
-`6.x` versions of the library require .NET 4.6.1 or a .NET Core version implementing .NET Standard 2.0.
+Latest `6.x` versions of the library require .NET framework 4.6.1 or a .NETversion up to 7.
 They also introduce potentially breaking public API changes covered in the [changelog](CHANGELOG.md).
 
 ### 5.x and 4.x
