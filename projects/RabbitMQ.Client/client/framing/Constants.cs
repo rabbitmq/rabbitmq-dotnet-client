@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         ///<summary>(= 311)</summary>
         public const int ContentTooLarge = 311;
         ///<summary>(= 312)</summary>
-        public const int NoRoute = 312;        
+        public const int NoRoute = 312;
         ///<summary>(= 313)</summary>
         public const int NoConsumers = 313;
         ///<summary>(= 320)</summary>
