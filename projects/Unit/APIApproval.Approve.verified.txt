@@ -225,6 +225,7 @@ namespace RabbitMQ.Client
         public const int InternalError = 541;
         public const int InvalidPath = 402;
         public const int NoConsumers = 313;
+        public const int NoRoute = 312;
         public const int NotAllowed = 530;
         public const int NotFound = 404;
         public const int NotImplemented = 540;
