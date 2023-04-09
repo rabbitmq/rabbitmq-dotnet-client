@@ -28,7 +28,7 @@
     <PackageOutputPath>..\..\packages</PackageOutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
-    <ReleaseVersion>8.0</ReleaseVersion>
+    <ReleaseVersion>7.0</ReleaseVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CONCOURSE_CI_BUILD)' == 'true'">
