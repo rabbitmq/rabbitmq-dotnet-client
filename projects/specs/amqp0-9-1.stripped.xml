@@ -34,6 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   <constant name="frame-end" value="206"/>
   <constant name="reply-success" value="200"/>
   <constant name="content-too-large" value="311" class="soft-error"/>
+  <constant name="no-route" value="312" class="soft-error"/>
   <constant name="no-consumers" value="313" class="soft-error"/>
   <constant name="connection-forced" value="320" class="hard-error"/>
   <constant name="invalid-path" value="402" class="hard-error"/>
