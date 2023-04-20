@@ -49,7 +49,12 @@ namespace RabbitMQ.Client.Unit
 
         public TestPublisherConfirms(ITestOutputHelper output) : base(output)
         {
+#if NET6_0_OR_GREATER
             Random.Shared.NextBytes(_body);
+#else
+            var rnd = new Random();
+            rnd.NextBytes(_body);
+#endif
         }
 
         [Fact]
