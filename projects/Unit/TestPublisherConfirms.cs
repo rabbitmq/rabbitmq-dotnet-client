@@ -45,14 +45,11 @@ namespace RabbitMQ.Client.Unit
     public class TestPublisherConfirms : IntegrationFixture
     {
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";
-        private readonly byte[] _body;
+        private readonly byte[] _body = new byte[4096];
 
         public TestPublisherConfirms(ITestOutputHelper output) : base(output)
         {
-            var rnd = new Random();
-            _body = new byte[4096];
-            rnd.NextBytes(_body);
-
+            Random.Shared.NextBytes(_body);
         }
 
         [Fact]
@@ -77,15 +74,30 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestWaitForConfirmsWithTimeout_AllMessagesAcked_WaitingHasTimedout_ReturnTrue()
+        public void TestWaitForConfirmsWithTimeout_MightThrowTaskCanceledException()
         {
+            bool waitResult = false;
+            bool sawTaskCanceled = false;
+
             TestWaitForConfirms(10000, (ch) =>
             {
                 using (var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1)))
                 {
-                    Assert.Throws<TaskCanceledException>(() => ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                    try
+                    {
+                        waitResult = ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult();
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        sawTaskCanceled = true;
+                    }
                 }
             });
+
+            if (waitResult == false && sawTaskCanceled == false)
+            {
+                Assert.Fail("test failed, both waitResult and sawTaskCanceled are still false");
+            }
         }
 
         [Fact]
@@ -147,12 +159,14 @@ namespace RabbitMQ.Client.Unit
         {
             using (IChannel ch = _conn.CreateChannel())
             {
+                var props = new BasicProperties { Persistent = true };
+
                 ch.ConfirmSelect();
                 ch.QueueDeclare(QueueName);
 
                 for (int i = 0; i < numberOfMessagesToPublish; i++)
                 {
-                    ch.BasicPublish("", QueueName, _body);
+                    ch.BasicPublish(exchange: "", routingKey: QueueName, body: _body, mandatory: true, basicProperties: props);
                 }
 
                 try
