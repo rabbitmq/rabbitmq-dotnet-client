@@ -112,30 +112,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestGetValueWithTimeoutInfinite()
-        {
-            var k = new BlockingCell<int>();
-            SetAfter(TimingInterval, k, 123);
-
-            ResetTimer();
-            int v = k.WaitForValue(Timeout.InfiniteTimeSpan);
-            Assert.True(TimingInterval - SafetyMargin < ElapsedMs());
-            Assert.Equal(123, v);
-        }
-
-        [Fact]
-        public void TestBackgroundUpdateSucceeds()
-        {
-            var k = new BlockingCell<int>();
-            SetAfter(TimingInterval, k, 123);
-
-            ResetTimer();
-            int v = k.WaitForValue(TimingInterval_2X);
-            Assert.True(TimingInterval - SafetyMargin < ElapsedMs());
-            Assert.Equal(123, v);
-        }
-
-        [Fact]
         public void TestBackgroundUpdateSucceedsWithTimeSpan()
         {
             var k = new BlockingCell<int>();

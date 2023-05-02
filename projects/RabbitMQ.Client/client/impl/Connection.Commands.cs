@@ -32,11 +32,11 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Logging;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -70,22 +70,21 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void Open()
+        private async ValueTask OpenAsync()
         {
             RabbitMqClientEventSource.Log.ConnectionOpened();
-            StartAndTune();
-            _channel0.ConnectionOpen(_config.VirtualHost);
+            await StartAndTuneAsync().ConfigureAwait(false);
+            await _channel0.ConnectionOpenAsync(_config.VirtualHost);
         }
 
-        private void StartAndTune()
+        private async ValueTask StartAndTuneAsync()
         {
-            var connectionStartCell = new BlockingCell<ConnectionStartDetails>();
+            var connectionStartCell = new TaskCompletionSource<ConnectionStartDetails>(TaskCreationOptions.RunContinuationsAsynchronously);
             _channel0.m_connectionStartCell = connectionStartCell;
             _channel0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
-            _frameHandler.SendHeader();
-
-            ConnectionStartDetails connectionStart = connectionStartCell.WaitForValue();
+            await _frameHandler.SendHeaderAsync().ConfigureAwait(false);
+            ConnectionStartDetails connectionStart = await connectionStartCell.Task.ConfigureAwait(false);
 
             if (connectionStart is null)
             {
@@ -117,14 +116,14 @@ namespace RabbitMQ.Client.Framing.Impl
                     ConnectionSecureOrTune res;
                     if (challenge is null)
                     {
-                        res = _channel0.ConnectionStartOk(ClientProperties,
+                        res = await _channel0.ConnectionStartOkAsync(ClientProperties,
                             mechanismFactory.Name,
                             response,
-                            "en_US");
+                            "en_US").ConfigureAwait(false);
                     }
                     else
                     {
-                        res = _channel0.ConnectionSecureOk(response);
+                        res = await _channel0.ConnectionSecureOkAsync(response).ConfigureAwait(false);
                     }
 
                     if (res.m_challenge is null)

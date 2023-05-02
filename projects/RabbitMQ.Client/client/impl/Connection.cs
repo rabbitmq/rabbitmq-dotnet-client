@@ -82,7 +82,12 @@ namespace RabbitMQ.Client.Framing.Impl
             _mainLoopTask = Task.Run(MainLoop);
             try
             {
-                Open();
+                /*
+                 * TODO FUTURE
+                 * Connection should not happen in ctor, instead change
+                 * the API so that it's awaitable
+                 */
+                OpenAsync().AsTask().GetAwaiter().GetResult();
             }
             catch
             {
@@ -402,7 +407,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void Write(ReadOnlyMemory<byte> memory)
         {
-            _frameHandler.Write(memory);
+            var task = _frameHandler.WriteAsync(memory);
+            if (!task.IsCompletedSuccessfully)
+            {
+                task.AsTask().GetAwaiter().GetResult();
+            }
+        }
+
+        internal ValueTask WriteAsync(ReadOnlyMemory<byte> memory)
+        {
+            return _frameHandler.WriteAsync(memory);
         }
 
         public void Dispose()

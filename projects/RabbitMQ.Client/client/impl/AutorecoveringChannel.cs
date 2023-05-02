@@ -318,6 +318,14 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublish(exchange, routingKey, in basicProperties, body, mandatory);
 
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory);
+
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory);
+
         public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
             ThrowIfDisposed();

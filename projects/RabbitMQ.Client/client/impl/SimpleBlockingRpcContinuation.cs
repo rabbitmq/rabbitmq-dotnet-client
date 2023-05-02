@@ -30,11 +30,52 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
+    internal abstract class AsyncRpcContinuation<T> : IRpcContinuation
+    {
+        protected readonly TaskCompletionSource<T> _tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskAwaiter<T> GetAwaiter() => _tcs.Task.GetAwaiter();
+
+        public abstract void HandleCommand(in IncomingCommand cmd);
+
+        public void HandleChannelShutdown(ShutdownEventArgs reason) => _tcs.SetException(new OperationInterruptedException(reason));
+    }
+
+    internal class ConnectionSecureOrTuneContinuation : AsyncRpcContinuation<ConnectionSecureOrTune>
+    {
+        public override void HandleCommand(in IncomingCommand cmd)
+        {
+            if (cmd.CommandId == ProtocolCommandId.ConnectionSecure)
+            {
+                var secure = new ConnectionSecure(cmd.MethodBytes.Span);
+                _tcs.TrySetResult(new ConnectionSecureOrTune { m_challenge = secure._challenge });
+                cmd.ReturnMethodBuffer();
+            }
+            else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
+            {
+                var tune = new ConnectionTune(cmd.MethodBytes.Span);
+                _tcs.TrySetResult(new ConnectionSecureOrTune
+                {
+                    m_tuneDetails = new() { m_channelMax = tune._channelMax, m_frameMax = tune._frameMax, m_heartbeatInSeconds = tune._heartbeat }
+                });
+                cmd.ReturnMethodBuffer();
+            }
+            else
+            {
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+            }
+        }
+    }
+
     internal class SimpleBlockingRpcContinuation : IRpcContinuation
     {
         private readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();

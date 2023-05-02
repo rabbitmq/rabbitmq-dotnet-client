@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Client.client.impl;
 
 namespace RabbitMQ.Client
@@ -93,6 +94,12 @@ namespace RabbitMQ.Client
 
         public static void BasicPublish(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             => channel.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
+
+        public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            => channel.BasicPublishAsync(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
+
+        public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            => channel.BasicPublishAsync(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
 #nullable disable
 
         /// <summary>

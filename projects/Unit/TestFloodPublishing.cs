@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestUnthrottledFloodPublishing()
+        public async Task TestUnthrottledFloodPublishingAsync()
         {
             var connFactory = new ConnectionFactory()
             {
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Unit
                                 }
                             }
 
-                            channel.BasicPublish(CachedString.Empty, CachedString.Empty, _body);
+                            await channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body).ConfigureAwait(false);
                         }
                     }
                     finally
@@ -108,7 +108,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void TestMultithreadFloodPublishing()
+        public async Task TestMultithreadFloodPublishingAsync()
         {
             string message = "Hello from test TestMultithreadFloodPublishing";
             byte[] sendBody = Encoding.UTF8.GetBytes(message);
@@ -131,16 +131,16 @@ namespace RabbitMQ.Client.Unit
                     queueName = q.QueueName;
                 }
 
-                Task pub = Task.Run((Action)(() =>
+                Task pub = Task.Run(async () =>
                 {
                     using (IChannel pubCh = c.CreateChannel())
                     {
                         for (int i = 0; i < publishCount; i++)
                         {
-                            pubCh.BasicPublish(string.Empty, queueName, sendBody);
+                            await pubCh.BasicPublishAsync(string.Empty, queueName, sendBody).ConfigureAwait(false);
                         }
                     }
-                }));
+                });
 
                 using (IChannel consumeCh = c.CreateChannel())
                 {
@@ -160,6 +160,7 @@ namespace RabbitMQ.Client.Unit
                     Assert.True(autoResetEvent.WaitOne(_tenSeconds));
                 }
 
+                await pub.ConfigureAwait(false);
                 Assert.Equal(publishCount, receivedCount);
             }
         }

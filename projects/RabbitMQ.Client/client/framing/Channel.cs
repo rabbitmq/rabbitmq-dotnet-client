@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 
@@ -107,6 +108,11 @@ namespace RabbitMQ.Client.Framing.Impl
         public override void _Private_ConnectionOpen(string virtualHost)
         {
             ChannelSend(new ConnectionOpen(virtualHost));
+        }
+
+        public override ValueTask _Private_ConnectionOpenAsync(string virtualHost)
+        {
+            return ModelSendAsync(new ConnectionOpen(virtualHost));
         }
 
         public override void _Private_ConnectionSecureOk(byte[] response)

@@ -62,6 +62,28 @@ namespace RabbitMQ.Client.Impl
             }
 #endif
         }
+
+        public static async ValueTask TimeoutAfter(this ValueTask task, TimeSpan timeout)
+        {
+            if (!task.IsCompletedSuccessfully)
+            {
+                var actualTask = task.AsTask();
+#if NET6_0_OR_GREATER
+                await actualTask.WaitAsync(timeout).ConfigureAwait(false);
+#else
+                if (actualTask == await Task.WhenAny(actualTask, Task.Delay(timeout)).ConfigureAwait(false))
+                {
+                    await actualTask.ConfigureAwait(false);
+                }
+                else
+                {
+                    Task supressErrorTask =
+     actualTask.ContinueWith((t, s) => t.Exception.Handle(e => true), null, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                    throw new TimeoutException();
+                }
+#endif
+            }
+        }
     }
 
     internal sealed class SocketFrameHandler : IFrameHandler
@@ -82,8 +104,8 @@ namespace RabbitMQ.Client.Impl
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             _amqpTcpEndpoint = endpoint;
-            var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
-                new UnboundedChannelOptions
+            var channel = Channel.CreateBounded<ReadOnlyMemory<byte>>(
+                new BoundedChannelOptions(128)
                 {
                     AllowSynchronousContinuations = false,
                     SingleReader = true,
@@ -250,31 +272,24 @@ namespace RabbitMQ.Client.Impl
             return InboundFrame.TryReadFrameFromPipe(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, out frame);
         }
 
-        public void SendHeader()
+        public async ValueTask SendHeaderAsync()
         {
-            /*
-             * Note: this stream is deliberately not disposed
-             * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1264#discussion_r1100742748
-             */
-#if NET
-            _pipeWriter.AsStream().Write(ProtocolHeader);
-#else
-            _pipeWriter.AsStream().Write(ProtocolHeader.ToArray(), 0, ProtocolHeader.Length);
-#endif
+            _pipeWriter.Write(ProtocolHeader);
+            await _pipeWriter.FlushAsync().ConfigureAwait(false);
         }
 
-        public void Write(ReadOnlyMemory<byte> memory)
+        public ValueTask WriteAsync(ReadOnlyMemory<byte> memory)
         {
             if (_closed)
             {
-                return;
-
+#if NET6_0_OR_GREATER
+                return ValueTask.CompletedTask;
+#else
+                return new ValueTask(Task.CompletedTask);
+#endif
             }
 
-            if (!_channelWriter.TryWrite(memory))
-            {
-                throw new ApplicationException("Please report this bug here: https://github.com/rabbitmq/rabbitmq-dotnet-client/issues");
-            }
+            return _channelWriter.WriteAsync(memory);
         }
 
         private async Task WriteLoop()
@@ -292,7 +307,7 @@ namespace RabbitMQ.Client.Impl
                     }
 
                     await _pipeWriter.FlushAsync()
-                       .ConfigureAwait(false);
+                        .ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

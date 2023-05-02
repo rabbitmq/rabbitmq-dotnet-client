@@ -35,10 +35,7 @@ using System.Diagnostics.Tracing;
 
 namespace RabbitMQ.Client.Logging
 {
-#if NET452
-#else
     [EventData]
-#endif
     public class RabbitMqExceptionDetail
     {
         public RabbitMqExceptionDetail(Exception ex)
