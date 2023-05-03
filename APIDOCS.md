@@ -9,7 +9,7 @@ pushd _site
 git remote add origin-ssh git@github.com:rabbitmq/rabbitmq-dotnet-client.git
 git checkout --track origin-ssh/gh-pages
 popd
-.\build.bat
+.\build.ps1 -RunTests:$false
 docfx.exe
 pushd _site
 git commit -a -m 'rabbitmq-dotnet-client docs vX.Y.Z'
