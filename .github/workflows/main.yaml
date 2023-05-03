@@ -42,9 +42,11 @@ jobs:
       - name: List NuGet sources
         run: dotnet nuget locals all --list
       - name: Restore
-        run: dotnet restore --verbosity=normal
+        run: dotnet restore ./Build.csproj --verbosity=normal
       - name: Build
-        run: dotnet build --no-restore --verbosity=normal
+        run: dotnet build ./Build.csproj --no-restore --verbosity=normal
+      - name: Verify
+        run: dotnet format ./RabbitMQDotNetClient.sln --no-restore --verbosity=diagnostic --verify-no-changes
       - name: Test
         run: ./.ci/gha-run-tests.ps1
 
@@ -79,12 +81,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-v0-nuget-
       - name: Restore
-        run: dotnet restore --verbosity=normal
+        run: dotnet restore ./Build.csproj --verbosity=normal
       - name: Build
-        run: dotnet build --no-restore --verbosity=normal
+        run: dotnet build ./Build.csproj --no-restore --verbosity=normal
+      - name: Verify
+        run: dotnet format ./RabbitMQDotNetClient.sln --no-restore --verbosity=diagnostic --verify-no-changes
       - name: Test
-        run: dotnet test --no-restore --no-build --logger "console;verbosity=detailed" --framework "net6.0"
+        run: dotnet test ./Build.csproj --no-restore --no-build --logger "console;verbosity=detailed" --framework "net6.0"
         env:
           RABBITMQ_RABBITMQCTL_PATH: DOCKER:${{job.services.rabbitmq.id}}
-      - name: Verify Formatting
-        run: dotnet format --verbosity normal --no-restore --verify-no-changes

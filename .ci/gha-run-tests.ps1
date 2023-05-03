@@ -28,5 +28,5 @@ Write-Host "[INFO] Setting RABBITMQ_RABBITMQCTL_PATH to '$rabbitmqctl_path'..."
 $env:RABBITMQ_RABBITMQCTL_PATH = $rabbitmqctl_path
 [Environment]::SetEnvironmentVariable('RABBITMQ_RABBITMQCTL_PATH', $rabbitmqctl_path, 'Machine')
 
-$solution_file = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath 'RabbitMQDotNetClient.sln'
-dotnet test --no-restore --no-build --logger "console;verbosity=detailed" $solution_file
+$build_csproj_file = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath 'Build.csproj'
+dotnet test $build_csproj_file --no-restore --no-build --logger "console;verbosity=detailed"
