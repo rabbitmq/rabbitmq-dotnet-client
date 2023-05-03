@@ -197,15 +197,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public override void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, IDictionary<string, object> arguments)
         {
+            /*
+             * Note:
+             * Even though nowait is a parameter, ChannelSend must be used
+             */
             var method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelSend(method);
-            }
+            ChannelSend(method);
         }
 
         public override uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait)
@@ -382,8 +379,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.QueueDeclareOk:
                     {
-                        HandleQueueDeclareOk(in cmd);
-                        return true;
+                        return HandleQueueDeclareOk(in cmd);
                     }
                 default: return false;
             }

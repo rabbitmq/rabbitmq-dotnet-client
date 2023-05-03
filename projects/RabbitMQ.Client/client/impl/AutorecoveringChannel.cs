@@ -430,6 +430,14 @@ namespace RabbitMQ.Client.Impl
             _connection.RecordQueue(new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments));
         }
 
+        public async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        {
+            ThrowIfDisposed();
+            QueueDeclareOk result = await _innerChannel.QueueDeclareAsync(queue, durable, exclusive, autoDelete, arguments);
+            _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+            return result;
+        }
+
         public QueueDeclareOk QueueDeclarePassive(string queue)
             => InnerChannel.QueueDeclarePassive(queue);
 

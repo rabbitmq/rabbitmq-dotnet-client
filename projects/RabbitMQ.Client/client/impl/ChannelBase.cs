@@ -42,7 +42,6 @@ using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -57,7 +56,6 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
-        private readonly object _rpcLock = new object();
         private readonly object _confirmLock = new object();
         private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
 
@@ -328,7 +326,8 @@ namespace RabbitMQ.Client.Impl
         {
             if (!DispatchAsynchronous(in cmd)) // Was asynchronous. Already processed. No need to process further.
             {
-                _continuationQueue.Next().HandleCommand(in cmd);
+                IRpcContinuation c = _continuationQueue.Next();
+                c.HandleCommand(in cmd);
             }
         }
 
@@ -337,11 +336,16 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new SimpleBlockingRpcContinuation();
             IncomingCommand reply;
-            lock (_rpcLock)
+            _rpcSemaphore.Wait();
+            try
             {
                 Enqueue(k);
                 Session.Transmit(in method);
                 k.GetReply(ContinuationTimeout, out reply);
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
             }
 
             reply.ReturnMethodBuffer();
@@ -358,11 +362,16 @@ namespace RabbitMQ.Client.Impl
             var k = new SimpleBlockingRpcContinuation();
             IncomingCommand reply;
 
-            lock (_rpcLock)
+            _rpcSemaphore.Wait();
+            try
             {
                 Enqueue(k);
                 Session.Transmit(in method);
                 k.GetReply(ContinuationTimeout, out reply);
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
             }
 
             if (reply.CommandId != returnCommandId)
@@ -783,13 +792,21 @@ namespace RabbitMQ.Client.Impl
             Session.Connection.HandleConnectionUnblocked();
         }
 
-        protected void HandleQueueDeclareOk(in IncomingCommand cmd)
+        protected bool HandleQueueDeclareOk(in IncomingCommand cmd)
         {
-            var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodBytes.Span);
-            cmd.ReturnMethodBuffer();
-            var k = (QueueDeclareRpcContinuation)_continuationQueue.Next();
-            k.m_result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
-            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+            if (_continuationQueue.TryPeek<QueueDeclareRpcContinuation>(out var k))
+            {
+                _continuationQueue.Next();
+                var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodBytes.Span);
+                cmd.ReturnMethodBuffer();
+                k.m_result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
+                k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public abstract void _Private_BasicCancel(string consumerTag, bool nowait);
@@ -844,11 +861,16 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
 
-            lock (_rpcLock)
+            _rpcSemaphore.Wait();
+            try
             {
                 Enqueue(k);
                 _Private_BasicCancel(consumerTag, false);
                 k.GetReply(ContinuationTimeout);
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
             }
         }
 
@@ -872,7 +894,8 @@ namespace RabbitMQ.Client.Impl
 
             var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
 
-            lock (_rpcLock)
+            _rpcSemaphore.Wait();
+            try
             {
                 Enqueue(k);
                 // Non-nowait. We have an unconventional means of getting
@@ -881,6 +904,11 @@ namespace RabbitMQ.Client.Impl
                     /*nowait:*/ false, arguments);
                 k.GetReply(ContinuationTimeout);
             }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+
             string actualConsumerTag = k.m_consumerTag;
 
             return actualConsumerTag;
@@ -889,11 +917,17 @@ namespace RabbitMQ.Client.Impl
         public BasicGetResult BasicGet(string queue, bool autoAck)
         {
             var k = new BasicGetRpcContinuation();
-            lock (_rpcLock)
+
+            _rpcSemaphore.Wait();
+            try
             {
                 Enqueue(k);
                 _Private_BasicGet(queue, autoAck);
                 k.GetReply(ContinuationTimeout);
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
             }
 
             return k.m_result;
@@ -982,11 +1016,16 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new SimpleBlockingRpcContinuation();
 
-            lock (_rpcLock)
+            _rpcSemaphore.Wait();
+            try
             {
                 Enqueue(k);
                 _Private_BasicRecover(requeue);
                 k.GetReply(ContinuationTimeout);
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
             }
         }
 
@@ -1063,6 +1102,11 @@ namespace RabbitMQ.Client.Impl
         public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
+        }
+
+        public ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        {
+            return QueueDeclareAsync(queue, false, durable, exclusive, autoDelete, arguments);
         }
 
         public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
@@ -1196,17 +1240,44 @@ namespace RabbitMQ.Client.Impl
         private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             var k = new QueueDeclareRpcContinuation();
-            lock (_rpcLock)
+
+            _rpcSemaphore.Wait();
+            try
             {
                 Enqueue(k);
                 _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
                 k.GetReply(ContinuationTimeout);
             }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+
             QueueDeclareOk result = k.m_result;
             CurrentQueue = result.QueueName;
             return result;
         }
 
+        private async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        {
+            var k = new QueueDeclareAsyncRpcContinuation();
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                QueueDeclareOk result = await k;
+                CurrentQueue = result.QueueName;
+                return result;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
 
         public class BasicConsumerRpcContinuation : SimpleBlockingRpcContinuation
         {
@@ -1227,6 +1298,30 @@ namespace RabbitMQ.Client.Impl
         public class QueueDeclareRpcContinuation : SimpleBlockingRpcContinuation
         {
             public QueueDeclareOk m_result;
+        }
+
+        public class QueueDeclareAsyncRpcContinuation : AsyncRpcContinuation<QueueDeclareOk>
+        {
+            public override void HandleCommand(in IncomingCommand cmd)
+            {
+                try
+                {
+                    var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodBytes.Span);
+                    var result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
+                    if (cmd.CommandId == ProtocolCommandId.QueueDeclareOk)
+                    {
+                        _tcs.TrySetResult(result);
+                    }
+                    else
+                    {
+                        _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                    }
+                }
+                finally
+                {
+                    cmd.ReturnMethodBuffer();
+                }
+            }
         }
     }
 }

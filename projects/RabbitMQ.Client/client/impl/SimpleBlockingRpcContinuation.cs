@@ -54,24 +54,29 @@ namespace RabbitMQ.Client.Impl
     {
         public override void HandleCommand(in IncomingCommand cmd)
         {
-            if (cmd.CommandId == ProtocolCommandId.ConnectionSecure)
+            try
             {
-                var secure = new ConnectionSecure(cmd.MethodBytes.Span);
-                _tcs.TrySetResult(new ConnectionSecureOrTune { m_challenge = secure._challenge });
-                cmd.ReturnMethodBuffer();
-            }
-            else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
-            {
-                var tune = new ConnectionTune(cmd.MethodBytes.Span);
-                _tcs.TrySetResult(new ConnectionSecureOrTune
+                if (cmd.CommandId == ProtocolCommandId.ConnectionSecure)
                 {
-                    m_tuneDetails = new() { m_channelMax = tune._channelMax, m_frameMax = tune._frameMax, m_heartbeatInSeconds = tune._heartbeat }
-                });
-                cmd.ReturnMethodBuffer();
+                    var secure = new ConnectionSecure(cmd.MethodBytes.Span);
+                    _tcs.TrySetResult(new ConnectionSecureOrTune { m_challenge = secure._challenge });
+                }
+                else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
+                {
+                    var tune = new ConnectionTune(cmd.MethodBytes.Span);
+                    _tcs.TrySetResult(new ConnectionSecureOrTune
+                    {
+                        m_tuneDetails = new() { m_channelMax = tune._channelMax, m_frameMax = tune._frameMax, m_heartbeatInSeconds = tune._heartbeat }
+                    });
+                }
+                else
+                {
+                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                }
             }
-            else
+            finally
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                cmd.ReturnMethodBuffer();
             }
         }
     }

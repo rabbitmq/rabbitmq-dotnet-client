@@ -188,6 +188,7 @@ namespace RabbitMQ.Client
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
 
 #nullable enable
+
         /// <summary>
         /// Publishes a message.
         /// </summary>
@@ -198,6 +199,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+
         /// <summary>
         /// Publishes a message.
         /// </summary>
@@ -208,6 +210,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+
         /// <summary>
         /// Asynchronously publishes a message.
         /// </summary>
@@ -218,6 +221,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+
         /// <summary>
         /// Asynchronously publishes a message.
         /// </summary>
@@ -228,6 +232,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+
 #nullable disable
 
         /// <summary>
@@ -360,6 +365,16 @@ namespace RabbitMQ.Client
         /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
         /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
         QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
+
+        /// <summary>
+        /// Asynchronously declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
+        /// </summary>
+        /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
+        /// <param name="durable">Should this queue will survive a broker restart?</param>
+        /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
+        /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
+        /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
+        ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
