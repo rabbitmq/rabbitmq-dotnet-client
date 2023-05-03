@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.Build.Traversal/3.2.0">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <MinVerSkip>true</MinVerSkip>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="projects/Benchmarks/Benchmarks.csproj" />
+    <ProjectReference Include="projects/RabbitMQ.Client/RabbitMQ.Client.csproj" />
+    <ProjectReference Include="projects/TestApplications/CreateChannel/CreateChannel.csproj" />
+    <ProjectReference Include="projects/TestApplications/MassPublish/MassPublish.csproj" />
+    <ProjectReference Include="projects/Unit/Unit.csproj" />
+  </ItemGroup>
+
+</Project>

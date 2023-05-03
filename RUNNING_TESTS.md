@@ -1,42 +1,41 @@
-## Overview
+# Overview
 
-.NET client's test suite assumes there's a RabbitMQ node listening on `localhost:5672`
-(the default settings). TLS tests require a node listening on the default
-[TLS port](https://rabbitmq.com/ssl.html).
+The RabbitMQ .NET client's test suite assumes there's a RabbitMQ node listening
+on `localhost:5672` (the default settings). TLS tests require a node listening
+on the default [TLS port](https://rabbitmq.com/ssl.html).
 
-It is possible to use Visual Studio Community Edition .NET Core, and
-`dotnet.exe` in `PATH`, to build the client and run the test suite.
+It is possible to use Visual Studio Community Edition and `dotnet.exe` in
+`PATH`, to build the client and run the test suite.
 
 
 ## Building
 
-Before this project can be opened in Visual Studio, it's necessary to pull down dependencies
-and perform protocol encoder/decoder code generation.
 
-On Windows run:
+### Windows
 
-``` powershell
-build.bat
+```powershell
+build.ps1
 ```
 
-On MacOS and linux run:
+### MacOS and Linux
 
-``` shell
-./build.sh
+```shell
+dotnet build ./Build.csproj
 ```
 
-This will complete the code AMQP 0-9-1 protocol code generation and build all projects. After this open the solution in Visual Studio.
+This will build all projects. After this open the solution in Visual Studio.
 
 
 ## Test Environment Requirements
 
-Tests can be run from Visual Studio using the NUnit Test Adapter.  Note that it
+Tests can be run from Visual Studio using the XUnit Test Adapter.  Note that it
 may take some time for the adapter to discover tests in the assemblies.
 
 The test suite assumes there's a RabbitMQ node running locally with all
 defaults, and the tests will need to be able to run commands against the
 [`rabbitmqctl`](https://www.rabbitmq.com/rabbitmqctl.8.html) tool for that node.
 Two options to accomplish this are covered below.
+
 
 ### Option One: Using a RabbitMQ Release
 
@@ -46,16 +45,16 @@ invoked directly without using an absolute file path. Note that this method does
 
 On Windows, you must run unit tests as follows (replace `X.Y.Z` with your RabbitMQ version):
 
-```
-set "RABBITMQ_RABBITMQCTL_PATH=C:\Program Files\RabbitMQ Server\rabbitmq_server-X.Y.Z\sbin\rabbitmqctl.bat"
-.\run-test.bat
+```powershell
+$env:RABBITMQ_RABBITMQCTL_PATH='C:\Program Files\RabbitMQ Server\rabbitmq_server-X.Y.Z\sbin\rabbitmqctl.bat'
+.\build.ps1 -RunTests
 ```
 
 ### Option Two: Building a RabbitMQ Node from Source
 
 T run a RabbitMQ node [built from source](https://www.rabbitmq.com/build-server.html):
 
-```
+```shell
 git clone https://github.com/rabbitmq/rabbitmq-server.git rabbitmq-server
 cd rabbitmq-server
 
@@ -77,9 +76,14 @@ RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Unit
 
 ### Option Three: Using a Docker Container
 
-It is also possible to run a RabbitMQ node in a [Docker](https://www.docker.com/) container.  Set the environment variable `RABBITMQ_RABBITMQCTL_PATH` to `DOCKER:<container_name>` (for example `DOCKER:rabbitmq01`). This tells the unit tests to run the `rabbitmqctl` commands through Docker, in the format `docker exec rabbitmq01 rabbitmqctl <args>`:
+It is also possible to run a RabbitMQ node in a
+[Docker](https://www.docker.com/) container.  Set the environment variable
+`RABBITMQ_RABBITMQCTL_PATH` to `DOCKER:<container_name>` (for example
+`DOCKER:rabbitmq01`). This tells the unit tests to run the `rabbitmqctl`
+commands through Docker, in the format `docker exec rabbitmq01 rabbitmqctl
+<args>`:
 
-``` shell
+```shell
 docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
 ```
 
@@ -87,16 +91,17 @@ docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:567
 
 Then, to run the tests use:
 
-``` powershell
-# will run tests on .NET Core and .NET Framework
-run-test.bat
+
+### Windows
+
+```powershell
+build.ps1 -RunTests
 ```
 
-On MacOS, Linux, BSD use:
+### MacOS, Linux, BSD:
 
-``` shell
-# will only run tests on .NET Core
-run-test.sh
+```shell
+dotnet test ./Build.csproj
 ```
 
 ## Running Individual Suites or Test Cases
@@ -115,5 +120,5 @@ dotnet test projects/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.Test
 To run tests targeting .NET 6.0:
 
 ``` shell
-dotnet test -f ".net6.0" projects/Unit
+dotnet test --framework net6.0 projects/Unit
 ```
