@@ -32,7 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,17 +45,25 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
+        public async void TestQueueDeclareAsync()
+        {
+            string q = GenerateQueueName();
+            QueueDeclareOk result = await _channel.QueueDeclareAsync(q, false, false, false, null);
+            Assert.Equal(q, result.QueueName);
+        }
+
+        [Fact]
         [Trait("Category", "RequireSMP")]
         public void TestConcurrentQueueDeclare()
         {
             string q = GenerateQueueName();
-            Random rnd = new Random();
+            var rnd = new Random();
 
-            List<Thread> ts = new List<Thread>();
+            var ts = new List<Thread>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
             {
-                Thread t = new Thread(() =>
+                var t = new Thread(() =>
                         {
                             try
                             {
@@ -78,6 +86,40 @@ namespace RabbitMQ.Client.Unit
                 t.Join();
             }
 
+            Assert.Null(nse);
+            _channel.QueueDelete(q);
+        }
+
+        [Fact]
+        [Trait("Category", "RequireSMP")]
+        public async void TestConcurrentQueueDeclareAsync()
+        {
+            string q = GenerateQueueName();
+            var rnd = new Random();
+
+            var ts = new List<Task>();
+            NotSupportedException nse = null;
+            for (int i = 0; i < 256; i++)
+            {
+                async Task f()
+                {
+                    try
+                    {
+                        // sleep for a random amount of time to increase the chances
+                        // of thread interleaving. MK.
+                        await Task.Delay(rnd.Next(5, 50));
+                        QueueDeclareOk r = await _channel.QueueDeclareAsync(q, false, false, false, null);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                }
+                var t = Task.Run(f);
+                ts.Add(t);
+            }
+
+            await Task.WhenAll(ts);
             Assert.Null(nse);
             _channel.QueueDelete(q);
         }

@@ -108,5 +108,24 @@ namespace RabbitMQ.Client.Impl
         {
             return Interlocked.Exchange(ref _outstandingRpc, s_tmp);
         }
+
+        ///<summary>Peek at the next waiting continuation.</summary>
+        ///<remarks>
+        ///<para>
+        /// It is an error to call this method when there are no
+        /// waiting continuations.
+        ///</para>
+        ///</remarks>
+        public bool TryPeek<T>(out T continuation) where T : IRpcContinuation
+        {
+            if (_outstandingRpc is T result)
+            {
+                continuation = result;
+                return true;
+            }
+
+            continuation = default;
+            return false;
+        }
     }
 }
