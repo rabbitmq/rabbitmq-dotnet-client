@@ -372,6 +372,13 @@ namespace RabbitMQ.Client.Impl
             _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
         }
 
+        public async ValueTask ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        {
+            ThrowIfDisposed();
+            await _innerChannel.ExchangeDeclareAsync(exchange, type, durable, autoDelete, arguments);
+            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+        }
+
         public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
@@ -385,6 +392,12 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeDelete(string exchange, bool ifUnused)
         {
             InnerChannel.ExchangeDelete(exchange, ifUnused);
+            _connection.DeleteRecordedExchange(exchange);
+        }
+
+        public async ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused)
+        {
+            await InnerChannel.ExchangeDeleteAsync(exchange, ifUnused);
             _connection.DeleteRecordedExchange(exchange);
         }
 
@@ -455,10 +468,26 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
+        public async ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
+        {
+            ThrowIfDisposed();
+            uint result = await _innerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty);
+            _connection.DeleteRecordedQueue(queue);
+            return result;
+        }
+
         public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
             InnerChannel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
             _connection.DeleteRecordedQueue(queue);
+        }
+
+        public async ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
+        {
+            ThrowIfDisposed();
+            uint result = await _innerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty);
+            _connection.DeleteRecordedQueue(queue);
+            return result;
         }
 
         public uint QueuePurge(string queue)

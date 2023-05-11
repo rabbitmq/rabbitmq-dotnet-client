@@ -277,6 +277,16 @@ namespace RabbitMQ.Client
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
+        /// Asynchronously binds an exchange to an exchange.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>
+        ValueTask ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+
+        /// <summary>
         /// Like ExchangeBind but sets nowait to true.
         /// </summary>
         /// <remarks>
@@ -289,9 +299,16 @@ namespace RabbitMQ.Client
         /// <summary>Declare an exchange.</summary>
         /// <remarks>
         /// The exchange is declared non-passive and non-internal.
-        /// The "nowait" option is not exercised.
+        /// The "nowait" option is not used.
         /// </remarks>
         void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
+
+        /// <summary>Asynchronously declare an exchange.</summary>
+        /// <remarks>
+        /// The exchange is declared non-passive and non-internal.
+        /// The "nowait" option is not exercised.
+        /// </remarks>
+        ValueTask ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
@@ -314,6 +331,19 @@ namespace RabbitMQ.Client
         /// Delete an exchange.
         /// </summary>
         void ExchangeDelete(string exchange, bool ifUnused);
+
+        /*
+         * TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
+        /// <summary>
+        /// Asynchronously delete an exchange.
+        /// </summary>
+        ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused);
+        */
+
+        /// <summary>
+        /// Asynchronously delete an exchange.
+        /// </summary>
+        ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused);
 
         /// <summary>
         /// Like ExchangeDelete but sets nowait to true.
@@ -411,17 +441,30 @@ namespace RabbitMQ.Client
         uint ConsumerCount(string queue);
 
         /// <summary>
-        /// Delete a queue.
+        /// Deletes a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
+        /// </summary>
+        /// <param name="queue">The name of the queue.</param>
+        /// <param name="ifUnused">Only delete the queue if it is unused.</param>
+        /// <param name="ifEmpty">Only delete the queue if it is empty.</param>
+        /// <returns>Returns the number of messages purged during deletion.</returns>
+        uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
+
+        /// <summary>
+        /// Asynchronously deletes a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
         /// </summary>
         /// <remarks>
         ///Returns the number of messages purged during queue deletion.
         /// </remarks>
-        uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
+        ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty);
 
         /// <summary>
         ///Same as QueueDelete but sets nowait parameter to true
         ///and returns void (as there will be no response from the server)
         /// </summary>
+        /// <param name="queue">The name of the queue.</param>
+        /// <param name="ifUnused">Only delete the queue if it is unused.</param>
+        /// <param name="ifEmpty">Only delete the queue if it is empty.</param>
+        /// <returns>Returns the number of messages purged during deletion.</returns>
         void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
 
         /// <summary>

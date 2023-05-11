@@ -432,9 +432,11 @@ namespace RabbitMQ.Client
         void ExchangeBind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeBindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
+        System.Threading.Tasks.ValueTask ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeDeclarePassive(string exchange);
         void ExchangeDelete(string exchange, bool ifUnused);
+        System.Threading.Tasks.ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused);
         void ExchangeDeleteNoWait(string exchange, bool ifUnused);
         void ExchangeUnbind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeUnbindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
@@ -446,6 +448,7 @@ namespace RabbitMQ.Client
         void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
         RabbitMQ.Client.QueueDeclareOk QueueDeclarePassive(string queue);
         uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
+        System.Threading.Tasks.ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty);
         void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
         uint QueuePurge(string queue);
         void QueueUnbind(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);

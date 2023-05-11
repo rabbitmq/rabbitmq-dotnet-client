@@ -53,7 +53,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        [Trait("Category", "RequireSMP")]
         public void TestConcurrentQueueDeclare()
         {
             string q = GenerateQueueName();
@@ -91,7 +90,6 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        [Trait("Category", "RequireSMP")]
         public async void TestConcurrentQueueDeclareAsync()
         {
             string q = GenerateQueueName();
@@ -121,7 +119,8 @@ namespace RabbitMQ.Client.Unit
 
             await Task.WhenAll(ts);
             Assert.Null(nse);
-            _channel.QueueDelete(q);
+            uint deletedMessageCount = await _channel.QueueDeleteAsync(q, false, false);
+            Assert.Equal((uint)0, deletedMessageCount);
         }
     }
 }

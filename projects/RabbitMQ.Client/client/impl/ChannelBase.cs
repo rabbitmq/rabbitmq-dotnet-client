@@ -32,6 +32,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -198,6 +199,7 @@ namespace RabbitMQ.Client.Impl
 
         private async Task CloseAsync(ShutdownEventArgs reason, bool abort)
         {
+            // TODO LRB #1347 use async continuation
             var k = new ShutdownContinuation();
             ChannelShutdown += k.OnConnectionShutdown;
 
@@ -246,7 +248,7 @@ namespace RabbitMQ.Client.Impl
 
         internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response)
         {
-            var k = new ConnectionSecureOrTuneContinuation();
+            using var k = new ConnectionSecureOrTuneContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             Enqueue(k);
             try
@@ -273,7 +275,7 @@ namespace RabbitMQ.Client.Impl
         internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(IDictionary<string, object> clientProperties, string mechanism, byte[] response,
             string locale)
         {
-            var k = new ConnectionSecureOrTuneContinuation();
+            using var k = new ConnectionSecureOrTuneContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             Enqueue(k);
             try
@@ -468,7 +470,7 @@ namespace RabbitMQ.Client.Impl
 
         internal bool SetCloseReason(ShutdownEventArgs reason)
         {
-            return System.Threading.Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
         public override string ToString()
@@ -485,6 +487,7 @@ namespace RabbitMQ.Client.Impl
             {
                 // dispose managed resources
                 this.Abort();
+                _rpcSemaphore.Dispose();
             }
 
             // dispose unmanaged resources
@@ -755,7 +758,7 @@ namespace RabbitMQ.Client.Impl
 
         protected void HandleConnectionSecure(in IncomingCommand cmd)
         {
-            var k = (ConnectionSecureOrTuneContinuation)_continuationQueue.Next();
+            using var k = (ConnectionSecureOrTuneContinuation)_continuationQueue.Next();
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
@@ -783,7 +786,7 @@ namespace RabbitMQ.Client.Impl
 
         protected void HandleConnectionTune(in IncomingCommand cmd)
         {
-            var k = (ConnectionSecureOrTuneContinuation)_continuationQueue.Next();
+            using var k = (ConnectionSecureOrTuneContinuation)_continuationQueue.Next();
             k.HandleCommand(cmd); // release the continuation.
         }
 
@@ -1059,6 +1062,11 @@ namespace RabbitMQ.Client.Impl
             _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, false, arguments);
         }
 
+        public ValueTask ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        {
+            return DoExchangeDeclareAsync(exchange, type, false, durable, autoDelete, arguments);
+        }
+
         public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             _Private_ExchangeDeclare(exchange, type, false, durable, autoDelete, false, true, arguments);
@@ -1072,6 +1080,11 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeDelete(string exchange, bool ifUnused)
         {
             _Private_ExchangeDelete(exchange, ifUnused, false);
+        }
+
+        public ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused)
+        {
+            return DoExchangeDeleteAsync(exchange, ifUnused);
         }
 
         public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
@@ -1101,12 +1114,12 @@ namespace RabbitMQ.Client.Impl
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            return QueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
+            return DoQueueDeclare(queue, false, durable, exclusive, autoDelete, arguments);
         }
 
         public ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            return QueueDeclareAsync(queue, false, durable, exclusive, autoDelete, arguments);
+            return DoQueueDeclareAsync(queue, false, durable, exclusive, autoDelete, arguments);
         }
 
         public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
@@ -1116,7 +1129,7 @@ namespace RabbitMQ.Client.Impl
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
         {
-            return QueueDeclare(queue, true, false, false, false, null);
+            return DoQueueDeclare(queue, true, false, false, false, null);
         }
 
         public uint MessageCount(string queue)
@@ -1136,9 +1149,34 @@ namespace RabbitMQ.Client.Impl
             return _Private_QueueDelete(queue, ifUnused, ifEmpty, false);
         }
 
+        public async ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
+        {
+            var k = new QueueDeleteAsyncRpcContinuation();
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new QueueDelete(queue, ifUnused, ifEmpty, false);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                QueueDeleteOk result = await k;
+                return result.MessageCount;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
         public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
             _Private_QueueDelete(queue, ifUnused, ifEmpty, true);
+        }
+
+        public ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
+        {
+            return DoQueueDeleteAsync(queue, ifUnused, ifEmpty);
         }
 
         public uint QueuePurge(string queue)
@@ -1237,7 +1275,49 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private QueueDeclareOk QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        private async ValueTask DoExchangeDeclareAsync(string exchange, string type, bool passive, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        {
+            using var k = new ExchangeDeclareAsyncRpcContinuation(ContinuationTimeout);
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, false, false, arguments);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
+        private async ValueTask DoExchangeDeleteAsync(string exchange, bool ifUnused)
+        {
+            using var k = new ExchangeDeleteAsyncRpcContinuation(ContinuationTimeout);
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new ExchangeDelete(exchange, ifUnused, Nowait: false);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
+        private QueueDeclareOk DoQueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             var k = new QueueDeclareRpcContinuation();
 
@@ -1258,9 +1338,9 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        private async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        private async ValueTask<QueueDeclareOk> DoQueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            var k = new QueueDeclareAsyncRpcContinuation();
+            using var k = new QueueDeclareAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -1279,48 +1359,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public class BasicConsumerRpcContinuation : SimpleBlockingRpcContinuation
+        private async ValueTask<uint> DoQueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
         {
-            public IBasicConsumer m_consumer;
-            public string m_consumerTag;
-        }
-
-        public class BasicGetRpcContinuation : SimpleBlockingRpcContinuation
-        {
-            public BasicGetResult m_result;
-        }
-
-        public class ConnectionStartRpcContinuation : SimpleBlockingRpcContinuation
-        {
-            public ConnectionSecureOrTune m_result;
-        }
-
-        public class QueueDeclareRpcContinuation : SimpleBlockingRpcContinuation
-        {
-            public QueueDeclareOk m_result;
-        }
-
-        public class QueueDeclareAsyncRpcContinuation : AsyncRpcContinuation<QueueDeclareOk>
-        {
-            public override void HandleCommand(in IncomingCommand cmd)
+            using var k = new QueueDeleteAsyncRpcContinuation(ContinuationTimeout);
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
             {
-                try
-                {
-                    var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodBytes.Span);
-                    var result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
-                    if (cmd.CommandId == ProtocolCommandId.QueueDeclareOk)
-                    {
-                        _tcs.TrySetResult(result);
-                    }
-                    else
-                    {
-                        _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                    }
-                }
-                finally
-                {
-                    cmd.ReturnMethodBuffer();
-                }
+                Enqueue(k);
+
+                var method = new QueueDelete(queue, ifUnused, ifEmpty, Nowait: false);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                QueueDeleteOk result = await k;
+                return result._messageCount;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
             }
         }
     }
