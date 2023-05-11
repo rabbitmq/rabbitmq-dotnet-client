@@ -1,5 +1,8 @@
 log.console = false
-log.file.level = debug
+log.exchange = false
+log.file.level = info
+# log.connection.level = warning
+# log.channel.level = warning
 listeners.tcp.default = 5672
 listeners.ssl.default = 5671
 reverse_dns_lookups = false

@@ -46,6 +46,6 @@ namespace RabbitMQ.Client.Events
         /// <summary>
         /// Access the reason why connection is blocked.
         /// </summary>
-        public string Reason { get; }
+        public readonly string Reason;
     }
 }

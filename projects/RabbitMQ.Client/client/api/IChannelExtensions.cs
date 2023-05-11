@@ -51,10 +51,33 @@ namespace RabbitMQ.Client
             return channel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
         }
 
-        /// <summary>Start a Basic content-class consumer.</summary>
-        public static string BasicConsume(this IChannel channel, string queue, bool autoAck, IBasicConsumer consumer)
+        /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        public static ValueTask<string> BasicConsumeAsync(this IChannel channel,
+            IBasicConsumer consumer,
+            string queue,
+            bool autoAck = false,
+            string consumerTag = "",
+            bool noLocal = false,
+            bool exclusive = false,
+            IDictionary<string, object> arguments = null)
         {
-            return channel.BasicConsume(queue, autoAck, "", false, false, null, consumer);
+            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+        }
+
+        /// <summary>Start a Basic content-class consumer.</summary>
+        public static string BasicConsume(this IChannel channel, string queue,
+            bool autoAck,
+            IBasicConsumer consumer)
+        {
+            return channel.BasicConsume(queue, autoAck, string.Empty, false, false, null, consumer);
+        }
+
+        /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        public static ValueTask<string> BasicConsumeAsync(this IChannel channel, string queue,
+            bool autoAck,
+            IBasicConsumer consumer)
+        {
+            return channel.BasicConsumeAsync(queue, autoAck, string.Empty, false, false, null, consumer);
         }
 
         /// <summary>Start a Basic content-class consumer.</summary>
@@ -66,6 +89,15 @@ namespace RabbitMQ.Client
             return channel.BasicConsume(queue, autoAck, consumerTag, false, false, null, consumer);
         }
 
+        /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        public static ValueTask<string> BasicConsumeAsync(this IChannel channel, string queue,
+            bool autoAck,
+            string consumerTag,
+            IBasicConsumer consumer)
+        {
+            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, null, consumer);
+        }
+
         /// <summary>Start a Basic content-class consumer.</summary>
         public static string BasicConsume(this IChannel channel, string queue,
             bool autoAck,
@@ -74,6 +106,16 @@ namespace RabbitMQ.Client
             IBasicConsumer consumer)
         {
             return channel.BasicConsume(queue, autoAck, consumerTag, false, false, arguments, consumer);
+        }
+
+        /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        public static ValueTask<string> BasicConsumeAsync(this IChannel channel, string queue,
+            bool autoAck,
+            string consumerTag,
+            IDictionary<string, object> arguments,
+            IBasicConsumer consumer)
+        {
+            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, arguments, consumer);
         }
 
 #nullable enable
@@ -89,21 +131,27 @@ namespace RabbitMQ.Client
             channel.BasicPublish(addr.ExchangeName, addr.RoutingKey, in basicProperties, body);
         }
 
-        public static void BasicPublish(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => channel.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
+        public static ValueTask BasicPublishAsync<T>(this IChannel channel, PublicationAddress addr, in T basicProperties, ReadOnlyMemory<byte> body)
+            where T : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            return channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, in basicProperties, body);
+        }
 
-        public static void BasicPublish(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        public static void BasicPublish(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             => channel.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
 
         public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             => channel.BasicPublishAsync(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
+
+        public static void BasicPublish(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+            => channel.BasicPublish(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
 
         public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
             => channel.BasicPublishAsync(exchange, routingKey, in EmptyBasicProperty.Empty, body, mandatory);
 #nullable disable
 
         /// <summary>
-        /// (Spec method) Declare a queue.
+        /// Declare a queue.
         /// </summary>
         public static QueueDeclareOk QueueDeclare(this IChannel channel, string queue = "", bool durable = false, bool exclusive = true,
             bool autoDelete = true, IDictionary<string, object> arguments = null)
@@ -112,7 +160,17 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Extension method) Bind an exchange to an exchange.
+        /// Asynchronously declare a queue.
+        /// </summary>
+        public static ValueTask<QueueDeclareOk> QueueDeclareAsync(this IChannel channel, string queue = "", bool durable = false, bool exclusive = true,
+            bool autoDelete = true, IDictionary<string, object> arguments = null)
+        {
+            return channel.QueueDeclareAsync(queue: queue, passive: false,
+                durable: durable, exclusive: exclusive, autoDelete: autoDelete, arguments: arguments);
+        }
+
+        /// <summary>
+        /// Bind an exchange to an exchange.
         /// </summary>
         public static void ExchangeBind(this IChannel channel, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
         {
@@ -120,7 +178,15 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Extension method) Like exchange bind but sets nowait to true.
+        /// Asynchronously bind an exchange to an exchange.
+        /// </summary>
+        public static ValueTask ExchangeBindAsync(this IChannel channel, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
+        {
+            return channel.ExchangeBindAsync(destination, source, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// Like exchange bind but sets nowait to true.
         /// </summary>
         public static void ExchangeBindNoWait(this IChannel channel, string destination, string source, string routingKey, IDictionary<string, object> arguments = null)
         {
@@ -128,7 +194,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Spec method) Declare an exchange.
+        /// Declare an exchange.
         /// </summary>
         public static void ExchangeDeclare(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
@@ -137,7 +203,16 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Extension method) Like ExchangeDeclare but sets nowait to true.
+        /// Asynchronously declare an exchange.
+        /// </summary>
+        public static ValueTask ExchangeDeclareAsync(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
+            IDictionary<string, object> arguments = null)
+        {
+            return channel.ExchangeDeclareAsync(exchange, type, durable, autoDelete, arguments);
+        }
+
+        /// <summary>
+        /// Like ExchangeDeclare but sets nowait to true.
         /// </summary>
         public static void ExchangeDeclareNoWait(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
@@ -146,7 +221,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Spec method) Unbinds an exchange.
+        /// Unbinds an exchange.
         /// </summary>
         public static void ExchangeUnbind(this IChannel channel, string destination,
             string source,
@@ -157,7 +232,18 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Spec method) Deletes an exchange.
+        /// Asynchronously unbinds an exchange.
+        /// </summary>
+        public static ValueTask ExchangeUnbindAsync(this IChannel channel, string destination,
+            string source,
+            string routingKey,
+            IDictionary<string, object> arguments = null)
+        {
+            return channel.ExchangeUnbindAsync(destination, source, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// Deletes an exchange.
         /// </summary>
         public static void ExchangeDelete(this IChannel channel, string exchange, bool ifUnused = false)
         {
@@ -165,7 +251,15 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Extension method) Like ExchangeDelete but sets nowait to true.
+        /// Asynchronously deletes an exchange.
+        /// </summary>
+        public static ValueTask ExchangeDeleteAsync(this IChannel channel, string exchange, bool ifUnused = false)
+        {
+            return channel.ExchangeDeleteAsync(exchange, ifUnused);
+        }
+
+        /// <summary>
+        /// Like ExchangeDelete but sets nowait to true.
         /// </summary>
         public static void ExchangeDeleteNoWait(this IChannel channel, string exchange, bool ifUnused = false)
         {
@@ -173,7 +267,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Spec method) Binds a queue.
+        /// Binds a queue.
         /// </summary>
         public static void QueueBind(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
         {
@@ -181,7 +275,15 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Spec method) Deletes a queue.
+        /// Asynchronously binds a queue.
+        /// </summary>
+        public static ValueTask QueueBindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        {
+            return channel.QueueBindAsync(queue, exchange, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// Deletes a queue.
         /// </summary>
         public static uint QueueDelete(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false)
         {
@@ -189,7 +291,15 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Extension method) Like QueueDelete but sets nowait to true.
+        /// Asynchronously deletes a queue.
+        /// </summary>
+        public static ValueTask<uint> QueueDeleteAsync(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false)
+        {
+            return channel.QueueDeleteAsync(queue, ifUnused, ifEmpty);
+        }
+
+        /// <summary>
+        /// Like QueueDelete but sets nowait to true.
         /// </summary>
         public static void QueueDeleteNoWait(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false)
         {
@@ -197,11 +307,19 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// (Spec method) Unbinds a queue.
+        /// Unbinds a queue.
         /// </summary>
         public static void QueueUnbind(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
         {
             channel.QueueUnbind(queue, exchange, routingKey, arguments);
+        }
+
+        /// <summary>
+        /// Asynchronously unbinds a queue.
+        /// </summary>
+        public static ValueTask QueueUnbindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        {
+            return channel.QueueUnbindAsync(queue, exchange, routingKey, arguments);
         }
 
         /// <summary>
@@ -218,6 +336,22 @@ namespace RabbitMQ.Client
         public static void Abort(this IChannel channel)
         {
             channel.Close(Constants.ReplySuccess, "Goodbye", true);
+        }
+
+        /// <summary>
+        /// Asynchronously abort this session.
+        /// </summary>
+        /// <remarks>
+        /// If the session is already closed (or closing), then this
+        /// method does nothing but wait for the in-progress close
+        /// operation to complete. This method will not return to the
+        /// caller until the shutdown is complete.
+        /// In comparison to normal <see cref="Close(IChannel)"/> method, <see cref="Abort(IChannel)"/> will not throw
+        /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing channel.
+        /// </remarks>
+        public static ValueTask AbortAsync(this IChannel channel)
+        {
+            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", true);
         }
 
         /// <summary>
@@ -250,21 +384,58 @@ namespace RabbitMQ.Client
             channel.Close(Constants.ReplySuccess, "Goodbye", false);
         }
 
-        /// <summary>Close this session.</summary>
+        /// <summary>Asynchronously close this session.</summary>
+        /// <remarks>
+        /// If the session is already closed (or closing), then this
+        /// method does nothing but wait for the in-progress close
+        /// operation to complete. This method will not return to the
+        /// caller until the shutdown is complete.
+        /// </remarks>
+        public static ValueTask CloseAsync(this IChannel channel)
+        {
+            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", false);
+        }
+
+        /// <summary>
+        /// Close this channel.
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="replyCode">The reply code.</param>
+        /// <param name="replyText">The reply text.</param>
         /// <remarks>
         /// The method behaves in the same way as Close(), with the only
         /// difference that the channel is closed with the given channel
         /// close code and message.
         /// <para>
         /// The close code (See under "Reply Codes" in the AMQP specification)
-        /// </para>
-        /// <para>
+        /// </para><para>
         /// A message indicating the reason for closing the channel
         /// </para>
         /// </remarks>
         public static void Close(this IChannel channel, ushort replyCode, string replyText)
         {
             channel.Close(replyCode, replyText, false);
+        }
+
+        /// <summary>
+        /// Asynchronously close this channel.
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="replyCode">The reply code.</param>
+        /// <param name="replyText">The reply text.</param>
+        /// <remarks>
+        /// The method behaves in the same way as Close(), with the only
+        /// difference that the channel is closed with the given channel
+        /// close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP specification)
+        /// </para><para>
+        /// A message indicating the reason for closing the channel
+        /// </para>
+        /// </remarks>
+        public static ValueTask CloseAsync(this IChannel channel, ushort replyCode, string replyText)
+        {
+            return channel.CloseAsync(replyCode, replyText, false);
         }
     }
 }

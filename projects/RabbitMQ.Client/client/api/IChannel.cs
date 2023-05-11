@@ -58,8 +58,9 @@ namespace RabbitMQ.Client
         /// </summary>
         ShutdownEventArgs CloseReason { get; }
 
-        /// <summary>Signalled when an unexpected message is delivered
+        /// <summary>Signalled when an unexpected message is delivered.</summary>
         ///
+        /// <remarks>
         /// Under certain circumstances it is possible for a channel to receive a
         /// message delivery which does not match any consumer which is currently
         /// set up via basicConsume(). This will occur after the following sequence
@@ -79,7 +80,8 @@ namespace RabbitMQ.Client
         /// such deliveries. If no default consumer is registered an
         /// InvalidOperationException will be thrown when such a delivery arrives.
         ///
-        /// Most people will not need to use this.</summary>
+        /// Most people will not need to use this.
+        /// </remarks>
         IBasicConsumer DefaultConsumer { get; set; }
 
         /// <summary>
@@ -89,7 +91,8 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Returns true if the channel is still in a state where it can be used.
-        /// Identical to checking if <see cref="CloseReason"/> equals null.</summary>
+        /// Identical to checking if <see cref="CloseReason"/> equals null.
+        /// </summary>
         bool IsOpen { get; }
 
         /// <summary>
@@ -116,17 +119,6 @@ namespace RabbitMQ.Client
         event EventHandler<BasicNackEventArgs> BasicNacks;
 
         /// <summary>
-        /// All messages received before this fires that haven't been ack'ed will be redelivered.
-        /// All messages received afterwards won't be.
-        /// </summary>
-        /// <remarks>
-        /// Handlers for this event are invoked by the connection thread.
-        /// It is sometimes useful to allow that thread to know that a recover-ok
-        /// has been received, rather than the thread that invoked <see cref="BasicRecover"/>.
-        /// </remarks>
-        event EventHandler<EventArgs> BasicRecoverOk;
-
-        /// <summary>
         /// Signalled when a Basic.Return command arrives from the broker.
         /// </summary>
         event EventHandler<BasicReturnEventArgs> BasicReturn;
@@ -151,41 +143,88 @@ namespace RabbitMQ.Client
         /// </remarks>
         event EventHandler<ShutdownEventArgs> ChannelShutdown;
 
-        /// <summary>
-        /// Acknowledge one or more delivered message(s).
-        /// </summary>
+        /// <summary>Acknknowledges one or more messages.</summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">Ack all messages up to the delivery tag if set to <c>true</c>.</param>
         void BasicAck(ulong deliveryTag, bool multiple);
 
-        /// <summary>
-        /// Delete a Basic content-class consumer.
-        /// </summary>
+        /// <summary>Asynchronously acknknowledges one or more messages.</summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">Ack all messages up to the delivery tag if set to <c>true</c>.</param>
+        ValueTask BasicAckAsync(ulong deliveryTag, bool multiple);
+
+        /// <summary>Cancel a Basic content-class consumer.</summary>
+        /// <param name="consumerTag">The consumer tag.</param>
         void BasicCancel(string consumerTag);
+
+        /// <summary>Asynchronously cancel a Basic content-class consumer.</summary>
+        /// <param name="consumerTag">The consumer tag.</param>
+        ValueTask BasicCancelAsync(string consumerTag);
 
         /// <summary>
         /// Same as BasicCancel but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
+        /// <param name="consumerTag">The consumer tag.</param>
         void BasicCancelNoWait(string consumerTag);
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        string BasicConsume(
-            string queue,
-            bool autoAck,
-            string consumerTag,
-            bool noLocal,
-            bool exclusive,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer);
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack messages.</param>
+        /// <param name="consumerTag">The consumer tag.</param>
+        /// <param name="noLocal">If set to <c>true</c>, this consumer will not receive messages published by the same connection.</param>
+        /// <param name="exclusive">If set to <c>true</c>, the consumer is exclusive.</param>
+        /// <param name="arguments">Consumer arguments.</param>
+        /// <param name="consumer">The consumer, an instance of <see cref="IBasicConsumer"/></param>
+        /// <returns></returns>
+        string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer);
+
+        /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack messages.</param>
+        /// <param name="consumerTag">The consumer tag.</param>
+        /// <param name="noLocal">If set to <c>true</c>, this consumer will not receive messages published by the same connection.</param>
+        /// <param name="exclusive">If set to <c>true</c>, the consumer is exclusive.</param>
+        /// <param name="arguments">Consumer arguments.</param>
+        /// <param name="consumer">The consumer, an instance of <see cref="IBasicConsumer"/></param>
+        /// <returns></returns>
+        ValueTask<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer);
 
         /// <summary>
         /// Retrieve an individual message, if
         /// one is available; returns null if the server answers that
-        /// no messages are currently available. See also <see cref="IChannel.BasicAck"/>.
+        /// no messages are currently available. See also <see cref="IChannel.BasicAck" />.
         /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
+        /// <returns><see cref="BasicGetResult"/></returns>
         BasicGetResult BasicGet(string queue, bool autoAck);
 
-        /// <summary>Reject one or more delivered message(s).</summary>
+        /// <summary>
+        /// Asynchronously retrieve an individual message, if
+        /// one is available; returns null if the server answers that
+        /// no messages are currently available. See also <see cref="IChannel.BasicAckAsync" />.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
+        /// <returns><see cref="BasicGetResult"/></returns>
+        ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck);
+
+        /// <summary>
+        /// Nack one or more delivered message(s).
+        /// </summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">If set to <c>true</c>, nack all messages up to the current tag.</param>
+        /// <param name="requeue">If set to <c>true</c>, requeue nack'd messages.</param>
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
+
+        /// <summary>
+        /// Asynchronously nack one or more delivered message(s).
+        /// </summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">If set to <c>true</c>, nack all messages up to the current tag.</param>
+        /// <param name="requeue">If set to <c>true</c>, requeue nack'd messages.</param>
+        ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue);
 
 #nullable enable
 
@@ -238,22 +277,26 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Configures QoS parameters of the Basic content-class.
         /// </summary>
+        /// <param name="prefetchSize">Size of the prefetch in bytes.</param>
+        /// <param name="prefetchCount">The prefetch count.</param>
+        /// <param name="global">If set to <c>true</c>, use global prefetch.
+        /// See the <seealso href="https://www.rabbitmq.com/consumer-prefetch.html#overview">Consumer Prefetch documentation</seealso>.</param>
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
 
         /// <summary>
-        /// Indicates that a consumer has recovered.
-        /// Deprecated. Should not be used.
+        /// Configures QoS parameters of the Basic content-class.
         /// </summary>
-        void BasicRecover(bool requeue);
-
-        /// <summary>
-        /// Indicates that a consumer has recovered.
-        /// Deprecated. Should not be used.
-        /// </summary>
-        void BasicRecoverAsync(bool requeue);
+        /// <param name="prefetchSize">Size of the prefetch in bytes.</param>
+        /// <param name="prefetchCount">The prefetch count.</param>
+        /// <param name="global">If set to <c>true</c>, use global prefetch.
+        /// See the <seealso href="https://www.rabbitmq.com/consumer-prefetch.html#overview">Consumer Prefetch documentation</seealso>.</param>
+        ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global);
 
         /// <summary> Reject a delivered message.</summary>
         void BasicReject(ulong deliveryTag, bool requeue);
+
+        /// <summary> Reject a delivered message.</summary>
+        ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue);
 
         /// <summary>Close this session.</summary>
         /// <param name="replyCode">The reply code to send for closing (See under "Reply Codes" in the AMQP specification).</param>
@@ -262,9 +305,26 @@ namespace RabbitMQ.Client
         void Close(ushort replyCode, string replyText, bool abort);
 
         /// <summary>
-        /// Enable publisher acknowledgements.
+        /// Asynchronously close this session.
         /// </summary>
+        /// <param name="replyCode">The reply code to send for closing (See under "Reply Codes" in the AMQP specification).</param>
+        /// <param name="replyText">The reply text to send for closing.</param>
+        /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
+        ValueTask CloseAsync(ushort replyCode, string replyText, bool abort);
+
+        /// <summary>
+        /// Asynchronously close this session.
+        /// </summary>
+        /// <param name="reason">The <see cref="ShutdownEventArgs"/> instance containing the close data.</param>
+        /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
+        /// <returns></returns>
+        ValueTask CloseAsync(ShutdownEventArgs reason, bool abort);
+
+        /// <summary>Enable publisher confirmations.</summary>
         void ConfirmSelect();
+
+        /// <summary>Asynchronously enable publisher confirmations.</summary>
+        ValueTask ConfirmSelectAsync();
 
         /// <summary>
         /// Bind an exchange to an exchange.
@@ -275,6 +335,16 @@ namespace RabbitMQ.Client
         ///   </para>
         /// </remarks>
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+
+        /// <summary>
+        /// Asynchronously binds an exchange to an exchange.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>
+        ValueTask ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Like ExchangeBind but sets nowait to true.
@@ -289,9 +359,16 @@ namespace RabbitMQ.Client
         /// <summary>Declare an exchange.</summary>
         /// <remarks>
         /// The exchange is declared non-passive and non-internal.
-        /// The "nowait" option is not exercised.
+        /// The "nowait" option is not used.
         /// </remarks>
         void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
+
+        /// <summary>Asynchronously declare an exchange.</summary>
+        /// <remarks>
+        /// The exchange is declared non-internal.
+        /// The "nowait" option is not used.
+        /// </remarks>
+        ValueTask ExchangeDeclareAsync(string exchange, string type, bool passive, bool durable, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
@@ -316,6 +393,11 @@ namespace RabbitMQ.Client
         void ExchangeDelete(string exchange, bool ifUnused);
 
         /// <summary>
+        /// Asynchronously delete an exchange.
+        /// </summary>
+        ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused);
+
+        /// <summary>
         /// Like ExchangeDelete but sets nowait to true.
         /// </summary>
         void ExchangeDeleteNoWait(string exchange, bool ifUnused);
@@ -327,6 +409,14 @@ namespace RabbitMQ.Client
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+
+        /// <summary>
+        /// Asynchronously unbind an exchange from an exchange.
+        /// </summary>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// </remarks>
+        ValueTask ExchangeUnbindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Like ExchangeUnbind but sets nowait to true.
@@ -341,12 +431,26 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Bind a queue to an exchange.
         /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The arguments.</param>
         /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
+        /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+
+        /// <summary>
+        /// Asynchronously bind a queue to an exchange.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// </remarks>
+        ValueTask QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
         /// <remarks>
@@ -370,11 +474,12 @@ namespace RabbitMQ.Client
         /// Asynchronously declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
         /// </summary>
         /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
+        /// <param name="passive">Set to <code>true</code> to passively declare the queue (i.e. check for its existence)</param>
         /// <param name="durable">Should this queue will survive a broker restart?</param>
         /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
         /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
         /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
-        ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
+        ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
@@ -411,51 +516,83 @@ namespace RabbitMQ.Client
         uint ConsumerCount(string queue);
 
         /// <summary>
-        /// Delete a queue.
+        /// Deletes a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
+        /// </summary>
+        /// <param name="queue">The name of the queue.</param>
+        /// <param name="ifUnused">Only delete the queue if it is unused.</param>
+        /// <param name="ifEmpty">Only delete the queue if it is empty.</param>
+        /// <returns>Returns the number of messages purged during deletion.</returns>
+        uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
+
+        /// <summary>
+        /// Asynchronously deletes a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
         /// </summary>
         /// <remarks>
         ///Returns the number of messages purged during queue deletion.
         /// </remarks>
-        uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
+        ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty);
 
         /// <summary>
         ///Same as QueueDelete but sets nowait parameter to true
         ///and returns void (as there will be no response from the server)
         /// </summary>
+        /// <param name="queue">The name of the queue.</param>
+        /// <param name="ifUnused">Only delete the queue if it is unused.</param>
+        /// <param name="ifEmpty">Only delete the queue if it is empty.</param>
+        /// <returns>Returns the number of messages purged during deletion.</returns>
         void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
 
-        /// <summary>
-        /// Purge a queue of messages.
-        /// </summary>
-        /// <remarks>
-        /// Returns the number of messages purged.
-        /// </remarks>
+        /// <summary>Asynchronously purge a queue of messages.</summary>
+        /// <param name="queue">The queue.</param>
+        /// <returns>Returns the number of messages purged.</returns>
         uint QueuePurge(string queue);
+
+        /// <summary>Asynchronously purge a queue of messages.</summary>
+        /// <param name="queue">The queue.</param>
+        /// <returns>Returns the number of messages purged.</returns>
+        ValueTask<uint> QueuePurgeAsync(string queue);
 
         /// <summary>
         /// Unbind a queue from an exchange.
         /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The arguments.</param>
         /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
+        /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
-        /// Commit this session's active TX transaction.
+        /// Asynchronously unbind a queue from an exchange.
         /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// </remarks>
+        ValueTask QueueUnbindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+
+        /// <summary>Commit this session's active TX transaction.</summary>
         void TxCommit();
 
-        /// <summary>
-        /// Roll back this session's active TX transaction.
-        /// </summary>
+        /// <summary>Asynchronously commit this session's active TX transaction.</summary>
+        ValueTask TxCommitAsync();
+
+        /// <summary>Roll back this session's active TX transaction.</summary>
         void TxRollback();
 
-        /// <summary>
-        /// Enable TX mode for this session.
-        /// </summary>
+        /// <summary>Asynchronously roll back this session's active TX transaction.</summary>
+        ValueTask TxRollbackAsync();
+
+        /// <summary>Enable TX mode for this session.</summary>
         void TxSelect();
+
+        /// <summary>Asynchronously enable TX mode for this session.</summary>
+        ValueTask TxSelectAsync();
 
         /// <summary>
         /// Wait until all published messages on this channel have been confirmed.

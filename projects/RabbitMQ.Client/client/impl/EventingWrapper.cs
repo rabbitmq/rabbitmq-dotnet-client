@@ -128,7 +128,8 @@ namespace RabbitMQ.Client.Impl
         {
             foreach (AsyncEventHandler<T> action in handlers)
             {
-                await action(sender, parameter).ConfigureAwait(false);
+                await action(sender, parameter)
+                    .ConfigureAwait(false);
             }
         }
 

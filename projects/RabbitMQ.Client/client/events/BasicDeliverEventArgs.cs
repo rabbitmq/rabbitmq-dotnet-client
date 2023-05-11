@@ -37,11 +37,6 @@ namespace RabbitMQ.Client.Events
     ///from an AMQP broker within the Basic content-class.</summary>
     public class BasicDeliverEventArgs : EventArgs
     {
-        ///<summary>Default constructor.</summary>
-        public BasicDeliverEventArgs()
-        {
-        }
-
         ///<summary>Constructor that fills the event's properties from
         ///its arguments.</summary>
         public BasicDeliverEventArgs(string consumerTag,
@@ -50,7 +45,7 @@ namespace RabbitMQ.Client.Events
             string exchange,
             string routingKey,
             in ReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body) : base()
         {
             ConsumerTag = consumerTag;
             DeliveryTag = deliveryTag;
@@ -62,28 +57,28 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>The content header of the message.</summary>
-        public ReadOnlyBasicProperties BasicProperties { get; set; }
+        public readonly ReadOnlyBasicProperties BasicProperties;
 
         ///<summary>The message body.</summary>
-        public ReadOnlyMemory<byte> Body { get; set; }
+        public readonly ReadOnlyMemory<byte> Body;
 
         ///<summary>The consumer tag of the consumer that the message
         ///was delivered to.</summary>
-        public string ConsumerTag { get; set; }
+        public readonly string ConsumerTag;
 
         ///<summary>The delivery tag for this delivery. See
         ///IChannel.BasicAck.</summary>
-        public ulong DeliveryTag { get; set; }
+        public readonly ulong DeliveryTag;
 
         ///<summary>The exchange the message was originally published
         ///to.</summary>
-        public string Exchange { get; set; }
+        public readonly string Exchange;
 
         ///<summary>The AMQP "redelivered" flag.</summary>
-        public bool Redelivered { get; set; }
+        public readonly bool Redelivered;
 
         ///<summary>The routing key used when the message was
         ///originally published.</summary>
-        public string RoutingKey { get; set; }
+        public readonly string RoutingKey;
     }
 }

@@ -36,7 +36,6 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -70,20 +69,14 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private async ValueTask OpenAsync()
-        {
-            RabbitMqClientEventSource.Log.ConnectionOpened();
-            await StartAndTuneAsync().ConfigureAwait(false);
-            await _channel0.ConnectionOpenAsync(_config.VirtualHost);
-        }
-
         private async ValueTask StartAndTuneAsync()
         {
             var connectionStartCell = new TaskCompletionSource<ConnectionStartDetails>(TaskCreationOptions.RunContinuationsAsynchronously);
             _channel0.m_connectionStartCell = connectionStartCell;
             _channel0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
-            await _frameHandler.SendHeaderAsync().ConfigureAwait(false);
+            await _frameHandler.SendProtocolHeaderAsync()
+                .ConfigureAwait(false);
             ConnectionStartDetails connectionStart = await connectionStartCell.Task.ConfigureAwait(false);
 
             if (connectionStart is null)
@@ -123,7 +116,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     else
                     {
-                        res = await _channel0.ConnectionSecureOkAsync(response).ConfigureAwait(false);
+                        res = await _channel0.ConnectionSecureOkAsync(response)
+                            .ConfigureAwait(false);
                     }
 
                     if (res.m_challenge is null)

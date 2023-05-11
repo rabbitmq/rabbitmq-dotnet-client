@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
-        public Connection(ConnectionConfig config, IFrameHandler frameHandler)
+        internal Connection(ConnectionConfig config, IFrameHandler frameHandler)
         {
             _config = config;
             _frameHandler = frameHandler;
@@ -78,23 +78,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 ["capabilities"] = Protocol.Capabilities,
                 ["connection_name"] = ClientProvidedName
             };
-
             _mainLoopTask = Task.Run(MainLoop);
-            try
-            {
-                /*
-                 * TODO FUTURE
-                 * Connection should not happen in ctor, instead change
-                 * the API so that it's awaitable
-                 */
-                OpenAsync().AsTask().GetAwaiter().GetResult();
-            }
-            catch
-            {
-                var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen");
-                Close(ea, true, TimeSpan.FromSeconds(5));
-                throw;
-            }
         }
 
         public Guid Id => _id;
@@ -116,7 +100,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IDictionary<string, object?>? ServerProperties { get; private set; }
 
-        public IList<ShutdownReportEntry> ShutdownReport => _shutdownReport;
+        public IEnumerable<ShutdownReportEntry> ShutdownReport => _shutdownReport;
         private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
@@ -213,7 +197,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
         /// </summary>
-        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery
+        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecovery
         {
             add { }
             remove { }
@@ -227,6 +211,31 @@ namespace RabbitMQ.Client.Framing.Impl
             _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
         }
 
+        internal IConnection Open()
+        {
+            return OpenAsync()
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        internal async ValueTask<IConnection> OpenAsync()
+        {
+            try
+            {
+                RabbitMqClientEventSource.Log.ConnectionOpened();
+                await StartAndTuneAsync()
+                    .ConfigureAwait(false);
+                await _channel0.ConnectionOpenAsync(_config.VirtualHost)
+                    .ConfigureAwait(false);
+                return this;
+            }
+            catch
+            {
+                var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen");
+                await CloseAsync(ea, true, TimeSpan.FromSeconds(5));
+                throw;
+            }
+        }
+
         public IChannel CreateChannel()
         {
             EnsureIsOpen();
@@ -234,6 +243,14 @@ namespace RabbitMQ.Client.Framing.Impl
             var channel = new Channel(_config, session);
             channel._Private_ChannelOpen();
             return channel;
+        }
+
+        public ValueTask<IChannel> CreateChannelAsync()
+        {
+            EnsureIsOpen();
+            ISession session = CreateSession();
+            var channel = new Channel(_config, session);
+            return channel.OpenAsync();
         }
 
         internal ISession CreateSession()
@@ -260,6 +277,12 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
         {
             Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), abort, timeout);
+        }
+
+        ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
+        public ValueTask CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
+        {
+            return CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), abort, timeout);
         }
 
         ///<summary>Try to close connection in a graceful way</summary>
@@ -306,13 +329,11 @@ namespace RabbitMQ.Client.Framing.Impl
                         throw;
                     }
                 }
-#pragma warning disable 0168
-                catch (NotSupportedException nse)
+                catch (NotSupportedException)
                 {
                     // buffered stream had unread data in it and Flush()
                     // was called, ignore to not confuse the user
                 }
-#pragma warning restore 0168
                 catch (IOException ioe)
                 {
                     if (_channel0.CloseReason is null)
@@ -340,9 +361,104 @@ namespace RabbitMQ.Client.Framing.Impl
                     _frameHandler.Close();
                 }
             }
+            catch (AggregateException) // TODO this could be more than just a timeout
+            {
+            }
+        }
+
+        ///<summary>Asychronously try to close connection in a graceful way</summary>
+        ///<remarks>
+        ///<para>
+        ///Shutdown reason contains code and text assigned when closing the connection,
+        ///as well as the information about what initiated the close
+        ///</para>
+        ///<para>
+        ///Abort flag, if true, signals to close the ongoing connection immediately
+        ///and do not report any errors if it was already closed.
+        ///</para>
+        ///<para>
+        ///Timeout determines how much time internal close operations should be given
+        ///to complete.
+        ///</para>
+        ///</remarks>
+        internal async ValueTask CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
+        {
+            // TODO CloseAsync and Close share a lot of code
+            if (!SetCloseReason(reason))
+            {
+                if (!abort)
+                {
+                    ThrowAlreadyClosedException(CloseReason!);
+                }
+            }
+            else
+            {
+                OnShutdown(reason);
+                _session0.SetSessionClosing(false);
+
+                try
+                {
+                    // Try to send connection.close wait for CloseOk in the MainLoop
+                    if (!_closed)
+                    {
+                        var method = new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0);
+                        await _session0.TransmitAsync(method)
+                            .ConfigureAwait(false);
+                    }
+                }
+                catch (AlreadyClosedException)
+                {
+                    if (!abort)
+                    {
+                        throw;
+                    }
+                }
+                catch (NotSupportedException)
+                {
+                    // buffered stream had unread data in it and Flush()
+                    // was called, ignore to not confuse the user
+                }
+                catch (IOException ioe)
+                {
+                    if (_channel0.CloseReason is null)
+                    {
+                        if (!abort)
+                        {
+                            throw;
+                        }
+                        else
+                        {
+                            LogCloseError("Couldn't close connection cleanly. Socket closed unexpectedly", ioe);
+                        }
+                    }
+                }
+                finally
+                {
+                    TerminateMainloop();
+                }
+            }
+
+            try
+            {
+                await _mainLoopTask.TimeoutAfter(timeout)
+                    .ConfigureAwait(false);
+            }
+            catch (TimeoutException)
+            {
+            }
             catch (AggregateException)
             {
-                _frameHandler.Close();
+            }
+            finally
+            {
+                try
+                {
+                    await _frameHandler.CloseAsync()
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -363,7 +479,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         // Only call at the end of the Mainloop or HeartbeatLoop
-
+        // TODO async
         private void FinishClose()
         {
             _closed = true;
@@ -384,7 +500,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool SetCloseReason(ShutdownEventArgs reason)
         {
-            return System.Threading.Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
         private void LogCloseError(string error, Exception ex)
@@ -405,18 +521,18 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionWrapper.Invoke(this, args);
         }
 
-        internal void Write(ReadOnlyMemory<byte> memory)
+        internal void Write(RentedMemory frames)
         {
-            var task = _frameHandler.WriteAsync(memory);
+            ValueTask task = _frameHandler.WriteAsync(frames);
             if (!task.IsCompletedSuccessfully)
             {
-                task.AsTask().GetAwaiter().GetResult();
+                task.ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
-        internal ValueTask WriteAsync(ReadOnlyMemory<byte> memory)
+        internal ValueTask WriteAsync(RentedMemory frames)
         {
-            return _frameHandler.WriteAsync(memory);
+            return _frameHandler.WriteAsync(frames);
         }
 
         public void Dispose()

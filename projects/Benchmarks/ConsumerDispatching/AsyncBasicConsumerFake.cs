@@ -18,7 +18,8 @@ namespace RabbitMQ.Benchmarks
             _autoResetEvent = autoResetEvent;
         }
 
-        public Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        public Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+            in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (Interlocked.Increment(ref _current) == Count)
             {

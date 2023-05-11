@@ -71,7 +71,7 @@ in this example, it should be `./rabbitmq-server/deps/rabbit/sbin/rabbitmqctl`.
 It is possible to override the location using `RABBITMQ_RABBITMQCTL_PATH`:
 
 ```
-RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Unit
+RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Test/Unit.csproj
 ```
 
 ### Option Three: Using a Docker Container
@@ -79,12 +79,18 @@ RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Unit
 It is also possible to run a RabbitMQ node in a
 [Docker](https://www.docker.com/) container.  Set the environment variable
 `RABBITMQ_RABBITMQCTL_PATH` to `DOCKER:<container_name>` (for example
-`DOCKER:rabbitmq01`). This tells the unit tests to run the `rabbitmqctl`
+`DOCKER:rabbitmq-dotnet-client-rabbitmq`). This tells the unit tests to run the `rabbitmqctl`
 commands through Docker, in the format `docker exec rabbitmq01 rabbitmqctl
 <args>`:
 
 ```shell
 docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
+```
+
+You should also be able to run the same script that sets up the Ubuntu 22 GitHub actions worker:
+
+```shell
+./.ci/ubuntu/gha-setup.sh
 ```
 
 ## Running All Tests
@@ -94,14 +100,18 @@ Then, to run the tests use:
 
 ### Windows
 
+Note that the `-RunTests` does not run the OAuth2 test suite.
+
 ```powershell
 build.ps1 -RunTests
 ```
 
 ### MacOS, Linux, BSD:
 
+Note that the `test` target does not run the OAuth2 test suite.
+
 ```shell
-dotnet test ./Build.csproj
+make test
 ```
 
 ## Running Individual Suites or Test Cases
@@ -110,9 +120,9 @@ Running individual tests and fixtures on Windows is trivial using the Visual Stu
 To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests to be run:
 
 ``` shell
-dotnet test projects/Unit --filter "Name~TestAmqpUriParseFail"
+dotnet test projects/Test/Unit.csproj --filter "Name~TestAmqpUriParseFail"
 
-dotnet test projects/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
+dotnet test projects/Test/Unit.csproj --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
 ```
 
 ## Running Tests for a Specific .NET Target

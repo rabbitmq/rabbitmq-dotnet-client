@@ -5,7 +5,46 @@ on:
 
 jobs:
   build-win32:
-    name: build/test on windows-latest
+    name: build, unit test on windows-latest
+    runs-on: windows-latest
+    # https://github.com/NuGet/Home/issues/11548
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/AppData/Local/NuGet/v3-cache
+          key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-v1-nuget-
+      - name: Build (Debug)
+        run: dotnet build ${{ github.workspace }}\Build.csproj
+      - name: Verify
+        run: dotnet format ${{ github.workspace }}\RabbitMQDotNetClient.sln --no-restore --verify-no-changes --verbosity=diagnostic
+      - name: APIApproval Test
+        run: dotnet test "${{ github.workspace }}\projects\Test\Unit\Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed' --filter='FullyQualifiedName=Test.Unit.APIApproval.Approve'
+      - name: Unit Tests
+        run: dotnet test "${{ github.workspace }}\projects\Test\Unit\Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Upload Build (Debug)
+        uses: actions/upload-artifact@v3
+        with:
+          name: rabbitmq-dotnet-client-build-win32
+          path: |
+            projects/Test/Unit/bin
+            projects/Test/AsyncIntegration/bin
+            projects/Test/Integration/bin
+            projects/Test/SequentialIntegration/bin
+            projects/RabbitMQ.*/bin
+  integration-win32:
+    name: integration test on windows-latest
+    needs: build-win32
     runs-on: windows-latest
     # https://github.com/NuGet/Home/issues/11548
     env:
@@ -22,33 +61,62 @@ jobs:
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
           path: ~/installers
           key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
-      - name: Cache NuGet packages
-        uses: actions/cache@v3
+      - name: Download Build (Debug)
+        uses: actions/download-artifact@v3
         with:
-          path: |
-            ~/.nuget/packages
-            ~/AppData/Local/NuGet/v3-cache
-          key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-v1-nuget-
+          name: rabbitmq-dotnet-client-build-win32
+          path: projects
       - name: Install and Start RabbitMQ
+        id: install-start-rabbitmq
         run: .\.ci\windows\gha-setup.ps1
-      - name: List NuGet sources
-        run: dotnet nuget locals all --list
-      - name: Build (Debug)
-        run: dotnet build ${{ github.workspace }}\Build.csproj
-      - name: Verify
-        run: dotnet format ${{ github.workspace }}\RabbitMQDotNetClient.sln --verify-no-changes --verbosity=diagnostic
-      - name: Test
-        run: .\.ci\windows\gha-run-tests.ps1
+      - name: Async Integration Tests
+        run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" --environment 'RABBITMQ_LONG_RUNNING_TESTS=false' "${{ github.workspace }}\projects\Test\AsyncIntegration\AsyncIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Integration Tests
+        run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" --environment 'RABBITMQ_LONG_RUNNING_TESTS=false' --environment 'PASSWORD=grapefruit' --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" "${{ github.workspace }}\projects\Test\Integration\Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
         uses: actions/upload-artifact@v3
         with:
-          name: rabbitmq-logs
+          name: rabbitmq-logs-integration-win32
           path: ~/AppData/Roaming/RabbitMQ/log/
-  build:
-    name: build/test on ubuntu-latest
+  sequential-integration-win32:
+    name: sequential integration test on windows-latest
+    needs: build-win32
+    runs-on: windows-latest
+    # https://github.com/NuGet/Home/issues/11548
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Cache installers
+        uses: actions/cache@v3
+        with:
+          # Note: the cache path is relative to the workspace directory
+          # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
+          path: ~/installers
+          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
+      - name: Download Build (Debug)
+        uses: actions/download-artifact@v3
+        with:
+          name: rabbitmq-dotnet-client-build-win32
+          path: projects
+      - name: Install and Start RabbitMQ
+        id: install-start-rabbitmq
+        run: .\.ci\windows\gha-setup.ps1
+      - name: Sequential Integration Tests
+        run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" "${{ github.workspace }}\projects\Test\SequentialIntegration\SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Maybe upload RabbitMQ logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: rabbitmq-logs-sequential-integration-win32
+          path: ~/AppData/Roaming/RabbitMQ/log/
+
+  build-ubuntu:
+    name: build, unit test on ubuntu-latest
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
@@ -68,26 +136,93 @@ jobs:
           key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-v1-nuget-
-      - name: Start RabbitMQ
-        id: start-rabbitmq
-        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
-      - name: List NuGet sources
-        run: dotnet nuget locals all --list
       - name: Build (Debug)
         run: dotnet build ${{ github.workspace }}/Build.csproj
       - name: Verify
-        run: dotnet format ${{ github.workspace }}/RabbitMQDotNetClient.sln --verify-no-changes --verbosity=diagnostic
-      - name: Test
+        run: dotnet format ${{ github.workspace }}/RabbitMQDotNetClient.sln --no-restore --verify-no-changes --verbosity=diagnostic
+      - name: APIApproval Test
+        run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed' --filter='FullyQualifiedName=Test.Unit.APIApproval.Approve'
+      - name: Unit Tests
+        run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --verbosity=diagnostic --logger 'console;verbosity=detailed'
+      - name: Upload Build (Debug)
+        uses: actions/upload-artifact@v3
+        with:
+          name: rabbitmq-dotnet-client-build-ubuntu
+          path: |
+            projects/Test/Unit/bin
+            projects/Test/AsyncIntegration/bin
+            projects/Test/Integration/bin
+            projects/Test/SequentialIntegration/bin
+            projects/RabbitMQ.*/bin
+  integration-ubuntu:
+    name: integration test on ubuntu-latest
+    needs: build-ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.x
+      - name: Download Build (Debug)
+        uses: actions/download-artifact@v3
+        with:
+          name: rabbitmq-dotnet-client-build-ubuntu
+          path: projects
+      - name: Start RabbitMQ
+        id: start-rabbitmq
+        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
+      - name: Async Integration Tests
         run: |
             dotnet test \
                 --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
-                --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
+                "${{ github.workspace }}/projects/Test/AsyncIntegration/AsyncIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Integration Tests
+        run: |
+            dotnet test \
+                --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
+                --environment 'RABBITMQ_LONG_RUNNING_TESTS=false' \
                 --environment 'PASSWORD=grapefruit' \
                 --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
-                "${{ github.workspace }}/projects/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed' --framework 'net6.0'
+                "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
         uses: actions/upload-artifact@v3
         with:
-          name: rabbitmq-logs
+          name: rabbitmq-logs-integration-ubuntu
+          path: ${{ github.workspace }}/.ci/ubuntu/log/
+  sequential-integration-ubuntu:
+    name: sequential integration test on ubuntu-latest
+    needs: build-ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.x
+      - name: Download Build (Debug)
+        uses: actions/download-artifact@v3
+        with:
+          name: rabbitmq-dotnet-client-build-ubuntu
+          path: projects
+      - name: Start RabbitMQ
+        id: start-rabbitmq
+        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
+      - name: Sequential Integration Tests
+        run: |
+            dotnet test \
+                --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
+                "${{ github.workspace }}/projects/Test/SequentialIntegration/SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Maybe upload RabbitMQ logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: rabbitmq-logs-sequential-integration-ubuntu
           path: ${{ github.workspace }}/.ci/ubuntu/log/

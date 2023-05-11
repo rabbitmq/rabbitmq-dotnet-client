@@ -47,7 +47,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                await ReceiveLoop().ConfigureAwait(false);
+                await ReceiveLoop()
+                    .ConfigureAwait(false);
             }
             catch (EndOfStreamException eose)
             {
@@ -56,7 +57,8 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (HardProtocolException hpe)
             {
-                await HardProtocolExceptionHandler(hpe).ConfigureAwait(false);
+                await HardProtocolExceptionHandler(hpe)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -144,6 +146,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (!SetCloseReason(reason))
             {
+                // TODO reason.Cause could be an Exception, should we use that?
                 LogCloseError("Unexpected Main Loop Exception while closing: " + reason, new Exception(reason.ToString()));
                 return;
             }

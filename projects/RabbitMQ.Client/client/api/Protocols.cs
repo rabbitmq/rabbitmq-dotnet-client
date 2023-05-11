@@ -39,11 +39,11 @@ namespace RabbitMQ.Client
         ///<summary>
         /// Protocol version 0-9-1 as modified by Pivotal.
         ///</summary>
-        public static IProtocol AMQP_0_9_1 { get; } = new Framing.Protocol();
+        public readonly static IProtocol AMQP_0_9_1 = new Framing.Protocol();
 
         ///<summary>
         /// Retrieve the current default protocol variant (currently AMQP_0_9_1).
         ///</summary>
-        public static IProtocol DefaultProtocol => AMQP_0_9_1;
+        public readonly static IProtocol DefaultProtocol = AMQP_0_9_1;
     }
 }

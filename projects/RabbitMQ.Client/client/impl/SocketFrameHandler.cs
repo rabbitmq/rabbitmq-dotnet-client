@@ -30,12 +30,10 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -44,67 +42,26 @@ using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal static class TaskExtensions
-    {
-        public static async Task TimeoutAfter(this Task task, TimeSpan timeout)
-        {
-#if NET6_0_OR_GREATER
-            await task.WaitAsync(timeout).ConfigureAwait(false);
-#else
-            if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
-            {
-                await task.ConfigureAwait(false);
-            }
-            else
-            {
-                Task supressErrorTask = task.ContinueWith((t, s) => t.Exception.Handle(e => true), null, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-                throw new TimeoutException();
-            }
-#endif
-        }
-
-        public static async ValueTask TimeoutAfter(this ValueTask task, TimeSpan timeout)
-        {
-            if (!task.IsCompletedSuccessfully)
-            {
-                var actualTask = task.AsTask();
-#if NET6_0_OR_GREATER
-                await actualTask.WaitAsync(timeout).ConfigureAwait(false);
-#else
-                if (actualTask == await Task.WhenAny(actualTask, Task.Delay(timeout)).ConfigureAwait(false))
-                {
-                    await actualTask.ConfigureAwait(false);
-                }
-                else
-                {
-                    Task supressErrorTask =
-     actualTask.ContinueWith((t, s) => t.Exception.Handle(e => true), null, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-                    throw new TimeoutException();
-                }
-#endif
-            }
-        }
-    }
-
     internal sealed class SocketFrameHandler : IFrameHandler
     {
         private readonly AmqpTcpEndpoint _amqpTcpEndpoint;
         private readonly ITcpClient _socket;
-        private readonly ChannelWriter<ReadOnlyMemory<byte>> _channelWriter;
-        private readonly ChannelReader<ReadOnlyMemory<byte>> _channelReader;
+        private readonly ChannelWriter<RentedMemory> _channelWriter;
+        private readonly ChannelReader<RentedMemory> _channelReader;
         private readonly PipeWriter _pipeWriter;
         private readonly PipeReader _pipeReader;
         private readonly Task _writerTask;
-        private readonly object _semaphore = new object();
+        private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
         private bool _closed;
-        private static ReadOnlySpan<byte> ProtocolHeader => new byte[] { (byte)'A', (byte)'M', (byte)'Q', (byte)'P', 0, 0, 9, 1 };
+
+        private static ReadOnlyMemory<byte> Amqp091ProtocolHeader => new byte[] { (byte)'A', (byte)'M', (byte)'Q', (byte)'P', 0, 0, 9, 1 };
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
         {
             _amqpTcpEndpoint = endpoint;
-            var channel = Channel.CreateBounded<ReadOnlyMemory<byte>>(
+            var channel = Channel.CreateBounded<RentedMemory>(
                 new BoundedChannelOptions(128)
                 {
                     AllowSynchronousContinuations = false,
@@ -112,8 +69,8 @@ namespace RabbitMQ.Client.Impl
                     SingleWriter = false
                 });
 
-            _channelReader = channel.Reader;
             _channelWriter = channel.Writer;
+            _channelReader = channel.Reader;
 
             // Resolve the hostname to know if it's even possible to even try IPv6
             IPAddress[] adds = Dns.GetHostAddresses(endpoint.HostName);
@@ -226,39 +183,50 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-            lock (_semaphore)
-            {
-                if (_closed || _socket == null)
-                {
-                    return;
-                }
-                else
-                {
-                    try
-                    {
-                        _channelWriter.Complete();
-                        _writerTask?.GetAwaiter().GetResult();
-                        _pipeWriter.Complete();
-                        _pipeReader.Complete();
-                    }
-                    catch
-                    {
-                        // ignore, we are closing anyway
-                    }
+            CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        }
 
-                    try
+        public async ValueTask CloseAsync()
+        {
+            if (_closed || _socket == null)
+            {
+                return;
+            }
+
+            await _closingSemaphore.WaitAsync()
+                .ConfigureAwait(false);
+            try
+            {
+                try
+                {
+                    _channelWriter.Complete();
+                    if (_writerTask is not null)
                     {
-                        _socket.Close();
+                        await _writerTask.ConfigureAwait(false);
                     }
-                    catch
-                    {
-                        // ignore, we are closing anyway
-                    }
-                    finally
-                    {
-                        _closed = true;
-                    }
+                    await _pipeWriter.CompleteAsync()
+                        .ConfigureAwait(false);
+                    await _pipeReader.CompleteAsync()
+                        .ConfigureAwait(false);
                 }
+                catch
+                {
+                    // ignore, we are closing anyway
+                }
+
+                try
+                {
+                    _socket.Close();
+                }
+                catch
+                {
+                    // ignore, we are closing anyway
+                }
+            }
+            finally
+            {
+                _closingSemaphore.Release();
+                _closed = true;
             }
         }
 
@@ -272,24 +240,26 @@ namespace RabbitMQ.Client.Impl
             return InboundFrame.TryReadFrameFromPipe(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, out frame);
         }
 
-        public async ValueTask SendHeaderAsync()
+        public async ValueTask SendProtocolHeaderAsync()
         {
-            _pipeWriter.Write(ProtocolHeader);
-            await _pipeWriter.FlushAsync().ConfigureAwait(false);
+            await _pipeWriter.WriteAsync(Amqp091ProtocolHeader)
+                .ConfigureAwait(false);
+            await _pipeWriter.FlushAsync()
+                .ConfigureAwait(false);
         }
 
-        public ValueTask WriteAsync(ReadOnlyMemory<byte> memory)
+        public async ValueTask WriteAsync(RentedMemory frames)
         {
             if (_closed)
             {
-#if NET6_0_OR_GREATER
-                return ValueTask.CompletedTask;
-#else
-                return new ValueTask(Task.CompletedTask);
-#endif
+                frames.Dispose();
+                await Task.Yield();
             }
-
-            return _channelWriter.WriteAsync(memory);
+            else
+            {
+                await _channelWriter.WriteAsync(frames)
+                    .ConfigureAwait(false);
+            }
         }
 
         private async Task WriteLoop()
@@ -298,12 +268,18 @@ namespace RabbitMQ.Client.Impl
             {
                 while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
+                    while (_channelReader.TryRead(out RentedMemory frames))
                     {
-                        MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
-                        _pipeWriter.Write(memory.Span);
-                        RabbitMqClientEventSource.Log.CommandSent(segment.Count);
-                        ArrayPool<byte>.Shared.Return(segment.Array);
+                        try
+                        {
+                            await _pipeWriter.WriteAsync(frames.Memory)
+                                .ConfigureAwait(false);
+                            RabbitMqClientEventSource.Log.CommandSent(frames.Size);
+                        }
+                        finally
+                        {
+                            frames.Dispose();
+                        }
                     }
 
                     await _pipeWriter.FlushAsync()
@@ -353,6 +329,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // TODO async
         private void ConnectOrFail(ITcpClient socket, IPEndPoint endpoint, TimeSpan timeout)
         {
             try

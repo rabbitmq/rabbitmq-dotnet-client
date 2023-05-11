@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>../../rabbit.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <LangVersion>latest</LangVersion>
+    <ReleaseVersion>7.0</ReleaseVersion>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../RabbitMQ.Client/RabbitMQ.Client.csproj" />
+    <ProjectReference Include="../Common/Common.csproj" />
+  </ItemGroup>
+
+  <!--
+    https://github.com/dotnet/msbuild/issues/2281
+    https://stackoverflow.com/a/44502158/1466825
+    https://xunit.net/docs/running-tests-in-parallel
+  <ItemGroup>
+    <AssemblyAttribute Include="Xunit.CollectionBehavior">
+      <_Parameter1>Xunit.CollectionBehavior.CollectionPerAssembly</_Parameter1>
+      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>  
+      <_Parameter1_TypeName>Xunit.CollectionBehavior.CollectionPerAssembly</_Parameter1_TypeName>
+    </AssemblyAttribute>
+  </ItemGroup>
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="xunit" Version="2.6.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+  </ItemGroup>
+
+</Project>

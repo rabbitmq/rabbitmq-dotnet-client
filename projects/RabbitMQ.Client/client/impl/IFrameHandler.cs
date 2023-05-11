@@ -54,6 +54,7 @@ namespace RabbitMQ.Client.Impl
         TimeSpan WriteTimeout { set; }
 
         void Close();
+        ValueTask CloseAsync();
 
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out
@@ -65,8 +66,8 @@ namespace RabbitMQ.Client.Impl
         ///</summary>
         bool TryReadFrame(out InboundFrame frame);
 
-        ValueTask SendHeaderAsync();
+        ValueTask SendProtocolHeaderAsync();
 
-        ValueTask WriteAsync(ReadOnlyMemory<byte> memory);
+        ValueTask WriteAsync(RentedMemory frames);
     }
 }
