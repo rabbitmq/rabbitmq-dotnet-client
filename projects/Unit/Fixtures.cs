@@ -111,16 +111,22 @@ namespace RabbitMQ.Client.Unit
             return CreateAutorecoveringConnection(RECOVERY_INTERVAL);
         }
 
+        internal AutorecoveringConnection CreateAutorecoveringConnection(ICredentialsProvider credentialsProvider)
+        {
+            return CreateAutorecoveringConnection(RECOVERY_INTERVAL, credentialsProvider);
+        }
+
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
         {
             return CreateAutorecoveringConnection(RECOVERY_INTERVAL, hostnames);
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval)
+        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, ICredentialsProvider credentialsProvider = null)
         {
             var cf = new ConnectionFactory
             {
                 AutomaticRecoveryEnabled = true,
+                CredentialsProvider = credentialsProvider,
                 NetworkRecoveryInterval = interval
             };
             return (AutorecoveringConnection)cf.CreateConnection($"{_testDisplayName}:{Guid.NewGuid()}");
@@ -468,6 +474,43 @@ namespace RabbitMQ.Client.Unit
             }
 
             return true;
+        }
+    }
+
+    public sealed class IgnoreOnVersionsEarlierThan : FactAttribute
+    {
+        public IgnoreOnVersionsEarlierThan(int major, int minor)
+        {
+            if (!CheckMiniumVersion(new Version(major, minor)))
+            {
+                Skip = $"Skipped test. It requires RabbitMQ +{major}.{minor}";
+            }
+        }
+
+        private bool CheckMiniumVersion(Version miniumVersion)
+        {
+            using (var _conn = new ConnectionFactory().CreateConnection())
+            {
+                System.Collections.Generic.IDictionary<string, object> properties = _conn.ServerProperties;
+
+                if (properties.TryGetValue("version", out object versionVal))
+                {
+                    string versionStr = Encoding.UTF8.GetString((byte[])versionVal);
+
+                    int dashIdx = Math.Max(versionStr.IndexOf('-'), versionStr.IndexOf('+'));
+                    if (dashIdx > 0)
+                    {
+                        versionStr = versionStr.Remove(dashIdx);
+                    }
+
+                    if (Version.TryParse(versionStr, out Version version))
+                    {
+                        return version >= miniumVersion;
+                    }
+                }
+
+                return false;
+            }
         }
     }
 

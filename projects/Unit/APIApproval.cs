@@ -29,40 +29,37 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Reflection;
+using System;
 using System.Threading.Tasks;
-
 using PublicApiGenerator;
-
 using VerifyTests;
-
 using VerifyXunit;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     [UsesVerify]
     public class APIApproval
     {
-        [Fact]
-        public Task Approve()
+        private static readonly ApiGeneratorOptions opts = new ApiGeneratorOptions
         {
-            string publicApi = typeof(ConnectionFactory).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            ExcludeAttributes = new[]
             {
-                ExcludeAttributes = new[]
-                {
-                    "System.Runtime.Versioning.TargetFrameworkAttribute",
+                "System.Runtime.Versioning.TargetFrameworkAttribute",
                     "System.Reflection.AssemblyMetadataAttribute"
-                }
-            });
+            }
+        };
 
+        [Theory]
+        [InlineData("RabbitMQ.Client", typeof(RabbitMQ.Client.ConnectionFactory))]
+        [InlineData("RabbitMQ.Client.OAuth2", typeof(RabbitMQ.Client.OAuth2.IOAuth2Client))]
+        public Task Approve(string dirName, Type apiType)
+        {
+            string publicApi = apiType.Assembly.GeneratePublicApi(opts);
             var settings = new VerifySettings();
+            settings.UseDirectory(dirName);
             settings.DisableDiff();
-
             return Verifier.Verify(publicApi, settings);
         }
     }
 }
-

@@ -236,5 +236,24 @@ namespace RabbitMQ.Client.Unit
         {
             ExecRabbitMQCtl("await_startup");
         }
+
+        public static void AddUser(string username, string password)
+        {
+            ExecRabbitMQCtl($"add_user {username} {password}");
+        }
+        public static void ChangePassword(string username, string password)
+        {
+            ExecRabbitMQCtl($"change_password {username} {password}");
+        }
+
+        public static void SetPermissions(string username, string conf, string write, string read)
+        {
+            ExecRabbitMQCtl($"set_permissions {username} \"{conf}\" \"{write}\" \"${read}\" ");
+        }
+
+        public static void DeleteUser(string username)
+        {
+            ExecRabbitMQCtl($"delete_user {username}");
+        }
     }
 }

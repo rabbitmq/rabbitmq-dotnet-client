@@ -74,6 +74,14 @@ namespace RabbitMQ.Client
         string VirtualHost { get; set; }
 
         /// <summary>
+        /// Credentials provider. It is optional. When set, username and password 
+        /// are obtained thru this provider.
+        /// </summary>
+        ICredentialsProvider CredentialsProvider { get; set; }
+
+        ICredentialsRefresher CredentialsRefresher { get; set; }
+
+        /// <summary>
         /// Sets or gets the AMQP Uri to be used for connections.
         /// </summary>
         Uri Uri { get; set; }

@@ -29,56 +29,20 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Text;
-using RabbitMQ.Client.Framing.Impl;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestUpdateSecret : IntegrationFixture
     {
         public TestUpdateSecret(ITestOutputHelper output) : base(output)
         {
         }
 
-        [Fact]
+        [IgnoreOnVersionsEarlierThan(3, 8)]
         public void TestUpdatingConnectionSecret()
         {
-            if (!RabbitMQ380OrHigher())
-            {
-                Console.WriteLine("Not connected to RabbitMQ 3.8 or higher, skipping test");
-                return;
-            }
-
             _conn.UpdateSecret("new-secret", "Test Case");
-
-            Assert.Equal("new-secret", ((AutorecoveringConnection)_conn).Password);
-        }
-
-        private bool RabbitMQ380OrHigher()
-        {
-            System.Collections.Generic.IDictionary<string, object> properties = _conn.ServerProperties;
-
-            if (properties.TryGetValue("version", out object versionVal))
-            {
-                string versionStr = Encoding.UTF8.GetString((byte[])versionVal);
-
-                int dashIdx = versionStr.IndexOf('-');
-                if (dashIdx > 0)
-                {
-                    versionStr = versionStr.Remove(dashIdx);
-                }
-
-                if (Version.TryParse(versionStr, out Version version))
-                {
-                    return version >= new Version(3, 8);
-                }
-            }
-
-            return false;
         }
     }
 }

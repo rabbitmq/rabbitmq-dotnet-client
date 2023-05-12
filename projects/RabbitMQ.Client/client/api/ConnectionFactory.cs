@@ -160,6 +160,8 @@ namespace RabbitMQ.Client
         /// </summary>
         public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
 
+        public static readonly ICredentialsRefresher DefaultCredentialsRefresher = new NoOpCredentialsRefresher();
+
         /// <summary>
         /// Set to false to disable automatic connection recovery.
         /// Defaults to true.
@@ -308,9 +310,24 @@ namespace RabbitMQ.Client
         };
 
         /// <summary>
+        /// Username to use when authenticating to the server.
+        /// </summary>
+        public string UserName { get; set; } = DefaultUser;
+
+        /// <summary>
         /// Password to use when authenticating to the server.
         /// </summary>
         public string Password { get; set; } = DefaultPass;
+
+        /// <summary>
+        /// CredemtialsProvider used to obtain username and pasword.
+        /// </summary>
+        public ICredentialsProvider CredentialsProvider { get; set; }
+
+        /// <summary>
+        /// Used to refresh credentials.
+        /// </summary>
+        public ICredentialsRefresher CredentialsRefresher { get; set; } = DefaultCredentialsRefresher;
 
         /// <summary>
         /// Maximum channel number to ask for.
@@ -326,11 +343,6 @@ namespace RabbitMQ.Client
         /// Heartbeat timeout to use when negotiating with the server.
         /// </summary>
         public TimeSpan RequestedHeartbeat { get; set; } = DefaultHeartbeat;
-
-        /// <summary>
-        /// Username to use when authenticating to the server.
-        /// </summary>
-        public string UserName { get; set; } = DefaultUser;
 
         /// <summary>
         /// Virtual host to access during this connection.
@@ -540,6 +552,8 @@ namespace RabbitMQ.Client
                 VirtualHost,
                 UserName,
                 Password,
+                CredentialsProvider,
+                CredentialsRefresher,
                 AuthMechanisms,
                 ClientProperties,
                 clientProvidedName,
