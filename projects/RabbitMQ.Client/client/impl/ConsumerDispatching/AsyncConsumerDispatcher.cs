@@ -39,6 +39,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
                     }
                     finally
                     {
+                        if (work.RentedMethodArray != null)
+                        {
+                            ArrayPool<byte>.Shared.Return(work.RentedMethodArray);
+                        }
+
                         if (work.RentedArray != null)
                         {
                             ArrayPool<byte>.Shared.Return(work.RentedArray);

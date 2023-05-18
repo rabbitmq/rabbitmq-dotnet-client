@@ -1785,8 +1785,8 @@ namespace RabbitMQ.Client.Unit
             public override void HandleBasicDeliver(string consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
-                string exchange,
-                string routingKey,
+                ReadOnlyMemory<byte> exchange,
+                ReadOnlyMemory<byte> routingKey,
                 in ReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {

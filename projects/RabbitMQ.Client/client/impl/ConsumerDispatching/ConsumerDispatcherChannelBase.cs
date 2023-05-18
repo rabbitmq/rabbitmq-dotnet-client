@@ -54,11 +54,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         public void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
+            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedMethodArray, byte[] rentedArray)
         {
             if (!IsShutdown)
             {
-                _writer.TryWrite(new WorkStruct(GetConsumerOrDefault(consumerTag), consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray));
+                _writer.TryWrite(new WorkStruct(GetConsumerOrDefault(consumerTag), consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedMethodArray, rentedArray));
             }
         }
 
@@ -108,10 +108,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public readonly string? ConsumerTag;
             public readonly ulong DeliveryTag;
             public readonly bool Redelivered;
-            public readonly string? Exchange;
-            public readonly string? RoutingKey;
+            public readonly ReadOnlyMemory<byte> Exchange;
+            public readonly ReadOnlyMemory<byte> RoutingKey;
             public readonly ReadOnlyBasicProperties BasicProperties;
             public readonly ReadOnlyMemory<byte> Body;
+            public readonly byte[]? RentedMethodArray;
             public readonly byte[]? RentedArray;
             public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
@@ -133,7 +134,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
 
             public WorkStruct(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
+                ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedMethodArray, byte[] rentedArray)
             {
                 WorkType = WorkType.Deliver;
                 Consumer = consumer;
@@ -144,6 +145,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 RoutingKey = routingKey;
                 BasicProperties = basicProperties;
                 Body = body;
+                RentedMethodArray = rentedMethodArray;
                 RentedArray = rentedArray;
                 Reason = default;
             }

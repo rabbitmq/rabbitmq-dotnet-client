@@ -49,7 +49,7 @@ namespace RabbitMQ.Client
         public virtual System.Threading.Tasks.Task HandleBasicCancel(string consumerTag) { }
         public virtual System.Threading.Tasks.Task HandleBasicCancelOk(string consumerTag) { }
         public virtual System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag) { }
-        public virtual System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
+        public virtual System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public virtual System.Threading.Tasks.Task HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual System.Threading.Tasks.Task OnCancel(params string[] consumerTags) { }
     }
@@ -248,7 +248,7 @@ namespace RabbitMQ.Client
         public virtual void HandleBasicCancel(string consumerTag) { }
         public virtual void HandleBasicCancelOk(string consumerTag) { }
         public virtual void HandleBasicConsumeOk(string consumerTag) { }
-        public virtual void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
+        public virtual void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public virtual void HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual void OnCancel(params string[] consumerTags) { }
     }
@@ -321,7 +321,7 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.Task HandleBasicCancel(string consumerTag);
         System.Threading.Tasks.Task HandleBasicCancelOk(string consumerTag);
         System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag);
-        System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body);
+        System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body);
         System.Threading.Tasks.Task HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason);
     }
     public interface IAuthMechanism
@@ -340,7 +340,7 @@ namespace RabbitMQ.Client
         void HandleBasicCancel(string consumerTag);
         void HandleBasicCancelOk(string consumerTag);
         void HandleBasicConsumeOk(string consumerTag);
-        void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body);
+        void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body);
         void HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason);
     }
     public interface IBasicProperties : RabbitMQ.Client.IReadOnlyBasicProperties
@@ -785,14 +785,14 @@ namespace RabbitMQ.Client.Events
     public class BasicDeliverEventArgs : System.EventArgs
     {
         public BasicDeliverEventArgs() { }
-        public BasicDeliverEventArgs(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
+        public BasicDeliverEventArgs(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public RabbitMQ.Client.ReadOnlyBasicProperties BasicProperties { get; set; }
         public System.ReadOnlyMemory<byte> Body { get; set; }
         public string ConsumerTag { get; set; }
         public ulong DeliveryTag { get; set; }
-        public string Exchange { get; set; }
+        public System.ReadOnlyMemory<byte> Exchange { get; set; }
         public bool Redelivered { get; set; }
-        public string RoutingKey { get; set; }
+        public System.ReadOnlyMemory<byte> RoutingKey { get; set; }
     }
     public class BasicNackEventArgs : System.EventArgs
     {
@@ -847,7 +847,7 @@ namespace RabbitMQ.Client.Events
         public event System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> Unregistered;
         public override void HandleBasicCancelOk(string consumerTag) { }
         public override void HandleBasicConsumeOk(string consumerTag) { }
-        public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
+        public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public override void HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) { }
     }
     public class FlowControlEventArgs : System.EventArgs
