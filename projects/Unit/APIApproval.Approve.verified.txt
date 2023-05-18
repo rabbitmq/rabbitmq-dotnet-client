@@ -767,7 +767,7 @@ namespace RabbitMQ.Client.Events
         public event RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs> Unregistered;
         public override System.Threading.Tasks.Task HandleBasicCancelOk(string consumerTag) { }
         public override System.Threading.Tasks.Task HandleBasicConsumeOk(string consumerTag) { }
-        public override System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
+        public override System.Threading.Tasks.Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) { }
         public override System.Threading.Tasks.Task HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) { }
     }
     public abstract class BaseExceptionEventArgs : System.EventArgs
