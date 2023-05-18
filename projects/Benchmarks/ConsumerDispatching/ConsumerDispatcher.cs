@@ -15,6 +15,7 @@ namespace RabbitMQ.Benchmarks
         private protected IConsumerDispatcher _dispatcher;
         private protected readonly AsyncBasicConsumerFake _consumer = new AsyncBasicConsumerFake(_autoResetEvent);
         protected readonly string _consumerTag = "ConsumerTag";
+        protected static readonly byte[] _consumerTagBytes = Encoding.UTF8.GetBytes("ConsumerTag");
         protected readonly ulong _deliveryTag = 500UL;
         protected static readonly byte[] _exchange = Encoding.UTF8.GetBytes("Exchange");
         protected static readonly byte[] _routingKey = Encoding.UTF8.GetBytes("RoutingKey");
@@ -43,7 +44,7 @@ namespace RabbitMQ.Benchmarks
         {
             for (int i = 0; i < Count; i++)
             {
-                _dispatcher.HandleBasicDeliver(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, _body, _method, _body);
+                _dispatcher.HandleBasicDeliver(_consumerTagBytes, _deliveryTag, false, _exchange, _routingKey, _properties, _body, _method, _body);
             }
             _autoResetEvent.Wait();
             _autoResetEvent.Reset();
@@ -61,7 +62,7 @@ namespace RabbitMQ.Benchmarks
         {
             for (int i = 0; i < Count; i++)
             {
-                _dispatcher.HandleBasicDeliver(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, _body, _method, _body);
+                _dispatcher.HandleBasicDeliver(_consumerTagBytes, _deliveryTag, false, _exchange, _routingKey, _properties, _body, _method, _body);
             }
             _autoResetEvent.Wait();
             _autoResetEvent.Reset();

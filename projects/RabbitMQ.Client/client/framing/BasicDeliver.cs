@@ -38,7 +38,7 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal readonly struct BasicDeliver : IAmqpMethod
     {
-        public readonly string _consumerTag;
+        public readonly ReadOnlyMemory<byte> _consumerTag;
         public readonly ulong _deliveryTag;
         public readonly bool _redelivered;
         public readonly ReadOnlyMemory<byte> _exchange;
@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public BasicDeliver(ReadOnlyMemory<byte> data)
         {
-            int offset = WireFormatting.ReadShortstr(data.Span, out _consumerTag);
+            int offset = WireFormatting.ReadShortMemory(data, out _consumerTag);
             offset += WireFormatting.ReadLonglong(data.Span.Slice(offset), out _deliveryTag);
             offset += WireFormatting.ReadBits(data.Span.Slice(offset), out _redelivered);
             offset += WireFormatting.ReadShortMemory(data.Slice(offset), out _exchange);
