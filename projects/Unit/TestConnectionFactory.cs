@@ -279,5 +279,14 @@ namespace RabbitMQ.Client.Unit
             var ep = new AmqpTcpEndpoint("localhost");
             using(IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { invalidEp, ep })) {};
         }
+
+        [Test]
+        public void TestCreateConnectionTwiceDoesntClearAuthMechanisms()
+        {
+            var cf = new ConnectionFactory();
+            cf.AuthMechanisms.Clear();
+            var cf2 = new ConnectionFactory();
+            Assert.That(cf2.AuthMechanisms.Count, Is.EqualTo(1));
+        }
     }
 }

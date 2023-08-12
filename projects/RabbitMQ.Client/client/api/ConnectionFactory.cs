@@ -153,7 +153,7 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  SASL auth mechanisms to use.
         /// </summary>
-        public IList<IAuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
+        public IList<IAuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms.ToList();
 
         /// <summary>
         /// Address family used by default.
