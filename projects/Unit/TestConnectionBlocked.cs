@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Unit
 
                 if (!_notified)
                 {
-                    Assert.True(false, "Unblock notification not received.");
+                    Assert.Fail("Unblock notification not received.");
                 }
             }
             finally
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Unit
 
                 if (!_connDisposed.Wait(TimeSpan.FromSeconds(20)))
                 {
-                    Assert.True(false, "Dispose must have finished within 20 seconds after starting");
+                    Assert.Fail("Dispose must have finished within 20 seconds after starting");
                 }
             }
             finally

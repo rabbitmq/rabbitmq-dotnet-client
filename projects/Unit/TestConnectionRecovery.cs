@@ -476,7 +476,7 @@ namespace RabbitMQ.Client.Unit
                 WaitForShutdown(c);
                 Assert.False(c.IsOpen);
                 c.CreateChannel();
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (AlreadyClosedException)
             {
@@ -785,7 +785,7 @@ namespace RabbitMQ.Client.Unit
                 CloseAndWaitForRecovery(conn);
                 Assert.True(ch.IsOpen);
                 ch.QueueDeclarePassive(s);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (OperationInterruptedException)
             {
@@ -1015,7 +1015,7 @@ namespace RabbitMQ.Client.Unit
                 CloseAndWaitForRecovery();
                 Assert.True(_channel.IsOpen);
                 _channel.ExchangeDeclarePassive(x);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (OperationInterruptedException e)
             {
@@ -1065,7 +1065,7 @@ namespace RabbitMQ.Client.Unit
                 CloseAndWaitForRecovery();
                 Assert.True(_channel.IsOpen);
                 _channel.QueueDeclarePassive(q);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (OperationInterruptedException e)
             {
