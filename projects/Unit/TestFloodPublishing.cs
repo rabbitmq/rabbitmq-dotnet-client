@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         if (args.Initiator != ShutdownInitiator.Application)
                         {
-                            Assert.True(false, "Unexpected connection shutdown!");
+                            Assert.Fail("Unexpected connection shutdown!");
                         }
                     };
 

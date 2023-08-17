@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Unit
             try
             {
                 connFactory.CreateConnection();
-                Assert.True(false, "Exception caused by authentication failure expected");
+                Assert.Fail("Exception caused by authentication failure expected");
             }
             catch (BrokerUnreachableException bue)
             {

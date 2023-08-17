@@ -153,7 +153,7 @@ namespace RabbitMQ.Client.Unit
                 string s = string.Format("Shutdown: {0}, initiated by: {1}",
                                       evt, evt.Initiator);
                 Console.WriteLine(s);
-                Assert.True(false, s);
+                Assert.Fail(s);
             }
         }
 
