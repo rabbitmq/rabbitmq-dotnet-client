@@ -125,7 +125,7 @@ namespace RabbitMQ.Client.Unit
                 m.BasicPublish("", q.QueueName, sendBody);
                 sendBody.AsSpan().Fill(1);
 
-                Assert.True(receivedMessage.WaitOne(5000)); 
+                Assert.True(receivedMessage.WaitOne(5000));
                 Assert.False(modified, "Payload was modified after the return of BasicPublish");
 
                 m.BasicCancel(tag);
