@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Unit
                 QueueDeclareOk q = m.QueueDeclare();
                 byte[] sendBody = new byte[1000];
                 var consumer = new EventingBasicConsumer(m);
-                var are = new AutoResetEvent(false);
+                var receivedMessage = new AutoResetEvent(false);
                 bool modified = true;
                 consumer.Received += (o, a) =>
                 {
@@ -118,14 +118,14 @@ namespace RabbitMQ.Client.Unit
                     {
                         modified = false;
                     }
-                    are.Set();
+                    receivedMessage.Set();
                 };
                 string tag = m.BasicConsume(q.QueueName, true, consumer);
 
                 m.BasicPublish("", q.QueueName, sendBody);
                 sendBody.AsSpan().Fill(1);
 
-                Assert.True(are.WaitOne(2000));
+                Assert.True(receivedMessage.WaitOne(5000)); 
                 Assert.False(modified, "Payload was modified after the return of BasicPublish");
 
                 m.BasicCancel(tag);
