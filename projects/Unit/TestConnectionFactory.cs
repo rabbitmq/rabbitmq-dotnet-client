@@ -269,5 +269,51 @@ namespace RabbitMQ.Client.Unit
             var ep = new AmqpTcpEndpoint("localhost");
             using (IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { invalidEp, ep })) { };
         }
+
+        [Fact]
+        public void TestCreateConnectionUsesConfiguredMaxMessageSize()
+        {
+            var cf = new ConnectionFactory();
+            cf.MaxMessageSize = 1500;
+            using (IConnection conn = cf.CreateConnection())
+            {
+                Assert.Equal(cf.MaxMessageSize, conn.Endpoint.MaxMessageSize);
+            };
+        }
+        [Fact]
+        public void TestCreateConnectionWithAmqpEndpointListUsesAmqpTcpEndpointMaxMessageSize()
+        {
+            var cf = new ConnectionFactory();
+            cf.MaxMessageSize = 1500;
+            var ep = new AmqpTcpEndpoint("localhost");
+            Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, ep.MaxMessageSize);
+            using (IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { ep }))
+            {
+                Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, conn.Endpoint.MaxMessageSize);
+            };
+        }
+
+        [Fact]
+        public void TestCreateConnectionWithAmqpEndpointResolverUsesAmqpTcpEndpointMaxMessageSize()
+        {
+            var cf = new ConnectionFactory();
+            cf.MaxMessageSize = 1500;
+            var ep = new AmqpTcpEndpoint("localhost", -1, new SslOption(), 1200);
+            using (IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { ep }))
+            {
+                Assert.Equal(ep.MaxMessageSize, conn.Endpoint.MaxMessageSize);
+            };
+        }
+
+        [Fact]
+        public void TestCreateConnectionWithHostnameListUsesConnectionFactoryMaxMessageSize()
+        {
+            var cf = new ConnectionFactory();
+            cf.MaxMessageSize = 1500;
+            using (IConnection conn = cf.CreateConnection(new List<string> { "localhost" }))
+            {
+                Assert.Equal(cf.MaxMessageSize, conn.Endpoint.MaxMessageSize);
+            };
+        }
     }
 }

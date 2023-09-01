@@ -109,7 +109,7 @@ namespace RabbitMQ.Client
         /// Corresponds to the <code>rabbit.max_message_size</code> setting.
         /// Note: the default is 0 which means "unlimited".
         /// </summary>
-        public const uint DefaultMaxMessageSize = 134217728;
+        public const uint DefaultMaxMessageSize = 536870912;
 
         /// <summary>
         /// Default value for desired heartbeat interval. Default is 60 seconds,
@@ -454,7 +454,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
-            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl));
+            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxMessageSize));
             return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
         }
 

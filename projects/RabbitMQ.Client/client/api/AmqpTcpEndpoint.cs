@@ -76,7 +76,7 @@ namespace RabbitMQ.Client
             HostName = hostName;
             _port = portOrMinusOne;
             Ssl = ssl;
-            _maxMessageSize = maxMessageSize;
+            _maxMessageSize = Math.Min(maxMessageSize, ConnectionFactory.DefaultMaxMessageSize);
         }
 
         /// <summary>
