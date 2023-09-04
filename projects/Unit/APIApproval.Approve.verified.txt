@@ -165,10 +165,11 @@ namespace RabbitMQ.Client
     {
         public const ushort DefaultChannelMax = 2047;
         public const uint DefaultFrameMax = 0u;
-        public const uint DefaultMaxMessageSize = 536870912u;
+        public const uint DefaultMaxMessageSize = 134217728u;
         public const string DefaultPass = "guest";
         public const string DefaultUser = "guest";
         public const string DefaultVHost = "/";
+        public const uint MaximumMaxMessageSize = 536870912u;
         public static readonly System.Collections.Generic.IList<RabbitMQ.Client.IAuthMechanismFactory> DefaultAuthMechanisms;
         public static readonly System.TimeSpan DefaultConnectionTimeout;
         public static readonly RabbitMQ.Client.ICredentialsRefresher DefaultCredentialsRefresher;
