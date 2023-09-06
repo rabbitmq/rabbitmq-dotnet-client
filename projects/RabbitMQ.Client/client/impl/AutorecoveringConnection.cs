@@ -175,15 +175,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal IFrameHandler FrameHandler => InnerConnection.FrameHandler;
 
-        internal string Password => _config.Password;
-
         ///<summary>API-side invocation of updating the secret.</summary>
         public void UpdateSecret(string newSecret, string reason)
         {
             ThrowIfDisposed();
             EnsureIsOpen();
             _innerConnection.UpdateSecret(newSecret, reason);
-            _config.Password = newSecret;
         }
 
         ///<summary>API-side invocation of connection.close with timeout.</summary>

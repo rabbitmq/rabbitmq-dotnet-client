@@ -55,7 +55,14 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Password to use when authenticating to the server.
         /// </summary>
-        public string Password { get; internal set; }
+        public string Password { get; }
+
+        /// <summary>
+        /// Default CredentialsProvider implementation. If set, this
+        /// overrides UserName / Password
+        /// </summary>
+        public ICredentialsProvider CredentialsProvider;
+        public ICredentialsRefresher CredentialsRefresher;
 
         /// <summary>
         ///  SASL auth mechanisms to use.
@@ -76,6 +83,7 @@ namespace RabbitMQ.Client
         /// Maximum channel number to ask for.
         /// </summary>
         public ushort MaxChannelCount { get; }
+
         /// <summary>
         /// Frame-max parameter to ask for (in bytes).
         /// </summary>
@@ -136,7 +144,9 @@ namespace RabbitMQ.Client
 
         internal Func<AmqpTcpEndpoint, IFrameHandler> FrameHandlerFactory { get; }
 
-        internal ConnectionConfig(string virtualHost, string userName, string password, IList<IAuthMechanismFactory> authMechanisms,
+        internal ConnectionConfig(string virtualHost, string userName, string password,
+            ICredentialsProvider credentialsProvider, ICredentialsRefresher credentialsRefresher,
+            IList<IAuthMechanismFactory> authMechanisms,
             IDictionary<string, object?> clientProperties, string? clientProvidedName,
             ushort maxChannelCount, uint maxFrameSize, bool topologyRecoveryEnabled,
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
@@ -147,6 +157,8 @@ namespace RabbitMQ.Client
             VirtualHost = virtualHost;
             UserName = userName;
             Password = password;
+            CredentialsProvider = credentialsProvider ?? new BasicCredentialsProvider(clientProvidedName, userName, password);
+            CredentialsRefresher = credentialsRefresher;
             AuthMechanisms = authMechanisms;
             ClientProperties = clientProperties;
             ClientProvidedName = clientProvidedName;

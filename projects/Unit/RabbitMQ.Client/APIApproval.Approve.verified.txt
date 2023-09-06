@@ -53,6 +53,15 @@ namespace RabbitMQ.Client
         public virtual System.Threading.Tasks.Task HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) { }
         public virtual System.Threading.Tasks.Task OnCancel(params string[] consumerTags) { }
     }
+    public class BasicCredentialsProvider : RabbitMQ.Client.ICredentialsProvider
+    {
+        public BasicCredentialsProvider(string name, string userName, string password) { }
+        public string Name { get; }
+        public string Password { get; }
+        public string UserName { get; }
+        public System.TimeSpan? ValidUntil { get; }
+        public void Refresh() { }
+    }
     public sealed class BasicGetResult : System.IDisposable
     {
         public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, in RabbitMQ.Client.ReadOnlyBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) { }
@@ -131,6 +140,8 @@ namespace RabbitMQ.Client
     }
     public sealed class ConnectionConfig
     {
+        public RabbitMQ.Client.ICredentialsProvider CredentialsProvider;
+        public RabbitMQ.Client.ICredentialsRefresher CredentialsRefresher;
         public System.Collections.Generic.IList<RabbitMQ.Client.IAuthMechanismFactory> AuthMechanisms { get; }
         public System.Collections.Generic.IDictionary<string, object?> ClientProperties { get; }
         public string? ClientProvidedName { get; }
@@ -160,6 +171,7 @@ namespace RabbitMQ.Client
         public const string DefaultVHost = "/";
         public static readonly System.Collections.Generic.IList<RabbitMQ.Client.IAuthMechanismFactory> DefaultAuthMechanisms;
         public static readonly System.TimeSpan DefaultConnectionTimeout;
+        public static readonly RabbitMQ.Client.ICredentialsRefresher DefaultCredentialsRefresher;
         public static readonly System.TimeSpan DefaultHeartbeat;
         public ConnectionFactory() { }
         public System.Security.Authentication.SslProtocols AmqpUriSslProtocols { get; set; }
@@ -169,6 +181,8 @@ namespace RabbitMQ.Client
         public string ClientProvidedName { get; set; }
         public int ConsumerDispatchConcurrency { get; set; }
         public System.TimeSpan ContinuationTimeout { get; set; }
+        public RabbitMQ.Client.ICredentialsProvider CredentialsProvider { get; set; }
+        public RabbitMQ.Client.ICredentialsRefresher CredentialsRefresher { get; set; }
         public bool DispatchConsumersAsync { get; set; }
         public RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; set; }
         public System.Func<System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>, RabbitMQ.Client.IEndpointResolver> EndpointResolverFactory { get; set; }
@@ -512,6 +526,8 @@ namespace RabbitMQ.Client
         string ClientProvidedName { get; set; }
         int ConsumerDispatchConcurrency { get; set; }
         System.TimeSpan ContinuationTimeout { get; set; }
+        RabbitMQ.Client.ICredentialsProvider CredentialsProvider { get; set; }
+        RabbitMQ.Client.ICredentialsRefresher CredentialsRefresher { get; set; }
         bool DispatchConsumersAsync { get; set; }
         System.TimeSpan HandshakeContinuationTimeout { get; set; }
         string Password { get; set; }
@@ -528,6 +544,20 @@ namespace RabbitMQ.Client
         RabbitMQ.Client.IConnection CreateConnection(string clientProvidedName);
         RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName);
         RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IList<string> hostnames, string clientProvidedName);
+    }
+    public interface ICredentialsProvider
+    {
+        string Name { get; }
+        string Password { get; }
+        string UserName { get; }
+        System.TimeSpan? ValidUntil { get; }
+        void Refresh();
+    }
+    public interface ICredentialsRefresher
+    {
+        RabbitMQ.Client.ICredentialsProvider Register(RabbitMQ.Client.ICredentialsProvider provider, RabbitMQ.Client.ICredentialsRefresher.NotifyCredentialRefreshed callback);
+        bool Unregister(RabbitMQ.Client.ICredentialsProvider provider);
+        public delegate void NotifyCredentialRefreshed(bool succesfully);
     }
     public interface IEndpointResolver
     {
@@ -733,6 +763,28 @@ namespace RabbitMQ.Client
         public bool Enabled { get; set; }
         public string ServerName { get; set; }
         public System.Security.Authentication.SslProtocols Version { get; set; }
+    }
+    public class TimerBasedCredentialRefresher : RabbitMQ.Client.ICredentialsRefresher
+    {
+        public TimerBasedCredentialRefresher() { }
+        public RabbitMQ.Client.ICredentialsProvider Register(RabbitMQ.Client.ICredentialsProvider provider, RabbitMQ.Client.ICredentialsRefresher.NotifyCredentialRefreshed callback) { }
+        public bool Unregister(RabbitMQ.Client.ICredentialsProvider provider) { }
+    }
+    [System.Diagnostics.Tracing.EventSource(Name="TimerBasedCredentialRefresher")]
+    public class TimerBasedCredentialRefresherEventSource : System.Diagnostics.Tracing.EventSource
+    {
+        public TimerBasedCredentialRefresherEventSource() { }
+        public static RabbitMQ.Client.TimerBasedCredentialRefresherEventSource Log { get; }
+        [System.Diagnostics.Tracing.Event(5)]
+        public void RefreshedCredentials(string name, bool succesfully) { }
+        [System.Diagnostics.Tracing.Event(1)]
+        public void Registered(string name) { }
+        [System.Diagnostics.Tracing.Event(3)]
+        public void ScheduledTimer(string name, double interval) { }
+        [System.Diagnostics.Tracing.Event(4)]
+        public void TriggeredTimer(string name) { }
+        [System.Diagnostics.Tracing.Event(2)]
+        public void Unregistered(string name) { }
     }
     public class TopologyRecoveryExceptionHandler
     {

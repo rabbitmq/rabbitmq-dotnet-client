@@ -160,8 +160,26 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _channel0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
 
+            MaybeStartCredentialRefresher();
+
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();
+        }
+
+        private void MaybeStartCredentialRefresher()
+        {
+            if (_config.CredentialsProvider.ValidUntil != null)
+            {
+                _config.CredentialsRefresher.Register(_config.CredentialsProvider, NotifyCredentialRefreshed);
+            }
+        }
+
+        private void NotifyCredentialRefreshed(bool succesfully)
+        {
+            if (succesfully)
+            {
+                UpdateSecret(_config.CredentialsProvider.Password, "Token refresh");
+            }
         }
 
         private IAuthMechanismFactory GetAuthMechanismFactory(string supportedMechanismNames)

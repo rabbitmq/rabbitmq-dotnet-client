@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="projects/Benchmarks/Benchmarks.csproj" />
     <ProjectReference Include="projects/RabbitMQ.Client/RabbitMQ.Client.csproj" />
+    <ProjectReference Include="projects/RabbitMQ.Client.OAuth2/RabbitMQ.Client.OAuth2.csproj" />
     <ProjectReference Include="projects/TestApplications/CreateChannel/CreateChannel.csproj" />
     <ProjectReference Include="projects/TestApplications/MassPublish/MassPublish.csproj" />
     <ProjectReference Include="projects/Unit/Unit.csproj" />

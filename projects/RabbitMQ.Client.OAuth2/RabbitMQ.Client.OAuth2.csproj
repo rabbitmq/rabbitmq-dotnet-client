@@ -4,17 +4,17 @@
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AssemblyTitle>RabbitMQ Client Library for .NET</AssemblyTitle>
+    <AssemblyTitle>RabbitMQ OAuth2 Client Library for .NET</AssemblyTitle>
     <Authors>VMware</Authors>
     <Company>VMware, Inc. or its affiliates.</Company>
-    <Copyright>Copyright © 2007-2022 VMware, Inc. or its affiliates.</Copyright>
-    <Description>The RabbitMQ .NET client is the official client library for C# (and, implicitly, other .NET languages)</Description>
+    <Copyright>Copyright © 2007-2023 VMware, Inc. or its affiliates.</Copyright>
+    <Description>The RabbitMQ OAuth2 Client Library for .NET enables OAuth2 token refresh for RabbitMQ.Client</Description>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>Apache-2.0 OR MPL-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://www.rabbitmq.com/dotnet.html</PackageProjectUrl>
-    <PackageTags>rabbitmq, amqp</PackageTags>
+    <PackageTags>rabbitmq, amqp, oauth2</PackageTags>
     <Product>RabbitMQ</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/rabbitmq/rabbitmq-dotnet-client.git</RepositoryUrl>
@@ -22,7 +22,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AssemblyOriginatorKeyFile>../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerTagPrefix>oauth2-</MinVerTagPrefix>
     <MinVerVerbosity>minimal</MinVerVerbosity>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>../../packages</PackageOutputPath>
@@ -59,12 +59,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="MinVer" Version="4.3.0" PrivateAssets="all" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
-    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+    <PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
+    <PackageReference Include="System.Text.Json" Version="7.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../RabbitMQ.Client/RabbitMQ.Client.csproj" />
   </ItemGroup>
 
 </Project>

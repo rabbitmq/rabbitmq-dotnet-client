@@ -29,15 +29,35 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Text;
+using System;
+using System.Collections.Specialized;
+using Xunit;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.Unit
 {
-    public class PlainMechanism : IAuthMechanism
+    public class RequestFormMatcher
     {
-        public byte[] handleChallenge(byte[] challenge, ConnectionConfig config)
+        private NameValueCollection _expected = new NameValueCollection();
+
+        public RequestFormMatcher WithParam(string key, string value)
         {
-            return Encoding.UTF8.GetBytes($"\0{config.CredentialsProvider.UserName}\0{config.CredentialsProvider.Password}");
+            _expected[key] = value;
+            return this;
+        }
+
+        public Func<string, bool> Matcher()
+        {
+            return (body) =>
+            {
+                NameValueCollection actual = System.Web.HttpUtility.ParseQueryString(body);
+                Assert.Equal(actual.Count, _expected.Count);
+                foreach (string k in actual.Keys)
+                {
+                    Assert.NotNull(_expected[k]);
+                    Assert.Equal(actual[k], _expected[k]);
+                }
+                return true;
+            };
         }
     }
 }
