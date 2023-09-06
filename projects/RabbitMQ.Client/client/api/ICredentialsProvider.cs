@@ -29,14 +29,25 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Unit
+namespace RabbitMQ.Client
 {
-    public class TestUpdateSecret : IntegrationFixture
+    public interface ICredentialsProvider
     {
-        public void TestUpdatingConnectionSecret()
-        {
-            base.IgnoreOnVersionsEarlierThan(3, 8);
-            Conn.UpdateSecret("new-secret", "Test Case");
-        }
+        string Name { get; }
+        string UserName { get; }
+        string Password { get; }
+
+        /// <summary>
+        /// If credentials have an expiry time this property returns the interval.
+        /// Otherwise, it returns null.
+        /// </summary>
+        System.TimeSpan? ValidUntil { get; }
+
+        /// <summary>
+        /// Before the credentials are available, be it Username, Password or ValidUntil,
+        /// the credentials must be obtained by calling this method.
+        /// And to keep it up to date, this method must be called before the ValidUntil interval.
+        /// </summary>
+        void Refresh();
     }
 }

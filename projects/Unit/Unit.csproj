@@ -8,14 +8,19 @@
 
   <ItemGroup>
     <ProjectReference Include="../RabbitMQ.Client/RabbitMQ.Client.csproj" />
+    <ProjectReference Include="../RabbitMQ.Client.OAuth2/RabbitMQ.Client.OAuth2.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="Moq" Version="4.20.69" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageReference Include="PublicApiGenerator" Version="11.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.Json" Version="7.0.3" />
     <PackageReference Include="Verify.NUnit" Version="19.12.1" />
+    <PackageReference Include="WireMock.Net" Version="1.5.35" />
   </ItemGroup>
 
 </Project>

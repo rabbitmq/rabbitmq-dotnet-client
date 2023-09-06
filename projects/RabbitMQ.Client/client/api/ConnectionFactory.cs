@@ -89,6 +89,9 @@ namespace RabbitMQ.Client
     ///hosts with an empty name are not addressable. </para></remarks>
     public sealed class ConnectionFactory : ConnectionFactoryBase, IAsyncConnectionFactory
     {
+        private static readonly ICredentialsRefresher s_defaultCredentialsRefresher = new NoOpCredentialsRefresher();
+        private ICredentialsProvider _credentialsProvider;
+
         /// <summary>
         /// Default value for the desired maximum channel number. Default: 2047.
         /// </summary>
@@ -288,6 +291,8 @@ namespace RabbitMQ.Client
         public ConnectionFactory()
         {
             ClientProperties = Connection.DefaultClientProperties();
+            _credentialsProvider =
+                new BasicCredentialsProvider(userName: DefaultUser, password: DefaultPass);
         }
 
         /// <summary>
@@ -311,9 +316,100 @@ namespace RabbitMQ.Client
         public IDictionary<string, object> ClientProperties { get; set; }
 
         /// <summary>
+        /// Username to use when authenticating to the server.
+        /// </summary>
+        public string UserName
+        {
+            get
+            {
+                if (_credentialsProvider == null)
+                {
+                    throw new InvalidOperationException($"{nameof(_credentialsProvider)} is null");
+                }
+                return _credentialsProvider.UserName;
+            }
+
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                if (_credentialsProvider == null)
+                {
+                    _credentialsProvider =
+                        new BasicCredentialsProvider(name: ClientProvidedName, userName: value, password: DefaultPass);
+                }
+                else
+                {
+                    string password = _credentialsProvider.Password;
+                    _credentialsProvider =
+                        new BasicCredentialsProvider(name: ClientProvidedName, userName: value, password: password);
+                }
+            }
+        }
+
+        /// <summary>
         /// Password to use when authenticating to the server.
         /// </summary>
-        public string Password { get; set; } = DefaultPass;
+        public string Password
+        {
+            get
+            {
+                if (_credentialsProvider == null)
+                {
+                    throw new InvalidOperationException($"{nameof(_credentialsProvider)} is null");
+                }
+                return _credentialsProvider.Password;
+            }
+
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                if (_credentialsProvider == null)
+                {
+                    _credentialsProvider =
+                        new BasicCredentialsProvider(name: ClientProvidedName, userName: DefaultUser, password: value);
+                }
+                else
+                {
+                    string userName = _credentialsProvider.UserName;
+                    _credentialsProvider =
+                        new BasicCredentialsProvider(name: ClientProvidedName, userName: userName, password: value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// CredentialsProvider and CredentialsRefresher implementations. If set, these
+        /// overrides UserName / Password
+        /// </summary>
+        public ICredentialsProvider CredentialsProvider
+        {
+            get
+            {
+                if (_credentialsProvider == null)
+                {
+                    _credentialsProvider =
+                        new BasicCredentialsProvider(name: ClientProvidedName, userName: DefaultUser, password: DefaultPass);
+                }
+                return _credentialsProvider;
+            }
+
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                _credentialsProvider = value;
+            }
+        }
+
+        public ICredentialsRefresher CredentialsRefresher { get; set; } = s_defaultCredentialsRefresher;
 
         /// <summary>
         /// Maximum channel number to ask for.
@@ -334,11 +430,6 @@ namespace RabbitMQ.Client
         /// When set to true, background thread will be used for the I/O loop.
         /// </summary>
         public bool UseBackgroundThreadsForIO { get; set; }
-
-        /// <summary>
-        /// Username to use when authenticating to the server.
-        /// </summary>
-        public string UserName { get; set; } = DefaultUser;
 
         /// <summary>
         /// Virtual host to access during this connection.

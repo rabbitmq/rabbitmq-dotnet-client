@@ -707,6 +707,26 @@ namespace RabbitMQ.Client.Unit
             ExecRabbitMQCtl("await_startup");
         }
 
+        internal void AddUser(string username, string password)
+        {
+            ExecRabbitMQCtl($"add_user {username} {password}");
+        }
+
+        internal void ChangePassword(string username, string password)
+        {
+            ExecRabbitMQCtl($"change_password {username} {password}");
+        }
+
+        internal void SetPermissions(string username, string conf, string write, string read)
+        {
+            ExecRabbitMQCtl($"set_permissions {username} \"{conf}\" \"{write}\" \"${read}\" ");
+        }
+
+        internal void DeleteUser(string username)
+        {
+            ExecRabbitMQCtl($"delete_user {username}");
+        }
+
         //
         // Concurrency and Coordination
         //
@@ -728,6 +748,39 @@ namespace RabbitMQ.Client.Unit
         public static string CertificatesDirectory()
         {
             return Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
+        }
+
+
+        public void IgnoreOnVersionsEarlierThan(int major, int minor)
+        {
+            var version = new Version(major, minor);
+            if (!CheckMiniumVersion(Conn, version))
+            {
+                Assert.Ignore("Skipped test. It requires RabbitMQ {0}", version);
+            }
+        }
+
+        private static bool CheckMiniumVersion(IConnection conn, Version miniumVersion)
+        {
+            IDictionary<string, object> properties = conn.ServerProperties;
+
+            if (properties.TryGetValue("version", out object versionVal))
+            {
+                string versionStr = Encoding.UTF8.GetString((byte[])versionVal);
+
+                int dashIdx = Math.Max(versionStr.IndexOf('-'), versionStr.IndexOf('+'));
+                if (dashIdx > 0)
+                {
+                    versionStr = versionStr.Remove(dashIdx);
+                }
+
+                if (Version.TryParse(versionStr, out Version version))
+                {
+                    return version >= miniumVersion;
+                }
+            }
+
+            return false;
         }
     }
 

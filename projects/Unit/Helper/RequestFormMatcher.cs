@@ -29,14 +29,35 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Collections.Specialized;
+using NUnit.Framework;
+
 namespace RabbitMQ.Client.Unit
 {
-    public class TestUpdateSecret : IntegrationFixture
+    public class RequestFormMatcher
     {
-        public void TestUpdatingConnectionSecret()
+        private NameValueCollection _expected = new NameValueCollection();
+
+        public RequestFormMatcher WithParam(string key, string value)
         {
-            base.IgnoreOnVersionsEarlierThan(3, 8);
-            Conn.UpdateSecret("new-secret", "Test Case");
+            _expected[key] = value;
+            return this;
+        }
+
+        public Func<string, bool> Matcher()
+        {
+            return (body) =>
+            {
+                NameValueCollection actual = System.Web.HttpUtility.ParseQueryString(body);
+                Assert.AreEqual(_expected.Count, actual.Count);
+                foreach (string k in actual.Keys)
+                {
+                    Assert.NotNull(_expected[k]);
+                    Assert.AreEqual(_expected[k], actual[k]);
+                }
+                return true;
+            };
         }
     }
 }

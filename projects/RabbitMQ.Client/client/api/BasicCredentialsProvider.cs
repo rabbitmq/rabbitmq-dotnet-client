@@ -29,14 +29,53 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-namespace RabbitMQ.Client.Unit
+using System;
+
+namespace RabbitMQ.Client
 {
-    public class TestUpdateSecret : IntegrationFixture
+    public class BasicCredentialsProvider : ICredentialsProvider
     {
-        public void TestUpdatingConnectionSecret()
+        private readonly string _name;
+        private readonly string _userName;
+        private readonly string _password;
+
+        public BasicCredentialsProvider(string userName, string password)
+            :this(string.Empty, userName, password)
         {
-            base.IgnoreOnVersionsEarlierThan(3, 8);
-            Conn.UpdateSecret("new-secret", "Test Case");
+        }
+
+        public BasicCredentialsProvider(string name, string userName, string password)
+        {
+            _name = name ?? string.Empty;
+            _userName = userName ?? throw new ArgumentNullException(nameof(userName));
+            _password = password ?? throw new ArgumentNullException(nameof(password));
+        }
+
+        public string Name
+        {
+            get { return _name; }
+        }
+
+        public string UserName
+        {
+            get { return _userName; }
+        }
+
+        public string Password
+        {
+            get { return _password; }
+        }
+
+        public Nullable<TimeSpan> ValidUntil
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public void Refresh()
+        {
         }
     }
 }
