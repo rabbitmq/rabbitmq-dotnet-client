@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Unit
                 foreach (string k in actual.Keys)
                 {
                     Assert.NotNull(_expected[k]);
-                    Assert.Equal(actual[k], _expected[k]);
+                    Assert.Equal(_expected[k], actual[k]);
                 }
                 return true;
             };
