@@ -84,9 +84,9 @@ namespace RabbitMQ.Client.Unit
 
             IToken token = _client.RequestToken();
             Assert.NotNull(token);
-            Assert.Equal(token.AccessToken, expectedJsonToken.access_token);
-            Assert.Equal(token.RefreshToken, expectedJsonToken.refresh_token);
-            Assert.Equal(token.ExpiresIn, TimeSpan.FromSeconds(expectedJsonToken.expires_in));
+            Assert.Equal(expectedJsonToken.access_token, token.AccessToken);
+            Assert.Equal(expectedJsonToken.refresh_token, token.RefreshToken);
+            Assert.Equal(TimeSpan.FromSeconds(expectedJsonToken.expires_in), token.ExpiresIn);
         }
 
         private void expectTokenRefresh(JsonToken expectedResponse)
@@ -134,9 +134,9 @@ namespace RabbitMQ.Client.Unit
             IToken refreshedToken = _client.RefreshToken(token);
             Assert.False(refreshedToken == token);
             Assert.NotNull(refreshedToken);
-            Assert.Equal(refreshedToken.AccessToken, expectedJsonToken.access_token);
-            Assert.Equal(refreshedToken.RefreshToken, expectedJsonToken.refresh_token);
-            Assert.Equal(refreshedToken.ExpiresIn, TimeSpan.FromSeconds(expectedJsonToken.expires_in));
+            Assert.Equal(expectedJsonToken.access_token, refreshedToken.AccessToken);
+            Assert.Equal(expectedJsonToken.refresh_token, refreshedToken.RefreshToken);
+            Assert.Equal(TimeSpan.FromSeconds(expectedJsonToken.expires_in), refreshedToken.ExpiresIn);
         }
 
         [Fact]
