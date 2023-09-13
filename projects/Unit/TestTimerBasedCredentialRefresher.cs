@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
+using System.Threading;
 using Moq;
 using Xunit;
 
@@ -67,20 +67,21 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public async void TestRefreshToken()
+        public void TestRefreshToken()
         {
             _credentialsProvider.Setup(p => p.ValidUntil).Returns(TimeSpan.FromSeconds(1));
             _credentialsProvider.Setup(p => p.Password).Returns("the-token").Verifiable();
             _callback.Setup(p => p.Invoke(true));
             _refresher.Register(_credentialsProvider.Object, _callback.Object);
-            await Task.Delay(1 * 1000);
+
+            Thread.Sleep(TimeSpan.FromSeconds(1));
 
             _credentialsProvider.Verify();
             _callback.Verify();
         }
 
         [Fact]
-        public async void TestRefreshTokenFailed()
+        public void TestRefreshTokenFailed()
         {
             _credentialsProvider.Setup(p => p.ValidUntil).Returns(TimeSpan.FromSeconds(1));
             _credentialsProvider.SetupSequence(p => p.Password)
@@ -88,7 +89,8 @@ namespace RabbitMQ.Client.Unit
                 .Throws(new Exception());
             _callback.Setup(p => p.Invoke(false));
             _refresher.Register(_credentialsProvider.Object, _callback.Object);
-            await Task.Delay(1 * 1000);
+
+            Thread.Sleep(TimeSpan.FromSeconds(1));
 
             _credentialsProvider.Verify();
             _callback.Verify();

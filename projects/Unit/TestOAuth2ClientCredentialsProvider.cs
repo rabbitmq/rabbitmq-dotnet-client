@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
+using System.Threading;
 using Moq;
 using RabbitMQ.Client.OAuth2;
 using Xunit;
@@ -67,8 +67,8 @@ namespace RabbitMQ.Client.Unit
         {
             IToken firstToken = newToken("the_access_token", "the_refresh_token", TimeSpan.FromSeconds(1));
             _oAuth2Client.Setup(p => p.RequestToken()).Returns(firstToken);
-            Assert.Equal(_provider.Password, firstToken.AccessToken);
-            Assert.Equal(_provider.ValidUntil.Value, firstToken.ExpiresIn);
+            Assert.Equal(firstToken.AccessToken, _provider.Password);
+            Assert.Equal(firstToken.ExpiresIn, _provider.ValidUntil.Value);
         }
 
         [Fact]
@@ -78,16 +78,16 @@ namespace RabbitMQ.Client.Unit
             IToken refreshedToken = newToken("the_access_token2", "the_refresh_token_2", TimeSpan.FromSeconds(60));
             _oAuth2Client.Setup(p => p.RequestToken()).Returns(firstToken);
             _provider.Refresh();
-            Assert.Equal(_provider.Password, firstToken.AccessToken);
-            Assert.Equal(_provider.ValidUntil.Value, firstToken.ExpiresIn);
-            _oAuth2Client.Reset();
-            System.Threading.Thread.Sleep(1000);
+            Assert.Equal(firstToken.AccessToken, _provider.Password);
+            Assert.Equal(firstToken.ExpiresIn, _provider.ValidUntil.Value);
 
+            _oAuth2Client.Reset();
+            Thread.Sleep(1000);
             _oAuth2Client.Setup(p => p.RefreshToken(firstToken)).Returns(refreshedToken);
             _provider.Refresh();
-            Assert.Equal(_provider.Password, refreshedToken.AccessToken);
-            Assert.Equal(_provider.ValidUntil.Value, refreshedToken.ExpiresIn);
 
+            Assert.Equal(refreshedToken.AccessToken, _provider.Password);
+            Assert.Equal(refreshedToken.ExpiresIn, _provider.ValidUntil.Value);
         }
 
         [Fact]
@@ -99,12 +99,14 @@ namespace RabbitMQ.Client.Unit
                 .Returns(firstToken)
                 .Returns(refreshedToken);
             _provider.Refresh();
-            Assert.Equal(_provider.Password, firstToken.AccessToken);
-            Assert.Equal(_provider.ValidUntil.Value, firstToken.ExpiresIn);
+
+            Assert.Equal(firstToken.AccessToken, _provider.Password);
+            Assert.Equal(firstToken.ExpiresIn, _provider.ValidUntil.Value);
 
             _provider.Refresh();
-            Assert.Equal(_provider.Password, refreshedToken.AccessToken);
-            Assert.Equal(_provider.ValidUntil.Value, refreshedToken.ExpiresIn);
+
+            Assert.Equal(refreshedToken.AccessToken, _provider.Password);
+            Assert.Equal(refreshedToken.ExpiresIn, _provider.ValidUntil.Value);
             Mock.Verify(_oAuth2Client);
         }
 
