@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         [Event(1)]
         public void Registered(string name) => WriteEvent(1, "Registered", name);
         [Event(2)]
-        public void Unregistered(string name) => WriteEvent(2, "nNregistered", name);
+        public void Unregistered(string name) => WriteEvent(2, "UnRegistered", name);
         [Event(3)]
         public void ScheduledTimer(string name, double interval) => WriteEvent(3, "ScheduledTimer", name, interval);
         [Event(4)]
