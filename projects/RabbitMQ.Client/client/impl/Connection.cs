@@ -116,7 +116,8 @@ namespace RabbitMQ.Client.Framing.Impl
             _session0 = new MainSession(this) { Handler = NotifyReceivedCloseOk };
             _model0 = (ModelBase)Protocol.CreateModel(_session0);
 
-            StartMainLoop(factory.UseBackgroundThreadsForIO);
+            StartMainLoop();
+
             try
             {
                 Open(insist);
@@ -848,9 +849,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public void StartMainLoop(bool useBackgroundThread)
+        public void StartMainLoop()
         {
-            _mainLoopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach);
+            TaskCreationOptions opts = TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach;
+            _mainLoopTask = Task.Factory.StartNew(MainLoop, CancellationToken.None, opts, TaskScheduler.Default);
         }
 
         public void HeartbeatReadTimerCallback(object state)
