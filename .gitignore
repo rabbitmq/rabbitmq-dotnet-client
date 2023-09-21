@@ -1,4 +1,5 @@
 _site/
+Properties/
 
 ###################
 ## Generated files
@@ -28,6 +29,7 @@ test.sh
 test-output.log
 InternalTrace*
 nunit-agent*
+
 #################
 ## Visual Studio
 #################

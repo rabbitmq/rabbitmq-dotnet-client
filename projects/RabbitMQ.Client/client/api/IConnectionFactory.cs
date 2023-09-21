@@ -44,9 +44,21 @@ namespace RabbitMQ.Client
         IDictionary<string, object> ClientProperties { get; set; }
 
         /// <summary>
+        /// Username to use when authenticating to the server.
+        /// </summary>
+        string UserName { get; set; }
+
+        /// <summary>
         /// Password to use when authenticating to the server.
         /// </summary>
         string Password { get; set; }
+
+        /// <summary>
+        /// Default CredentialsProvider implementation. If set, this
+        /// overrides UserName / Password
+        /// </summary>
+        ICredentialsProvider CredentialsProvider { get; set; }
+        ICredentialsRefresher CredentialsRefresher { get; set; }
 
         /// <summary>
         /// Maximum channel number to ask for.
@@ -67,11 +79,6 @@ namespace RabbitMQ.Client
         /// When set to true, background threads will be used for I/O and heartbeats.
         /// </summary>
         bool UseBackgroundThreadsForIO { get; set; }
-
-        /// <summary>
-        /// Username to use when authenticating to the server.
-        /// </summary>
-        string UserName { get; set; }
 
         /// <summary>
         /// Virtual host to access during this connection.

@@ -29,8 +29,9 @@
 //  Copyright (c) 2011-2020 VMware, Inc. or its affiliates.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-
+using System.Text;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Exceptions;
@@ -38,7 +39,7 @@ using RabbitMQ.Client.Exceptions;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    class TestConnectionFactory
+    public class TestConnectionFactory
     {
         [Test]
         public void TestProperties()
@@ -287,6 +288,58 @@ namespace RabbitMQ.Client.Unit
             cf.AuthMechanisms.Clear();
             var cf2 = new ConnectionFactory();
             Assert.That(cf2.AuthMechanisms.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TestCredentialsProvider()
+        {
+            var cf = new ConnectionFactory();
+
+            Assert.AreEqual(ConnectionFactory.DefaultUser, cf.UserName);
+            Assert.AreEqual(ConnectionFactory.DefaultPass, cf.Password);
+            Assert.AreEqual(ConnectionFactory.DefaultUser, cf.CredentialsProvider.UserName);
+            Assert.AreEqual(ConnectionFactory.DefaultPass, cf.CredentialsProvider.Password);
+
+            string newUserName = Guid.NewGuid().ToString();
+            cf.UserName = newUserName;
+
+            Assert.AreEqual(newUserName, cf.UserName);
+            Assert.AreEqual(ConnectionFactory.DefaultPass, cf.Password);
+            Assert.AreEqual(newUserName, cf.CredentialsProvider.UserName);
+            Assert.AreEqual(ConnectionFactory.DefaultPass, cf.CredentialsProvider.Password);
+
+            var expected = Encoding.UTF8.GetBytes($"\0{newUserName}\0{ConnectionFactory.DefaultPass}");
+            IAuthMechanism pm = new PlainMechanism();
+            var actual = pm.handleChallenge(null, cf);
+            Assert.AreEqual(expected, actual);
+
+            string newPassword = Guid.NewGuid().ToString();
+            cf.Password = newPassword;
+
+            Assert.AreEqual(newUserName, cf.UserName);
+            Assert.AreEqual(newPassword, cf.Password);
+            Assert.AreEqual(newUserName, cf.CredentialsProvider.UserName);
+            Assert.AreEqual(newPassword, cf.CredentialsProvider.Password);
+
+            expected = Encoding.UTF8.GetBytes($"\0{newUserName}\0{newPassword}");
+            pm = new PlainMechanism();
+            actual = pm.handleChallenge(null, cf);
+            Assert.AreEqual(expected, actual);
+
+            newUserName = Guid.NewGuid().ToString();
+            newPassword = Guid.NewGuid().ToString();
+            string clientProvidedName = Guid.NewGuid().ToString();
+
+            ICredentialsProvider p = new BasicCredentialsProvider(clientProvidedName, newUserName, newPassword);
+            cf.CredentialsProvider = p;
+            cf.ClientProvidedName = clientProvidedName;
+
+            Assert.AreEqual(clientProvidedName, cf.ClientProvidedName);
+            Assert.AreEqual(newUserName, cf.UserName);
+            Assert.AreEqual(newPassword, cf.Password);
+            Assert.AreEqual(clientProvidedName, cf.CredentialsProvider.Name);
+            Assert.AreEqual(newUserName, cf.CredentialsProvider.UserName);
+            Assert.AreEqual(newPassword, cf.CredentialsProvider.Password);
         }
     }
 }

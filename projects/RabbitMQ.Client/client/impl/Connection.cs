@@ -1192,6 +1192,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _model0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
 
+            MaybeStartCredentialRefresher();
+
             // now we can start heartbeat timers
             MaybeStartHeartbeatTimers();
         }
@@ -1202,5 +1204,22 @@ namespace RabbitMQ.Client.Framing.Impl
                 Math.Max(clientValue, serverValue) :
                 Math.Min(clientValue, serverValue);
         }
+
+        private void MaybeStartCredentialRefresher()
+        {
+            if (_factory.CredentialsProvider.ValidUntil != null)
+            {
+                _factory.CredentialsRefresher.Register(_factory.CredentialsProvider, NotifyCredentialRefreshed);
+            }
+        }
+
+        private void NotifyCredentialRefreshed(bool succesfully)
+        {
+            if (succesfully)
+            {
+                UpdateSecret(_factory.CredentialsProvider.Password, "Token refresh");
+            }
+        }
+
     }
 }
