@@ -45,9 +45,10 @@ namespace RabbitMQ.Client.Framing.Impl
             Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout,
             TimeSpan readTimeout,
-            TimeSpan writeTimeout)
+            TimeSpan writeTimeout,
+            bool enableSynchronousWriteLoop)
         {
-            return new SocketFrameHandler(endpoint, socketFactory, connectionTimeout, readTimeout, writeTimeout)
+            return new SocketFrameHandler(endpoint, socketFactory, connectionTimeout, readTimeout, writeTimeout, enableSynchronousWriteLoop)
             {
                 MemoryPool = pool
             };

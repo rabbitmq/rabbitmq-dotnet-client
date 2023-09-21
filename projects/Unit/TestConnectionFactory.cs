@@ -162,6 +162,20 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Test]
+        public void TestCreateConnectionWithSynchronousWriteLoop()
+        {
+            var cf = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                HostName = "localhost",
+                EnableSynchronousWriteLoop = true
+            };
+            using (IConnection conn = cf.CreateConnection()){
+                Assert.AreEqual(5672, conn.Endpoint.Port);
+            }
+        }
+
+        [Test]
         public void TestCreateConnectionUsesDefaultPort()
         {
             var cf = new ConnectionFactory

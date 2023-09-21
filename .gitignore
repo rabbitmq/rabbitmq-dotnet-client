@@ -124,3 +124,9 @@ projects/Unit*/TestResult.xml
 # Vim
 .sw?
 .*.sw?
+
+
+#################
+## JetBrains Rider
+#################
+.idea/

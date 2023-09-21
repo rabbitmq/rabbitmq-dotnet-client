@@ -275,6 +275,13 @@ namespace RabbitMQ.Client
         public bool TopologyRecoveryEnabled { get; set; } = true;
 
         /// <summary>
+        /// Force writes to the socket to run on a dedicated thread instead of the thread pool. This may prevent
+        /// timeouts if a large number of blocking requests are going out simultaneously. Will become obsolete
+        /// once requests become asynchronous. Defaults to false.
+        /// </summary>
+        public bool EnableSynchronousWriteLoop { get; set; } = false;
+
+        /// <summary>
         /// Filter to include/exclude entities from topology recovery.
         /// Default filter includes all entities in topology recovery.
         /// </summary>
@@ -640,7 +647,7 @@ namespace RabbitMQ.Client
         internal IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
         {
             IFrameHandler fh = Protocols.DefaultProtocol.CreateFrameHandler(endpoint, _memoryPool, SocketFactory,
-                RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
+                RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout, EnableSynchronousWriteLoop);
             return ConfigureFrameHandler(fh);
         }
 

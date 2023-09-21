@@ -63,6 +63,8 @@ namespace RabbitMQ.Client.Impl
     class SocketFrameHandler : IFrameHandler
     {
         private readonly AmqpTcpEndpoint _endpoint;
+
+
         // Socket poll timeout in ms. If the socket does not
         // become writeable in this amount of time, we throw
         // an exception.
@@ -78,19 +80,19 @@ namespace RabbitMQ.Client.Impl
         private readonly byte[] _frameHeaderBuffer;
         private bool _closed;
         private ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
+        private readonly bool _enableSynchronousWriteLoop;
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
-            TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+            TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout, bool enableSynchronousWriteLoop)
         {
             _endpoint = endpoint;
+            _enableSynchronousWriteLoop = enableSynchronousWriteLoop;
             _frameHeaderBuffer = new byte[6];
             var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
                 new UnboundedChannelOptions
                 {
-                    AllowSynchronousContinuations = false,
-                    SingleReader = true,
-                    SingleWriter = false
+                    AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = false
                 });
 
             _channelReader = channel.Reader;
@@ -134,7 +136,15 @@ namespace RabbitMQ.Client.Impl
             _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
 
             WriteTimeout = writeTimeout;
-            _writerTask = Task.Run(WriteLoop, CancellationToken.None);
+            if (_enableSynchronousWriteLoop)
+            {
+                TaskCreationOptions tco = TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach;
+                _writerTask = Task.Factory.StartNew(SynchronousWriteLoop, CancellationToken.None, tco, TaskScheduler.Default);
+            }
+            else
+            {
+                _writerTask = Task.Run(WriteLoop, CancellationToken.None);
+            }
         }
 
         public AmqpTcpEndpoint Endpoint
@@ -278,6 +288,24 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 await _writer.FlushAsync().ConfigureAwait(false);
+            }
+        }
+
+        private void SynchronousWriteLoop()
+        {
+            while (_channelReader.WaitToReadAsync().AsTask().Result)
+            {
+                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
+                while (_channelReader.TryRead(out var memory))
+                {
+                    if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment) &&
+                        segment.Array != null)
+                    {
+                        _writer.Write(segment.Array, segment.Offset, segment.Count);
+                        MemoryPool.Return(segment.Array);
+                    }
+                }
+                _writer.Flush();
             }
         }
 
