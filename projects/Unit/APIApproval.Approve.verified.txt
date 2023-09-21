@@ -101,6 +101,7 @@ namespace RabbitMQ.Client
         public RabbitMQ.Client.ICredentialsProvider CredentialsProvider { get; set; }
         public RabbitMQ.Client.ICredentialsRefresher CredentialsRefresher { get; set; }
         public bool DispatchConsumersAsync { get; set; }
+        public bool EnableSynchronousWriteLoop { get; set; }
         public RabbitMQ.Client.AmqpTcpEndpoint Endpoint { get; set; }
         public System.Func<System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>, RabbitMQ.Client.IEndpointResolver> EndpointResolverFactory { get; set; }
         public System.TimeSpan HandshakeContinuationTimeout { get; set; }
