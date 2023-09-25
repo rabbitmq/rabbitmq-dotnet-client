@@ -30,93 +30,169 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Threading;
-using Moq;
 using RabbitMQ.Client.OAuth2;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
+    public class MockIOAuth2Client : IOAuth2Client
+    {
+        private readonly ITestOutputHelper _testOutputHelper;
+        private IToken _refreshToken;
+        private IToken _requestToken;
+
+        public MockIOAuth2Client(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
+        public IToken RefreshTokenValue
+        {
+            get { return _refreshToken; }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _refreshToken = value;
+            }
+        }
+
+        public IToken RequestTokenValue
+        {
+            get { return _requestToken; }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _requestToken = value;
+            }
+        }
+
+        public IToken RefreshToken(IToken initialToken)
+        {
+            Debug.Assert(Object.ReferenceEquals(_requestToken, initialToken));
+            return _refreshToken;
+        }
+
+        public IToken RequestToken()
+        {
+            return _requestToken;
+        }
+    }
+
     public class TestOAuth2CredentialsProvider
     {
-        protected OAuth2ClientCredentialsProvider _provider;
-        protected Mock<IOAuth2Client> _oAuth2Client;
+        private readonly ITestOutputHelper _testOutputHelper;
 
-        public TestOAuth2CredentialsProvider()
+        public TestOAuth2CredentialsProvider(ITestOutputHelper testOutputHelper)
         {
-            _oAuth2Client = new Mock<IOAuth2Client>();
-            _provider = new OAuth2ClientCredentialsProvider("aName", _oAuth2Client.Object);
+            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
-        public void shouldHaveAName()
+        public void ShouldHaveAName()
         {
-            Assert.Equal("aName", _provider.Name);
+            const string name = "aName";
+            IOAuth2Client oAuth2Client = new MockIOAuth2Client(_testOutputHelper);
+            var provider = new OAuth2ClientCredentialsProvider(name, oAuth2Client);
+
+            Assert.Equal(name, provider.Name);
         }
 
         [Fact]
         public void ShouldRequestTokenWhenAskToRefresh()
         {
-            _oAuth2Client.Setup(p => p.RequestToken()).Returns(newToken("the_access_token", TimeSpan.FromSeconds(60)));
-            _provider.Refresh();
-            Assert.Equal("the_access_token", _provider.Password);
+            const string newTokenValue = "the_access_token";
+            IToken newToken = NewToken(newTokenValue, TimeSpan.FromSeconds(60));
+            var oAuth2Client = new MockIOAuth2Client(_testOutputHelper);
+            oAuth2Client.RequestTokenValue = newToken;
+            var provider = new OAuth2ClientCredentialsProvider(nameof(ShouldRequestTokenWhenAskToRefresh), oAuth2Client);
+
+            provider.Refresh();
+
+            Assert.Equal(newTokenValue, provider.Password);
         }
 
         [Fact]
         public void ShouldRequestTokenWhenGettingPasswordOrValidUntilForFirstTimeAccess()
         {
-            IToken firstToken = newToken("the_access_token", "the_refresh_token", TimeSpan.FromSeconds(1));
-            _oAuth2Client.Setup(p => p.RequestToken()).Returns(firstToken);
-            Assert.Equal(firstToken.AccessToken, _provider.Password);
-            Assert.Equal(firstToken.ExpiresIn, _provider.ValidUntil.Value);
+            const string accessToken = "the_access_token";
+            const string refreshToken = "the_refresh_token";
+            IToken firstToken = NewToken(accessToken, refreshToken, TimeSpan.FromSeconds(1));
+            var oAuth2Client = new MockIOAuth2Client(_testOutputHelper);
+            oAuth2Client.RequestTokenValue = firstToken;
+            var provider = new OAuth2ClientCredentialsProvider(nameof(ShouldRequestTokenWhenGettingPasswordOrValidUntilForFirstTimeAccess), oAuth2Client);
+
+            Assert.Equal(firstToken.AccessToken, provider.Password);
+            Assert.Equal(firstToken.ExpiresIn, provider.ValidUntil.Value);
         }
 
         [Fact]
         public void ShouldRefreshTokenUsingRefreshTokenWhenAvailable()
         {
-            IToken firstToken = newToken("the_access_token", "the_refresh_token", TimeSpan.FromSeconds(1));
-            IToken refreshedToken = newToken("the_access_token2", "the_refresh_token_2", TimeSpan.FromSeconds(60));
-            _oAuth2Client.Setup(p => p.RequestToken()).Returns(firstToken);
-            _provider.Refresh();
-            Assert.Equal(firstToken.AccessToken, _provider.Password);
-            Assert.Equal(firstToken.ExpiresIn, _provider.ValidUntil.Value);
+            const string accessToken = "the_access_token";
+            const string refreshToken = "the_refresh_token";
+            const string accessToken2 = "the_access_token_2";
+            const string refreshToken2 = "the_refresh_token_2";
 
-            _oAuth2Client.Reset();
-            Thread.Sleep(1000);
-            _oAuth2Client.Setup(p => p.RefreshToken(firstToken)).Returns(refreshedToken);
-            _provider.Refresh();
+            IToken firstToken = NewToken(accessToken, refreshToken, TimeSpan.FromSeconds(1));
+            IToken refreshedToken = NewToken(accessToken2, refreshToken2, TimeSpan.FromSeconds(60));
+            var oAuth2Client = new MockIOAuth2Client(_testOutputHelper);
+            oAuth2Client.RequestTokenValue = firstToken;
+            var provider = new OAuth2ClientCredentialsProvider(nameof(ShouldRequestTokenWhenGettingPasswordOrValidUntilForFirstTimeAccess), oAuth2Client);
 
-            Assert.Equal(refreshedToken.AccessToken, _provider.Password);
-            Assert.Equal(refreshedToken.ExpiresIn, _provider.ValidUntil.Value);
+            provider.Refresh();
+
+            Assert.Equal(firstToken.AccessToken, provider.Password);
+            Assert.Equal(firstToken.ExpiresIn, provider.ValidUntil.Value);
+
+            oAuth2Client.RefreshTokenValue = refreshedToken;
+            provider.Refresh();
+
+            Assert.Equal(refreshedToken.AccessToken, provider.Password);
+            Assert.Equal(refreshedToken.ExpiresIn, provider.ValidUntil.Value);
         }
 
         [Fact]
         public void ShouldRequestTokenWhenRefreshTokenNotAvailable()
         {
-            IToken firstToken = newToken("the_access_token", null, TimeSpan.FromSeconds(1));
-            IToken refreshedToken = newToken("the_access_token2", null, TimeSpan.FromSeconds(1));
-            _oAuth2Client.SetupSequence(p => p.RequestToken())
-                .Returns(firstToken)
-                .Returns(refreshedToken);
-            _provider.Refresh();
+            const string accessToken = "the_access_token";
+            const string accessToken2 = "the_access_token_2";
+            IToken firstToken = NewToken(accessToken, null, TimeSpan.FromSeconds(1));
+            IToken secondToken = NewToken(accessToken2, null, TimeSpan.FromSeconds(60));
 
-            Assert.Equal(firstToken.AccessToken, _provider.Password);
-            Assert.Equal(firstToken.ExpiresIn, _provider.ValidUntil.Value);
+            var oAuth2Client = new MockIOAuth2Client(_testOutputHelper);
+            oAuth2Client.RequestTokenValue = firstToken;
+            var provider = new OAuth2ClientCredentialsProvider(nameof(ShouldRequestTokenWhenRefreshTokenNotAvailable), oAuth2Client);
 
-            _provider.Refresh();
+            provider.Refresh();
 
-            Assert.Equal(refreshedToken.AccessToken, _provider.Password);
-            Assert.Equal(refreshedToken.ExpiresIn, _provider.ValidUntil.Value);
-            Mock.Verify(_oAuth2Client);
+            Assert.Equal(firstToken.AccessToken, provider.Password);
+            Assert.Equal(firstToken.ExpiresIn, provider.ValidUntil.Value);
+
+            oAuth2Client.RequestTokenValue = secondToken;
+            provider.Refresh();
+
+            Assert.Equal(secondToken.AccessToken, provider.Password);
+            Assert.Equal(secondToken.ExpiresIn, provider.ValidUntil.Value);
         }
 
-        private static Token newToken(string access_token, TimeSpan expiresIn)
+        private static Token NewToken(string access_token, TimeSpan expiresIn)
         {
             var token = new JsonToken(access_token, string.Empty, expiresIn);
             return new Token(token);
         }
 
-        private static Token newToken(string access_token, string refresh_token, TimeSpan expiresIn)
+        private static Token NewToken(string access_token, string refresh_token, TimeSpan expiresIn)
         {
             JsonToken token = new JsonToken(access_token, refresh_token, expiresIn);
             return new Token(token);

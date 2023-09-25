@@ -30,70 +30,143 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
-using Moq;
+using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
+    public class MockCredentialsProvider : ICredentialsProvider
+    {
+        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly TimeSpan? _validUntil = TimeSpan.FromSeconds(1);
+        private Exception _ex = null;
+        private bool _refreshCalled = false;
+
+        public MockCredentialsProvider(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
+        public MockCredentialsProvider(ITestOutputHelper testOutputHelper, TimeSpan validUntil)
+        {
+            _testOutputHelper = testOutputHelper;
+            _validUntil = validUntil;
+        }
+
+        public bool RefreshCalled
+        {
+            get
+            {
+                return _refreshCalled;
+            }
+        }
+
+        public string Name => this.GetType().Name;
+
+        public string UserName => "guest";
+
+        public string Password
+        {
+            get
+            {
+                if (_ex == null)
+                {
+                    return "guest";
+                }
+                else
+                {
+                    throw _ex;
+                }
+            }
+        }
+
+        public TimeSpan? ValidUntil => _validUntil;
+
+        public void Refresh()
+        {
+            _refreshCalled = true;
+        }
+
+        public void PasswordThrows(Exception ex)
+        {
+            _ex = ex;
+        }
+    }
+
     public class TestTimerBasedCredentialsRefresher
     {
-        protected TimerBasedCredentialRefresher _refresher;
-        protected Mock<ICredentialsProvider> _credentialsProvider;
-        protected Mock<ICredentialsRefresher.NotifyCredentialRefreshed> _callback = new Mock<ICredentialsRefresher.NotifyCredentialRefreshed>();
+        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly TimerBasedCredentialRefresher _refresher = new TimerBasedCredentialRefresher();
 
-        public TestTimerBasedCredentialsRefresher()
+        public TestTimerBasedCredentialsRefresher(ITestOutputHelper testOutputHelper)
         {
-            _refresher = new TimerBasedCredentialRefresher();
-            _credentialsProvider = new Mock<ICredentialsProvider>();
+            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
         public void TestRegister()
         {
-            _credentialsProvider.Setup(p => p.ValidUntil).Returns(TimeSpan.FromSeconds(1));
-            Assert.True(_credentialsProvider.Object == _refresher.Register(_credentialsProvider.Object, _callback.Object));
-            Assert.True(_refresher.Unregister(_credentialsProvider.Object));
+            ICredentialsRefresher.NotifyCredentialRefreshed cb = (bool unused) => { };
+            ICredentialsProvider credentialsProvider = new MockCredentialsProvider(_testOutputHelper);
+
+            Assert.True(credentialsProvider == _refresher.Register(credentialsProvider, cb));
+            Assert.True(_refresher.Unregister(credentialsProvider));
         }
 
         [Fact]
         public void TestDoNotRegisterWhenHasNoExpiry()
         {
+            ICredentialsProvider credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.Zero);
+            ICredentialsRefresher.NotifyCredentialRefreshed cb = (bool unused) => { };
 
-            _credentialsProvider.Setup(p => p.ValidUntil).Returns(TimeSpan.Zero);
-            _refresher.Register(_credentialsProvider.Object, _callback.Object);
-            Assert.False(_refresher.Unregister(_credentialsProvider.Object));
-            _credentialsProvider.Verify();
+            _refresher.Register(credentialsProvider, cb);
+
+            Assert.False(_refresher.Unregister(credentialsProvider));
         }
 
         [Fact]
         public void TestRefreshToken()
         {
-            _credentialsProvider.Setup(p => p.ValidUntil).Returns(TimeSpan.FromSeconds(1));
-            _credentialsProvider.Setup(p => p.Password).Returns("the-token").Verifiable();
-            _callback.Setup(p => p.Invoke(true));
-            _refresher.Register(_credentialsProvider.Object, _callback.Object);
+            var cbevt = new ManualResetEvent(false);
+            bool? callbackArg = null;
+            var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
+            ICredentialsRefresher.NotifyCredentialRefreshed cb = (bool arg) =>
+            {
+                callbackArg = arg;
+                cbevt.Set();
+            };
 
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            _refresher.Register(credentialsProvider, cb);
 
-            _credentialsProvider.Verify();
-            _callback.Verify();
+            cbevt.WaitOne(TimeSpan.FromSeconds(2));
+
+            Assert.True(credentialsProvider.RefreshCalled);
+            Assert.True(callbackArg);
         }
 
         [Fact]
         public void TestRefreshTokenFailed()
         {
-            _credentialsProvider.Setup(p => p.ValidUntil).Returns(TimeSpan.FromSeconds(1));
-            _credentialsProvider.SetupSequence(p => p.Password)
-                .Returns("the-token")
-                .Throws(new Exception());
-            _callback.Setup(p => p.Invoke(false));
-            _refresher.Register(_credentialsProvider.Object, _callback.Object);
+            var cbevt = new ManualResetEvent(false);
+            bool? callbackArg = null;
+            var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
+            ICredentialsRefresher.NotifyCredentialRefreshed cb = (bool arg) =>
+            {
+                callbackArg = arg;
+                cbevt.Set();
+            };
 
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            var ex = new Exception();
+            credentialsProvider.PasswordThrows(ex);
 
-            _credentialsProvider.Verify();
-            _callback.Verify();
+            _refresher.Register(credentialsProvider, cb);
+            cbevt.WaitOne(TimeSpan.FromSeconds(2));
+
+            Assert.True(credentialsProvider.RefreshCalled);
+            Assert.False(callbackArg);
         }
     }
 }
