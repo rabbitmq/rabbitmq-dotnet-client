@@ -121,6 +121,7 @@ namespace RabbitMQ.Client
         public RabbitMQ.Client.TopologyRecoveryExceptionHandler TopologyRecoveryExceptionHandler { get; set; }
         public RabbitMQ.Client.TopologyRecoveryFilter TopologyRecoveryFilter { get; set; }
         public System.Uri Uri { get; set; }
+        [System.Obsolete("Currently a no-op. UseBackgroundThreadsForIO will be removed in version 7")]
         public bool UseBackgroundThreadsForIO { get; set; }
         public string UserName { get; set; }
         public string VirtualHost { get; set; }

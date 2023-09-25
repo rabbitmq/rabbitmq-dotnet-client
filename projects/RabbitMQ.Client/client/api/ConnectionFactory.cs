@@ -428,7 +428,9 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// When set to true, background thread will be used for the I/O loop.
+        /// NB: No-op
         /// </summary>
+        [Obsolete("Currently a no-op. UseBackgroundThreadsForIO will be removed in version 7")]
         public bool UseBackgroundThreadsForIO { get; set; }
 
         /// <summary>
