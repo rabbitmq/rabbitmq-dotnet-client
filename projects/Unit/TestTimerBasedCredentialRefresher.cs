@@ -30,9 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -139,12 +137,19 @@ namespace RabbitMQ.Client.Unit
                 cbevt.Set();
             };
 
-            _refresher.Register(credentialsProvider, cb);
+            try
+            {
+                _refresher.Register(credentialsProvider, cb);
 
-            cbevt.WaitOne(TimeSpan.FromSeconds(2));
+                Assert.True(cbevt.WaitOne());
 
-            Assert.True(credentialsProvider.RefreshCalled);
-            Assert.True(callbackArg);
+                Assert.True(credentialsProvider.RefreshCalled);
+                Assert.True(callbackArg);
+            }
+            finally
+            {
+                Assert.True(_refresher.Unregister(credentialsProvider));
+            }
         }
 
         [Fact]
@@ -162,11 +167,18 @@ namespace RabbitMQ.Client.Unit
             var ex = new Exception();
             credentialsProvider.PasswordThrows(ex);
 
-            _refresher.Register(credentialsProvider, cb);
-            cbevt.WaitOne(TimeSpan.FromSeconds(2));
+            try
+            {
+                _refresher.Register(credentialsProvider, cb);
+                Assert.True(cbevt.WaitOne());
 
-            Assert.True(credentialsProvider.RefreshCalled);
-            Assert.False(callbackArg);
+                Assert.True(credentialsProvider.RefreshCalled);
+                Assert.False(callbackArg);
+            }
+            finally
+            {
+                Assert.True(_refresher.Unregister(credentialsProvider));
+            }
         }
     }
 }
