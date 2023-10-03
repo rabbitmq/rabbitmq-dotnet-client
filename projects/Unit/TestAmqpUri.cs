@@ -35,7 +35,6 @@ using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestAmqpUri
     {
         private readonly string[] _iPv6Loopbacks = { "[0000:0000:0000:0000:0000:0000:0000:0001]", "[::1]" };

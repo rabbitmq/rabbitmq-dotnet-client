@@ -21,11 +21,11 @@ if (Test-Path 'HKLM:\SOFTWARE\WOW6432Node\')
     $regPath = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ'
 }
 $rabbitmq_version = (Get-ItemProperty $regPath "DisplayVersion").DisplayVersion
-$rabbitmqctl_path = Join-Path -Path $rabbitmq_base_path -ChildPath "rabbitmq_server-$rabbitmq_version" | Join-Path -ChildPath 'sbin' | Join-Path -ChildPath 'rabbitmqctl.bat'
+$rabbitmqctl_path = Resolve-Path -LiteralPath (Join-Path -Path $rabbitmq_base_path -ChildPath "rabbitmq_server-$rabbitmq_version" | Join-Path -ChildPath 'sbin' | Join-Path -ChildPath 'rabbitmqctl.bat')
 
 Write-Host "[INFO] Setting RABBITMQ_RABBITMQCTL_PATH to '$rabbitmqctl_path'..."
 $env:RABBITMQ_RABBITMQCTL_PATH = $rabbitmqctl_path
 [Environment]::SetEnvironmentVariable('RABBITMQ_RABBITMQCTL_PATH', $rabbitmqctl_path, 'Machine')
 
-$build_csproj_file = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath 'Build.csproj'
-dotnet test $build_csproj_file --no-restore --no-build --logger "console;verbosity=detailed"
+$csproj_file = Resolve-Path -LiteralPath (Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath 'projects' | Join-Path -ChildPath 'Unit' | Join-Path -ChildPath 'Unit.csproj')
+dotnet test $csproj_file --no-restore --no-build --logger "console;verbosity=detailed"

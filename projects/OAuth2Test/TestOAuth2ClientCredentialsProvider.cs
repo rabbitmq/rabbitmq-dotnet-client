@@ -36,7 +36,7 @@ using RabbitMQ.Client.OAuth2;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace RabbitMQ.Client.Unit
+namespace OAuth2Test
 {
     public class MockIOAuth2Client : IOAuth2Client
     {
