@@ -447,15 +447,6 @@ namespace RabbitMQ.Client.Unit
             Assert.True(latch.Wait(timeSpan), "waiting on a latch timed out");
         }
 
-        //
-        // TLS
-        //
-
-        public static string CertificatesDirectory()
-        {
-            return Environment.GetEnvironmentVariable("SSL_CERTS_DIR");
-        }
-
         private static bool IsRunningInCI()
         {
             if (bool.TryParse(Environment.GetEnvironmentVariable("CI"), out bool ci))

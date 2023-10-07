@@ -64,6 +64,9 @@ namespace RabbitMQ.Client.Unit
         {
             Skip.IfNot(LongRunningTestsEnabled(), "RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
 
+            var sslEnv = new SslEnv();
+            Skip.IfNot(sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
+
             var cf = new ConnectionFactory()
             {
                 Port = 5671,
@@ -71,16 +74,9 @@ namespace RabbitMQ.Client.Unit
                 AutomaticRecoveryEnabled = false
             };
 
-            string sslDir = IntegrationFixture.CertificatesDirectory();
-            string certPassphrase = Environment.GetEnvironmentVariable("PASSWORD");
-            bool sslConfigured = Directory.Exists(sslDir) &&
-                (false == string.IsNullOrEmpty(certPassphrase));
-            Skip.IfNot(sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
-
-            string hostName = System.Net.Dns.GetHostName();
-            cf.Ssl.ServerName = hostName;
-            cf.Ssl.CertPath = $"{sslDir}/client_{hostName}.p12";
-            cf.Ssl.CertPassphrase = certPassphrase;
+            cf.Ssl.ServerName = sslEnv.Hostname;
+            cf.Ssl.CertPath = sslEnv.CertPath;
+            cf.Ssl.CertPassphrase = sslEnv.CertPassphrase;
             cf.Ssl.Enabled = true;
 
             RunSingleConnectionTest(cf);

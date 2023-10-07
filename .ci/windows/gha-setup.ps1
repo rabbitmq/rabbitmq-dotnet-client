@@ -4,7 +4,23 @@ Set-StrictMode -Version 2.0
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 'Tls12'
 
-$versions_path = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath '.ci' | Join-Path -ChildPath 'versions.json'
+New-Variable -Name curdir  -Option Constant -Value $PSScriptRoot
+Write-Host "[INFO] curdir: $curdir"
+
+New-Variable -Name ci_dir -Option Constant -Value (Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath '.ci')
+
+New-Variable -Name certs_dir -Option Constant -Value (Join-Path -Path $ci_dir -ChildPath 'certs')
+
+New-Variable -Name ci_windows_dir -Option Constant -Value (Join-Path -Path $ci_dir -ChildPath 'windows')
+
+New-Variable -Name ca_certificate_file -Option Constant -Value `
+    (Resolve-Path -LiteralPath (Join-Path -Path $certs_dir -ChildPath 'ca_certificate.pem'))
+
+Write-Host "[INFO] importing CA cert from '$ca_certificate_file'"
+Import-Certificate -Verbose -CertStoreLocation Cert:\LocalMachine\Root -FilePath $ca_certificate_file
+
+New-Variable -Name versions_path -Option Constant -Value `
+    (Resolve-Path -LiteralPath (Join-Path -Path $ci_windows_dir -ChildPath 'versions.json'))
 $versions = Get-Content $versions_path | ConvertFrom-Json
 Write-Host "[INFO] versions: $versions"
 $erlang_ver = $versions.erlang
@@ -68,9 +84,19 @@ else
 Write-Host "[INFO] Installer dir '$base_installers_dir' contents:"
 Get-ChildItem -Verbose -Path $base_installers_dir
 
+$rabbitmq_conf_in_file = Join-Path -Path $ci_windows_dir -ChildPath 'rabbitmq.conf.in'
+$rabbitmq_appdata_dir = Join-Path -Path $env:AppData -ChildPath 'RabbitMQ'
+New-Item -Path $rabbitmq_appdata_dir -ItemType Directory
+$rabbitmq_conf_file = Join-Path -Path $rabbitmq_appdata_dir -ChildPath 'rabbitmq.conf'
+
+Write-Host "[INFO] Creating RabbitMQ configuration file in '$rabbitmq_appdata_dir'"
+Get-Content $rabbitmq_conf_in_file | %{ $_ -replace '@@CERTS_DIR@@', $certs_dir } | %{ $_ -replace '\\', '/' } | Set-Content -Path $rabbitmq_conf_file
+Get-Content $rabbitmq_conf_file
+
 Write-Host '[INFO] Creating Erlang cookie files...'
 
-function Set-ErlangCookie {
+function Set-ErlangCookie
+{
     Param($Path, $Value = 'RABBITMQ-COOKIE')
     Remove-Item -Force $Path -ErrorAction SilentlyContinue
     [System.IO.File]::WriteAllText($Path, $Value, [System.Text.Encoding]::ASCII)
@@ -82,7 +108,7 @@ $erlang_cookie_system = Join-Path -Path $env:SystemRoot -ChildPath 'System32\con
 Set-ErlangCookie -Path $erlang_cookie_user
 Set-ErlangCookie -Path $erlang_cookie_system
 
-Write-Host '[INFO] Installing and starting RabbitMQ with default config...'
+Write-Host '[INFO] Installing and starting RabbitMQ...'
 
 & $rabbitmq_installer_path '/S' | Out-Null
 (Get-Service -Name RabbitMQ).Status
@@ -137,9 +163,9 @@ Do {
 Do {
     $proc_id = (Get-Process -Name erl).Id
     if (-Not ($proc_id -is [array])) {
-        & $rabbitmqctl_path wait -t 300000 -P $proc_id
+        & $rabbitmqctl_path await_startup
         if ($LASTEXITCODE -ne 0) {
-            throw "[ERROR] rabbitmqctl wait returned error: $LASTEXITCODE"
+            throw "[ERROR] 'rabbitmqctl await_startup' returned error: $LASTEXITCODE"
         }
         break
     }
@@ -161,3 +187,8 @@ Write-Host '[INFO] Getting RabbitMQ status...'
 $ErrorActionPreference = 'Continue'
 Write-Host '[INFO] Enabling plugins...'
 & $rabbitmq_plugins_path enable rabbitmq_management rabbitmq_stream rabbitmq_stream_management rabbitmq_amqp1_0
+
+echo Q | openssl s_client -connect localhost:5671 -CAfile "$certs_dir/ca_certificate.pem" -cert "$certs_dir/client_localhost_certificate.pem" -key "$certs_dir/client_localhost_key.pem" -pass pass:grapefruit
+if ($LASTEXITCODE -ne 0) {
+    throw "[ERROR] 'openssl s_client' returned error: $LASTEXITCODE"
+}

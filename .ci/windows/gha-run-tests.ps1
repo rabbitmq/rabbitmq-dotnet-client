@@ -27,5 +27,8 @@ Write-Host "[INFO] Setting RABBITMQ_RABBITMQCTL_PATH to '$rabbitmqctl_path'..."
 $env:RABBITMQ_RABBITMQCTL_PATH = $rabbitmqctl_path
 [Environment]::SetEnvironmentVariable('RABBITMQ_RABBITMQCTL_PATH', $rabbitmqctl_path, 'Machine')
 
+New-Variable -Name ci_dir -Option Constant -Value (Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath '.ci')
+New-Variable -Name certs_dir -Option Constant -Value (Join-Path -Path $ci_dir -ChildPath 'certs')
+
 $csproj_file = Resolve-Path -LiteralPath (Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath 'projects' | Join-Path -ChildPath 'Unit' | Join-Path -ChildPath 'Unit.csproj')
-dotnet test $csproj_file --no-restore --no-build --logger "console;verbosity=detailed"
+dotnet test --environment RABBITMQ_RABBITMQCTL_PATH=$rabbitmqctl_path --environment PASSWORD=grapefruit --environment SSL_CERTS_DIR=$certs_dir $csproj_file --no-restore --no-build --logger "console;verbosity=detailed"
