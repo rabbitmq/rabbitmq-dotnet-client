@@ -38,7 +38,7 @@ using WireMock.ResponseBuilders;
 using WireMock.Server;
 using Xunit;
 
-namespace RabbitMQ.Client.Unit
+namespace OAuth2Test
 {
     public class TestOAuth2Client
     {

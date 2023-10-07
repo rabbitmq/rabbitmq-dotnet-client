@@ -19,7 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestApplications", "TestApp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateChannel", "projects\TestApplications\CreateChannel\CreateChannel.csproj", "{4A589408-F3A3-40E1-A6DF-F5E620F7CA31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQ.Client.OAuth2", "projects\RabbitMQ.Client.OAuth2\RabbitMQ.Client.OAuth2.csproj", "{794C7B31-0E9A-44A4-B285-0F3CAF6209F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client.OAuth2", "projects\RabbitMQ.Client.OAuth2\RabbitMQ.Client.OAuth2.csproj", "{794C7B31-0E9A-44A4-B285-0F3CAF6209F1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OAuth2Test", "projects\OAuth2Test\OAuth2Test.csproj", "{897D13F0-AF06-444A-9072-CF7E809A4A2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{794C7B31-0E9A-44A4-B285-0F3CAF6209F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{794C7B31-0E9A-44A4-B285-0F3CAF6209F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{794C7B31-0E9A-44A4-B285-0F3CAF6209F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{897D13F0-AF06-444A-9072-CF7E809A4A2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{897D13F0-AF06-444A-9072-CF7E809A4A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{897D13F0-AF06-444A-9072-CF7E809A4A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{897D13F0-AF06-444A-9072-CF7E809A4A2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

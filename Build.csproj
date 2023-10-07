@@ -12,6 +12,7 @@
     <ProjectReference Include="projects/TestApplications/CreateChannel/CreateChannel.csproj" />
     <ProjectReference Include="projects/TestApplications/MassPublish/MassPublish.csproj" />
     <ProjectReference Include="projects/Unit/Unit.csproj" />
+    <ProjectReference Include="projects/OAuth2Test/OAuth2Test.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -30,34 +30,34 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Specialized;
+using System.Threading.Tasks;
+using PublicApiGenerator;
+using VerifyTests;
+using VerifyXunit;
 using Xunit;
 
-namespace RabbitMQ.Client.Unit
+namespace OAuth2Test
 {
-    public class RequestFormMatcher
+    [UsesVerify]
+    public class APIApproval
     {
-        private NameValueCollection _expected = new NameValueCollection();
-
-        public RequestFormMatcher WithParam(string key, string value)
+        private static readonly ApiGeneratorOptions opts = new ApiGeneratorOptions
         {
-            _expected[key] = value;
-            return this;
-        }
-
-        public Func<string, bool> Matcher()
-        {
-            return (body) =>
+            ExcludeAttributes = new[]
             {
-                NameValueCollection actual = System.Web.HttpUtility.ParseQueryString(body);
-                Assert.Equal(actual.Count, _expected.Count);
-                foreach (string k in actual.Keys)
-                {
-                    Assert.NotNull(_expected[k]);
-                    Assert.Equal(_expected[k], actual[k]);
-                }
-                return true;
-            };
+                "System.Runtime.Versioning.TargetFrameworkAttribute",
+                    "System.Reflection.AssemblyMetadataAttribute"
+            }
+        };
+
+        [Fact]
+        public Task Approve()
+        {
+            Type apiType = typeof(RabbitMQ.Client.OAuth2.IOAuth2Client);
+            string publicApi = apiType.Assembly.GeneratePublicApi(opts);
+            var settings = new VerifySettings();
+            settings.DisableDiff();
+            return Verifier.Verify(publicApi, settings);
         }
     }
 }
