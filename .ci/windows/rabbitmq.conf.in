@@ -1,0 +1,12 @@
+log.console = false
+log.file.level = debug
+listeners.tcp.default = 5672
+listeners.ssl.default = 5671
+reverse_dns_lookups = false
+loopback_users.guest = true
+ssl_options.verify = verify_peer
+ssl_options.fail_if_no_peer_cert = false
+ssl_options.cacertfile = @@CERTS_DIR@@/ca_certificate.pem
+ssl_options.certfile = @@CERTS_DIR@@/server_localhost_certificate.pem
+ssl_options.keyfile = @@CERTS_DIR@@/server_localhost_key.pem
+ssl_options.password = grapefruit

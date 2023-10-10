@@ -45,9 +45,7 @@ namespace RabbitMQ.Client.Unit
     {
         private readonly ITestOutputHelper _output;
         private readonly string _testDisplayName;
-        private readonly string _sslDir;
-        private readonly string _certPassphrase;
-        private readonly bool _sslConfigured;
+        private readonly SslEnv _sslEnv;
 
         public TestSsl(ITestOutputHelper output)
         {
@@ -56,18 +54,13 @@ namespace RabbitMQ.Client.Unit
             var testMember = type.GetField("test", BindingFlags.Instance | BindingFlags.NonPublic);
             var test = (ITest)testMember.GetValue(output);
             _testDisplayName = test.DisplayName;
-
-            _sslDir = IntegrationFixture.CertificatesDirectory();
-            _certPassphrase = Environment.GetEnvironmentVariable("PASSWORD");
-
-            _sslConfigured = Directory.Exists(_sslDir) &&
-                (false == string.IsNullOrEmpty(_certPassphrase));
+            _sslEnv = new SslEnv();
         }
 
         [SkippableFact]
         public void TestServerVerifiedIgnoringNameMismatch()
         {
-            Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
+            Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
             ConnectionFactory cf = new ConnectionFactory { Port = 5671 };
             cf.Ssl.ServerName = "*";
@@ -79,10 +72,10 @@ namespace RabbitMQ.Client.Unit
         [SkippableFact]
         public void TestServerVerified()
         {
-            Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
+            Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
             ConnectionFactory cf = new ConnectionFactory { Port = 5671 };
-            cf.Ssl.ServerName = System.Net.Dns.GetHostName();
+            cf.Ssl.ServerName = _sslEnv.Hostname;
             cf.Ssl.Enabled = true;
             SendReceive(cf);
         }
@@ -90,13 +83,16 @@ namespace RabbitMQ.Client.Unit
         [SkippableFact]
         public void TestClientAndServerVerified()
         {
-            Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
+            Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
-            string hostName = System.Net.Dns.GetHostName();
+            string certPath = _sslEnv.CertPath;
+            _output.WriteLine($"[INFO] certPath: {certPath}");
+            Assert.True(File.Exists(certPath));
+
             ConnectionFactory cf = new ConnectionFactory { Port = 5671 };
-            cf.Ssl.ServerName = hostName;
-            cf.Ssl.CertPath = $"{_sslDir}/client_{hostName}.p12";
-            cf.Ssl.CertPassphrase = _certPassphrase;
+            cf.Ssl.ServerName = _sslEnv.Hostname;
+            cf.Ssl.CertPath = certPath;
+            cf.Ssl.CertPassphrase = _sslEnv.CertPassphrase;
             cf.Ssl.Enabled = true;
             SendReceive(cf);
         }
@@ -105,7 +101,7 @@ namespace RabbitMQ.Client.Unit
         [SkippableFact]
         public void TestNoClientCertificate()
         {
-            Skip.IfNot(_sslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
+            Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
             ConnectionFactory cf = new ConnectionFactory
             {
@@ -114,7 +110,7 @@ namespace RabbitMQ.Client.Unit
                 {
                     CertPath = null,
                     Enabled = true,
-                    ServerName = "localhost",
+                    ServerName = _sslEnv.Hostname,
                     Version = SslProtocols.None,
                     AcceptablePolicyErrors =
                         SslPolicyErrors.RemoteCertificateNotAvailable |

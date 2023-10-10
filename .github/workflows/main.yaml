@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - name: Cache installers
@@ -29,42 +29,39 @@ jobs:
           path: ~/installers
           key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
       - name: Cache NuGet packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.nuget/packages
             ~/AppData/Local/NuGet/v3-cache
-          key: ${{ runner.os }}-v0-nuget-${{ hashFiles('**/*.csproj') }}
+          key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
-            ${{ runner.os }}-v0-nuget-
-      - name: Install and start RabbitMQ
-        run: ./.ci/install.ps1
+            ${{ runner.os }}-v1-nuget-
+      - name: Install and Start RabbitMQ
+        run: .\.ci\windows\gha-setup.ps1
       - name: List NuGet sources
         run: dotnet nuget locals all --list
-      - name: Restore
-        run: dotnet restore ${{ github.workspace }}\Build.csproj --verbosity=normal
       - name: Build
-        run: dotnet build ${{ github.workspace }}\Build.csproj --no-restore --verbosity=normal
+        run: dotnet build ${{ github.workspace }}\Build.csproj
       - name: Verify
-        run: dotnet format ${{ github.workspace }}\RabbitMQDotNetClient.sln --no-restore --verbosity=diagnostic --verify-no-changes
+        run: dotnet format ${{ github.workspace }}\RabbitMQDotNetClient.sln --verify-no-changes --verbosity=diagnostic
       - name: Test
-        run: .\.ci\gha-run-tests.ps1
+        run: .\.ci\windows\gha-run-tests.ps1
+      - name: Maybe upload RabbitMQ logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: rabbitmq-logs
+          path: ~/AppData/Roaming/RabbitMQ/log/
 
   build:
     name: build/test on ubuntu-latest
 
     runs-on: ubuntu-latest
 
-    services:
-      rabbitmq:
-        image: pivotalrabbitmq/rabbitmq:master-otp-max
-        ports:
-         - 5672:5672
-         - 15672:15672
-
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - name: Setup .NET
@@ -80,13 +77,25 @@ jobs:
           key: ${{ runner.os }}-v0-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-v0-nuget-
-      - name: Restore
-        run: dotnet restore ${{ github.workspace }}/Build.csproj --verbosity=normal
+      - name: Start RabbitMQ
+        id: start-rabbitmq
+        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
+      - name: List NuGet sources
+        run: dotnet nuget locals all --list
       - name: Build
-        run: dotnet build ${{ github.workspace }}/Build.csproj --no-restore --verbosity=normal
+        run: dotnet build ${{ github.workspace }}/Build.csproj
       - name: Verify
-        run: dotnet format ${{ github.workspace }}/RabbitMQDotNetClient.sln --no-restore --verbosity=diagnostic --verify-no-changes
+        run: dotnet format ${{ github.workspace }}/RabbitMQDotNetClient.sln --verify-no-changes --verbosity=diagnostic
       - name: Test
-        run: dotnet test ${{ github.workspace }}/projects/Unit/Unit.csproj --no-restore --no-build --logger "console;verbosity=detailed" --framework "net6.0"
-        env:
-          RABBITMQ_RABBITMQCTL_PATH: DOCKER:${{job.services.rabbitmq.id}}
+        run: |
+            dotnet test \
+                --environment RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }} \
+                --environment PASSWORD=grapefruit \
+                --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
+                "${{ github.workspace }}/projects/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed' --framework 'net6.0'
+      - name: Maybe upload RabbitMQ logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: rabbitmq-logs
+          path: ${{ github.workspace }}/.ci/ubuntu/log/
