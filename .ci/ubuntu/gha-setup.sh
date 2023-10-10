@@ -37,7 +37,7 @@ function start_rabbitmq
 {
     chmod 0777 "$GITHUB_WORKSPACE/.ci/ubuntu/log"
     docker rm --force "$rabbitmq_docker_name" 2>/dev/null || echo "[INFO] $rabbitmq_docker_name was not running"
-    docker run --detach --name "$rabbitmq_docker_name" \
+    docker run --pull always --detach --name "$rabbitmq_docker_name" \
         --publish 5671:5671 \
         --publish 5672:5672 \
         --publish 15672:15672 \
@@ -45,7 +45,7 @@ function start_rabbitmq
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro" \
         --volume "$GITHUB_WORKSPACE/.ci/certs:/etc/rabbitmq/certs:ro" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/log:/var/log/rabbitmq" \
-        pivotalrabbitmq/rabbitmq:master-otp-max
+        rabbitmq:latest
 }
 
 function wait_rabbitmq
