@@ -34,7 +34,6 @@ using System.IO;
 using System.Net.Security;
 using System.Reflection;
 using System.Security.Authentication;
-
 using Xunit;
 using Xunit.Abstractions;
 

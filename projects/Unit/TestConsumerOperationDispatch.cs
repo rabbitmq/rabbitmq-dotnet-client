@@ -32,15 +32,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
 using RabbitMQ.Client.Events;
-
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestConsumerOperationDispatch : IntegrationFixture
     {
         public TestConsumerOperationDispatch(ITestOutputHelper output) : base(output)

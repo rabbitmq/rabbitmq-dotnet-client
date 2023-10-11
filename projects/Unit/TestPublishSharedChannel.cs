@@ -32,12 +32,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
+    [Collection("IntegrationFixture")]
     public class TestPublishSharedChannel
     {
         private const string QueueName = "TestPublishSharedChannel_Queue";

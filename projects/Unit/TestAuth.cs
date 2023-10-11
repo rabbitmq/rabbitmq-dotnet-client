@@ -30,15 +30,13 @@
 //---------------------------------------------------------------------------
 
 using RabbitMQ.Client.Exceptions;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
+    [Collection("IntegrationFixture")]
     public class TestAuth
     {
-
         [Fact]
         public void TestAuthFailure()
         {
@@ -60,4 +58,3 @@ namespace RabbitMQ.Client.Unit
         }
     }
 }
-

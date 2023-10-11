@@ -30,15 +30,12 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
-
 using RabbitMQ.Client.Exceptions;
-
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestInitialConnection : IntegrationFixture
     {
         public TestInitialConnection(ITestOutputHelper output) : base(output)

@@ -30,14 +30,11 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
-
 using RabbitMQ.Client.Exceptions;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestConnectionFactory
     {
         [Fact]

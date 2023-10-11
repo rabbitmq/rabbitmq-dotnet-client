@@ -31,9 +31,7 @@
 
 using System;
 using System.Threading;
-
 using RabbitMQ.Util;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit

@@ -34,7 +34,6 @@ using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestNoWait : IntegrationFixture
     {
         public TestNoWait(ITestOutputHelper output) : base(output)

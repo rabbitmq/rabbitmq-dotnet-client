@@ -33,15 +33,12 @@ using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-
 using RabbitMQ.Client.Impl;
-
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestPublisherConfirms : IntegrationFixture
     {
         private const string QueueName = "RabbitMQ.Client.Unit.TestPublisherConfirms";

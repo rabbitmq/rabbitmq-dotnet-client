@@ -31,14 +31,11 @@
 
 using System;
 using System.Collections.Generic;
-
 using RabbitMQ.Util;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestIntAllocator
     {
         [Fact]
@@ -85,4 +82,3 @@ namespace RabbitMQ.Client.Unit
         }
     }
 }
-

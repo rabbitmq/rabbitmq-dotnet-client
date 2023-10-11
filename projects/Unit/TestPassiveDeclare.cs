@@ -30,15 +30,12 @@
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Client.Exceptions;
-
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestPassiveDeclare : IntegrationFixture
     {
         public TestPassiveDeclare(ITestOutputHelper output) : base(output)

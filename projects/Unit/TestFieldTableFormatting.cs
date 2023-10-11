@@ -32,9 +32,7 @@
 using System;
 using System.Collections;
 using System.Text;
-
 using RabbitMQ.Client.Impl;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit

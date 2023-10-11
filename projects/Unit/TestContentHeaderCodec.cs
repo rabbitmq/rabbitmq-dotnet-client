@@ -31,12 +31,10 @@
 
 using System;
 using System.Collections.Generic;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestContentHeaderCodec
     {
         private void Check(ReadOnlyMemory<byte> actual, ReadOnlyMemory<byte> expected)

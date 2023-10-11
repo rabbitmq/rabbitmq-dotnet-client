@@ -30,14 +30,11 @@
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Client.Impl;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestRpcContinuationQueue
     {
         [Fact]
@@ -74,6 +71,5 @@ namespace RabbitMQ.Client.Unit
                 queue.Enqueue(inputContinuation1);
             });
         }
-
     }
 }

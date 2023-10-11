@@ -31,15 +31,12 @@
 
 using System.Linq;
 using System.Threading;
-
 using RabbitMQ.Client.Events;
-
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestConsumerCancelNotify : IntegrationFixture
     {
         protected readonly object lockObject = new object();

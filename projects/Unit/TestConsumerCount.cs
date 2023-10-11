@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using RabbitMQ.Client.Events;
-
 using Xunit;
 using Xunit.Abstractions;
 

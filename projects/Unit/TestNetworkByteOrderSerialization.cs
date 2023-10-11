@@ -30,9 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-
 using RabbitMQ.Util;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
