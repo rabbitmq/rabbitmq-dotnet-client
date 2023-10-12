@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+
+  <head>
+    <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Changes Between 6.3.1 and 6.4.0 </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Changes Between 6.3.1 and 6.4.0 ">
+    
+      <link rel="shortcut icon" href="favicon.ico">
+      <link rel="stylesheet" href="styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="styles/docfx.css">
+      <link rel="stylesheet" href="styles/main.css">
+      <meta property="docfx:navrel" content="toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <a class="navbar-brand" href="index.html">
+                <img id="logo" class="svg" src="logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        <div class="article row grid">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h2 id="changes-between-631-and-640">Changes Between 6.3.1 and 6.4.0</h2>
+
+<p>This release adds the ability to specify a maximum message size when receiving data. The default
+values are:</p>
+<ul>
+<li>RabbitMQ .NET client 7.0.0 and beyond: 128MiB</li>
+<li>RabbitMQ .NET client 6.4.0 up to 7.0.0: no limit by default</li>
+</ul>
+<p>Receiving a frame that specifies a content larger than the limit will throw an execption. This is to
+help prevent situations as described in <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/discussions/1213">this discussion</a>.</p>
+<p>To set a limit, use the set <code>MaxMessageSize</code> on your <code>ConnectionFactory</code> before opening connections:</p>
+<pre><code>// This sets the limit to 512MiB
+var cf = new ConnectionFactory();
+cf.MaxMessageSize = 536870912;
+var conn = cf.CreateConnection()`
+</code></pre>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/58?closed=1"><code>6.4.0</code></a>
+Diff: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.3.1...v6.4.0">link</a></p>
+<h2 id="changes-between-630-and-631">Changes Between 6.3.0 and 6.3.1</h2>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/57?closed=1"><code>6.3.1</code></a>
+Diff: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.3.0...v6.3.1">link</a></p>
+<h2 id="changes-between-624-and-630">Changes Between 6.2.4 and 6.3.0</h2>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/52?closed=1"><code>6.3.0</code></a>
+Diff: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.2.4...v6.3.0">link</a></p>
+<h2 id="changes-between-623-and-624">Changes Between 6.2.3 and 6.2.4</h2>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/55?closed=1"><code>6.2.4</code></a></p>
+<p>This release contains some important bug fixes:</p>
+<ul>
+<li><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1145">Fix connection leaks on auto recovery</a></li>
+<li><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1162">Fix buffer overflow when writing long strings</a></li>
+<li><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1154">Fix regression resulting in <code>ObjectDisposedException</code></a></li>
+<li><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1148">Fix regression that could affect consuming after auto recovery</a></li>
+</ul>
+<h2 id="changes-between-621-and-623">Changes Between 6.2.1 and 6.2.3</h2>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/54?closed=1"><code>6.2.3</code></a>
+GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/51?closed=1"><code>6.2.2</code></a></p>
+<h2 id="changes-between-620-and-621">Changes Between 6.2.0 and 6.2.1</h2>
+<p>6.2.0 was published incorrectly, resulting in version 6.2.1</p>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/50?closed=1"><code>6.2.1</code></a>.</p>
+<h2 id="changes-between-610-and-620">Changes Between 6.1.0 and 6.2.0</h2>
+<p>A full list of changes can be found in the GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/49?closed=1"><code>6.2.0</code></a>.</p>
+<h2 id="changes-between-600-and-610">Changes Between 6.0.0 and 6.1.0</h2>
+<p>This release continues with improvements to memory use and object allocations.</p>
+<p>A full list of changes can be found in the GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/48?closed=1"><code>6.1.0</code></a>.</p>
+<h2 id="changes-between-520-and-600">Changes Between 5.2.0 and 6.0.0</h2>
+<p>This major release of this client introduces substantial improvements
+in terms of memory footprint and throughput. They come at the cost
+of minor but important <strong>breaking API changes</strong> covered below.</p>
+<p>The client now requires .NET Framework 4.6.1 or .NET Standard 2.0.
+Earlier versions are no longer supported by the <code>6.x</code> series.</p>
+<p>Key improvements in this release have been the result of hard work by
+our stellar community members (in no particular order): @stebet, @bording,
+@Anarh2404, @danielmarbach, and others.</p>
+<p>A full list of changes can be found in the GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1"><code>6.0.0</code></a>.</p>
+<h3 id="the-switch-to-systemmemory-and-significantly-lower-memory-footprint-that-comes-with-it">The Switch to System.Memory (and <a href="https://stebet.net/real-world-example-of-reducing-allocations-using-span-t-and-memory-t/">Significantly Lower Memory Footprint</a> that Comes with It)</h3>
+<p>The client now uses the <a href="https://www.nuget.org/packages/System.Memory/"><code>System.Memory</code> library</a> for message and command payloads. This significantly
+reduces object allocation and GC pressure for heavy workloads but also
+<strong>potentially requires application changes</strong>: consumer delivery payloads are now of instance <a href="https://docs.microsoft.com/en-us/dotnet/api/system.readonlymemory-1?view=netcore-3.1"><code>System.ReadOnlyMemory&lt;byte&gt;</code></a>
+instead of <code>byte[]</code>.</p>
+<p>While there's an implicit conversion for these types,
+instances of <code>System.ReadOnlyMemory&lt;byte&gt;</code> <strong>must be copied or consumed/deserialised before delivery handler completes</strong>.
+Holding on to delivered payloads and referencing them at a later point <strong>is no longer safe</strong>.</p>
+<p>The same applies to publishers and the <code>IModel.BasicPublish</code> method: prefer using <code>System.ReadOnlyMemory&lt;byte&gt;</code>
+over <code>byte[]</code> and dont' assume that this memory can be retained and used outside of the scope of the publishing
+function.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/732">#732</a></p>
+<h3 id="timeouts-use-systemtimespan">Timeouts Use <code>System.TimeSpan</code></h3>
+<p>All timeout arguments now use <code>System.TimeSpan</code> values.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/688">#688</a></p>
+<h3 id="reduced-public-api-surface">Reduced Public API Surface</h3>
+<p>No major changes here but this is potentially breaking. Only public classes that were never meant
+to be publicly used have been turned internal to the client.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/714">#714</a></p>
+<h3 id="requires-net-framework-461-or-net-standard-20">Requires .NET Framework 4.6.1 or .NET Standard 2.0</h3>
+<p>The client now requires .NET Framework 4.6.1 or .NET Standard 2.0. Earlier versions are no longer
+supported.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/686">#686</a></p>
+<h3 id="microsoftdiagnosticstracingeventsource-dependency-dropped"><code>Microsoft.Diagnostics.Tracing.EventSource</code> Dependency Dropped</h3>
+<p><code>Microsoft.Diagnostics.Tracing.EventSource</code> dependency has been removed. It was an annoying
+dependency to have for some environments.</p>
+<h3 id="source-linking">Source Linking</h3>
+<p>The library now supports source linking.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/697">#697</a></p>
+<h3 id="nuget-source-packages">NuGet Source Packages</h3>
+<p>Source packages are now also distributed via NuGet.</p>
+<h3 id="crl-checks-for-server-x509-tls-certificates">CRL Checks for Server x.509 (TLS) Certificates</h3>
+<p>Added a TLS option to enforce CRL checks for server certificates.</p>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/500">#500</a></p>
+<h2 id="changes-between-512-and-520">Changes Between 5.1.2 and 5.2.0</h2>
+<p>Please see the milestone for all changes:</p>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/42?closed=1">GitHub <code>5.2.0</code> Milestone</a></p>
+<p>Selected highlights:</p>
+<h3 id="add-support-for-netstandard20">Add support for <code>netstandard2.0</code></h3>
+<p>GitHub issues: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/428">#428</a>, <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/435">#435</a></p>
+<h3 id="re-introduce-lock-for-all-socket-writes">Re-introduce lock for all socket writes</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/702">rabbitmq-dotnet-client#702</a></p>
+<h2 id="changes-between-511-and-512">Changes Between 5.1.1 and 5.1.2</h2>
+<h3 id="bump-systemnetsecurity-to-432">Bump System.Net.Security to 4.3.2</h3>
+<h2 id="changes-between-510-and-511">Changes Between 5.1.0 and 5.1.1</h2>
+<h3 id="deprecate-messaging-patterns">Deprecate messaging patterns</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/654">rabbitmq-dotnet-client#654</a></p>
+<h3 id="fix-stack-overflow">Fix stack overflow</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/578">rabbitmq-dotnet-client#578</a></p>
+<h3 id="byte-conversion-support">Byte conversion support</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/579">rabbitmq-dotnet-client#579</a></p>
+<h3 id="heartbeat-write-deadlock-fix">Heartbeat write deadlock fix</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/636">rabbitmq-dotnet-client#636</a></p>
+<h2 id="changes-between-50x-and-510">Changes Between 5.0.x and 5.1.0</h2>
+<h3 id="batch-publishing">Batch Publishing</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/368">rabbitmq-dotnet-client#368</a></p>
+<h3 id="introduced-a-static-property-to-amqptcpendpoint-to-specify-the-default-tls-protocol-versions">Introduced a Static Property to AmqpTcpEndpoint to specify the default TLS Protocol Version(s)</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/389">rabbitmq-dotnet-client#389</a></p>
+<h3 id="all-exceptions-are-collected-when-selecting-an-endpoint">All Exceptions are Collected When Selecting an Endpoint</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/377">rabbitmq-dotnet-client#377</a></p>
+<h3 id="reduced-lock-contention-for-frame-writes">Reduced Lock Contention for Frame Writes</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/354">rabbitmq-dotnet-client#354</a></p>
+<h2 id="changes-between-41x-and-501">Changes Between 4.1.x and 5.0.1</h2>
+<h3 id="async-consumers">Async consumers</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/307">rabbitmq-dotnet-client#307</a></p>
+<h3 id="enable-connection-recovery-by-default">Enable connection recovery by default</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/271">rabbitmq-dotnet-client#271</a></p>
+<h3 id="replace-consolewriteline-logging-with-eventsource">Replace Console.WriteLine logging with EventSource</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/94">rabbitmq-dotnet-client#94</a></p>
+<h3 id="add-events-for-connection-recovery-errors-and-connection-success">Add events for connection recovery errors and connection success</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/156">rabbitmq-dotnet-client#156</a></p>
+<h3 id="noack-renamed-to-autoack">noAck renamed to autoAck</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/255">rabbitmq-dotnet-client#255</a></p>
+<h3 id="make-uri-and-uri-setters-in-connectionfactory-obsolete">Make uri and Uri setters in ConnectionFactory obsolete</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/264">rabbitmq-dotnet-client#264</a></p>
+<h3 id="ensure-connection-recovery-does-not-keep-going-after-the-connection-has-been-closed">Ensure connection recovery does not keep going after the connection has been closed</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/294">rabbitmq-dotnet-client#294</a></p>
+<h3 id="synchronize-access-to-the-manuallyclosed-field-in-autorecoveringconnection">Synchronize access to the manuallyClosed field in AutorecoveringConnection.</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/291">rabbitmq-dotnet-client#291</a></p>
+<h3 id="use-concurrent-collections-inside-autorecoveringconnection">Use concurrent collections inside AutorecoveringConnection</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/288">rabbitmq-dotnet-client#288</a></p>
+<h3 id="add-property-to-allow-an-endpoint-to-specify-the-address-family">Add property to allow an endpoint to specify the address family</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/226">rabbitmq-dotnet-client#226</a></p>
+<h3 id="fix-potential-eventingbasicconsumer-race-condition">Fix potential EventingBasicConsumer race condition</h3>
+<h3 id="re-introduce-a-uri-property-on-iconnectionfactory">Re-introduce a Uri property on IConnectionFactory</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/330">rabbitmq-dotnet-client#330</a></p>
+<h3 id="add-createconnection-overload-to-iconnectionfactory">Add CreateConnection overload to IConnectionFactory</h3>
+<p>GitHub PR: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/325">rabbitmq-dotnet-client#325</a></p>
+<h2 id="changes-between-410-and-411">Changes Between 4.1.0 and 4.1.1</h2>
+<h3 id="fixed-xml-documentation-generation">Fixed XML Documentation Generation</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/269">rabbitmq-dotnet-client#269</a></p>
+<p>Contributed by Brandon Ording.</p>
+<h3 id="fixed-winrt-project-build">Fixed WinRT Project Build</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/270">rabbitmq-dotnet-client#270</a></p>
+<p>Contributed by Brandon Ording.</p>
+<h3 id="tcpclientadapter-nullifies-socket-field-on-close"><code>TcpClientAdapter</code> Nullifies Socket Field on Close</h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/263">rabbitmq-dotnet-client#263</a></p>
+<h3 id="heartbeatreadtimercallback-handles-potential-nullreferenceexception"><code>HeartbeatReadTimerCallback</code> Handles Potential <code>NullReferenceException</code></h3>
+<p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/257">rabbitmq-dotnet-client#257</a></p>
+<h2 id="changes-between-402-and-410">Changes Between 4.0.2 and 4.1.0</h2>
+<p><code>4.1.0</code> was released on <strong>September 14th, 2016</strong>.</p>
+<h3 id="no-lock-contention-at-consumer-work-service">No lock contention at consumer work service</h3>
+<p>Switched to a &quot;thread-per-model&quot; approach in the <code>ConsumerWorkService</code>.</p>
+<p>The TaskScheduler property on <code>ConnectionFactory</code> has been obsoleted and can no
+longer be used to control concurrency.</p>
+<p>Utility class changes:</p>
+<ul>
+<li><code>BatchingWorkPool</code> has been removed</li>
+<li><code>ConsumerWorkService</code> no longer has a constructor that takes a <code>TaskScheduler</code></li>
+<li><code>ConsumerWorkService.MAX_THUNK_EXECUTION_BATCH_SIZE</code> has been removed</li>
+<li><code>ConsumerWorkService</code> no longer has the <code>ExecuteThunk</code> or <code>RegisterKey</code> methods</li>
+</ul>
+<p>Contributed by Brandon Ording and Szymon Kulec.</p>
+<p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/251">rabbitmq-dotnet-client#251</a></p>
+<h2 id="changes-between-401-and-402-september-1st-2016">Changes Between 4.0.1 and 4.0.2 (September 1st, 2016)</h2>
+<h3 id="tcpclientadapter-didnt-respect-ip-address-family">TcpClientAdapter Didn't Respect IP Address Family</h3>
+<p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/244">rabbitmq-dotnet-client#244</a></p>
+<h2 id="changes-between-400-and-401-august-25th-2016">Changes Between 4.0.0 and 4.0.1 (August 25th, 2016)</h2>
+<h3 id="connectionfactorycreateconnection-deadlock"><code>ConnectionFactory#CreateConnection</code> Deadlock</h3>
+<p><code>ConnectionFactory#CreateConnection</code> could deadlock in some circumstances.</p>
+<p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/239">rabbitmq-dotnet-client#239</a>.</p>
+<h3 id="occasional-nullreferenceexception-in-endpoint-resolution">Occasional <code>NullReferenceException</code> in Endpoint Resolution</h3>
+<p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/238">rabbitmq-dotnet-client#238</a></p>
+</article>
+          </div>
+
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/HISTORY.md/#L1" class="contribution-link">Edit this page</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In this article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="text/javascript" src="styles/docfx.vendor.min.js"></script>
+    <script type="text/javascript" src="styles/docfx.js"></script>
+    <script type="text/javascript" src="styles/main.js"></script>
+  </body>
+</html>
