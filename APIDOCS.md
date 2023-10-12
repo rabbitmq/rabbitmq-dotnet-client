@@ -7,6 +7,7 @@ cd C:\path\to\rabbitmq-dotnet-client`
 git submodule update --init
 pushd _site
 git remote add origin-ssh git@github.com:rabbitmq/rabbitmq-dotnet-client.git
+git fetch --all
 git checkout --track origin-ssh/gh-pages
 popd
 .\build.bat
