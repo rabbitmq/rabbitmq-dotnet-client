@@ -33,7 +33,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
-
 using Xunit;
 using Xunit.Abstractions;
 

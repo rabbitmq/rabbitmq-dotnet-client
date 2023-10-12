@@ -31,15 +31,12 @@
 
 using System;
 using System.Threading;
-
 using RabbitMQ.Client.Impl;
-
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestChannelShutdown : IntegrationFixture
     {
         public TestChannelShutdown(ITestOutputHelper output) : base(output)

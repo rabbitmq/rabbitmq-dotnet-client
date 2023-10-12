@@ -31,14 +31,11 @@
 
 using System.Net;
 using System.Net.Sockets;
-
 using RabbitMQ.Client.Impl;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestTcpClientAdapter
     {
         [Fact]

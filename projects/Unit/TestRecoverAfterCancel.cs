@@ -32,17 +32,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Text;
-
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
-
 using Xunit;
 
 #pragma warning disable 0618
 
 namespace RabbitMQ.Client.Unit
 {
-
+    [Collection("IntegrationFixture")]
     public class TestRecoverAfterCancel : IDisposable
     {
         IConnection _connection;

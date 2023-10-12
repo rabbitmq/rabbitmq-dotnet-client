@@ -33,14 +33,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-
 using RabbitMQ.Client.Impl;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestFieldTableFormattingGeneric : WireFormattingFixture
     {
         [Fact]

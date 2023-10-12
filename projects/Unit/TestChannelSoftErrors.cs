@@ -31,7 +31,6 @@
 
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-
 using Xunit;
 using Xunit.Abstractions;
 

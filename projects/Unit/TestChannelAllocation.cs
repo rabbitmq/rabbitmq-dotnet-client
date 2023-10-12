@@ -31,14 +31,13 @@
 
 using System;
 using System.Collections.Generic;
-
 using RabbitMQ.Client.Impl;
-
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
-    public class TestIChannelAllocation : IDisposable
+    [Collection("IntegrationFixture")]
+    public class TestChannelAllocation : IDisposable
     {
         public const int CHANNEL_COUNT = 100;
 
@@ -49,14 +48,12 @@ namespace RabbitMQ.Client.Unit
             return ((AutorecoveringChannel)channel).ChannelNumber;
         }
 
-        public TestIChannelAllocation()
+        public TestChannelAllocation()
         {
             _c = new ConnectionFactory().CreateConnection();
-
         }
 
         public void Dispose() => _c.Close();
-
 
         [Fact]
         public void AllocateInOrder()
@@ -108,6 +105,5 @@ namespace RabbitMQ.Client.Unit
             foreach (IChannel channel in channels)
                 Assert.Equal(k++, ChannelNumber(channel));
         }
-
     }
 }

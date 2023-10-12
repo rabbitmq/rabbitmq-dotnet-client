@@ -38,7 +38,6 @@ using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
-
     public class TestConnectionShutdown : IntegrationFixture
     {
         public TestConnectionShutdown(ITestOutputHelper output) : base(output)

@@ -34,13 +34,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
+    [Collection("IntegrationFixture")]
     public class TestAsyncConsumer
     {
         private readonly ITestOutputHelper _output;
