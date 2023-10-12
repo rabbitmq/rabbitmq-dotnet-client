@@ -1,23 +1,22 @@
 ﻿<!DOCTYPE html>
 <!--[if IE]><![endif]-->
 <html>
-  
+
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Namespace RabbitMQ.Client
-   </title>
-    <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Namespace RabbitMQ.Client
-   ">
-    <meta name="generator" content="docfx 2.59.0.0">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Namespace RabbitMQ.Client
+ </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Namespace RabbitMQ.Client
+ ">
     
-    <link rel="shortcut icon" href="../favicon.ico">
-    <link rel="stylesheet" href="../styles/docfx.vendor.css">
-    <link rel="stylesheet" href="../styles/docfx.css">
-    <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="../toc.html">
-    <meta property="docfx:tocrel" content="toc.html">
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
     
     
     
@@ -25,7 +24,7 @@
   <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
-        
+
         <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
           <div class="container">
             <div class="navbar-header">
@@ -35,7 +34,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              
+
               <a class="navbar-brand" href="../index.html">
                 <img id="logo" class="svg" src="../logo.svg" alt="">
               </a>
@@ -49,7 +48,7 @@
             </div>
           </div>
         </nav>
-        
+
         <div class="subnav navbar navbar-default">
           <div class="container hide-when-search" id="breadcrumb">
             <ul class="breadcrumb">
@@ -59,7 +58,7 @@
         </div>
       </header>
       <div role="main" class="container body-content hide-when-search">
-        
+
         <div class="sidenav hide-when-search">
           <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
           <div class="sidetoggle collapse" id="sidetoggle">
@@ -69,18 +68,21 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="RabbitMQ.Client">
-  
+
   <h1 id="RabbitMQ_Client" data-uid="RabbitMQ.Client" class="text-break">Namespace RabbitMQ.Client
-  </h1>
+</h1>
   <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <div class="markdown level0 remarks"></div>
-    <h3 id="classes">Classes
-  </h3>
+    <h3 id="classes">
+Classes
+</h3>
       <h4><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a></h4>
       <section><p>Represents a TCP-addressable AMQP peer: a host name and port number.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html">AsyncDefaultBasicConsumer</a></h4>
+      <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.BasicCredentialsProvider.html">BasicCredentialsProvider</a></h4>
       <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.BasicGetResult.html">BasicGetResult</a></h4>
       <section><p>Represents Basic.GetOk responses from the server.</p>
@@ -101,7 +103,7 @@ API. Constructs <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnect
       <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer.html">DefaultBasicConsumer</a></h4>
       <section><p>Useful default/base implementation of <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a>.
-Subclass and override <a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer.html#RabbitMQ_Client_DefaultBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__">HandleBasicDeliver(String, UInt64, Boolean, String, String, IBasicProperties, ReadOnlyMemory&lt;Byte&gt;)</a> in application code.</p>
+Subclass and override <a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer.html#RabbitMQ_Client_DefaultBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__">HandleBasicDeliver(string, ulong, bool, string, string, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)</a> in application code.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.DefaultEndpointResolver.html">DefaultEndpointResolver</a></h4>
       <section></section>
@@ -146,13 +148,26 @@ TLS version used, client certificate list or file location, peer certificate ver
 (validation) functions, expected server name (Subject Alternative Name or Common Name),
 and so on.</p>
 </section>
-    <h3 id="structs">Structs
-  </h3>
+      <h4><a class="xref" href="RabbitMQ.Client.TimerBasedCredentialRefresher.html">TimerBasedCredentialRefresher</a></h4>
+      <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.html">TimerBasedCredentialRefresherEventSource</a></h4>
+      <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.TopologyRecoveryExceptionHandler.html">TopologyRecoveryExceptionHandler</a></h4>
+      <section><p>Custom logic for handling topology recovery exceptions that match the specified filters.</p>
+</section>
+      <h4><a class="xref" href="RabbitMQ.Client.TopologyRecoveryFilter.html">TopologyRecoveryFilter</a></h4>
+      <section><p>Filter to know which entities (exchanges, queues, bindings, consumers) should be recovered by topology recovery.
+By default, allows all entities to be recovered.</p>
+</section>
+    <h3 id="structs">
+Structs
+</h3>
       <h4><a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a></h4>
       <section><p>Structure holding an AMQP timestamp, a posix 64-bit time_t.</p>
 </section>
-    <h3 id="interfaces">Interfaces
-  </h3>
+    <h3 id="interfaces">
+Interfaces
+</h3>
       <h4><a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a></h4>
       <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.IAsyncConnectionFactory.html">IAsyncConnectionFactory</a></h4>
@@ -185,6 +200,10 @@ spanning the union of the functionality offered by versions
       <h4><a class="xref" href="RabbitMQ.Client.IContentHeader.html">IContentHeader</a></h4>
       <section><p>A decoded AMQP content header frame.</p>
 </section>
+      <h4><a class="xref" href="RabbitMQ.Client.ICredentialsProvider.html">ICredentialsProvider</a></h4>
+      <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.ICredentialsRefresher.html">ICredentialsRefresher</a></h4>
+      <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.IEndpointResolver.html">IEndpointResolver</a></h4>
       <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.IMethod.html">IMethod</a></h4>
@@ -201,6 +220,14 @@ functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
       <section><p>Object describing various overarching parameters
 associated with a particular AMQP protocol variant.</p>
 </section>
+      <h4><a class="xref" href="RabbitMQ.Client.IRecordedBinding.html">IRecordedBinding</a></h4>
+      <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.IRecordedConsumer.html">IRecordedConsumer</a></h4>
+      <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.IRecordedExchange.html">IRecordedExchange</a></h4>
+      <section></section>
+      <h4><a class="xref" href="RabbitMQ.Client.IRecordedQueue.html">IRecordedQueue</a></h4>
+      <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.IRecoverable.html">IRecoverable</a></h4>
       <section><p>A marker interface for entities that are recoverable (currently connection or channel).</p>
 </section>
@@ -211,14 +238,22 @@ spanning the union of the functionality offered by versions 0-8, 0-8qpid, 0-9 an
       <h4><a class="xref" href="RabbitMQ.Client.ITcpClient.html">ITcpClient</a></h4>
       <section><p>Wrapper interface for standard TCP-client. Provides socket for socket frame handler class.</p>
 </section>
-    <h3 id="enums">Enums
-  </h3>
+    <h3 id="enums">
+Enums
+</h3>
       <h4><a class="xref" href="RabbitMQ.Client.ShutdownInitiator.html">ShutdownInitiator</a></h4>
       <section><p>Describes the source of a shutdown event.</p>
 </section>
+    <h3 id="delegates">
+Delegates
+</h3>
+      <h4><a class="xref" href="RabbitMQ.Client.NotifyCredentialRefreshed.html">NotifyCredentialRefreshed</a></h4>
+      <section></section>
+
+
 </article>
           </div>
-          
+
           <div class="hidden-sm col-md-2" role="complementary">
             <div class="sideaffix">
               <div class="contribution">
@@ -226,14 +261,14 @@ spanning the union of the functionality offered by versions 0-8, 0-8qpid, 0-9 an
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In This Article</h5>
+                <h5>In this article</h5>
                 <div></div>
               </nav>
             </div>
           </div>
         </div>
       </div>
-      
+
       <footer>
         <div class="grad-bottom"></div>
         <div class="footer">
@@ -241,14 +276,14 @@ spanning the union of the functionality offered by versions 0-8, 0-8qpid, 0-9 an
             <span class="pull-right">
               <a href="#top">Back to top</a>
             </span>
-            
-            <span>Generated by <strong>DocFX</strong></span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>
     </div>
-    
-    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
     <script type="text/javascript" src="../styles/docfx.js"></script>
     <script type="text/javascript" src="../styles/main.js"></script>
   </body>

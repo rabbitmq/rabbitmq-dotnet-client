@@ -5,17 +5,30 @@
       <form class="toc-filter">
         <span class="glyphicon glyphicon-filter filter-icon"></span>
         <span class="glyphicon glyphicon-remove clear-icon" id="toc_filter_clear"></span>
-        <input type="text" id="toc_filter_input" placeholder="Enter here to filter..." onkeypress="if(event.keyCode==13) {return false;}">
+        <input type="text" id="toc_filter_input" placeholder="Filter by title" onkeypress="if(event.keyCode==13) {return false;}">
       </form>
     </div>
     <div class="sidetoc">
       <div class="toc" id="toc">
-          
+
           <ul class="nav level1">
                 <li>
                     <span class="expand-stub"></span>
+                    <a href="OAuth2.html" name="" title="OAuth2">OAuth2</a>
+
+                    <ul class="nav level2">
+                          <li>
+                              <a href="OAuth2.Program.html" name="" title="Program">Program</a>
+                          </li>
+                          <li>
+                              <a href="OAuth2.Program.OAuth2Options.html" name="" title="Program.OAuth2Options">Program.OAuth2Options</a>
+                          </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="expand-stub"></span>
                     <a href="RabbitMQ.Client.html" name="" title="RabbitMQ.Client">RabbitMQ.Client</a>
-                    
+
                     <ul class="nav level2">
                           <li>
                               <a href="RabbitMQ.Client.AmqpTcpEndpoint.html" name="" title="AmqpTcpEndpoint">AmqpTcpEndpoint</a>
@@ -25,6 +38,9 @@
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.AsyncDefaultBasicConsumer.html" name="" title="AsyncDefaultBasicConsumer">AsyncDefaultBasicConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.BasicCredentialsProvider.html" name="" title="BasicCredentialsProvider">BasicCredentialsProvider</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.BasicGetResult.html" name="" title="BasicGetResult">BasicGetResult</a>
@@ -99,6 +115,12 @@
                               <a href="RabbitMQ.Client.IContentHeader.html" name="" title="IContentHeader">IContentHeader</a>
                           </li>
                           <li>
+                              <a href="RabbitMQ.Client.ICredentialsProvider.html" name="" title="ICredentialsProvider">ICredentialsProvider</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.ICredentialsRefresher.html" name="" title="ICredentialsRefresher">ICredentialsRefresher</a>
+                          </li>
+                          <li>
                               <a href="RabbitMQ.Client.IEndpointResolver.html" name="" title="IEndpointResolver">IEndpointResolver</a>
                           </li>
                           <li>
@@ -117,6 +139,18 @@
                               <a href="RabbitMQ.Client.IProtocol.html" name="" title="IProtocol">IProtocol</a>
                           </li>
                           <li>
+                              <a href="RabbitMQ.Client.IRecordedBinding.html" name="" title="IRecordedBinding">IRecordedBinding</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IRecordedConsumer.html" name="" title="IRecordedConsumer">IRecordedConsumer</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IRecordedExchange.html" name="" title="IRecordedExchange">IRecordedExchange</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.IRecordedQueue.html" name="" title="IRecordedQueue">IRecordedQueue</a>
+                          </li>
+                          <li>
                               <a href="RabbitMQ.Client.IRecoverable.html" name="" title="IRecoverable">IRecoverable</a>
                           </li>
                           <li>
@@ -124,6 +158,9 @@
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.ITcpClient.html" name="" title="ITcpClient">ITcpClient</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.NotifyCredentialRefreshed.html" name="" title="NotifyCredentialRefreshed">NotifyCredentialRefreshed</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.PlainMechanism.html" name="" title="PlainMechanism">PlainMechanism</a>
@@ -152,12 +189,24 @@
                           <li>
                               <a href="RabbitMQ.Client.SslOption.html" name="" title="SslOption">SslOption</a>
                           </li>
+                          <li>
+                              <a href="RabbitMQ.Client.TimerBasedCredentialRefresher.html" name="" title="TimerBasedCredentialRefresher">TimerBasedCredentialRefresher</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.html" name="" title="TimerBasedCredentialRefresherEventSource">TimerBasedCredentialRefresherEventSource</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.TopologyRecoveryExceptionHandler.html" name="" title="TopologyRecoveryExceptionHandler">TopologyRecoveryExceptionHandler</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.TopologyRecoveryFilter.html" name="" title="TopologyRecoveryFilter">TopologyRecoveryFilter</a>
+                          </li>
                     </ul>
                 </li>
                 <li>
                     <span class="expand-stub"></span>
                     <a href="RabbitMQ.Client.Apigen.html" name="" title="RabbitMQ.Client.Apigen">RabbitMQ.Client.Apigen</a>
-                    
+
                     <ul class="nav level2">
                           <li>
                               <a href="RabbitMQ.Client.Apigen.AmqpClass.html" name="" title="AmqpClass">AmqpClass</a>
@@ -182,7 +231,7 @@
                 <li>
                     <span class="expand-stub"></span>
                     <a href="RabbitMQ.Client.Events.html" name="" title="RabbitMQ.Client.Events">RabbitMQ.Client.Events</a>
-                    
+
                     <ul class="nav level2">
                           <li>
                               <a href="RabbitMQ.Client.Events.AsyncEventHandler-1.html" name="" title="AsyncEventHandler&lt;TEvent&gt;">AsyncEventHandler&lt;TEvent&gt;</a>
@@ -230,6 +279,9 @@
                               <a href="RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.html" name="" title="QueueNameChangedAfterRecoveryEventArgs">QueueNameChangedAfterRecoveryEventArgs</a>
                           </li>
                           <li>
+                              <a href="RabbitMQ.Client.Events.RecoveringConsumerEventArgs.html" name="" title="RecoveringConsumerEventArgs">RecoveringConsumerEventArgs</a>
+                          </li>
+                          <li>
                               <a href="RabbitMQ.Client.Events.RecoveryExceptionEventArgs.html" name="" title="RecoveryExceptionEventArgs">RecoveryExceptionEventArgs</a>
                           </li>
                     </ul>
@@ -237,7 +289,7 @@
                 <li>
                     <span class="expand-stub"></span>
                     <a href="RabbitMQ.Client.Exceptions.html" name="" title="RabbitMQ.Client.Exceptions">RabbitMQ.Client.Exceptions</a>
-                    
+
                     <ul class="nav level2">
                           <li>
                               <a href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html" name="" title="AlreadyClosedException">AlreadyClosedException</a>
@@ -316,7 +368,7 @@
                 <li>
                     <span class="expand-stub"></span>
                     <a href="RabbitMQ.Client.Logging.html" name="" title="RabbitMQ.Client.Logging">RabbitMQ.Client.Logging</a>
-                    
+
                     <ul class="nav level2">
                           <li>
                               <a href="RabbitMQ.Client.Logging.RabbitMqClientEventSource.html" name="" title="RabbitMqClientEventSource">RabbitMqClientEventSource</a>
@@ -334,8 +386,33 @@
                 </li>
                 <li>
                     <span class="expand-stub"></span>
+                    <a href="RabbitMQ.Client.OAuth2.html" name="" title="RabbitMQ.Client.OAuth2">RabbitMQ.Client.OAuth2</a>
+
+                    <ul class="nav level2">
+                          <li>
+                              <a href="RabbitMQ.Client.OAuth2.IOAuth2Client.html" name="" title="IOAuth2Client">IOAuth2Client</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.OAuth2.IToken.html" name="" title="IToken">IToken</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.OAuth2.JsonToken.html" name="" title="JsonToken">JsonToken</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.html" name="" title="OAuth2ClientBuilder">OAuth2ClientBuilder</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider.html" name="" title="OAuth2ClientCredentialsProvider">OAuth2ClientCredentialsProvider</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.OAuth2.Token.html" name="" title="Token">Token</a>
+                          </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="expand-stub"></span>
                     <a href="RabbitMQ.Client.Unit.html" name="" title="RabbitMQ.Client.Unit">RabbitMQ.Client.Unit</a>
-                    
+
                     <ul class="nav level2">
                           <li>
                               <a href="RabbitMQ.Client.Unit.APIApproval.html" name="" title="APIApproval">APIApproval</a>
@@ -345,6 +422,9 @@
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.IntegrationFixture.ConnectionInfo.html" name="" title="IntegrationFixture.ConnectionInfo">IntegrationFixture.ConnectionInfo</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.RequestFormMatcher.html" name="" title="RequestFormMatcher">RequestFormMatcher</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.html" name="" title="TestAmqpTcpEndpointParsing">TestAmqpTcpEndpointParsing</a>
@@ -368,6 +448,9 @@
                               <a href="RabbitMQ.Client.Unit.TestBasicPublish.html" name="" title="TestBasicPublish">TestBasicPublish</a>
                           </li>
                           <li>
+                              <a href="RabbitMQ.Client.Unit.TestBasicPublishBatch.html" name="" title="TestBasicPublishBatch">TestBasicPublishBatch</a>
+                          </li>
+                          <li>
                               <a href="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.html" name="" title="TestConcurrentAccessWithSharedConnection">TestConcurrentAccessWithSharedConnection</a>
                           </li>
                           <li>
@@ -375,6 +458,12 @@
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestConnectionBlocked.html" name="" title="TestConnectionBlocked">TestConnectionBlocked</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionFactory.html" name="" title="TestConnectionFactory">TestConnectionFactory</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConnectionFactoryContinuationTimeout.html" name="" title="TestConnectionFactoryContinuationTimeout">TestConnectionFactoryContinuationTimeout</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestConnectionRecovery.html" name="" title="TestConnectionRecovery">TestConnectionRecovery</a>
@@ -395,16 +484,19 @@
                               <a href="RabbitMQ.Client.Unit.TestConnectionShutdown.html" name="" title="TestConnectionShutdown">TestConnectionShutdown</a>
                           </li>
                           <li>
-                              <a href="RabbitMQ.Client.Unit.TestConnectionWithBackgroundThreads.html" name="" title="TestConnectionWithBackgroundThreads">TestConnectionWithBackgroundThreads</a>
-                          </li>
-                          <li>
                               <a href="RabbitMQ.Client.Unit.TestConsumer.html" name="" title="TestConsumer">TestConsumer</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestConsumerCancelNotify.html" name="" title="TestConsumerCancelNotify">TestConsumerCancelNotify</a>
                           </li>
                           <li>
+                              <a href="RabbitMQ.Client.Unit.TestConsumerCount.html" name="" title="TestConsumerCount">TestConsumerCount</a>
+                          </li>
+                          <li>
                               <a href="RabbitMQ.Client.Unit.TestConsumerExceptions.html" name="" title="TestConsumerExceptions">TestConsumerExceptions</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestConsumerOperationDispatch.html" name="" title="TestConsumerOperationDispatch">TestConsumerOperationDispatch</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestEndpointResolver.html" name="" title="TestEndpointResolver">TestEndpointResolver</a>
@@ -425,6 +517,9 @@
                               <a href="RabbitMQ.Client.Unit.TestFloodPublishing.html" name="" title="TestFloodPublishing">TestFloodPublishing</a>
                           </li>
                           <li>
+                              <a href="RabbitMQ.Client.Unit.TestHeartbeats.html" name="" title="TestHeartbeats">TestHeartbeats</a>
+                          </li>
+                          <li>
                               <a href="RabbitMQ.Client.Unit.TestIEndpointResolverExtensions.html" name="" title="TestIEndpointResolverExtensions">TestIEndpointResolverExtensions</a>
                           </li>
                           <li>
@@ -443,7 +538,19 @@
                               <a href="RabbitMQ.Client.Unit.TestMainLoop.html" name="" title="TestMainLoop">TestMainLoop</a>
                           </li>
                           <li>
+                              <a href="RabbitMQ.Client.Unit.TestMessageCount.html" name="" title="TestMessageCount">TestMessageCount</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestModelShutdown.html" name="" title="TestModelShutdown">TestModelShutdown</a>
+                          </li>
+                          <li>
                               <a href="RabbitMQ.Client.Unit.TestNoWait.html" name="" title="TestNoWait">TestNoWait</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestOAuth2Client.html" name="" title="TestOAuth2Client">TestOAuth2Client</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestOAuth2CredentialsProvider.html" name="" title="TestOAuth2CredentialsProvider">TestOAuth2CredentialsProvider</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestPassiveDeclare.html" name="" title="TestPassiveDeclare">TestPassiveDeclare</a>
@@ -455,13 +562,13 @@
                               <a href="RabbitMQ.Client.Unit.TestPublicationAddress.html" name="" title="TestPublicationAddress">TestPublicationAddress</a>
                           </li>
                           <li>
-                              <a href="RabbitMQ.Client.Unit.TestPublisherConfirms.html" name="" title="TestPublisherConfirms">TestPublisherConfirms</a>
-                          </li>
-                          <li>
                               <a href="RabbitMQ.Client.Unit.TestPublishSharedModel.html" name="" title="TestPublishSharedModel">TestPublishSharedModel</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestPublishValidation.html" name="" title="TestPublishValidation">TestPublishValidation</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestPublisherConfirms.html" name="" title="TestPublisherConfirms">TestPublisherConfirms</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestQueueDeclare.html" name="" title="TestQueueDeclare">TestQueueDeclare</a>
@@ -477,6 +584,9 @@
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestTcpClientAdapter.html" name="" title="TestTcpClientAdapter">TestTcpClientAdapter</a>
+                          </li>
+                          <li>
+                              <a href="RabbitMQ.Client.Unit.TestTimerBasedCredentialsRefresher.html" name="" title="TestTimerBasedCredentialsRefresher">TestTimerBasedCredentialsRefresher</a>
                           </li>
                           <li>
                               <a href="RabbitMQ.Client.Unit.TestUpdateSecret.html" name="" title="TestUpdateSecret">TestUpdateSecret</a>

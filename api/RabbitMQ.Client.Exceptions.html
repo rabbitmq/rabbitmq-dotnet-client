@@ -1,23 +1,22 @@
 ﻿<!DOCTYPE html>
 <!--[if IE]><![endif]-->
 <html>
-  
+
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Namespace RabbitMQ.Client.Exceptions
-   </title>
-    <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Namespace RabbitMQ.Client.Exceptions
-   ">
-    <meta name="generator" content="docfx 2.59.0.0">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Namespace RabbitMQ.Client.Exceptions
+ </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Namespace RabbitMQ.Client.Exceptions
+ ">
     
-    <link rel="shortcut icon" href="../favicon.ico">
-    <link rel="stylesheet" href="../styles/docfx.vendor.css">
-    <link rel="stylesheet" href="../styles/docfx.css">
-    <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="../toc.html">
-    <meta property="docfx:tocrel" content="toc.html">
+      <link rel="shortcut icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="../styles/docfx.css">
+      <link rel="stylesheet" href="../styles/main.css">
+      <meta property="docfx:navrel" content="../toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
     
     
     
@@ -25,7 +24,7 @@
   <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
-        
+
         <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
           <div class="container">
             <div class="navbar-header">
@@ -35,7 +34,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              
+
               <a class="navbar-brand" href="../index.html">
                 <img id="logo" class="svg" src="../logo.svg" alt="">
               </a>
@@ -49,7 +48,7 @@
             </div>
           </div>
         </nav>
-        
+
         <div class="subnav navbar navbar-default">
           <div class="container hide-when-search" id="breadcrumb">
             <ul class="breadcrumb">
@@ -59,7 +58,7 @@
         </div>
       </header>
       <div role="main" class="container body-content hide-when-search">
-        
+
         <div class="sidenav hide-when-search">
           <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
           <div class="sidetoggle collapse" id="sidetoggle">
@@ -69,14 +68,15 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Exceptions">
-  
+
   <h1 id="RabbitMQ_Client_Exceptions" data-uid="RabbitMQ.Client.Exceptions" class="text-break">Namespace RabbitMQ.Client.Exceptions
-  </h1>
+</h1>
   <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <div class="markdown level0 remarks"></div>
-    <h3 id="classes">Classes
-  </h3>
+    <h3 id="classes">
+Classes
+</h3>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html">AlreadyClosedException</a></h4>
       <section><p>Thrown when the application tries to make use of a
 session or connection that has already been shut
@@ -84,7 +84,7 @@ down.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.AuthenticationFailureException.html">AuthenticationFailureException</a></h4>
       <section><p>Thrown when the cause is  an
-authentication failure. </p>
+authentication failure.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html">BrokerUnreachableException</a></h4>
       <section><p>Thrown when no connection could be opened during a
@@ -93,12 +93,12 @@ ConnectionFactory.CreateConnection attempt.</p>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ChannelAllocationException.html">ChannelAllocationException</a></h4>
       <section><p>Thrown when a SessionManager cannot allocate a new
 channel number, or the requested channel number is already in
-use. </p>
+use.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ChannelErrorException.html">ChannelErrorException</a></h4>
       <section><p>Thrown when the server sends a frame along a channel
 that we do not currently have a Session entry in our
-SessionManager for. </p>
+SessionManager for.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ConnectFailureException.html">ConnectFailureException</a></h4>
       <section><p>Thrown when a connection to the broker fails</p>
@@ -119,19 +119,19 @@ operation, an OperationInterruptedException will be thrown to
 the caller of IModel.QueueDeclare.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.html">PacketNotRecognizedException</a></h4>
-      <section><p>Thrown to indicate that the peer didn&apos;t understand
+      <section><p>Thrown to indicate that the peer didn't understand
 the packet received from the client. Peer sent default message
 describing protocol version it is using and transport parameters.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.PossibleAuthenticationFailureException.html">PossibleAuthenticationFailureException</a></h4>
       <section><p>Thrown when the likely cause is  an
-authentication failure. </p>
+authentication failure.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ProtocolException.html">ProtocolException</a></h4>
       <section><p>Instances of subclasses of subclasses
 HardProtocolException and SoftProtocolException are thrown in
 situations when we detect a problem with the connection-,
-channel- or wire-level parts of the AMQP protocol. </p>
+channel- or wire-level parts of the AMQP protocol.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ProtocolVersionMismatchException.html">ProtocolVersionMismatchException</a></h4>
       <section><p>Thrown to indicate that the peer does not support the
@@ -148,15 +148,15 @@ requiring a channel.close.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.SyntaxErrorException.html">SyntaxErrorException</a></h4>
       <section><p>Thrown when our peer sends a frame that contains
-illegal values for one or more fields. </p>
+illegal values for one or more fields.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.TopologyRecoveryException.html">TopologyRecoveryException</a></h4>
       <section></section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.UnexpectedFrameException.html">UnexpectedFrameException</a></h4>
-      <section><p>Thrown when the connection receives a frame that it wasn&apos;t expecting.</p>
+      <section><p>Thrown when the connection receives a frame that it wasn't expecting.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.UnexpectedMethodException.html">UnexpectedMethodException</a></h4>
-      <section><p>Thrown when the model receives an RPC reply that it wasn&apos;t expecting.</p>
+      <section><p>Thrown when the model receives an RPC reply that it wasn't expecting.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.UnknownClassOrMethodException.html">UnknownClassOrMethodException</a></h4>
       <section><p>Thrown when the protocol handlers detect an unknown class
@@ -173,11 +173,13 @@ question.</p>
 </section>
       <h4><a class="xref" href="RabbitMQ.Client.Exceptions.WireFormattingException.html">WireFormattingException</a></h4>
       <section><p>Thrown when the wire-formatting code cannot encode a
-particular .NET value to AMQP protocol format.  </p>
+particular .NET value to AMQP protocol format.</p>
 </section>
+
+
 </article>
           </div>
-          
+
           <div class="hidden-sm col-md-2" role="complementary">
             <div class="sideaffix">
               <div class="contribution">
@@ -185,14 +187,14 @@ particular .NET value to AMQP protocol format.  </p>
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In This Article</h5>
+                <h5>In this article</h5>
                 <div></div>
               </nav>
             </div>
           </div>
         </div>
       </div>
-      
+
       <footer>
         <div class="grad-bottom"></div>
         <div class="footer">
@@ -200,14 +202,14 @@ particular .NET value to AMQP protocol format.  </p>
             <span class="pull-right">
               <a href="#top">Back to top</a>
             </span>
-            
-            <span>Generated by <strong>DocFX</strong></span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>
     </div>
-    
-    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+
+    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
     <script type="text/javascript" src="../styles/docfx.js"></script>
     <script type="text/javascript" src="../styles/main.js"></script>
   </body>

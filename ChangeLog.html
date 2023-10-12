@@ -1,21 +1,20 @@
 ﻿<!DOCTYPE html>
 <!--[if IE]><![endif]-->
 <html>
-  
+
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Changes Between 6.2.3 and 6.2.4 </title>
-    <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Changes Between 6.2.3 and 6.2.4 ">
-    <meta name="generator" content="docfx 2.59.0.0">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Changelog </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Changelog ">
     
-    <link rel="shortcut icon" href="favicon.ico">
-    <link rel="stylesheet" href="styles/docfx.vendor.css">
-    <link rel="stylesheet" href="styles/docfx.css">
-    <link rel="stylesheet" href="styles/main.css">
-    <meta property="docfx:navrel" content="toc.html">
-    <meta property="docfx:tocrel" content="toc.html">
+      <link rel="shortcut icon" href="favicon.ico">
+      <link rel="stylesheet" href="styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="styles/docfx.css">
+      <link rel="stylesheet" href="styles/main.css">
+      <meta property="docfx:navrel" content="toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
     
     
     
@@ -23,7 +22,7 @@
   <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
-        
+
         <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
           <div class="container">
             <div class="navbar-header">
@@ -33,7 +32,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              
+
               <a class="navbar-brand" href="index.html">
                 <img id="logo" class="svg" src="logo.svg" alt="">
               </a>
@@ -47,7 +46,7 @@
             </div>
           </div>
         </nav>
-        
+
         <div class="subnav navbar navbar-default">
           <div class="container hide-when-search" id="breadcrumb">
             <ul class="breadcrumb">
@@ -60,8 +59,55 @@
         <div class="article row grid">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h2 id="changes-between-623-and-624">Changes Between 6.2.3 and 6.2.4</h2>
+<h1 id="changelog">Changelog</h1>
 
+<h2 id="v650-2023-03-24"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.5.0">v6.5.0</a> (2023-03-24)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0-rc.1...v6.5.0">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>Exception during recovery causes recovery failure <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/658">#658</a></li>
+</ul>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Consumer tags aren't cleaned on channel close causing memory leak. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1302">#1302</a></li>
+<li>Impossible to use a ulong as a header value <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1298">#1298</a></li>
+<li>Recovery does not appear to save consumer arguments <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1293">#1293</a></li>
+<li>Long delay from publish to consumer event <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1252">#1252</a></li>
+<li>Timeout when opening a new channel after channel exception <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1246">#1246</a></li>
+<li>Autorecovery for server-named queues loops indefinitely when consumer listen this queue <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1238">#1238</a></li>
+<li>IModel.WaitForConfirmsOrDie* methods don't document that they close <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1234">#1234</a></li>
+<li>Port #1223 to main <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1225">#1225</a></li>
+<li>Better integrate max message size <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1223">#1223</a></li>
+<li>7.0 Release Checklist <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1191">#1191</a></li>
+<li>Missing IRecoveryable implementation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/998">#998</a></li>
+<li>BasicGetResult body memory safety in 6.x+ <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/994">#994</a></li>
+</ul>
+<h2 id="v640-rc1-2022-06-14"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.4.0-rc.1">v6.4.0-rc.1</a> (2022-06-14)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.4.0-rc.1">Full Changelog</a></p>
+<h2 id="changes-between-631-and-640">Changes Between 6.3.1 and 6.4.0</h2>
+<p>This release adds the ability to specify a maximum message size when receiving data. The default
+values are:</p>
+<ul>
+<li>RabbitMQ .NET client 7.0.0 and beyond: 128MiB</li>
+<li>RabbitMQ .NET client 6.4.0 up to 7.0.0: no limit by default</li>
+</ul>
+<p>Receiving a frame that specifies a content larger than the limit will throw an execption. This is to
+help prevent situations as described in <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/discussions/1213">this discussion</a>.</p>
+<p>To set a limit, use the set <code>MaxMessageSize</code> on your <code>ConnectionFactory</code> before opening connections:</p>
+<pre><code>// This sets the limit to 512MiB
+var cf = new ConnectionFactory();
+cf.MaxMessageSize = 536870912;
+var conn = cf.CreateConnection()`
+</code></pre>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/58?closed=1"><code>6.4.0</code></a>
+Diff: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.3.1...v6.4.0">link</a></p>
+<h2 id="changes-between-630-and-631">Changes Between 6.3.0 and 6.3.1</h2>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/57?closed=1"><code>6.3.1</code></a>
+Diff: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.3.0...v6.3.1">link</a></p>
+<h2 id="changes-between-624-and-630">Changes Between 6.2.4 and 6.3.0</h2>
+<p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/52?closed=1"><code>6.3.0</code></a>
+Diff: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.2.4...v6.3.0">link</a></p>
+<h2 id="changes-between-623-and-624">Changes Between 6.2.3 and 6.2.4</h2>
 <p>GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/55?closed=1"><code>6.2.4</code></a></p>
 <p>This release contains some important bug fixes:</p>
 <ul>
@@ -91,16 +137,16 @@ Earlier versions are no longer supported by the <code>6.x</code> series.</p>
 our stellar community members (in no particular order): @stebet, @bording,
 @Anarh2404, @danielmarbach, and others.</p>
 <p>A full list of changes can be found in the GitHub milestone: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/41?closed=1"><code>6.0.0</code></a>.</p>
-<h3 id="the-switch-to-systemmemory-and-significantly-lower-memory-footprinthttpsstebetnetreal-world-example-of-reducing-allocations-using-span-t-and-memory-t-that-comes-with-it">The Switch to System.Memory (and <a href="https://stebet.net/real-world-example-of-reducing-allocations-using-span-t-and-memory-t/">Significantly Lower Memory Footprint</a> that Comes with It)</h3>
+<h3 id="the-switch-to-systemmemory-and-significantly-lower-memory-footprint-that-comes-with-it">The Switch to System.Memory (and <a href="https://stebet.net/real-world-example-of-reducing-allocations-using-span-t-and-memory-t/">Significantly Lower Memory Footprint</a> that Comes with It)</h3>
 <p>The client now uses the <a href="https://www.nuget.org/packages/System.Memory/"><code>System.Memory</code> library</a> for message and command payloads. This significantly
 reduces object allocation and GC pressure for heavy workloads but also
 <strong>potentially requires application changes</strong>: consumer delivery payloads are now of instance <a href="https://docs.microsoft.com/en-us/dotnet/api/system.readonlymemory-1?view=netcore-3.1"><code>System.ReadOnlyMemory&lt;byte&gt;</code></a>
 instead of <code>byte[]</code>.</p>
-<p>While there&#39;s an implicit conversion for these types,
+<p>While there's an implicit conversion for these types,
 instances of <code>System.ReadOnlyMemory&lt;byte&gt;</code> <strong>must be copied or consumed/deserialised before delivery handler completes</strong>.
 Holding on to delivered payloads and referencing them at a later point <strong>is no longer safe</strong>.</p>
 <p>The same applies to publishers and the <code>IModel.BasicPublish</code> method: prefer using <code>System.ReadOnlyMemory&lt;byte&gt;</code>
-over <code>byte[]</code> and dont&#39; assume that this memory can be retained and used outside of the scope of the publishing
+over <code>byte[]</code> and dont' assume that this memory can be retained and used outside of the scope of the publishing
 function.</p>
 <p>GitHub issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/732">#732</a></p>
 <h3 id="timeouts-use-systemtimespan">Timeouts Use <code>System.TimeSpan</code></h3>
@@ -206,7 +252,7 @@ longer be used to control concurrency.</p>
 <p>Contributed by Brandon Ording and Szymon Kulec.</p>
 <p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/251">rabbitmq-dotnet-client#251</a></p>
 <h2 id="changes-between-401-and-402-september-1st-2016">Changes Between 4.0.1 and 4.0.2 (September 1st, 2016)</h2>
-<h3 id="tcpclientadapter-didnt-respect-ip-address-family">TcpClientAdapter Didn&#39;t Respect IP Address Family</h3>
+<h3 id="tcpclientadapter-didnt-respect-ip-address-family">TcpClientAdapter Didn't Respect IP Address Family</h3>
 <p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/244">rabbitmq-dotnet-client#244</a></p>
 <h2 id="changes-between-400-and-401-august-25th-2016">Changes Between 4.0.0 and 4.0.1 (August 25th, 2016)</h2>
 <h3 id="connectionfactorycreateconnection-deadlock"><code>ConnectionFactory#CreateConnection</code> Deadlock</h3>
@@ -214,27 +260,28 @@ longer be used to control concurrency.</p>
 <p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/239">rabbitmq-dotnet-client#239</a>.</p>
 <h3 id="occasional-nullreferenceexception-in-endpoint-resolution">Occasional <code>NullReferenceException</code> in Endpoint Resolution</h3>
 <p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/238">rabbitmq-dotnet-client#238</a></p>
+<p>* <em>This Changelog was automatically generated by <a href="https://github.com/github-changelog-generator/github-changelog-generator">github_changelog_generator</a></em></p>
 </article>
           </div>
-          
+
           <div class="hidden-sm col-md-2" role="complementary">
             <div class="sideaffix">
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-6.2.4/CHANGELOG.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/CHANGELOG.md/#L1" class="contribution-link">Edit this page</a>
                   </li>
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In This Article</h5>
+                <h5>In this article</h5>
                 <div></div>
               </nav>
             </div>
           </div>
         </div>
       </div>
-      
+
       <footer>
         <div class="grad-bottom"></div>
         <div class="footer">
@@ -242,14 +289,14 @@ longer be used to control concurrency.</p>
             <span class="pull-right">
               <a href="#top">Back to top</a>
             </span>
-            
-            <span>Generated by <strong>DocFX</strong></span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>
     </div>
-    
-    <script type="text/javascript" src="styles/docfx.vendor.js"></script>
+
+    <script type="text/javascript" src="styles/docfx.vendor.min.js"></script>
     <script type="text/javascript" src="styles/docfx.js"></script>
     <script type="text/javascript" src="styles/main.js"></script>
   </body>

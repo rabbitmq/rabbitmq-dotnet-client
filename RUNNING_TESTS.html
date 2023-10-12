@@ -1,21 +1,20 @@
 ﻿<!DOCTYPE html>
 <!--[if IE]><![endif]-->
 <html>
-  
+
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Overview </title>
-    <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Overview ">
-    <meta name="generator" content="docfx 2.59.0.0">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Overview </title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="title" content="Overview ">
     
-    <link rel="shortcut icon" href="favicon.ico">
-    <link rel="stylesheet" href="styles/docfx.vendor.css">
-    <link rel="stylesheet" href="styles/docfx.css">
-    <link rel="stylesheet" href="styles/main.css">
-    <meta property="docfx:navrel" content="toc.html">
-    <meta property="docfx:tocrel" content="toc.html">
+      <link rel="shortcut icon" href="favicon.ico">
+      <link rel="stylesheet" href="styles/docfx.vendor.min.css">
+      <link rel="stylesheet" href="styles/docfx.css">
+      <link rel="stylesheet" href="styles/main.css">
+      <meta property="docfx:navrel" content="toc.html">
+      <meta property="docfx:tocrel" content="toc.html">
     
     
     
@@ -23,7 +22,7 @@
   <body data-spy="scroll" data-target="#affix" data-offset="120">
     <div id="wrapper">
       <header>
-        
+
         <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
           <div class="container">
             <div class="navbar-header">
@@ -33,7 +32,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              
+
               <a class="navbar-brand" href="index.html">
                 <img id="logo" class="svg" src="logo.svg" alt="">
               </a>
@@ -47,7 +46,7 @@
             </div>
           </div>
         </nav>
-        
+
         <div class="subnav navbar navbar-default">
           <div class="container hide-when-search" id="breadcrumb">
             <ul class="breadcrumb">
@@ -62,7 +61,7 @@
             <article class="content wrap" id="_content" data-uid="">
 <h2 id="overview">Overview</h2>
 
-<p>.NET client&#39;s test suite assumes there&#39;s a RabbitMQ node listening on <code>localhost:5672</code>
+<p>.NET client's test suite assumes there's a RabbitMQ node listening on <code>localhost:5672</code>
 (the default settings). SSL tests require a broker listening on the default
 SSL port. Connection recovery tests assume <code>rabbitmqctl</code> at <code>../rabbitmq-server/scripts/rabbitmqctl</code>
 can control the running node: this is the case when all repositories are cloned using
@@ -70,17 +69,19 @@ the <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">umbrella repo
 <p>It is possible to use Visual Studio Community Edition .NET Core, and
 <code>dotnet.exe</code> in <code>PATH</code>, to build the client and run the test suite.</p>
 <h2 id="building">Building</h2>
-<p>Before this project can be opened in Visual Studio, it&#39;s necessary to pull down dependencies
+<p>Before this project can be opened in Visual Studio, it's necessary to pull down dependencies
 and perform protocol encoder/decoder code generation.</p>
 <p>On Windows run:</p>
 <pre><code class="lang-powershell">build.bat
-</code></pre><p>On MacOS and linux run:</p>
+</code></pre>
+<p>On MacOS and linux run:</p>
 <pre><code class="lang-shell">build.sh
-</code></pre><p>This will complete the code AMQP 0-9-1 protocol code generation and build all projects. After this open the solution in Visual Studio.</p>
+</code></pre>
+<p>This will complete the code AMQP 0-9-1 protocol code generation and build all projects. After this open the solution in Visual Studio.</p>
 <h2 id="test-environment-requirements">Test Environment Requirements</h2>
 <p>Tests can be run from Visual Studio using the NUnit Test Adapter.  Note that it
 may take some time for the adapter to discover tests in the assemblies.</p>
-<p>The test suite assumes there&#39;s a RabbitMQ node running locally with all
+<p>The test suite assumes there's a RabbitMQ node running locally with all
 defaults, and the tests will need to be able to run commands against the
 <a href="https://www.rabbitmq.com/rabbitmqctl.8.html"><code>rabbitmqctl</code></a> tool for that node.
 Two options to accomplish this are covered below.</p>
@@ -91,7 +92,8 @@ can be invoked directly without using an absolute file path.</p>
 <p>On Windows, you must run unit tests as follows (replace <code>X.Y.Z</code> with your RabbitMQ version):</p>
 <pre><code>set &quot;RABBITMQ_RABBITMQCTL_PATH=C:\Program Files\RabbitMQ Server\rabbitmq_server-X.Y.Z\sbin\rabbitmqctl.bat&quot;
 .\run-test.bat
-</code></pre><h3 id="option-two-using-rabbitmq-umbrella-repository">Option Two: Using RabbitMQ Umbrella Repository</h3>
+</code></pre>
+<h3 id="option-two-using-rabbitmq-umbrella-repository">Option Two: Using RabbitMQ Umbrella Repository</h3>
 <p>Team RabbitMQ uses <a href="https://github.com/rabbitmq/rabbitmq-public-umbrella">rabbitmq-public-umbrella</a>,
 which makes it easy to run a RabbitMQ node <a href="https://www.rabbitmq.com/build-server.html">built from source</a>:</p>
 <pre><code>git clone https://github.com/rabbitmq/rabbitmq-public-umbrella umbrella
@@ -100,49 +102,56 @@ make co
 cd deps/rabbit
 make
 make run-broker
-</code></pre><p><code>rabbitmqctl</code> location will be computed using a relative path in the umbrella.
+</code></pre>
+<p><code>rabbitmqctl</code> location will be computed using a relative path in the umbrella.
 It is possible to override the location using <code>RABBITMQ_RABBITMQCTL_PATH</code>:</p>
 <pre><code>RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Unit
-</code></pre><h3 id="option-three-using-a-docker-container">Option Three: Using a Docker Container</h3>
+</code></pre>
+<h3 id="option-three-using-a-docker-container">Option Three: Using a Docker Container</h3>
 <p>It is also possible to run a RabbitMQ node in a <a href="https://www.docker.com/">Docker</a> container.  Set the environment variable <code>RABBITMQ_RABBITMQCTL_PATH</code> to <code>DOCKER:&lt;container_name&gt;</code> (for example <code>DOCKER:rabbitmq01</code>). This tells the unit tests to run the <code>rabbitmqctl</code> commands through Docker, in the format <code>docker exec rabbitmq01 rabbitmqctl &lt;args&gt;</code>:</p>
 <pre><code class="lang-shell">docker run -d --hostname rabbitmq01 --name rabbitmq01 -p 15672:15672 -p 5672:5672 rabbitmq:3-management
-</code></pre><h2 id="running-all-tests">Running All Tests</h2>
+</code></pre>
+<h2 id="running-all-tests">Running All Tests</h2>
 <p>Then, to run the tests use:</p>
 <pre><code class="lang-powershell"># will run tests on .NET Core and .NET Framework
 run-test.bat
-</code></pre><p>On MacOS, Linux, BSD use:</p>
+</code></pre>
+<p>On MacOS, Linux, BSD use:</p>
 <pre><code class="lang-shell"># will only run tests on .NET Core
 run-test.sh
-</code></pre><h2 id="running-individual-suites-or-test-casess">Running Individual Suites or Test Casess</h2>
+</code></pre>
+<h2 id="running-individual-suites-or-test-casess">Running Individual Suites or Test Casess</h2>
 <p>Running individual tests and fixtures on Windows is trivial using the Visual Studio test runner.
 To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests to be run:</p>
-<pre><code class="lang-shell">dotnet test projects/Unit -f netcoreapp3.1 --filter &quot;Name~TestAmqpUriParseFail&quot;
+<pre><code class="lang-shell">dotnet test projects/Unit -f net6.0 --filter &quot;Name~TestAmqpUriParseFail&quot;
 
-dotnet test projects/Unit -f netcoreapp3.1 --filter &quot;FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats&quot;
-</code></pre><h2 id="running-tests-for-a-specific-net-target">Running Tests for a Specific .NET Target</h2>
+dotnet test projects/Unit -f net6.0 --filter &quot;FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats&quot;
+</code></pre>
+<h2 id="running-tests-for-a-specific-net-target">Running Tests for a Specific .NET Target</h2>
 <p>To only run tests on .NET Core:</p>
-<pre><code class="lang-shell">dotnet test -f netcoreapp3.1 projects/Unit
-</code></pre></article>
+<pre><code class="lang-shell">dotnet test -f net6.0 projects/Unit
+</code></pre>
+</article>
           </div>
-          
+
           <div class="hidden-sm col-md-2" role="complementary">
             <div class="sideaffix">
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/rabbitmq-dotnet-client-6.2.4/RUNNING_TESTS.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/RUNNING_TESTS.md/#L1" class="contribution-link">Edit this page</a>
                   </li>
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In This Article</h5>
+                <h5>In this article</h5>
                 <div></div>
               </nav>
             </div>
           </div>
         </div>
       </div>
-      
+
       <footer>
         <div class="grad-bottom"></div>
         <div class="footer">
@@ -150,14 +159,14 @@ dotnet test projects/Unit -f netcoreapp3.1 --filter &quot;FullyQualifiedName~Rab
             <span class="pull-right">
               <a href="#top">Back to top</a>
             </span>
-            
-            <span>Generated by <strong>DocFX</strong></span>
+      
+      <span>Generated by <strong>DocFX</strong></span>
           </div>
         </div>
       </footer>
     </div>
-    
-    <script type="text/javascript" src="styles/docfx.vendor.js"></script>
+
+    <script type="text/javascript" src="styles/docfx.vendor.min.js"></script>
     <script type="text/javascript" src="styles/docfx.js"></script>
     <script type="text/javascript" src="styles/main.js"></script>
   </body>

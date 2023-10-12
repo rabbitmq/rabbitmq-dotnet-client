@@ -1,4 +1,5 @@
-// Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 $(function () {
   var active = 'active';
   var expanded = 'in';
@@ -51,7 +52,7 @@ $(function () {
   // Styling for tables in conceptual documents using Bootstrap.
   // See http://getbootstrap.com/css/#tables
   function renderTables() {
-    $('table').addClass('table table-bordered table-striped table-condensed').wrap('<div class=\"table-responsive\"></div>');
+    $('table').addClass('table table-bordered table-condensed').wrap('<div class=\"table-responsive\"></div>');
   }
 
   // Styling for alerts.
@@ -82,7 +83,7 @@ $(function () {
   // Enable highlight.js
   function highlight() {
     $('pre code').each(function (i, block) {
-      hljs.highlightBlock(block);
+      hljs.highlightElement(block);
     });
     $('pre code[highlight-lines]').each(function (i, block) {
       if (block.innerHTML === "") return;
@@ -127,13 +128,10 @@ $(function () {
       return;
     }
     try {
-      var worker = new Worker(relHref + 'styles/search-worker.js');
-      if (!worker && !window.worker) {
-        localSearch();
-      } else {
-        webWorkerSearch();
+      if(!window.Worker){
+        return;
       }
-
+      webWorkerSearch();
       renderSearchBox();
       highlightKeywords();
       addSearchEvent();
@@ -163,49 +161,13 @@ $(function () {
       }
     }
 
-    // Search factory
-    function localSearch() {
-      console.log("using local search");
-      var lunrIndex = lunr(function () {
-        this.ref('href');
-        this.field('title', { boost: 50 });
-        this.field('keywords', { boost: 20 });
-      });
-      lunr.tokenizer.seperator = /[\s\-\.]+/;
-      var searchData = {};
-      var searchDataRequest = new XMLHttpRequest();
-
-      var indexPath = relHref + "index.json";
-      if (indexPath) {
-        searchDataRequest.open('GET', indexPath);
-        searchDataRequest.onload = function () {
-          if (this.status != 200) {
-            return;
-          }
-          searchData = JSON.parse(this.responseText);
-          for (var prop in searchData) {
-            if (searchData.hasOwnProperty(prop)) {
-              lunrIndex.add(searchData[prop]);
-            }
-          }
-        }
-        searchDataRequest.send();
-      }
-
-      $("body").bind("queryReady", function () {
-        var hits = lunrIndex.search(query);
-        var results = [];
-        hits.forEach(function (hit) {
-          var item = searchData[hit.ref];
-          results.push({ 'href': item.href, 'title': item.title, 'keywords': item.keywords });
-        });
-        handleSearchResults(results);
-      });
-    }
-
     function webWorkerSearch() {
-      console.log("using Web Worker");
       var indexReady = $.Deferred();
+
+      var worker = new Worker(relHref + 'styles/search-worker.min.js');
+      worker.onerror = function (oEvent) {
+        console.error('Error occurred at search-worker. message: ' + oEvent.message);
+      }
 
       worker.onmessage = function (oEvent) {
         switch (oEvent.data.e) {
@@ -251,7 +213,7 @@ $(function () {
 
         $('#search-query').keyup(function () {
           query = $(this).val();
-          if (query.length < 3) {
+          if (query === '') {
             flipContents("show");
           } else {
             flipContents("hide");
@@ -1143,7 +1105,7 @@ $(function () {
      * If the jQuery element contains tags, this function will not change the element.
      */
     $.fn.breakWord = function () {
-      if (this.html() == this.text()) {
+      if (!this.html().match(/(<\w*)((\s\/>)|(.*<\/\w*>))/g)) {
         this.html(function (index, text) {
           return breakPlainText(text);
         })
