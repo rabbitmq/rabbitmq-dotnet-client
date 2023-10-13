@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -250,6 +251,45 @@ namespace RabbitMQ.Client.Unit
                     Assert.True(sawConsumerRegistered);
                     Assert.True(sawConsumerCancelled);
                 }
+            }
+        }
+
+        [Fact]
+        public void TestPropertiesRountrip_Headers()
+        {
+            // Arrange
+            var subject = new BasicProperties
+            {
+                Headers = new Dictionary<string, object>()
+            };
+
+            var cf = new ConnectionFactory();
+            using (IConnection c = cf.CreateConnection())
+            using (IChannel m = c.CreateChannel())
+            {
+                QueueDeclareOk q = m.QueueDeclare();
+                var bp = new BasicProperties() { Headers = new Dictionary<string, object>() };
+                bp.Headers["Hello"] = "World";
+                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+                byte[] consumeBody = null;
+                var consumer = new EventingBasicConsumer(m);
+                var are = new AutoResetEvent(false);
+                string response = null;
+                consumer.Received += async (o, a) =>
+                {
+                    response = Encoding.UTF8.GetString(a.BasicProperties.Headers["Hello"] as byte[]);
+                    consumeBody = a.Body.ToArray();
+                    are.Set();
+                    await Task.Yield();
+                };
+
+                string tag = m.BasicConsume(q.QueueName, true, consumer);
+                m.BasicPublish("", q.QueueName, bp, sendBody);
+                bool waitResFalse = are.WaitOne(5000);
+                m.BasicCancel(tag);
+                Assert.True(waitResFalse);
+                Assert.Equal(sendBody, consumeBody);
+                Assert.Equal("World", response);
             }
         }
     }

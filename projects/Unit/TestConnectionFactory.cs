@@ -35,6 +35,7 @@ using Xunit;
 
 namespace RabbitMQ.Client.Unit
 {
+    [Collection("IntegrationFixture")]
     public class TestConnectionFactory
     {
         [Fact]
