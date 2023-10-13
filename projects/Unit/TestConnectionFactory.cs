@@ -268,6 +268,12 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
+        public void TestCreateAmqpTCPEndPointOverridesMaxMessageSizeWhenGreaterThanMaximumAllowed()
+        {
+            var ep = new AmqpTcpEndpoint("localhost", -1, new SslOption(), ConnectionFactory.MaximumMaxMessageSize);
+        }
+
+        [Fact]
         public void TestCreateConnectionUsesConfiguredMaxMessageSize()
         {
             var cf = new ConnectionFactory();

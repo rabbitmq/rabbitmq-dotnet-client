@@ -105,11 +105,15 @@ namespace RabbitMQ.Client
         public const uint DefaultFrameMax = 0;
 
         /// <summary>
-        /// Default value for the maximum allowed message size, in bytes, from RabbitMQ.
-        /// Corresponds to the <code>rabbit.max_message_size</code> setting.
-        /// Note: the default is 0 which means "unlimited".
+        /// Default value for <code>ConnectionFactory</code>'s <code>MaxMessageSize</code>.        
         /// </summary>
-        public const uint DefaultMaxMessageSize = 536870912;
+        public const uint DefaultMaxMessageSize = 134217728;
+        /// <summary>
+        /// Largest message size, in bytes, allowed in RabbitMQ.        
+        /// Note: <code>rabbit.max_message_size</code> setting (https://www.rabbitmq.com/configure.html)
+        /// configures the largest message size which should be lower than this maximum of 536 Mbs.
+        /// </summary>
+        public const uint MaximumMaxMessageSize = 536870912;
 
         /// <summary>
         /// Default value for desired heartbeat interval. Default is 60 seconds,
@@ -351,7 +355,7 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Maximum allowed message size, in bytes, from RabbitMQ.
-        /// Corresponds to the <code>rabbit.max_message_size</code> setting.
+        /// Corresponds to the <code>ConnectionFactory.DefaultMaxMessageSize</code> setting.
         /// </summary>
         public uint MaxMessageSize { get; set; } = DefaultMaxMessageSize;
 
