@@ -130,8 +130,11 @@ namespace RabbitMQ.Client.Unit
                     // ensure we get a delivery
                     await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 
-                    Assert.True(publish1SyncSource.Task.Result, $"1 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
-                    Assert.True(publish2SyncSource.Task.Result, $"2 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                    bool result1 = await publish1SyncSource.Task;
+                    Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+
+                    bool result2 = await publish2SyncSource.Task;
+                    Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
                 }
             }
         }
@@ -158,7 +161,7 @@ namespace RabbitMQ.Client.Unit
                 }
             }
 
-            Task publishTask = Task.Run(() =>
+            Task publishTask = Task.Run(async () =>
                     {
                         using (IConnection c = cf.CreateConnection())
                         {
@@ -167,14 +170,14 @@ namespace RabbitMQ.Client.Unit
                                 QueueDeclareOk q = m.QueueDeclare(queue: queueName, exclusive: false, durable: true);
                                 for (int i = 0; i < publish_total; i++)
                                 {
-                                    m.BasicPublish(string.Empty, queueName, body1);
-                                    m.BasicPublish(string.Empty, queueName, body2);
+                                    await m.BasicPublishAsync(string.Empty, queueName, body1);
+                                    await m.BasicPublishAsync(string.Empty, queueName, body2);
                                 }
                             }
                         }
                     });
 
-            Task consumeTask = Task.Run(() =>
+            Task consumeTask = Task.Run(async () =>
                     {
                         var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                         var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -219,10 +222,13 @@ namespace RabbitMQ.Client.Unit
                                 m.BasicConsume(queueName, true, consumer);
 
                                 // ensure we get a delivery
-                                Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
+                                await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 
-                                Assert.True(publish1SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
-                                Assert.True(publish2SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                                bool result1 = await publish1SyncSource.Task;
+                                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+
+                                bool result2 = await publish2SyncSource.Task;
+                                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
                             }
                         }
                     });
@@ -262,7 +268,7 @@ namespace RabbitMQ.Client.Unit
         }
 
         [Fact]
-        public void ConcurrentEventingTestForReceived()
+        public async void ConcurrentEventingTestForReceived()
         {
             const int NumberOfThreads = 4;
             const int NumberOfRegistrations = 5000;
@@ -300,7 +306,7 @@ namespace RabbitMQ.Client.Unit
                     }
 
                     countdownEvent.Wait();
-                    Task.WaitAll(tasks);
+                    await Task.WhenAll(tasks);
 
                     // Add last receiver
                     var are = new AutoResetEvent(false);

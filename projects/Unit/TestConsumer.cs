@@ -74,11 +74,9 @@ namespace RabbitMQ.Client.Unit
                     {
                         case publish1:
                             publish1SyncSource.TrySetResult(true);
-                            publish2SyncSource.Task.GetAwaiter().GetResult();
                             break;
                         case publish2:
                             publish2SyncSource.TrySetResult(true);
-                            publish1SyncSource.Task.GetAwaiter().GetResult();
                             break;
                     }
                 };
@@ -87,8 +85,11 @@ namespace RabbitMQ.Client.Unit
 
                 await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 
-                Assert.True(publish1SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
-                Assert.True(publish2SyncSource.Task.Result, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                bool result1 = await publish1SyncSource.Task;
+                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+
+                bool result2 = await publish1SyncSource.Task;
+                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
             }
         }
     }

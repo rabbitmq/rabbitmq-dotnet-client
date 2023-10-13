@@ -57,20 +57,20 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestWaitForConfirmsWithoutTimeout()
         {
-            TestWaitForConfirms(200, (ch) =>
+            TestWaitForConfirms(200, async (ch) =>
             {
-                Assert.True(ch.WaitForConfirmsAsync().GetAwaiter().GetResult());
+                Assert.True(await ch.WaitForConfirmsAsync());
             });
         }
 
         [Fact]
         public void TestWaitForConfirmsWithTimeout()
         {
-            TestWaitForConfirms(200, (ch) =>
+            TestWaitForConfirms(200, async (ch) =>
             {
                 using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
                 {
-                    Assert.True(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                    Assert.True(await ch.WaitForConfirmsAsync(cts.Token));
                 }
             });
         }
@@ -81,13 +81,13 @@ namespace RabbitMQ.Client.Unit
             bool waitResult = false;
             bool sawTaskCanceled = false;
 
-            TestWaitForConfirms(10000, (ch) =>
+            TestWaitForConfirms(10000, async (ch) =>
             {
                 using (var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1)))
                 {
                     try
                     {
-                        waitResult = ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult();
+                        waitResult = await ch.WaitForConfirmsAsync(cts.Token);
                     }
                     catch (TaskCanceledException)
                     {
@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestWaitForConfirmsWithTimeout_MessageNacked_WaitingHasTimedout_ReturnFalse()
         {
-            TestWaitForConfirms(2000, (ch) =>
+            TestWaitForConfirms(2000, async (ch) =>
             {
                 IChannel actualChannel = ((AutorecoveringChannel)ch).InnerChannel;
                 actualChannel
@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Unit
 
                 using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
                 {
-                    Assert.False(ch.WaitForConfirmsAsync(cts.Token).GetAwaiter().GetResult());
+                    Assert.False(await ch.WaitForConfirmsAsync(cts.Token));
                 }
             });
         }
@@ -142,7 +142,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         ch.BasicPublish("", QueueName, _encoding.GetBytes("msg"));
                     }
-                    await ch.WaitForConfirmsAsync().ConfigureAwait(false);
+                    await ch.WaitForConfirmsAsync();
 
                     // Note: number of event invocations is not guaranteed
                     // to be equal to N because acks can be batched,

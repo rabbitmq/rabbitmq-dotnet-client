@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(0u, _channel.MessageCount(q));
 
             _channel.BasicPublish("", q, _encoding.GetBytes("msg"));
-            await _channel.WaitForConfirmsAsync().ConfigureAwait(false);
+            await _channel.WaitForConfirmsAsync();
             Assert.Equal(1u, _channel.MessageCount(q));
         }
     }
