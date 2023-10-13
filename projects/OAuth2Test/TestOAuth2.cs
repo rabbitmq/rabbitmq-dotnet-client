@@ -148,7 +148,7 @@ namespace OAuth2Test
         private async ValueTask<IChannel> declareConsumer()
         {
             IChannel subscriber = _connection.CreateChannel();
-            await subscriber.QueueDeclareAsync("testqueue", true, false, false, arguments: null);
+            await subscriber.QueueDeclareAsync(queue: "testqueue", passive: false, true, false, false, arguments: null);
             subscriber.QueueBind("testqueue", Exchange, "hello");
             return subscriber;
         }

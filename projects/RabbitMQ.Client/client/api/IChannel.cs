@@ -276,8 +276,6 @@ namespace RabbitMQ.Client
         /// </remarks>
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
-        /*
-         * TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
         /// <summary>
         /// Asynchronously binds an exchange to an exchange.
         /// </summary>
@@ -287,7 +285,6 @@ namespace RabbitMQ.Client
         ///   </para>
         /// </remarks>
         ValueTask ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments);
-        */
 
         /// <summary>
         /// Like ExchangeBind but sets nowait to true.
@@ -308,10 +305,10 @@ namespace RabbitMQ.Client
 
         /// <summary>Asynchronously declare an exchange.</summary>
         /// <remarks>
-        /// The exchange is declared non-passive and non-internal.
-        /// The "nowait" option is not exercised.
+        /// The exchange is declared non-internal.
+        /// The "nowait" option is not used.
         /// </remarks>
-        ValueTask ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
+        ValueTask ExchangeDeclareAsync(string exchange, string type, bool passive, bool durable, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
@@ -403,11 +400,12 @@ namespace RabbitMQ.Client
         /// Asynchronously declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
         /// </summary>
         /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
+        /// <param name="passive">Set to <code>true</code> to passively declare the queue (i.e. check for its existence)</param>
         /// <param name="durable">Should this queue will survive a broker restart?</param>
         /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
         /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
         /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
-        ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
+        ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.

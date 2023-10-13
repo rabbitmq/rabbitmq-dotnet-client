@@ -81,8 +81,6 @@ namespace RabbitMQ.Client.Unit
             _channel.ExchangeDelete(x);
         }
 
-        /*
-         * TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
         [Fact]
         public async void TestConcurrentExchangeDeclareAsync()
         {
@@ -100,7 +98,7 @@ namespace RabbitMQ.Client.Unit
                         // sleep for a random amount of time to increase the chances
                         // of thread interleaving. MK.
                         await Task.Delay(rnd.Next(5, 50));
-                        await _channel.ExchangeDeclareAsync(x, "fanout", false, false, null);
+                        await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout", passive: false, false, false, null);
                     }
                     catch (NotSupportedException e)
                     {
@@ -115,6 +113,5 @@ namespace RabbitMQ.Client.Unit
             Assert.Null(nse);
             await _channel.ExchangeDeleteAsync(x, false);
         }
-        */
     }
 }

@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (_tcs.TrySetCanceled())
                 {
-                    // TODO LRB #1347
+                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
                     // Cancellation was successful, does this mean we should set a TimeoutException
                     // in the same manner as BlockingCell?
                 }
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Impl
                 else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
                 {
                     var tune = new ConnectionTune(cmd.MethodBytes.Span);
-                    // TODO LRB #1347
+                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
                     // What to do if setting a result fails?
                     _tcs.TrySetResult(new ConnectionSecureOrTune
                     {
@@ -155,6 +155,13 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
+    internal class ExchangeBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout) : base(ProtocolCommandId.ExchangeBindOk, continuationTimeout)
+        {
+        }
+    }
+
     internal class ExchangeDeclareAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ExchangeDeclareAsyncRpcContinuation(TimeSpan continuationTimeout) : base(ProtocolCommandId.ExchangeDeclareOk, continuationTimeout)
@@ -197,7 +204,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class QueueDeleteAsyncRpcContinuation : AsyncRpcContinuation<QueueDeleteOk>
+    internal class QueueDeleteAsyncRpcContinuation : AsyncRpcContinuation<uint>
     {
         public QueueDeleteAsyncRpcContinuation(TimeSpan continuationTimeout) : base(continuationTimeout)
         {
@@ -210,8 +217,7 @@ namespace RabbitMQ.Client.Impl
                 var method = new Client.Framing.Impl.QueueDeleteOk(cmd.MethodBytes.Span);
                 if (cmd.CommandId == ProtocolCommandId.QueueDeleteOk)
                 {
-                    var result = new QueueDeleteOk(method._messageCount);
-                    _tcs.TrySetResult(result);
+                    _tcs.TrySetResult(method._messageCount);
                 }
                 else
                 {

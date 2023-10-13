@@ -48,8 +48,12 @@ namespace RabbitMQ.Client.Unit
         public async void TestQueueDeclareAsync()
         {
             string q = GenerateQueueName();
-            QueueDeclareOk result = await _channel.QueueDeclareAsync(q, false, false, false, null);
-            Assert.Equal(q, result.QueueName);
+
+            QueueDeclareOk declareResult = await _channel.QueueDeclareAsync(q, passive: false, false, false, false, null);
+            Assert.Equal(q, declareResult.QueueName);
+
+            QueueDeclareOk passiveDeclareResult = await _channel.QueueDeclareAsync(q, passive: true, false, false, false, null);
+            Assert.Equal(q, passiveDeclareResult.QueueName);
         }
 
         [Fact]
@@ -92,10 +96,10 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public async void TestConcurrentQueueDeclareAsync()
         {
-            string q = GenerateQueueName();
             var rnd = new Random();
-
             var ts = new List<Task>();
+            var qs = new List<string>();
+
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
             {
@@ -106,7 +110,8 @@ namespace RabbitMQ.Client.Unit
                         // sleep for a random amount of time to increase the chances
                         // of thread interleaving. MK.
                         await Task.Delay(rnd.Next(5, 50));
-                        QueueDeclareOk r = await _channel.QueueDeclareAsync(q, false, false, false, null);
+                        QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: string.Empty, passive: false, false, false, false, null);
+                        qs.Add(r.QueueName);
                     }
                     catch (NotSupportedException e)
                     {
@@ -119,8 +124,37 @@ namespace RabbitMQ.Client.Unit
 
             await Task.WhenAll(ts);
             Assert.Null(nse);
-            uint deletedMessageCount = await _channel.QueueDeleteAsync(q, false, false);
-            Assert.Equal((uint)0, deletedMessageCount);
+            ts.Clear();
+
+            nse = null;
+            foreach (string q in qs)
+            {
+                async Task f()
+                {
+                    string qname = q;
+                    try
+                    {
+                        // sleep for a random amount of time to increase the chances
+                        // of thread interleaving. MK.
+                        await Task.Delay(rnd.Next(5, 50));
+
+                        QueueDeclareOk r = await _channel.QueueDeclareAsync(qname, passive: true, false, false, false, null);
+                        Assert.Equal(qname, r.QueueName);
+
+                        uint deletedMessageCount = await _channel.QueueDeleteAsync(qname, false, false);
+                        Assert.Equal((uint)0, deletedMessageCount);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                }
+                var t = Task.Run(f);
+                ts.Add(t);
+            }
+
+            await Task.WhenAll(ts);
+            Assert.Null(nse);
         }
     }
 }

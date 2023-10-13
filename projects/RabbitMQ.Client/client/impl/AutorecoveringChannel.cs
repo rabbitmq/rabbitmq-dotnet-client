@@ -362,6 +362,13 @@ namespace RabbitMQ.Client.Impl
             _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
         }
 
+        public async ValueTask ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        {
+            ThrowIfDisposed();
+            await _innerChannel.ExchangeBindAsync(destination, source, routingKey, arguments);
+            _connection.RecordBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
+        }
+
         public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
             => InnerChannel.ExchangeBindNoWait(destination, source, routingKey, arguments);
 
@@ -372,11 +379,14 @@ namespace RabbitMQ.Client.Impl
             _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
         }
 
-        public async ValueTask ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        public async ValueTask ExchangeDeclareAsync(string exchange, string type, bool passive, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            await _innerChannel.ExchangeDeclareAsync(exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+            await _innerChannel.ExchangeDeclareAsync(exchange, type, passive, durable, autoDelete, arguments);
+            if (false == passive)
+            {
+                _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+            }    
         }
 
         public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
@@ -443,11 +453,14 @@ namespace RabbitMQ.Client.Impl
             _connection.RecordQueue(new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments));
         }
 
-        public async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        public async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            QueueDeclareOk result = await _innerChannel.QueueDeclareAsync(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+            QueueDeclareOk result = await _innerChannel.QueueDeclareAsync(queue, passive, durable, exclusive, autoDelete, arguments);
+            if (false == passive)
+            {
+                _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+            }
             return result;
         }
 
