@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Unit
             {
                 _channel.BasicPublish("", string.Empty);
             }
-            Assert.True(await _channel.WaitForConfirmsAsync().ConfigureAwait(false));
+            Assert.True(await _channel.WaitForConfirmsAsync());
         }
 
         [Fact]
@@ -73,12 +73,12 @@ namespace RabbitMQ.Client.Unit
             _channel.QueueBind(queue, "dest", string.Empty);
 
             _channel.BasicPublish("src", string.Empty);
-            await _channel.WaitForConfirmsAsync().ConfigureAwait(false);
+            await _channel.WaitForConfirmsAsync();
             Assert.NotNull(_channel.BasicGet(queue, true));
 
             _channel.ExchangeUnbind("dest", "src", string.Empty);
             _channel.BasicPublish("src", string.Empty);
-            await _channel.WaitForConfirmsAsync().ConfigureAwait(false);
+            await _channel.WaitForConfirmsAsync();
             Assert.Null(_channel.BasicGet(queue, true));
 
             _channel.ExchangeDelete("src");

@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Unit
                                 }
                             }
 
-                            await channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body).ConfigureAwait(false);
+                            await channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body);
                         }
                     }
                     finally
@@ -135,7 +135,7 @@ namespace RabbitMQ.Client.Unit
                     {
                         for (int i = 0; i < publishCount; i++)
                         {
-                            await pubCh.BasicPublishAsync(string.Empty, queueName, sendBody).ConfigureAwait(false);
+                            await pubCh.BasicPublishAsync(string.Empty, queueName, sendBody);
                         }
                     }
                 });
@@ -154,11 +154,11 @@ namespace RabbitMQ.Client.Unit
                         }
                     };
                     consumeCh.BasicConsume(queueName, true, consumer);
-                    Assert.True(pub.Wait(_tenSeconds));
+
                     Assert.True(autoResetEvent.WaitOne(_tenSeconds));
                 }
 
-                await pub.ConfigureAwait(false);
+                await pub;
                 Assert.Equal(publishCount, receivedCount);
             }
         }
