@@ -482,14 +482,6 @@ namespace RabbitMQ.Client.Impl
             _connection.DeleteRecordedQueue(queue);
         }
 
-        public async ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
-        {
-            ThrowIfDisposed();
-            uint result = await _innerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty);
-            _connection.DeleteRecordedQueue(queue);
-            return result;
-        }
-
         public uint QueuePurge(string queue)
             => InnerChannel.QueuePurge(queue);
 

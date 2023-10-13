@@ -276,6 +276,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
+        /*
+         * TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
         /// <summary>
         /// Asynchronously binds an exchange to an exchange.
         /// </summary>
@@ -285,6 +287,7 @@ namespace RabbitMQ.Client
         ///   </para>
         /// </remarks>
         ValueTask ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+        */
 
         /// <summary>
         /// Like ExchangeBind but sets nowait to true.

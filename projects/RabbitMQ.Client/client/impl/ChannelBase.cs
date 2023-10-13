@@ -1151,7 +1151,7 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
         {
-            var k = new QueueDeleteAsyncRpcContinuation();
+            var k = new QueueDeleteAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -1172,11 +1172,6 @@ namespace RabbitMQ.Client.Impl
         public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
             _Private_QueueDelete(queue, ifUnused, ifEmpty, true);
-        }
-
-        public ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
-        {
-            return DoQueueDeleteAsync(queue, ifUnused, ifEmpty);
         }
 
         public uint QueuePurge(string queue)
@@ -1352,26 +1347,6 @@ namespace RabbitMQ.Client.Impl
                 QueueDeclareOk result = await k;
                 CurrentQueue = result.QueueName;
                 return result;
-            }
-            finally
-            {
-                _rpcSemaphore.Release();
-            }
-        }
-
-        private async ValueTask<uint> DoQueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
-        {
-            using var k = new QueueDeleteAsyncRpcContinuation(ContinuationTimeout);
-            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                Enqueue(k);
-
-                var method = new QueueDelete(queue, ifUnused, ifEmpty, Nowait: false);
-                await ModelSendAsync(method).ConfigureAwait(false);
-
-                QueueDeleteOk result = await k;
-                return result._messageCount;
             }
             finally
             {

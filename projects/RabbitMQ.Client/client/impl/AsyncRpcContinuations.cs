@@ -207,9 +207,10 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                var result = new Client.Framing.Impl.QueueDeleteOk(cmd.MethodBytes.Span);
+                var method = new Client.Framing.Impl.QueueDeleteOk(cmd.MethodBytes.Span);
                 if (cmd.CommandId == ProtocolCommandId.QueueDeleteOk)
                 {
+                    var result = new QueueDeleteOk(method._messageCount);
                     _tcs.TrySetResult(result);
                 }
                 else
