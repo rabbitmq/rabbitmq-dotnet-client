@@ -694,6 +694,11 @@ namespace RabbitMQ.Client
         public string QueueName { get; }
         public static string op_Implicit(RabbitMQ.Client.QueueDeclareOk declareOk) { }
     }
+    public class QueueDeleteOk
+    {
+        public QueueDeleteOk(uint messageCount) { }
+        public uint MessageCount { get; }
+    }
     public readonly struct ReadOnlyBasicProperties : RabbitMQ.Client.IReadOnlyBasicProperties
     {
         public ReadOnlyBasicProperties(System.ReadOnlySpan<byte> span) { }
