@@ -14,12 +14,6 @@ declare -r keycloak_image_version='20.0'
 declare -r docker_network="$docker_name_prefix-net"
 declare -r rabbitmq_docker_name="$docker_name_prefix-rabbitmq"
 
-function err_todo
-{
-    echo '[ERROR] TODO' 1>&2
-    exit 69
-}
-
 function mode_is_uaa
 {
     [[ $mode == 'uaa' ]]
