@@ -31,4 +31,9 @@ New-Variable -Name ci_dir -Option Constant -Value (Join-Path -Path $env:GITHUB_W
 New-Variable -Name certs_dir -Option Constant -Value (Join-Path -Path $ci_dir -ChildPath 'certs')
 
 $csproj_file = Resolve-Path -LiteralPath (Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath 'projects' | Join-Path -ChildPath 'Unit' | Join-Path -ChildPath 'Unit.csproj')
-dotnet test --environment RABBITMQ_RABBITMQCTL_PATH=$rabbitmqctl_path --environment PASSWORD=grapefruit --environment SSL_CERTS_DIR=$certs_dir $csproj_file --no-restore --no-build --logger "console;verbosity=detailed"
+
+dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=$rabbitmqctl_path" `
+  --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' `
+  --environment 'PASSWORD=grapefruit' `
+  --environment "SSL_CERTS_DIR=$certs_dir" `
+  $csproj_file --no-restore --no-build --logger "console;verbosity=detailed"

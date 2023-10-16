@@ -117,45 +117,35 @@ namespace RabbitMQ.Client.Unit
 
         protected void RunSingleConnectionTest(ConnectionFactory cf)
         {
-            IConnection conn = cf.CreateConnection();
-            IChannel ch = conn.CreateChannel();
-            bool wasShutdown = false;
-
-            conn.ConnectionShutdown += (sender, evt) =>
+            using (IConnection conn = cf.CreateConnection())
             {
-                lock (conn)
+                using (IChannel ch = conn.CreateChannel())
                 {
-                    if (InitiatedByPeerOrLibrary(evt))
+                    bool wasShutdown = false;
+
+                    conn.ConnectionShutdown += (sender, evt) =>
                     {
-                        CheckInitiator(evt);
-                        wasShutdown = true;
-                    }
+                        lock (conn)
+                        {
+                            if (InitiatedByPeerOrLibrary(evt))
+                            {
+                                CheckInitiator(evt);
+                                wasShutdown = true;
+                            }
+                        }
+                    };
+                    SleepFor(30);
+
+                    Assert.False(wasShutdown, "shutdown event should not have been fired");
+                    Assert.True(conn.IsOpen, "connection should be open");
                 }
-            };
-            SleepFor(30);
-
-            Assert.False(wasShutdown, "shutdown event should not have been fired");
-            Assert.True(conn.IsOpen, "connection should be open");
-
-            conn.Close();
-        }
-
-        private void CheckInitiator(ShutdownEventArgs evt)
-        {
-            if (InitiatedByPeerOrLibrary(evt))
-            {
-                Console.WriteLine(((Exception)evt.Cause).StackTrace);
-                string s = string.Format("Shutdown: {0}, initiated by: {1}",
-                                      evt, evt.Initiator);
-                Console.WriteLine(s);
-                Assert.Fail(s);
             }
         }
 
         private bool LongRunningTestsEnabled()
         {
             string s = Environment.GetEnvironmentVariable("RABBITMQ_LONG_RUNNING_TESTS");
-            if (s is null || s.Equals(""))
+            if (String.IsNullOrEmpty(s))
             {
                 return false;
             }
@@ -164,8 +154,24 @@ namespace RabbitMQ.Client.Unit
 
         private void SleepFor(int t)
         {
-            Console.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
+            _output.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
             Thread.Sleep(t * 1000);
+        }
+
+        private bool InitiatedByPeerOrLibrary(ShutdownEventArgs evt)
+        {
+            return !(evt.Initiator == ShutdownInitiator.Application);
+        }
+
+        private void CheckInitiator(ShutdownEventArgs evt)
+        {
+            if (InitiatedByPeerOrLibrary(evt))
+            {
+                _output.WriteLine(((Exception)evt.Cause).StackTrace);
+                string s = string.Format("Shutdown: {0}, initiated by: {1}", evt, evt.Initiator);
+                _output.WriteLine(s);
+                Assert.Fail(s);
+            }
         }
     }
 }

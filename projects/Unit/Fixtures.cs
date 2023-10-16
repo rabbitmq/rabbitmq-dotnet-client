@@ -372,11 +372,6 @@ namespace RabbitMQ.Client.Unit
             AssertShutdownError(args, Constants.PreconditionFailed);
         }
 
-        internal bool InitiatedByPeerOrLibrary(ShutdownEventArgs evt)
-        {
-            return !(evt.Initiator == ShutdownInitiator.Application);
-        }
-
         //
         // Concurrency
         //
