@@ -464,6 +464,12 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
+        public async ValueTask QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        {
+            ThrowIfDisposed();
+            await _innerChannel.QueueBindAsync(queue, exchange, routingKey, arguments);
+        }
+
         public QueueDeclareOk QueueDeclarePassive(string queue)
             => InnerChannel.QueueDeclarePassive(queue);
 

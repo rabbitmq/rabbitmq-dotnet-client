@@ -157,21 +157,24 @@ namespace RabbitMQ.Client.Impl
 
     internal class ExchangeBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout) : base(ProtocolCommandId.ExchangeBindOk, continuationTimeout)
+        public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.ExchangeBindOk, continuationTimeout)
         {
         }
     }
 
     internal class ExchangeDeclareAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ExchangeDeclareAsyncRpcContinuation(TimeSpan continuationTimeout) : base(ProtocolCommandId.ExchangeDeclareOk, continuationTimeout)
+        public ExchangeDeclareAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.ExchangeDeclareOk, continuationTimeout)
         {
         }
     }
 
     internal class ExchangeDeleteAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ExchangeDeleteAsyncRpcContinuation(TimeSpan continuationTimeout) : base(ProtocolCommandId.ExchangeDeleteOk, continuationTimeout)
+        public ExchangeDeleteAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.ExchangeDeleteOk, continuationTimeout)
         {
         }
     }
@@ -201,6 +204,14 @@ namespace RabbitMQ.Client.Impl
             {
                 cmd.ReturnMethodBuffer();
             }
+        }
+    }
+
+    internal class QueueBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public QueueBindAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.QueueBindOk, continuationTimeout)
+        {
         }
     }
 

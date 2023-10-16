@@ -378,6 +378,16 @@ namespace RabbitMQ.Client
         /// </remarks>
         void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
+        /// <summary>
+        /// Asynchronously bind a queue to an exchange.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     Routing key must be shorter than 255 bytes.
+        ///   </para>
+        /// </remarks>
+        ValueTask QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
+
         /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
         /// <remarks>
         ///   <para>

@@ -1194,6 +1194,27 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public async ValueTask QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        {
+            using var k = new QueueBindAsyncRpcContinuation(ContinuationTimeout);
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new QueueBind(queue, exchange, routingKey, false, arguments);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
         public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
             _Private_QueueDeclare(queue, false, durable, exclusive, autoDelete, true, arguments);

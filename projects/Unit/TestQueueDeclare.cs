@@ -40,6 +40,8 @@ namespace RabbitMQ.Client.Unit
 {
     public class TestQueueDeclare : IntegrationFixture
     {
+        private readonly Random _rnd = new Random();
+
         public TestQueueDeclare(ITestOutputHelper output) : base(output)
         {
         }
@@ -59,9 +61,7 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestConcurrentQueueDeclare()
         {
-            string q = GenerateQueueName();
-            var rnd = new Random();
-
+            var qs = new List<string>();
             var ts = new List<Thread>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
@@ -72,8 +72,10 @@ namespace RabbitMQ.Client.Unit
                             {
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
-                                Thread.Sleep(rnd.Next(5, 50));
+                                Thread.Sleep(_rnd.Next(5, 50));
+                                string q = GenerateQueueName();
                                 _channel.QueueDeclare(q, false, false, false, null);
+                                qs.Add(q);
                             }
                             catch (NotSupportedException e)
                             {
@@ -90,13 +92,37 @@ namespace RabbitMQ.Client.Unit
             }
 
             Assert.Null(nse);
-            _channel.QueueDelete(q);
+            ts.Clear();
+
+            foreach (string queueName in qs)
+            {
+                var t = new Thread(() =>
+                        {
+                            try
+                            {
+                                Thread.Sleep(_rnd.Next(5, 50));
+                                _channel.QueueDelete(queueName);
+                            }
+                            catch (NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                        });
+                ts.Add(t);
+                t.Start();
+            }
+
+            foreach (Thread t in ts)
+            {
+                t.Join();
+            }
+
+            Assert.Null(nse);
         }
 
         [Fact]
-        public async void TestConcurrentQueueDeclareAsync()
+        public async void TestConcurrentQueueDeclareAndBindAsync()
         {
-            var rnd = new Random();
             var ts = new List<Task>();
             var qs = new List<string>();
 
@@ -109,9 +135,11 @@ namespace RabbitMQ.Client.Unit
                     {
                         // sleep for a random amount of time to increase the chances
                         // of thread interleaving. MK.
-                        await Task.Delay(rnd.Next(5, 50));
+                        await Task.Delay(_rnd.Next(5, 50));
                         QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: string.Empty, passive: false, false, false, false, null);
-                        qs.Add(r.QueueName);
+                        string queueName = r.QueueName;
+                        await _channel.QueueBindAsync(queue: queueName, exchange: "amq.fanout", routingKey: queueName, null);
+                        qs.Add(queueName);
                     }
                     catch (NotSupportedException e)
                     {
@@ -134,9 +162,7 @@ namespace RabbitMQ.Client.Unit
                     string qname = q;
                     try
                     {
-                        // sleep for a random amount of time to increase the chances
-                        // of thread interleaving. MK.
-                        await Task.Delay(rnd.Next(5, 50));
+                        await Task.Delay(_rnd.Next(5, 50));
 
                         QueueDeclareOk r = await _channel.QueueDeclareAsync(qname, passive: true, false, false, false, null);
                         Assert.Equal(qname, r.QueueName);
