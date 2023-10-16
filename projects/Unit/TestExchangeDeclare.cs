@@ -40,28 +40,30 @@ namespace RabbitMQ.Client.Unit
 {
     public class TestExchangeDeclare : IntegrationFixture
     {
+        private readonly Random _rnd = new Random();
+
         public TestExchangeDeclare(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
-        public void TestConcurrentExchangeDeclare()
+        public void TestConcurrentExchangeDeclareAndDelete()
         {
-            string x = GenerateExchangeName();
-            Random rnd = new Random();
-
-            List<Thread> ts = new List<Thread>();
+            var exchangeNames = new List<string>();
+            var ts = new List<Thread>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
             {
-                Thread t = new Thread(() =>
+                var t = new Thread(() =>
                         {
                             try
                             {
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
-                                Thread.Sleep(rnd.Next(5, 500));
-                                _channel.ExchangeDeclare(x, "fanout", false, false, null);
+                                Thread.Sleep(_rnd.Next(5, 500));
+                                string exchangeName = GenerateExchangeName();
+                                _channel.ExchangeDeclare(exchange: exchangeName, "fanout", false, false, null);
+                                exchangeNames.Add(exchangeName);
                             }
                             catch (NotSupportedException e)
                             {
@@ -78,15 +80,40 @@ namespace RabbitMQ.Client.Unit
             }
 
             Assert.Null(nse);
-            _channel.ExchangeDelete(x);
+            ts.Clear();
+
+            foreach (string exchangeName in exchangeNames)
+            {
+                var t = new Thread((object ex) =>
+                        {
+                            try
+                            {
+                                // sleep for a random amount of time to increase the chances
+                                // of thread interleaving. MK.
+                                Thread.Sleep(_rnd.Next(5, 500));
+                                _channel.ExchangeDelete((string)ex);
+                            }
+                            catch (NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                        });
+                ts.Add(t);
+                t.Start(exchangeName);
+            }
+
+            foreach (Thread t in ts)
+            {
+                t.Join();
+            }
+
+            Assert.Null(nse);
         }
 
         [Fact]
-        public async void TestConcurrentExchangeDeclareAsync()
+        public async void TestConcurrentExchangeDeclareAndBindAsync()
         {
-            string x = GenerateExchangeName();
-            var rnd = new Random();
-
+            var exchangeNames = new List<string>();
             var ts = new List<Task>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
@@ -95,10 +122,11 @@ namespace RabbitMQ.Client.Unit
                 {
                     try
                     {
-                        // sleep for a random amount of time to increase the chances
-                        // of thread interleaving. MK.
-                        await Task.Delay(rnd.Next(5, 50));
-                        await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout", passive: false, false, false, null);
+                        await Task.Delay(_rnd.Next(5, 50));
+                        string exchangeName = GenerateExchangeName();
+                        await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: "fanout", passive: false, false, false, null);
+                        await _channel.ExchangeBindAsync(destination: "amq.fanout", source: exchangeName, routingKey: "unused", null);
+                        exchangeNames.Add(exchangeName);
                     }
                     catch (NotSupportedException e)
                     {
@@ -111,7 +139,28 @@ namespace RabbitMQ.Client.Unit
 
             await Task.WhenAll(ts);
             Assert.Null(nse);
-            await _channel.ExchangeDeleteAsync(x, false);
+            ts.Clear();
+
+            foreach (string exchangeName in exchangeNames)
+            {
+                async Task f()
+                {
+                    try
+                    {
+                        await Task.Delay(_rnd.Next(5, 50));
+                        await _channel.ExchangeDeleteAsync(exchange: exchangeName, ifUnused: false);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                }
+                var t = Task.Run(f);
+                ts.Add(t);
+            }
+
+            await Task.WhenAll(ts);
+            Assert.Null(nse);
         }
     }
 }

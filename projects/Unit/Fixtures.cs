@@ -50,10 +50,11 @@ namespace RabbitMQ.Client.Unit
         internal IChannel _channel;
         internal Encoding _encoding = new UTF8Encoding();
 
-        public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
         protected readonly TimeSpan _waitSpan;
         protected readonly ITestOutputHelper _output;
         protected readonly string _testDisplayName;
+
+        public static TimeSpan RECOVERY_INTERVAL = TimeSpan.FromSeconds(2);
 
         public IntegrationFixture(ITestOutputHelper output)
         {
