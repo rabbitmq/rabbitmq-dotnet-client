@@ -1,0 +1,25 @@
+name: publish-nuget
+
+on:
+  workflow_call:
+    secrets:
+      NUGET_API_KEY:
+        required: true
+
+jobs:
+  publish-nuget:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/.local/share/NuGet/v3-cache
+          key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-v1-nuget-
+      - name: Build (Release)
+        run: dotnet build ${{ github.workspace }}\Build.csproj --verbosity=normal --configuration=Release --property CI=true
+      - name: Publish to NuGet
+        run: dotnet nuget push --skip-duplicate --api-key ${{ secrets.NUGET_API_KEY }} --source 'https://api.nuget.org/v3/index.json' ${{ github.workspace }}\packages\RabbitMQ.Client.*.nupkg
