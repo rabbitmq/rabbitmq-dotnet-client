@@ -35,7 +35,7 @@ jobs:
         run: .\.ci\windows\gha-setup.ps1
       - name: List NuGet sources
         run: dotnet nuget locals all --list
-      - name: Build
+      - name: Build (Debug)
         run: dotnet build ${{ github.workspace }}\Build.csproj
       - name: Verify
         run: dotnet format ${{ github.workspace }}\RabbitMQDotNetClient.sln --verify-no-changes --verbosity=diagnostic
@@ -73,7 +73,7 @@ jobs:
         run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
       - name: List NuGet sources
         run: dotnet nuget locals all --list
-      - name: Build
+      - name: Build (Debug)
         run: dotnet build ${{ github.workspace }}/Build.csproj
       - name: Verify
         run: dotnet format ${{ github.workspace }}/RabbitMQDotNetClient.sln --verify-no-changes --verbosity=diagnostic
