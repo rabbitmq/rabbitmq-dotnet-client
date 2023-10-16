@@ -443,6 +443,7 @@ namespace RabbitMQ.Client
         void ExchangeUnbindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         uint MessageCount(string queue);
         void QueueBind(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
+        System.Threading.Tasks.ValueTask QueueBindAsync(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void QueueBindNoWait(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         RabbitMQ.Client.QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
         System.Threading.Tasks.ValueTask<RabbitMQ.Client.QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, System.Collections.Generic.IDictionary<string, object> arguments);
