@@ -386,7 +386,7 @@ namespace RabbitMQ.Client.Impl
             if (false == passive)
             {
                 _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
-            }    
+            }
         }
 
         public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
