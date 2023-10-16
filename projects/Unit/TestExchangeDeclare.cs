@@ -148,6 +148,7 @@ namespace RabbitMQ.Client.Unit
                     try
                     {
                         await Task.Delay(_rnd.Next(5, 50));
+                        await _channel.ExchangeUnbindAsync(destination: "amq.fanout", source: exchangeName, routingKey: "unused", null);
                         await _channel.ExchangeDeleteAsync(exchange: exchangeName, ifUnused: false);
                     }
                     catch (NotSupportedException e)

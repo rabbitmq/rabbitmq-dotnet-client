@@ -440,6 +440,7 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused);
         void ExchangeDeleteNoWait(string exchange, bool ifUnused);
         void ExchangeUnbind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
+        System.Threading.Tasks.ValueTask ExchangeUnbindAsync(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void ExchangeUnbindNoWait(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         uint MessageCount(string queue);
         void QueueBind(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);

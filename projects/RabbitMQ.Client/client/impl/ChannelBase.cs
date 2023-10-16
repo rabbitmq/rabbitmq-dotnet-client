@@ -1150,6 +1150,27 @@ namespace RabbitMQ.Client.Impl
             _Private_ExchangeUnbind(destination, source, routingKey, false, arguments);
         }
 
+        public async ValueTask ExchangeUnbindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        {
+            using var k = new ExchangeUnbindAsyncRpcContinuation(ContinuationTimeout);
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new ExchangeUnbind(destination, source, routingKey, false, arguments);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
         public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             _Private_ExchangeUnbind(destination, source, routingKey, true, arguments);

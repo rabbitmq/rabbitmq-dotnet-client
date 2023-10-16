@@ -425,6 +425,14 @@ namespace RabbitMQ.Client.Impl
             _connection.DeleteAutoDeleteExchange(source);
         }
 
+        public async ValueTask ExchangeUnbindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        {
+            ThrowIfDisposed();
+            await _innerChannel.ExchangeUnbindAsync(destination, source, routingKey, arguments);
+            _connection.DeleteRecordedBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
+            _connection.DeleteAutoDeleteExchange(source);
+        }
+
         public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
             => InnerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
 

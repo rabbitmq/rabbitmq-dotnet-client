@@ -359,6 +359,14 @@ namespace RabbitMQ.Client
         void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
+        /// Asynchronously unbind an exchange from an exchange.
+        /// </summary>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// </remarks>
+        ValueTask ExchangeUnbindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+
+        /// <summary>
         /// Like ExchangeUnbind but sets nowait to true.
         /// </summary>
         /// <remarks>
