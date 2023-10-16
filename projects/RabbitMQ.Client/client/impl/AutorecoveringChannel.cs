@@ -349,6 +349,9 @@ namespace RabbitMQ.Client.Impl
         public void BasicReject(ulong deliveryTag, bool requeue)
             => InnerChannel.BasicReject(deliveryTag, requeue);
 
+        public ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue)
+            => InnerChannel.BasicRejectAsync(deliveryTag, requeue);
+
         public void ConfirmSelect()
         {
             InnerChannel.ConfirmSelect();

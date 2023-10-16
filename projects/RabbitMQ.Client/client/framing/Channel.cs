@@ -254,6 +254,12 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelSend(new BasicReject(deliveryTag, requeue));
         }
 
+        public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue)
+        {
+            var method = new BasicReject(deliveryTag, requeue);
+            return ModelSendAsync(method);
+        }
+
         public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ChannelRpc(new QueueUnbind(queue, exchange, routingKey, arguments), ProtocolCommandId.QueueUnbindOk);

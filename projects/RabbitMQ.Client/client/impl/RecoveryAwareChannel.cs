@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -85,6 +87,20 @@ namespace RabbitMQ.Client.Impl
             if (realTag > 0 && realTag <= deliveryTag)
             {
                 base.BasicReject(realTag, requeue);
+            }
+        }
+
+        public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                return base.BasicRejectAsync(realTag, requeue);
+            }
+            else
+            {
+                // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
+                throw new InvalidOperationException();
             }
         }
     }

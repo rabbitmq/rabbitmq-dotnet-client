@@ -35,12 +35,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace RabbitMQ.Client.Unit
 {
     [Collection("IntegrationFixture")]
     public class TestConsumer
     {
+        private readonly ITestOutputHelper _output;
+
+        public TestConsumer(ITestOutputHelper output) => _output = output;
+
         [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
@@ -90,6 +95,67 @@ namespace RabbitMQ.Client.Unit
 
                 bool result2 = await publish1SyncSource.Task;
                 Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+            }
+        }
+
+        [Fact]
+        public async Task TestBasicRejectAsync()
+        {
+            var s = new SemaphoreSlim(0, 1);
+            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
+            using (IConnection connection = cf.CreateConnection())
+            using (IChannel channel = connection.CreateChannel())
+            {
+                var consumer = new AsyncEventingBasicConsumer(channel);
+                consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+                {
+                    var c = sender as AsyncEventingBasicConsumer;
+                    Assert.NotNull(c);
+                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
+                    // BasicCancelAsync
+                    channel.BasicCancel(c.ConsumerTags[0]);
+                    await channel.BasicRejectAsync(args.DeliveryTag, true);
+                    s.Release(1);
+                };
+
+                QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+                string queueName = q.QueueName;
+                const string publish1 = "sync-hi-1";
+                byte[] body = Encoding.UTF8.GetBytes(publish1);
+                await channel.BasicPublishAsync(string.Empty, queueName, body);
+
+                // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
+                // BasicConsumeAsync
+                channel.BasicConsume(queueName, false, consumer);
+
+                await s.WaitAsync();
+
+                uint messageCount, consumerCount = 0;
+                ushort tries = 5;
+                do
+                {
+                    QueueDeclareOk result = await channel.QueueDeclareAsync(queue: queueName, passive: true, false, false, false, null);
+                    consumerCount = result.ConsumerCount;
+                    messageCount = result.MessageCount;
+                    if (consumerCount == 0 && messageCount > 0)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        await Task.Delay(500);
+                    }
+                } while (tries-- > 0);
+
+                if (tries == 0)
+                {
+                    Assert.Fail("[ERROR] failed waiting for MessageCount > 0 && ConsumerCount == 0");
+                }
+                else
+                {
+                    Assert.Equal((uint)1, messageCount);
+                    Assert.Equal((uint)0, consumerCount);
+                }
             }
         }
     }

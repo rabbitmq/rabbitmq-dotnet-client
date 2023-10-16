@@ -1036,6 +1036,8 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicReject(ulong deliveryTag, bool requeue);
 
+        public abstract ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue);
+
         public void ConfirmSelect()
         {
             if (NextPublishSeqNo == 0UL)

@@ -244,16 +244,21 @@ namespace RabbitMQ.Client
         /// Indicates that a consumer has recovered.
         /// Deprecated. Should not be used.
         /// </summary>
+        [Obsolete]
         void BasicRecover(bool requeue);
 
         /// <summary>
         /// Indicates that a consumer has recovered.
         /// Deprecated. Should not be used.
         /// </summary>
+        [Obsolete]
         void BasicRecoverAsync(bool requeue);
 
         /// <summary> Reject a delivered message.</summary>
         void BasicReject(ulong deliveryTag, bool requeue);
+
+        /// <summary> Reject a delivered message.</summary>
+        ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue);
 
         /// <summary>Close this session.</summary>
         /// <param name="replyCode">The reply code to send for closing (See under "Reply Codes" in the AMQP specification).</param>
