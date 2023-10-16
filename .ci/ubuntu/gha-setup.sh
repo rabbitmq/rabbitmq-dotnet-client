@@ -27,12 +27,6 @@ set -o nounset
 
 declare -r rabbitmq_docker_name="$docker_name_prefix-rabbitmq"
 
-function err_todo
-{
-    echo '[ERROR] TODO' 1>&2
-    exit 69
-}
-
 function start_rabbitmq
 {
     chmod 0777 "$GITHUB_WORKSPACE/.ci/ubuntu/log"
