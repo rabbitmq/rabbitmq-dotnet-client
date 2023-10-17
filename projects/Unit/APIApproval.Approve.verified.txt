@@ -423,9 +423,12 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader;
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
+        [System.Obsolete]
         void BasicRecover(bool requeue);
+        [System.Obsolete]
         void BasicRecoverAsync(bool requeue);
         void BasicReject(ulong deliveryTag, bool requeue);
+        System.Threading.Tasks.ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue);
         void Close(ushort replyCode, string replyText, bool abort);
         void ConfirmSelect();
         uint ConsumerCount(string queue);
