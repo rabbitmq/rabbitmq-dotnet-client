@@ -410,6 +410,7 @@ namespace RabbitMQ.Client
         event System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs> FlowControl;
         void BasicAck(ulong deliveryTag, bool multiple);
         void BasicCancel(string consumerTag);
+        System.Threading.Tasks.ValueTask BasicCancelAsync(string consumerTag);
         void BasicCancelNoWait(string consumerTag);
         string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer);
         RabbitMQ.Client.BasicGetResult BasicGet(string queue, bool autoAck);

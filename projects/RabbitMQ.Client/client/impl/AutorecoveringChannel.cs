@@ -280,6 +280,13 @@ namespace RabbitMQ.Client.Impl
             _innerChannel.BasicCancel(consumerTag);
         }
 
+        public ValueTask BasicCancelAsync(string consumerTag)
+        {
+            ThrowIfDisposed();
+            _connection.DeleteRecordedConsumer(consumerTag);
+            return _innerChannel.BasicCancelAsync(consumerTag);
+        }
+
         public void BasicCancelNoWait(string consumerTag)
         {
             ThrowIfDisposed();

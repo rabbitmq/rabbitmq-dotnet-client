@@ -155,6 +155,14 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
+    internal class BasicCancelAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public BasicCancelAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.BasicCancelOk, continuationTimeout)
+        {
+        }
+    }
+
     internal class ExchangeBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout)

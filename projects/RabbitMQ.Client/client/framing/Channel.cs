@@ -301,8 +301,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.BasicCancelOk:
                     {
-                        HandleBasicCancelOk(in cmd);
-                        return true;
+                        return HandleBasicCancelOk(in cmd);
                     }
                 case ProtocolCommandId.BasicConsumeOk:
                     {

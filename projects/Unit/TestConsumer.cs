@@ -111,9 +111,7 @@ namespace RabbitMQ.Client.Unit
                 {
                     var c = sender as AsyncEventingBasicConsumer;
                     Assert.NotNull(c);
-                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-                    // BasicCancelAsync
-                    channel.BasicCancel(c.ConsumerTags[0]);
+                    await channel.BasicCancelAsync(c.ConsumerTags[0]);
                     await channel.BasicRejectAsync(args.DeliveryTag, true);
                     s.Release(1);
                 };

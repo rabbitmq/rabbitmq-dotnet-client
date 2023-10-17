@@ -282,6 +282,8 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
+                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
+                    // Not yet async
                     _Private_ConnectionStartOk(clientProperties, mechanism, response, locale);
                 }
                 catch (AlreadyClosedException)
@@ -582,13 +584,21 @@ namespace RabbitMQ.Client.Impl
             ConsumerDispatcher.HandleBasicCancel(consumerTag);
         }
 
-        protected void HandleBasicCancelOk(in IncomingCommand cmd)
+        protected bool HandleBasicCancelOk(in IncomingCommand cmd)
         {
-            var k = (BasicConsumerRpcContinuation)_continuationQueue.Next();
-            var consumerTag = new Client.Framing.Impl.BasicCancelOk(cmd.MethodBytes.Span)._consumerTag;
-            cmd.ReturnMethodBuffer();
-            ConsumerDispatcher.HandleBasicCancelOk(consumerTag);
-            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+            if (_continuationQueue.TryPeek<BasicConsumerRpcContinuation>(out var k))
+            {
+                _continuationQueue.Next();
+                string consumerTag = new Client.Framing.Impl.BasicCancelOk(cmd.MethodBytes.Span)._consumerTag;
+                cmd.ReturnMethodBuffer();
+                ConsumerDispatcher.HandleBasicCancelOk(consumerTag);
+                k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         protected void HandleBasicConsumeOk(in IncomingCommand cmd)
@@ -863,13 +873,33 @@ namespace RabbitMQ.Client.Impl
         public void BasicCancel(string consumerTag)
         {
             var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
-
             _rpcSemaphore.Wait();
             try
             {
                 Enqueue(k);
                 _Private_BasicCancel(consumerTag, false);
                 k.GetReply(ContinuationTimeout);
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
+        public async ValueTask BasicCancelAsync(string consumerTag)
+        {
+            using var k = new BasicCancelAsyncRpcContinuation(ContinuationTimeout);
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new Client.Framing.Impl.BasicCancel(consumerTag, false);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
             }
             finally
             {

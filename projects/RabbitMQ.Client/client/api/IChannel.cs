@@ -151,20 +151,24 @@ namespace RabbitMQ.Client
         /// </remarks>
         event EventHandler<ShutdownEventArgs> ChannelShutdown;
 
-        /// <summary>
-        /// Acknowledge one or more delivered message(s).
-        /// </summary>
+        /// <summary>Acknknowledges one or more messages.</summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">Ack all messages up to the delivery tag if set to <c>true</c>.</param>
         void BasicAck(ulong deliveryTag, bool multiple);
 
-        /// <summary>
-        /// Delete a Basic content-class consumer.
-        /// </summary>
+        /// <summary>Cancel a Basic content-class consumer.</summary>
+        /// <param name="consumerTag">The consumer tag.</param>
         void BasicCancel(string consumerTag);
+
+        /// <summary>Asynchronously cancel a Basic content-class consumer.</summary>
+        /// <param name="consumerTag">The consumer tag.</param>
+        ValueTask BasicCancelAsync(string consumerTag);
 
         /// <summary>
         /// Same as BasicCancel but sets nowait to true and returns void (as there
         /// will be no response from the server).
         /// </summary>
+        /// <param name="consumerTag">The consumer tag.</param>
         void BasicCancelNoWait(string consumerTag);
 
         /// <summary>Start a Basic content-class consumer.</summary>
@@ -180,8 +184,11 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve an individual message, if
         /// one is available; returns null if the server answers that
-        /// no messages are currently available. See also <see cref="IChannel.BasicAck"/>.
+        /// no messages are currently available. See also <see cref="IChannel.BasicAck" />.
         /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
+        /// <returns><see cref="BasicGetResult"/></returns>
         BasicGetResult BasicGet(string queue, bool autoAck);
 
         /// <summary>Reject one or more delivered message(s).</summary>
