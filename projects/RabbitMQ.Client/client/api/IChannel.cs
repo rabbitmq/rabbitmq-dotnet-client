@@ -172,14 +172,26 @@ namespace RabbitMQ.Client
         void BasicCancelNoWait(string consumerTag);
 
         /// <summary>Start a Basic content-class consumer.</summary>
-        string BasicConsume(
-            string queue,
-            bool autoAck,
-            string consumerTag,
-            bool noLocal,
-            bool exclusive,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer);
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack messages.</param>
+        /// <param name="consumerTag">The consumer tag.</param>
+        /// <param name="noLocal">If set to <c>true</c>, this consumer will not receive messages published by the same connection.</param>
+        /// <param name="exclusive">If set to <c>true</c>, the consumer is exclusive.</param>
+        /// <param name="arguments">Consumer arguments.</param>
+        /// <param name="consumer">The consumer, an instance of <see cref="IBasicConsumer"/></param>
+        /// <returns></returns>
+        string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer);
+
+        /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack messages.</param>
+        /// <param name="consumerTag">The consumer tag.</param>
+        /// <param name="noLocal">If set to <c>true</c>, this consumer will not receive messages published by the same connection.</param>
+        /// <param name="exclusive">If set to <c>true</c>, the consumer is exclusive.</param>
+        /// <param name="arguments">Consumer arguments.</param>
+        /// <param name="consumer">The consumer, an instance of <see cref="IBasicConsumer"/></param>
+        /// <returns></returns>
+        ValueTask<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer);
 
         /// <summary>
         /// Retrieve an individual message, if

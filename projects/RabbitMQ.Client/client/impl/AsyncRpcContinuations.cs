@@ -34,6 +34,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -163,6 +164,40 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
+    internal class BasicConsumeAsyncRpcContinuation : AsyncRpcContinuation<string>
+    {
+        private readonly IBasicConsumer _consumer;
+        private readonly IConsumerDispatcher _consumerDispatcher;
+
+        public BasicConsumeAsyncRpcContinuation(IBasicConsumer consumer, IConsumerDispatcher consumerDispatcher, TimeSpan continuationTimeout)
+            : base(continuationTimeout)
+        {
+            _consumer = consumer;
+            _consumerDispatcher = consumerDispatcher;
+        }
+
+        public override void HandleCommand(in IncomingCommand cmd)
+        {
+            try
+            {
+                if (cmd.CommandId == ProtocolCommandId.BasicConsumeOk)
+                {
+                    var method = new Client.Framing.Impl.BasicConsumeOk(cmd.MethodBytes.Span);
+                    _tcs.TrySetResult(method._consumerTag);
+                    _consumerDispatcher.HandleBasicConsumeOk(_consumer, method._consumerTag);
+                }
+                else
+                {
+                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                }
+            }
+            finally
+            {
+                cmd.ReturnMethodBuffer();
+            }
+        }
+    }
+
     internal class ExchangeBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout)
@@ -205,10 +240,10 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodBytes.Span);
-                var result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
                 if (cmd.CommandId == ProtocolCommandId.QueueDeclareOk)
                 {
+                    var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodBytes.Span);
+                    var result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
                     _tcs.TrySetResult(result);
                 }
                 else
@@ -241,9 +276,9 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                var method = new Client.Framing.Impl.QueueDeleteOk(cmd.MethodBytes.Span);
                 if (cmd.CommandId == ProtocolCommandId.QueueDeleteOk)
                 {
+                    var method = new Client.Framing.Impl.QueueDeleteOk(cmd.MethodBytes.Span);
                     _tcs.TrySetResult(method._messageCount);
                 }
                 else

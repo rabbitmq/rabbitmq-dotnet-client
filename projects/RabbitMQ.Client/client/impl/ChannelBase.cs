@@ -601,14 +601,22 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void HandleBasicConsumeOk(in IncomingCommand cmd)
+        protected bool HandleBasicConsumeOk(in IncomingCommand cmd)
         {
-            var consumerTag = new Client.Framing.Impl.BasicConsumeOk(cmd.MethodBytes.Span)._consumerTag;
-            cmd.ReturnMethodBuffer();
-            var k = (BasicConsumerRpcContinuation)_continuationQueue.Next();
-            k.m_consumerTag = consumerTag;
-            ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
-            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+            if (_continuationQueue.TryPeek<BasicConsumerRpcContinuation>(out var k))
+            {
+                _continuationQueue.Next();
+                var consumerTag = new Client.Framing.Impl.BasicConsumeOk(cmd.MethodBytes.Span)._consumerTag;
+                cmd.ReturnMethodBuffer();
+                k.m_consumerTag = consumerTag;
+                ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
+                k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         protected void HandleBasicDeliver(in IncomingCommand cmd)
@@ -913,7 +921,8 @@ namespace RabbitMQ.Client.Impl
             ConsumerDispatcher.GetAndRemoveConsumer(consumerTag);
         }
 
-        public string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, IDictionary<string, object> arguments, IBasicConsumer consumer)
+        public string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+            IDictionary<string, object> arguments, IBasicConsumer consumer)
         {
             // TODO: Replace with flag
             if (ConsumerDispatcher is AsyncConsumerDispatcher)
@@ -933,8 +942,7 @@ namespace RabbitMQ.Client.Impl
                 Enqueue(k);
                 // Non-nowait. We have an unconventional means of getting
                 // the RPC response, but a response is still expected.
-                _Private_BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive,
-                    /*nowait:*/ false, arguments);
+                _Private_BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
                 k.GetReply(ContinuationTimeout);
             }
             finally
@@ -945,6 +953,35 @@ namespace RabbitMQ.Client.Impl
             string actualConsumerTag = k.m_consumerTag;
 
             return actualConsumerTag;
+        }
+
+        public async ValueTask<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+            IDictionary<string, object> arguments, IBasicConsumer consumer)
+        {
+            if (ConsumerDispatcher is AsyncConsumerDispatcher)
+            {
+                if (!(consumer is IAsyncBasicConsumer))
+                {
+                    // TODO: Friendly message
+                    throw new InvalidOperationException("In the async mode you have to use an async consumer");
+                }
+            }
+
+            using var k = new BasicConsumeAsyncRpcContinuation(consumer, ConsumerDispatcher, ContinuationTimeout);
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new Client.Framing.Impl.BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                return await k;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
         }
 
         public BasicGetResult BasicGet(string queue, bool autoAck)

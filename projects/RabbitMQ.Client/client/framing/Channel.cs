@@ -305,8 +305,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.BasicConsumeOk:
                     {
-                        HandleBasicConsumeOk(in cmd);
-                        return true;
+                        return HandleBasicConsumeOk(in cmd);
                     }
                 case ProtocolCommandId.BasicGetEmpty:
                     {

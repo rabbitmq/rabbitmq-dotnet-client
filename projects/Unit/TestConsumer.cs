@@ -122,9 +122,9 @@ namespace RabbitMQ.Client.Unit
                 byte[] body = Encoding.UTF8.GetBytes(publish1);
                 await channel.BasicPublishAsync(string.Empty, queueName, body);
 
-                // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-                // BasicConsumeAsync
-                channel.BasicConsume(queueName, false, consumer);
+                await channel.BasicConsumeAsync(queue: queueName, autoAck: false,
+                    consumerTag: string.Empty, noLocal: false, exclusive: false,
+                    arguments: null, consumer);
 
                 await s.WaitAsync();
 
