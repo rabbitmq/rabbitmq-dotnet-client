@@ -878,6 +878,8 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicAck(ulong deliveryTag, bool multiple);
 
+        public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple);
+
         public void BasicCancel(string consumerTag)
         {
             var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
@@ -1081,6 +1083,27 @@ namespace RabbitMQ.Client.Impl
         }
 
         public abstract void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
+
+        public async ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global)
+        {
+            using var k = new BasicQosAsyncRpcContinuation(ContinuationTimeout);
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Enqueue(k);
+
+                var method = new BasicQos(prefetchSize, prefetchCount, global);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
 
         public void BasicRecover(bool requeue)
         {

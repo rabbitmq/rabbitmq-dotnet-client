@@ -70,14 +70,20 @@ namespace RabbitMQ.Client.Impl
         event EventHandler<ShutdownEventArgs> SessionShutdown;
 
         void Close(ShutdownEventArgs reason);
+
         void Close(ShutdownEventArgs reason, bool notify);
+
         bool HandleFrame(in InboundFrame frame);
+
         void Notify();
+
         void Transmit<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
-        ValueTask TransmitAsync<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
+
         void Transmit<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader;
+
+        ValueTask TransmitAsync<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
 
         ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod

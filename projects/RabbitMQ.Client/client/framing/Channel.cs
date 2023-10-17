@@ -234,6 +234,12 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelSend(new BasicAck(deliveryTag, multiple));
         }
 
+        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
+        {
+            var method = new BasicAck(deliveryTag, multiple);
+            return ModelSendAsync(method);
+        }
+
         public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
             ChannelSend(new BasicNack(deliveryTag, multiple, requeue));

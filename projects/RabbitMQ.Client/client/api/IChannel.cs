@@ -156,6 +156,11 @@ namespace RabbitMQ.Client
         /// <param name="multiple">Ack all messages up to the delivery tag if set to <c>true</c>.</param>
         void BasicAck(ulong deliveryTag, bool multiple);
 
+        /// <summary>Asynchronously acknknowledges one or more messages.</summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">Ack all messages up to the delivery tag if set to <c>true</c>.</param>
+        ValueTask BasicAckAsync(ulong deliveryTag, bool multiple);
+
         /// <summary>Cancel a Basic content-class consumer.</summary>
         /// <param name="consumerTag">The consumer tag.</param>
         void BasicCancel(string consumerTag);
@@ -257,7 +262,20 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Configures QoS parameters of the Basic content-class.
         /// </summary>
+        /// <param name="prefetchSize">Size of the prefetch in bytes.</param>
+        /// <param name="prefetchCount">The prefetch count.</param>
+        /// <param name="global">If set to <c>true</c>, use global prefetch.
+        /// See the <seealso href="https://www.rabbitmq.com/consumer-prefetch.html#overview">Consumer Prefetch documentation</seealso>.</param>
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
+
+        /// <summary>
+        /// Configures QoS parameters of the Basic content-class.
+        /// </summary>
+        /// <param name="prefetchSize">Size of the prefetch in bytes.</param>
+        /// <param name="prefetchCount">The prefetch count.</param>
+        /// <param name="global">If set to <c>true</c>, use global prefetch.
+        /// See the <seealso href="https://www.rabbitmq.com/consumer-prefetch.html#overview">Consumer Prefetch documentation</seealso>.</param>
+        ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global);
 
         /// <summary>
         /// Indicates that a consumer has recovered.

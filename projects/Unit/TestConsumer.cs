@@ -103,58 +103,102 @@ namespace RabbitMQ.Client.Unit
         {
             var s = new SemaphoreSlim(0, 1);
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
-            using (IConnection connection = cf.CreateConnection())
-            using (IChannel channel = connection.CreateChannel())
+            using IConnection connection = cf.CreateConnection();
+            using IChannel channel = connection.CreateChannel();
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
+            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
             {
-                var consumer = new AsyncEventingBasicConsumer(channel);
-                consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+                var c = sender as AsyncEventingBasicConsumer;
+                Assert.NotNull(c);
+                await channel.BasicCancelAsync(c.ConsumerTags[0]);
+                await channel.BasicRejectAsync(args.DeliveryTag, true);
+                s.Release(1);
+            };
+
+            QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            string queueName = q.QueueName;
+            const string publish1 = "sync-hi-1";
+            byte[] body = Encoding.UTF8.GetBytes(publish1);
+            await channel.BasicPublishAsync(string.Empty, queueName, body);
+
+            await channel.BasicConsumeAsync(queue: queueName, autoAck: false,
+                consumerTag: string.Empty, noLocal: false, exclusive: false,
+                arguments: null, consumer);
+
+            await s.WaitAsync();
+
+            uint messageCount, consumerCount = 0;
+            ushort tries = 5;
+            do
+            {
+                QueueDeclareOk result = await channel.QueueDeclareAsync(queue: queueName, passive: true, false, false, false, null);
+                consumerCount = result.ConsumerCount;
+                messageCount = result.MessageCount;
+                if (consumerCount == 0 && messageCount > 0)
                 {
-                    var c = sender as AsyncEventingBasicConsumer;
-                    Assert.NotNull(c);
-                    await channel.BasicCancelAsync(c.ConsumerTags[0]);
-                    await channel.BasicRejectAsync(args.DeliveryTag, true);
-                    s.Release(1);
-                };
-
-                QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
-                string queueName = q.QueueName;
-                const string publish1 = "sync-hi-1";
-                byte[] body = Encoding.UTF8.GetBytes(publish1);
-                await channel.BasicPublishAsync(string.Empty, queueName, body);
-
-                await channel.BasicConsumeAsync(queue: queueName, autoAck: false,
-                    consumerTag: string.Empty, noLocal: false, exclusive: false,
-                    arguments: null, consumer);
-
-                await s.WaitAsync();
-
-                uint messageCount, consumerCount = 0;
-                ushort tries = 5;
-                do
-                {
-                    QueueDeclareOk result = await channel.QueueDeclareAsync(queue: queueName, passive: true, false, false, false, null);
-                    consumerCount = result.ConsumerCount;
-                    messageCount = result.MessageCount;
-                    if (consumerCount == 0 && messageCount > 0)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        await Task.Delay(500);
-                    }
-                } while (tries-- > 0);
-
-                if (tries == 0)
-                {
-                    Assert.Fail("[ERROR] failed waiting for MessageCount > 0 && ConsumerCount == 0");
+                    break;
                 }
                 else
                 {
-                    Assert.Equal((uint)1, messageCount);
-                    Assert.Equal((uint)0, consumerCount);
+                    await Task.Delay(500);
                 }
+            } while (tries-- > 0);
+
+            if (tries == 0)
+            {
+                Assert.Fail("[ERROR] failed waiting for MessageCount > 0 && ConsumerCount == 0");
             }
+            else
+            {
+                Assert.Equal((uint)1, messageCount);
+                Assert.Equal((uint)0, consumerCount);
+            }
+        }
+
+        [Fact]
+        public async Task TestBasicAckAsync()
+        {
+            int messageCount = 1024;
+            var s = new SemaphoreSlim(0, 1);
+            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
+            using IConnection connection = cf.CreateConnection();
+            using IChannel channel = connection.CreateChannel();
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
+            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+            {
+                var c = sender as AsyncEventingBasicConsumer;
+                Assert.NotNull(c);
+                await channel.BasicAckAsync(args.DeliveryTag, false);
+                --messageCount;
+                if (messageCount == 0)
+                {
+                    s.Release(1);
+                }
+            };
+
+            QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            string queueName = q.QueueName;
+
+            await channel.BasicQosAsync(0, 1, false);
+            await channel.BasicConsumeAsync(queue: queueName, autoAck: false,
+                consumerTag: string.Empty, noLocal: false, exclusive: false,
+                arguments: null, consumer);
+
+            var publishTask = Task.Run(async () =>
+            {
+                for (int i = 0; i < messageCount; i++)
+                {
+                    byte[] body = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
+                    await channel.BasicPublishAsync(string.Empty, queueName, body);
+                }
+            });
+
+            await s.WaitAsync();
+            await publishTask;
+
+            Assert.Equal(0, messageCount);
         }
     }
 }

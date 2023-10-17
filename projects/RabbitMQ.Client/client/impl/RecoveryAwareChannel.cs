@@ -72,6 +72,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                return base.BasicAckAsync(realTag, multiple);
+            }
+            else
+            {
+#if NET6_0_OR_GREATER
+                return ValueTask.CompletedTask;
+#else
+                return new ValueTask(Task.CompletedTask);
+#endif
+            }
+        }
+
         public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
@@ -99,8 +116,11 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-                throw new InvalidOperationException();
+#if NET6_0_OR_GREATER
+                return ValueTask.CompletedTask;
+#else
+                return new ValueTask(Task.CompletedTask);
+#endif
             }
         }
     }

@@ -271,7 +271,16 @@ namespace RabbitMQ.Client.Impl
         }
 
         public void BasicAck(ulong deliveryTag, bool multiple)
-            => InnerChannel.BasicAck(deliveryTag, multiple);
+        {
+            ThrowIfDisposed();
+            _innerChannel.BasicAck(deliveryTag, multiple);
+        }
+
+        public ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
+        {
+            ThrowIfDisposed();
+            return _innerChannel.BasicAckAsync(deliveryTag, multiple);
+        }
 
         public void BasicCancel(string consumerTag)
         {
@@ -341,6 +350,7 @@ namespace RabbitMQ.Client.Impl
         public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
             ThrowIfDisposed();
+
             if (global)
             {
                 _prefetchCountGlobal = prefetchCount;
@@ -349,7 +359,24 @@ namespace RabbitMQ.Client.Impl
             {
                 _prefetchCountConsumer = prefetchCount;
             }
+
             _innerChannel.BasicQos(prefetchSize, prefetchCount, global);
+        }
+
+        public ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global)
+        {
+            ThrowIfDisposed();
+
+            if (global)
+            {
+                _prefetchCountGlobal = prefetchCount;
+            }
+            else
+            {
+                _prefetchCountConsumer = prefetchCount;
+            }
+
+            return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global);
         }
 
         public void BasicRecover(bool requeue)
