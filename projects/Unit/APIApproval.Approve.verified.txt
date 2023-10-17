@@ -409,6 +409,7 @@ namespace RabbitMQ.Client
         event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ChannelShutdown;
         event System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs> FlowControl;
         void BasicAck(ulong deliveryTag, bool multiple);
+        System.Threading.Tasks.ValueTask BasicAckAsync(ulong deliveryTag, bool multiple);
         void BasicCancel(string consumerTag);
         System.Threading.Tasks.ValueTask BasicCancelAsync(string consumerTag);
         void BasicCancelNoWait(string consumerTag);
@@ -425,6 +426,7 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default, bool mandatory = false)
             where TProperties : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader;
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
+        System.Threading.Tasks.ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global);
         [System.Obsolete]
         void BasicRecover(bool requeue);
         [System.Obsolete]
