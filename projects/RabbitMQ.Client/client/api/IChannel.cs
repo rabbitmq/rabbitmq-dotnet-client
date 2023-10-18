@@ -209,6 +209,16 @@ namespace RabbitMQ.Client
         BasicGetResult BasicGet(string queue, bool autoAck);
 
         /// <summary>
+        /// Asynchronously retrieve an individual message, if
+        /// one is available; returns null if the server answers that
+        /// no messages are currently available. See also <see cref="IChannel.BasicAckAsync" />.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
+        /// <returns><see cref="BasicGetResult"/></returns>
+        ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck);
+
+        /// <summary>
         /// Nack one or more delivered message(s).
         /// </summary>
         /// <param name="deliveryTag">The delivery tag.</param>

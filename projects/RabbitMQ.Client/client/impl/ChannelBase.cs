@@ -639,24 +639,32 @@ namespace RabbitMQ.Client.Impl
                     cmd.TakeoverBody());
         }
 
-        protected void HandleBasicGetOk(in IncomingCommand cmd)
+        protected bool HandleBasicGetOk(in IncomingCommand cmd)
         {
-            var method = new BasicGetOk(cmd.MethodBytes.Span);
-            cmd.ReturnMethodBuffer();
-            var header = new ReadOnlyBasicProperties(cmd.HeaderBytes.Span);
-            cmd.ReturnHeaderBuffer();
+            if (_continuationQueue.TryPeek<BasicGetRpcContinuation>(out var k))
+            {
+                var method = new BasicGetOk(cmd.MethodBytes.Span);
+                cmd.ReturnMethodBuffer();
+                var header = new ReadOnlyBasicProperties(cmd.HeaderBytes.Span);
+                cmd.ReturnHeaderBuffer();
 
-            var k = (BasicGetRpcContinuation)_continuationQueue.Next();
-            k.m_result = new BasicGetResult(
-                AdjustDeliveryTag(method._deliveryTag),
-                method._redelivered,
-                method._exchange,
-                method._routingKey,
-                method._messageCount,
-                header,
-                cmd.Body,
-                cmd.TakeoverBody());
-            k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+                _continuationQueue.Next();
+                k.m_result = new BasicGetResult(
+                    AdjustDeliveryTag(method._deliveryTag),
+                    method._redelivered,
+                    method._exchange,
+                    method._routingKey,
+                    method._messageCount,
+                    header,
+                    cmd.Body,
+                    cmd.TakeoverBody());
+                k.HandleCommand(IncomingCommand.Empty); // release the continuation.
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         protected virtual ulong AdjustDeliveryTag(ulong deliveryTag)
@@ -1005,6 +1013,25 @@ namespace RabbitMQ.Client.Impl
             }
 
             return k.m_result;
+        }
+
+        public async ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck)
+        {
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                using var k = new BasicGetAsyncRpcContinuation(AdjustDeliveryTag, ContinuationTimeout);
+                Enqueue(k);
+
+                var method = new BasicGet(queue, autoAck);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                return await k;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
         }
 
         public abstract void BasicNack(ulong deliveryTag, bool multiple, bool requeue);

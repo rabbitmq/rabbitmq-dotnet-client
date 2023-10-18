@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Text;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
@@ -73,6 +75,23 @@ namespace RabbitMQ.Client.Unit
                 Assert.Equal(msg, _encoding.GetString(res.Body.ToArray()));
                 AssertMessageCount(queue, 0);
             }, msg);
+        }
+
+        [Fact]
+        public async Task TestBasicGetAsync()
+        {
+            const string msg = "for async basic.get";
+
+            QueueDeclareOk queueResult = await _channel.QueueDeclareAsync(string.Empty, false, true, true, true, null);
+            string queueName = queueResult.QueueName;
+
+            await _channel.BasicPublishAsync(string.Empty, queueName, _encoding.GetBytes(msg), true);
+
+            BasicGetResult getResult = await _channel.BasicGetAsync(queueName, true);
+            Assert.Equal(msg, _encoding.GetString(getResult.Body.ToArray()));
+
+            QueueDeclareOk queueResultPassive = await _channel.QueueDeclareAsync(queueName, true, true, true, true, null);
+            Assert.Equal((uint)0, queueResultPassive.MessageCount);
         }
     }
 }

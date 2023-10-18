@@ -322,6 +322,9 @@ namespace RabbitMQ.Client.Impl
         public BasicGetResult BasicGet(string queue, bool autoAck)
             => InnerChannel.BasicGet(queue, autoAck);
 
+        public ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck)
+            => InnerChannel.BasicGetAsync(queue, autoAck);
+
         public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
             => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
 

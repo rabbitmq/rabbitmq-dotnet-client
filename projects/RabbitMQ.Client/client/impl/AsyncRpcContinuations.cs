@@ -198,6 +198,51 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
+    internal class BasicGetAsyncRpcContinuation : AsyncRpcContinuation<BasicGetResult>
+    {
+        private readonly Func<ulong, ulong> _adjustDeliveryTag;
+
+        public BasicGetAsyncRpcContinuation(Func<ulong, ulong> adjustDeliveryTag, TimeSpan continuationTimeout)
+            : base(continuationTimeout)
+        {
+            _adjustDeliveryTag = adjustDeliveryTag;
+        }
+
+        public override void HandleCommand(in IncomingCommand cmd)
+        {
+            try
+            {
+                if (cmd.CommandId == ProtocolCommandId.BasicGetOk)
+                {
+                    var method = new Client.Framing.Impl.BasicGetOk(cmd.MethodBytes.Span);
+                    cmd.ReturnMethodBuffer();
+                    var header = new ReadOnlyBasicProperties(cmd.HeaderBytes.Span);
+                    cmd.ReturnHeaderBuffer();
+
+                    var result = new BasicGetResult(
+                        _adjustDeliveryTag(method._deliveryTag),
+                        method._redelivered,
+                        method._exchange,
+                        method._routingKey,
+                        method._messageCount,
+                        header,
+                        cmd.Body,
+                        cmd.TakeoverBody());
+
+                    _tcs.TrySetResult(result);
+                }
+                else
+                {
+                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                }
+            }
+            finally
+            {
+                cmd.ReturnMethodBuffer();
+            }
+        }
+    }
+
     internal class BasicQosAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public BasicQosAsyncRpcContinuation(TimeSpan continuationTimeout)

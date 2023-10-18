@@ -327,8 +327,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.BasicGetOk:
                     {
-                        HandleBasicGetOk(in cmd);
-                        return true;
+                        return HandleBasicGetOk(in cmd);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
