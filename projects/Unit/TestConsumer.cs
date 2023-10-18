@@ -159,11 +159,16 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public async Task TestBasicAckAsync()
         {
-            int messageCount = 1024;
+            const int messageCount = 1024;
+            int messagesReceived = 0;
             var s = new SemaphoreSlim(0, 1);
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
             using IConnection connection = cf.CreateConnection();
             using IChannel channel = connection.CreateChannel();
+
+            // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
+            // ConfirmSelectAsync
+            channel.ConfirmSelect();
 
             var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
@@ -171,8 +176,8 @@ namespace RabbitMQ.Client.Unit
                 var c = sender as AsyncEventingBasicConsumer;
                 Assert.NotNull(c);
                 await channel.BasicAckAsync(args.DeliveryTag, false);
-                --messageCount;
-                if (messageCount == 0)
+                messagesReceived++;
+                if (messagesReceived == messageCount)
                 {
                     s.Release(1);
                 }
@@ -195,10 +200,11 @@ namespace RabbitMQ.Client.Unit
                 }
             });
 
+            await channel.WaitForConfirmsOrDieAsync();
             await s.WaitAsync();
             await publishTask;
 
-            Assert.Equal(0, messageCount);
+            Assert.Equal(messageCount, messagesReceived);
         }
     }
 }
