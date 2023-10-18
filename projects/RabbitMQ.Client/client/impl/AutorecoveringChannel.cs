@@ -397,6 +397,13 @@ namespace RabbitMQ.Client.Impl
             _usesPublisherConfirms = true;
         }
 
+        public ValueTask ConfirmSelectAsync()
+        {
+            var task = InnerChannel.ConfirmSelectAsync();
+            _usesPublisherConfirms = true;
+            return task;
+        }
+
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();

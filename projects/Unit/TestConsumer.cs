@@ -166,9 +166,7 @@ namespace RabbitMQ.Client.Unit
             using IConnection connection = cf.CreateConnection();
             using IChannel channel = connection.CreateChannel();
 
-            // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-            // ConfirmSelectAsync
-            channel.ConfirmSelect();
+            await channel.ConfirmSelectAsync();
 
             var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += async (object sender, BasicDeliverEventArgs args) =>

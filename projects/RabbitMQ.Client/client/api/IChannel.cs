@@ -303,10 +303,11 @@ namespace RabbitMQ.Client
         /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
         void Close(ushort replyCode, string replyText, bool abort);
 
-        /// <summary>
-        /// Enable publisher acknowledgements.
-        /// </summary>
+        /// <summary>Enable publisher confirmations.</summary>
         void ConfirmSelect();
+
+        /// <summary>Asynchronously enable publisher confirmations.</summary>
+        ValueTask ConfirmSelectAsync();
 
         /// <summary>
         /// Bind an exchange to an exchange.

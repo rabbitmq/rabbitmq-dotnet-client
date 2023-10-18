@@ -248,11 +248,12 @@ namespace RabbitMQ.Client.Impl
 
         internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response)
         {
-            using var k = new ConnectionSecureOrTuneContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
-            Enqueue(k);
             try
             {
+                using var k = new ConnectionSecureOrTuneContinuation(ContinuationTimeout);
+                Enqueue(k);
+
                 try
                 {
                     _Private_ConnectionSecureOk(response);
@@ -275,11 +276,12 @@ namespace RabbitMQ.Client.Impl
         internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(IDictionary<string, object> clientProperties, string mechanism, byte[] response,
             string locale)
         {
-            using var k = new ConnectionSecureOrTuneContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
-            Enqueue(k);
             try
             {
+                using var k = new ConnectionSecureOrTuneContinuation(ContinuationTimeout);
+                Enqueue(k);
+
                 try
                 {
                     // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
@@ -898,10 +900,10 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask BasicCancelAsync(string consumerTag)
         {
-            using var k = new BasicCancelAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                using var k = new BasicCancelAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new Client.Framing.Impl.BasicCancel(consumerTag, false);
@@ -969,10 +971,10 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            using var k = new BasicConsumeAsyncRpcContinuation(consumer, ConsumerDispatcher, ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                using var k = new BasicConsumeAsyncRpcContinuation(consumer, ConsumerDispatcher, ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new Client.Framing.Impl.BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
@@ -1086,10 +1088,10 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global)
         {
-            using var k = new BasicQosAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                using var k = new BasicQosAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new BasicQos(prefetchSize, prefetchCount, global);
@@ -1107,11 +1109,10 @@ namespace RabbitMQ.Client.Impl
 
         public void BasicRecover(bool requeue)
         {
-            var k = new SimpleBlockingRpcContinuation();
-
             _rpcSemaphore.Wait();
             try
             {
+                var k = new SimpleBlockingRpcContinuation();
                 Enqueue(k);
                 _Private_BasicRecover(requeue);
                 k.GetReply(ContinuationTimeout);
@@ -1139,6 +1140,27 @@ namespace RabbitMQ.Client.Impl
             _Private_ConfirmSelect(false);
         }
 
+        public async ValueTask ConfirmSelectAsync()
+        {
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                using var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout);
+                Enqueue(k);
+
+                var method = new ConfirmSelect(false);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             _Private_ExchangeBind(destination, source, routingKey, false, arguments);
@@ -1146,10 +1168,10 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
-            using var k = new ExchangeBindAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                using var k = new ExchangeBindAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new ExchangeBind(destination, source, routingKey, false, arguments);
@@ -1177,10 +1199,10 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask ExchangeDeclareAsync(string exchange, string type, bool passive, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
-            using var k = new ExchangeDeclareAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                using var k = new ExchangeDeclareAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, false, false, arguments);
@@ -1244,10 +1266,10 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask ExchangeUnbindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
-            using var k = new ExchangeUnbindAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                using var k = new ExchangeUnbindAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new ExchangeUnbind(destination, source, routingKey, false, arguments);
@@ -1285,10 +1307,10 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            using var k = new QueueDeclareAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                using var k = new QueueDeclareAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
@@ -1309,10 +1331,10 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
-            using var k = new QueueBindAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                using var k = new QueueBindAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new QueueBind(queue, exchange, routingKey, false, arguments);
@@ -1357,10 +1379,10 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
         {
-            var k = new QueueDeleteAsyncRpcContinuation(ContinuationTimeout);
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                var k = new QueueDeleteAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
                 var method = new QueueDelete(queue, ifUnused, ifEmpty, false);

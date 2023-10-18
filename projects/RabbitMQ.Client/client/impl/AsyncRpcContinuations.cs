@@ -206,6 +206,14 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
+    internal class ConfirmSelectAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public ConfirmSelectAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.ConfirmSelectOk, continuationTimeout)
+        {
+        }
+    }
+
     internal class ExchangeBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout)
