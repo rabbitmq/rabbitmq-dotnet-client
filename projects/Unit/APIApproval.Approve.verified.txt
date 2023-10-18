@@ -435,6 +435,7 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue);
         void Close(ushort replyCode, string replyText, bool abort);
         void ConfirmSelect();
+        System.Threading.Tasks.ValueTask ConfirmSelectAsync();
         uint ConsumerCount(string queue);
         void ExchangeBind(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         System.Threading.Tasks.ValueTask ExchangeBindAsync(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
