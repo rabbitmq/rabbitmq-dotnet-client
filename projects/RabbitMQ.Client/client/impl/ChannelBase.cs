@@ -1155,7 +1155,7 @@ namespace RabbitMQ.Client.Impl
 
                 bool result = await k;
                 Debug.Assert(result);
-                
+
                 if (NextPublishSeqNo == 0UL)
                 {
                     _confirmsTaskCompletionSources = new List<TaskCompletionSource<bool>>();
