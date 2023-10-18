@@ -271,16 +271,10 @@ namespace RabbitMQ.Client.Impl
         }
 
         public void BasicAck(ulong deliveryTag, bool multiple)
-        {
-            ThrowIfDisposed();
-            _innerChannel.BasicAck(deliveryTag, multiple);
-        }
+            => InnerChannel.BasicAck(deliveryTag, multiple);
 
         public ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
-        {
-            ThrowIfDisposed();
-            return _innerChannel.BasicAckAsync(deliveryTag, multiple);
-        }
+            => InnerChannel.BasicAckAsync(deliveryTag, multiple);
 
         public void BasicCancel(string consumerTag)
         {
@@ -330,6 +324,9 @@ namespace RabbitMQ.Client.Impl
 
         public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
             => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
+
+        public ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
+            => InnerChannel.BasicNackAsync(deliveryTag, multiple, requeue);
 
         public void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader

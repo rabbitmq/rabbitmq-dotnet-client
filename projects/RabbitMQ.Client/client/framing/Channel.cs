@@ -245,6 +245,12 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelSend(new BasicNack(deliveryTag, multiple, requeue));
         }
 
+        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
+        {
+            var method = new BasicNack(deliveryTag, multiple, requeue);
+            return ModelSendAsync(method);
+        }
+
         public override void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
             ChannelRpc(new BasicQos(prefetchSize, prefetchCount, global), ProtocolCommandId.BasicQosOk);

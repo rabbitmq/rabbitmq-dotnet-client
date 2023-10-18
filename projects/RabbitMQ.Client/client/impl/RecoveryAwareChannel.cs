@@ -98,6 +98,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                return base.BasicNackAsync(realTag, multiple, requeue);
+            }
+            else
+            {
+#if NET6_0_OR_GREATER
+                return ValueTask.CompletedTask;
+#else
+                return new ValueTask(Task.CompletedTask);
+#endif
+            }
+        }
+
         public override void BasicReject(ulong deliveryTag, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;

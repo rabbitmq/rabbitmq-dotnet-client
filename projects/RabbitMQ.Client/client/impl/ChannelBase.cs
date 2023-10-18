@@ -1009,6 +1009,8 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
 
+        public abstract ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue);
+
         public void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
@@ -1153,6 +1155,13 @@ namespace RabbitMQ.Client.Impl
 
                 bool result = await k;
                 Debug.Assert(result);
+                
+                if (NextPublishSeqNo == 0UL)
+                {
+                    _confirmsTaskCompletionSources = new List<TaskCompletionSource<bool>>();
+                    NextPublishSeqNo = 1;
+                }
+
                 return;
             }
             finally

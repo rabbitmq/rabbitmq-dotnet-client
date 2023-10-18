@@ -208,8 +208,21 @@ namespace RabbitMQ.Client
         /// <returns><see cref="BasicGetResult"/></returns>
         BasicGetResult BasicGet(string queue, bool autoAck);
 
-        /// <summary>Reject one or more delivered message(s).</summary>
+        /// <summary>
+        /// Nack one or more delivered message(s).
+        /// </summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">If set to <c>true</c>, nack all messages up to the current tag.</param>
+        /// <param name="requeue">If set to <c>true</c>, requeue nack'd messages.</param>
         void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
+
+        /// <summary>
+        /// Asynchronously nack one or more delivered message(s).
+        /// </summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">If set to <c>true</c>, nack all messages up to the current tag.</param>
+        /// <param name="requeue">If set to <c>true</c>, requeue nack'd messages.</param>
+        ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue);
 
 #nullable enable
 
@@ -281,6 +294,7 @@ namespace RabbitMQ.Client
         /// Indicates that a consumer has recovered.
         /// Deprecated. Should not be used.
         /// </summary>
+        // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
         [Obsolete]
         void BasicRecover(bool requeue);
 
@@ -288,6 +302,7 @@ namespace RabbitMQ.Client
         /// Indicates that a consumer has recovered.
         /// Deprecated. Should not be used.
         /// </summary>
+        // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
         [Obsolete]
         void BasicRecoverAsync(bool requeue);
 
