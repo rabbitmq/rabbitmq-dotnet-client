@@ -251,6 +251,19 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public async ValueTask CloseAsync(ShutdownEventArgs reason, bool abort)
+        {
+            ThrowIfDisposed();
+            try
+            {
+                await _innerChannel.CloseAsync(reason, abort);
+            }
+            finally
+            {
+                _connection.DeleteRecordedChannel(this);
+            }
+        }
+
         public override string ToString()
             => InnerChannel.ToString();
 

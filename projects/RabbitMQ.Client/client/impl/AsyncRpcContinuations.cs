@@ -203,7 +203,7 @@ namespace RabbitMQ.Client.Impl
         private readonly Func<ulong, ulong> _adjustDeliveryTag;
 
         public BasicGetAsyncRpcContinuation(Func<ulong, ulong> adjustDeliveryTag, TimeSpan continuationTimeout)
-            : base(continuationTimeout)
+            :base(continuationTimeout)
         {
             _adjustDeliveryTag = adjustDeliveryTag;
         }
@@ -248,6 +248,19 @@ namespace RabbitMQ.Client.Impl
         public BasicQosAsyncRpcContinuation(TimeSpan continuationTimeout)
             : base(ProtocolCommandId.BasicQosOk, continuationTimeout)
         {
+        }
+    }
+
+    internal class ChannelCloseAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public ChannelCloseAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.ChannelCloseOk, continuationTimeout)
+        {
+        }
+
+        public void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
+        {
+            _tcs.TrySetResult(true);
         }
     }
 

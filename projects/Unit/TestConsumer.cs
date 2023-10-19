@@ -43,6 +43,7 @@ namespace RabbitMQ.Client.Unit
     public class TestConsumer
     {
         private readonly ITestOutputHelper _output;
+        private readonly ShutdownEventArgs _closeArgs = new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "normal shutdown");
 
         public TestConsumer(ITestOutputHelper output) => _output = output;
 
@@ -50,58 +51,60 @@ namespace RabbitMQ.Client.Unit
         public async Task TestBasicRoundtripConcurrent()
         {
             var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
-            using (IConnection c = cf.CreateConnection())
-            using (IChannel m = c.CreateChannel())
+            using IConnection conn = cf.CreateConnection();
+            using IChannel channel = conn.CreateChannel();
+
+            QueueDeclareOk q = channel.QueueDeclare();
+            const string publish1 = "sync-hi-1";
+            byte[] body = Encoding.UTF8.GetBytes(publish1);
+            channel.BasicPublish("", q.QueueName, body);
+            const string publish2 = "sync-hi-2";
+            body = Encoding.UTF8.GetBytes(publish2);
+            channel.BasicPublish("", q.QueueName, body);
+
+            var consumer = new EventingBasicConsumer(channel);
+
+            var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var maximumWaitTime = TimeSpan.FromSeconds(10);
+            var tokenSource = new CancellationTokenSource(maximumWaitTime);
+            tokenSource.Token.Register(() =>
             {
-                QueueDeclareOk q = m.QueueDeclare();
-                const string publish1 = "sync-hi-1";
-                byte[] body = Encoding.UTF8.GetBytes(publish1);
-                m.BasicPublish("", q.QueueName, body);
-                const string publish2 = "sync-hi-2";
-                body = Encoding.UTF8.GetBytes(publish2);
-                m.BasicPublish("", q.QueueName, body);
+                publish1SyncSource.TrySetResult(false);
+                publish2SyncSource.TrySetResult(false);
+            });
 
-                var consumer = new EventingBasicConsumer(m);
-
-                var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var maximumWaitTime = TimeSpan.FromSeconds(10);
-                var tokenSource = new CancellationTokenSource(maximumWaitTime);
-                tokenSource.Token.Register(() =>
+            consumer.Received += (o, a) =>
+            {
+                switch (Encoding.UTF8.GetString(a.Body.ToArray()))
                 {
-                    publish1SyncSource.TrySetResult(false);
-                    publish2SyncSource.TrySetResult(false);
-                });
+                    case publish1:
+                        publish1SyncSource.TrySetResult(true);
+                        break;
+                    case publish2:
+                        publish2SyncSource.TrySetResult(true);
+                        break;
+                }
+            };
 
-                consumer.Received += (o, a) =>
-                {
-                    switch (Encoding.UTF8.GetString(a.Body.ToArray()))
-                    {
-                        case publish1:
-                            publish1SyncSource.TrySetResult(true);
-                            break;
-                        case publish2:
-                            publish2SyncSource.TrySetResult(true);
-                            break;
-                    }
-                };
+            channel.BasicConsume(q.QueueName, true, consumer);
 
-                m.BasicConsume(q.QueueName, true, consumer);
+            await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
 
-                await Task.WhenAll(publish1SyncSource.Task, publish2SyncSource.Task);
+            bool result1 = await publish1SyncSource.Task;
+            Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
 
-                bool result1 = await publish1SyncSource.Task;
-                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+            bool result2 = await publish1SyncSource.Task;
+            Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
 
-                bool result2 = await publish1SyncSource.Task;
-                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
-            }
+            // Note: closing channel explicitly just to test it.
+            await channel.CloseAsync(_closeArgs, false);
         }
 
         [Fact]
         public async Task TestBasicRejectAsync()
         {
-            var s = new SemaphoreSlim(0, 1);
+            var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
             using IConnection connection = cf.CreateConnection();
             using IChannel channel = connection.CreateChannel();
@@ -113,7 +116,7 @@ namespace RabbitMQ.Client.Unit
                 Assert.NotNull(c);
                 await channel.BasicCancelAsync(c.ConsumerTags[0]);
                 await channel.BasicRejectAsync(args.DeliveryTag, true);
-                s.Release(1);
+                publishSyncSource.SetResult(true);
             };
 
             QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
@@ -126,7 +129,7 @@ namespace RabbitMQ.Client.Unit
                 consumerTag: string.Empty, noLocal: false, exclusive: false,
                 arguments: null, consumer);
 
-            await s.WaitAsync();
+            Assert.True(await publishSyncSource.Task);
 
             uint messageCount, consumerCount = 0;
             ushort tries = 5;
@@ -154,6 +157,9 @@ namespace RabbitMQ.Client.Unit
                 Assert.Equal((uint)1, messageCount);
                 Assert.Equal((uint)0, consumerCount);
             }
+
+            // Note: closing channel explicitly just to test it.
+            await channel.CloseAsync(_closeArgs, false);
         }
 
         [Fact]
@@ -161,7 +167,7 @@ namespace RabbitMQ.Client.Unit
         {
             const int messageCount = 1024;
             int messagesReceived = 0;
-            var s = new SemaphoreSlim(0, 1);
+            var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
             using IConnection connection = cf.CreateConnection();
             using IChannel channel = connection.CreateChannel();
@@ -177,7 +183,7 @@ namespace RabbitMQ.Client.Unit
                 messagesReceived++;
                 if (messagesReceived == messageCount)
                 {
-                    s.Release(1);
+                    publishSyncSource.SetResult(true);
                 }
             };
 
@@ -199,16 +205,18 @@ namespace RabbitMQ.Client.Unit
             });
 
             await channel.WaitForConfirmsOrDieAsync();
-            await s.WaitAsync();
-            await publishTask;
+            Assert.True(await publishSyncSource.Task);
 
             Assert.Equal(messageCount, messagesReceived);
+
+            // Note: closing channel explicitly just to test it.
+            await channel.CloseAsync(_closeArgs, false);
         }
 
         [Fact]
         public async Task TestBasicNackAsync()
         {
-            var s = new SemaphoreSlim(0, 1);
+            var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cf = new ConnectionFactory { DispatchConsumersAsync = true };
             using IConnection connection = cf.CreateConnection();
             using IChannel channel = connection.CreateChannel();
@@ -220,7 +228,7 @@ namespace RabbitMQ.Client.Unit
                 Assert.NotNull(c);
                 await channel.BasicCancelAsync(c.ConsumerTags[0]);
                 await channel.BasicNackAsync(args.DeliveryTag, false, true);
-                s.Release(1);
+                publishSyncSource.SetResult(true);
             };
 
             QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
@@ -233,7 +241,7 @@ namespace RabbitMQ.Client.Unit
                 consumerTag: string.Empty, noLocal: false, exclusive: false,
                 arguments: null, consumer);
 
-            await s.WaitAsync();
+            Assert.True(await publishSyncSource.Task);
 
             uint messageCount, consumerCount = 0;
             ushort tries = 5;
@@ -261,6 +269,9 @@ namespace RabbitMQ.Client.Unit
                 Assert.Equal((uint)1, messageCount);
                 Assert.Equal((uint)0, consumerCount);
             }
+
+            // Note: closing channel explicitly just to test it.
+            await channel.CloseAsync(_closeArgs, false);
         }
     }
 }

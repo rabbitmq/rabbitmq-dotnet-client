@@ -352,8 +352,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ChannelCloseOk:
                     {
-                        cmd.ReturnMethodBuffer();
-                        HandleChannelCloseOk();
+                        HandleChannelCloseOk(in cmd);
                         return true;
                     }
                 case ProtocolCommandId.ChannelFlow:

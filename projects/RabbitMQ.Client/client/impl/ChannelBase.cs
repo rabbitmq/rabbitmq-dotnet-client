@@ -197,21 +197,27 @@ namespace RabbitMQ.Client.Impl
             _ = CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText), abort);
         }
 
-        private async Task CloseAsync(ShutdownEventArgs reason, bool abort)
+        public async ValueTask CloseAsync(ShutdownEventArgs reason, bool abort)
         {
-            // TODO LRB #1347 use async continuation
-            var k = new ShutdownContinuation();
-            ChannelShutdown += k.OnConnectionShutdown;
-
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            using var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout);
             try
             {
+                ChannelShutdown += k.OnConnectionShutdown;
+                Enqueue(k);
                 ConsumerDispatcher.Quiesce();
+
                 if (SetCloseReason(reason))
                 {
-                    _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
+                    var method = new ChannelClose(reason.ReplyCode, reason.ReplyText, reason.ClassId, reason.MethodId);
+                    await ModelSendAsync(method).ConfigureAwait(false);
                 }
 
-                k.Wait(TimeSpan.FromMilliseconds(10000));
+                bool result = await k;
+                Debug.Assert(result);
+
+                // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
+                // k.Wait(TimeSpan.FromMilliseconds(10000));
                 await ConsumerDispatcher.WaitForShutdownAsync().ConfigureAwait(false);
             }
             catch (AlreadyClosedException)
@@ -237,6 +243,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
+                _rpcSemaphore.Release();
                 ChannelShutdown -= k.OnConnectionShutdown;
             }
         }
@@ -728,9 +735,26 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void HandleChannelCloseOk()
+        protected void HandleChannelCloseOk(in IncomingCommand cmd)
         {
-            FinishClose();
+            try
+            {
+                /*
+                 * Note:
+                 * This call _must_ come before completing the async continuation
+                 */
+                FinishClose();
+
+                if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out var k))
+                {
+                    _continuationQueue.Next();
+                    k.HandleCommand(cmd);
+                }
+            }
+            finally
+            {
+                cmd.ReturnMethodBuffer();
+            }
         }
 
         protected void HandleChannelFlow(in IncomingCommand cmd)

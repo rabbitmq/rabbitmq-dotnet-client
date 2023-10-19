@@ -436,6 +436,7 @@ namespace RabbitMQ.Client
         void BasicReject(ulong deliveryTag, bool requeue);
         System.Threading.Tasks.ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue);
         void Close(ushort replyCode, string replyText, bool abort);
+        System.Threading.Tasks.ValueTask CloseAsync(RabbitMQ.Client.ShutdownEventArgs reason, bool abort);
         void ConfirmSelect();
         System.Threading.Tasks.ValueTask ConfirmSelectAsync();
         uint ConsumerCount(string queue);

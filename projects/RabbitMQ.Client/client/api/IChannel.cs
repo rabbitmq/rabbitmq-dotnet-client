@@ -328,6 +328,14 @@ namespace RabbitMQ.Client
         /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
         void Close(ushort replyCode, string replyText, bool abort);
 
+        /// <summary>
+        /// Asynchronously close this session.
+        /// </summary>
+        /// <param name="reason">The <see cref="ShutdownEventArgs"/> instance containing the close data.</param>
+        /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
+        /// <returns></returns>
+        ValueTask CloseAsync(ShutdownEventArgs reason, bool abort);
+
         /// <summary>Enable publisher confirmations.</summary>
         void ConfirmSelect();
 
