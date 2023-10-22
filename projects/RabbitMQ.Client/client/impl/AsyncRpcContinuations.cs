@@ -203,7 +203,7 @@ namespace RabbitMQ.Client.Impl
         private readonly Func<ulong, ulong> _adjustDeliveryTag;
 
         public BasicGetAsyncRpcContinuation(Func<ulong, ulong> adjustDeliveryTag, TimeSpan continuationTimeout)
-            :base(continuationTimeout)
+            : base(continuationTimeout)
         {
             _adjustDeliveryTag = adjustDeliveryTag;
         }
