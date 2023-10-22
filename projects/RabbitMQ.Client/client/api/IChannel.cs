@@ -408,14 +408,6 @@ namespace RabbitMQ.Client
         /// </summary>
         void ExchangeDelete(string exchange, bool ifUnused);
 
-        /*
-         * TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-        /// <summary>
-        /// Asynchronously delete an exchange.
-        /// </summary>
-        ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused);
-        */
-
         /// <summary>
         /// Asynchronously delete an exchange.
         /// </summary>
@@ -455,20 +447,24 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Bind a queue to an exchange.
         /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The arguments.</param>
         /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
+        /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         /// <summary>
         /// Asynchronously bind a queue to an exchange.
         /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The arguments.</param>
         /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
+        /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         ValueTask QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
