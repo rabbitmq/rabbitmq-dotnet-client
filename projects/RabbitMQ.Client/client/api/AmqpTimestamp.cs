@@ -56,14 +56,14 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Construct an <see cref="AmqpTimestamp"/>.
         /// </summary>
-        /// <param name="unixTime">Unix time.</param>
+        /// <param name="unixTime">Unix time in seconds.</param>
         public AmqpTimestamp(long unixTime) : this()
         {
             UnixTime = unixTime;
         }
 
         /// <summary>
-        /// Unix time.
+        /// Unix time in seconds.
         /// </summary>
         public long UnixTime { get; }
 
