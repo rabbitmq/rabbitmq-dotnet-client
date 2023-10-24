@@ -307,8 +307,6 @@ namespace RabbitMQ.Client.Impl
         public string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer)
         {
-            ThrowIfDisposed();
-
             string resultConsumerTag = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
             var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
@@ -320,8 +318,6 @@ namespace RabbitMQ.Client.Impl
         public async ValueTask<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer)
         {
-            ThrowIfDisposed();
-
             string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
             var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
