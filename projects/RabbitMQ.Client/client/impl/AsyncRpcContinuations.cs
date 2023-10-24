@@ -409,4 +409,28 @@ namespace RabbitMQ.Client.Impl
             }
         }
     }
+
+    internal class TxCommitAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public TxCommitAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.TxCommitOk, continuationTimeout)
+        {
+        }
+    }
+
+    internal class TxRollbackAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public TxRollbackAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.TxRollbackOk, continuationTimeout)
+        {
+        }
+    }
+
+    internal class TxSelectAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public TxSelectAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.TxSelectOk, continuationTimeout)
+        {
+        }
+    }
 }

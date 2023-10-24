@@ -469,8 +469,11 @@ namespace RabbitMQ.Client
         void QueueUnbind(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         System.Threading.Tasks.ValueTask QueueUnbindAsync(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void TxCommit();
+        System.Threading.Tasks.ValueTask TxCommitAsync();
         void TxRollback();
+        System.Threading.Tasks.ValueTask TxRollbackAsync();
         void TxSelect();
+        System.Threading.Tasks.ValueTask TxSelectAsync();
         System.Threading.Tasks.Task<bool> WaitForConfirmsAsync(System.Threading.CancellationToken token = default);
         System.Threading.Tasks.Task WaitForConfirmsOrDieAsync(System.Threading.CancellationToken token = default);
     }

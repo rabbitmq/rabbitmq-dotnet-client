@@ -587,13 +587,25 @@ namespace RabbitMQ.Client.Impl
         public void TxCommit()
             => InnerChannel.TxCommit();
 
+        public ValueTask TxCommitAsync()
+            => InnerChannel.TxCommitAsync();
+
         public void TxRollback()
             => InnerChannel.TxRollback();
+
+        public ValueTask TxRollbackAsync()
+            => InnerChannel.TxRollbackAsync();
 
         public void TxSelect()
         {
             InnerChannel.TxSelect();
             _usesTransactions = true;
+        }
+
+        public ValueTask TxSelectAsync()
+        {
+            _usesTransactions = true;
+            return InnerChannel.TxSelectAsync();
         }
 
         public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)

@@ -592,20 +592,23 @@ namespace RabbitMQ.Client
         /// </remarks>
         ValueTask QueueUnbindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
-        /// <summary>
-        /// Commit this session's active TX transaction.
-        /// </summary>
+        /// <summary>Commit this session's active TX transaction.</summary>
         void TxCommit();
 
-        /// <summary>
-        /// Roll back this session's active TX transaction.
-        /// </summary>
+        /// <summary>Asynchronously commit this session's active TX transaction.</summary>
+        ValueTask TxCommitAsync();
+
+        /// <summary>Roll back this session's active TX transaction.</summary>
         void TxRollback();
 
-        /// <summary>
-        /// Enable TX mode for this session.
-        /// </summary>
+        /// <summary>Asynchronously roll back this session's active TX transaction.</summary>
+        ValueTask TxRollbackAsync();
+
+        /// <summary>Enable TX mode for this session.</summary>
         void TxSelect();
+
+        /// <summary>Asynchronously enable TX mode for this session.</summary>
+        ValueTask TxSelectAsync();
 
         /// <summary>
         /// Wait until all published messages on this channel have been confirmed.

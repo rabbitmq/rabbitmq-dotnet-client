@@ -1236,6 +1236,12 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
             try
             {
+                if (NextPublishSeqNo == 0UL)
+                {
+                    _confirmsTaskCompletionSources = new List<TaskCompletionSource<bool>>();
+                    NextPublishSeqNo = 1;
+                }
+
                 using var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout);
                 Enqueue(k);
 
@@ -1244,12 +1250,6 @@ namespace RabbitMQ.Client.Impl
 
                 bool result = await k;
                 Debug.Assert(result);
-
-                if (NextPublishSeqNo == 0UL)
-                {
-                    _confirmsTaskCompletionSources = new List<TaskCompletionSource<bool>>();
-                    NextPublishSeqNo = 1;
-                }
 
                 return;
             }
@@ -1548,9 +1548,72 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void TxCommit();
 
+        public async ValueTask TxCommitAsync()
+        {
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                using var k = new TxCommitAsyncRpcContinuation(ContinuationTimeout);
+                Enqueue(k);
+
+                var method = new TxCommit();
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
         public abstract void TxRollback();
 
+        public async ValueTask TxRollbackAsync()
+        {
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                using var k = new TxRollbackAsyncRpcContinuation(ContinuationTimeout);
+                Enqueue(k);
+
+                var method = new TxRollback();
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
         public abstract void TxSelect();
+
+        public async ValueTask TxSelectAsync()
+        {
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                using var k = new TxSelectAsyncRpcContinuation(ContinuationTimeout);
+                Enqueue(k);
+
+                var method = new TxSelect();
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
 
         private List<TaskCompletionSource<bool>> _confirmsTaskCompletionSources;
 
