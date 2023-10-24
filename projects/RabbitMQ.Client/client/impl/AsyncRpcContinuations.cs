@@ -68,7 +68,10 @@ namespace RabbitMQ.Client.Impl
         // What to do if setting a result fails?
         public abstract void HandleCommand(in IncomingCommand cmd);
 
-        public void HandleChannelShutdown(ShutdownEventArgs reason) => _tcs.SetException(new OperationInterruptedException(reason));
+        public virtual void HandleChannelShutdown(ShutdownEventArgs reason)
+        {
+            _tcs.SetException(new OperationInterruptedException(reason));
+        }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -256,6 +259,11 @@ namespace RabbitMQ.Client.Impl
         public ChannelCloseAsyncRpcContinuation(TimeSpan continuationTimeout)
             : base(ProtocolCommandId.ChannelCloseOk, continuationTimeout)
         {
+        }
+
+        public override void HandleChannelShutdown(ShutdownEventArgs reason)
+        {
+            // Nothing to do here!
         }
 
         public void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
