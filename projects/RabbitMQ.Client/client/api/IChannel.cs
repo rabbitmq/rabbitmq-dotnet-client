@@ -116,17 +116,6 @@ namespace RabbitMQ.Client
         event EventHandler<BasicNackEventArgs> BasicNacks;
 
         /// <summary>
-        /// All messages received before this fires that haven't been ack'ed will be redelivered.
-        /// All messages received afterwards won't be.
-        /// </summary>
-        /// <remarks>
-        /// Handlers for this event are invoked by the connection thread.
-        /// It is sometimes useful to allow that thread to know that a recover-ok
-        /// has been received, rather than the thread that invoked <see cref="BasicRecover"/>.
-        /// </remarks>
-        event EventHandler<EventArgs> BasicRecoverOk;
-
-        /// <summary>
         /// Signalled when a Basic.Return command arrives from the broker.
         /// </summary>
         event EventHandler<BasicReturnEventArgs> BasicReturn;
@@ -299,22 +288,6 @@ namespace RabbitMQ.Client
         /// <param name="global">If set to <c>true</c>, use global prefetch.
         /// See the <seealso href="https://www.rabbitmq.com/consumer-prefetch.html#overview">Consumer Prefetch documentation</seealso>.</param>
         ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global);
-
-        /// <summary>
-        /// Indicates that a consumer has recovered.
-        /// Deprecated. Should not be used.
-        /// </summary>
-        // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-        [Obsolete]
-        void BasicRecover(bool requeue);
-
-        /// <summary>
-        /// Indicates that a consumer has recovered.
-        /// Deprecated. Should not be used.
-        /// </summary>
-        // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-        [Obsolete]
-        void BasicRecoverAsync(bool requeue);
 
         /// <summary> Reject a delivered message.</summary>
         void BasicReject(ulong deliveryTag, bool requeue);

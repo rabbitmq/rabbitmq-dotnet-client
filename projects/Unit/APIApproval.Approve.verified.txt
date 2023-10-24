@@ -403,7 +403,6 @@ namespace RabbitMQ.Client
         ulong NextPublishSeqNo { get; }
         event System.EventHandler<RabbitMQ.Client.Events.BasicAckEventArgs> BasicAcks;
         event System.EventHandler<RabbitMQ.Client.Events.BasicNackEventArgs> BasicNacks;
-        event System.EventHandler<System.EventArgs> BasicRecoverOk;
         event System.EventHandler<RabbitMQ.Client.Events.BasicReturnEventArgs> BasicReturn;
         event System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs> CallbackException;
         event System.EventHandler<RabbitMQ.Client.ShutdownEventArgs> ChannelShutdown;
@@ -429,10 +428,6 @@ namespace RabbitMQ.Client
             where TProperties : RabbitMQ.Client.IReadOnlyBasicProperties, RabbitMQ.Client.IAmqpHeader;
         void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
         System.Threading.Tasks.ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global);
-        [System.Obsolete]
-        void BasicRecover(bool requeue);
-        [System.Obsolete]
-        void BasicRecoverAsync(bool requeue);
         void BasicReject(ulong deliveryTag, bool requeue);
         System.Threading.Tasks.ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue);
         void Close(ushort replyCode, string replyText, bool abort);

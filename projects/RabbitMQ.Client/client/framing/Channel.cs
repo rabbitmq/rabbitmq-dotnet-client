@@ -62,11 +62,6 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelSend(new BasicGet(queue, autoAck));
         }
 
-        public override void _Private_BasicRecover(bool requeue)
-        {
-            ChannelSend(new BasicRecover(requeue));
-        }
-
         public override void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
             ChannelSend(new ChannelClose(replyCode, replyText, classId, methodId));
@@ -256,11 +251,6 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelRpc(new BasicQos(prefetchSize, prefetchCount, global), ProtocolCommandId.BasicQosOk);
         }
 
-        public override void BasicRecoverAsync(bool requeue)
-        {
-            ChannelSend(new BasicRecoverAsync(requeue));
-        }
-
         public override void BasicReject(ulong deliveryTag, bool requeue)
         {
             ChannelSend(new BasicReject(deliveryTag, requeue));
@@ -332,12 +322,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 case ProtocolCommandId.BasicNack:
                     {
                         HandleBasicNack(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicRecoverOk:
-                    {
-                        cmd.ReturnMethodBuffer();
-                        HandleBasicRecoverOk();
                         return true;
                     }
                 case ProtocolCommandId.BasicReturn:

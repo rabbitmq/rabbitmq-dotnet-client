@@ -87,12 +87,6 @@ namespace RabbitMQ.Client.Impl
             remove => InnerChannel.BasicNacks -= value;
         }
 
-        public event EventHandler<EventArgs> BasicRecoverOk
-        {
-            add => InnerChannel.BasicRecoverOk += value;
-            remove => InnerChannel.BasicRecoverOk -= value;
-        }
-
         public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
             add => InnerChannel.BasicReturn += value;
@@ -395,12 +389,6 @@ namespace RabbitMQ.Client.Impl
 
             return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global);
         }
-
-        public void BasicRecover(bool requeue)
-            => InnerChannel.BasicRecover(requeue);
-
-        public void BasicRecoverAsync(bool requeue)
-            => InnerChannel.BasicRecoverAsync(requeue);
 
         public void BasicReject(ulong deliveryTag, bool requeue)
             => InnerChannel.BasicReject(deliveryTag, requeue);

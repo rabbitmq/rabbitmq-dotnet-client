@@ -77,7 +77,6 @@ namespace RabbitMQ.Client.Impl
             Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);
             _basicNacksWrapper = new EventingWrapper<BasicNackEventArgs>("OnBasicNack", onException);
-            _basicRecoverOkWrapper = new EventingWrapper<EventArgs>("OnBasicRecover", onException);
             _basicReturnWrapper = new EventingWrapper<BasicReturnEventArgs>("OnBasicReturn", onException);
             _callbackExceptionWrapper = new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
             _flowControlWrapper = new EventingWrapper<FlowControlEventArgs>("OnFlowControl", onException);
@@ -104,13 +103,6 @@ namespace RabbitMQ.Client.Impl
             remove => _basicNacksWrapper.RemoveHandler(value);
         }
         private EventingWrapper<BasicNackEventArgs> _basicNacksWrapper;
-
-        public event EventHandler<EventArgs> BasicRecoverOk
-        {
-            add => _basicRecoverOkWrapper.AddHandler(value);
-            remove => _basicRecoverOkWrapper.RemoveHandler(value);
-        }
-        private EventingWrapper<EventArgs> _basicRecoverOkWrapper;
 
         public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
@@ -184,7 +176,6 @@ namespace RabbitMQ.Client.Impl
         {
             _basicAcksWrapper.Takeover(other._basicAcksWrapper);
             _basicNacksWrapper.Takeover(other._basicNacksWrapper);
-            _basicRecoverOkWrapper.Takeover(other._basicRecoverOkWrapper);
             _basicReturnWrapper.Takeover(other._basicReturnWrapper);
             _callbackExceptionWrapper.Takeover(other._callbackExceptionWrapper);
             _flowControlWrapper.Takeover(other._flowControlWrapper);
@@ -724,13 +715,6 @@ namespace RabbitMQ.Client.Impl
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
-        protected void HandleBasicRecoverOk()
-        {
-            var k = (SimpleBlockingRpcContinuation)_continuationQueue.Next();
-            _basicRecoverOkWrapper.Invoke(this, EventArgs.Empty);
-            k.HandleCommand(IncomingCommand.Empty);
-        }
-
         protected void HandleBasicReturn(in IncomingCommand cmd)
         {
             if (!_basicReturnWrapper.IsEmpty)
@@ -907,8 +891,6 @@ namespace RabbitMQ.Client.Impl
         public abstract void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IDictionary<string, object> arguments);
 
         public abstract void _Private_BasicGet(string queue, bool autoAck);
-
-        public abstract void _Private_BasicRecover(bool requeue);
 
         public abstract void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
 
@@ -1197,24 +1179,6 @@ namespace RabbitMQ.Client.Impl
                 _rpcSemaphore.Release();
             }
         }
-
-        public void BasicRecover(bool requeue)
-        {
-            _rpcSemaphore.Wait();
-            try
-            {
-                var k = new SimpleBlockingRpcContinuation();
-                Enqueue(k);
-                _Private_BasicRecover(requeue);
-                k.GetReply(ContinuationTimeout);
-            }
-            finally
-            {
-                _rpcSemaphore.Release();
-            }
-        }
-
-        public abstract void BasicRecoverAsync(bool requeue);
 
         public abstract void BasicReject(ulong deliveryTag, bool requeue);
 
