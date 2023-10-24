@@ -558,13 +558,15 @@ namespace RabbitMQ.Client
         /// <returns>Returns the number of messages purged during deletion.</returns>
         void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
 
-        /// <summary>
-        /// Purge a queue of messages.
-        /// </summary>
-        /// <remarks>
-        /// Returns the number of messages purged.
-        /// </remarks>
+        /// <summary>Asynchronously purge a queue of messages.</summary>
+        /// <param name="queue">The queue.</param>
+        /// <returns>Returns the number of messages purged.</returns>
         uint QueuePurge(string queue);
+
+        /// <summary>Asynchronously purge a queue of messages.</summary>
+        /// <param name="queue">The queue.</param>
+        /// <returns>Returns the number of messages purged.</returns>
+        ValueTask<uint> QueuePurgeAsync(string queue);
 
         /// <summary>
         /// Unbind a queue from an exchange.

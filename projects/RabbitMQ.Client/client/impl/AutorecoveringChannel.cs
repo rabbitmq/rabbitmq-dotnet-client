@@ -574,6 +574,9 @@ namespace RabbitMQ.Client.Impl
         public uint QueuePurge(string queue)
             => InnerChannel.QueuePurge(queue);
 
+        public ValueTask<uint> QueuePurgeAsync(string queue)
+            => InnerChannel.QueuePurgeAsync(queue);
+
         public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();

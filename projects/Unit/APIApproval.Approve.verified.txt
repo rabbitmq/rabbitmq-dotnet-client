@@ -465,6 +465,7 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty);
         void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
         uint QueuePurge(string queue);
+        System.Threading.Tasks.ValueTask<uint> QueuePurgeAsync(string queue);
         void QueueUnbind(string queue, string exchange, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments);
         void TxCommit();
         void TxRollback();

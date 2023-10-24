@@ -374,4 +374,31 @@ namespace RabbitMQ.Client.Impl
             }
         }
     }
+
+    internal class QueuePurgeAsyncRpcContinuation : AsyncRpcContinuation<uint>
+    {
+        public QueuePurgeAsyncRpcContinuation(TimeSpan continuationTimeout) : base(continuationTimeout)
+        {
+        }
+
+        public override void HandleCommand(in IncomingCommand cmd)
+        {
+            try
+            {
+                if (cmd.CommandId == ProtocolCommandId.QueuePurgeOk)
+                {
+                    var method = new Client.Framing.Impl.QueuePurgeOk(cmd.MethodBytes.Span);
+                    _tcs.TrySetResult(method._messageCount);
+                }
+                else
+                {
+                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                }
+            }
+            finally
+            {
+                cmd.ReturnMethodBuffer();
+            }
+        }
+    }
 }

@@ -1466,6 +1466,25 @@ namespace RabbitMQ.Client.Impl
             return _Private_QueuePurge(queue, false);
         }
 
+        public async ValueTask<uint> QueuePurgeAsync(string queue)
+        {
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                var k = new QueuePurgeAsyncRpcContinuation(ContinuationTimeout);
+                Enqueue(k);
+
+                var method = new QueuePurge(queue, false);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                return await k;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
         public abstract void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
         public abstract void TxCommit();

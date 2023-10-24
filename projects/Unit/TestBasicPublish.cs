@@ -292,5 +292,35 @@ namespace RabbitMQ.Client.Unit
                 Assert.Equal("World", response);
             }
         }
+
+        [Fact]
+        public async Task TestQueuePurgeAsync()
+        {
+            const int messageCount = 1024;
+            var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var cf = new ConnectionFactory { DispatchConsumersAsync = true };
+            using IConnection connection = cf.CreateConnection();
+            using IChannel channel = connection.CreateChannel();
+
+            await channel.ConfirmSelectAsync();
+
+            QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            string queueName = q.QueueName;
+
+            var publishTask = Task.Run(async () =>
+            {
+                for (int i = 0; i < messageCount; i++)
+                {
+                    byte[] body = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
+                    await channel.BasicPublishAsync(string.Empty, queueName, body);
+                }
+                publishSyncSource.SetResult(true);
+            });
+
+            await channel.WaitForConfirmsOrDieAsync();
+            Assert.True(await publishSyncSource.Task);
+
+            Assert.Equal((uint)messageCount, await channel.QueuePurgeAsync(queueName));
+        }
     }
 }
