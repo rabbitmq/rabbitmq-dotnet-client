@@ -167,6 +167,8 @@ namespace RabbitMQ.Client.Unit
                         QueueDeclareOk r = await _channel.QueueDeclareAsync(qname, passive: true, false, false, false, null);
                         Assert.Equal(qname, r.QueueName);
 
+                        await _channel.QueueUnbindAsync(queue: qname, exchange: "amq.fanout", routingKey: qname, null);
+
                         uint deletedMessageCount = await _channel.QueueDeleteAsync(qname, false, false);
                         Assert.Equal((uint)0, deletedMessageCount);
                     }

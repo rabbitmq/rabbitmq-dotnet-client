@@ -1525,6 +1525,27 @@ namespace RabbitMQ.Client.Impl
 
         public abstract void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
 
+        public async ValueTask QueueUnbindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        {
+            await _rpcSemaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                using var k = new QueueUnbindAsyncRpcContinuation(ContinuationTimeout);
+                Enqueue(k);
+
+                var method = new QueueUnbind(queue, exchange, routingKey, arguments);
+                await ModelSendAsync(method).ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+                return;
+            }
+            finally
+            {
+                _rpcSemaphore.Release();
+            }
+        }
+
         public abstract void TxCommit();
 
         public abstract void TxRollback();

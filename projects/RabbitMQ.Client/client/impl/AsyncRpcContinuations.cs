@@ -348,6 +348,14 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
+    internal class QueueUnbindAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public QueueUnbindAsyncRpcContinuation(TimeSpan continuationTimeout)
+            : base(ProtocolCommandId.QueueUnbindOk, continuationTimeout)
+        {
+        }
+    }
+
     internal class QueueDeleteAsyncRpcContinuation : AsyncRpcContinuation<uint>
     {
         public QueueDeleteAsyncRpcContinuation(TimeSpan continuationTimeout) : base(continuationTimeout)
