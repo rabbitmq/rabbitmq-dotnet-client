@@ -194,7 +194,47 @@ namespace RabbitMQ.Client.Impl
 
         public void Close(ushort replyCode, string replyText, bool abort)
         {
-            _ = CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText), abort);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText);
+            var k = new ShutdownContinuation();
+            ChannelShutdown += k.OnConnectionShutdown;
+
+            try
+            {
+                ConsumerDispatcher.Quiesce();
+
+                if (SetCloseReason(reason))
+                {
+                    _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
+                }
+
+                k.Wait(TimeSpan.FromMilliseconds(10000));
+                ConsumerDispatcher.WaitForShutdownAsync().ConfigureAwait(false);
+            }
+            catch (AlreadyClosedException)
+            {
+                if (!abort)
+                {
+                    throw;
+                }
+            }
+            catch (IOException)
+            {
+                if (!abort)
+                {
+                    throw;
+                }
+            }
+            catch (Exception)
+            {
+                if (!abort)
+                {
+                    throw;
+                }
+            }
+            finally
+            {
+                ChannelShutdown -= k.OnConnectionShutdown;
+            }
         }
 
         public async ValueTask CloseAsync(ShutdownEventArgs reason, bool abort)
@@ -216,8 +256,6 @@ namespace RabbitMQ.Client.Impl
                 bool result = await k;
                 Debug.Assert(result);
 
-                // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-                // k.Wait(TimeSpan.FromMilliseconds(10000));
                 await ConsumerDispatcher.WaitForShutdownAsync().ConfigureAwait(false);
             }
             catch (AlreadyClosedException)

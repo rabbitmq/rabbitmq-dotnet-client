@@ -250,15 +250,32 @@ namespace RabbitMQ.Client
             channel.Close(Constants.ReplySuccess, "Goodbye", false);
         }
 
-        /// <summary>Close this session.</summary>
+        /// <summary>Asynchronously close this session.</summary>
+        /// <remarks>
+        /// If the session is already closed (or closing), then this
+        /// method does nothing but wait for the in-progress close
+        /// operation to complete. This method will not return to the
+        /// caller until the shutdown is complete.
+        /// </remarks>
+        public static ValueTask CloseAsync(this IChannel channel)
+        {
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.ReplySuccess, "Goodbye");
+            return channel.CloseAsync(reason, false);
+        }
+
+        /// <summary>
+        /// Close this channel.
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="replyCode">The reply code.</param>
+        /// <param name="replyText">The reply text.</param>
         /// <remarks>
         /// The method behaves in the same way as Close(), with the only
         /// difference that the channel is closed with the given channel
         /// close code and message.
         /// <para>
         /// The close code (See under "Reply Codes" in the AMQP specification)
-        /// </para>
-        /// <para>
+        /// </para><para>
         /// A message indicating the reason for closing the channel
         /// </para>
         /// </remarks>

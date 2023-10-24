@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 using Xunit;
 
@@ -50,7 +51,8 @@ namespace RabbitMQ.Client.Unit
 
         public TestChannelAllocation()
         {
-            _c = new ConnectionFactory().CreateConnection();
+            var cf = new ConnectionFactory();
+            _c = cf.CreateConnection();
         }
 
         public void Dispose() => _c.Close();
@@ -68,6 +70,16 @@ namespace RabbitMQ.Client.Unit
             IChannel ch = _c.CreateChannel();
             Assert.Equal(1, ChannelNumber(ch));
             ch.Close();
+            ch = _c.CreateChannel();
+            Assert.Equal(1, ChannelNumber(ch));
+        }
+
+        [Fact]
+        public async Task AllocateAfterFreeingLastAsync()
+        {
+            IChannel ch = _c.CreateChannel();
+            Assert.Equal(1, ChannelNumber(ch));
+            await ch.CloseAsync();
             ch = _c.CreateChannel();
             Assert.Equal(1, ChannelNumber(ch));
         }

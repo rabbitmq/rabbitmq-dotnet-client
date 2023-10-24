@@ -489,6 +489,7 @@ namespace RabbitMQ.Client
         public static System.Threading.Tasks.ValueTask BasicPublishAsync(this RabbitMQ.Client.IChannel channel, string exchange, string routingKey, System.ReadOnlyMemory<byte> body = default, bool mandatory = false) { }
         public static void Close(this RabbitMQ.Client.IChannel channel) { }
         public static void Close(this RabbitMQ.Client.IChannel channel, ushort replyCode, string replyText) { }
+        public static System.Threading.Tasks.ValueTask CloseAsync(this RabbitMQ.Client.IChannel channel) { }
         public static void ExchangeBind(this RabbitMQ.Client.IChannel channel, string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
         public static void ExchangeBindNoWait(this RabbitMQ.Client.IChannel channel, string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
         public static void ExchangeDeclare(this RabbitMQ.Client.IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false, System.Collections.Generic.IDictionary<string, object> arguments = null) { }
