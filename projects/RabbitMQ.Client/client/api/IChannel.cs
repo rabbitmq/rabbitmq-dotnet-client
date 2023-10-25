@@ -58,8 +58,9 @@ namespace RabbitMQ.Client
         /// </summary>
         ShutdownEventArgs CloseReason { get; }
 
-        /// <summary>Signalled when an unexpected message is delivered
+        /// <summary>Signalled when an unexpected message is delivered.</summary>
         ///
+        /// <remarks>
         /// Under certain circumstances it is possible for a channel to receive a
         /// message delivery which does not match any consumer which is currently
         /// set up via basicConsume(). This will occur after the following sequence
@@ -79,7 +80,8 @@ namespace RabbitMQ.Client
         /// such deliveries. If no default consumer is registered an
         /// InvalidOperationException will be thrown when such a delivery arrives.
         ///
-        /// Most people will not need to use this.</summary>
+        /// Most people will not need to use this.
+        /// </remarks>
         IBasicConsumer DefaultConsumer { get; set; }
 
         /// <summary>
@@ -89,7 +91,8 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Returns true if the channel is still in a state where it can be used.
-        /// Identical to checking if <see cref="CloseReason"/> equals null.</summary>
+        /// Identical to checking if <see cref="CloseReason"/> equals null.
+        /// </summary>
         bool IsOpen { get; }
 
         /// <summary>
