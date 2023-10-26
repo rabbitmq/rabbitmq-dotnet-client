@@ -173,7 +173,10 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ToString()
             => $"AutorecoveringConnection({InnerConnection.Id},{Endpoint},{GetHashCode()})";
 
-        internal IFrameHandler FrameHandler => InnerConnection.FrameHandler;
+        internal void CloseFrameHandler()
+        {
+            InnerConnection.FrameHandler.Close();
+        }
 
         ///<summary>API-side invocation of updating the secret.</summary>
         public void UpdateSecret(string newSecret, string reason)

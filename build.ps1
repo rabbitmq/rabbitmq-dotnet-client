@@ -14,7 +14,7 @@ Write-Host "Done building." -ForegroundColor "Green"
 
 if ($RunTests)
 {
-    $unit_csproj_file = Resolve-Path -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath 'projects' | Join-Path -ChildPath 'Unit' | Join-Path -ChildPath 'Unit.csproj')
+    $unit_csproj_file = Resolve-Path -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath 'projects' | Join-Path -ChildPath 'Test' | Join-Path -ChildPath 'Unit' | Join-Path -ChildPath 'Unit.csproj')
     Write-Host "Running Unit / Integration tests from '$unit_csproj_file' (all frameworks)" -ForegroundColor "Magenta"
     dotnet test $unit_csproj_file --no-restore --no-build --logger "console;verbosity=detailed"
     if ($LastExitCode -ne 0) {

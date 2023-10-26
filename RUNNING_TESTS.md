@@ -71,7 +71,7 @@ in this example, it should be `./rabbitmq-server/deps/rabbit/sbin/rabbitmqctl`.
 It is possible to override the location using `RABBITMQ_RABBITMQCTL_PATH`:
 
 ```
-RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Unit
+RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Test/Unit.csproj
 ```
 
 ### Option Three: Using a Docker Container
@@ -110,9 +110,9 @@ Running individual tests and fixtures on Windows is trivial using the Visual Stu
 To run a specific tests fixture on MacOS or Linux, use the NUnit filter expressions to select the tests to be run:
 
 ``` shell
-dotnet test projects/Unit --filter "Name~TestAmqpUriParseFail"
+dotnet test projects/Test/Unit.csproj --filter "Name~TestAmqpUriParseFail"
 
-dotnet test projects/Unit --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
+dotnet test projects/Test/Unit.csproj --filter "FullyQualifiedName~RabbitMQ.Client.Unit.TestHeartbeats"
 ```
 
 ## Running Tests for a Specific .NET Target

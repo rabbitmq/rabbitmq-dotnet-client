@@ -1652,13 +1652,16 @@ namespace RabbitMQ.Client.Impl
                         new IOException("nack received")),
                     false).ConfigureAwait(false);
             }
-            catch (TaskCanceledException exception)
+            catch (TaskCanceledException)
             {
+                const string msg = "timed out waiting for acks";
+                var ex = new IOException(msg);
                 await CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Library,
                         Constants.ReplySuccess,
-                        "Timed out waiting for acks",
-                        exception),
+                        msg,
+                        ex),
                     false).ConfigureAwait(false);
+                throw ex;
             }
         }
 

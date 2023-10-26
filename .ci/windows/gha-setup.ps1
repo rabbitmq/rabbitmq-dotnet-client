@@ -65,6 +65,7 @@ $erlang_home = (Get-ItemProperty -LiteralPath $erlang_reg_path\$erlang_erts_vers
 Write-Host "[INFO] Setting ERLANG_HOME to '$erlang_home'..."
 $env:ERLANG_HOME = $erlang_home
 [Environment]::SetEnvironmentVariable('ERLANG_HOME', $erlang_home, 'Machine')
+Add-Content -Verbose -LiteralPath $env:GITHUB_ENV -Value "ERLANG_HOME=$erlang_home"
 
 Write-Host "[INFO] Setting RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS..."
 $env:RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS = '-rabbitmq_stream advertised_host localhost'
@@ -189,6 +190,17 @@ Write-Host '[INFO] Enabling plugins...'
 & $rabbitmq_plugins_path enable rabbitmq_management rabbitmq_stream rabbitmq_stream_management rabbitmq_amqp1_0
 
 echo Q | openssl s_client -connect localhost:5671 -CAfile "$certs_dir/ca_certificate.pem" -cert "$certs_dir/client_localhost_certificate.pem" -key "$certs_dir/client_localhost_key.pem" -pass pass:grapefruit
-if ($LASTEXITCODE -ne 0) {
+if ($LASTEXITCODE -ne 0)
+{
     throw "[ERROR] 'openssl s_client' returned error: $LASTEXITCODE"
 }
+
+
+$rabbitmqctl_path = Resolve-Path -LiteralPath `
+    (Join-Path -Path $rabbitmq_base_path -ChildPath "rabbitmq_server-$rabbitmq_version" | Join-Path -ChildPath 'sbin' | Join-Path -ChildPath 'rabbitmqctl.bat')
+
+Write-Host "[INFO] Setting RABBITMQ_RABBITMQCTL_PATH to '$rabbitmqctl_path'..."
+$env:RABBITMQ_RABBITMQCTL_PATH = $rabbitmqctl_path
+[Environment]::SetEnvironmentVariable('RABBITMQ_RABBITMQCTL_PATH', $rabbitmqctl_path, 'Machine')
+Add-Content -Verbose -LiteralPath $env:GITHUB_OUTPUT -Value "path=$rabbitmqctl_path"
+Add-Content -Verbose -LiteralPath $env:GITHUB_ENV -Value "RABBITMQ_RABBITMQCTL_PATH=$rabbitmqctl_path"

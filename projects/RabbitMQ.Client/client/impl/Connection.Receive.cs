@@ -144,6 +144,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (!SetCloseReason(reason))
             {
+                // TODO LRB
+                // reason.Cause could be an Exception, should we use that?
                 LogCloseError("Unexpected Main Loop Exception while closing: " + reason, new Exception(reason.ToString()));
                 return;
             }
