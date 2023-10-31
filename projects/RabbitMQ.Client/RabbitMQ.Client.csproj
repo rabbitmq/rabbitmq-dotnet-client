@@ -4,6 +4,7 @@
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <AssemblyTitle>RabbitMQ Client Library for .NET</AssemblyTitle>
     <Authors>VMware</Authors>
     <Company>VMware, Inc. or its affiliates.</Company>

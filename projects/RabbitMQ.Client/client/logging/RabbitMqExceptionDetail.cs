@@ -60,6 +60,10 @@ namespace RabbitMQ.Client.Logging
             }
         }
 
+        // NOTE: This type is used to write EventData in RabbitMqClientEventSource.Error. To make it trim-compatible, these properties are preserved
+        // in RabbitMqClientEventSource. If RabbitMqExceptionDetail gets a property that is a complex type, we need to ensure the nested properties are
+        // preserved as well.
+
         public string Type { get; }
         public string Message { get; }
         public string StackTrace { get; }
