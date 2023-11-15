@@ -30,7 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Net.Sockets;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
@@ -67,6 +69,34 @@ namespace RabbitMQ.Client.Unit
             Assert.Equal(cf.Endpoint.HostName, h);
             Assert.Equal(cf.Endpoint.Port, p);
             Assert.Equal(cf.Endpoint.MaxMessageSize, mms);
+        }
+
+        [Fact]
+        public void TestConnectionFactoryWithCustomSocketFactory()
+        {
+            const int bufsz = 1024;
+
+            ConnectionFactory cf = new()
+            {
+                SocketFactory = (AddressFamily af) =>
+                {
+                    var socket = new Socket(af, SocketType.Stream, ProtocolType.Tcp)
+                    {
+                        SendBufferSize = bufsz,
+                        ReceiveBufferSize = bufsz,
+                        NoDelay = false
+                    };
+                    return new TcpClientAdapter(socket);
+                }
+            };
+
+            ITcpClient c = cf.SocketFactory(AddressFamily.InterNetwork);
+            Assert.IsType<TcpClientAdapter>(c);
+            TcpClientAdapter tcpClientAdapter = (TcpClientAdapter)c;
+            Socket s = tcpClientAdapter.Client;
+            Assert.Equal(bufsz, s.ReceiveBufferSize);
+            Assert.Equal(bufsz, s.SendBufferSize);
+            Assert.False(s.NoDelay);
         }
 
         [Fact]
