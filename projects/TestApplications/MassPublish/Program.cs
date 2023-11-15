@@ -9,8 +9,8 @@ namespace MassPublish
 {
     public static class Program
     {
-        private const int BatchesToSend = 100;
-        private const int ItemsPerBatch = 500;
+        private const int BatchesToSend = 64;
+        private const int ItemsPerBatch = 8192;
 
         private static int messagesSent;
         private static int messagesReceived;
@@ -18,6 +18,10 @@ namespace MassPublish
 
         public static void Main()
         {
+            var r = new Random();
+            byte[] payload = new byte[4096];
+            r.NextBytes(payload);
+
             ThreadPool.SetMinThreads(16 * Environment.ProcessorCount, 16 * Environment.ProcessorCount);
 
             doneEvent = new AutoResetEvent(false);
@@ -36,7 +40,6 @@ namespace MassPublish
             subscriber.QueueBind("testqueue", "test", "myawesome.routing.key");
             subscriber.BasicConsume("testqueue", true, "testconsumer", asyncListener);
 
-            byte[] payload = new byte[512];
             var watch = Stopwatch.StartNew();
             _ = Task.Run(async () =>
             {
@@ -70,7 +73,6 @@ namespace MassPublish
             publisher.Dispose();
             subscriber.Dispose();
             connection.Dispose();
-            Console.ReadLine();
         }
 
         private static Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
