@@ -647,6 +647,19 @@ namespace RabbitMQ.Client
         public string ServerName { get; set; }
         public System.Security.Authentication.SslProtocols Version { get; set; }
     }
+    public class TcpClientAdapter : RabbitMQ.Client.ITcpClient, System.IDisposable
+    {
+        public TcpClientAdapter(System.Net.Sockets.Socket socket) { }
+        public virtual System.Net.Sockets.Socket Client { get; }
+        public virtual bool Connected { get; }
+        public virtual System.TimeSpan ReceiveTimeout { get; set; }
+        public virtual void Close() { }
+        public virtual System.Threading.Tasks.Task ConnectAsync(string host, int port) { }
+        public void Dispose() { }
+        protected virtual void Dispose(bool disposing) { }
+        public virtual System.Net.Sockets.NetworkStream GetStream() { }
+        public static System.Net.IPAddress GetMatchingHost(System.Collections.Generic.IReadOnlyCollection<System.Net.IPAddress> addresses, System.Net.Sockets.AddressFamily addressFamily) { }
+    }
     public class TimerBasedCredentialRefresher : RabbitMQ.Client.ICredentialsRefresher
     {
         public TimerBasedCredentialRefresher() { }
