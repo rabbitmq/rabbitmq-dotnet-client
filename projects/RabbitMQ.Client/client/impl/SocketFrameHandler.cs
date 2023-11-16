@@ -117,7 +117,7 @@ namespace RabbitMQ.Client.Impl
 
             // Resolve the hostname to know if it's even possible to even try IPv6
             IPAddress[] adds = Dns.GetHostAddresses(endpoint.HostName);
-            IPAddress ipv6 = TcpClientAdapterHelper.GetMatchingHost(adds, AddressFamily.InterNetworkV6);
+            IPAddress ipv6 = TcpClientAdapter.GetMatchingHost(adds, AddressFamily.InterNetworkV6);
 
             if (ipv6 == default(IPAddress))
             {
@@ -141,7 +141,7 @@ namespace RabbitMQ.Client.Impl
 
             if (_socket is null)
             {
-                IPAddress ipv4 = TcpClientAdapterHelper.GetMatchingHost(adds, AddressFamily.InterNetwork);
+                IPAddress ipv4 = TcpClientAdapter.GetMatchingHost(adds, AddressFamily.InterNetwork);
                 if (ipv4 == default(IPAddress))
                 {
                     throw new ConnectFailureException("Connection failed", new ArgumentException($"No ip address could be resolved for {endpoint.HostName}"));
