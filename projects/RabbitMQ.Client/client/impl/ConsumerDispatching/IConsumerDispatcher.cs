@@ -45,13 +45,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         void HandleBasicConsumeOk(IBasicConsumer consumer, string consumerTag);
 
-        void HandleBasicDeliver(string consumerTag,
+        void HandleBasicDeliver(ReadOnlyMemory<byte> consumerTag,
                             ulong deliveryTag,
                             bool redelivered,
-                            string exchange,
-                            string routingKey,
+                            ReadOnlyMemory<byte> exchange,
+                            ReadOnlyMemory<byte> routingKey,
                             in ReadOnlyBasicProperties basicProperties,
                             ReadOnlyMemory<byte> body,
+                            byte[] rentedMethodArray,
                             byte[] rentedArray);
 
         void HandleBasicCancelOk(string consumerTag);

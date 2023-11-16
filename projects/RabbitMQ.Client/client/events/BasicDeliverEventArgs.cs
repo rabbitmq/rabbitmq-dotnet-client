@@ -47,8 +47,8 @@ namespace RabbitMQ.Client.Events
         public BasicDeliverEventArgs(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
-            string exchange,
-            string routingKey,
+            ReadOnlyMemory<byte> exchange,
+            ReadOnlyMemory<byte> routingKey,
             in ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
@@ -77,13 +77,13 @@ namespace RabbitMQ.Client.Events
 
         ///<summary>The exchange the message was originally published
         ///to.</summary>
-        public string Exchange { get; set; }
+        public ReadOnlyMemory<byte> Exchange { get; set; }
 
         ///<summary>The AMQP "redelivered" flag.</summary>
         public bool Redelivered { get; set; }
 
         ///<summary>The routing key used when the message was
         ///originally published.</summary>
-        public string RoutingKey { get; set; }
+        public ReadOnlyMemory<byte> RoutingKey { get; set; }
     }
 }

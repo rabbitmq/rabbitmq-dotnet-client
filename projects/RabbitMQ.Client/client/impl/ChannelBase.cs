@@ -600,8 +600,7 @@ namespace RabbitMQ.Client.Impl
 
         protected void HandleBasicDeliver(in IncomingCommand cmd)
         {
-            var method = new Client.Framing.Impl.BasicDeliver(cmd.MethodBytes.Span);
-            cmd.ReturnMethodBuffer();
+            var method = new Client.Framing.Impl.BasicDeliver(cmd.MethodBytes);
             var header = new ReadOnlyBasicProperties(cmd.HeaderBytes.Span);
             cmd.ReturnHeaderBuffer();
 
@@ -613,6 +612,7 @@ namespace RabbitMQ.Client.Impl
                     method._routingKey,
                     header,
                     cmd.Body,
+                    cmd.TakeoverMethod(),
                     cmd.TakeoverBody());
         }
 

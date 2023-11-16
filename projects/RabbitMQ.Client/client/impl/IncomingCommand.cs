@@ -32,6 +32,11 @@ namespace RabbitMQ.Client.Impl
             _rentedBodyArray = rentedBodyArray;
         }
 
+        public byte[] TakeoverMethod()
+        {
+            return _rentedMethodBytes;
+        }
+
         public byte[] TakeoverBody()
         {
             return _rentedBodyArray;
