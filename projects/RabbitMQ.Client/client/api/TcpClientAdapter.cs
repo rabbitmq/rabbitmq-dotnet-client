@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Simple wrapper around TcpClient.
+    /// Simple wrapper around <see cref="Socket"/>.
     /// </summary>
-    internal class TcpClientAdapter : ITcpClient
+    public class TcpClientAdapter : ITcpClient
     {
         private Socket _sock;
 
@@ -21,7 +23,7 @@ namespace RabbitMQ.Client.Impl
         {
             AssertSocket();
             IPAddress[] adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
-            IPAddress ep = TcpClientAdapterHelper.GetMatchingHost(adds, _sock.AddressFamily);
+            IPAddress ep = GetMatchingHost(adds, _sock.AddressFamily);
             if (ep == default(IPAddress))
             {
                 throw new ArgumentException($"No ip address could be resolved for {host}");
@@ -38,12 +40,11 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void Close()
         {
-            _sock?.Dispose();
+            _sock.Dispose();
             _sock = null;
         }
 
-        [Obsolete("Override Dispose(bool) instead.")]
-        public virtual void Dispose()
+        public void Dispose()
         {
             Dispose(true);
         }
@@ -52,11 +53,8 @@ namespace RabbitMQ.Client.Impl
         {
             if (disposing)
             {
-                // dispose managed resources
                 Close();
             }
-
-            // dispose unmanaged resources
         }
 
         public virtual NetworkStream GetStream()
@@ -105,6 +103,16 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new InvalidOperationException("Cannot perform operation as socket is null");
             }
+        }
+
+        public static IPAddress GetMatchingHost(IReadOnlyCollection<IPAddress> addresses, AddressFamily addressFamily)
+        {
+            IPAddress ep = addresses.FirstOrDefault(a => a.AddressFamily == addressFamily);
+            if (ep is null && addresses.Count == 1 && addressFamily == AddressFamily.Unspecified)
+            {
+                return addresses.Single();
+            }
+            return ep;
         }
     }
 }

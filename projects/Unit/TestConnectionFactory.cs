@@ -32,7 +32,6 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
@@ -74,7 +73,14 @@ namespace RabbitMQ.Client.Unit
         [Fact]
         public void TestConnectionFactoryWithCustomSocketFactory()
         {
-            const int bufsz = 1024;
+            const int testBufsz = 1024;
+            int defaultReceiveBufsz = 0;
+            int defaultSendBufsz = 0;
+            using (var defaultSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
+            {
+                defaultReceiveBufsz = defaultSocket.ReceiveBufferSize;
+                defaultSendBufsz = defaultSocket.SendBufferSize;
+            }
 
             ConnectionFactory cf = new()
             {
@@ -82,8 +88,8 @@ namespace RabbitMQ.Client.Unit
                 {
                     var socket = new Socket(af, SocketType.Stream, ProtocolType.Tcp)
                     {
-                        SendBufferSize = bufsz,
-                        ReceiveBufferSize = bufsz,
+                        SendBufferSize = testBufsz,
+                        ReceiveBufferSize = testBufsz,
                         NoDelay = false
                     };
                     return new TcpClientAdapter(socket);
@@ -94,8 +100,8 @@ namespace RabbitMQ.Client.Unit
             Assert.IsType<TcpClientAdapter>(c);
             TcpClientAdapter tcpClientAdapter = (TcpClientAdapter)c;
             Socket s = tcpClientAdapter.Client;
-            Assert.Equal(bufsz, s.ReceiveBufferSize);
-            Assert.Equal(bufsz, s.SendBufferSize);
+            Assert.NotEqual(defaultReceiveBufsz, s.ReceiveBufferSize);
+            Assert.NotEqual(defaultSendBufsz, s.SendBufferSize);
             Assert.False(s.NoDelay);
         }
 

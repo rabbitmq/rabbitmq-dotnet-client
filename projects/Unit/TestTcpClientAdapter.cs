@@ -31,7 +31,6 @@
 
 using System.Net;
 using System.Net.Sockets;
-using RabbitMQ.Client.Impl;
 using Xunit;
 
 namespace RabbitMQ.Client.Unit
@@ -42,7 +41,7 @@ namespace RabbitMQ.Client.Unit
         public void TcpClientAdapterHelperGetMatchingHostReturnNoAddressIfFamilyDoesNotMatch()
         {
             var address = IPAddress.Parse("127.0.0.1");
-            IPAddress matchingAddress = TcpClientAdapterHelper.GetMatchingHost(new[] { address }, AddressFamily.InterNetworkV6);
+            IPAddress matchingAddress = TcpClientAdapter.GetMatchingHost(new[] { address }, AddressFamily.InterNetworkV6);
             Assert.Null(matchingAddress);
         }
 
@@ -50,7 +49,7 @@ namespace RabbitMQ.Client.Unit
         public void TcpClientAdapterHelperGetMatchingHostReturnsSingleAddressIfFamilyIsUnspecified()
         {
             var address = IPAddress.Parse("1.1.1.1");
-            IPAddress matchingAddress = TcpClientAdapterHelper.GetMatchingHost(new[] { address }, AddressFamily.Unspecified);
+            IPAddress matchingAddress = TcpClientAdapter.GetMatchingHost(new[] { address }, AddressFamily.Unspecified);
             Assert.Equal(address, matchingAddress);
         }
 
@@ -59,7 +58,7 @@ namespace RabbitMQ.Client.Unit
         {
             var address = IPAddress.Parse("1.1.1.1");
             var address2 = IPAddress.Parse("2.2.2.2");
-            IPAddress matchingAddress = TcpClientAdapterHelper.GetMatchingHost(new[] { address, address2 }, AddressFamily.Unspecified);
+            IPAddress matchingAddress = TcpClientAdapter.GetMatchingHost(new[] { address, address2 }, AddressFamily.Unspecified);
             Assert.Null(matchingAddress);
         }
     }
