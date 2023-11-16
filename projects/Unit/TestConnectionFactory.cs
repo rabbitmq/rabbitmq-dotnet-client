@@ -35,7 +35,6 @@ using System.Net.Sockets;
 using System.Text;
 using NUnit.Framework;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Unit
 {
@@ -77,8 +76,14 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestConnectionFactoryWithCustomSocketFactory()
         {
-            const int defaultSocketBufsz = 8192; // From the docs
-            const int bufsz = 1024;
+            const int testBufsz = 1024;
+            int defaultReceiveBufsz = 0;
+            int defaultSendBufsz = 0;
+            using (var defaultSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP))
+            {
+                defaultReceiveBufsz = defaultSocket.ReceiveBufferSize;
+                defaultSendBufsz = defaultSocket.SendBufferSize;
+            }
 
             var cf = new ConnectionFactory
             {
@@ -86,8 +91,8 @@ namespace RabbitMQ.Client.Unit
                 {
                     var socket = new Socket(af, SocketType.Stream, ProtocolType.Tcp)
                     {
-                        SendBufferSize = bufsz,
-                        ReceiveBufferSize = bufsz,
+                        SendBufferSize = testBufsz,
+                        ReceiveBufferSize = testBufsz,
                         NoDelay = false
                     };
                     return new TcpClientAdapter(socket);
@@ -98,8 +103,8 @@ namespace RabbitMQ.Client.Unit
             Assert.IsAssignableFrom(typeof(TcpClientAdapter), c);
             TcpClientAdapter tcpClientAdapter = (TcpClientAdapter)c;
             Socket s = tcpClientAdapter.Client;
-            Assert.AreNotEqual(defaultSocketBufsz, s.ReceiveBufferSize);
-            Assert.AreNotEqual(defaultSocketBufsz, s.SendBufferSize);
+            Assert.AreNotEqual(defaultReceiveBufsz, s.ReceiveBufferSize);
+            Assert.AreNotEqual(defaultSendBufsz, s.SendBufferSize);
             Assert.False(s.NoDelay);
         }
 
