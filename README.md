@@ -50,3 +50,5 @@ See [Contributing](./CONTRIBUTING.md) and [How to Run Tests](./RUNNING_TESTS.md)
 
 This package, the RabbitMQ .NET client library, is double-licensed under
 the Mozilla Public License 1.1 ("MPL") and the Apache License version 2 ("ASL").
+
+## Comments
