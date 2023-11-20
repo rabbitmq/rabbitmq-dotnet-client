@@ -1,23 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
 #nullable enable
     internal abstract class ConsumerDispatcherChannelBase : ConsumerDispatcherBase, IConsumerDispatcher
     {
+        protected readonly CancellationTokenSource _consumerDispatcherCts = new();
+        protected readonly CancellationToken _consumerDispatcherToken;
+
         protected readonly ChannelBase _channel;
         protected readonly ChannelReader<WorkStruct> _reader;
         private readonly ChannelWriter<WorkStruct> _writer;
         private readonly Task _worker;
+        private bool _quiesce = false;
+        private bool _disposed;
 
-        public bool IsShutdown { get; private set; }
-
-        protected ConsumerDispatcherChannelBase(ChannelBase channel, int concurrency)
+        internal ConsumerDispatcherChannelBase(ChannelBase channel, int concurrency)
         {
+            _consumerDispatcherToken = _consumerDispatcherCts.Token;
             _channel = channel;
             var workChannel = Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
             {
@@ -28,25 +36,34 @@ namespace RabbitMQ.Client.ConsumerDispatching
             _reader = workChannel.Reader;
             _writer = workChannel.Writer;
 
-            Func<Task> loopStart = ProcessChannelAsync;
+            Func<Task> loopStart =
+                () => ProcessChannelAsync(_consumerDispatcherToken);
             if (concurrency == 1)
             {
-                _worker = Task.Run(loopStart);
+                _worker = Task.Run(loopStart, _consumerDispatcherToken);
             }
             else
             {
                 var tasks = new Task[concurrency];
                 for (int i = 0; i < concurrency; i++)
                 {
-                    tasks[i] = Task.Run(loopStart);
+                    tasks[i] = Task.Run(loopStart, _consumerDispatcherToken);
                 }
                 _worker = Task.WhenAll(tasks);
             }
         }
 
+        public bool IsShutdown
+        {
+            get
+            {
+                return _quiesce;
+            }
+        }
+
         public void HandleBasicConsumeOk(IBasicConsumer consumer, string consumerTag)
         {
-            if (!IsShutdown)
+            if (false == _disposed && false == _quiesce)
             {
                 AddConsumer(consumer, consumerTag);
                 _writer.TryWrite(new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag));
@@ -54,17 +71,17 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         public void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
+            string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body)
         {
-            if (!IsShutdown)
+            if (false == _disposed && false == _quiesce)
             {
-                _writer.TryWrite(new WorkStruct(GetConsumerOrDefault(consumerTag), consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, rentedArray));
+                _writer.TryWrite(new WorkStruct(GetConsumerOrDefault(consumerTag), consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body));
             }
         }
 
         public void HandleBasicCancelOk(string consumerTag)
         {
-            if (!IsShutdown)
+            if (false == _disposed && false == _quiesce)
             {
                 _writer.TryWrite(new WorkStruct(WorkType.CancelOk, GetAndRemoveConsumer(consumerTag), consumerTag));
             }
@@ -72,9 +89,106 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public void HandleBasicCancel(string consumerTag)
         {
-            if (!IsShutdown)
+            if (false == _disposed && false == _quiesce)
             {
                 _writer.TryWrite(new WorkStruct(WorkType.Cancel, GetAndRemoveConsumer(consumerTag), consumerTag));
+            }
+        }
+
+        public void Quiesce()
+        {
+            _quiesce = true;
+        }
+
+        private bool IsCancellationRequested
+        {
+            get
+            {
+                try
+                {
+                    return _consumerDispatcherCts.IsCancellationRequested;
+                }
+                catch (ObjectDisposedException)
+                {
+                    return true;
+                }
+            }
+        }
+
+        public void WaitForShutdown()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (_quiesce)
+            {
+                if (IsCancellationRequested)
+                {
+                    try
+                    {
+                        if (false == _reader.Completion.Wait(TimeSpan.FromSeconds(2)))
+                        {
+                            ESLog.Warn("consumer dispatcher did not shut down in a timely fashion (sync)");
+                        }
+                        if (false == _worker.Wait(TimeSpan.FromSeconds(2)))
+                        {
+                            ESLog.Warn("consumer dispatcher did not shut down in a timely fashion (sync)");
+                        }
+                    }
+                    catch (AggregateException aex)
+                    {
+                        AggregateException aexf = aex.Flatten();
+                        IEnumerable<Exception> nonTaskCanceled = aexf.InnerExceptions.Where(iex => iex is not TaskCanceledException);
+                        if (nonTaskCanceled.Any())
+                        {
+                            ESLog.Warn("consumer dispatcher task had unexpected exceptions");
+                        }
+                    }
+                    catch (TaskCanceledException)
+                    {
+                    }
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("WaitForShutdown called but _quiesce is false");
+            }
+        }
+
+        public async Task WaitForShutdownAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (_quiesce)
+            {
+                try
+                {
+                    await _reader.Completion
+                        .ConfigureAwait(false);
+                    await _worker
+                        .ConfigureAwait(false);
+                }
+                catch (AggregateException aex)
+                {
+                    AggregateException aexf = aex.Flatten();
+                    IEnumerable<Exception> nonTaskCanceled = aexf.InnerExceptions.Where(iex => iex is not TaskCanceledException);
+                    if (nonTaskCanceled.Any())
+                    {
+                        ESLog.Warn("consumer dispatcher task had unexpected exceptions (async)");
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("WaitForShutdownAsync called but _quiesce is false");
             }
         }
 
@@ -83,25 +197,22 @@ namespace RabbitMQ.Client.ConsumerDispatching
             _writer.TryWrite(new WorkStruct(consumer, reason));
         }
 
-        public void Quiesce()
+        protected override void InternalShutdown()
         {
-            IsShutdown = true;
+            _writer.Complete();
+            CancelConsumerDispatcherCts();
         }
 
         protected override Task InternalShutdownAsync()
         {
             _writer.Complete();
+            CancelConsumerDispatcherCts();
             return _worker;
         }
 
-        public Task WaitForShutdownAsync()
-        {
-            return _worker;
-        }
+        protected abstract Task ProcessChannelAsync(CancellationToken token);
 
-        protected abstract Task ProcessChannelAsync();
-
-        protected readonly struct WorkStruct
+        protected readonly struct WorkStruct : IDisposable
         {
             public readonly IBasicConsumer Consumer;
             public IAsyncBasicConsumer AsyncConsumer => (IAsyncBasicConsumer)Consumer;
@@ -111,8 +222,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public readonly string? Exchange;
             public readonly string? RoutingKey;
             public readonly ReadOnlyBasicProperties BasicProperties;
-            public readonly ReadOnlyMemory<byte> Body;
-            public readonly byte[]? RentedArray;
+            public readonly RentedMemory Body;
             public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
 
@@ -133,7 +243,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
 
             public WorkStruct(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body, byte[] rentedArray)
+                string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body)
             {
                 WorkType = WorkType.Deliver;
                 Consumer = consumer;
@@ -144,9 +254,10 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 RoutingKey = routingKey;
                 BasicProperties = basicProperties;
                 Body = body;
-                RentedArray = rentedArray;
                 Reason = default;
             }
+
+            public void Dispose() => Body.Dispose();
         }
 
         protected enum WorkType : byte
@@ -156,6 +267,48 @@ namespace RabbitMQ.Client.ConsumerDispatching
             CancelOk,
             Deliver,
             ConsumeOk
+        }
+
+        protected void CancelConsumerDispatcherCts()
+        {
+            try
+            {
+                _consumerDispatcherCts.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                try
+                {
+                    if (disposing)
+                    {
+                        Quiesce();
+                        CancelConsumerDispatcherCts();
+                        _consumerDispatcherCts.Dispose();
+                    }
+                }
+                catch
+                {
+                    // CHOMP
+                }
+                finally
+                {
+                    _disposed = true;
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

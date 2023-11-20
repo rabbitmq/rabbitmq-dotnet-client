@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Impl
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
-        private List<string> _recordedConsumerTags = new List<string>();
+        private readonly List<string> _recordedConsumerTags = new();
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -87,12 +87,6 @@ namespace RabbitMQ.Client.Impl
             remove => InnerChannel.BasicNacks -= value;
         }
 
-        public event EventHandler<EventArgs> BasicRecoverOk
-        {
-            add => InnerChannel.BasicRecoverOk += value;
-            remove => InnerChannel.BasicRecoverOk -= value;
-        }
-
         public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
             add => InnerChannel.BasicReturn += value;
@@ -128,98 +122,66 @@ namespace RabbitMQ.Client.Impl
             get
             {
                 ThrowIfDisposed();
+                // TODO should this be copied "on its way out"?
                 return _recordedConsumerTags;
             }
         }
 
-        public int ChannelNumber
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.ChannelNumber;
-            }
-        }
+        public int ChannelNumber => InnerChannel.ChannelNumber;
 
-        public ShutdownEventArgs CloseReason
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.CloseReason;
-            }
-        }
+        public ShutdownEventArgs CloseReason => InnerChannel.CloseReason;
 
         public IBasicConsumer DefaultConsumer
         {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.DefaultConsumer;
-            }
-
-            set
-            {
-                ThrowIfDisposed();
-                InnerChannel.DefaultConsumer = value;
-            }
+            get => InnerChannel.DefaultConsumer;
+            set => InnerChannel.DefaultConsumer = value;
         }
 
         public bool IsClosed => !IsOpen;
 
-        public bool IsOpen
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _innerChannel != null && _innerChannel.IsOpen;
-            }
-        }
+        public bool IsOpen => _innerChannel != null && _innerChannel.IsOpen;
 
-        public ulong NextPublishSeqNo
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.NextPublishSeqNo;
-            }
-        }
+        public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
 
-        public string CurrentQueue
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.CurrentQueue;
-            }
-        }
+        public string CurrentQueue => InnerChannel.CurrentQueue;
 
-        internal void AutomaticallyRecover(AutorecoveringConnection conn, bool recoverConsumers)
+        internal async ValueTask AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
+            bool recordedEntitiesSemaphoreHeld = false)
         {
+            if (false == recordedEntitiesSemaphoreHeld)
+            {
+                throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
+            }
+
             ThrowIfDisposed();
             _connection = conn;
 
-            var newChannel = conn.CreateNonRecoveringChannel();
+            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync()
+                .ConfigureAwait(false);
             newChannel.TakeOver(_innerChannel);
 
             if (_prefetchCountConsumer != 0)
             {
-                newChannel.BasicQos(0, _prefetchCountConsumer, false);
+                await newChannel.BasicQosAsync(0, _prefetchCountConsumer, false)
+                    .ConfigureAwait(false);
             }
 
             if (_prefetchCountGlobal != 0)
             {
-                newChannel.BasicQos(0, _prefetchCountGlobal, true);
+                await newChannel.BasicQosAsync(0, _prefetchCountGlobal, true)
+                    .ConfigureAwait(false);
             }
 
             if (_usesPublisherConfirms)
             {
-                newChannel.ConfirmSelect();
+                await newChannel.ConfirmSelectAsync()
+                    .ConfigureAwait(false);
             }
 
             if (_usesTransactions)
             {
-                newChannel.TxSelect();
+                await newChannel.TxSelectAsync()
+                    .ConfigureAwait(false);
             }
 
             /*
@@ -232,7 +194,8 @@ namespace RabbitMQ.Client.Impl
 
             if (recoverConsumers)
             {
-                _connection.RecoverConsumers(this, newChannel);
+                await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld)
+                    .ConfigureAwait(false);
             }
 
             _innerChannel.RunRecoveryEventHandlers(this);
@@ -247,7 +210,31 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _connection.DeleteRecordedChannel(this);
+                _connection.DeleteRecordedChannel(this,
+                    channelsSemaphoreHeld: false, recordedEntitiesSemaphoreHeld: false);
+            }
+        }
+
+        public ValueTask CloseAsync(ushort replyCode, string replyText, bool abort)
+        {
+            ThrowIfDisposed();
+            var args = new ShutdownEventArgs(ShutdownInitiator.Library, replyCode, replyText);
+            return CloseAsync(args, abort);
+        }
+
+        public async ValueTask CloseAsync(ShutdownEventArgs args, bool abort)
+        {
+            ThrowIfDisposed();
+            try
+            {
+                await _innerChannel.CloseAsync(args, abort)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                await _connection.DeleteRecordedChannelAsync(this,
+                    channelsSemaphoreHeld: false, recordedEntitiesSemaphoreHeld: false)
+                        .ConfigureAwait(false);
             }
         }
 
@@ -264,7 +251,6 @@ namespace RabbitMQ.Client.Impl
             this.Abort();
 
             _recordedConsumerTags.Clear();
-            _recordedConsumerTags = null;
             _connection = null;
             _innerChannel = null;
             _disposed = true;
@@ -273,33 +259,49 @@ namespace RabbitMQ.Client.Impl
         public void BasicAck(ulong deliveryTag, bool multiple)
             => InnerChannel.BasicAck(deliveryTag, multiple);
 
+        public ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
+            => InnerChannel.BasicAckAsync(deliveryTag, multiple);
+
         public void BasicCancel(string consumerTag)
         {
             ThrowIfDisposed();
-            _connection.DeleteRecordedConsumer(consumerTag);
+            _connection.DeleteRecordedConsumer(consumerTag, recordedEntitiesSemaphoreHeld: false);
             _innerChannel.BasicCancel(consumerTag);
+        }
+
+        public ValueTask BasicCancelAsync(string consumerTag)
+        {
+            ThrowIfDisposed();
+            _connection.DeleteRecordedConsumer(consumerTag, recordedEntitiesSemaphoreHeld: false);
+            return _innerChannel.BasicCancelAsync(consumerTag);
         }
 
         public void BasicCancelNoWait(string consumerTag)
         {
             ThrowIfDisposed();
-            _connection.DeleteRecordedConsumer(consumerTag);
+            _connection.DeleteRecordedConsumer(consumerTag, recordedEntitiesSemaphoreHeld: false);
             _innerChannel.BasicCancelNoWait(consumerTag);
         }
 
-        public string BasicConsume(
-            string queue,
-            bool autoAck,
-            string consumerTag,
-            bool noLocal,
-            bool exclusive,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer)
+        public string BasicConsume(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+            IDictionary<string, object> arguments, IBasicConsumer consumer)
         {
             string resultConsumerTag = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
             var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
-            _connection.RecordConsumer(rc);
+            _connection.RecordConsumer(rc, recordedEntitiesSemaphoreHeld: false);
+            _recordedConsumerTags.Add(resultConsumerTag);
+            return resultConsumerTag;
+        }
+
+        public async ValueTask<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+            IDictionary<string, object> arguments, IBasicConsumer consumer)
+        {
+            string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
+                queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
+            await _connection.RecordConsumerAsync(rc, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
             _recordedConsumerTags.Add(resultConsumerTag);
             return resultConsumerTag;
         }
@@ -307,8 +309,14 @@ namespace RabbitMQ.Client.Impl
         public BasicGetResult BasicGet(string queue, bool autoAck)
             => InnerChannel.BasicGet(queue, autoAck);
 
+        public ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck)
+            => InnerChannel.BasicGetAsync(queue, autoAck);
+
         public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
             => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
+
+        public ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
+            => InnerChannel.BasicNackAsync(deliveryTag, multiple, requeue);
 
         public void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -329,6 +337,7 @@ namespace RabbitMQ.Client.Impl
         public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
         {
             ThrowIfDisposed();
+
             if (global)
             {
                 _prefetchCountGlobal = prefetchCount;
@@ -337,17 +346,31 @@ namespace RabbitMQ.Client.Impl
             {
                 _prefetchCountConsumer = prefetchCount;
             }
+
             _innerChannel.BasicQos(prefetchSize, prefetchCount, global);
         }
 
-        public void BasicRecover(bool requeue)
-            => InnerChannel.BasicRecover(requeue);
+        public ValueTask BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global)
+        {
+            ThrowIfDisposed();
 
-        public void BasicRecoverAsync(bool requeue)
-            => InnerChannel.BasicRecoverAsync(requeue);
+            if (global)
+            {
+                _prefetchCountGlobal = prefetchCount;
+            }
+            else
+            {
+                _prefetchCountConsumer = prefetchCount;
+            }
+
+            return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global);
+        }
 
         public void BasicReject(ulong deliveryTag, bool requeue)
             => InnerChannel.BasicReject(deliveryTag, requeue);
+
+        public ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue)
+            => InnerChannel.BasicRejectAsync(deliveryTag, requeue);
 
         public void ConfirmSelect()
         {
@@ -355,11 +378,28 @@ namespace RabbitMQ.Client.Impl
             _usesPublisherConfirms = true;
         }
 
+        public async ValueTask ConfirmSelectAsync()
+        {
+            await InnerChannel.ConfirmSelectAsync()
+                .ConfigureAwait(false);
+            _usesPublisherConfirms = true;
+        }
+
         public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            _connection.RecordBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
+            var recordedBinding = new RecordedBinding(false, destination, source, routingKey, arguments);
+            _connection.RecordBinding(recordedBinding, recordedEntitiesSemaphoreHeld: false);
             _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
+        }
+
+        public async ValueTask ExchangeBindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        {
+            await InnerChannel.ExchangeBindAsync(destination, source, routingKey, arguments)
+                .ConfigureAwait(false);
+            var recordedBinding = new RecordedBinding(false, destination, source, routingKey, arguments);
+            await _connection.RecordBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
         }
 
         public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
@@ -367,16 +407,28 @@ namespace RabbitMQ.Client.Impl
 
         public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
-            ThrowIfDisposed();
-            _innerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+            InnerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+            var recordedExchange = new RecordedExchange(exchange, type, durable, autoDelete, arguments);
+            _connection.RecordExchange(recordedExchange, recordedEntitiesSemaphoreHeld: false);
+        }
+
+        public async ValueTask ExchangeDeclareAsync(string exchange, string type, bool passive, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        {
+            await InnerChannel.ExchangeDeclareAsync(exchange, type, passive, durable, autoDelete, arguments)
+                .ConfigureAwait(false);
+            if (false == passive)
+            {
+                var recordedExchange = new RecordedExchange(exchange, type, durable, autoDelete, arguments);
+                await _connection.RecordExchangeAsync(recordedExchange, recordedEntitiesSemaphoreHeld: false)
+                    .ConfigureAwait(false);
+            }
         }
 
         public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
         {
-            ThrowIfDisposed();
-            _innerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+            InnerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
+            var recordedExchange = new RecordedExchange(exchange, type, durable, autoDelete, arguments);
+            _connection.RecordExchange(recordedExchange, recordedEntitiesSemaphoreHeld: false);
         }
 
         public void ExchangeDeclarePassive(string exchange)
@@ -385,21 +437,42 @@ namespace RabbitMQ.Client.Impl
         public void ExchangeDelete(string exchange, bool ifUnused)
         {
             InnerChannel.ExchangeDelete(exchange, ifUnused);
-            _connection.DeleteRecordedExchange(exchange);
+            _connection.DeleteRecordedExchange(exchange, recordedEntitiesSemaphoreHeld: false);
+        }
+
+        public async ValueTask ExchangeDeleteAsync(string exchange, bool ifUnused)
+        {
+            await InnerChannel.ExchangeDeleteAsync(exchange, ifUnused)
+                .ConfigureAwait(false);
+            await _connection.DeleteRecordedExchangeAsync(exchange, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
         }
 
         public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
         {
             InnerChannel.ExchangeDeleteNoWait(exchange, ifUnused);
-            _connection.DeleteRecordedExchange(exchange);
+            _connection.DeleteRecordedExchange(exchange, recordedEntitiesSemaphoreHeld: false);
         }
 
         public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            _connection.DeleteRecordedBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
+            var recordedBinding = new RecordedBinding(false, destination, source, routingKey, arguments);
+            _connection.DeleteRecordedBinding(recordedBinding, recordedEntitiesSemaphoreHeld: false);
             _innerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
-            _connection.DeleteAutoDeleteExchange(source);
+            _connection.DeleteAutoDeleteExchange(source, recordedEntitiesSemaphoreHeld: false);
+        }
+
+        public async ValueTask ExchangeUnbindAsync(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        {
+            ThrowIfDisposed();
+            var recordedBinding = new RecordedBinding(false, destination, source, routingKey, arguments);
+            await _connection.DeleteRecordedBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
+            await InnerChannel.ExchangeUnbindAsync(destination, source, routingKey, arguments)
+                .ConfigureAwait(false);
+            await _connection.DeleteAutoDeleteExchangeAsync(source, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
         }
 
         public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
@@ -408,7 +481,8 @@ namespace RabbitMQ.Client.Impl
         public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            _connection.RecordBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
+            var recordedBinding = new RecordedBinding(true, queue, exchange, routingKey, arguments);
+            _connection.RecordBinding(recordedBinding, recordedEntitiesSemaphoreHeld: false);
             _innerChannel.QueueBind(queue, exchange, routingKey, arguments);
         }
 
@@ -417,26 +491,34 @@ namespace RabbitMQ.Client.Impl
 
         public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            ThrowIfDisposed();
-            QueueDeclareOk result = _innerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+            QueueDeclareOk result = InnerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            var recordedQueue = new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+            _connection.RecordQueue(recordedQueue, recordedEntitiesSemaphoreHeld: false);
             return result;
         }
 
         public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            ThrowIfDisposed();
-            _innerChannel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+            InnerChannel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
+            var recordedQueue = new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+            _connection.RecordQueue(recordedQueue, recordedEntitiesSemaphoreHeld: false);
         }
 
-        public async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        public async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
         {
-            ThrowIfDisposed();
-            QueueDeclareOk result = await _innerChannel.QueueDeclareAsync(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+            QueueDeclareOk result = await InnerChannel.QueueDeclareAsync(queue, passive, durable, exclusive, autoDelete, arguments)
+                .ConfigureAwait(false);
+            if (false == passive)
+            {
+                var recordedQueue = new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+                await _connection.RecordQueueAsync(recordedQueue, recordedEntitiesSemaphoreHeld: false)
+                    .ConfigureAwait(false);
+            }
             return result;
         }
+
+        public ValueTask QueueBindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+            => InnerChannel.QueueBindAsync(queue, exchange, routingKey, arguments);
 
         public QueueDeclareOk QueueDeclarePassive(string queue)
             => InnerChannel.QueueDeclarePassive(queue);
@@ -449,39 +531,74 @@ namespace RabbitMQ.Client.Impl
 
         public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
         {
-            ThrowIfDisposed();
-            uint result = _innerChannel.QueueDelete(queue, ifUnused, ifEmpty);
-            _connection.DeleteRecordedQueue(queue);
+            uint result = InnerChannel.QueueDelete(queue, ifUnused, ifEmpty);
+            _connection.DeleteRecordedQueue(queue, recordedEntitiesSemaphoreHeld: false);
+            return result;
+        }
+
+        public async ValueTask<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty)
+        {
+            uint result = await InnerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty);
+            await _connection.DeleteRecordedQueueAsync(queue, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
             return result;
         }
 
         public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
         {
             InnerChannel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
-            _connection.DeleteRecordedQueue(queue);
+            _connection.DeleteRecordedQueue(queue, recordedEntitiesSemaphoreHeld: false);
         }
 
         public uint QueuePurge(string queue)
             => InnerChannel.QueuePurge(queue);
 
+        public ValueTask<uint> QueuePurgeAsync(string queue)
+            => InnerChannel.QueuePurgeAsync(queue);
+
         public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
         {
             ThrowIfDisposed();
-            _connection.DeleteRecordedBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
+            var recordedBinding = new RecordedBinding(true, queue, exchange, routingKey, arguments);
+            _connection.DeleteRecordedBinding(recordedBinding, recordedEntitiesSemaphoreHeld: false);
             _innerChannel.QueueUnbind(queue, exchange, routingKey, arguments);
-            _connection.DeleteAutoDeleteExchange(exchange);
+            _connection.DeleteAutoDeleteExchange(exchange, recordedEntitiesSemaphoreHeld: false);
+        }
+
+        public async ValueTask QueueUnbindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        {
+            ThrowIfDisposed();
+            var recordedBinding = new RecordedBinding(true, queue, exchange, routingKey, arguments);
+            await _connection.DeleteRecordedBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
+            await _innerChannel.QueueUnbindAsync(queue, exchange, routingKey, arguments)
+                .ConfigureAwait(false);
+            await _connection.DeleteAutoDeleteExchangeAsync(exchange, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
         }
 
         public void TxCommit()
             => InnerChannel.TxCommit();
 
+        public ValueTask TxCommitAsync()
+            => InnerChannel.TxCommitAsync();
+
         public void TxRollback()
             => InnerChannel.TxRollback();
+
+        public ValueTask TxRollbackAsync()
+            => InnerChannel.TxRollbackAsync();
 
         public void TxSelect()
         {
             InnerChannel.TxSelect();
             _usesTransactions = true;
+        }
+
+        public ValueTask TxSelectAsync()
+        {
+            _usesTransactions = true;
+            return InnerChannel.TxSelectAsync();
         }
 
         public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)

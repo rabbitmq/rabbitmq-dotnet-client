@@ -1,5 +1,35 @@
-﻿using System;
-using System.Buffers;
+﻿// This source code is dual-licensed under the Apache License, version
+// 2.0, and the Mozilla Public License, version 2.0.
+//
+// The APL v2.0:
+//
+//---------------------------------------------------------------------------
+//   Copyright (c) 2007-2020 VMware, Inc.
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       https://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//---------------------------------------------------------------------------
+//
+// The MPL v2.0:
+//
+//---------------------------------------------------------------------------
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
+//---------------------------------------------------------------------------
+
+using System;
 using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Impl
@@ -10,41 +40,55 @@ namespace RabbitMQ.Client.Impl
 
         public readonly ProtocolCommandId CommandId;
 
-        public readonly ReadOnlyMemory<byte> MethodBytes;
-        private readonly byte[] _rentedMethodBytes;
+        public readonly RentedMemory Method;
+        public readonly RentedMemory Header;
+        public readonly RentedMemory Body;
 
-        public readonly ReadOnlyMemory<byte> HeaderBytes;
-        private readonly byte[] _rentedHeaderArray;
+        public readonly bool IsEmpty => CommandId is default(ProtocolCommandId);
 
-        public readonly ReadOnlyMemory<byte> Body;
-        private readonly byte[] _rentedBodyArray;
-
-        public bool IsEmpty => CommandId is default(ProtocolCommandId);
-
-        public IncomingCommand(ProtocolCommandId commandId, ReadOnlyMemory<byte> methodBytes, byte[] rentedMethodArray, ReadOnlyMemory<byte> headerBytes, byte[] rentedHeaderArray, ReadOnlyMemory<byte> body, byte[] rentedBodyArray)
+        public IncomingCommand(ProtocolCommandId commandId,
+            RentedMemory method, RentedMemory header, RentedMemory body)
         {
             CommandId = commandId;
-            MethodBytes = methodBytes;
-            _rentedMethodBytes = rentedMethodArray;
-            HeaderBytes = headerBytes;
-            _rentedHeaderArray = rentedHeaderArray;
+            Method = method;
+            Header = header;
             Body = body;
-            _rentedBodyArray = rentedBodyArray;
         }
 
-        public byte[] TakeoverBody()
+        public ReadOnlySpan<byte> MethodSpan
         {
-            return _rentedBodyArray;
+            get
+            {
+                return Method.Memory.Span;
+            }
         }
 
-        public void ReturnHeaderBuffer()
+        public ReadOnlySpan<byte> HeaderSpan
         {
-            ArrayPool<byte>.Shared.Return(_rentedHeaderArray);
+            get
+            {
+                return Header.Memory.Span;
+            }
         }
 
-        public void ReturnMethodBuffer()
+        public ReadOnlySpan<byte> BodySpan
         {
-            ArrayPool<byte>.Shared.Return(_rentedMethodBytes);
+            get
+            {
+                return Body.Memory.Span;
+            }
+        }
+
+        public void ReturnMethodAndHeaderBuffers()
+        {
+            Method.Dispose();
+            Header.Dispose();
+        }
+
+        public void ReturnBuffers()
+        {
+            ReturnMethodAndHeaderBuffers();
+            Body.Dispose();
         }
     }
 }

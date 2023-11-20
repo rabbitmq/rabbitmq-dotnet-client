@@ -46,9 +46,9 @@ function start_rabbitmq
         --network "$docker_network" \
         --publish 5672:5672 \
         --publish 15672:15672 \
-        --volume "$GITHUB_WORKSPACE/projects/OAuth2Test/enabled_plugins:/etc/rabbitmq/enabled_plugins" \
-        --volume "$GITHUB_WORKSPACE/projects/OAuth2Test/$mode/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro" \
-        --volume "$GITHUB_WORKSPACE/projects/OAuth2Test/$mode/signing-key/signing-key.pem:/etc/rabbitmq/signing-key.pem:ro" \
+        --volume "$GITHUB_WORKSPACE/projects/Test/OAuth2/enabled_plugins:/etc/rabbitmq/enabled_plugins" \
+        --volume "$GITHUB_WORKSPACE/projects/Test/OAuth2/$mode/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro" \
+        --volume "$GITHUB_WORKSPACE/projects/Test/OAuth2/$mode/signing-key/signing-key.pem:/etc/rabbitmq/signing-key.pem:ro" \
         rabbitmq:3-management
 }
 
@@ -90,7 +90,7 @@ function start_oauth_service
             --publish 8080:8080 \
             --env 'UAA_CONFIG_PATH=/uaa' \
             --env 'JAVA_OPTS=-Djava.security.egd=file:/dev/./urandom' \
-            --volume "$GITHUB_WORKSPACE/projects/OAuth2Test/uaa:/uaa" \
+            --volume "$GITHUB_WORKSPACE/projects/Test/OAuth2/uaa:/uaa" \
             "cloudfoundry/uaa:$uaa_image_version"
     else
         readonly keycloak_docker_name="$docker_name_prefix-keycloak"
@@ -101,7 +101,7 @@ function start_oauth_service
             --env 'KEYCLOAK_ADMIN=admin' \
             --env 'KEYCLOAK_ADMIN_PASSWORD=admin' \
             --env KC_HEALTH_ENABLED=true \
-            --volume "$GITHUB_WORKSPACE/projects/OAuth2Test/keycloak/import:/opt/keycloak/data/import" \
+            --volume "$GITHUB_WORKSPACE/projects/Test/OAuth2/keycloak/import:/opt/keycloak/data/import" \
             "quay.io/keycloak/keycloak:$keycloak_image_version" start-dev --metrics-enabled=true --import-realm
     fi
 }

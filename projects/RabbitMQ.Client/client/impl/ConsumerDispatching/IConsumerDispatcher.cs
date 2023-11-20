@@ -35,7 +35,7 @@ using System.Threading.Tasks;
 namespace RabbitMQ.Client.ConsumerDispatching
 {
 #nullable enable
-    internal interface IConsumerDispatcher
+    internal interface IConsumerDispatcher : IDisposable
     {
         IBasicConsumer? DefaultConsumer { get; set; }
 
@@ -51,8 +51,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             string exchange,
                             string routingKey,
                             in ReadOnlyBasicProperties basicProperties,
-                            ReadOnlyMemory<byte> body,
-                            byte[] rentedArray);
+                            RentedMemory body);
 
         void HandleBasicCancelOk(string consumerTag);
 
@@ -60,8 +59,10 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         void Quiesce();
 
-        Task ShutdownAsync(ShutdownEventArgs reason);
+        void Shutdown(ShutdownEventArgs reason);
+        void WaitForShutdown();
 
+        Task ShutdownAsync(ShutdownEventArgs reason);
         Task WaitForShutdownAsync();
     }
 }

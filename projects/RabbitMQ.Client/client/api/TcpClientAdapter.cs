@@ -22,14 +22,16 @@ namespace RabbitMQ.Client
         public virtual async Task ConnectAsync(string host, int port)
         {
             AssertSocket();
-            IPAddress[] adds = await Dns.GetHostAddressesAsync(host).ConfigureAwait(false);
+            IPAddress[] adds = await Dns.GetHostAddressesAsync(host)
+                .ConfigureAwait(false);
             IPAddress ep = GetMatchingHost(adds, _sock.AddressFamily);
             if (ep == default(IPAddress))
             {
                 throw new ArgumentException($"No ip address could be resolved for {host}");
             }
 
-            await ConnectAsync(ep, port).ConfigureAwait(false);
+            await ConnectAsync(ep, port)
+                .ConfigureAwait(false);
         }
 
         public virtual Task ConnectAsync(IPAddress ep, int port)

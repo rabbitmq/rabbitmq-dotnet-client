@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -70,6 +71,19 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                return base.BasicAckAsync(realTag, multiple);
+            }
+            else
+            {
+                return default;
+            }
+        }
+
         public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
@@ -79,12 +93,38 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                return base.BasicNackAsync(realTag, multiple, requeue);
+            }
+            else
+            {
+                return default;
+            }
+        }
+
         public override void BasicReject(ulong deliveryTag, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
                 base.BasicReject(realTag, requeue);
+            }
+        }
+
+        public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue)
+        {
+            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
+            if (realTag > 0 && realTag <= deliveryTag)
+            {
+                return base.BasicRejectAsync(realTag, requeue);
+            }
+            else
+            {
+                return default;
             }
         }
     }

@@ -37,17 +37,25 @@ namespace RabbitMQ.Client.Events
     ///from an AMQP broker within the Basic content-class.</summary>
     public class BasicNackEventArgs : EventArgs
     {
+        public BasicNackEventArgs(ulong deliveryTag, bool multiple, bool requeue)
+            : base()
+        {
+            DeliveryTag = deliveryTag;
+            Multiple = multiple;
+            Requeue = requeue;
+        }
+
         ///<summary>The sequence number of the nack'd message, or the
         ///closed upper bound of nack'd messages if multiple is
         ///true.</summary>
-        public ulong DeliveryTag { get; set; }
+        public readonly ulong DeliveryTag;
 
         ///<summary>Whether this nack applies to one message or
         ///multiple messages.</summary>
-        public bool Multiple { get; set; }
+        public readonly bool Multiple;
 
         ///<summary>Ignore</summary>
         ///<remarks>Clients should ignore this field.</remarks>
-        public bool Requeue { get; set; }
+        public readonly bool Requeue;
     }
 }

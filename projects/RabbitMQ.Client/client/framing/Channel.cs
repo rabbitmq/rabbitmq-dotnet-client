@@ -62,11 +62,6 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelSend(new BasicGet(queue, autoAck));
         }
 
-        public override void _Private_BasicRecover(bool requeue)
-        {
-            ChannelSend(new BasicRecover(requeue));
-        }
-
         public override void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
             ChannelSend(new ChannelClose(replyCode, replyText, classId, methodId));
@@ -103,26 +98,6 @@ namespace RabbitMQ.Client.Framing.Impl
         public override void _Private_ConnectionCloseOk()
         {
             ChannelSend(new ConnectionCloseOk());
-        }
-
-        public override void _Private_ConnectionOpen(string virtualHost)
-        {
-            ChannelSend(new ConnectionOpen(virtualHost));
-        }
-
-        public override ValueTask _Private_ConnectionOpenAsync(string virtualHost)
-        {
-            return ModelSendAsync(new ConnectionOpen(virtualHost));
-        }
-
-        public override void _Private_ConnectionSecureOk(byte[] response)
-        {
-            ChannelSend(new ConnectionSecureOk(response));
-        }
-
-        public override void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
-        {
-            ChannelSend(new ConnectionStartOk(clientProperties, mechanism, response, locale));
         }
 
         public override void _Private_UpdateSecret(byte[] newSecret, string reason)
@@ -234,9 +209,21 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelSend(new BasicAck(deliveryTag, multiple));
         }
 
+        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
+        {
+            var method = new BasicAck(deliveryTag, multiple);
+            return ModelSendAsync(method);
+        }
+
         public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
         {
             ChannelSend(new BasicNack(deliveryTag, multiple, requeue));
+        }
+
+        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
+        {
+            var method = new BasicNack(deliveryTag, multiple, requeue);
+            return ModelSendAsync(method);
         }
 
         public override void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
@@ -244,14 +231,15 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelRpc(new BasicQos(prefetchSize, prefetchCount, global), ProtocolCommandId.BasicQosOk);
         }
 
-        public override void BasicRecoverAsync(bool requeue)
-        {
-            ChannelSend(new BasicRecoverAsync(requeue));
-        }
-
         public override void BasicReject(ulong deliveryTag, bool requeue)
         {
             ChannelSend(new BasicReject(deliveryTag, requeue));
+        }
+
+        public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue)
+        {
+            var method = new BasicReject(deliveryTag, requeue);
+            return ModelSendAsync(method);
         }
 
         public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
@@ -295,34 +283,23 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.BasicCancelOk:
                     {
-                        HandleBasicCancelOk(in cmd);
-                        return true;
+                        return HandleBasicCancelOk(in cmd);
                     }
                 case ProtocolCommandId.BasicConsumeOk:
                     {
-                        HandleBasicConsumeOk(in cmd);
-                        return true;
+                        return HandleBasicConsumeOk(in cmd);
                     }
                 case ProtocolCommandId.BasicGetEmpty:
                     {
-                        cmd.ReturnMethodBuffer();
-                        HandleBasicGetEmpty();
-                        return true;
+                        return HandleBasicGetEmpty(in cmd);
                     }
                 case ProtocolCommandId.BasicGetOk:
                     {
-                        HandleBasicGetOk(in cmd);
-                        return true;
+                        return HandleBasicGetOk(in cmd);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
                         HandleBasicNack(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicRecoverOk:
-                    {
-                        cmd.ReturnMethodBuffer();
-                        HandleBasicRecoverOk();
                         return true;
                     }
                 case ProtocolCommandId.BasicReturn:
@@ -337,8 +314,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ChannelCloseOk:
                     {
-                        cmd.ReturnMethodBuffer();
-                        HandleChannelCloseOk();
+                        HandleChannelCloseOk(in cmd);
                         return true;
                     }
                 case ProtocolCommandId.ChannelFlow:
@@ -373,8 +349,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionUnblocked:
                     {
-                        cmd.ReturnMethodBuffer();
-                        HandleConnectionUnblocked();
+                        HandleConnectionUnblocked(in cmd);
                         return true;
                     }
                 case ProtocolCommandId.QueueDeclareOk:

@@ -7,14 +7,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal abstract class ConsumerDispatcherBase
     {
-        private static readonly FallbackConsumer fallbackConsumer = new FallbackConsumer();
-        private readonly Dictionary<string, IBasicConsumer> _consumers;
+        private static readonly FallbackConsumer fallbackConsumer = new();
+        private readonly Dictionary<string, IBasicConsumer> _consumers = new();
 
         public IBasicConsumer? DefaultConsumer { get; set; }
 
         protected ConsumerDispatcherBase()
         {
-            _consumers = new Dictionary<string, IBasicConsumer>();
         }
 
         protected void AddConsumer(IBasicConsumer consumer, string tag)
@@ -41,7 +40,19 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
+        public void Shutdown(ShutdownEventArgs reason)
+        {
+            DoShutdownConsumers(reason);
+            InternalShutdown();
+        }
+
         public Task ShutdownAsync(ShutdownEventArgs reason)
+        {
+            DoShutdownConsumers(reason);
+            return InternalShutdownAsync();
+        }
+
+        private void DoShutdownConsumers(ShutdownEventArgs reason)
         {
             lock (_consumers)
             {
@@ -51,11 +62,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 }
                 _consumers.Clear();
             }
-
-            return InternalShutdownAsync();
         }
 
         protected abstract void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason);
+
+        protected abstract void InternalShutdown();
 
         protected abstract Task InternalShutdownAsync();
 

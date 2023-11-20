@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
 using RabbitMQ.Client.ConsumerDispatching;
@@ -7,7 +8,7 @@ namespace RabbitMQ.Benchmarks
 {
     [Config(typeof(Config))]
     [BenchmarkCategory("ConsumerDispatcher")]
-    public class ConsumerDispatcherBase
+    internal class ConsumerDispatcherBase
     {
         protected static readonly ManualResetEventSlim _autoResetEvent = new ManualResetEventSlim(false);
 
@@ -18,10 +19,18 @@ namespace RabbitMQ.Benchmarks
         protected readonly string _exchange = "Exchange";
         protected readonly string _routingKey = "RoutingKey";
         protected readonly ReadOnlyBasicProperties _properties = new ReadOnlyBasicProperties();
-        protected readonly byte[] _body = new byte[512];
+        protected readonly RentedMemory _body;
+
+        public ConsumerDispatcherBase()
+        {
+            var r = new Random();
+            byte[] body = new byte[512];
+            r.NextBytes(body);
+            _body = new RentedMemory(body);
+        }
     }
 
-    public class BasicDeliverConsumerDispatching : ConsumerDispatcherBase
+    internal class BasicDeliverConsumerDispatching : ConsumerDispatcherBase
     {
         [Params(1, 30)]
         public int Count { get; set; }
@@ -36,12 +45,13 @@ namespace RabbitMQ.Benchmarks
             _dispatcher = new AsyncConsumerDispatcher(null, Concurrency);
             _dispatcher.HandleBasicConsumeOk(_consumer, _consumerTag);
         }
+
         [Benchmark]
         public void AsyncConsumerDispatcher()
         {
             for (int i = 0; i < Count; i++)
             {
-                _dispatcher.HandleBasicDeliver(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, _body, _body);
+                _dispatcher.HandleBasicDeliver(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, _body);
             }
             _autoResetEvent.Wait();
             _autoResetEvent.Reset();
@@ -54,12 +64,13 @@ namespace RabbitMQ.Benchmarks
             _dispatcher = new ConsumerDispatcher(null, Concurrency);
             _dispatcher.HandleBasicConsumeOk(_consumer, _consumerTag);
         }
+
         [Benchmark]
         public void ConsumerDispatcher()
         {
             for (int i = 0; i < Count; i++)
             {
-                _dispatcher.HandleBasicDeliver(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, _body, _body);
+                _dispatcher.HandleBasicDeliver(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, _body);
             }
             _autoResetEvent.Wait();
             _autoResetEvent.Reset();

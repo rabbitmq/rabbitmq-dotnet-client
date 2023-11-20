@@ -9,19 +9,35 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client", "projects\RabbitMQ.Client\RabbitMQ.Client.csproj", "{8C554257-5ECC-45DB-873D-560BFBB74EC8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unit", "projects\Unit\Unit.csproj", "{B8FAC024-CC03-4067-9FFC-02846FB8AE48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unit", "projects\Test\Unit\Unit.csproj", "{B8FAC024-CC03-4067-9FFC-02846FB8AE48}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "projects\Benchmarks\Benchmarks.csproj", "{38D72C9A-68E9-4653-B0CE-C7BA9FFD91D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassPublish", "projects\TestApplications\MassPublish\MassPublish.csproj", "{0E3C4FBE-9976-40A3-9F57-DC0D9B7A39A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassPublish", "projects\Test\Applications\MassPublish\MassPublish.csproj", "{0E3C4FBE-9976-40A3-9F57-DC0D9B7A39A6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestApplications", "TestApplications", "{D21B282C-49E6-4A30-887B-9626D94B8D69}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Applications", "{D21B282C-49E6-4A30-887B-9626D94B8D69}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateChannel", "projects\TestApplications\CreateChannel\CreateChannel.csproj", "{4A589408-F3A3-40E1-A6DF-F5E620F7CA31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateChannel", "projects\Test\Applications\CreateChannel\CreateChannel.csproj", "{4A589408-F3A3-40E1-A6DF-F5E620F7CA31}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client.OAuth2", "projects\RabbitMQ.Client.OAuth2\RabbitMQ.Client.OAuth2.csproj", "{794C7B31-0E9A-44A4-B285-0F3CAF6209F1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OAuth2Test", "projects\OAuth2Test\OAuth2Test.csproj", "{897D13F0-AF06-444A-9072-CF7E809A4A2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OAuth2", "projects\Test\OAuth2\OAuth2.csproj", "{897D13F0-AF06-444A-9072-CF7E809A4A2C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration", "projects\Test\Integration\Integration.csproj", "{B01347D8-C327-471B-A1FE-7B86F7684A27}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67} = {C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SequentialIntegration", "projects\Test\SequentialIntegration\SequentialIntegration.csproj", "{F25725D7-2978-45F4-B90F-25D6F8B71C9E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67} = {C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "projects\Test\Common\Common.csproj", "{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsyncIntegration", "projects\Test\AsyncIntegration\AsyncIntegration.csproj", "{D98F96C5-F7FB-45FC-92A0-9133850FB432}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,13 +73,36 @@ Global
 		{897D13F0-AF06-444A-9072-CF7E809A4A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{897D13F0-AF06-444A-9072-CF7E809A4A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{897D13F0-AF06-444A-9072-CF7E809A4A2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B01347D8-C327-471B-A1FE-7B86F7684A27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B01347D8-C327-471B-A1FE-7B86F7684A27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B01347D8-C327-471B-A1FE-7B86F7684A27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B01347D8-C327-471B-A1FE-7B86F7684A27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F25725D7-2978-45F4-B90F-25D6F8B71C9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F25725D7-2978-45F4-B90F-25D6F8B71C9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F25725D7-2978-45F4-B90F-25D6F8B71C9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F25725D7-2978-45F4-B90F-25D6F8B71C9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D98F96C5-F7FB-45FC-92A0-9133850FB432}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D98F96C5-F7FB-45FC-92A0-9133850FB432}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D98F96C5-F7FB-45FC-92A0-9133850FB432}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D98F96C5-F7FB-45FC-92A0-9133850FB432}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{B8FAC024-CC03-4067-9FFC-02846FB8AE48} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 		{0E3C4FBE-9976-40A3-9F57-DC0D9B7A39A6} = {D21B282C-49E6-4A30-887B-9626D94B8D69}
+		{D21B282C-49E6-4A30-887B-9626D94B8D69} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 		{4A589408-F3A3-40E1-A6DF-F5E620F7CA31} = {D21B282C-49E6-4A30-887B-9626D94B8D69}
+		{897D13F0-AF06-444A-9072-CF7E809A4A2C} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
+		{B01347D8-C327-471B-A1FE-7B86F7684A27} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
+		{F25725D7-2978-45F4-B90F-25D6F8B71C9E} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
+		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
+		{D98F96C5-F7FB-45FC-92A0-9133850FB432} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3C6A0C44-FA63-4101-BBF9-2598641167D1}

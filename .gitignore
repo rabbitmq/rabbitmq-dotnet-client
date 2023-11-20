@@ -52,8 +52,8 @@ build/
 
 BenchmarkDotNet.Artifacts/*
 
-projects/Unit/APIApproval.Approve.received.txt
-projects/Unit/APIApproval.Approve.*.received.txt
+projects/Test/Unit/APIApproval.Approve.received.txt
+projects/Test/Unit/APIApproval.Approve.*.received.txt
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -115,7 +115,7 @@ UpgradeLog*.htm
 
 # Unit tests
 
-projects/Unit*/TestResult.xml
+projects/Test/Unit*/TestResult.xml
 
 # Development scripts
 

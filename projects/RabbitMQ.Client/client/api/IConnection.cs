@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
@@ -122,7 +123,7 @@ namespace RabbitMQ.Client
         /// Returns the list of <see cref="ShutdownReportEntry"/> objects that contain information
         /// about any errors reported while closing the connection in the order they appeared
         /// </summary>
-        IList<ShutdownReportEntry> ShutdownReport { get; }
+        IEnumerable<ShutdownReportEntry> ShutdownReport { get; }
 
         /// <summary>
         /// Application-specific connection name, will be displayed in the management UI
@@ -190,7 +191,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery;
+        event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecovery;
 
         /// <summary>
         /// Raised when a consumer is about to be recovered. This event raises when topology recovery
@@ -226,8 +227,23 @@ namespace RabbitMQ.Client
         void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort);
 
         /// <summary>
+        /// Asynchronously close this connection and all its channels
+        /// and wait with a timeout for all the in-progress close operations to complete.
+        /// </summary>
+        /// <param name="reasonCode">The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).</param>
+        /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
+        /// <param name="timeout">Operation timeout.</param>
+        /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
+        ValueTask CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort);
+
+        /// <summary>
         /// Create and return a fresh channel, session, and channel.
         /// </summary>
         IChannel CreateChannel();
+
+        /// <summary>
+        /// Asynchronously create and return a fresh channel, session, and channel.
+        /// </summary>
+        ValueTask<IChannel> CreateChannelAsync();
     }
 }

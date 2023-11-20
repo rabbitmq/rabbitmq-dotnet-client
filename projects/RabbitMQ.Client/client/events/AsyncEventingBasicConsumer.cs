@@ -53,25 +53,30 @@ namespace RabbitMQ.Client.Events
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
         public override async Task HandleBasicCancelOk(string consumerTag)
         {
-            await base.HandleBasicCancelOk(consumerTag).ConfigureAwait(false);
+            await base.HandleBasicCancelOk(consumerTag)
+                .ConfigureAwait(false);
             if (!_unregisteredWrapper.IsEmpty)
             {
-                await _unregisteredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
+                await _unregisteredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }))
+                    .ConfigureAwait(false);
             }
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
         public override async Task HandleBasicConsumeOk(string consumerTag)
         {
-            await base.HandleBasicConsumeOk(consumerTag).ConfigureAwait(false);
+            await base.HandleBasicConsumeOk(consumerTag)
+                .ConfigureAwait(false);
             if (!_registeredWrapper.IsEmpty)
             {
-                await _registeredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag })).ConfigureAwait(false);
+                await _registeredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }))
+                    .ConfigureAwait(false);
             }
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+            in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             // No need to call base, it's empty.
             return _receivedWrapper.InvokeAsync(this, new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body));
@@ -80,10 +85,12 @@ namespace RabbitMQ.Client.Events
         ///<summary>Fires the Shutdown event.</summary>
         public override async Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
         {
-            await base.HandleChannelShutdown(channel, reason).ConfigureAwait(false);
+            await base.HandleChannelShutdown(channel, reason)
+                .ConfigureAwait(false);
             if (!_shutdownWrapper.IsEmpty)
             {
-                await _shutdownWrapper.InvokeAsync(this, reason).ConfigureAwait(false);
+                await _shutdownWrapper.InvokeAsync(this, reason)
+                    .ConfigureAwait(false);
             }
         }
     }

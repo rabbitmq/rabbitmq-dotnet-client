@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -57,9 +58,10 @@ namespace RabbitMQ.Client.Impl
             _arguments = arguments;
         }
 
-        public void Recover(IChannel channel)
+        public ValueTask RecoverAsync(IChannel channel)
         {
-            channel.ExchangeDeclare(Name, _type, _durable, AutoDelete, _arguments);
+            return channel.ExchangeDeclareAsync(exchange: Name, type: _type, passive: false,
+                durable: _durable, autoDelete: AutoDelete, arguments: _arguments);
         }
 
         public override string ToString()

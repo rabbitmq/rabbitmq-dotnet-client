@@ -71,6 +71,7 @@ namespace RabbitMQ.Client.Impl
             };
             try
             {
+                // TODO async
                 TryAuthenticating(options);
             }
             catch (ArgumentException e) when (e.ParamName == "sslProtocolType" && options.Version == SslProtocols.None)
