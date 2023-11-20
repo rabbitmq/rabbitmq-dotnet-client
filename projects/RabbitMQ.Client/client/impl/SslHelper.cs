@@ -53,6 +53,7 @@ namespace RabbitMQ.Client.Impl
         /// <summary>
         /// Upgrade a Tcp stream to an Ssl stream using the TLS options provided.
         /// </summary>
+        // TODO async
         public static Stream TcpUpgrade(Stream tcpStream, SslOption options)
         {
             var helper = new SslHelper(options);
@@ -67,8 +68,9 @@ namespace RabbitMQ.Client.Impl
             Action<SslOption> TryAuthenticating = (SslOption opts) =>
             {
                 sslStream.AuthenticateAsClientAsync(opts.ServerName, opts.Certs, opts.Version,
-                                                    opts.CheckCertificateRevocation).GetAwaiter().GetResult();
+                    opts.CheckCertificateRevocation).EnsureCompleted();
             };
+
             try
             {
                 // TODO async

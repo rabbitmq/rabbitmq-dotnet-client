@@ -31,7 +31,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
@@ -44,7 +43,6 @@ namespace RabbitMQ.Client.Impl
     internal abstract class AsyncRpcContinuation<T> : IRpcContinuation, IDisposable
     {
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly ConfiguredTaskAwaitable<T> _taskAwaitable;
 
         protected readonly TaskCompletionSource<T> _tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -68,13 +66,11 @@ namespace RabbitMQ.Client.Impl
                     // in the same manner as BlockingCell?
                 }
             }, useSynchronizationContext: false);
-
-            _taskAwaitable = _tcs.Task.ConfigureAwait(false);
         }
 
-        public ConfiguredTaskAwaitable<T>.ConfiguredTaskAwaiter GetAwaiter()
+        public Task<T> WaitAsync()
         {
-            return _taskAwaitable.GetAwaiter();
+            return _tcs.Task;
         }
 
         public abstract void HandleCommand(in IncomingCommand cmd);

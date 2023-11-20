@@ -255,8 +255,7 @@ namespace Test.SequentialIntegration
         protected bool WaitForConfirms(IChannel m)
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-            return m.WaitForConfirmsAsync(cts.Token)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return m.WaitForConfirmsAsync(cts.Token).EnsureCompleted();
         }
 
         protected void WaitForRecovery()
