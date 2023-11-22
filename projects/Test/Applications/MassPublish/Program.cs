@@ -37,7 +37,7 @@ namespace MassPublish
             {
                 NoDelay = true,
             };
-            return new TcpClient(socket);
+            return new TcpClientAdapter(socket);
         };
 
         static readonly ConnectionFactory s_publishConnectionFactory = new()

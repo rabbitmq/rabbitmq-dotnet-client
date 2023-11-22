@@ -151,16 +151,16 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         // TODO propagate token
-        private async ValueTask<bool> TryPerformAutomaticRecoveryAsync(CancellationToken token)
+        private async ValueTask<bool> TryPerformAutomaticRecoveryAsync(CancellationToken cancellationToken)
         {
             ESLog.Info("Performing automatic recovery");
 
             try
             {
                 ThrowIfDisposed();
-                if (await TryRecoverConnectionDelegate().ConfigureAwait(false))
+                if (await TryRecoverConnectionDelegateAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    await _recordedEntitiesSemaphore.WaitAsync(token)
+                    await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                         .ConfigureAwait(false);
                     try
                     {
@@ -226,15 +226,15 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private async ValueTask<bool> TryRecoverConnectionDelegate()
+        private async ValueTask<bool> TryRecoverConnectionDelegateAsync(CancellationToken cancellationToken)
         {
             try
             {
                 Connection defunctConnection = _innerConnection;
-                IFrameHandler fh = _endpoints.SelectOne(_config.FrameHandlerFactory);
+                IFrameHandler fh = await _endpoints.SelectOneAsync(_config.FrameHandlerFactoryAsync, cancellationToken)
+                    .ConfigureAwait(false);
                 _innerConnection = new Connection(_config, fh);
-                // TODO cancellation token
-                await _innerConnection.OpenAsync()
+                await _innerConnection.OpenAsync(cancellationToken)
                     .ConfigureAwait(false);
                 _innerConnection.TakeOver(defunctConnection);
                 return true;
@@ -485,7 +485,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 string oldTag = consumer.ConsumerTag;
                 try
                 {
-                    string newTag = await consumer.RecoverAsync(channelToUse);
+                    string newTag = await consumer.RecoverAsync(channelToUse)
+                        .ConfigureAwait(false);
                     RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
                     UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
 
@@ -559,6 +560,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 _connection = connection;
             }
 
+            // TODO cancellation token
             public async ValueTask<IChannel> CreateRecoveryChannelAsync()
             {
                 if (_recoveryChannel == null)

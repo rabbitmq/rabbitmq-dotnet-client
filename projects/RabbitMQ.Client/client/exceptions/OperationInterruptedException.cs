@@ -43,6 +43,7 @@ namespace RabbitMQ.Client.Exceptions
     [Serializable]
     public class OperationInterruptedException
         // TODO: inherit from OperationCanceledException
+        // The above is an old TODO that I don't think applies here.
         : RabbitMQClientException
     {
         ///<summary>Construct an OperationInterruptedException with

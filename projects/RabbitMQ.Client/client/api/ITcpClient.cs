@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
@@ -18,10 +19,7 @@ namespace RabbitMQ.Client
 
         Socket Client { get; }
 
-        // TODO CancellationToken
-        Task ConnectAsync(string host, int port);
-        // TODO CancellationToken
-        Task ConnectAsync(IPAddress host, int port);
+        Task ConnectAsync(IPAddress host, int port, CancellationToken cancellationToken = default);
 
         NetworkStream GetStream();
 

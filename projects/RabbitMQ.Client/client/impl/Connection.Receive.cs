@@ -41,13 +41,13 @@ namespace RabbitMQ.Client.Framing.Impl
     internal sealed partial class Connection
     {
         private readonly IFrameHandler _frameHandler;
-        private readonly Task _mainLoopTask;
+        private Task _mainLoopTask;
 
         private async Task MainLoop()
         {
             try
             {
-                await ReceiveLoop()
+                await ReceiveLoopAsync()
                     .ConfigureAwait(false);
             }
             catch (EndOfStreamException eose)
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             catch (HardProtocolException hpe)
             {
-                await HardProtocolExceptionHandler(hpe)
+                await HardProtocolExceptionHandlerAsync(hpe)
                     .ConfigureAwait(false);
             }
             catch (FileLoadException fileLoadException)
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Framing.Impl
             FinishClose();
         }
 
-        private async Task ReceiveLoop()
+        private async Task ReceiveLoopAsync()
         {
             while (!_closed)
             {
@@ -174,8 +174,7 @@ namespace RabbitMQ.Client.Framing.Impl
             LogCloseError($"Unexpected connection closure: {reason}", reason.Exception);
         }
 
-        // TODO rename Async, add cancellation token?
-        private async Task HardProtocolExceptionHandler(HardProtocolException hpe)
+        private async Task HardProtocolExceptionHandlerAsync(HardProtocolException hpe)
         {
             if (SetCloseReason(hpe.ShutdownReason))
             {
@@ -187,7 +186,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     _session0.Transmit(in cmd);
                     if (hpe.CanShutdownCleanly)
                     {
-                        await ClosingLoop()
+                        await ClosingLoopAsync()
                            .ConfigureAwait(false);
                     }
                 }
@@ -205,13 +204,13 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<remarks>
         /// Loop only used while quiescing. Use only to cleanly close connection
         ///</remarks>
-        private async Task ClosingLoop()
+        private async Task ClosingLoopAsync()
         {
             try
             {
                 _frameHandler.ReadTimeout = TimeSpan.Zero;
                 // Wait for response/socket closure or timeout
-                await ReceiveLoop()
+                await ReceiveLoopAsync()
                    .ConfigureAwait(false);
             }
             catch (ObjectDisposedException ode)

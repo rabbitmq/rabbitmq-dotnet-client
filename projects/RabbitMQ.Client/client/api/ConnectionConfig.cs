@@ -31,7 +31,8 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
@@ -142,7 +143,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public readonly int DispatchConsumerConcurrency;
 
-        internal readonly Func<AmqpTcpEndpoint, IFrameHandler> FrameHandlerFactory;
+        internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;
 
         internal ConnectionConfig(string virtualHost, string userName, string password,
             ICredentialsProvider credentialsProvider, ICredentialsRefresher credentialsRefresher,
@@ -152,7 +153,7 @@ namespace RabbitMQ.Client
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
             bool dispatchConsumersAsync, int dispatchConsumerConcurrency,
-            Func<AmqpTcpEndpoint, IFrameHandler> frameHandlerFactory)
+            Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
         {
             VirtualHost = virtualHost;
             UserName = userName;
@@ -174,7 +175,7 @@ namespace RabbitMQ.Client
             RequestedConnectionTimeout = requestedConnectionTimeout;
             DispatchConsumersAsync = dispatchConsumersAsync;
             DispatchConsumerConcurrency = dispatchConsumerConcurrency;
-            FrameHandlerFactory = frameHandlerFactory;
+            FrameHandlerFactoryAsync = frameHandlerFactoryAsync;
         }
     }
 }

@@ -32,6 +32,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -69,17 +70,26 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private async ValueTask StartAndTuneAsync()
+        private async ValueTask StartAndTuneAsync(CancellationToken cancellationToken)
         {
             var connectionStartCell = new TaskCompletionSource<ConnectionStartDetails>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
+            {
+                connectionStartCell.TrySetCanceled(cancellationToken);
+            }, useSynchronizationContext: false);
+
             _channel0.m_connectionStartCell = connectionStartCell;
             _channel0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
-            await _frameHandler.SendProtocolHeaderAsync()
-                .ConfigureAwait(false);
-            ConnectionStartDetails connectionStart = await connectionStartCell.Task.ConfigureAwait(false);
 
-            if (connectionStart is null)
+            await _frameHandler.SendProtocolHeaderAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            Task<ConnectionStartDetails> csct = connectionStartCell.Task;
+            ConnectionStartDetails connectionStart = await csct.ConfigureAwait(false);
+
+            if (connectionStart is null || csct.IsCanceled)
             {
                 const string msg = "connection.start was never received, likely due to a network timeout";
                 throw new IOException(msg, _channel0.ConnectionStartException);
@@ -110,6 +120,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     ConnectionSecureOrTune res;
                     if (challenge is null)
                     {
+                        // TODO cancellationToken
+                        // Note: when token is passed, OperationCanceledException could be raised
                         res = await _channel0.ConnectionStartOkAsync(ClientProperties,
                             mechanismFactory.Name,
                             response,
@@ -117,6 +129,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     else
                     {
+                        // TODO cancellationToken
+                        // Note: when token is passed, OperationCanceledException could be raised
                         res = await _channel0.ConnectionSecureOkAsync(response)
                             .ConfigureAwait(false);
                     }
@@ -153,11 +167,14 @@ namespace RabbitMQ.Client.Framing.Impl
             uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
+            // TODO cancellationToken / async
             _channel0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
 
+            // TODO check for cancellation
             MaybeStartCredentialRefresher();
 
             // now we can start heartbeat timers
+            // TODO check for cancellation
             MaybeStartHeartbeatTimers();
         }
 

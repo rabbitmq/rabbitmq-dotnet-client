@@ -40,6 +40,23 @@ namespace RabbitMQ.Client
 #if !NET6_0_OR_GREATER
         private static readonly TaskContinuationOptions s_tco = TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously;
         private static void IgnoreTaskContinuation(Task t, object s) => t.Exception.Handle(e => true);
+
+        public static async Task WithCancellation(this Task task, CancellationToken cancellationToken)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            // https://devblogs.microsoft.com/pfxteam/how-do-i-cancel-non-cancelable-async-operations/
+            using (cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+            {
+                if (task != await Task.WhenAny(task, tcs.Task))
+                {
+                    task.Ignore();
+                    throw new OperationCanceledException(cancellationToken);
+                }
+            }
+
+            await task.ConfigureAwait(false);
+        }
 #endif
 
         public static Task TimeoutAfter(this Task task, TimeSpan timeout)

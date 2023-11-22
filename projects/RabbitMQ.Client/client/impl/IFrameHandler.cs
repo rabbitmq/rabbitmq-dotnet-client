@@ -31,6 +31,7 @@
 
 using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -47,6 +48,8 @@ namespace RabbitMQ.Client.Impl
 
         int RemotePort { get; }
 
+        Task ConnectAsync(CancellationToken cancellationToken);
+
         ///<summary>Socket read timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
         TimeSpan ReadTimeout { set; }
 
@@ -54,11 +57,12 @@ namespace RabbitMQ.Client.Impl
         TimeSpan WriteTimeout { set; }
 
         void Close();
-        ValueTask CloseAsync();
+        Task CloseAsync();
 
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out
         ///(see Timeout property).</summary>
+        // TODO cancellation token for read timeout / cancellation?
         ValueTask<InboundFrame> ReadFrameAsync();
 
         ///<summary>Try to synchronously read a frame from the underlying transport.
@@ -66,8 +70,9 @@ namespace RabbitMQ.Client.Impl
         ///</summary>
         bool TryReadFrame(out InboundFrame frame);
 
-        ValueTask SendProtocolHeaderAsync();
+        Task SendProtocolHeaderAsync(CancellationToken cancellationToken);
 
+        // TODO cancellation token for write timeout / cancellation?
         ValueTask WriteAsync(RentedMemory frames);
     }
 }

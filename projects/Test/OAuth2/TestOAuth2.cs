@@ -90,7 +90,7 @@ namespace OAuth2Test
 
         public async Task InitializeAsync()
         {
-            _connection = await _connectionFactory.CreateConnectionAsync();
+            _connection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
         }
 
         public async Task DisposeAsync()
@@ -134,7 +134,7 @@ namespace OAuth2Test
         public async void SecondConnectionCrashes_GH1429()
         {
             // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429
-            using IConnection secondConnection = await _connectionFactory.CreateConnectionAsync();
+            using IConnection secondConnection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
         }
 
         private async Task<IChannel> DeclarePublisherAsync()
