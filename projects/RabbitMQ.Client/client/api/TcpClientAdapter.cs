@@ -34,10 +34,11 @@ namespace RabbitMQ.Client
                 .ConfigureAwait(false);
         }
 
-        public virtual Task ConnectAsync(IPAddress ep, int port)
+        public virtual async Task ConnectAsync(IPAddress ep, int port)
         {
             AssertSocket();
-            return _sock.ConnectAsync(ep, port);
+            await _sock.ConnectAsync(ep, port)
+                .ConfigureAwait(false);
         }
 
         public virtual void Close()

@@ -213,8 +213,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal IConnection Open()
         {
-            return OpenAsync()
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return OpenAsync().EnsureCompleted();
         }
 
         internal async ValueTask<IConnection> OpenAsync()
@@ -526,7 +525,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ValueTask task = _frameHandler.WriteAsync(frames);
             if (!task.IsCompletedSuccessfully)
             {
-                task.ConfigureAwait(false).GetAwaiter().GetResult();
+                task.EnsureCompleted();
             }
         }
 

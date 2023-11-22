@@ -183,7 +183,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Close()
         {
-            CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            CloseAsync().EnsureCompleted();
         }
 
         public async ValueTask CloseAsync()
@@ -334,12 +334,9 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
+                // this ensures exceptions aren't wrapped in an AggregateException
                 socket.ConnectAsync(endpoint.Address, endpoint.Port)
-                     .TimeoutAfter(timeout)
-                     .ConfigureAwait(false)
-                     // this ensures exceptions aren't wrapped in an AggregateException
-                     .GetAwaiter()
-                     .GetResult();
+                     .TimeoutAfter(timeout).EnsureCompleted();
             }
             catch (ArgumentException e)
             {

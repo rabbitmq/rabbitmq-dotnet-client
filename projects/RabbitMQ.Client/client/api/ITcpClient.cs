@@ -18,7 +18,9 @@ namespace RabbitMQ.Client
 
         Socket Client { get; }
 
+        // TODO CancellationToken
         Task ConnectAsync(string host, int port);
+        // TODO CancellationToken
         Task ConnectAsync(IPAddress host, int port);
 
         NetworkStream GetStream();

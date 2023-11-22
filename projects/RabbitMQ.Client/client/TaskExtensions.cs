@@ -39,7 +39,7 @@ namespace RabbitMQ.Client
     {
 #if !NET6_0_OR_GREATER
         private static readonly TaskContinuationOptions s_tco = TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously;
-        private static void continuation(Task t, object s) => t.Exception.Handle(e => true);
+        private static void IgnoreTaskContinuation(Task t, object s) => t.Exception.Handle(e => true);
 #endif
 
         public static Task TimeoutAfter(this Task task, TimeSpan timeout)
@@ -59,60 +59,112 @@ namespace RabbitMQ.Client
 
             return DoTimeoutAfter(task, timeout);
 
+            // https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md#using-a-timeout
             static async Task DoTimeoutAfter(Task task, TimeSpan timeout)
             {
-                if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
+                using (var cts = new CancellationTokenSource())
                 {
+                    Task delayTask = Task.Delay(timeout, cts.Token);
+                    Task resultTask = await Task.WhenAny(task, delayTask).ConfigureAwait(false);
+                    if (resultTask == delayTask)
+                    {
+                        task.Ignore();
+                        throw new TimeoutException();
+                    }
+                    else
+                    {
+                        cts.Cancel();
+                    }
+
                     await task.ConfigureAwait(false);
-                }
-                else
-                {
-                    Task supressErrorTask = task.ContinueWith(
-                        continuationAction: continuation,
-                        state: null,
-                        cancellationToken: CancellationToken.None,
-                        continuationOptions: s_tco,
-                        scheduler: TaskScheduler.Default);
-                    throw new TimeoutException();
                 }
             }
 #endif
         }
 
-        public static async ValueTask TimeoutAfter(this ValueTask task, TimeSpan timeout)
+        public static async ValueTask TimeoutAfter(this ValueTask valueTask, TimeSpan timeout)
         {
-            if (task.IsCompletedSuccessfully)
+            if (valueTask.IsCompletedSuccessfully)
             {
                 return;
             }
 
 #if NET6_0_OR_GREATER
-            Task actualTask = task.AsTask();
-            await actualTask.WaitAsync(timeout)
+            Task task = valueTask.AsTask();
+            await task.WaitAsync(timeout)
                 .ConfigureAwait(false);
 #else
-            await DoTimeoutAfter(task, timeout)
+            await DoTimeoutAfter(valueTask, timeout)
                 .ConfigureAwait(false);
 
-            async static ValueTask DoTimeoutAfter(ValueTask task, TimeSpan timeout)
+            // https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md#using-a-timeout
+            static async ValueTask DoTimeoutAfter(ValueTask valueTask, TimeSpan timeout)
             {
-                Task actualTask = task.AsTask();
-                if (actualTask == await Task.WhenAny(actualTask, Task.Delay(timeout)).ConfigureAwait(false))
+                Task task = valueTask.AsTask();
+                using (var cts = new CancellationTokenSource())
                 {
-                    await actualTask.ConfigureAwait(false);
-                }
-                else
-                {
-                    Task supressErrorTask = actualTask.ContinueWith(
-                        continuationAction: continuation,
-                        state: null,
-                        cancellationToken: CancellationToken.None,
-                        continuationOptions: s_tco,
-                        scheduler: TaskScheduler.Default);
-                    throw new TimeoutException();
+                    Task delayTask = Task.Delay(timeout, cts.Token);
+                    Task resultTask = await Task.WhenAny(task, delayTask).ConfigureAwait(false);
+                    if (resultTask == delayTask)
+                    {
+                        task.Ignore();
+                        throw new TimeoutException();
+                    }
+                    else
+                    {
+                        cts.Cancel();
+                    }
+
+                    await valueTask.ConfigureAwait(false);
                 }
             }
 #endif
         }
+
+        /*
+         * https://devblogs.microsoft.com/dotnet/configureawait-faq/
+         * I'm using GetAwaiter().GetResult(). Do I need to use ConfigureAwait(false)?
+         * Answer: No
+         */
+        public static void EnsureCompleted(this Task task)
+        {
+            task.GetAwaiter().GetResult();
+        }
+
+        public static T EnsureCompleted<T>(this Task<T> task)
+        {
+            return task.GetAwaiter().GetResult();
+        }
+
+        public static T EnsureCompleted<T>(this ValueTask<T> task)
+        {
+            return task.GetAwaiter().GetResult();
+        }
+
+        public static void EnsureCompleted(this ValueTask task)
+        {
+            task.GetAwaiter().GetResult();
+        }
+
+#if !NET6_0_OR_GREATER
+        // https://github.com/dotnet/runtime/issues/23878
+        // https://github.com/dotnet/runtime/issues/23878#issuecomment-1398958645
+        public static void Ignore(this Task task)
+        {
+            if (task.IsCompleted)
+            {
+                _ = task.Exception;
+            }
+            else
+            {
+                _ = task.ContinueWith(
+                    continuationAction: IgnoreTaskContinuation,
+                    state: null,
+                    cancellationToken: CancellationToken.None,
+                    continuationOptions: s_tco,
+                    scheduler: TaskScheduler.Default);
+            }
+        }
+#endif
     }
 }
