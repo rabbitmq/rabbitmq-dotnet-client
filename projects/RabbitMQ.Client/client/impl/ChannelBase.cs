@@ -253,8 +253,7 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
 
                 await ConsumerDispatcher.WaitForShutdownAsync()
@@ -319,8 +318,7 @@ namespace RabbitMQ.Client.Impl
                     // negotiation finishes
                 }
 
-                return await k.WaitAsync()
-                    .ConfigureAwait(false);
+                return await k;
             }
             finally
             {
@@ -351,8 +349,7 @@ namespace RabbitMQ.Client.Impl
                     // negotiation finishes
                 }
 
-                return await k.WaitAsync()
-                    .ConfigureAwait(false);
+                return await k;
             }
             finally
             {
@@ -387,8 +384,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return this;
             }
@@ -1093,8 +1089,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1168,8 +1163,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                return await k.WaitAsync()
-                    .ConfigureAwait(false);
+                return await k;
             }
             finally
             {
@@ -1209,8 +1203,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                return await k.WaitAsync()
-                    .ConfigureAwait(false);
+                return await k;
             }
             finally
             {
@@ -1312,8 +1305,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1357,8 +1349,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
 
                 return;
@@ -1387,8 +1378,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1421,8 +1411,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1460,8 +1449,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1494,8 +1482,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1538,8 +1525,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                QueueDeclareOk result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                QueueDeclareOk result = await k;
                 if (false == passive)
                 {
                     CurrentQueue = result.QueueName;
@@ -1565,8 +1551,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1616,8 +1601,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                return await k.WaitAsync()
-                    .ConfigureAwait(false);
+                return await k;
             }
             finally
             {
@@ -1648,8 +1632,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                return await k.WaitAsync()
-                    .ConfigureAwait(false);
+                return await k;
             }
             finally
             {
@@ -1672,8 +1655,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1698,8 +1680,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1724,8 +1705,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
@@ -1750,8 +1730,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                bool result = await k.WaitAsync()
-                    .ConfigureAwait(false);
+                bool result = await k;
                 Debug.Assert(result);
                 return;
             }
