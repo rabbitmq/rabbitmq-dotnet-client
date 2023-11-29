@@ -58,13 +58,14 @@ namespace OAuth2Test
         public int TokenExpiresInSeconds => 60;
     }
 
-    public class TestOAuth2
+    public class TestOAuth2 : IAsyncLifetime
     {
         private const string Exchange = "test_direct";
 
         private readonly AutoResetEvent _doneEvent = new AutoResetEvent(false);
         private readonly ITestOutputHelper _testOutputHelper;
-        private readonly IConnection _connection;
+        private readonly IConnectionFactory _connectionFactory;
+        private IConnection _connection;
         private readonly int _tokenExpiresInSeconds;
 
         public TestOAuth2(ITestOutputHelper testOutputHelper)
@@ -75,61 +76,76 @@ namespace OAuth2Test
             Mode mode = (Mode)Enum.Parse(typeof(Mode), modeStr.ToLowerInvariant());
             var options = new OAuth2Options(mode);
 
-            var connectionFactory = new ConnectionFactory
+            _connectionFactory = new ConnectionFactory
             {
                 AutomaticRecoveryEnabled = true,
+                DispatchConsumersAsync = true,
                 CredentialsProvider = GetCredentialsProvider(options),
                 CredentialsRefresher = GetCredentialsRefresher(),
                 ClientProvidedName = nameof(TestOAuth2)
             };
 
-            _connection = connectionFactory.CreateConnection();
             _tokenExpiresInSeconds = options.TokenExpiresInSeconds;
+        }
+
+        public async Task InitializeAsync()
+        {
+            _connection = await _connectionFactory.CreateConnectionAsync();
+        }
+
+        public async Task DisposeAsync()
+        {
+            await _connection.CloseAsync();
+            _connection.Dispose();
         }
 
         [Fact]
         public async void IntegrationTest()
         {
-            using (_connection)
+            using (IChannel publishChannel = await DeclarePublisherAsync())
+            using (IChannel consumeChannel = await DeclareConsumerAsync())
             {
-                using (IChannel publisher = declarePublisher())
-                using (IChannel subscriber = await declareConsumer())
+                await PublishAsync(publishChannel);
+                Consume(consumeChannel);
+
+                if (_tokenExpiresInSeconds > 0)
                 {
-                    await Publish(publisher);
-                    Consume(subscriber);
-
-                    if (_tokenExpiresInSeconds > 0)
+                    for (int i = 0; i < 4; i++)
                     {
-                        for (int i = 0; i < 4; i++)
-                        {
-                            _testOutputHelper.WriteLine("Wait until Token expires. Attempt #" + (i + 1));
+                        _testOutputHelper.WriteLine("Wait until Token expires. Attempt #" + (i + 1));
 
-                            await Task.Delay(TimeSpan.FromSeconds(_tokenExpiresInSeconds + 10));
-                            _testOutputHelper.WriteLine("Resuming ..");
+                        await Task.Delay(TimeSpan.FromSeconds(_tokenExpiresInSeconds + 10));
+                        _testOutputHelper.WriteLine("Resuming ..");
 
-                            await Publish(publisher);
-                            _doneEvent.Reset();
+                        await PublishAsync(publishChannel);
+                        _doneEvent.Reset();
 
-                            Consume(subscriber);
-                        }
+                        Consume(consumeChannel);
                     }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
+                }
+                else
+                {
+                    Assert.Fail("_tokenExpiresInSeconds is NOT greater than 0");
                 }
             }
         }
 
-        private IChannel declarePublisher()
+        [Fact]
+        public async void SecondConnectionCrashes_GH1429()
         {
-            IChannel publisher = _connection.CreateChannel();
-            publisher.ConfirmSelect();
-            publisher.ExchangeDeclare("test_direct", ExchangeType.Direct, true, false);
+            // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429
+            using IConnection secondConnection = await _connectionFactory.CreateConnectionAsync();
+        }
+
+        private async Task<IChannel> DeclarePublisherAsync()
+        {
+            IChannel publisher = await _connection.CreateChannelAsync();
+            await publisher.ConfirmSelectAsync();
+            await publisher.ExchangeDeclareAsync("test_direct", ExchangeType.Direct, true, false);
             return publisher;
         }
 
-        private async Task Publish(IChannel publisher)
+        private async Task PublishAsync(IChannel publisher)
         {
             const string message = "Hello World!";
 
@@ -146,7 +162,7 @@ namespace OAuth2Test
             _testOutputHelper.WriteLine("Confirmed Sent message");
         }
 
-        private async ValueTask<IChannel> declareConsumer()
+        private async ValueTask<IChannel> DeclareConsumerAsync()
         {
             IChannel subscriber = _connection.CreateChannel();
             await subscriber.QueueDeclareAsync(queue: "testqueue", passive: false, true, false, false, arguments: null);
