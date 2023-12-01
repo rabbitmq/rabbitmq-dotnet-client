@@ -671,6 +671,8 @@ namespace RabbitMQ.Client
     {
         public TimerBasedCredentialRefresherEventSource() { }
         public static RabbitMQ.Client.TimerBasedCredentialRefresherEventSource Log { get; }
+        [System.Diagnostics.Tracing.Event(6)]
+        public void AlreadyRegistered(string name) { }
         [System.Diagnostics.Tracing.Event(5)]
         public void RefreshedCredentials(string name, bool succesfully) { }
         [System.Diagnostics.Tracing.Event(1)]

@@ -44,26 +44,25 @@ namespace OAuth2
                 CredentialsRefresher = GetCredentialsRefresher()
             };
 
-            using (IConnection connection = connectionFactory.CreateConnection())
-            {
-                using (IModel publisher = declarePublisher(connection))
-                using (IModel subscriber = declareConsumer(connection))
-                {
-                    Publish(publisher);
-                    Consume(subscriber);
+            using IConnection publishConnection = connectionFactory.CreateConnection();
+            using IConnection consumingConnection = connectionFactory.CreateConnection();
 
-                    if (oauth2Options.TokenExpiresInSeconds > 0)
-                    {
-                        for (int i = 0; i < 4; i++)
-                        {
-                            Console.WriteLine("Wait until Token expires. Attempt #" + (i + 1));
-                            Thread.Sleep((oauth2Options.TokenExpiresInSeconds + 10) * 1000);
-                            Console.WriteLine("Resuming ..");
-                            Publish(publisher);
-                            _doneEvent.Reset();
-                            Consume(subscriber);
-                        }
-                    }
+            using IModel publisher = declarePublisher(publishConnection);
+            using IModel subscriber = declareConsumer(consumingConnection);
+
+            Publish(publisher);
+            Consume(subscriber);
+
+            if (oauth2Options.TokenExpiresInSeconds > 0)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    Console.WriteLine("Wait until Token expires. Attempt #" + (i + 1));
+                    Thread.Sleep((oauth2Options.TokenExpiresInSeconds + 10) * 1000);
+                    Console.WriteLine("Resuming ..");
+                    Publish(publisher);
+                    _doneEvent.Reset();
+                    Consume(subscriber);
                 }
             }
         }
