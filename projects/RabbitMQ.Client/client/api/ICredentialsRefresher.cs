@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics.Tracing;
 namespace RabbitMQ.Client
 {
@@ -57,11 +57,13 @@ namespace RabbitMQ.Client
         public void TriggeredTimer(string name) => WriteEvent(4, "TriggeredTimer", name);
         [Event(5)]
         public void RefreshedCredentials(string name, bool succesfully) => WriteEvent(5, "RefreshedCredentials", name, succesfully);
+        [Event(6)]
+        public void AlreadyRegistered(string name) => WriteEvent(6, "AlreadyRegistered", name);
     }
 
     public class TimerBasedCredentialRefresher : ICredentialsRefresher
     {
-        private Dictionary<ICredentialsProvider, System.Timers.Timer> _registrations = new Dictionary<ICredentialsProvider, System.Timers.Timer>();
+        private readonly ConcurrentDictionary<ICredentialsProvider, System.Timers.Timer> _registrations = new();
 
         public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshed callback)
         {
@@ -70,25 +72,31 @@ namespace RabbitMQ.Client
                 return provider;
             }
 
-            _registrations.Add(provider, scheduleTimer(provider, callback));
-            TimerBasedCredentialRefresherEventSource.Log.Registered(provider.Name);
+            if (_registrations.TryAdd(provider, scheduleTimer(provider, callback)))
+            {
+                TimerBasedCredentialRefresherEventSource.Log.Registered(provider.Name);
+            }
+            else
+            {
+                TimerBasedCredentialRefresherEventSource.Log.AlreadyRegistered(provider.Name);
+            }
+
             return provider;
         }
 
         public bool Unregister(ICredentialsProvider provider)
         {
-            if (!_registrations.ContainsKey(provider))
+            if (_registrations.TryRemove(provider, out System.Timers.Timer timer))
             {
-                return false;
-            }
-
-            var timer = _registrations[provider];
-            if (timer != null)
-            {
-                TimerBasedCredentialRefresherEventSource.Log.Unregistered(provider.Name);
-                timer.Stop();
-                _registrations.Remove(provider);
-                timer.Dispose();
+                try
+                {
+                    TimerBasedCredentialRefresherEventSource.Log.Unregistered(provider.Name);
+                    timer.Stop();
+                }
+                finally
+                {
+                    timer.Dispose();
+                }
                 return true;
             }
             else

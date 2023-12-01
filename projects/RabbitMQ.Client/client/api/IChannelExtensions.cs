@@ -208,7 +208,7 @@ namespace RabbitMQ.Client
         public static ValueTask ExchangeDeclareAsync(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null)
         {
-            return channel.ExchangeDeclareAsync(exchange, type, durable, autoDelete, arguments);
+            return channel.ExchangeDeclareAsync(exchange, type, false, durable, autoDelete, arguments);
         }
 
         /// <summary>
