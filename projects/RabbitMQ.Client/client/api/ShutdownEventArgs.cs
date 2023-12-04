@@ -41,12 +41,14 @@ namespace RabbitMQ.Client
     /// </remarks>
     public class ShutdownEventArgs : EventArgs
     {
+        private readonly Exception _exception;
+
         /// <summary>
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters and
         ///  0 for <see cref="ClassId"/> and <see cref="MethodId"/>.
         /// </summary>
-        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, object cause = null)
-            : this(initiator, replyCode, replyText, 0, 0, cause)
+        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, object cause = null, Exception exception = null)
+            : this(initiator, replyCode, replyText, 0, 0, cause, exception)
         {
         }
 
@@ -54,7 +56,7 @@ namespace RabbitMQ.Client
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters.
         /// </summary>
         public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText,
-            ushort classId, ushort methodId, object cause = null)
+            ushort classId, ushort methodId, object cause = null, Exception exception = null)
         {
             Initiator = initiator;
             ReplyCode = replyCode;
@@ -62,6 +64,25 @@ namespace RabbitMQ.Client
             ClassId = classId;
             MethodId = methodId;
             Cause = cause;
+            _exception = exception;
+        }
+
+        /// <summary>
+        /// Exception causing the shutdown, or null if none.
+        /// </summary>
+        public Exception Exception
+        {
+            get
+            {
+                if (_exception != null)
+                {
+                    return _exception;
+                }
+                else
+                {
+                    return new Exception(ToString());
+                }
+            }
         }
 
         /// <summary>
@@ -98,13 +119,14 @@ namespace RabbitMQ.Client
         /// Override ToString to be useful for debugging.
         /// </summary>
         public override string ToString()
-        { 
-            return $"AMQP close-reason, initiated by {Initiator}" 
+        {
+            return $"AMQP close-reason, initiated by {Initiator}"
                 + $", code={ReplyCode}"
                 + (ReplyText != null ? $", text='{ReplyText}'" : string.Empty)
                 + $", classId={ClassId}"
                 + $", methodId={MethodId}"
-                + (Cause != null ? $", cause={Cause}" : string.Empty);
+                + (Cause != null ? $", cause={Cause}" : string.Empty)
+                + (_exception != null ? $", exception={_exception}" : string.Empty);
         }
     }
 }
