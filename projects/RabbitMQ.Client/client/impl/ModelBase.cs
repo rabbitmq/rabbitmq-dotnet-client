@@ -48,7 +48,9 @@ namespace RabbitMQ.Client.Impl
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
-        public BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+        internal BlockingCell<ConnectionStartDetails> m_connectionStartCell = null;
+        private Exception m_connectionStartException = null;
+
         internal readonly IBasicProperties _emptyBasicProperties;
 
         private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
@@ -173,6 +175,19 @@ namespace RabbitMQ.Client.Impl
         public string CurrentQueue { get; private set; }
 
         public ISession Session { get; private set; }
+
+        public Exception ConnectionStartException
+        {
+            get { return m_connectionStartException; }
+        }
+
+        public void MaybeSetConnectionStartException(Exception ex)
+        {
+            if (m_connectionStartCell != null)
+            {
+                m_connectionStartException = ex;
+            }
+        }
 
         public Task Close(ushort replyCode, string replyText, bool abort)
         {

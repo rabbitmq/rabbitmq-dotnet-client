@@ -457,13 +457,14 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (!SetCloseReason(reason))
             {
-                LogCloseError("Unexpected Main Loop Exception while closing: "
-                              + reason, new Exception(reason.ToString()));
+                LogCloseError($"Unexpected Main Loop Exception while closing: {reason}", reason.Exception);
                 return;
             }
 
+            _model0.MaybeSetConnectionStartException(reason.Exception);
+
             OnShutdown();
-            LogCloseError($"Unexpected connection closure: {reason}", new Exception(reason.ToString()));
+            LogCloseError($"Unexpected connection closure: {reason}", reason.Exception);
         }
 
         public bool HardProtocolExceptionHandler(HardProtocolException hpe)
@@ -540,22 +541,33 @@ namespace RabbitMQ.Client.Framing.Impl
                 catch (EndOfStreamException eose)
                 {
                     // Possible heartbeat exception
-                    HandleMainLoopException(new ShutdownEventArgs(
-                        ShutdownInitiator.Library,
-                        0,
-                        "End of stream",
-                        eose));
+                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                        0, "End of stream",
+                        cause: null, exception: eose);
+                    HandleMainLoopException(ea);
                 }
                 catch (HardProtocolException hpe)
                 {
                     shutdownCleanly = HardProtocolExceptionHandler(hpe);
                 }
+                catch (FileLoadException fileLoadException)
+                {
+                    /*
+                     * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1434
+                     * Ensure that these exceptions eventually make it to application code
+                     */
+                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                        Constants.InternalError, fileLoadException.Message,
+                        cause: null, exception: fileLoadException);
+                    HandleMainLoopException(ea);
+                }
                 catch (Exception ex)
                 {
-                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library,
+                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                         Constants.InternalError,
-                        "Unexpected Exception",
-                        ex));
+                        $"Unexpected Exception: {ex.Message}",
+                        cause: null, exception: ex);
+                    HandleMainLoopException(ea);
                 }
 
                 // If allowed for clean shutdown, run main loop until the
@@ -1104,7 +1116,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
             if (connectionStart == null)
             {
-                throw new IOException("connection.start was never received, likely due to a network timeout");
+                const string msg = "connection.start was never received, likely due to a network timeout";
+                throw new IOException(msg, _model0.ConnectionStartException);
             }
 
             ServerProperties = connectionStart.m_serverProperties;
