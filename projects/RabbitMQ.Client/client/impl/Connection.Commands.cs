@@ -81,7 +81,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
             if (connectionStart is null)
             {
-                throw new IOException("connection.start was never received, likely due to a network timeout");
+                const string msg = "connection.start was never received, likely due to a network timeout";
+                throw new IOException(msg, _channel0.ConnectionStartException);
             }
 
             ServerProperties = connectionStart.m_serverProperties;
