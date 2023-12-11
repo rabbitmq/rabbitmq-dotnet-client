@@ -53,16 +53,34 @@ namespace RabbitMQ.Client.Framing.Impl
             catch (EndOfStreamException eose)
             {
                 // Possible heartbeat exception
-                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+                var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                    0, "End of stream",
+                    exception: eose);
+                HandleMainLoopException(ea);
             }
             catch (HardProtocolException hpe)
             {
                 await HardProtocolExceptionHandler(hpe)
                     .ConfigureAwait(false);
             }
+            catch (FileLoadException fileLoadException)
+            {
+                /*
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1434
+                 * Ensure that these exceptions eventually make it to application code
+                 */
+                var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                    Constants.InternalError, fileLoadException.Message,
+                    exception: fileLoadException);
+                HandleMainLoopException(ea);
+            }
             catch (Exception ex)
             {
-                HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "Unexpected Exception", ex));
+                var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                    Constants.InternalError,
+                    $"Unexpected Exception: {ex.Message}",
+                    exception: ex);
+                HandleMainLoopException(ea);
             }
 
             FinishClose();
@@ -146,15 +164,17 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (!SetCloseReason(reason))
             {
-                // TODO reason.Cause could be an Exception, should we use that?
-                LogCloseError("Unexpected Main Loop Exception while closing: " + reason, new Exception(reason.ToString()));
+                LogCloseError($"Unexpected Main Loop Exception while closing: {reason}", reason.Exception);
                 return;
             }
 
+            _channel0.MaybeSetConnectionStartException(reason.Exception);
+
             OnShutdown(reason);
-            LogCloseError($"Unexpected connection closure: {reason}", new Exception(reason.ToString()));
+            LogCloseError($"Unexpected connection closure: {reason}", reason.Exception);
         }
 
+        // TODO rename Async, add cancellation token?
         private async Task HardProtocolExceptionHandler(HardProtocolException hpe)
         {
             if (SetCloseReason(hpe.ShutdownReason))

@@ -41,11 +41,14 @@ namespace RabbitMQ.Client
     /// </remarks>
     public class ShutdownEventArgs : EventArgs
     {
+        private readonly Exception _exception;
+
         /// <summary>
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters and
         ///  0 for <see cref="ClassId"/> and <see cref="MethodId"/>.
         /// </summary>
-        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, object cause = null)
+        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText,
+            object cause = null)
             : this(initiator, replyCode, replyText, 0, 0, cause)
         {
         }
@@ -62,6 +65,26 @@ namespace RabbitMQ.Client
             ClassId = classId;
             MethodId = methodId;
             Cause = cause;
+        }
+
+        /// <summary>
+        /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters.
+        /// </summary>
+        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, Exception exception)
+            : this(initiator, replyCode, replyText, 0, 0)
+        {
+            _exception = exception ?? throw new ArgumentNullException(nameof(exception));
+        }
+
+        /// <summary>
+        /// Exception causing the shutdown, or null if none.
+        /// </summary>
+        public Exception Exception
+        {
+            get
+            {
+                return _exception;
+            }
         }
 
         /// <summary>
@@ -104,7 +127,8 @@ namespace RabbitMQ.Client
                 + (ReplyText != null ? $", text='{ReplyText}'" : string.Empty)
                 + $", classId={ClassId}"
                 + $", methodId={MethodId}"
-                + (Cause != null ? $", cause={Cause}" : string.Empty);
+                + (Cause != null ? $", cause={Cause}" : string.Empty)
+                + (_exception != null ? $", exception={_exception}" : string.Empty);
         }
     }
 }

@@ -787,10 +787,12 @@ namespace RabbitMQ.Client
     }
     public class ShutdownEventArgs : System.EventArgs
     {
+        public ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string replyText, System.Exception exception) { }
         public ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string replyText, object cause = null) { }
         public ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string replyText, ushort classId, ushort methodId, object cause = null) { }
         public object Cause { get; }
         public ushort ClassId { get; }
+        public System.Exception Exception { get; }
         public RabbitMQ.Client.ShutdownInitiator Initiator { get; }
         public ushort MethodId { get; }
         public ushort ReplyCode { get; }

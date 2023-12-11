@@ -50,6 +50,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.OpenAsync"/> </summary>
         internal TaskCompletionSource<ConnectionStartDetails> m_connectionStartCell;
+        private Exception m_connectionStartException = null;
 
         // AMQP only allows one RPC operation to be active at a time. 
         protected readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
@@ -170,6 +171,16 @@ namespace RabbitMQ.Client.Impl
         public string CurrentQueue { get; private set; }
 
         public ISession Session { get; private set; }
+
+        public Exception ConnectionStartException => m_connectionStartException;
+
+        public void MaybeSetConnectionStartException(Exception ex)
+        {
+            if (m_connectionStartCell != null)
+            {
+                m_connectionStartException = ex;
+            }
+        }
 
         protected void TakeOver(ChannelBase other)
         {
