@@ -47,8 +47,8 @@ namespace RabbitMQ.Client
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters and
         ///  0 for <see cref="ClassId"/> and <see cref="MethodId"/>.
         /// </summary>
-        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, object cause = null, Exception exception = null)
-            : this(initiator, replyCode, replyText, 0, 0, cause, exception)
+        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, object cause = null)
+            : this(initiator, replyCode, replyText, 0, 0, cause)
         {
         }
 
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters.
         /// </summary>
         public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText,
-            ushort classId, ushort methodId, object cause = null, Exception exception = null)
+            ushort classId, ushort methodId, object cause = null)
         {
             Initiator = initiator;
             ReplyCode = replyCode;
@@ -64,7 +64,15 @@ namespace RabbitMQ.Client
             ClassId = classId;
             MethodId = methodId;
             Cause = cause;
-            _exception = exception;
+        }
+
+        /// <summary>
+        /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters.
+        /// </summary>
+        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, Exception exception)
+            : this(initiator, replyCode, replyText, 0, 0)
+        {
+            _exception = exception ?? throw new ArgumentNullException(nameof(exception));
         }
 
         /// <summary>

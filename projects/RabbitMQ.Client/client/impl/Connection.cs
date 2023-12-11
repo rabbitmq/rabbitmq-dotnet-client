@@ -543,7 +543,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // Possible heartbeat exception
                     var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                         0, "End of stream",
-                        cause: null, exception: eose);
+                        exception: eose);
                     HandleMainLoopException(ea);
                 }
                 catch (HardProtocolException hpe)
@@ -558,7 +558,7 @@ namespace RabbitMQ.Client.Framing.Impl
                      */
                     var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                         Constants.InternalError, fileLoadException.Message,
-                        cause: null, exception: fileLoadException);
+                        exception: fileLoadException);
                     HandleMainLoopException(ea);
                 }
                 catch (Exception ex)
@@ -566,7 +566,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                         Constants.InternalError,
                         $"Unexpected Exception: {ex.Message}",
-                        cause: null, exception: ex);
+                        exception: ex);
                     HandleMainLoopException(ea);
                 }
 
