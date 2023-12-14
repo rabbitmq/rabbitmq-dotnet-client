@@ -37,8 +37,10 @@ namespace RabbitMQ.Client
 {
     public class DefaultEndpointResolver : IEndpointResolver
     {
+#if !NET6_0_OR_GREATER
+        private readonly Random s_rnd = new Random();
+#endif
         private readonly List<AmqpTcpEndpoint> _endpoints;
-        private readonly Random _rnd = new Random();
 
         public DefaultEndpointResolver(IEnumerable<AmqpTcpEndpoint> tcpEndpoints)
         {
@@ -50,7 +52,7 @@ namespace RabbitMQ.Client
 #if NET6_0_OR_GREATER
             return _endpoints.OrderBy(item => Random.Shared.Next());
 #else
-            return _endpoints.OrderBy(item => _rnd.Next());
+            return _endpoints.OrderBy(item => s_rnd.Next());
 #endif
         }
     }

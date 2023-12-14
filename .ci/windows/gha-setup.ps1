@@ -1,4 +1,5 @@
 $ProgressPreference = 'Continue'
+$VerbosePreference = 'Continue'
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2.0
 
@@ -38,7 +39,7 @@ $erlang_install_dir = Join-Path -Path $HOME -ChildPath 'erlang'
 
 Write-Host '[INFO] Downloading Erlang...'
 
-if (-Not (Test-Path $erlang_installer_path))
+if (-Not (Test-Path -LiteralPath $erlang_installer_path))
 {
     Invoke-WebRequest -UseBasicParsing -Uri $erlang_download_url -OutFile $erlang_installer_path
 }
@@ -54,18 +55,68 @@ $rabbitmq_installer_download_url = "https://github.com/rabbitmq/rabbitmq-server/
 $rabbitmq_installer_path = Join-Path -Path $base_installers_dir -ChildPath "rabbitmq-server-$rabbitmq_ver.exe"
 Write-Host "[INFO] rabbitmq installer path $rabbitmq_installer_path"
 
-$erlang_reg_path = 'HKLM:\SOFTWARE\Ericsson\Erlang'
-if (Test-Path 'HKLM:\SOFTWARE\WOW6432Node\')
+if (Test-Path -LiteralPath 'HKLM:\SOFTWARE\WOW6432Node\')
 {
-    $erlang_reg_path = 'HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang'
+    New-Variable -Name erlangRegKeyPath -Option Constant `
+        -Value 'HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang'
 }
-$erlang_erts_version = Get-ChildItem -Path $erlang_reg_path -Name
-$erlang_home = (Get-ItemProperty -LiteralPath $erlang_reg_path\$erlang_erts_version).'(default)'
+else
+{
+    New-Variable -Name erlangRegKeyPath -Option Constant `
+        -Value 'HKLM:\SOFTWARE\Ericsson\Erlang'
+}
 
-Write-Host "[INFO] Setting ERLANG_HOME to '$erlang_home'..."
-$env:ERLANG_HOME = $erlang_home
-[Environment]::SetEnvironmentVariable('ERLANG_HOME', $erlang_home, 'Machine')
-Add-Content -Verbose -LiteralPath $env:GITHUB_ENV -Value "ERLANG_HOME=$erlang_home"
+New-Variable -Name erlangRegKey -Option Constant `
+    -Value (Get-ChildItem $erlangRegKeyPath)
+
+if ($erlangRegKey -eq $null) {
+    Write-Error "Could not find Erlang installation registry key at $erlangRegKeyPath"
+}
+
+New-Variable -Name erlangErtsVersion -Option Constant `
+    -Value (Select-Object -InputObject $erlangRegKey -Last 1).PSChildName
+Write-Verbose "erlangErtsVersion: $erlangErtsVersion"
+
+New-Variable -Name erlangErtsRegKeyPath -Option Constant `
+    -Value "HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erlangErtsVersion"
+
+New-Variable -Name erlangErtsRegKey -Option Constant `
+    -Value (Get-ItemProperty -LiteralPath HKLM:\SOFTWARE\WOW6432Node\Ericsson\Erlang\$erlangErtsVersion)
+
+if ($erlangErtsRegKey -eq $null) {
+    Write-Error "Could not find Erlang erts registry key at $erlangErtsRegKeyPath"
+}
+
+New-Variable -Name erlangProgramFilesPath -Option Constant `
+    -Value ($erlangErtsRegKey.'(default)')
+
+if (Test-Path -LiteralPath $erlangProgramFilesPath) {
+    Write-Verbose "Erlang installation directory: '$erlangProgramFilesPath'"
+}
+else {
+    Write-Error 'Could not find Erlang installation directory!'
+}
+
+New-Variable -Name allowedExes  -Option Constant -Value @('erl.exe', 'epmd.exe', 'werl.exe')
+
+New-Variable -Name exes  -Option Constant -Value `
+    $(Get-ChildItem -Filter '*.exe' -Recurse -LiteralPath $erlangProgramFilesPath | Where-Object { $_.Name -in $allowedExes })
+
+foreach ($exe in $exes) {
+    $fwRuleName = "rabbitmq-allow-$($exe.Name)-$(Get-Random)"
+    Write-Verbose "Updating or creating firewall rule for '$exe' - fwRuleName: $fwRuleName"
+    if (!(Get-NetFirewallRule -ErrorAction 'SilentlyContinue' -Name $fwRuleName)) {
+        New-NetFirewallRule -Enabled True -Name $fwRuleName -DisplayName $fwRuleName -Direction In -Program $exe -Profile Any -Action Allow
+    }
+    else {
+        Set-NetFirewallRule -Enabled True -Name $fwRuleName -DisplayName $fwRuleName -Direction In -Program $exe -Profile Any -Action Allow
+    }
+}
+
+Write-Host "[INFO] Setting ERLANG_HOME to '$erlangProgramFilesPath'..."
+$env:ERLANG_HOME = $erlangProgramFilesPath
+[Environment]::SetEnvironmentVariable('ERLANG_HOME', $erlangProgramFilesPath, 'Machine')
+Add-Content -Verbose -LiteralPath $env:GITHUB_ENV -Value "ERLANG_HOME=$erlangProgramFilesPath"
 
 Write-Host "[INFO] Setting RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS..."
 $env:RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS = '-rabbitmq_stream advertised_host localhost'
@@ -73,7 +124,7 @@ $env:RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS = '-rabbitmq_stream advertised_host loc
 
 Write-Host '[INFO] Downloading RabbitMQ...'
 
-if (-Not (Test-Path $rabbitmq_installer_path))
+if (-Not (Test-Path -LiteralPath $rabbitmq_installer_path))
 {
     Invoke-WebRequest -UseBasicParsing -Uri $rabbitmq_installer_download_url -OutFile $rabbitmq_installer_path
 }
@@ -83,7 +134,7 @@ else
 }
 
 Write-Host "[INFO] Installer dir '$base_installers_dir' contents:"
-Get-ChildItem -Verbose -Path $base_installers_dir
+Get-ChildItem -Verbose -LiteralPath $base_installers_dir
 
 $rabbitmq_conf_in_file = Join-Path -Path $ci_windows_dir -ChildPath 'rabbitmq.conf.in'
 $rabbitmq_appdata_dir = Join-Path -Path $env:AppData -ChildPath 'RabbitMQ'
@@ -91,7 +142,7 @@ New-Item -Path $rabbitmq_appdata_dir -ItemType Directory
 $rabbitmq_conf_file = Join-Path -Path $rabbitmq_appdata_dir -ChildPath 'rabbitmq.conf'
 
 Write-Host "[INFO] Creating RabbitMQ configuration file in '$rabbitmq_appdata_dir'"
-Get-Content $rabbitmq_conf_in_file | %{ $_ -replace '@@CERTS_DIR@@', $certs_dir } | %{ $_ -replace '\\', '/' } | Set-Content -Path $rabbitmq_conf_file
+Get-Content $rabbitmq_conf_in_file | %{ $_ -replace '@@CERTS_DIR@@', $certs_dir } | %{ $_ -replace '\\', '/' } | Set-Content -LiteralPath $rabbitmq_conf_file
 Get-Content $rabbitmq_conf_file
 
 Write-Host '[INFO] Creating Erlang cookie files...'
@@ -114,9 +165,9 @@ Write-Host '[INFO] Installing and starting RabbitMQ...'
 & $rabbitmq_installer_path '/S' | Out-Null
 (Get-Service -Name RabbitMQ).Status
 
-$rabbitmq_base_path = (Get-ItemProperty -Name Install_Dir -Path 'HKLM:\SOFTWARE\WOW6432Node\VMware, Inc.\RabbitMQ Server').Install_Dir
+$rabbitmq_base_path = (Get-ItemProperty -Name Install_Dir -LiteralPath 'HKLM:\SOFTWARE\WOW6432Node\VMware, Inc.\RabbitMQ Server').Install_Dir
 $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ'
-if (Test-Path 'HKLM:\SOFTWARE\WOW6432Node\')
+if (Test-Path -LiteralPath 'HKLM:\SOFTWARE\WOW6432Node\')
 {
     $regPath = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\RabbitMQ'
 }
@@ -138,7 +189,7 @@ $env:RABBITMQ_RABBITMQCTL_PATH = $rabbitmqctl_path
 $epmd_running = $false
 [int]$count = 1
 
-$epmd_exe = Join-Path -Path $erlang_home -ChildPath "erts-$erlang_erts_version" | Join-Path -ChildPath 'bin' | Join-Path -ChildPath 'epmd.exe'
+$epmd_exe = Join-Path -Path $erlangProgramFilesPath -ChildPath "erts-$erlangErtsVersion" | Join-Path -ChildPath 'bin' | Join-Path -ChildPath 'epmd.exe'
 
 Write-Host "[INFO] Waiting for epmd ($epmd_exe) to report that RabbitMQ has started..."
 

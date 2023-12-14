@@ -298,10 +298,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        // TODO cancellation tokens
-        internal async ValueTask ConnectionOpenAsync(string virtualHost)
+        internal async ValueTask ConnectionOpenAsync(string virtualHost, CancellationToken _)
         {
             var m = new ConnectionOpen(virtualHost);
+            // TODO linked cancellation token
             await ModelSendAsync(m)
                 .TimeoutAfter(HandshakeContinuationTimeout)
                 .ConfigureAwait(false);
@@ -968,18 +968,20 @@ namespace RabbitMQ.Client.Impl
                     var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
                     Session.Connection.Close(reason, false, InternalConstants.DefaultConnectionCloseTimeout);
                 }
-
-                var method = new ConnectionStart(cmd.MethodSpan);
-                var details = new ConnectionStartDetails
+                else
                 {
-                    m_versionMajor = method._versionMajor,
-                    m_versionMinor = method._versionMinor,
-                    m_serverProperties = method._serverProperties,
-                    m_mechanisms = method._mechanisms,
-                    m_locales = method._locales
-                };
-                m_connectionStartCell?.SetResult(details);
-                m_connectionStartCell = null;
+                    var method = new ConnectionStart(cmd.MethodSpan);
+                    var details = new ConnectionStartDetails
+                    {
+                        m_versionMajor = method._versionMajor,
+                        m_versionMinor = method._versionMinor,
+                        m_serverProperties = method._serverProperties,
+                        m_mechanisms = method._mechanisms,
+                        m_locales = method._locales
+                    };
+                    m_connectionStartCell.SetResult(details);
+                    m_connectionStartCell = null;
+                }
             }
             finally
             {

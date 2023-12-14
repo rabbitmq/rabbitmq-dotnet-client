@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 
@@ -105,7 +106,8 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously create a connection to the specified endpoint.
         /// </summary>
-        ValueTask<IConnection> CreateConnectionAsync();
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
+        ValueTask<IConnection> CreateConnectionAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Create a connection to the specified endpoint.
@@ -128,8 +130,9 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        ValueTask<IConnection> CreateConnectionAsync(string clientProvidedName);
+        ValueTask<IConnection> CreateConnectionAsync(string clientProvidedName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -142,8 +145,9 @@ namespace RabbitMQ.Client
         /// Asynchronously connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames);
+        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -168,8 +172,10 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName);
+        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Create a connection using a list of endpoints.
@@ -193,11 +199,12 @@ namespace RabbitMQ.Client
         /// List of endpoints to use for the initial
         /// connection and recovery.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints);
+        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Create a connection using a list of endpoints.
@@ -233,11 +240,13 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName);
+        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before

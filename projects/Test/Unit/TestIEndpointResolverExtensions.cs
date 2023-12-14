@@ -31,6 +31,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 
@@ -60,26 +62,49 @@ namespace Test.Unit
     public class TestIEndpointResolverExtensions
     {
         [Fact]
-        public void SelectOneShouldReturnDefaultWhenThereAreNoEndpoints()
+        public async Task SelectOneShouldReturnDefaultWhenThereAreNoEndpoints()
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint>());
-            Assert.Null(ep.SelectOne<AmqpTcpEndpoint>((x) => null));
+
+            static Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep, CancellationToken ct)
+            {
+                return Task.FromResult<AmqpTcpEndpoint>(null);
+            }
+
+            Assert.Null(await ep.SelectOneAsync<AmqpTcpEndpoint>(selector, CancellationToken.None));
         }
 
         [Fact]
-        public void SelectOneShouldRaiseThrownExceptionWhenThereAreOnlyInaccessibleEndpoints()
+        public async Task SelectOneShouldRaiseThrownExceptionWhenThereAreOnlyInaccessibleEndpoints()
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint() });
-            AggregateException thrown = Assert.Throws<AggregateException>(() => ep.SelectOne<AmqpTcpEndpoint>((x) => { throw new TestEndpointException("bananas"); }));
-            Assert.Single(thrown.InnerExceptions);
-            Assert.All(thrown.InnerExceptions, e => Assert.IsType<TestEndpointException>(e));
+
+            static Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep, CancellationToken ct)
+            {
+                return Task.FromException<AmqpTcpEndpoint>(new TestEndpointException("bananas"));
+            }
+
+            Task<AmqpTcpEndpoint> testCode()
+            {
+                return ep.SelectOneAsync(selector, CancellationToken.None);
+            }
+
+            AggregateException ex = await Assert.ThrowsAsync<AggregateException>((Func<Task<AmqpTcpEndpoint>>)testCode);
+            Assert.Single(ex.InnerExceptions);
+            Assert.All(ex.InnerExceptions, e => Assert.IsType<TestEndpointException>(e));
         }
 
         [Fact]
-        public void SelectOneShouldReturnFoundEndpoint()
+        public async Task SelectOneShouldReturnFoundEndpoint()
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint() });
-            Assert.NotNull(ep.SelectOne((e) => e));
+
+            static Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep, CancellationToken ct)
+            {
+                return Task.FromResult<AmqpTcpEndpoint>(ep);
+            }
+
+            Assert.NotNull(await ep.SelectOneAsync(selector, CancellationToken.None));
         }
     }
 }

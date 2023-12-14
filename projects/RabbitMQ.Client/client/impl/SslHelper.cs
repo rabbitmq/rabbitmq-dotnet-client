@@ -34,6 +34,8 @@ using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -53,8 +55,7 @@ namespace RabbitMQ.Client.Impl
         /// <summary>
         /// Upgrade a Tcp stream to an Ssl stream using the TLS options provided.
         /// </summary>
-        // TODO async
-        public static Stream TcpUpgrade(Stream tcpStream, SslOption options)
+        public static async Task<Stream> TcpUpgradeAsync(Stream tcpStream, SslOption options, CancellationToken cancellationToken)
         {
             var helper = new SslHelper(options);
 
@@ -65,16 +66,32 @@ namespace RabbitMQ.Client.Impl
 
             var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
 
-            Action<SslOption> TryAuthenticating = (SslOption opts) =>
+            Task TryAuthenticating(SslOption opts)
             {
-                sslStream.AuthenticateAsClientAsync(opts.ServerName, opts.Certs, opts.Version,
-                    opts.CheckCertificateRevocation).EnsureCompleted();
-            };
+#if NET6_0_OR_GREATER
+                X509RevocationMode certificateRevocationCheckMode = X509RevocationMode.NoCheck;
+                if (opts.CheckCertificateRevocation)
+                {
+                    certificateRevocationCheckMode = X509RevocationMode.Online;
+                }
+
+                var o = new SslClientAuthenticationOptions
+                {
+                    CertificateRevocationCheckMode = certificateRevocationCheckMode,
+                    ClientCertificates = opts.Certs,
+                    EnabledSslProtocols = opts.Version,
+                    TargetHost = opts.ServerName,
+                };
+                return sslStream.AuthenticateAsClientAsync(o, cancellationToken);
+#else
+                return sslStream.AuthenticateAsClientAsync(opts.ServerName, opts.Certs, opts.Version, opts.CheckCertificateRevocation);
+#endif
+            }
 
             try
             {
-                // TODO async
-                TryAuthenticating(options);
+                await TryAuthenticating(options)
+                    .ConfigureAwait(false);
             }
             catch (ArgumentException e) when (e.ParamName == "sslProtocolType" && options.Version == SslProtocols.None)
             {
@@ -82,7 +99,8 @@ namespace RabbitMQ.Client.Impl
                 // in the app context, system or .NET version-specific behavior. See rabbitmq/rabbitmq-dotnet-client#764
                 // for background.
                 options.UseFallbackTlsVersions();
-                TryAuthenticating(options);
+                await TryAuthenticating(options)
+                    .ConfigureAwait(false);
             }
 
             return sslStream;

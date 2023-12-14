@@ -31,33 +31,46 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
     public static class EndpointResolverExtensions
     {
-        public static T SelectOne<T>(this IEndpointResolver resolver, Func<AmqpTcpEndpoint, T> selector)
+        public static async Task<T> SelectOneAsync<T>(this IEndpointResolver resolver,
+            Func<AmqpTcpEndpoint, CancellationToken, Task<T>> selector, CancellationToken cancellationToken)
         {
             var t = default(T);
-            List<Exception> exceptions = null;
+            List<Exception> exceptions = [];
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 try
                 {
-                    t = selector(ep);
+                    t = await selector(ep, cancellationToken).ConfigureAwait(false);
                     if (t.Equals(default(T)) == false)
                     {
                         return t;
                     }
                 }
+                catch (OperationCanceledException ex)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    else
+                    {
+                        exceptions.Add(ex);
+                    }
+                }
                 catch (Exception e)
                 {
-                    exceptions ??= new List<Exception>(1);
                     exceptions.Add(e);
                 }
             }
 
-            if (Object.Equals(t, default(T)) && exceptions?.Count > 0)
+            if (Object.Equals(t, default(T)) && exceptions.Count > 0)
             {
                 throw new AggregateException(exceptions);
             }

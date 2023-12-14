@@ -244,6 +244,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously create and return a fresh channel, session, and channel.
         /// </summary>
+        // TODO cancellation token
         ValueTask<IChannel> CreateChannelAsync();
     }
 }

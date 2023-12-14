@@ -218,13 +218,13 @@ namespace RabbitMQ.Client
         public RabbitMQ.Client.IConnection CreateConnection(RabbitMQ.Client.IEndpointResolver endpointResolver, string clientProvidedName) { }
         public RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName) { }
         public RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IEnumerable<string> hostnames, string clientProvidedName) { }
-        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync() { }
-        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints) { }
-        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames) { }
-        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(string clientProvidedName) { }
-        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(RabbitMQ.Client.IEndpointResolver endpointResolver, string clientProvidedName) { }
-        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName) { }
-        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, string clientProvidedName) { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(string clientProvidedName, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(RabbitMQ.Client.IEndpointResolver endpointResolver, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public class ConnectionFactoryBase
     {
@@ -288,7 +288,7 @@ namespace RabbitMQ.Client
     }
     public static class EndpointResolverExtensions
     {
-        public static T SelectOne<T>(this RabbitMQ.Client.IEndpointResolver resolver, System.Func<RabbitMQ.Client.AmqpTcpEndpoint, T> selector) { }
+        public static System.Threading.Tasks.Task<T> SelectOneAsync<T>(this RabbitMQ.Client.IEndpointResolver resolver, System.Func<RabbitMQ.Client.AmqpTcpEndpoint, System.Threading.CancellationToken, System.Threading.Tasks.Task<T>> selector, System.Threading.CancellationToken cancellationToken) { }
     }
     public static class ExchangeType
     {
@@ -599,12 +599,12 @@ namespace RabbitMQ.Client
         RabbitMQ.Client.IConnection CreateConnection(string clientProvidedName);
         RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName);
         RabbitMQ.Client.IConnection CreateConnection(System.Collections.Generic.IEnumerable<string> hostnames, string clientProvidedName);
-        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync();
-        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints);
-        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames);
-        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(string clientProvidedName);
-        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName);
-        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, string clientProvidedName);
+        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(string clientProvidedName, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.ValueTask<RabbitMQ.Client.IConnection> CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface ICredentialsProvider
     {
@@ -712,8 +712,7 @@ namespace RabbitMQ.Client
         bool Connected { get; }
         System.TimeSpan ReceiveTimeout { get; set; }
         void Close();
-        System.Threading.Tasks.Task ConnectAsync(System.Net.IPAddress host, int port);
-        System.Threading.Tasks.Task ConnectAsync(string host, int port);
+        System.Threading.Tasks.Task ConnectAsync(System.Net.IPAddress host, int port, System.Threading.CancellationToken cancellationToken = default);
         System.Net.Sockets.NetworkStream GetStream();
     }
     public class PlainMechanism : RabbitMQ.Client.IAuthMechanism
@@ -834,8 +833,7 @@ namespace RabbitMQ.Client
         public virtual bool Connected { get; }
         public virtual System.TimeSpan ReceiveTimeout { get; set; }
         public virtual void Close() { }
-        public virtual System.Threading.Tasks.Task ConnectAsync(System.Net.IPAddress ep, int port) { }
-        public virtual System.Threading.Tasks.Task ConnectAsync(string host, int port) { }
+        public virtual System.Threading.Tasks.Task ConnectAsync(System.Net.IPAddress ep, int port, System.Threading.CancellationToken cancellationToken = default) { }
         public void Dispose() { }
         protected virtual void Dispose(bool disposing) { }
         public virtual System.Net.Sockets.NetworkStream GetStream() { }

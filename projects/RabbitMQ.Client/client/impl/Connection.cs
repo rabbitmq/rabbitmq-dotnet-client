@@ -78,7 +78,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 ["capabilities"] = Protocol.Capabilities,
                 ["connection_name"] = ClientProvidedName
             };
-            _mainLoopTask = Task.Run(MainLoop);
+
+            _mainLoopTask = Task.CompletedTask;
         }
 
         public Guid Id => _id;
@@ -213,24 +214,41 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal IConnection Open()
         {
-            return OpenAsync().EnsureCompleted();
+            return OpenAsync(CancellationToken.None).EnsureCompleted();
         }
 
-        internal async ValueTask<IConnection> OpenAsync()
+        // TODO cancellationToken
+        internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
         {
             try
             {
                 RabbitMqClientEventSource.Log.ConnectionOpened();
-                await StartAndTuneAsync()
+
+                await _frameHandler.ConnectAsync(cancellationToken)
                     .ConfigureAwait(false);
-                await _channel0.ConnectionOpenAsync(_config.VirtualHost)
+
+                // Note: this must happen *after* the frame handler is started
+                _mainLoopTask = Task.Run(MainLoop, cancellationToken);
+
+                await StartAndTuneAsync(cancellationToken)
                     .ConfigureAwait(false);
+
+                await _channel0.ConnectionOpenAsync(_config.VirtualHost, cancellationToken)
+                    .ConfigureAwait(false);
+
                 return this;
             }
-            catch
+            catch // TODO - evaluate all "catch all" clauses to ensure correct exception is eventually thrown
             {
-                var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen");
-                await CloseAsync(ea, true, TimeSpan.FromSeconds(5));
+                try
+                {
+                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen");
+                    // TODO linked cancellation token?
+                    await CloseAsync(ea, true, TimeSpan.FromSeconds(5))
+                        .ConfigureAwait(false);
+                }
+                catch { }
+
                 throw;
             }
         }
@@ -380,6 +398,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///to complete.
         ///</para>
         ///</remarks>
+        // TODO cancellation token
         internal async ValueTask CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
         {
             // TODO CloseAsync and Close share a lot of code

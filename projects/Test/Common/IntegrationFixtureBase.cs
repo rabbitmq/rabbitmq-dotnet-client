@@ -65,6 +65,7 @@ namespace Test
         public static readonly TimeSpan LongWaitSpan;
         public static readonly TimeSpan RecoveryInterval = TimeSpan.FromSeconds(2);
         public static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
+        public static readonly TimeSpan RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
         public static readonly Random S_Random;
 
         static IntegrationFixtureBase()
@@ -78,6 +79,7 @@ namespace Test
             {
                 WaitSpan = TimeSpan.FromSeconds(60);
                 LongWaitSpan = TimeSpan.FromSeconds(120);
+                RequestedConnectionTimeout = TimeSpan.FromSeconds(4);
             }
             else
             {
@@ -196,17 +198,19 @@ namespace Test
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
         {
-            return CreateAutorecoveringConnection(RecoveryInterval, hostnames);
+
+            return CreateAutorecoveringConnection(hostnames, RequestedConnectionTimeout, RecoveryInterval);
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan interval, IList<string> hostnames)
+        internal AutorecoveringConnection CreateAutorecoveringConnection(IEnumerable<string> hostnames,
+            TimeSpan requestedConnectionTimeout, TimeSpan networkRecoveryInterval)
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             // tests that use this helper will likely list unreachable hosts;
             // make sure we time out quickly on those
-            cf.RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
-            cf.NetworkRecoveryInterval = interval;
+            cf.RequestedConnectionTimeout = requestedConnectionTimeout;
+            cf.NetworkRecoveryInterval = networkRecoveryInterval;
             return (AutorecoveringConnection)cf.CreateConnection(hostnames);
         }
 

@@ -303,7 +303,7 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestCreateConnectioUsesValidEndpointWhenMultipleSupplied()
+        public void TestCreateConnectionUsesValidEndpointWhenMultipleSupplied()
         {
             var cf = CreateConnectionFactory();
             var invalidEp = new AmqpTcpEndpoint("not_localhost");

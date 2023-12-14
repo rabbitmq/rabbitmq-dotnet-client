@@ -297,7 +297,8 @@ namespace RabbitMQ.Client.Impl
         public async ValueTask<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer)
         {
-            string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer)
+                .ConfigureAwait(false);
             var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
             await _connection.RecordConsumerAsync(rc, recordedEntitiesSemaphoreHeld: false)
