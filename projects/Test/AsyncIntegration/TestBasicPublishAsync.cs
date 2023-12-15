@@ -78,7 +78,7 @@ namespace Test.AsyncIntegration
 
             uint rentedBytes;
 
-            using (var result = await TrackRentedBytes())
+            using (var result = await TrackRentedBytesAsync())
             {
                 await _channel.BasicPublishAsync(string.Empty, q, body, copyBody: false);
                 rentedBytes = result.RentedBytes;
@@ -101,7 +101,7 @@ namespace Test.AsyncIntegration
 
             uint rentedBytes;
 
-            using (var result = await TrackRentedBytes())
+            using (var result = await TrackRentedBytesAsync())
             {
                 await _channel.BasicPublishAsync(string.Empty, q, body, copyBody: true);
                 rentedBytes = result.RentedBytes;
@@ -126,9 +126,9 @@ namespace Test.AsyncIntegration
 
             uint rentedBytes;
 
-            using (var result = await TrackRentedBytes())
+            using (var result = await TrackRentedBytesAsync())
             {
-                await _channel.BasicPublishAsync(string.Empty, q, body, copyBody: true);
+                await _channel.BasicPublishAsync(string.Empty, q, body);
                 rentedBytes = result.RentedBytes;
             }
 

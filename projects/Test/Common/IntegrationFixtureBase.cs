@@ -421,7 +421,7 @@ namespace Test
             a(args);
         }
 
-        protected async Task<TrackRentedByteResult> TrackRentedBytes()
+        protected async Task<TrackRentedByteResult> TrackRentedBytesAsync()
         {
             Connection connection;
 

@@ -28,7 +28,7 @@ public class TestBasicPublishCopyBodyAsync : AsyncIntegrationFixture
 
         uint rentedBytes;
 
-        using (var result = await TrackRentedBytes())
+        using (var result = await TrackRentedBytesAsync())
         {
             await _channel.BasicPublishAsync(string.Empty, q, body);
             rentedBytes = result.RentedBytes;
@@ -51,7 +51,7 @@ public class TestBasicPublishCopyBodyAsync : AsyncIntegrationFixture
 
         uint rentedBytes;
 
-        using (var result = await TrackRentedBytes())
+        using (var result = await TrackRentedBytesAsync())
         {
             await _channel.BasicPublishAsync(string.Empty, q, body);
             rentedBytes = result.RentedBytes;
