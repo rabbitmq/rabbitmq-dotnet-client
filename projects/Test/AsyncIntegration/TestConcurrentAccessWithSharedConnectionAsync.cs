@@ -55,37 +55,28 @@ namespace Test.AsyncIntegration
             _conn.ConnectionShutdown += HandleConnectionShutdown;
         }
 
-        [Fact]
-        public Task TestConcurrentChannelOpenAndPublishingWithBlankMessagesAsync()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public Task TestConcurrentChannelOpenAndPublishingWithBlankMessagesAsync(bool copyBody)
         {
-            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(Array.Empty<byte>(), 30);
+            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(Array.Empty<byte>(), copyBody, 30);
         }
 
-        [Fact]
-        public Task TestConcurrentChannelOpenAndPublishingSize64Async()
-        {
-            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(64);
-        }
-
-        [Fact]
-        public Task TestConcurrentChannelOpenAndPublishingSize256Async()
-        {
-            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(256);
-        }
-
-        [Fact]
-        public Task TestConcurrentChannelOpenAndPublishingSize1024Async()
-        {
-            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(1024);
-        }
-
-        private Task TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(ushort length, int iterations = 30)
+        [Theory]
+        [InlineData(64, false)]
+        [InlineData(64, true)]
+        [InlineData(256, false)]
+        [InlineData(256, true)]
+        [InlineData(1024, false)]
+        [InlineData(1024, true)]
+        public Task TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(ushort length, bool copyBody, int iterations = 30)
         {
             byte[] body = GetRandomBody(length);
-            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(body, iterations);
+            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(body, copyBody, iterations);
         }
 
-        private Task TestConcurrentChannelOpenAndPublishingWithBodyAsync(byte[] body, int iterations)
+        private Task TestConcurrentChannelOpenAndPublishingWithBodyAsync(byte[] body, bool copyBody, int iterations)
         {
             return TestConcurrentChannelOperationsAsync(async (conn) =>
             {
@@ -128,7 +119,7 @@ namespace Test.AsyncIntegration
                     QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
                     for (ushort j = 0; j < _messageCount; j++)
                     {
-                        await ch.BasicPublishAsync("", q.QueueName, body, mandatory: true);
+                        await ch.BasicPublishAsync("", q.QueueName, body, mandatory: true, copyBody: copyBody);
                     }
 
                     Assert.True(await tcs.Task);

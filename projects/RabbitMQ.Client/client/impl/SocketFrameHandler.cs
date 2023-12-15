@@ -308,8 +308,13 @@ namespace RabbitMQ.Client.Impl
                 await _channelWriter.WriteAsync(frames)
                     .ConfigureAwait(false);
 
-                await frames.WaitForDataSendAsync()
+                bool didSend = await frames.WaitForDataSendAsync()
                     .ConfigureAwait(false);
+
+                if (didSend)
+                {
+                    frames.Dispose();
+                }
             }
         }
 
@@ -346,7 +351,10 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            frames.DidSend();
+                            if (frames.DidSend())
+                            {
+                                frames.Dispose();
+                            }
                         }
                     }
 

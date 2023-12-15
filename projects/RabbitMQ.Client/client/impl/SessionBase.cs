@@ -180,7 +180,7 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-            copyBody ??= body.Length > Connection.CopyBodyToMemoryThreshold;
+            copyBody ??= body.Length <= Connection.CopyBodyToMemoryThreshold;
 
             return Connection.WriteAsync(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize, copyBody.Value));
         }

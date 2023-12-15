@@ -17,9 +17,12 @@ public class TestRentedOutgoingMemory
         var waitTask = rentedMemory.WaitForDataSendAsync().AsTask();
         var timeoutTask = Task.Delay(100);
         var completedTask = await Task.WhenAny(timeoutTask, waitTask);
+        bool didSend = rentedMemory.DidSend();
 
         // Assert
         Assert.Equal(waitTask, completedTask);
+        Assert.False(waitTask.Result);
+        Assert.True(didSend);
     }
 
     [Fact]
@@ -49,11 +52,13 @@ public class TestRentedOutgoingMemory
         var waitTask = rentedMemory.WaitForDataSendAsync().AsTask();
         var timeoutTask = Task.Delay(100);
 
-        rentedMemory.DidSend();
+        bool didSend = rentedMemory.DidSend();
 
         var completedTask = await Task.WhenAny(timeoutTask, waitTask);
 
         // Assert
         Assert.Equal(waitTask, completedTask);
+        Assert.True(waitTask.Result);
+        Assert.False(didSend);
     }
 }

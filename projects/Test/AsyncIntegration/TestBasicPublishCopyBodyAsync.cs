@@ -36,9 +36,9 @@ public class TestBasicPublishCopyBodyAsync : AsyncIntegrationFixture
 
         Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
 
-        // It is expected that the rented bytes is smaller than the size of the body
-        // since we're not copying the body. Only the frame headers are rented.
-        Assert.True(rentedBytes < size);
+        // It is expected that the rented bytes is larger than the size of the body
+        // since the body is copied with the frame headers.
+        Assert.True(rentedBytes >= size);
     }
 
     [Theory]
@@ -59,8 +59,8 @@ public class TestBasicPublishCopyBodyAsync : AsyncIntegrationFixture
 
         Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
 
-        // It is expected that the rented bytes is larger than the size of the body
-        // since the body is copied with the frame headers.
-        Assert.True(rentedBytes >= size);
+        // It is expected that the rented bytes is smaller than the size of the body
+        // since we're not copying the body. Only the frame headers are rented.
+        Assert.True(rentedBytes < size);
     }
 }

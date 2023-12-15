@@ -2,16 +2,18 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
-    internal class RentedOutgoingMemory : IDisposable
+    internal sealed class RentedOutgoingMemory : IDisposable
     {
+        private readonly TaskCompletionSource<bool>? _sendCompletionSource;
         private bool _disposedValue;
         private byte[]? _rentedArray;
-        private TaskCompletionSource<bool>? _sendCompletionSource;
         private ReadOnlySequence<byte> _data;
 
         public RentedOutgoingMemory(ReadOnlyMemory<byte> data, byte[]? rentedArray = null, bool waitSend = false)
@@ -50,30 +52,30 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Mark the data as sent.
         /// </summary>
-        public void DidSend()
+        /// <returns><c>true</c> if the object can be disposed, <c>false</c> if the <see cref="SocketFrameHandler"/> is waiting for the data to be sent.</returns>
+        public bool DidSend()
         {
             if (_sendCompletionSource is null)
             {
-                Dispose();
+                return true;
             }
-            else
-            {
-                _sendCompletionSource.SetResult(true);
-            }
+
+            _sendCompletionSource.SetResult(true);
+            return false;
         }
 
         /// <summary>
         /// Wait for the data to be sent.
         /// </summary>
-        /// <returns>A <see cref="ValueTask"/> that completes when the data is sent.</returns>
-        public ValueTask WaitForDataSendAsync()
+        /// <returns><c>true</c> if the data was sent and the object can be disposed.</returns>
+        public ValueTask<bool> WaitForDataSendAsync()
         {
-            return _sendCompletionSource is null ? default : WaitForFinishCore();
+            return _sendCompletionSource is null ? new ValueTask<bool>(false) : WaitForFinishCore();
 
-            async ValueTask WaitForFinishCore()
+            async ValueTask<bool> WaitForFinishCore()
             {
                 await _sendCompletionSource.Task.ConfigureAwait(false);
-                Dispose();
+                return true;
             }
         }
 
@@ -92,6 +94,7 @@ namespace RabbitMQ.Client
                 return;
             }
 
+            Debug.Assert(_sendCompletionSource is null or { Task.IsCompleted: true }, "The send task should be completed before disposing.");
             _disposedValue = true;
 
             if (disposing)
@@ -109,7 +112,6 @@ namespace RabbitMQ.Client
         public void Dispose()
         {
             Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }
