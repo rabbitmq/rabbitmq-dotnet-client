@@ -21,7 +21,7 @@ public class TestRentedOutgoingMemory
 
         // Assert
         Assert.Equal(waitTask, completedTask);
-        Assert.False(waitTask.Result);
+        Assert.False(!waitTask.IsCompleted || await waitTask);
         Assert.True(didSend);
     }
 
@@ -39,6 +39,7 @@ public class TestRentedOutgoingMemory
 
         // Assert
         Assert.Equal(timeoutTask, completedTask);
+        Assert.False(waitTask.IsCompleted);
     }
 
     [Fact]
@@ -58,7 +59,7 @@ public class TestRentedOutgoingMemory
 
         // Assert
         Assert.Equal(waitTask, completedTask);
-        Assert.True(waitTask.Result);
+        Assert.True(waitTask.IsCompleted && await waitTask);
         Assert.False(didSend);
     }
 }
