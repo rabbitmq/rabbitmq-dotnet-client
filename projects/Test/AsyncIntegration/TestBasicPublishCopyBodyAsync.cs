@@ -18,7 +18,7 @@ public class TestBasicPublishCopyBodyAsync : AsyncIntegrationFixture
         return factory;
     }
 
-    [Theory(Skip = "Parallelization is disabled for this collection")]
+    [Theory]
     [InlineData(512)]
     [InlineData(1024)]
     public async Task TestNonCopyingBody(ushort size)
