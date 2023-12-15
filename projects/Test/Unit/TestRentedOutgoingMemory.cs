@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using System.Threading.Tasks;
+using RabbitMQ.Client;
 using Xunit;
 
 namespace Test.Unit;
@@ -6,46 +7,53 @@ namespace Test.Unit;
 public class TestRentedOutgoingMemory
 {
     [Fact]
-    public void TestNonBlocking()
+    public async Task TestNonBlocking()
     {
         // Arrange
         byte[] buffer = new byte[] { 1, 2, 3, 4, 5 };
-        RentedOutgoingMemory rentedMemory = RentedOutgoingMemory.GetAndInitialize(buffer, waitSend: false);
+        RentedOutgoingMemory rentedMemory = new RentedOutgoingMemory(buffer, waitSend: false);
 
         // Act
-        var waitTask = rentedMemory.WaitForDataSendAsync();
+        var waitTask = rentedMemory.WaitForDataSendAsync().AsTask();
+        var timeoutTask = Task.Delay(100);
+        var completedTask = await Task.WhenAny(timeoutTask, waitTask);
 
         // Assert
-        Assert.True(waitTask.IsCompleted);
+        Assert.Equal(waitTask, completedTask);
     }
 
     [Fact]
-    public void TestBlocking()
+    public async Task TestBlocking()
     {
         // Arrange
         byte[] buffer = new byte[] { 1, 2, 3, 4, 5 };
-        RentedOutgoingMemory rentedMemory = RentedOutgoingMemory.GetAndInitialize(buffer, waitSend: true);
+        RentedOutgoingMemory rentedMemory = new RentedOutgoingMemory(buffer, waitSend: true);
 
         // Act
-        var waitTask = rentedMemory.WaitForDataSendAsync();
+        var waitTask = rentedMemory.WaitForDataSendAsync().AsTask();
+        var timeoutTask = Task.Delay(100);
+        var completedTask = await Task.WhenAny(timeoutTask, waitTask);
 
         // Assert
-        Assert.False(waitTask.IsCompleted);
+        Assert.Equal(timeoutTask, completedTask);
     }
 
     [Fact]
-    public void TestBlockingCompleted()
+    public async Task TestBlockingCompleted()
     {
         // Arrange
         byte[] buffer = new byte[] { 1, 2, 3, 4, 5 };
-        RentedOutgoingMemory rentedMemory = RentedOutgoingMemory.GetAndInitialize(buffer, waitSend: true);
+        RentedOutgoingMemory rentedMemory = new RentedOutgoingMemory(buffer, waitSend: true);
 
         // Act
-        var waitTask = rentedMemory.WaitForDataSendAsync();
+        var waitTask = rentedMemory.WaitForDataSendAsync().AsTask();
+        var timeoutTask = Task.Delay(100);
 
         rentedMemory.DidSend();
 
+        var completedTask = await Task.WhenAny(timeoutTask, waitTask);
+
         // Assert
-        Assert.False(waitTask.IsCompleted);
+        Assert.Equal(waitTask, completedTask);
     }
 }

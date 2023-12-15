@@ -161,7 +161,7 @@ namespace RabbitMQ.Client.Impl
                 byte[] buffer = ClientArrayPool.Rent(FrameSize);
                 Payload.CopyTo(buffer);
                 var mem = new ReadOnlyMemory<byte>(buffer, 0, FrameSize);
-                return RentedOutgoingMemory.GetAndInitialize(mem, buffer);
+                return new RentedOutgoingMemory(mem, buffer);
             }
         }
 
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Impl
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
             var mem = new ReadOnlyMemory<byte>(array, 0, size);
-            return RentedOutgoingMemory.GetAndInitialize(mem, array);
+            return new RentedOutgoingMemory(mem, array);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -219,7 +219,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            return RentedOutgoingMemory.GetAndInitialize(sequenceBuilder.Build(), array, waitSend: !copyBody);
+            return new RentedOutgoingMemory(sequenceBuilder.Build(), array, waitSend: !copyBody);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

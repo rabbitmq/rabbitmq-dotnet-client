@@ -4,23 +4,48 @@ using System;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
-using Microsoft.Extensions.ObjectPool;
 
 namespace RabbitMQ.Client
 {
-    internal class RentedOutgoingMemory : IDisposable, IResettable
+    internal class RentedOutgoingMemory : IDisposable
     {
-        private static readonly ObjectPool<RentedOutgoingMemory> s_pool = ObjectPool.Create<RentedOutgoingMemory>();
-
         private bool _disposedValue;
         private byte[]? _rentedArray;
         private TaskCompletionSource<bool>? _sendCompletionSource;
+        private ReadOnlySequence<byte> _data;
+
+        public RentedOutgoingMemory(ReadOnlyMemory<byte> data, byte[]? rentedArray = null, bool waitSend = false)
+            : this(new ReadOnlySequence<byte>(data), rentedArray, waitSend)
+        {
+        }
+
+        public RentedOutgoingMemory(ReadOnlySequence<byte> data, byte[]? rentedArray = null, bool waitSend = false)
+        {
+            _data = data;
+            _rentedArray = rentedArray;
+
+            if (waitSend)
+            {
+                _sendCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            }
+        }
 
         internal int Size => (int)Data.Length;
 
         public int RentedArraySize => _rentedArray?.Length ?? 0;
 
-        internal ReadOnlySequence<byte> Data { get; private set; }
+        internal ReadOnlySequence<byte> Data
+        {
+            get
+            {
+                if (_disposedValue)
+                {
+                    throw new ObjectDisposedException(nameof(RentedOutgoingMemory));
+                }
+
+                return _data;
+            }
+        }
 
         /// <summary>
         /// Mark the data as sent.
@@ -30,7 +55,6 @@ namespace RabbitMQ.Client
             if (_sendCompletionSource is null)
             {
                 Dispose();
-                s_pool.Return(this);
             }
             else
             {
@@ -50,7 +74,6 @@ namespace RabbitMQ.Client
             {
                 await _sendCompletionSource.Task.ConfigureAwait(false);
                 Dispose();
-                s_pool.Return(this);
             }
         }
 
@@ -69,57 +92,24 @@ namespace RabbitMQ.Client
                 return;
             }
 
+            _disposedValue = true;
+
             if (disposing)
             {
+                _data = default;
+
                 if (_rentedArray != null)
                 {
                     ClientArrayPool.Return(_rentedArray);
-                    Data = default;
                     _rentedArray = null;
                 }
             }
-
-            _disposedValue = true;
         }
 
         public void Dispose()
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
-        }
-
-        bool IResettable.TryReset()
-        {
-            if (!_disposedValue)
-            {
-                return false;
-            }
-
-            _disposedValue = false;
-            _rentedArray = default;
-            Data = default;
-            _sendCompletionSource = default;
-            return true;
-        }
-
-        public static RentedOutgoingMemory GetAndInitialize(ReadOnlySequence<byte> mem, byte[]? buffer = null, bool waitSend = false)
-        {
-            var rented = s_pool.Get();
-
-            rented.Data = mem;
-            rented._rentedArray = buffer;
-
-            if (waitSend)
-            {
-                rented._sendCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            }
-
-            return rented;
-        }
-
-        public static RentedOutgoingMemory GetAndInitialize(ReadOnlyMemory<byte> mem, byte[]? buffer = null, bool waitSend = false)
-        {
-            return GetAndInitialize(new ReadOnlySequence<byte>(mem), buffer, waitSend);
         }
     }
 }
