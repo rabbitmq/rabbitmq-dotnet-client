@@ -508,7 +508,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlySequence<byte> body, bool copyBody)
+        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlySequence<byte> body, bool? copyBody = null)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -1259,7 +1259,7 @@ namespace RabbitMQ.Client.Impl
             ChannelSend(in cmd, in basicProperties, body);
         }
 
-        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlySequence<byte> body, bool mandatory, bool copyBody = true)
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlySequence<byte> body, bool mandatory, bool? copyBody = null)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (NextPublishSeqNo > 0)
@@ -1274,13 +1274,13 @@ namespace RabbitMQ.Client.Impl
             return ModelSendAsync(in cmd, in basicProperties, body, copyBody);
         }
 
-        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory, bool copyBody = true)
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory, bool? copyBody = null)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             return BasicPublishAsync(exchange, routingKey, in basicProperties, new ReadOnlySequence<byte>(body), mandatory, copyBody);
         }
 
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlySequence<byte> body, bool mandatory, bool copyBody = true)
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlySequence<byte> body, bool mandatory, bool? copyBody = null)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (NextPublishSeqNo > 0)
@@ -1295,7 +1295,7 @@ namespace RabbitMQ.Client.Impl
             return ModelSendAsync(in cmd, in basicProperties, body, copyBody);
         }
 
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory, bool copyBody = true)
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory, bool? copyBody = null)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             return BasicPublishAsync(exchange, routingKey, in basicProperties, new ReadOnlySequence<byte>(body), mandatory, copyBody);

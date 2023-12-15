@@ -90,11 +90,11 @@ namespace RabbitMQ.Client.Impl
 
         ValueTask TransmitAsync<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
 
-        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlySequence<byte> body, bool copyBody = true)
+        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlySequence<byte> body, bool? copyBody = null)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader;
 
-        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, bool copyBody = true)
+        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, bool? copyBody = null)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader;
     }

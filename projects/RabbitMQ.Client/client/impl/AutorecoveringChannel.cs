@@ -328,19 +328,19 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublish(exchange, routingKey, in basicProperties, body, mandatory);
 
-        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory, bool copyBody = true)
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory, bool? copyBody = null)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory, copyBody);
 
-        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlySequence<byte> body, bool mandatory, bool copyBody = true)
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlySequence<byte> body, bool mandatory, bool? copyBody = null)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory, copyBody);
 
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory, bool copyBody = true)
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory, bool? copyBody = null)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory, copyBody);
 
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlySequence<byte> body, bool mandatory, bool copyBody = true)
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlySequence<byte> body, bool mandatory, bool? copyBody = null)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory, copyBody);
 

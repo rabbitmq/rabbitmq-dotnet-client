@@ -139,6 +139,11 @@ namespace RabbitMQ.Client
         public const string DefaultVHost = "/";
 
         /// <summary>
+        /// Default value for the copy body to memory threshold.
+        /// </summary>
+        public const int DefaultCopyBodyToMemoryThreshold = int.MaxValue;
+
+        /// <summary>
         /// TLS versions enabled by default: TLSv1.2, v1.1, v1.0.
         /// </summary>
         public static SslProtocols DefaultAmqpUriSslProtocols { get; set; } = SslProtocols.None;
@@ -360,6 +365,16 @@ namespace RabbitMQ.Client
         /// Corresponds to the <code>ConnectionFactory.DefaultMaxMessageSize</code> setting.
         /// </summary>
         public uint MaxMessageSize { get; set; } = DefaultMaxMessageSize;
+
+        /// <summary>
+        /// The threshold for when to copy the body to a temporary array.
+        /// </summary>
+        /// <remarks>
+        /// When the body is larger than this threshold it will reuse the same buffer. Because of this
+        /// the buffer cannot be modified by the application. This causes
+        /// the socket (<see cref="SocketFrameHandler.WriteAsync"/>) to block until the frame is sent.
+        /// </remarks>
+        public int CopyBodyToMemoryThreshold { get; set; } = DefaultCopyBodyToMemoryThreshold;
 
         /// <summary>
         /// The uri to use for the connection.
@@ -771,7 +786,8 @@ namespace RabbitMQ.Client
                 RequestedConnectionTimeout,
                 DispatchConsumersAsync,
                 ConsumerDispatchConcurrency,
-                CreateFrameHandlerAsync);
+                CreateFrameHandlerAsync,
+                CopyBodyToMemoryThreshold);
         }
 
         internal async Task<IFrameHandler> CreateFrameHandlerAsync(

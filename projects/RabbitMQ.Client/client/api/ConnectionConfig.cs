@@ -143,6 +143,16 @@ namespace RabbitMQ.Client
         /// </summary>
         public readonly int DispatchConsumerConcurrency;
 
+        /// <summary>
+        /// The threshold for when to copy the body to a temporary array.
+        /// </summary>
+        /// <remarks>
+        /// When the body is larger than this threshold it will reuse the same buffer. Because of this
+        /// the buffer cannot be modified by the application. This causes
+        /// the socket (<see cref="SocketFrameHandler.WriteAsync"/>) to block until the frame is sent.
+        /// </remarks>
+        public readonly int CopyBodyToMemoryThreshold;
+
         internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;
 
         internal ConnectionConfig(string virtualHost, string userName, string password,
@@ -153,7 +163,7 @@ namespace RabbitMQ.Client
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
             bool dispatchConsumersAsync, int dispatchConsumerConcurrency,
-            Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
+            Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync, int copyBodyToMemoryThreshold)
         {
             VirtualHost = virtualHost;
             UserName = userName;
@@ -176,6 +186,7 @@ namespace RabbitMQ.Client
             DispatchConsumersAsync = dispatchConsumersAsync;
             DispatchConsumerConcurrency = dispatchConsumerConcurrency;
             FrameHandlerFactoryAsync = frameHandlerFactoryAsync;
+            CopyBodyToMemoryThreshold = copyBodyToMemoryThreshold;
         }
     }
 }

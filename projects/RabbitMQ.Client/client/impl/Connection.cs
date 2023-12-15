@@ -101,6 +101,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IDictionary<string, object?>? ServerProperties { get; private set; }
 
+        public int CopyBodyToMemoryThreshold => _config.CopyBodyToMemoryThreshold;
+
         public IEnumerable<ShutdownReportEntry> ShutdownReport => _shutdownReport;
         private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();
 

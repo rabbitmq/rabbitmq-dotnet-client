@@ -171,7 +171,7 @@ namespace RabbitMQ.Client.Impl
             Transmit(cmd, header, new ReadOnlySequence<byte>(body));
         }
 
-        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlySequence<byte> body, bool copyBody = true)
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlySequence<byte> body, bool? copyBody = null)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -180,10 +180,12 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-            return Connection.WriteAsync(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize, copyBody));
+            copyBody ??= body.Length >= Connection.CopyBodyToMemoryThreshold;
+
+            return Connection.WriteAsync(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize, copyBody.Value));
         }
 
-        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, bool copyBody = true)
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, bool? copyBody = null)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
