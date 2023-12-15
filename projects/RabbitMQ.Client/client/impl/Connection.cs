@@ -539,7 +539,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionWrapper.Invoke(this, args);
         }
 
-        internal void Write(RentedMemory frames)
+        internal void Write(RentedOutgoingMemory frames)
         {
             ValueTask task = _frameHandler.WriteAsync(frames);
             if (!task.IsCompletedSuccessfully)
@@ -548,7 +548,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal ValueTask WriteAsync(RentedMemory frames)
+        internal ValueTask WriteAsync(RentedOutgoingMemory frames)
         {
             return _frameHandler.WriteAsync(frames);
         }

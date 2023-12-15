@@ -113,13 +113,29 @@ namespace RabbitMQ.Client.Impl
             public const int FrameSize = BaseFrameSize;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int WriteTo(Span<byte> span, ushort channel, ReadOnlySpan<byte> body)
+            public static int WriteTo(ref ChunkedSequence<byte> data, Memory<byte> buffer, ushort channel, ReadOnlySequence<byte> body, bool copyBody)
             {
                 const int StartBodyArgument = StartPayload;
-                NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)body.Length << 8));
-                body.CopyTo(span.Slice(StartBodyArgument));
-                span[StartPayload + body.Length] = Constants.FrameEnd;
-                return body.Length + BaseFrameSize;
+                NetworkOrderSerializer.WriteUInt64(ref buffer.Span.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)body.Length << 8));
+
+                if (copyBody)
+                {
+                    int length = (int)body.Length;
+                    Span<byte> span = buffer.Span;
+
+                    body.CopyTo(span.Slice(StartBodyArgument));
+                    span[StartPayload + length] = Constants.FrameEnd;
+
+                    data.Append(buffer.Slice(0, length + BaseFrameSize));
+
+                    return length + BaseFrameSize;
+                }
+
+                data.Append(buffer.Slice(0, StartBodyArgument));
+                data.Append(body);
+                buffer.Span[StartBodyArgument] = Constants.FrameEnd;
+                data.Append(buffer.Slice(StartBodyArgument, 1));
+                return BaseFrameSize;
             }
         }
 
@@ -139,18 +155,18 @@ namespace RabbitMQ.Client.Impl
             ///</summary>
             private static ReadOnlySpan<byte> Payload => new byte[] { Constants.FrameHeartbeat, 0, 0, 0, 0, 0, 0, Constants.FrameEnd };
 
-            public static RentedMemory GetHeartbeatFrame()
+            public static RentedOutgoingMemory GetHeartbeatFrame()
             {
                 // Is returned by SocketFrameHandler.WriteLoop
                 byte[] buffer = ClientArrayPool.Rent(FrameSize);
                 Payload.CopyTo(buffer);
                 var mem = new ReadOnlyMemory<byte>(buffer, 0, FrameSize);
-                return new RentedMemory(mem, buffer);
+                return RentedOutgoingMemory.Create(mem, buffer);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static RentedMemory SerializeToFrames<T>(ref T method, ushort channelNumber)
+        public static RentedOutgoingMemory SerializeToFrames<T>(ref T method, ushort channelNumber)
             where T : struct, IOutgoingAmqpMethod
         {
             int size = Method.FrameSize + method.GetRequiredBufferSize();
@@ -161,35 +177,57 @@ namespace RabbitMQ.Client.Impl
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
             var mem = new ReadOnlyMemory<byte>(array, 0, size);
-            return new RentedMemory(mem, array);
+            return RentedOutgoingMemory.Create(mem, array);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static RentedMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+        public static RentedOutgoingMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlySequence<byte> body, ushort channelNumber, int maxBodyPayloadBytes, bool copyBody = true)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
-            int remainingBodyBytes = body.Length;
+            int remainingBodyBytes = (int) body.Length;
             int size = Method.FrameSize + Header.FrameSize +
                        method.GetRequiredBufferSize() + header.GetRequiredBufferSize() +
-                       BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes) + remainingBodyBytes;
+                       BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes);
+
+            if (copyBody)
+            {
+                size += remainingBodyBytes;
+            }
 
             // Will be returned by SocketFrameWriter.WriteLoop
             byte[] array = ClientArrayPool.Rent(size);
 
+            ChunkedSequence<byte> sequence = new ChunkedSequence<byte>();
+            Memory<byte> buffer = array.AsMemory();
+
             int offset = Method.WriteTo(array, channelNumber, ref method);
             offset += Header.WriteTo(array.AsSpan(offset), channelNumber, ref header, remainingBodyBytes);
-            ReadOnlySpan<byte> bodySpan = body.Span;
+
+            sequence.Append(buffer.Slice(0, offset));
+            buffer = buffer.Slice(offset);
+
+            ReadOnlySequence<byte> remainingBody = body;
             while (remainingBodyBytes > 0)
             {
                 int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
-                offset += BodySegment.WriteTo(array.AsSpan(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
+                int segmentSize = BodySegment.WriteTo(ref sequence, buffer, channelNumber, remainingBody.Slice(remainingBody.Length - remainingBodyBytes, frameSize), copyBody);
+
+                buffer = buffer.Slice(segmentSize);
+                offset += segmentSize;
                 remainingBodyBytes -= frameSize;
             }
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            var mem = new ReadOnlyMemory<byte>(array, 0, size);
-            return new RentedMemory(mem, array);
+            return RentedOutgoingMemory.Create(sequence.GetSequence(), array, waitSend: !copyBody);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static RentedOutgoingMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            return SerializeToFrames(ref method, ref header, new ReadOnlySequence<byte>(body), channelNumber, maxBodyPayloadBytes);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

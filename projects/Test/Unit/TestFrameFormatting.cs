@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -42,12 +43,15 @@ namespace Test.Unit
         [Fact]
         public void HeartbeatFrame()
         {
-            RentedMemory sfc = Framing.Heartbeat.GetHeartbeatFrame();
-            ReadOnlySpan<byte> frameSpan = sfc.Memory.Span;
+            RentedOutgoingMemory sfc = Framing.Heartbeat.GetHeartbeatFrame();
 
             try
             {
-                Assert.Equal(8, frameSpan.Length);
+                Assert.Equal(8, sfc.Size);
+
+                Span<byte> frameSpan = stackalloc byte[8];
+                sfc.Data.CopyTo(frameSpan);
+
                 Assert.Equal(Constants.FrameHeartbeat, frameSpan[0]);
                 Assert.Equal(0, frameSpan[1]); // channel
                 Assert.Equal(0, frameSpan[2]); // channel
@@ -59,7 +63,7 @@ namespace Test.Unit
             }
             finally
             {
-                ClientArrayPool.Return(sfc.RentedArray);
+                sfc.Dispose();
             }
         }
 
@@ -133,14 +137,21 @@ namespace Test.Unit
             Assert.Equal(Constants.FrameEnd, frameBytes[18]);
         }
 
-        [Fact]
-        public void BodySegmentFrame()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void BodySegmentFrame(bool copyBody)
         {
             const int Channel = 3;
 
             byte[] payload = new byte[4];
-            byte[] frameBytes = new byte[RabbitMQ.Client.Impl.Framing.BodySegment.FrameSize + payload.Length];
-            RabbitMQ.Client.Impl.Framing.BodySegment.WriteTo(frameBytes, Channel, payload);
+            byte[] buffer = new byte[RabbitMQ.Client.Impl.Framing.BodySegment.FrameSize + (copyBody ? payload.Length : 0)];
+
+            ChunkedSequence<byte> segment = new ChunkedSequence<byte>();
+
+            RabbitMQ.Client.Impl.Framing.BodySegment.WriteTo(ref segment, buffer, Channel, new ReadOnlySequence<byte>(payload), copyBody);
+
+            byte[] frameBytes = segment.GetSequence().ToArray();
 
             Assert.Equal(8, RabbitMQ.Client.Impl.Framing.BodySegment.FrameSize);
             Assert.Equal(Constants.FrameBody, frameBytes[0]);
