@@ -16,7 +16,7 @@ namespace RabbitMQ.Client
         private byte[]? _rentedArray;
         private TaskCompletionSource<bool>? _sendCompletionSource;
 
-        internal int Size => (int) Data.Length;
+        internal int Size => (int)Data.Length;
 
         public int RentedArraySize => _rentedArray?.Length ?? 0;
 

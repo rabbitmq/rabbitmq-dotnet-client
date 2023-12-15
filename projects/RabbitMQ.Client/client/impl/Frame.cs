@@ -185,7 +185,7 @@ namespace RabbitMQ.Client.Impl
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
-            int remainingBodyBytes = (int) body.Length;
+            int remainingBodyBytes = (int)body.Length;
             int size = Method.FrameSize + Header.FrameSize +
                        method.GetRequiredBufferSize() + header.GetRequiredBufferSize() +
                        BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes);
