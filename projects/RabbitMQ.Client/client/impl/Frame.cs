@@ -113,7 +113,7 @@ namespace RabbitMQ.Client.Impl
             public const int FrameSize = BaseFrameSize;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int WriteTo(ref ChunkedSequence<byte> data, Memory<byte> buffer, ushort channel, ReadOnlySequence<byte> body, bool copyBody)
+            public static int WriteTo(ref SequenceBuilder<byte> data, Memory<byte> buffer, ushort channel, ReadOnlySequence<byte> body, bool copyBody)
             {
                 const int StartBodyArgument = StartPayload;
                 NetworkOrderSerializer.WriteUInt64(ref buffer.Span.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)body.Length << 8));
@@ -161,7 +161,7 @@ namespace RabbitMQ.Client.Impl
                 byte[] buffer = ClientArrayPool.Rent(FrameSize);
                 Payload.CopyTo(buffer);
                 var mem = new ReadOnlyMemory<byte>(buffer, 0, FrameSize);
-                return RentedOutgoingMemory.Create(mem, buffer);
+                return RentedOutgoingMemory.GetAndInitialize(mem, buffer);
             }
         }
 
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client.Impl
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
             var mem = new ReadOnlyMemory<byte>(array, 0, size);
-            return RentedOutgoingMemory.Create(mem, array);
+            return RentedOutgoingMemory.GetAndInitialize(mem, array);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -198,20 +198,20 @@ namespace RabbitMQ.Client.Impl
             // Will be returned by SocketFrameWriter.WriteLoop
             byte[] array = ClientArrayPool.Rent(size);
 
-            ChunkedSequence<byte> sequence = new ChunkedSequence<byte>();
+            SequenceBuilder<byte> sequenceBuilder = new SequenceBuilder<byte>();
             Memory<byte> buffer = array.AsMemory();
 
             int offset = Method.WriteTo(array, channelNumber, ref method);
             offset += Header.WriteTo(array.AsSpan(offset), channelNumber, ref header, remainingBodyBytes);
 
-            sequence.Append(buffer.Slice(0, offset));
+            sequenceBuilder.Append(buffer.Slice(0, offset));
             buffer = buffer.Slice(offset);
 
             ReadOnlySequence<byte> remainingBody = body;
             while (remainingBodyBytes > 0)
             {
                 int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
-                int segmentSize = BodySegment.WriteTo(ref sequence, buffer, channelNumber, remainingBody.Slice(remainingBody.Length - remainingBodyBytes, frameSize), copyBody);
+                int segmentSize = BodySegment.WriteTo(ref sequenceBuilder, buffer, channelNumber, remainingBody.Slice(remainingBody.Length - remainingBodyBytes, frameSize), copyBody);
 
                 buffer = buffer.Slice(segmentSize);
                 offset += segmentSize;
@@ -219,7 +219,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            return RentedOutgoingMemory.Create(sequence.GetSequence(), array, waitSend: !copyBody);
+            return RentedOutgoingMemory.GetAndInitialize(sequenceBuilder.Build(), array, waitSend: !copyBody);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

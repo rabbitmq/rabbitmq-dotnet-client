@@ -34,6 +34,7 @@ using System.Buffers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Util;
 using Xunit;
 
 namespace Test.Unit
@@ -147,11 +148,19 @@ namespace Test.Unit
             byte[] payload = new byte[4];
             byte[] buffer = new byte[RabbitMQ.Client.Impl.Framing.BodySegment.FrameSize + (copyBody ? payload.Length : 0)];
 
-            ChunkedSequence<byte> segment = new ChunkedSequence<byte>();
+            SequenceBuilder<byte> builder = new SequenceBuilder<byte>();
 
-            RabbitMQ.Client.Impl.Framing.BodySegment.WriteTo(ref segment, buffer, Channel, new ReadOnlySequence<byte>(payload), copyBody);
+            RabbitMQ.Client.Impl.Framing.BodySegment.WriteTo(ref builder, buffer, Channel, new ReadOnlySequence<byte>(payload), copyBody);
 
-            byte[] frameBytes = segment.GetSequence().ToArray();
+            var sequence = builder.Build();
+
+            if (copyBody)
+            {
+                // When copying the body, the memory is sequential
+                Assert.True(sequence.IsSingleSegment);
+            }
+
+            byte[] frameBytes = sequence.ToArray();
 
             Assert.Equal(8, RabbitMQ.Client.Impl.Framing.BodySegment.FrameSize);
             Assert.Equal(Constants.FrameBody, frameBytes[0]);

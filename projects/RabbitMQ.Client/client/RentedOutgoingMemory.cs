@@ -13,12 +13,12 @@ namespace RabbitMQ.Client
         private static readonly ObjectPool<RentedOutgoingMemory> s_pool = ObjectPool.Create<RentedOutgoingMemory>();
 
         private bool _disposedValue;
+        private byte[]? _rentedArray;
         private TaskCompletionSource<bool>? _sendCompletionSource;
 
-        internal ReadOnlySequence<byte> Data;
-        internal byte[]? RentedArray;
-
         internal int Size => (int) Data.Length;
+
+        internal ReadOnlySequence<byte> Data { get; private set; }
 
         /// <summary>
         /// Mark the data as sent.
@@ -28,6 +28,7 @@ namespace RabbitMQ.Client
             if (_sendCompletionSource is null)
             {
                 Dispose();
+                s_pool.Return(this);
             }
             else
             {
@@ -47,6 +48,7 @@ namespace RabbitMQ.Client
             {
                 await _sendCompletionSource.Task.ConfigureAwait(false);
                 Dispose();
+                s_pool.Return(this);
             }
         }
 
@@ -65,9 +67,14 @@ namespace RabbitMQ.Client
                 return;
             }
 
-            if (disposing && RentedArray != null)
+            if (disposing)
             {
-                ClientArrayPool.Return(RentedArray);
+                if (_rentedArray != null)
+                {
+                    ClientArrayPool.Return(_rentedArray);
+                    Data = default;
+                    _rentedArray = null;
+                }
             }
 
             _disposedValue = true;
@@ -87,18 +94,18 @@ namespace RabbitMQ.Client
             }
 
             _disposedValue = false;
-            RentedArray = default;
-            _sendCompletionSource = default;
+            _rentedArray = default;
             Data = default;
+            _sendCompletionSource = default;
             return true;
         }
 
-        public static RentedOutgoingMemory Create(ReadOnlySequence<byte> mem, byte[] buffer, bool waitSend = false)
+        public static RentedOutgoingMemory GetAndInitialize(ReadOnlySequence<byte> mem, byte[] buffer, bool waitSend = false)
         {
             var rented = s_pool.Get();
 
             rented.Data = mem;
-            rented.RentedArray = buffer;
+            rented._rentedArray = buffer;
 
             if (waitSend)
             {
@@ -108,9 +115,9 @@ namespace RabbitMQ.Client
             return rented;
         }
 
-        public static RentedOutgoingMemory Create(ReadOnlyMemory<byte> mem, byte[] buffer, bool waitSend = false)
+        public static RentedOutgoingMemory GetAndInitialize(ReadOnlyMemory<byte> mem, byte[] buffer, bool waitSend = false)
         {
-            return Create(new ReadOnlySequence<byte>(mem), buffer, waitSend);
+            return GetAndInitialize(new ReadOnlySequence<byte>(mem), buffer, waitSend);
         }
     }
 }
