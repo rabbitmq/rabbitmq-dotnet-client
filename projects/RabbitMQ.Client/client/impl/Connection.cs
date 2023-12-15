@@ -58,6 +58,9 @@ namespace RabbitMQ.Client.Framing.Impl
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
+        internal bool TrackRentedBytes = false;
+        internal uint RentedBytes;
+
         internal Connection(ConnectionConfig config, IFrameHandler frameHandler)
         {
             _config = config;
@@ -552,7 +555,21 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal ValueTask WriteAsync(RentedOutgoingMemory frames)
         {
+            TrackRented(frames.RentedArraySize);
+
             return _frameHandler.WriteAsync(frames);
+        }
+
+        private void TrackRented(int size)
+        {
+            if (TrackRentedBytes && size > 0)
+            {
+#if NET
+                Interlocked.Add(ref RentedBytes, (uint)size);
+#else
+                Interlocked.Add(ref Unsafe.As<uint, int>(ref RentedBytes), size);
+#endif
+            }
         }
 
         public void Dispose()

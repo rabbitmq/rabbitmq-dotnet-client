@@ -38,6 +38,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -48,6 +49,8 @@ namespace Test
 {
     public abstract class IntegrationFixtureBase : IDisposable
     {
+        private readonly SemaphoreSlim _byteTrackingLock = new SemaphoreSlim(1, 1);
+
         private static bool s_isRunningInCI = false;
         private static bool s_isWindows = false;
         private static bool s_isVerbose = false;
@@ -371,7 +374,7 @@ namespace Test
                 $"waiting {timeSpan.TotalSeconds} seconds on a latch for '{desc}' timed out");
         }
 
-        protected ConnectionFactory CreateConnectionFactory()
+        protected virtual ConnectionFactory CreateConnectionFactory()
         {
             string now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
             return new ConnectionFactory
@@ -416,6 +419,39 @@ namespace Test
                 _output.WriteLine($"{_testDisplayName} channel {ch.ChannelNumber} shut down: {args}");
             }
             a(args);
+        }
+
+        protected async Task<TrackRentedByteResult> TrackRentedBytes()
+        {
+            Connection connection;
+
+            if (_conn is AutorecoveringConnection autorecoveringConnection)
+            {
+                connection = autorecoveringConnection.InnerConnection as Connection;
+            }
+            else
+            {
+                connection = _conn as Connection;
+            }
+
+            if (connection is null)
+            {
+                throw new InvalidOperationException("Cannot track rented bytes without a connection");
+            }
+
+            await _byteTrackingLock.WaitAsync();
+
+            try
+            {
+                connection.RentedBytes = 0;
+                connection.TrackRentedBytes = true;
+                return new TrackRentedByteResult(connection, _byteTrackingLock);
+            }
+            catch
+            {
+                _byteTrackingLock.Release();
+                throw;
+            }
         }
 
         private static void InitIsRunningInCI()

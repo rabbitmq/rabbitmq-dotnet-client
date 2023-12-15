@@ -18,6 +18,8 @@ namespace RabbitMQ.Client
 
         internal int Size => (int) Data.Length;
 
+        public int RentedArraySize => _rentedArray?.Length ?? 0;
+
         internal ReadOnlySequence<byte> Data { get; private set; }
 
         /// <summary>
@@ -100,7 +102,7 @@ namespace RabbitMQ.Client
             return true;
         }
 
-        public static RentedOutgoingMemory GetAndInitialize(ReadOnlySequence<byte> mem, byte[] buffer, bool waitSend = false)
+        public static RentedOutgoingMemory GetAndInitialize(ReadOnlySequence<byte> mem, byte[]? buffer = null, bool waitSend = false)
         {
             var rented = s_pool.Get();
 
@@ -115,7 +117,7 @@ namespace RabbitMQ.Client
             return rented;
         }
 
-        public static RentedOutgoingMemory GetAndInitialize(ReadOnlyMemory<byte> mem, byte[] buffer, bool waitSend = false)
+        public static RentedOutgoingMemory GetAndInitialize(ReadOnlyMemory<byte> mem, byte[]? buffer = null, bool waitSend = false)
         {
             return GetAndInitialize(new ReadOnlySequence<byte>(mem), buffer, waitSend);
         }

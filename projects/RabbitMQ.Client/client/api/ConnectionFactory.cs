@@ -763,7 +763,12 @@ namespace RabbitMQ.Client
             }
         }
 
-        private ConnectionConfig CreateConfig(string clientProvidedName)
+        internal ConnectionConfig CreateConfig()
+        {
+            return CreateConfig(ClientProvidedName);
+        }
+
+        internal ConnectionConfig CreateConfig(string clientProvidedName)
         {
             return new ConnectionConfig(
                 VirtualHost,

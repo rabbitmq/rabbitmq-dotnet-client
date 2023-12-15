@@ -67,5 +67,76 @@ namespace Test.AsyncIntegration
             Assert.True(await publishSyncSource.Task);
             Assert.Equal((uint)messageCount, await _channel.QueuePurgeAsync(q));
         }
+
+        [Fact]
+        public async Task TestNonCopyingBody()
+        {
+            const int size = 1024;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            byte[] body = GetRandomBody(size);
+
+            uint rentedBytes;
+
+            using (var result = await TrackRentedBytes())
+            {
+                await _channel.BasicPublishAsync(string.Empty, q, body, copyBody: false);
+                rentedBytes = result.RentedBytes;
+            }
+
+            Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
+
+            // It is expected that the rented bytes is smaller than the size of the body
+            // since we're not copying the body. Only the frame headers are rented.
+            Assert.True(rentedBytes < size);
+        }
+
+        [Fact]
+        public async Task TestCopyingBody()
+        {
+            const int size = 1024;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            byte[] body = GetRandomBody(size);
+
+            uint rentedBytes;
+
+            using (var result = await TrackRentedBytes())
+            {
+                await _channel.BasicPublishAsync(string.Empty, q, body, copyBody: true);
+                rentedBytes = result.RentedBytes;
+            }
+
+            Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
+
+            // It is expected that the rented bytes is larger than the size of the body
+            // since the body is copied with the frame headers.
+            Assert.True(rentedBytes >= size);
+        }
+
+        [Fact]
+        public async Task TestDefaultCopyingBody()
+        {
+            Assert.Equal(int.MaxValue, _conn.CopyBodyToMemoryThreshold);
+
+            const int size = 1024;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            byte[] body = GetRandomBody(size);
+
+            uint rentedBytes;
+
+            using (var result = await TrackRentedBytes())
+            {
+                await _channel.BasicPublishAsync(string.Empty, q, body, copyBody: true);
+                rentedBytes = result.RentedBytes;
+            }
+
+            Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
+
+            // It is expected that the rented bytes is larger than the size of the body
+            // since the body is copied with the frame headers.
+            Assert.True(rentedBytes >= size);
+        }
     }
 }
