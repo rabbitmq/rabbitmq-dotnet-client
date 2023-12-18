@@ -32,10 +32,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using Xunit;
 using Xunit.Abstractions;
@@ -196,22 +200,89 @@ namespace Test
             get { return s_isVerbose; }
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(IList<string> hostnames)
+        internal AutorecoveringConnection CreateAutorecoveringConnection(IEnumerable<string> hostnames, bool expectException = false)
         {
 
-            return CreateAutorecoveringConnection(hostnames, RequestedConnectionTimeout, RecoveryInterval);
+            return CreateAutorecoveringConnection(hostnames, RequestedConnectionTimeout, RecoveryInterval, expectException);
         }
 
         internal AutorecoveringConnection CreateAutorecoveringConnection(IEnumerable<string> hostnames,
-            TimeSpan requestedConnectionTimeout, TimeSpan networkRecoveryInterval)
+            TimeSpan requestedConnectionTimeout, TimeSpan networkRecoveryInterval, bool expectException = false)
         {
-            ConnectionFactory cf = CreateConnectionFactory();
-            cf.AutomaticRecoveryEnabled = true;
-            // tests that use this helper will likely list unreachable hosts;
-            // make sure we time out quickly on those
-            cf.RequestedConnectionTimeout = requestedConnectionTimeout;
-            cf.NetworkRecoveryInterval = networkRecoveryInterval;
-            return (AutorecoveringConnection)cf.CreateConnection(hostnames);
+            ConnectionFactory ConnectionFactoryConfigurator(ConnectionFactory cf)
+            {
+                cf.AutomaticRecoveryEnabled = true;
+                // tests that use this helper will likely list unreachable hosts;
+                // make sure we time out quickly on those
+                cf.RequestedConnectionTimeout = requestedConnectionTimeout;
+                cf.NetworkRecoveryInterval = networkRecoveryInterval;
+                return cf;
+            }
+
+            return (AutorecoveringConnection)CreateConnectionWithRetries(hostnames, ConnectionFactoryConfigurator, expectException);
+        }
+
+        protected IConnection CreateConnectionWithRetries(Func<ConnectionFactory, ConnectionFactory> connectionFactoryConfigurator)
+        {
+            var hostnames = new[] { "localhost" };
+            return CreateConnectionWithRetries(hostnames, connectionFactoryConfigurator);
+        }
+
+        protected IConnection CreateConnectionWithRetries(IEnumerable<string> hostnames,
+            Func<ConnectionFactory, ConnectionFactory> connectionFactoryConfigurator, bool expectException = false)
+        {
+            bool shouldRetry = IsWindows;
+            ushort tries = 0;
+
+            do
+            {
+                try
+                {
+                    ConnectionFactory cf0 = CreateConnectionFactory();
+                    ConnectionFactory cf1 = connectionFactoryConfigurator(cf0);
+                    return cf1.CreateConnection(hostnames);
+                }
+                catch (BrokerUnreachableException ex)
+                {
+                    if (expectException)
+                    {
+                        throw;
+                    }
+                    else
+                    {
+                        IOException ioex = null;
+
+                        if (ex.InnerException is AggregateException agex0)
+                        {
+                            AggregateException agex1 = agex0.Flatten();
+                            ioex = agex1.InnerExceptions.Where(ex => ex is IOException).FirstOrDefault() as IOException;
+                        }
+
+                        ioex ??= ex.InnerException as IOException;
+
+                        if (ioex is null)
+                        {
+                            throw;
+                        }
+                        else
+                        {
+                            if (ioex.InnerException is SocketException)
+                            {
+                                tries++;
+                                _output.WriteLine($"WARNING: {nameof(CreateConnectionWithRetries)} retrying ({tries}), caught exception: {ioex.InnerException}");
+                            }
+                            else
+                            {
+                                throw;
+                            }
+                        }
+                    }
+                }
+            }
+            while (shouldRetry && tries < 5);
+
+            Assert.Fail($"FAIL: {nameof(CreateConnectionWithRetries)} could not open connection");
+            return null;
         }
 
         protected void WithTemporaryChannel(Action<IChannel> action)

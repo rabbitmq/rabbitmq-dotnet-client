@@ -42,7 +42,7 @@ namespace RabbitMQ.Client
             Func<AmqpTcpEndpoint, CancellationToken, Task<T>> selector, CancellationToken cancellationToken)
         {
             var t = default(T);
-            List<Exception> exceptions = [];
+            var exceptions = new List<Exception>();
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 try

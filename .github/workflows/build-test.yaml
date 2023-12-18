@@ -5,8 +5,7 @@ on:
 
 jobs:
   build-win32:
-    name: build, unit test on windows-latest
-    runs-on: windows-latest
+    runs-on: windows-2019
     # https://github.com/NuGet/Home/issues/11548
     env:
       NUGET_CERT_REVOCATION_MODE: offline
@@ -43,9 +42,8 @@ jobs:
             projects/Test/SequentialIntegration/bin
             projects/RabbitMQ.*/bin
   integration-win32:
-    name: integration test on windows-latest
     needs: build-win32
-    runs-on: windows-latest
+    runs-on: windows-2019
     # https://github.com/NuGet/Home/issues/11548
     env:
       NUGET_CERT_REVOCATION_MODE: offline
@@ -80,9 +78,8 @@ jobs:
           name: rabbitmq-logs-integration-win32
           path: ~/AppData/Roaming/RabbitMQ/log/
   sequential-integration-win32:
-    name: sequential integration test on windows-latest
     needs: build-win32
-    runs-on: windows-latest
+    runs-on: windows-2019
     # https://github.com/NuGet/Home/issues/11548
     env:
       NUGET_CERT_REVOCATION_MODE: offline
@@ -116,7 +113,6 @@ jobs:
           path: ~/AppData/Roaming/RabbitMQ/log/
 
   build-ubuntu:
-    name: build, unit test on ubuntu-latest
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
@@ -155,7 +151,6 @@ jobs:
             projects/Test/SequentialIntegration/bin
             projects/RabbitMQ.*/bin
   integration-ubuntu:
-    name: integration test on ubuntu-latest
     needs: build-ubuntu
     runs-on: ubuntu-latest
     steps:
@@ -195,7 +190,6 @@ jobs:
           name: rabbitmq-logs-integration-ubuntu
           path: ${{ github.workspace }}/.ci/ubuntu/log/
   sequential-integration-ubuntu:
-    name: sequential integration test on ubuntu-latest
     needs: build-ubuntu
     runs-on: ubuntu-latest
     steps:
