@@ -68,7 +68,7 @@ namespace Test.Integration
                     "191.72.44.22",
                     "145.23.22.18",
                     "192.255.255.255"
-                });
+                }, expectException: true);
             });
         }
     }
