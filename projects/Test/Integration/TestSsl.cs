@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -60,16 +59,13 @@ namespace Test.Integration
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
-            ConnectionFactory ConnectionFactoryConfigurator(ConnectionFactory cf)
-            {
-                cf.Port = 5671;
-                cf.Ssl.ServerName = "*";
-                cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-                cf.Ssl.Enabled = true;
-                return cf;
-            }
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Port = 5671;
+            cf.Ssl.ServerName = "*";
+            cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
+            cf.Ssl.Enabled = true;
 
-            SendReceive(ConnectionFactoryConfigurator);
+            SendReceive(cf);
         }
 
         [SkippableFact]
@@ -77,15 +73,12 @@ namespace Test.Integration
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
-            ConnectionFactory ConnectionFactoryConfigurator(ConnectionFactory cf)
-            {
-                cf.Port = 5671;
-                cf.Ssl.ServerName = _sslEnv.Hostname;
-                cf.Ssl.Enabled = true;
-                return cf;
-            }
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Port = 5671;
+            cf.Ssl.ServerName = _sslEnv.Hostname;
+            cf.Ssl.Enabled = true;
 
-            SendReceive(ConnectionFactoryConfigurator);
+            SendReceive(cf);
         }
 
         [SkippableFact]
@@ -96,17 +89,14 @@ namespace Test.Integration
             string certPath = _sslEnv.CertPath;
             Assert.True(File.Exists(certPath));
 
-            ConnectionFactory ConnectionFactoryConfigurator(ConnectionFactory cf)
-            {
-                cf.Port = 5671;
-                cf.Ssl.ServerName = _sslEnv.Hostname;
-                cf.Ssl.CertPath = certPath;
-                cf.Ssl.CertPassphrase = _sslEnv.CertPassphrase;
-                cf.Ssl.Enabled = true;
-                return cf;
-            }
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Port = 5671;
+            cf.Ssl.ServerName = _sslEnv.Hostname;
+            cf.Ssl.CertPath = certPath;
+            cf.Ssl.CertPassphrase = _sslEnv.CertPassphrase;
+            cf.Ssl.Enabled = true;
 
-            SendReceive(ConnectionFactoryConfigurator);
+            SendReceive(cf);
         }
 
         // rabbitmq/rabbitmq-dotnet-client#46, also #44 and #45
@@ -115,28 +105,25 @@ namespace Test.Integration
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
-            ConnectionFactory ConnectionFactoryConfigurator(ConnectionFactory cf)
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Port = 5671;
+            cf.Ssl = new SslOption()
             {
-                cf.Port = 5671;
-                cf.Ssl = new SslOption()
-                {
-                    CertPath = null,
-                    Enabled = true,
-                    ServerName = _sslEnv.Hostname,
-                    Version = SslProtocols.None,
-                    AcceptablePolicyErrors =
-                        SslPolicyErrors.RemoteCertificateNotAvailable |
-                        SslPolicyErrors.RemoteCertificateNameMismatch
-                };
-                return cf;
-            }
+                CertPath = null,
+                Enabled = true,
+                ServerName = _sslEnv.Hostname,
+                Version = SslProtocols.None,
+                AcceptablePolicyErrors =
+                    SslPolicyErrors.RemoteCertificateNotAvailable |
+                    SslPolicyErrors.RemoteCertificateNameMismatch
+            };
 
-            SendReceive(ConnectionFactoryConfigurator);
+            SendReceive(cf);
         }
 
-        private void SendReceive(Func<ConnectionFactory, ConnectionFactory> cfconfig)
+        private void SendReceive(ConnectionFactory connectionFactory)
         {
-            using (IConnection conn = CreateConnectionWithRetries(cfconfig))
+            using (IConnection conn = CreateConnectionWithRetries(connectionFactory))
             {
                 using (IChannel ch = conn.CreateChannel())
                 {

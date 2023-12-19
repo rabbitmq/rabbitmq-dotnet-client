@@ -32,6 +32,7 @@
 #if !NET6_0_OR_GREATER
 using System;
 #endif
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,17 +58,33 @@ namespace Test.AsyncIntegration
         }
 
         [Fact]
-        public Task TestCreateConnectionAsync_WithAlreadyCanceledToken()
+        public async Task TestCreateConnectionAsync_WithAlreadyCanceledToken()
         {
             using var cts = new CancellationTokenSource();
             cts.Cancel();
 
             ConnectionFactory cf = CreateConnectionFactory();
 
-            return Assert.ThrowsAsync<TaskCanceledException>(() =>
+            bool passed = false;
+            /*
+             * If anyone wonders why TaskCanceledException is explicitly checked,
+             * even though it's a subclass of OperationCanceledException:
+             * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/383ca5c5f161edb717cf8fae7bf143c13143f634#r135400615
+             */
+            try
             {
-                return cf.CreateConnectionAsync(cts.Token).AsTask();
-            });
+                await cf.CreateConnectionAsync(cts.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                passed = true;
+            }
+            catch (OperationCanceledException)
+            {
+                passed = true;
+            }
+
+            Assert.True(passed, "FAIL did not see TaskCanceledException nor OperationCanceledException");
         }
 
         [Fact]
