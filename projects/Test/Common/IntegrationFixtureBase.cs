@@ -113,12 +113,18 @@ namespace Test
         {
             if (_connFactory == null)
             {
+                /*
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/120f9bfce627f704956e1008d095b853b459d45b#r135400345
+                 * 
+                 * Integration tests must use CreateConnectionFactory so that ClientProvidedName is set for the connection.
+                 * Tests that close connections via `rabbitmqctl` depend on finding the connection PID via its name.
+                 */
                 _connFactory = CreateConnectionFactory();
             }
 
             if (_conn == null)
             {
-                _conn = _connFactory.CreateConnection();
+                _conn = CreateConnectionWithRetries(_connFactory);
                 _channel = _conn.CreateChannel();
                 AddCallbackHandlers();
             }
@@ -209,27 +215,24 @@ namespace Test
         internal AutorecoveringConnection CreateAutorecoveringConnection(IEnumerable<string> hostnames,
             TimeSpan requestedConnectionTimeout, TimeSpan networkRecoveryInterval, bool expectException = false)
         {
-            ConnectionFactory ConnectionFactoryConfigurator(ConnectionFactory cf)
+            if (hostnames is null)
             {
-                cf.AutomaticRecoveryEnabled = true;
-                // tests that use this helper will likely list unreachable hosts;
-                // make sure we time out quickly on those
-                cf.RequestedConnectionTimeout = requestedConnectionTimeout;
-                cf.NetworkRecoveryInterval = networkRecoveryInterval;
-                return cf;
+                throw new ArgumentNullException(nameof(hostnames));
             }
 
-            return (AutorecoveringConnection)CreateConnectionWithRetries(hostnames, ConnectionFactoryConfigurator, expectException);
+            ConnectionFactory cf = CreateConnectionFactory();
+
+            cf.AutomaticRecoveryEnabled = true;
+            // tests that use this helper will likely list unreachable hosts;
+            // make sure we time out quickly on those
+            cf.RequestedConnectionTimeout = requestedConnectionTimeout;
+            cf.NetworkRecoveryInterval = networkRecoveryInterval;
+
+            return (AutorecoveringConnection)CreateConnectionWithRetries(cf, hostnames, expectException);
         }
 
-        protected IConnection CreateConnectionWithRetries(Func<ConnectionFactory, ConnectionFactory> connectionFactoryConfigurator)
-        {
-            var hostnames = new[] { "localhost" };
-            return CreateConnectionWithRetries(hostnames, connectionFactoryConfigurator);
-        }
-
-        protected IConnection CreateConnectionWithRetries(IEnumerable<string> hostnames,
-            Func<ConnectionFactory, ConnectionFactory> connectionFactoryConfigurator, bool expectException = false)
+        protected IConnection CreateConnectionWithRetries(ConnectionFactory connectionFactory,
+            IEnumerable<string> hostnames = null, bool expectException = false)
         {
             bool shouldRetry = IsWindows;
             ushort tries = 0;
@@ -238,9 +241,14 @@ namespace Test
             {
                 try
                 {
-                    ConnectionFactory cf0 = CreateConnectionFactory();
-                    ConnectionFactory cf1 = connectionFactoryConfigurator(cf0);
-                    return cf1.CreateConnection(hostnames);
+                    if (hostnames is null)
+                    {
+                        return connectionFactory.CreateConnection();
+                    }
+                    else
+                    {
+                        return connectionFactory.CreateConnection(hostnames);
+                    }
                 }
                 catch (BrokerUnreachableException ex)
                 {
