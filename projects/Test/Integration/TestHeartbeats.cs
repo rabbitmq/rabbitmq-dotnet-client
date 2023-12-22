@@ -114,7 +114,7 @@ namespace Test.Integration
                         cf.RequestedHeartbeat = TimeSpan.FromSeconds(n);
                         cf.AutomaticRecoveryEnabled = false;
 
-                        IConnection conn = cf.CreateConnection($"_testDisplayName:{i}");
+                        IConnection conn = cf.CreateConnection($"{_testDisplayName}:{i}");
                         conns.Add(conn);
                         IChannel ch = conn.CreateChannel();
                         conn.ConnectionShutdown += (sender, evt) =>
