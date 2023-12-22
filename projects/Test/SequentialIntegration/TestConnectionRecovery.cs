@@ -194,6 +194,60 @@ namespace Test.SequentialIntegration
             Assert.True(_channel.IsOpen);
         }
 
+        // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1086
+        [Fact]
+        public async Task TestChannelAfterDispose_GH1086()
+        {
+            TaskCompletionSource<bool> sawChannelShutdownTcs = new TaskCompletionSource<bool>();
+
+            void _channel_ChannelShutdown(object sender, ShutdownEventArgs e)
+            {
+                sawChannelShutdownTcs.SetResult(true);
+            }
+
+            _channel.ChannelShutdown += _channel_ChannelShutdown;
+
+            Assert.True(_channel.IsOpen);
+
+            string queueName = GenerateQueueName();
+            RabbitMQ.Client.QueueDeclareOk queueDeclareOk = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, autoDelete: false);
+            Assert.Equal(queueName, queueDeclareOk.QueueName);
+
+            byte[] body = GetRandomBody(64);
+
+            RestartServerAndWaitForRecovery();
+
+            Task publishTask = Task.Run(async () =>
+            {
+                while (false == sawChannelShutdownTcs.Task.IsCompleted)
+                {
+                    try
+                    {
+                        await _channel.BasicPublishAsync(exchange: "", routingKey: queueName, body: body, mandatory: true);
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
+                    catch (Exception ex)
+                    {
+                        _output.WriteLine($"{_testDisplayName} caught exception: {ex}");
+                        break;
+                    }
+                }
+            });
+
+            await Task.WhenAny(sawChannelShutdownTcs.Task, publishTask);
+
+            bool sawChannelShutdown = await sawChannelShutdownTcs.Task;
+            Assert.True(sawChannelShutdown);
+
+            // This is false because the channel has been recovered
+            Assert.False(_channel.IsClosed);
+
+            _channel.Dispose();
+            Assert.True(_channel.IsClosed);
+
+            await publishTask;
+        }
+
         [Fact]
         public void TestBlockedListenersRecovery()
         {

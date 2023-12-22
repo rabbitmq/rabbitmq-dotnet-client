@@ -32,7 +32,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using RabbitMQ.Client;
 using Xunit.Abstractions;
@@ -186,12 +185,6 @@ namespace Test
 #else
             return Type.GetType("Mono.Runtime") != null;
 #endif
-        }
-
-        private static void Publish(IConnection conn, Encoding encoding)
-        {
-            IChannel ch = conn.CreateChannel();
-            ch.BasicPublish("amq.fanout", "", encoding.GetBytes("message"));
         }
 
         private static Process CreateProcess(string cmd, string arguments, string workDirectory = null)
