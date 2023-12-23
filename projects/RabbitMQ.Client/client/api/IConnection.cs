@@ -126,6 +126,11 @@ namespace RabbitMQ.Client
         IEnumerable<ShutdownReportEntry> ShutdownReport { get; }
 
         /// <summary>
+        /// The threshold for when to copy the body to a temporary array.
+        /// </summary>
+        int CopyBodyToMemoryThreshold { get; }
+
+        /// <summary>
         /// Application-specific connection name, will be displayed in the management UI
         /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
         /// be used as a connection identifier, e.g. in HTTP API requests.

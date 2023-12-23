@@ -48,8 +48,8 @@ namespace RabbitMQ.Client.Impl
         private readonly Func<AddressFamily, ITcpClient> _socketFactory;
         private readonly TimeSpan _connectionTimeout;
 
-        private readonly ChannelWriter<RentedMemory> _channelWriter;
-        private readonly ChannelReader<RentedMemory> _channelReader;
+        private readonly ChannelWriter<RentedOutgoingMemory> _channelWriter;
+        private readonly ChannelReader<RentedOutgoingMemory> _channelReader;
         private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
 
         private IPAddress[] _amqpTcpEndpointAddresses;
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Impl
             _readTimeout = readTimeout;
             _writeTimeout = writeTimeout;
 
-            var channel = Channel.CreateBounded<RentedMemory>(
+            var channel = Channel.CreateBounded<RentedOutgoingMemory>(
                 new BoundedChannelOptions(128)
                 {
                     AllowSynchronousContinuations = false,
@@ -296,7 +296,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public async ValueTask WriteAsync(RentedMemory frames)
+        public async ValueTask WriteAsync(RentedOutgoingMemory frames)
         {
             if (_closed)
             {
@@ -307,6 +307,14 @@ namespace RabbitMQ.Client.Impl
             {
                 await _channelWriter.WriteAsync(frames)
                     .ConfigureAwait(false);
+
+                bool didSend = await frames.WaitForDataSendAsync()
+                    .ConfigureAwait(false);
+
+                if (didSend)
+                {
+                    frames.Dispose();
+                }
             }
         }
 
@@ -332,17 +340,21 @@ namespace RabbitMQ.Client.Impl
             {
                 while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    while (_channelReader.TryRead(out RentedMemory frames))
+                    while (_channelReader.TryRead(out RentedOutgoingMemory frames))
                     {
                         try
                         {
-                            await _pipeWriter.WriteAsync(frames.Memory)
+                            frames.WriteTo(_pipeWriter);
+                            await _pipeWriter.FlushAsync()
                                 .ConfigureAwait(false);
                             RabbitMqClientEventSource.Log.CommandSent(frames.Size);
                         }
                         finally
                         {
-                            frames.Dispose();
+                            if (frames.DidSend())
+                            {
+                                frames.Dispose();
+                            }
                         }
                     }
 

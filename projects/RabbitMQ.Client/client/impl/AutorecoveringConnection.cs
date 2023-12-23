@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private Connection _innerConnection;
         private bool _disposed;
 
-        private Connection InnerConnection
+        internal Connection InnerConnection
         {
             get
             {
@@ -180,6 +180,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public IDictionary<string, object> ServerProperties => InnerConnection.ServerProperties;
 
         public IEnumerable<ShutdownReportEntry> ShutdownReport => InnerConnection.ShutdownReport;
+
+        public int CopyBodyToMemoryThreshold => InnerConnection.CopyBodyToMemoryThreshold;
 
         public IProtocol Protocol => Endpoint.Protocol;
 

@@ -2,6 +2,7 @@ abstract RabbitMQ.Client.Exceptions.ProtocolException.ReplyCode.get -> ushort
 const RabbitMQ.Client.AmqpTcpEndpoint.DefaultAmqpSslPort = 5671 -> int
 const RabbitMQ.Client.AmqpTcpEndpoint.UseDefaultPort = -1 -> int
 const RabbitMQ.Client.ConnectionFactory.DefaultChannelMax = 2047 -> ushort
+const RabbitMQ.Client.ConnectionFactory.DefaultCopyBodyToMemoryThreshold = 2147483647 -> int
 const RabbitMQ.Client.ConnectionFactory.DefaultFrameMax = 0 -> uint
 const RabbitMQ.Client.ConnectionFactory.DefaultMaxMessageSize = 134217728 -> uint
 const RabbitMQ.Client.ConnectionFactory.DefaultPass = "guest" -> string
@@ -212,6 +213,8 @@ RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency.get -> int
 RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency.set -> void
 RabbitMQ.Client.ConnectionFactory.ContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.ConnectionFactory.ContinuationTimeout.set -> void
+RabbitMQ.Client.ConnectionFactory.CopyBodyToMemoryThreshold.get -> int
+RabbitMQ.Client.ConnectionFactory.CopyBodyToMemoryThreshold.set -> void
 RabbitMQ.Client.ConnectionFactory.CreateConnection() -> RabbitMQ.Client.IConnection
 RabbitMQ.Client.ConnectionFactory.CreateConnection(RabbitMQ.Client.IEndpointResolver endpointResolver, string clientProvidedName) -> RabbitMQ.Client.IConnection
 RabbitMQ.Client.ConnectionFactory.CreateConnection(string clientProvidedName) -> RabbitMQ.Client.IConnection
@@ -507,8 +510,10 @@ RabbitMQ.Client.IChannel.BasicNackAsync(ulong deliveryTag, bool multiple, bool r
 RabbitMQ.Client.IChannel.BasicNacks -> System.EventHandler<RabbitMQ.Client.Events.BasicNackEventArgs>
 RabbitMQ.Client.IChannel.BasicPublish<TProperties>(RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> void
 RabbitMQ.Client.IChannel.BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> void
-RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> System.Threading.Tasks.ValueTask
-RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> System.Threading.Tasks.ValueTask
+RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, in TProperties basicProperties, System.Buffers.ReadOnlySequence<byte> body = default(System.Buffers.ReadOnlySequence<byte>), bool mandatory = false, bool? copyBody = null) -> System.Threading.Tasks.ValueTask
+RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false, bool? copyBody = null) -> System.Threading.Tasks.ValueTask
+RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(string! exchange, string! routingKey, in TProperties basicProperties, System.Buffers.ReadOnlySequence<byte> body = default(System.Buffers.ReadOnlySequence<byte>), bool mandatory = false, bool? copyBody = null) -> System.Threading.Tasks.ValueTask
+RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(string! exchange, string! routingKey, in TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false, bool? copyBody = null) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicQos(uint prefetchSize, ushort prefetchCount, bool global) -> void
 RabbitMQ.Client.IChannel.BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicReject(ulong deliveryTag, bool requeue) -> void
@@ -583,6 +588,7 @@ RabbitMQ.Client.IConnection.ConnectionRecoveryError -> System.EventHandler<Rabbi
 RabbitMQ.Client.IConnection.ConnectionShutdown -> System.EventHandler<RabbitMQ.Client.ShutdownEventArgs>
 RabbitMQ.Client.IConnection.ConnectionUnblocked -> System.EventHandler<System.EventArgs>
 RabbitMQ.Client.IConnection.ConsumerTagChangeAfterRecovery -> System.EventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs>
+RabbitMQ.Client.IConnection.CopyBodyToMemoryThreshold.get -> int
 RabbitMQ.Client.IConnection.CreateChannel() -> RabbitMQ.Client.IChannel
 RabbitMQ.Client.IConnection.CreateChannelAsync() -> System.Threading.Tasks.ValueTask<RabbitMQ.Client.IChannel>
 RabbitMQ.Client.IConnection.Endpoint.get -> RabbitMQ.Client.AmqpTcpEndpoint
@@ -880,6 +886,7 @@ readonly RabbitMQ.Client.ConnectionConfig.AuthMechanisms -> System.Collections.G
 readonly RabbitMQ.Client.ConnectionConfig.ClientProperties -> System.Collections.Generic.IDictionary<string, object>
 readonly RabbitMQ.Client.ConnectionConfig.ClientProvidedName -> string
 readonly RabbitMQ.Client.ConnectionConfig.ContinuationTimeout -> System.TimeSpan
+readonly RabbitMQ.Client.ConnectionConfig.CopyBodyToMemoryThreshold -> int
 readonly RabbitMQ.Client.ConnectionConfig.DispatchConsumerConcurrency -> int
 readonly RabbitMQ.Client.ConnectionConfig.DispatchConsumersAsync -> bool
 readonly RabbitMQ.Client.ConnectionConfig.HandshakeContinuationTimeout -> System.TimeSpan
@@ -953,11 +960,11 @@ static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client
 static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, RabbitMQ.Client.IBasicConsumer consumer) -> System.Threading.Tasks.ValueTask<string>
 static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, string consumerTag, RabbitMQ.Client.IBasicConsumer consumer) -> System.Threading.Tasks.ValueTask<string>
 static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, string consumerTag, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer) -> System.Threading.Tasks.ValueTask<string>
-static RabbitMQ.Client.IChannelExtensions.BasicPublish(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> void
 static RabbitMQ.Client.IChannelExtensions.BasicPublish(this RabbitMQ.Client.IChannel channel, string exchange, string routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> void
+static RabbitMQ.Client.IChannelExtensions.BasicPublish(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false, bool? copyBody = null) -> void
 static RabbitMQ.Client.IChannelExtensions.BasicPublish<T>(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.PublicationAddress addr, in T basicProperties, System.ReadOnlyMemory<byte> body) -> void
-static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> System.Threading.Tasks.ValueTask
-static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel channel, string exchange, string routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> System.Threading.Tasks.ValueTask
+static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false, bool? copyBody = null) -> System.Threading.Tasks.ValueTask
+static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, string! exchange, string! routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false, bool? copyBody = null) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync<T>(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.PublicationAddress addr, in T basicProperties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.Close(this RabbitMQ.Client.IChannel channel) -> void
 static RabbitMQ.Client.IChannelExtensions.Close(this RabbitMQ.Client.IChannel channel, ushort replyCode, string replyText) -> void

@@ -73,6 +73,6 @@ namespace RabbitMQ.Client.Impl
         Task SendProtocolHeaderAsync(CancellationToken cancellationToken);
 
         // TODO cancellation token for write timeout / cancellation?
-        ValueTask WriteAsync(RentedMemory frames);
+        ValueTask WriteAsync(RentedOutgoingMemory frames);
     }
 }

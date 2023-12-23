@@ -58,6 +58,9 @@ namespace RabbitMQ.Client.Framing.Impl
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
+        internal bool TrackRentedBytes = false;
+        internal uint RentedBytes;
+
         internal Connection(ConnectionConfig config, IFrameHandler frameHandler)
         {
             _config = config;
@@ -100,6 +103,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public int RemotePort => _frameHandler.RemotePort;
 
         public IDictionary<string, object?>? ServerProperties { get; private set; }
+
+        public int CopyBodyToMemoryThreshold => _config.CopyBodyToMemoryThreshold;
 
         public IEnumerable<ShutdownReportEntry> ShutdownReport => _shutdownReport;
         private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();
@@ -539,7 +544,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionWrapper.Invoke(this, args);
         }
 
-        internal void Write(RentedMemory frames)
+        internal void Write(RentedOutgoingMemory frames)
         {
             ValueTask task = _frameHandler.WriteAsync(frames);
             if (!task.IsCompletedSuccessfully)
@@ -548,9 +553,23 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal ValueTask WriteAsync(RentedMemory frames)
+        internal ValueTask WriteAsync(RentedOutgoingMemory frames)
         {
+            TrackRented(frames.RentedArraySize);
+
             return _frameHandler.WriteAsync(frames);
+        }
+
+        private void TrackRented(int size)
+        {
+            if (TrackRentedBytes && size > 0)
+            {
+#if NET
+                Interlocked.Add(ref RentedBytes, (uint)size);
+#else
+                Interlocked.Add(ref Unsafe.As<uint, int>(ref RentedBytes), size);
+#endif
+            }
         }
 
         public void Dispose()
