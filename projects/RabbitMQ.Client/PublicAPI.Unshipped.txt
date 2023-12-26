@@ -567,7 +567,9 @@ RabbitMQ.Client.IChannel.TxRollback() -> void
 RabbitMQ.Client.IChannel.TxRollbackAsync() -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.TxSelect() -> void
 RabbitMQ.Client.IChannel.TxSelectAsync() -> System.Threading.Tasks.ValueTask
+RabbitMQ.Client.IChannel.WaitForConfirms() -> bool
 RabbitMQ.Client.IChannel.WaitForConfirmsAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>
+RabbitMQ.Client.IChannel.WaitForConfirmsOrDie() -> void
 RabbitMQ.Client.IChannel.WaitForConfirmsOrDieAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 RabbitMQ.Client.IChannelExtensions
 RabbitMQ.Client.IConnection

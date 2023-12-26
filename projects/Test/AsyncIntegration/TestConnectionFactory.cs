@@ -29,9 +29,6 @@
 //  Copyright (c) 2011-2020 VMware, Inc. or its affiliates.  All rights reserved.
 //---------------------------------------------------------------------------
 
-#if !NET6_0_OR_GREATER
-using System;
-#endif
 using System;
 using System.Collections.Generic;
 using System.Threading;

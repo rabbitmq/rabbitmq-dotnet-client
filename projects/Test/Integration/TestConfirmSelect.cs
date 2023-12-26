@@ -44,6 +44,11 @@ namespace Test.Integration
         [Fact]
         public void TestConfirmSelectIdempotency()
         {
+            void Publish()
+            {
+                _channel.BasicPublish("", "amq.fanout", _encoding.GetBytes("message"));
+            }
+
             _channel.ConfirmSelect();
             Assert.Equal(1ul, _channel.NextPublishSeqNo);
             Publish();
@@ -60,9 +65,42 @@ namespace Test.Integration
             Assert.Equal(6ul, _channel.NextPublishSeqNo);
         }
 
-        protected void Publish()
+        [Theory]
+        [InlineData(255)]
+        [InlineData(256)]
+        public void TestDeliveryTagDiverged_GH1043(ushort correlationIdLength)
         {
-            _channel.BasicPublish("", "amq.fanout", _encoding.GetBytes("message"));
+            byte[] body = GetRandomBody(16);
+
+            _channel.ExchangeDeclare("sample", "fanout", autoDelete: true);
+            // _channel.BasicAcks += (s, e) => _output.WriteLine("Acked {0}", e.DeliveryTag);
+            _channel.ConfirmSelect();
+
+            var properties = new BasicProperties();
+            // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
+            _channel.BasicPublish(exchange: "sample", routingKey: string.Empty, in properties, body);
+            _channel.WaitForConfirmsOrDie();
+
+            try
+            {
+                properties = new BasicProperties
+                {
+                    CorrelationId = new string('o', correlationIdLength)
+                };
+                // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
+                _channel.BasicPublish("sample", string.Empty, in properties, body);
+                _channel.WaitForConfirmsOrDie();
+            }
+            catch
+            {
+                // _output.WriteLine("Error when trying to publish with long string: {0}", e.Message);
+            }
+
+            properties = new BasicProperties();
+            // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
+            _channel.BasicPublish("sample", string.Empty, in properties, body);
+            _channel.WaitForConfirmsOrDie();
+            // _output.WriteLine("I'm done...");
         }
     }
 }

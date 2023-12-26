@@ -166,6 +166,7 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsOpen => CloseReason is null;
 
+        // TODO add private bool for Confirm mode
         public ulong NextPublishSeqNo { get; private set; }
 
         public string CurrentQueue { get; private set; }
@@ -1239,8 +1240,24 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            ChannelSend(in cmd, in basicProperties, body);
+            try
+            {
+                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+                ChannelSend(in cmd, in basicProperties, body);
+            }
+            catch
+            {
+                if (NextPublishSeqNo > 0)
+                {
+                    lock (_confirmLock)
+                    {
+                        NextPublishSeqNo--;
+                        _pendingDeliveryTags.RemoveLast();
+                    }
+                }
+
+                throw;
+            }
         }
 
         public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
@@ -1254,8 +1271,24 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            ChannelSend(in cmd, in basicProperties, body);
+            try
+            {
+                var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+                ChannelSend(in cmd, in basicProperties, body);
+            }
+            catch
+            {
+                if (NextPublishSeqNo > 0)
+                {
+                    lock (_confirmLock)
+                    {
+                        NextPublishSeqNo--;
+                        _pendingDeliveryTags.RemoveLast();
+                    }
+                }
+
+                throw;
+            }
         }
 
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
@@ -1269,8 +1302,24 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            return ModelSendAsync(in cmd, in basicProperties, body);
+            try
+            {
+                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+                return ModelSendAsync(in cmd, in basicProperties, body);
+            }
+            catch
+            {
+                if (NextPublishSeqNo > 0)
+                {
+                    lock (_confirmLock)
+                    {
+                        NextPublishSeqNo--;
+                        _pendingDeliveryTags.RemoveLast();
+                    }
+                }
+
+                throw;
+            }
         }
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
@@ -1284,8 +1333,24 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            return ModelSendAsync(in cmd, in basicProperties, body);
+            try
+            {
+                var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+                return ModelSendAsync(in cmd, in basicProperties, body);
+            }
+            catch
+            {
+                if (NextPublishSeqNo > 0)
+                {
+                    lock (_confirmLock)
+                    {
+                        NextPublishSeqNo--;
+                        _pendingDeliveryTags.RemoveLast();
+                    }
+                }
+
+                throw;
+            }
         }
 
         public void UpdateSecret(string newSecret, string reason)
@@ -1755,6 +1820,11 @@ namespace RabbitMQ.Client.Impl
 
         private List<TaskCompletionSource<bool>> _confirmsTaskCompletionSources;
 
+        public bool WaitForConfirms()
+        {
+            return WaitForConfirmsAsync().EnsureCompleted();
+        }
+
         public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
         {
             if (NextPublishSeqNo == 0UL)
@@ -1810,6 +1880,11 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
 #endif
             }
+        }
+
+        public void WaitForConfirmsOrDie()
+        {
+            WaitForConfirmsOrDieAsync().EnsureCompleted();
         }
 
         public async Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
