@@ -598,6 +598,19 @@ namespace RabbitMQ.Client
         /// Wait until all published messages on this channel have been confirmed.
         /// </summary>
         /// <returns>True if no nacks were received within the timeout, otherwise false.</returns>
+        /// <remarks>
+        /// Waits until all messages published on this channel since the last call have
+        /// been either ack'd or nack'd by the server. Returns whether
+        /// all the messages were ack'd (and none were nack'd).
+        /// Throws an exception when called on a channel
+        /// that does not have publisher confirms enabled.
+        /// </remarks>
+        bool WaitForConfirms();
+
+        /// <summary>
+        /// Asynchronously wait until all published messages on this channel have been confirmed.
+        /// </summary>
+        /// <returns>True if no nacks were received within the timeout, otherwise false.</returns>
         /// <param name="token">The cancellation token.</param>
         /// <remarks>
         /// Waits until all messages published on this channel since the last call have
@@ -607,6 +620,17 @@ namespace RabbitMQ.Client
         /// that does not have publisher confirms enabled.
         /// </remarks>
         Task<bool> WaitForConfirmsAsync(CancellationToken token = default);
+
+        /// <summary>
+        /// Wait until all published messages on this channel have been confirmed.
+        /// </summary>
+        /// <remarks>
+        /// Waits until all messages published on this channel since the last call have
+        /// been ack'd by the server. If a nack is received or the timeout
+        /// elapses, throws an IOException exception immediately and closes
+        /// the channel.
+        /// </remarks>
+        void WaitForConfirmsOrDie();
 
         /// <summary>
         /// Wait until all published messages on this channel have been confirmed.

@@ -602,8 +602,14 @@ namespace RabbitMQ.Client.Impl
             return InnerChannel.TxSelectAsync();
         }
 
+        public bool WaitForConfirms()
+            => InnerChannel.WaitForConfirms();
+
         public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
             => InnerChannel.WaitForConfirmsAsync(token);
+
+        public void WaitForConfirmsOrDie()
+            => InnerChannel.WaitForConfirmsOrDie();
 
         public Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
             => InnerChannel.WaitForConfirmsOrDieAsync(token);
