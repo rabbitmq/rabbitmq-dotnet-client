@@ -36,7 +36,7 @@ using System.Timers;
 
 namespace RabbitMQ.Client
 {
-    public delegate void NotifyCredentialRefreshed(bool succesfully);
+    public delegate void NotifyCredentialRefreshed(bool successfully);
 
     public interface ICredentialsRefresher
     {
@@ -54,10 +54,16 @@ namespace RabbitMQ.Client
         [Event(2)]
         public void Unregistered(string name) => WriteEvent(2, "UnRegistered", name);
         [Event(3)]
+#if NET6_0_OR_GREATER
+        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "Parameters to this method are primitive and are trimmer safe")]
+#endif
         public void ScheduledTimer(string name, double interval) => WriteEvent(3, "ScheduledTimer", name, interval);
         [Event(4)]
         public void TriggeredTimer(string name) => WriteEvent(4, "TriggeredTimer", name);
         [Event(5)]
+#if NET6_0_OR_GREATER
+        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "Parameters to this method are primitive and are trimmer safe")]
+#endif
         public void RefreshedCredentials(string name, bool succesfully) => WriteEvent(5, "RefreshedCredentials", name, succesfully);
         [Event(6)]
         public void AlreadyRegistered(string name) => WriteEvent(6, "AlreadyRegistered", name);

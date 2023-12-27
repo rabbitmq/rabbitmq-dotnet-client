@@ -34,64 +34,57 @@ using System.Diagnostics.Tracing;
 
 namespace RabbitMQ.Client.Logging
 {
-    [EventSource(Name="rabbitmq-dotnet-client")]
+    [EventSource(Name = "rabbitmq-dotnet-client")]
     public sealed class RabbitMqClientEventSource : EventSource
     {
         public class Keywords
         {
             public const EventKeywords Log = (EventKeywords)1;
         }
-#if NET452
-        public RabbitMqClientEventSource() : base()
-        {
 
-        }
-#else
         public RabbitMqClientEventSource() : base(EventSourceSettings.EtwSelfDescribingEventFormat)
         {
         }
-#endif
 
-        public static RabbitMqClientEventSource Log = new RabbitMqClientEventSource ();
+        public static RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
 
         [Event(1, Message = "INFO", Keywords = Keywords.Log, Level = EventLevel.Informational)]
         public void Info(string message)
         {
-            if(IsEnabled())
+            if (IsEnabled())
                 WriteEvent(1, message);
         }
 
         [Event(2, Message = "WARN", Keywords = Keywords.Log, Level = EventLevel.Warning)]
         public void Warn(string message)
         {
-            if(IsEnabled())
+            if (IsEnabled())
                 WriteEvent(2, message);
         }
-#if NET452
+
         [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
-        public void Error(string message, string detail)
+        public void Error(string message, RabbitMqExceptionDetail ex)
         {
-            if(IsEnabled())
-                this.WriteEvent(3, message, detail);
-        }
+            if (IsEnabled())
+            {
+#if NET6_0_OR_GREATER
+                WriteExceptionEvent(message, ex);
+
+                [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
+                void WriteExceptionEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(string message, T ex)
+                {
+                    WriteEvent(3, message, ex);
+                }
 #else
-        [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
-        public void Error(string message,  RabbitMqExceptionDetail ex)
-        {
-            if(IsEnabled())
                 WriteEvent(3, message, ex);
-        }
 #endif
+            }
+        }
 
         [NonEvent]
         public void Error(string message, Exception ex)
         {
-
-#if NET452
-            Error(message, ex.ToString());
-#else
             Error(message, new RabbitMqExceptionDetail(ex));
-#endif
         }
     }
 }

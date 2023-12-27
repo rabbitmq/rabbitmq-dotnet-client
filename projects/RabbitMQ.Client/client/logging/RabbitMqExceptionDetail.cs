@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Logging
             Type = ex.GetType().FullName;
             Message = ex.Message;
             StackTrace = ex.StackTrace;
-            if(ex.InnerException != null)
+            if (ex.InnerException != null)
             {
                 InnerException = ex.InnerException.ToString();
             }
@@ -62,6 +62,11 @@ namespace RabbitMQ.Client.Logging
                 InnerException = inner.ToString();
             }
         }
+
+
+        // NOTE: This type is used to write EventData in RabbitMqClientEventSource.Error. To make it trim-compatible, these properties are preserved
+        // in RabbitMqClientEventSource. If RabbitMqExceptionDetail gets a property that is a complex type, we need to ensure the nested properties are
+        // preserved as well.
 
         public string Type { get; private set; }
         public string Message { get; private set; }
