@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using NUnit.Framework;
 
 namespace RabbitMQ.Client.Unit
@@ -62,6 +63,62 @@ namespace RabbitMQ.Client.Unit
         protected void Publish()
         {
             Model.BasicPublish("", "amq.fanout", null, encoding.GetBytes("message"));
+        }
+
+        [Test]
+        [TestCase(255)]
+        [TestCase(256)]
+        public void TestDeliveryTagDiverged_GH1043(int correlationIdLength)
+        {
+            bool.TryParse(Environment.GetEnvironmentVariable("RABBITMQ_VERBOSE"), out bool verbose);
+
+            byte[] body = RandomMessageBody();
+
+            Model.ExchangeDeclare("sample", "fanout", autoDelete: true);
+            if (verbose)
+            {
+                Model.BasicAcks += (s, e) => Console.WriteLine("Acked {0}", e.DeliveryTag);
+            }
+            Model.ConfirmSelect();
+
+            IBasicProperties properties = Model.CreateBasicProperties();
+            if (verbose)
+            {
+                Console.WriteLine("Client delivery tag {0}", Model.NextPublishSeqNo);
+            }
+            Model.BasicPublish(exchange: "sample", routingKey: string.Empty, properties, body);
+            Model.WaitForConfirmsOrDie();
+
+            try
+            {
+                properties = Model.CreateBasicProperties();
+                properties.CorrelationId = new string('o', correlationIdLength);
+                if (verbose)
+                {
+                    Console.WriteLine("Client delivery tag {0}", Model.NextPublishSeqNo);
+                }
+                Model.BasicPublish("sample", string.Empty, properties, body);
+                Model.WaitForConfirmsOrDie();
+            }
+            catch (Exception e)
+            {
+                if (verbose)
+                {
+                    Console.WriteLine("Error when trying to publish with long string: {0}", e.Message);
+                }
+            }
+
+            properties = Model.CreateBasicProperties();
+            if (verbose)
+            {
+                Console.WriteLine("Client delivery tag {0}", Model.NextPublishSeqNo);
+            }
+            Model.BasicPublish("sample", string.Empty, properties, body);
+            Model.WaitForConfirmsOrDie();
+            if (verbose)
+            {
+                Console.WriteLine("I'm done...");
+            }
         }
     }
 }

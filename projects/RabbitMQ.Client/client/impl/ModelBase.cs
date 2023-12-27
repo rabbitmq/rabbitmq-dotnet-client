@@ -1194,11 +1194,28 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            _Private_BasicPublish(exchange,
-                routingKey,
-                mandatory,
-                basicProperties,
-                body);
+            try
+            {
+                _Private_BasicPublish(exchange,
+                    routingKey,
+                    mandatory,
+                    basicProperties,
+                    body);
+            }
+            catch
+            {
+                if (NextPublishSeqNo > 0)
+                {
+                    lock (_confirmLock)
+                    {
+                        NextPublishSeqNo--;
+                        _pendingDeliveryTags.RemoveLast();
+                        _deliveryTagsCountdown.Reset(_pendingDeliveryTags.Count);
+                    }
+                }
+
+                throw;
+            }
         }
 
         public void UpdateSecret(string newSecret, string reason)
