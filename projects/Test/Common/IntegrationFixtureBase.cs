@@ -479,7 +479,7 @@ namespace Test
             return Convert.ToBase64String(bytes);
         }
 
-        protected static byte[] GetRandomBody(ushort size)
+        protected static byte[] GetRandomBody(ushort size = 1024)
         {
             var body = new byte[size];
 #if NET6_0_OR_GREATER

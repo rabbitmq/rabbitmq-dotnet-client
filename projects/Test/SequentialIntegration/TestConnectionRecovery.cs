@@ -882,5 +882,64 @@ namespace Test.SequentialIntegration
             Unblock();
             Wait(latch, "connection unblocked");
         }
+
+        [Fact]
+        public void TestBindingRecovery_GH1035()
+        {
+            const string routingKey = "unused";
+            byte[] body = GetRandomBody();
+
+            using var receivedMessageEvent = new AutoResetEvent(initialState: false);
+
+            void MessageReceived(object sender, BasicDeliverEventArgs e)
+            {
+                receivedMessageEvent.Set();
+            }
+
+            string exchangeName = $"ex-gh-1035-{Guid.NewGuid()}";
+            string queueName = $"q-gh-1035-{Guid.NewGuid()}";
+
+            _channel.ExchangeDeclare(exchange: exchangeName,
+                type: "fanout", durable: false, autoDelete: true,
+                arguments: null);
+
+            RabbitMQ.Client.QueueDeclareOk q0 = _channel.QueueDeclare(queue: queueName, exclusive: true);
+            Assert.Equal(queueName, q0);
+
+            _channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: routingKey);
+
+            _channel.Dispose();
+
+            _channel = _conn.CreateChannel();
+
+            _channel.ExchangeDeclare(exchange: exchangeName,
+                type: "fanout", durable: false, autoDelete: true,
+                arguments: null);
+
+            RabbitMQ.Client.QueueDeclareOk q1 = _channel.QueueDeclare(queue: queueName, exclusive: true);
+            Assert.Equal(queueName, q1.QueueName);
+
+            _channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: routingKey);
+
+            var c = new EventingBasicConsumer(_channel);
+            c.Received += MessageReceived;
+            _channel.BasicConsume(queue: queueName, autoAck: true, consumer: c);
+
+            using (IChannel pubCh = _conn.CreateChannel())
+            {
+                pubCh.BasicPublish(exchange: exchangeName, routingKey: routingKey, body: body);
+            }
+
+            Assert.True(receivedMessageEvent.WaitOne(WaitSpan));
+
+            CloseAndWaitForRecovery();
+
+            using (IChannel pubCh = _conn.CreateChannel())
+            {
+                pubCh.BasicPublish(exchange: exchangeName, routingKey: "unused", body: body);
+            }
+
+            Assert.True(receivedMessageEvent.WaitOne(WaitSpan));
+        }
     }
 }
