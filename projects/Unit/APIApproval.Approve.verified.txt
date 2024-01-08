@@ -571,7 +571,7 @@ namespace RabbitMQ.Client
         System.Threading.Tasks.Task ConnectAsync(string host, int port);
         System.Net.Sockets.NetworkStream GetStream();
     }
-    public delegate void NotifyCredentialRefreshed(bool succesfully);
+    public delegate void NotifyCredentialRefreshed(bool successfully);
     public class PlainMechanism : RabbitMQ.Client.IAuthMechanism
     {
         public PlainMechanism() { }
