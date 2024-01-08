@@ -235,6 +235,13 @@ namespace Test.AsyncIntegration
         {
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+            using var cancellationTokenSource = new CancellationTokenSource(TestTimeout);
+
+            cancellationTokenSource.Token.Register(() =>
+            {
+                publishSyncSource.SetCanceled();
+            });
+
             _conn.ConnectionShutdown += (o, ea) =>
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
@@ -261,8 +268,19 @@ namespace Test.AsyncIntegration
             consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
             {
                 var c = sender as AsyncEventingBasicConsumer;
-                Assert.NotNull(c);
+                Assert.Same(c, consumer);
                 await _channel.BasicCancelAsync(c.ConsumerTags[0]);
+                /*
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/runs/7450578332/attempts/1
+                 * That job failed with a bizarre error where the delivery tag ack timed out:
+                 *
+                 * AI.TestAsyncConsumer.TestBasicRejectAsync channel 1 shut down:
+                 *     AMQP close-reason, initiated by Peer, code=406, text=
+                 *         'PRECONDITION_FAILED - delivery acknowledgement on channel 1 timed out. Timeout value used: 1800000 ms ...', classId=0, methodId=0
+                 *  
+                 * Added Task.Yield() to see if it ever happens again.
+                 */
+                await Task.Yield();
                 await _channel.BasicRejectAsync(args.DeliveryTag, true);
                 publishSyncSource.TrySetResult(true);
             };
