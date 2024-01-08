@@ -1625,6 +1625,68 @@ namespace RabbitMQ.Client.Unit
             }
         }
 
+        [Test]
+        public void TestBindingRecovery_GH1035()
+        {
+            var waitSpan = TimeSpan.FromSeconds(35); // Note: conn recovery waits 30 secs
+            const string routingKey = "unused";
+            byte[] body = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
+
+            using (var receivedMessageEvent = new AutoResetEvent(initialState: false))
+            {
+
+                void MessageReceived(object sender, BasicDeliverEventArgs e)
+                {
+                    receivedMessageEvent.Set();
+                }
+
+                string exchangeName = $"ex-gh-1035-{Guid.NewGuid()}";
+                string queueName = $"q-gh-1035-{Guid.NewGuid()}";
+
+                Model.ExchangeDeclare(exchange: exchangeName,
+                    type: "fanout", durable: false, autoDelete: true,
+                    arguments: null);
+
+                RabbitMQ.Client.QueueDeclareOk q0 = Model.QueueDeclare(queue: queueName, exclusive: true);
+                Assert.AreEqual(queueName, q0.QueueName);
+
+                Model.QueueBind(queue: queueName, exchange: exchangeName, routingKey: routingKey);
+
+                Model.Dispose();
+
+                Model = Conn.CreateModel();
+
+                Model.ExchangeDeclare(exchange: exchangeName,
+                    type: "fanout", durable: false, autoDelete: true,
+                    arguments: null);
+
+                RabbitMQ.Client.QueueDeclareOk q1 = Model.QueueDeclare(queue: queueName, exclusive: true);
+                Assert.AreEqual(queueName, q1.QueueName);
+
+                Model.QueueBind(queue: queueName, exchange: exchangeName, routingKey: routingKey);
+
+                var c = new EventingBasicConsumer(Model);
+                c.Received += MessageReceived;
+                Model.BasicConsume(queue: queueName, autoAck: true, consumer: c);
+
+                using (IModel pubCh = Conn.CreateModel())
+                {
+                    pubCh.BasicPublish(exchange: exchangeName, routingKey: routingKey, body: body);
+                }
+
+                Assert.True(receivedMessageEvent.WaitOne(waitSpan));
+
+                CloseAndWaitForRecovery();
+
+                using (IModel pubCh = Conn.CreateModel())
+                {
+                    pubCh.BasicPublish(exchange: exchangeName, routingKey: "unused", body: body);
+                }
+
+                Assert.True(receivedMessageEvent.WaitOne(waitSpan));
+            }
+        }
+
         internal bool SendAndConsumeMessage(string queue, string exchange, string routingKey)
         {
             using (var ch = Conn.CreateModel())
