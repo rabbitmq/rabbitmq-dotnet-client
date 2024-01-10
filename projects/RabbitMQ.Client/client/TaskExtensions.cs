@@ -53,14 +53,67 @@ namespace RabbitMQ.Client
         private static readonly TaskContinuationOptions s_tco = TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously;
         private static void IgnoreTaskContinuation(Task t, object s) => t.Exception.Handle(e => true);
 
-        public static async Task WithCancellation(this Task task, CancellationToken cancellationToken)
+        // https://devblogs.microsoft.com/pfxteam/how-do-i-cancel-non-cancelable-async-operations/
+        public static Task WaitAsync(this Task task, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            var tcs = new TaskCompletionSource<bool>();
-
-            // https://devblogs.microsoft.com/pfxteam/how-do-i-cancel-non-cancelable-async-operations/
-            using (cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+            if (task.IsCompletedSuccessfully())
             {
-                if (task != await Task.WhenAny(task, tcs.Task))
+                return task;
+            }
+            else
+            {
+                return DoWaitWithTimeoutAsync(task, timeout, cancellationToken);
+            }
+        }
+
+        private static async Task DoWaitWithTimeoutAsync(this Task task, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            using var timeoutTokenCts = new CancellationTokenSource(timeout);
+            CancellationToken timeoutToken = timeoutTokenCts.Token;
+
+            var linkedTokenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutToken, cancellationToken);
+            using CancellationTokenRegistration cancellationTokenRegistration =
+                linkedCts.Token.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true),
+                    state: linkedTokenTcs, useSynchronizationContext: false);
+
+            if (task != await Task.WhenAny(task, linkedTokenTcs.Task).ConfigureAwait(false))
+            {
+                task.Ignore();
+                if (timeoutToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException($"Operation timed out after {timeout}");
+                }
+                else
+                {
+                    throw new OperationCanceledException(cancellationToken);
+                }
+            }
+
+            await task.ConfigureAwait(false);
+        }
+
+        // https://devblogs.microsoft.com/pfxteam/how-do-i-cancel-non-cancelable-async-operations/
+        public static Task WaitAsync(this Task task, CancellationToken cancellationToken)
+        {
+            if (task.IsCompletedSuccessfully())
+            {
+                return task;
+            }
+            else
+            {
+                return DoWaitAsync(task, cancellationToken);
+            }
+        }
+
+        private static async Task DoWaitAsync(this Task task, CancellationToken cancellationToken)
+        {
+            var cancellationTokenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            using (cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true),
+                state: cancellationTokenTcs, useSynchronizationContext: false))
+            {
+                if (task != await Task.WhenAny(task, cancellationTokenTcs.Task).ConfigureAwait(false))
                 {
                     task.Ignore();
                     throw new OperationCanceledException(cancellationToken);
@@ -172,10 +225,13 @@ namespace RabbitMQ.Client
 
         public static void EnsureCompleted(this ValueTask task)
         {
-            task.GetAwaiter().GetResult();
+            if (false == task.IsCompletedSuccessfully)
+            {
+                task.GetAwaiter().GetResult();
+            }
         }
 
-#if !NET6_0_OR_GREATER
+#if NETSTANDARD
         // https://github.com/dotnet/runtime/issues/23878
         // https://github.com/dotnet/runtime/issues/23878#issuecomment-1398958645
         public static void Ignore(this Task task)

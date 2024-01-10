@@ -190,46 +190,54 @@ namespace Test.AsyncIntegration
             });
 
             var cts = new CancellationTokenSource(WaitSpan);
-            cts.Token.Register(() =>
+            CancellationTokenRegistration ctsr = cts.Token.Register(() =>
             {
                 tcs.TrySetResult(false);
             });
 
-            using (IChannel consumeCh = await _conn.CreateChannelAsync())
+            try
             {
-                consumeCh.ChannelShutdown += (o, ea) =>
+                using (IChannel consumeCh = await _conn.CreateChannelAsync())
                 {
-                    HandleChannelShutdown(consumeCh, ea, (args) =>
+                    consumeCh.ChannelShutdown += (o, ea) =>
                     {
-                        if (args.Initiator == ShutdownInitiator.Peer)
+                        HandleChannelShutdown(consumeCh, ea, (args) =>
                         {
-                            tcs.TrySetResult(false);
-                        }
-                    });
-                };
+                            if (args.Initiator == ShutdownInitiator.Peer)
+                            {
+                                tcs.TrySetResult(false);
+                            }
+                        });
+                    };
 
-                var consumer = new AsyncEventingBasicConsumer(consumeCh);
-                consumer.Received += async (o, a) =>
-                {
-                    string receivedMessage = _encoding.GetString(a.Body.ToArray());
-                    Assert.Equal(message, receivedMessage);
-                    if (Interlocked.Increment(ref receivedCount) == publishCount)
+                    var consumer = new AsyncEventingBasicConsumer(consumeCh);
+                    consumer.Received += async (o, a) =>
                     {
-                        tcs.SetResult(true);
-                    }
-                    await Task.Yield();
-                };
+                        string receivedMessage = _encoding.GetString(a.Body.ToArray());
+                        Assert.Equal(message, receivedMessage);
+                        if (Interlocked.Increment(ref receivedCount) == publishCount)
+                        {
+                            tcs.SetResult(true);
+                        }
+                        await Task.Yield();
+                    };
 
-                await consumeCh.BasicConsumeAsync(queue: queueName, autoAck: true,
-                    consumerTag: string.Empty, noLocal: false, exclusive: false,
-                    arguments: null, consumer: consumer);
+                    await consumeCh.BasicConsumeAsync(queue: queueName, autoAck: true,
+                        consumerTag: string.Empty, noLocal: false, exclusive: false,
+                        arguments: null, consumer: consumer);
 
-                Assert.True(await tcs.Task);
-                await consumeCh.CloseAsync();
+                    Assert.True(await tcs.Task);
+                    await consumeCh.CloseAsync();
+                }
+
+                await pub;
+                Assert.Equal(publishCount, receivedCount);
             }
-
-            await pub;
-            Assert.Equal(publishCount, receivedCount);
+            finally
+            {
+                cts.Dispose();
+                ctsr.Dispose();
+            }
         }
     }
 }

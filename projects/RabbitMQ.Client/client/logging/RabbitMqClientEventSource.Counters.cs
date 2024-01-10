@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Logging
         private static long CommandsSent;
         private static long CommandsReceived;
 
-#if !NETSTANDARD
+#if NET6_0_OR_GREATER
         private PollingCounter? _connectionOpenedCounter;
         private PollingCounter? _openConnectionCounter;
         private PollingCounter? _channelOpenedCounter;

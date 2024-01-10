@@ -76,6 +76,8 @@ namespace RabbitMQ.Util
             {
                 return _value;
             }
+
+            // TODO do not use System.TimeoutException here
             throw new TimeoutException();
         }
 

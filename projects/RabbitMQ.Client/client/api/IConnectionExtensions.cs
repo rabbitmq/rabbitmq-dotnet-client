@@ -20,7 +20,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task CloseAsync(this IConnection connection)
         {
-            return connection.CloseAsync(Constants.ReplySuccess, "Goodbye", InternalConstants.DefaultConnectionCloseTimeout, false);
+            return connection.CloseAsync(Constants.ReplySuccess, "Goodbye", InternalConstants.DefaultConnectionCloseTimeout, false,
+                CancellationToken.None);
         }
 
         /// <summary>
@@ -38,7 +39,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task CloseAsync(this IConnection connection, ushort reasonCode, string reasonText)
         {
-            return connection.CloseAsync(reasonCode, reasonText, InternalConstants.DefaultConnectionCloseTimeout, false);
+            return connection.CloseAsync(reasonCode, reasonText, InternalConstants.DefaultConnectionCloseTimeout, false,
+                CancellationToken.None);
         }
 
         /// <summary>
@@ -58,7 +60,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task CloseAsync(this IConnection connection, TimeSpan timeout)
         {
-            return connection.CloseAsync(Constants.ReplySuccess, "Goodbye", timeout, false);
+            return connection.CloseAsync(Constants.ReplySuccess, "Goodbye", timeout, false,
+                CancellationToken.None);
         }
 
         /// <summary>
@@ -80,7 +83,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task CloseAsync(this IConnection connection, ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            return connection.CloseAsync(reasonCode, reasonText, timeout, false);
+            return connection.CloseAsync(reasonCode, reasonText, timeout, false,
+                CancellationToken.None);
         }
 
         /// <summary>
@@ -94,7 +98,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task AbortAsync(this IConnection connection)
         {
-            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced", InternalConstants.DefaultConnectionAbortTimeout, true);
+            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced", InternalConstants.DefaultConnectionAbortTimeout, true,
+                CancellationToken.None);
         }
 
         /// <summary>
@@ -112,7 +117,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task AbortAsync(this IConnection connection, ushort reasonCode, string reasonText)
         {
-            return connection.CloseAsync(reasonCode, reasonText, InternalConstants.DefaultConnectionAbortTimeout, true);
+            return connection.CloseAsync(reasonCode, reasonText, InternalConstants.DefaultConnectionAbortTimeout, true,
+                CancellationToken.None);
         }
 
         /// <summary>
@@ -130,7 +136,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task AbortAsync(this IConnection connection, TimeSpan timeout)
         {
-            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced", timeout, true);
+            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced", timeout, true,
+                CancellationToken.None);
         }
 
         /// <summary>
@@ -149,7 +156,8 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task AbortAsync(this IConnection connection, ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            return connection.CloseAsync(reasonCode, reasonText, timeout, true);
+            return connection.CloseAsync(reasonCode, reasonText, timeout, true,
+                CancellationToken.None);
         }
     }
 }

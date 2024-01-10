@@ -100,46 +100,35 @@ namespace Test.Integration
 
             const ushort connectionCount = 200;
 
-            ThreadPool.GetMinThreads(out int origWorkerThreads, out int origCompletionPortThreads);
+            var rnd = new Random();
+            var conns = new List<IConnection>();
+
             try
             {
-                var rnd = new Random();
-                var conns = new List<IConnection>();
-
-                // Since we are using the ThreadPool, let's set MinThreads to a high-enough value.
-                ThreadPool.SetMinThreads(connectionCount, connectionCount);
-
-                try
+                for (int i = 0; i < connectionCount; i++)
                 {
-                    for (int i = 0; i < connectionCount; i++)
-                    {
-                        ushort n = Convert.ToUInt16(rnd.Next(2, 6));
-                        ConnectionFactory cf = CreateConnectionFactory();
-                        cf.RequestedHeartbeat = TimeSpan.FromSeconds(n);
-                        cf.AutomaticRecoveryEnabled = false;
+                    ushort n = Convert.ToUInt16(rnd.Next(2, 6));
+                    ConnectionFactory cf = CreateConnectionFactory();
+                    cf.RequestedHeartbeat = TimeSpan.FromSeconds(n);
+                    cf.AutomaticRecoveryEnabled = false;
 
-                        IConnection conn = await cf.CreateConnectionAsync($"{_testDisplayName}:{i}");
-                        conns.Add(conn);
-                        IChannel ch = await conn.CreateChannelAsync();
-                        conn.ConnectionShutdown += (sender, evt) =>
-                            {
-                                CheckInitiator(evt);
-                            };
-                    }
+                    IConnection conn = await cf.CreateConnectionAsync($"{_testDisplayName}:{i}");
+                    conns.Add(conn);
+                    IChannel ch = await conn.CreateChannelAsync();
+                    conn.ConnectionShutdown += (sender, evt) =>
+                        {
+                            CheckInitiator(evt);
+                        };
+                }
 
-                    await SleepFor(60);
-                }
-                finally
-                {
-                    foreach (IConnection conn in conns)
-                    {
-                        await conn.CloseAsync();
-                    }
-                }
+                await SleepFor(60);
             }
             finally
             {
-                Assert.True(ThreadPool.SetMinThreads(origWorkerThreads, origCompletionPortThreads));
+                foreach (IConnection conn in conns)
+                {
+                    await conn.CloseAsync();
+                }
             }
         }
 

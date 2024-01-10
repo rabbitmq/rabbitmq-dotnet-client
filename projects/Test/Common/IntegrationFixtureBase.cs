@@ -106,6 +106,8 @@ namespace Test
                 .Replace("AsyncIntegration.", "AI.")
                 .Replace("Integration.", "I.")
                 .Replace("SequentialI.", "SI.");
+
+            // Console.SetOut(new TestOutputWriter(output, _testDisplayName));
         }
 
         public virtual async Task InitializeAsync()
@@ -388,11 +390,11 @@ namespace Test
                 await tcs.Task.WaitAsync(timeSpan);
                 bool result = await tcs.Task;
                 Assert.True((true == result) && (tcs.Task.IsCompletedSuccessfully()),
-                    $"waiting {timeSpan.TotalSeconds} seconds on a tcs for '{desc}' timed out");
+                    $"waiting {timeSpan.TotalSeconds} seconds on a tcs for '{desc}' failed");
             }
-            catch (TimeoutException)
+            catch (TimeoutException ex)
             {
-                Assert.Fail($"waiting {timeSpan.TotalSeconds} seconds on a tcs for '{desc}' timed out");
+                Assert.Fail($"waiting {timeSpan.TotalSeconds} seconds on a tcs for '{desc}' timed out, ex: {ex}");
             }
         }
 

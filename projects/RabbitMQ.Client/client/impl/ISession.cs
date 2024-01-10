@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -83,9 +84,9 @@ namespace RabbitMQ.Client.Impl
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader;
 
-        ValueTask TransmitAsync<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
+        ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod;
 
-        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
+        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader;
     }

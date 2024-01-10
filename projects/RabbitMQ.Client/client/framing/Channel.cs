@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
@@ -69,19 +71,22 @@ namespace RabbitMQ.Client.Framing.Impl
         public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
         {
             var method = new BasicAck(deliveryTag, multiple);
-            return ModelSendAsync(method);
+            // TODO cancellation token?
+            return ModelSendAsync(method, CancellationToken.None);
         }
 
         public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
         {
             var method = new BasicNack(deliveryTag, multiple, requeue);
-            return ModelSendAsync(method);
+            // TODO use cancellation token
+            return ModelSendAsync(method, CancellationToken.None);
         }
 
         public override Task BasicRejectAsync(ulong deliveryTag, bool requeue)
         {
             var method = new BasicReject(deliveryTag, requeue);
-            return ModelSendAsync(method).AsTask();
+            // TODO cancellation token?
+            return ModelSendAsync(method, CancellationToken.None).AsTask();
         }
 
         protected override bool DispatchAsynchronous(in IncomingCommand cmd)

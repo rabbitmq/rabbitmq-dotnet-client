@@ -45,6 +45,7 @@ namespace RabbitMQ.Client
             var exceptions = new List<Exception>();
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
                     t = await selector(ep, cancellationToken).ConfigureAwait(false);

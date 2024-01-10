@@ -45,24 +45,38 @@ namespace Test.Integration
         {
         }
 
-        [Fact]
-        public async Task TestBasicConnectionRecoveryWithHostnameList()
+        public override Task InitializeAsync()
         {
-            AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "127.0.0.1", "localhost" });
-            Assert.True(c.IsOpen);
-            await c.CloseAsync();
+            // NB: nothing to do here since each test creates its own factory,
+            // connections and channels
+            Assert.Null(_connFactory);
+            Assert.Null(_conn);
+            Assert.Null(_channel);
+            return Task.CompletedTask;
         }
 
         [Fact]
-        public async Task TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
+        public async Task TestWithHostnameList()
         {
-            AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
-            Assert.True(c.IsOpen);
-            await c.CloseAsync();
+            using (AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "127.0.0.1", "localhost" }))
+            {
+                Assert.True(c.IsOpen);
+                await c.CloseAsync();
+            }
         }
 
         [Fact]
-        public async Task TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
+        public async Task TestWithHostnameListAndUnreachableHosts()
+        {
+            using (AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" }))
+            {
+                Assert.True(c.IsOpen);
+                await c.CloseAsync();
+            }
+        }
+
+        [Fact]
+        public async Task TestWithHostnameListWithOnlyUnreachableHosts()
         {
             await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
             {

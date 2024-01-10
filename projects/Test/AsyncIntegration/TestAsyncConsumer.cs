@@ -65,62 +65,71 @@ namespace Test.AsyncIntegration
             var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var maximumWaitTime = TimeSpan.FromSeconds(10);
+
             var tokenSource = new CancellationTokenSource(maximumWaitTime);
-            tokenSource.Token.Register(() =>
+            CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
             {
                 publish1SyncSource.TrySetResult(false);
                 publish2SyncSource.TrySetResult(false);
             });
 
-            _conn.ConnectionShutdown += (o, ea) =>
+            try
             {
-                HandleConnectionShutdown(_conn, ea, (args) =>
+                _conn.ConnectionShutdown += (o, ea) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
+                    HandleConnectionShutdown(_conn, ea, (args) =>
                     {
-                        publish1SyncSource.TrySetResult(false);
-                        publish2SyncSource.TrySetResult(false);
-                    }
-                });
-            };
+                        if (args.Initiator == ShutdownInitiator.Peer)
+                        {
+                            publish1SyncSource.TrySetResult(false);
+                            publish2SyncSource.TrySetResult(false);
+                        }
+                    });
+                };
 
-            _channel.ChannelShutdown += (o, ea) =>
-            {
-                HandleChannelShutdown(_channel, ea, (args) =>
+                _channel.ChannelShutdown += (o, ea) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
+                    HandleChannelShutdown(_channel, ea, (args) =>
                     {
-                        publish1SyncSource.TrySetResult(false);
-                        publish2SyncSource.TrySetResult(false);
+                        if (args.Initiator == ShutdownInitiator.Peer)
+                        {
+                            publish1SyncSource.TrySetResult(false);
+                            publish2SyncSource.TrySetResult(false);
+                        }
+                    });
+                };
+
+                consumer.Received += async (o, a) =>
+                {
+                    string decoded = _encoding.GetString(a.Body.ToArray());
+                    if (decoded == publish1)
+                    {
+                        publish1SyncSource.TrySetResult(true);
+                        await publish2SyncSource.Task;
                     }
-                });
-            };
+                    else if (decoded == publish2)
+                    {
+                        publish2SyncSource.TrySetResult(true);
+                        await publish1SyncSource.Task;
+                    }
+                };
 
-            consumer.Received += async (o, a) =>
+                await _channel.BasicConsumeAsync(q.QueueName, true, string.Empty, false, false, null, consumer);
+
+                // ensure we get a delivery
+                await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
+
+                bool result1 = await publish1SyncSource.Task;
+                Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+
+                bool result2 = await publish2SyncSource.Task;
+                Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+            }
+            finally
             {
-                string decoded = _encoding.GetString(a.Body.ToArray());
-                if (decoded == publish1)
-                {
-                    publish1SyncSource.TrySetResult(true);
-                    await publish2SyncSource.Task;
-                }
-                else if (decoded == publish2)
-                {
-                    publish2SyncSource.TrySetResult(true);
-                    await publish1SyncSource.Task;
-                }
-            };
-
-            await _channel.BasicConsumeAsync(q.QueueName, true, string.Empty, false, false, null, consumer);
-
-            // ensure we get a delivery
-            await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
-
-            bool result1 = await publish1SyncSource.Task;
-            Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
-
-            bool result2 = await publish2SyncSource.Task;
-            Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                tokenSource.Dispose();
+                ctsr.Dispose();
+            }
         }
 
         [Fact]
@@ -138,115 +147,123 @@ namespace Test.AsyncIntegration
             var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var maximumWaitTime = TimeSpan.FromSeconds(30);
             var tokenSource = new CancellationTokenSource(maximumWaitTime);
-            tokenSource.Token.Register(() =>
+            CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
             {
                 publish1SyncSource.TrySetResult(false);
                 publish2SyncSource.TrySetResult(false);
             });
 
-            _conn.ConnectionShutdown += (o, ea) =>
+            try
             {
-                HandleConnectionShutdown(_conn, ea, (args) =>
+                _conn.ConnectionShutdown += (o, ea) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
+                    HandleConnectionShutdown(_conn, ea, (args) =>
                     {
-                        publish1SyncSource.TrySetResult(false);
-                        publish2SyncSource.TrySetResult(false);
-                    }
-                });
-            };
-
-            _channel.ChannelShutdown += (o, ea) =>
-            {
-                HandleChannelShutdown(_channel, ea, (args) =>
-                {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        publish1SyncSource.TrySetResult(false);
-                        publish2SyncSource.TrySetResult(false);
-                    }
-                });
-            };
-
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
-            Assert.Equal(q, queueName);
-
-            Task publishTask = Task.Run(async () =>
-                    {
-                        using (IChannel publishChannel = await _conn.CreateChannelAsync())
+                        if (args.Initiator == ShutdownInitiator.Peer)
                         {
-                            QueueDeclareOk pubQ = await publishChannel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
-                            Assert.Equal(queueName, pubQ.QueueName);
-                            for (int i = 0; i < publish_total; i++)
+                            publish1SyncSource.TrySetResult(false);
+                            publish2SyncSource.TrySetResult(false);
+                        }
+                    });
+                };
+
+                _channel.ChannelShutdown += (o, ea) =>
+                {
+                    HandleChannelShutdown(_channel, ea, (args) =>
+                    {
+                        if (args.Initiator == ShutdownInitiator.Peer)
+                        {
+                            publish1SyncSource.TrySetResult(false);
+                            publish2SyncSource.TrySetResult(false);
+                        }
+                    });
+                };
+
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
+                Assert.Equal(q, queueName);
+
+                Task publishTask = Task.Run(async () =>
+                        {
+                            using (IChannel publishChannel = await _conn.CreateChannelAsync())
                             {
-                                await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
-                                await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
+                                QueueDeclareOk pubQ = await publishChannel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
+                                Assert.Equal(queueName, pubQ.QueueName);
+                                for (int i = 0; i < publish_total; i++)
+                                {
+                                    await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
+                                    await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
+                                }
+
+                                await publishChannel.CloseAsync();
                             }
+                        });
 
-                            await publishChannel.CloseAsync();
-                        }
-                    });
-
-            Task consumeTask = Task.Run(async () =>
-                    {
-                        using (IChannel consumeChannel = await _conn.CreateChannelAsync())
+                Task consumeTask = Task.Run(async () =>
                         {
-                            var consumer = new AsyncEventingBasicConsumer(consumeChannel);
-
-                            int publish1_count = 0;
-                            int publish2_count = 0;
-
-                            consumer.Received += async (o, a) =>
+                            using (IChannel consumeChannel = await _conn.CreateChannelAsync())
                             {
-                                string decoded = _encoding.GetString(a.Body.ToArray());
-                                if (decoded == publish1)
+                                var consumer = new AsyncEventingBasicConsumer(consumeChannel);
+
+                                int publish1_count = 0;
+                                int publish2_count = 0;
+
+                                consumer.Received += async (o, a) =>
                                 {
-                                    if (Interlocked.Increment(ref publish1_count) >= publish_total)
+                                    string decoded = _encoding.GetString(a.Body.ToArray());
+                                    if (decoded == publish1)
                                     {
-                                        publish1SyncSource.TrySetResult(true);
-                                        await publish2SyncSource.Task;
+                                        if (Interlocked.Increment(ref publish1_count) >= publish_total)
+                                        {
+                                            publish1SyncSource.TrySetResult(true);
+                                            await publish2SyncSource.Task;
+                                        }
                                     }
-                                }
-                                else if (decoded == publish2)
-                                {
-                                    if (Interlocked.Increment(ref publish2_count) >= publish_total)
+                                    else if (decoded == publish2)
                                     {
-                                        publish2SyncSource.TrySetResult(true);
-                                        await publish1SyncSource.Task;
+                                        if (Interlocked.Increment(ref publish2_count) >= publish_total)
+                                        {
+                                            publish2SyncSource.TrySetResult(true);
+                                            await publish1SyncSource.Task;
+                                        }
                                     }
-                                }
-                            };
+                                };
 
-                            await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
+                                await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
 
-                            // ensure we get a delivery
-                            await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
+                                // ensure we get a delivery
+                                await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
 
-                            bool result1 = await publish1SyncSource.Task;
-                            Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                                bool result1 = await publish1SyncSource.Task;
+                                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
 
-                            bool result2 = await publish2SyncSource.Task;
-                            Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                                bool result2 = await publish2SyncSource.Task;
+                                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
 
-                            await consumeChannel.CloseAsync();
-                        }
-                    });
+                                await consumeChannel.CloseAsync();
+                            }
+                        });
 
-            await AssertRanToCompletion(publishTask, consumeTask);
+                await AssertRanToCompletion(publishTask, consumeTask);
+            }
+            finally
+            {
+                tokenSource.Dispose();
+                ctsr.Dispose();
+            }
         }
 
         [Fact]
         public async Task TestBasicRejectAsync()
         {
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            using (var cancellationTokenSource = new CancellationTokenSource(TestTimeout))
+            var cancellationTokenSource = new CancellationTokenSource(TestTimeout);
+            CancellationTokenRegistration ctsr = cancellationTokenSource.Token.Register(() =>
             {
-                cancellationTokenSource.Token.Register(() =>
-                {
-                    publishSyncSource.SetCanceled();
-                });
+                publishSyncSource.SetCanceled();
+            });
 
+            try
+            {
                 _conn.ConnectionShutdown += (o, ea) =>
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
@@ -329,6 +346,11 @@ namespace Test.AsyncIntegration
                     Assert.Equal((uint)1, messageCount);
                     Assert.Equal((uint)0, consumerCount);
                 }
+            }
+            finally
+            {
+                cancellationTokenSource.Dispose();
+                ctsr.Dispose();
             }
         }
 

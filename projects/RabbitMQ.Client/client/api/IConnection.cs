@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -222,9 +223,10 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="reasonCode">The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).</param>
         /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
-        /// <param name="timeout">Operation timeout.</param>
+        /// <param name="timeout"></param>
         /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
-        Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort);
+        /// <param name="cancellationToken"></param>
+        Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously create and return a fresh channel, session, and channel.

@@ -44,10 +44,7 @@ namespace RabbitMQ.Client.Framing.Impl
     internal sealed partial class AutorecoveringConnection
     {
         private Task? _recoveryTask;
-        private CancellationTokenSource? _recoveryCancellationTokenSource;
-
-        // TODO dispose the CTS
-        private CancellationTokenSource RecoveryCancellationTokenSource => _recoveryCancellationTokenSource ??= new CancellationTokenSource();
+        private readonly CancellationTokenSource _recoveryCancellationTokenSource = new CancellationTokenSource();
 
         private void HandleConnectionShutdown(object _, ShutdownEventArgs args)
         {
@@ -60,18 +57,36 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            static bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args) =>
-                args.Initiator == ShutdownInitiator.Peer ||
+            static bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
+            {
+                if (args.Initiator == ShutdownInitiator.Peer)
+                {
+                    if (args.ReplyCode == Constants.AccessRefused)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+
                 // happens when EOF is reached, e.g. due to RabbitMQ node
                 // connectivity loss or abrupt shutdown
-                args.Initiator == ShutdownInitiator.Library;
+                if (args.Initiator == ShutdownInitiator.Library)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private async Task RecoverConnectionAsync()
         {
             try
             {
-                CancellationToken token = RecoveryCancellationTokenSource.Token;
+                CancellationToken token = _recoveryCancellationTokenSource.Token;
                 bool success;
                 do
                 {
@@ -79,7 +94,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         .ConfigureAwait(false);
                     success = await TryPerformAutomaticRecoveryAsync(token)
                         .ConfigureAwait(false);
-                } while (!success && !token.IsCancellationRequested);
+                } while (false == success && false == token.IsCancellationRequested);
             }
             catch (OperationCanceledException)
             {
@@ -97,43 +112,31 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         /// <summary>
-        /// Cancels the main recovery loop and will block until the loop finishes, or the timeout
-        /// expires, to prevent Close operations overlapping with recovery operations.
-        /// </summary>
-        private void StopRecoveryLoop()
-        {
-            Task? task = _recoveryTask;
-            if (task is null)
-            {
-                return;
-            }
-            RecoveryCancellationTokenSource.Cancel();
-
-            Task timeout = Task.Delay(_config.RequestedConnectionTimeout);
-            if (Task.WhenAny(task, timeout).Result == timeout)
-            {
-                ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
-            }
-        }
-
-        /// <summary>
         /// Async cancels the main recovery loop and will block until the loop finishes, or the timeout
         /// expires, to prevent Close operations overlapping with recovery operations.
         /// </summary>
-        private async ValueTask StopRecoveryLoopAsync()
+        private async ValueTask StopRecoveryLoopAsync(CancellationToken cancellationToken)
         {
             Task? task = _recoveryTask;
             if (task != null)
             {
-                RecoveryCancellationTokenSource.Cancel();
+                _recoveryCancellationTokenSource.Cancel();
+                using var timeoutTokenSource = new CancellationTokenSource(_config.RequestedConnectionTimeout);
+                using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
                 try
                 {
-                    await TaskExtensions.WaitAsync(task, _config.RequestedConnectionTimeout)
-                        .ConfigureAwait(false);
+                    await task.WaitAsync(lts.Token).ConfigureAwait(false);
                 }
-                catch (TimeoutException)
+                catch (OperationCanceledException)
                 {
-                    ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
+                    if (timeoutTokenSource.Token.IsCancellationRequested)
+                    {
+                        ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
         }

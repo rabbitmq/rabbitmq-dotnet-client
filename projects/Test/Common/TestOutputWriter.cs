@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -29,47 +29,34 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Threading.Tasks;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
-using Xunit;
+using System.IO;
+using System.Text;
 using Xunit.Abstractions;
 
-namespace Test.Integration
+namespace Test
 {
-    public class TestAuth : IntegrationFixture
+    public class TestOutputWriter : TextWriter
     {
-        public TestAuth(ITestOutputHelper output) : base(output)
+        private readonly ITestOutputHelper _output;
+        private readonly string _testDisplayName;
+
+        public TestOutputWriter(ITestOutputHelper output, string testDisplayName)
         {
+            _output = output;
+            _testDisplayName = testDisplayName;
         }
 
-        public override Task InitializeAsync()
-        {
-            // NB: nothing to do here since each test creates its own factory,
-            // connections and channels
-            Assert.Null(_connFactory);
-            Assert.Null(_conn);
-            Assert.Null(_channel);
-            return Task.CompletedTask;
-        }
+        public override Encoding Encoding => Encoding.UTF8;
 
-        [Fact]
-        public async Task TestAuthFailure()
+        public override void Write(char[] buffer, int index, int count)
         {
-            ConnectionFactory connFactory = CreateConnectionFactory();
-            connFactory.UserName = "guest";
-            connFactory.Password = "incorrect-password";
-            connFactory.AutomaticRecoveryEnabled = true;
-            connFactory.TopologyRecoveryEnabled = true;
-
-            try
+            if (count > 2)
             {
-                await connFactory.CreateConnectionAsync();
-                Assert.Fail("Exception caused by authentication failure expected");
-            }
-            catch (BrokerUnreachableException bue)
-            {
-                Assert.IsType<AuthenticationFailureException>(bue.InnerException);
+                var sb = new StringBuilder("[DEBUG] ");
+                sb.Append(_testDisplayName);
+                sb.Append(" | ");
+                sb.Append(buffer, index, count);
+                _output.WriteLine(sb.ToString().TrimEnd());
             }
         }
     }
