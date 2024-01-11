@@ -293,94 +293,15 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
         {
-            Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), abort, timeout);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText);
+            CloseAsync(reason, abort, timeout).EnsureCompleted();
         }
 
         ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
         public ValueTask CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
         {
-            return CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), abort, timeout);
-        }
-
-        ///<summary>Try to close connection in a graceful way</summary>
-        ///<remarks>
-        ///<para>
-        ///Shutdown reason contains code and text assigned when closing the connection,
-        ///as well as the information about what initiated the close
-        ///</para>
-        ///<para>
-        ///Abort flag, if true, signals to close the ongoing connection immediately
-        ///and do not report any errors if it was already closed.
-        ///</para>
-        ///<para>
-        ///Timeout determines how much time internal close operations should be given
-        ///to complete.
-        ///</para>
-        ///</remarks>
-        internal void Close(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
-        {
-            if (!SetCloseReason(reason))
-            {
-                if (!abort)
-                {
-                    ThrowAlreadyClosedException(CloseReason!);
-                }
-            }
-            else
-            {
-                OnShutdown(reason);
-                _session0.SetSessionClosing(false);
-
-                try
-                {
-                    // Try to send connection.close wait for CloseOk in the MainLoop
-                    if (!_closed)
-                    {
-                        _session0.Transmit(new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0));
-                    }
-                }
-                catch (AlreadyClosedException)
-                {
-                    if (!abort)
-                    {
-                        throw;
-                    }
-                }
-                catch (NotSupportedException)
-                {
-                    // buffered stream had unread data in it and Flush()
-                    // was called, ignore to not confuse the user
-                }
-                catch (IOException ioe)
-                {
-                    if (_channel0.CloseReason is null)
-                    {
-                        if (!abort)
-                        {
-                            throw;
-                        }
-                        else
-                        {
-                            LogCloseError("Couldn't close connection cleanly. Socket closed unexpectedly", ioe);
-                        }
-                    }
-                }
-                finally
-                {
-                    TerminateMainloop();
-                }
-            }
-
-            try
-            {
-                if (!_mainLoopTask.Wait(timeout))
-                {
-                    _frameHandler.Close();
-                }
-            }
-            catch (AggregateException) // TODO this could be more than just a timeout
-            {
-            }
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText);
+            return CloseAsync(reason, abort, timeout);
         }
 
         ///<summary>Asychronously try to close connection in a graceful way</summary>
@@ -398,10 +319,9 @@ namespace RabbitMQ.Client.Framing.Impl
         ///to complete.
         ///</para>
         ///</remarks>
-        // TODO cancellation token
+        // TODO cancellation token (maybe?)
         internal async ValueTask CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
         {
-            // TODO CloseAsync and Close share a lot of code
             if (!SetCloseReason(reason))
             {
                 if (!abort)

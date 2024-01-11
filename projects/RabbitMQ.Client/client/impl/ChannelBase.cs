@@ -967,7 +967,8 @@ namespace RabbitMQ.Client.Impl
                 if (m_connectionStartCell is null)
                 {
                     var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
-                    Session.Connection.Close(reason, false, InternalConstants.DefaultConnectionCloseTimeout);
+                    // TODO what to do about this?
+                    Session.Connection.CloseAsync(reason, false, InternalConstants.DefaultConnectionCloseTimeout).EnsureCompleted();
                 }
                 else
                 {
