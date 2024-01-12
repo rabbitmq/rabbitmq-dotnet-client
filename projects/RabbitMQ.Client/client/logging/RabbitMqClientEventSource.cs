@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
 
 namespace RabbitMQ.Client.Logging
@@ -66,19 +67,14 @@ namespace RabbitMQ.Client.Logging
         public void Error(string message, RabbitMqExceptionDetail ex)
         {
             if (IsEnabled())
-            {
-#if NET6_0_OR_GREATER
                 WriteExceptionEvent(message, ex);
+        }
 
-                [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
-                void WriteExceptionEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(string message, T ex)
-                {
-                    WriteEvent(3, message, ex);
-                }
-#else
-                WriteEvent(3, message, ex);
-#endif
-            }
+        [NonEvent]
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
+        private void WriteExceptionEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(string message, T ex)
+        {
+            WriteEvent(3, message, ex);
         }
 
         [NonEvent]

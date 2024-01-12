@@ -49,6 +49,8 @@ jobs:
         run: dotnet build --no-restore --verbosity=normal
       - name: Test
         run: ./.ci/gha-run-tests.ps1
+      - name: AotTest
+        run: ./projects/AotCompatibility.TestApp/test-aot-compatibility.ps1
 
   build:
     name: build/test on ubuntu-latest

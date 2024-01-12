@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- When targeting net7.0+, this can be updated to PublishAot. -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="RabbitMQ.Client" />
+    <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="..\%(Identity)\%(Identity).csproj" />
+    <ProjectReference Include="@(TrimmerRootAssembly->'%(Path)')" />
+  </ItemGroup>
+
+</Project>
