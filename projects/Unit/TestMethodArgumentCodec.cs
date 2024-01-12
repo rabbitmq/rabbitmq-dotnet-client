@@ -36,7 +36,6 @@ using System.Text;
 using NUnit.Framework;
 
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Unit
 {

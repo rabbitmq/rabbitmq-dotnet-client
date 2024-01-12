@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestApplications", "TestApp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OAuth2", "projects\TestApplications\OAuth2\OAuth2.csproj", "{07E203AC-9E4B-4BED-9445-E2B45E10E412}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AotCompatibility.TestApp", "projects\AotCompatibility.TestApp\AotCompatibility.TestApp.csproj", "{0B79BD0B-B35D-4626-ABCC-023B6726A531}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{07E203AC-9E4B-4BED-9445-E2B45E10E412}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07E203AC-9E4B-4BED-9445-E2B45E10E412}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07E203AC-9E4B-4BED-9445-E2B45E10E412}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B79BD0B-B35D-4626-ABCC-023B6726A531}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B79BD0B-B35D-4626-ABCC-023B6726A531}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B79BD0B-B35D-4626-ABCC-023B6726A531}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B79BD0B-B35D-4626-ABCC-023B6726A531}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
