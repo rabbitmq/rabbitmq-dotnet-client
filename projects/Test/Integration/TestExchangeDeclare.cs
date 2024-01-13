@@ -31,8 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using RabbitMQ.Client;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -47,22 +46,22 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestConcurrentExchangeDeclareAndDelete()
+        public async Task TestConcurrentExchangeDeclareAndDelete()
         {
             var exchangeNames = new List<string>();
-            var ts = new List<Thread>();
+            var tasks = new List<Task>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
             {
-                var t = new Thread(() =>
+                var t = Task.Run(async () =>
                         {
                             try
                             {
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
-                                Thread.Sleep(_rnd.Next(5, 500));
+                                await Task.Delay(_rnd.Next(5, 500));
                                 string exchangeName = GenerateExchangeName();
-                                _channel.ExchangeDeclare(exchange: exchangeName, "fanout", false, false, null);
+                                await _channel.ExchangeDeclareAsync(exchange: exchangeName, "fanout", false, false);
                                 exchangeNames.Add(exchangeName);
                             }
                             catch (NotSupportedException e)
@@ -70,42 +69,35 @@ namespace Test.Integration
                                 nse = e;
                             }
                         });
-                ts.Add(t);
-                t.Start();
+                tasks.Add(t);
             }
 
-            foreach (Thread t in ts)
-            {
-                t.Join();
-            }
+            await Task.WhenAll(tasks);
 
             Assert.Null(nse);
-            ts.Clear();
+            tasks.Clear();
 
             foreach (string exchangeName in exchangeNames)
             {
-                var t = new Thread((object ex) =>
+                string ex = exchangeName;
+                var t = Task.Run(async () =>
                         {
                             try
                             {
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
-                                Thread.Sleep(_rnd.Next(5, 500));
-                                _channel.ExchangeDelete((string)ex);
+                                await Task.Delay(_rnd.Next(5, 500));
+                                await _channel.ExchangeDeleteAsync(ex);
                             }
                             catch (NotSupportedException e)
                             {
                                 nse = e;
                             }
                         });
-                ts.Add(t);
-                t.Start(exchangeName);
+                tasks.Add(t);
             }
 
-            foreach (Thread t in ts)
-            {
-                t.Join();
-            }
+            await Task.WhenAll(tasks);
 
             Assert.Null(nse);
         }

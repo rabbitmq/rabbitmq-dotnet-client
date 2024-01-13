@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -44,29 +45,30 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestBindOnNonExistingQueue()
+        public async Task TestBindOnNonExistingQueue()
         {
-            OperationInterruptedException exception = Assert.Throws<OperationInterruptedException>(() => _channel.QueueBind("NonExistingQueue", "", string.Empty));
+            OperationInterruptedException exception = await Assert.ThrowsAsync<OperationInterruptedException>(() => _channel.QueueBindAsync("NonExistingQueue", "", string.Empty));
             Assert.True(exception.Message.Contains("403"), $"Message doesn't contain the expected 403 part: {exception.Message}");
             Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");
         }
 
         [Fact]
-        public void TestBindOnNonExistingExchange()
+        public async Task TestBindOnNonExistingExchange()
         {
-            OperationInterruptedException exception = Assert.Throws<OperationInterruptedException>(() => _channel.ExchangeBind("NonExistingQueue", "", string.Empty));
+            OperationInterruptedException exception = await Assert.ThrowsAsync<OperationInterruptedException>(() => _channel.ExchangeBindAsync("NonExistingQueue", "", string.Empty));
             Assert.True(exception.Message.Contains("403"), $"Message doesn't contain the expected 403 part: {exception.Message}");
             Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");
         }
 
         [Fact]
-        public void TestConsumeOnNonExistingQueue()
+        public async Task TestConsumeOnNonExistingQueue()
         {
-            OperationInterruptedException exception = Assert.Throws<OperationInterruptedException>(() =>
+            OperationInterruptedException exception = await Assert.ThrowsAsync<OperationInterruptedException>(() =>
             {
-                var consumer = new EventingBasicConsumer(_channel); _channel.BasicConsume("NonExistingQueue", true, consumer);
+                var consumer = new EventingBasicConsumer(_channel);
+                return _channel.BasicConsumeAsync("NonExistingQueue", true, consumer);
             });
 
             Assert.True(exception.Message.Contains("404"), $"Message doesn't contain the expected 404 part: {exception.Message}");

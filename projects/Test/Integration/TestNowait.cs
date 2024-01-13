@@ -29,7 +29,9 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using RabbitMQ.Client;
+using System;
+using System.Threading.Tasks;
+using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,81 +44,95 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestQueueDeclareNoWait()
+        public async Task TestQueueDeclareNoWait()
         {
             string q = GenerateQueueName();
-            _channel.QueueDeclareNoWait(q, false, true, false, null);
-            _channel.QueueDeclarePassive(q);
+            await _channel.QueueDeclareAsync(q, false, true, false, noWait: true, arguments: null);
+            await _channel.QueueDeclarePassiveAsync(q);
         }
 
         [Fact]
-        public void TestQueueBindNoWait()
+        public Task TestQueueDeclareServerNamedNoWait()
         {
-            string q = GenerateQueueName();
-            _channel.QueueDeclareNoWait(q, false, true, false, null);
-            _channel.QueueBindNoWait(q, "amq.fanout", "", null);
+            return Assert.ThrowsAsync<InvalidOperationException>(() =>
+            {
+                return _channel.QueueDeclareAsync("", false, true, false, noWait: true);
+            });
         }
 
         [Fact]
-        public void TestQueueDeleteNoWait()
+        public async Task TestQueueBindNoWait()
         {
             string q = GenerateQueueName();
-            _channel.QueueDeclareNoWait(q, false, true, false, null);
-            _channel.QueueDeleteNoWait(q, false, false);
+            await _channel.QueueDeclareAsync(q, false, true, false, noWait: true);
+            await _channel.QueueBindAsync(q, "amq.fanout", "", noWait: true);
         }
 
         [Fact]
-        public void TestExchangeDeclareNoWait()
+        public async Task TestQueueDeleteNoWait()
+        {
+            string q = GenerateQueueName();
+            await _channel.QueueDeclareAsync(q, false, true, false, noWait: true);
+            await _channel.QueueDeleteAsync(q, false, false, noWait: true);
+            await Assert.ThrowsAsync<OperationInterruptedException>(() =>
+            {
+                return _channel.QueueDeclarePassiveAsync(q);
+            });
+        }
+
+        [Fact]
+        public async Task TestExchangeDeclareNoWaitAsync()
         {
             string x = GenerateExchangeName();
             try
             {
-                _channel.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-                _channel.ExchangeDeclarePassive(x);
+                await _channel.ExchangeDeclareAsync(x, "fanout", false, true);
+                await _channel.ExchangeDeclarePassiveAsync(x);
             }
             finally
             {
-                _channel.ExchangeDelete(x);
+                await _channel.ExchangeDeleteAsync(x);
             }
         }
 
         [Fact]
-        public void TestExchangeBindNoWait()
+        public async Task TestExchangeBindNoWait()
         {
             string x = GenerateExchangeName();
             try
             {
-                _channel.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-                _channel.ExchangeBindNoWait(x, "amq.fanout", "", null);
+                await _channel.ExchangeDeclareAsync(x, "fanout", false, true, noWait: true);
+                await _channel.ExchangeBindAsync(x, "amq.fanout", "", noWait: true);
             }
             finally
             {
-                _channel.ExchangeDelete(x);
+                await _channel.ExchangeDeleteAsync(x);
             }
         }
 
         [Fact]
-        public void TestExchangeUnbindNoWait()
+        public async Task TestExchangeUnbindNoWait()
         {
             string x = GenerateExchangeName();
             try
             {
-                _channel.ExchangeDeclare(x, "fanout", false, true, null);
-                _channel.ExchangeBind(x, "amq.fanout", "", null);
-                _channel.ExchangeUnbindNoWait(x, "amq.fanout", "", null);
+                await _channel.ExchangeDeclareAsync(x, "fanout", false, true);
+                await _channel.ExchangeBindAsync(x, "amq.fanout", "", noWait: true);
+                await _channel.ExchangeUnbindAsync(x, "amq.fanout", "", noWait: true);
             }
             finally
             {
-                _channel.ExchangeDelete(x);
+                await _channel.ExchangeDeleteAsync(x);
             }
         }
 
         [Fact]
-        public void TestExchangeDeleteNoWait()
+        public async Task TestExchangeDeleteNoWait()
         {
             string x = GenerateExchangeName();
-            _channel.ExchangeDeclareNoWait(x, "fanout", false, true, null);
-            _channel.ExchangeDeleteNoWait(x, false);
+            await _channel.ExchangeDeclareAsync(x, "fanout", false, true,
+                noWait: true, arguments: null);
+            await _channel.ExchangeDeleteAsync(x, false, noWait: true);
         }
     }
 }

@@ -29,14 +29,15 @@ namespace RabbitMQ.Benchmarks
             return Task.CompletedTask;
         }
 
-        void IBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (Interlocked.Increment(ref _current) == Count)
             {
                 _current = 0;
                 _autoResetEvent.Set();
             }
+            return Task.CompletedTask;
         }
 
         public Task HandleBasicCancel(string consumerTag) => Task.CompletedTask;

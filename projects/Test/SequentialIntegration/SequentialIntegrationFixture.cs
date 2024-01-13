@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit.Abstractions;
 
@@ -42,48 +42,40 @@ namespace Test.SequentialIntegration
         {
         }
 
-        public void Block()
+        public async Task BlockAsync(IChannel channel)
         {
-            _rabbitMQCtl.ExecRabbitMQCtl("set_vm_memory_high_watermark 0.000000001");
+            await _rabbitMQCtl.ExecRabbitMQCtlAsync("set_vm_memory_high_watermark 0.000000001");
             // give rabbitmqctl some time to do its job
-            Thread.Sleep(TimeSpan.FromSeconds(2));
-            Publish();
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            await channel.BasicPublishAsync("amq.fanout", "", _encoding.GetBytes("message"));
         }
 
-        public void Unblock()
+        public Task UnblockAsync()
         {
-            _rabbitMQCtl.ExecRabbitMQCtl("set_vm_memory_high_watermark 0.4");
+            return _rabbitMQCtl.ExecRabbitMQCtlAsync("set_vm_memory_high_watermark 0.4");
         }
 
-        public void RestartRabbitMQ()
+        public async Task RestartRabbitMqAsync()
         {
-            StopRabbitMQ();
-            Thread.Sleep(TimeSpan.FromMilliseconds(500));
-            StartRabbitMQ();
-            AwaitRabbitMQ();
+            await StopRabbitMqAsync();
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            await StartRabbitMqAsync();
+            await AwaitRabbitMqAsync();
         }
 
-        public void StopRabbitMQ()
+        public Task StopRabbitMqAsync()
         {
-            _rabbitMQCtl.ExecRabbitMQCtl("stop_app");
+            return _rabbitMQCtl.ExecRabbitMQCtlAsync("stop_app");
         }
 
-        public void StartRabbitMQ()
+        public Task StartRabbitMqAsync()
         {
-            _rabbitMQCtl.ExecRabbitMQCtl("start_app");
+            return _rabbitMQCtl.ExecRabbitMQCtlAsync("start_app");
         }
 
-        private void AwaitRabbitMQ()
+        private Task AwaitRabbitMqAsync()
         {
-            _rabbitMQCtl.ExecRabbitMQCtl("await_startup");
-        }
-
-        private void Publish()
-        {
-            using (IChannel ch = _conn.CreateChannel())
-            {
-                ch.BasicPublish("amq.fanout", "", _encoding.GetBytes("message"));
-            }
+            return _rabbitMQCtl.ExecRabbitMQCtlAsync("await_startup");
         }
     }
 }

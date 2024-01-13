@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
@@ -41,23 +43,26 @@ namespace Test.Integration
         {
         }
 
-        protected override void SetUp()
+        public override Task InitializeAsync()
         {
+            // NB: nothing to do here since each test creates its own factory,
+            // connections and channels
             Assert.Null(_connFactory);
             Assert.Null(_conn);
             Assert.Null(_channel);
+            return Task.CompletedTask;
         }
 
         [Fact]
-        public void TestAuthFailure()
+        public async Task TestAuthFailure()
         {
-            var connFactory = CreateConnectionFactory();
+            ConnectionFactory connFactory = CreateConnectionFactory();
             connFactory.UserName = "guest";
             connFactory.Password = "incorrect-password";
 
             try
             {
-                connFactory.CreateConnection();
+                await connFactory.CreateConnectionAsync();
                 Assert.Fail("Exception caused by authentication failure expected");
             }
             catch (BrokerUnreachableException bue)

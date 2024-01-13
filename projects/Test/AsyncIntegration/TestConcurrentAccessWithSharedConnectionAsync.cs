@@ -132,6 +132,7 @@ namespace Test.AsyncIntegration
                     }
 
                     Assert.True(await tcs.Task);
+                    await ch.CloseAsync();
                 }
             }, iterations);
         }

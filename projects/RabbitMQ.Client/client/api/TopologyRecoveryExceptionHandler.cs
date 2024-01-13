@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -16,10 +17,10 @@ namespace RabbitMQ.Client
         private Func<IRecordedQueue, Exception, bool> _queueRecoveryExceptionCondition;
         private Func<IRecordedBinding, Exception, bool> _bindingRecoveryExceptionCondition;
         private Func<IRecordedConsumer, Exception, bool> _consumerRecoveryExceptionCondition;
-        private Action<IRecordedExchange, Exception, IConnection> _exchangeRecoveryExceptionHandler;
-        private Action<IRecordedQueue, Exception, IConnection> _queueRecoveryExceptionHandler;
-        private Action<IRecordedBinding, Exception, IConnection> _bindingRecoveryExceptionHandler;
-        private Action<IRecordedConsumer, Exception, IConnection> _consumerRecoveryExceptionHandler;
+        private Func<IRecordedExchange, Exception, IConnection, Task> _exchangeRecoveryExceptionHandlerAsync;
+        private Func<IRecordedQueue, Exception, IConnection, Task> _queueRecoveryExceptionHandlerAsync;
+        private Func<IRecordedBinding, Exception, IConnection, Task> _bindingRecoveryExceptionHandlerAsync;
+        private Func<IRecordedConsumer, Exception, IConnection, Task> _consumerRecoveryExceptionHandlerAsync;
 
         /// <summary>
         /// Decides which exchange recovery exceptions the custom exception handler is applied to.
@@ -92,64 +93,72 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover an exchange.
         /// </summary>
-        public Action<IRecordedExchange, Exception, IConnection> ExchangeRecoveryExceptionHandler
+        public Func<IRecordedExchange, Exception, IConnection, Task> ExchangeRecoveryExceptionHandlerAsync
         {
-            get => _exchangeRecoveryExceptionHandler;
+            get => _exchangeRecoveryExceptionHandlerAsync;
 
             set
             {
-                if (_exchangeRecoveryExceptionHandler != null)
-                    throw new InvalidOperationException($"Cannot modify {nameof(ExchangeRecoveryExceptionHandler)} after it has been initialized.");
+                if (_exchangeRecoveryExceptionHandlerAsync != null)
+                {
+                    throw new InvalidOperationException($"Cannot modify {nameof(ExchangeRecoveryExceptionHandlerAsync)} after it has been initialized.");
+                }
 
-                _exchangeRecoveryExceptionHandler = value ?? throw new ArgumentNullException(nameof(ExchangeRecoveryExceptionHandler));
+                _exchangeRecoveryExceptionHandlerAsync = value ?? throw new ArgumentNullException(nameof(ExchangeRecoveryExceptionHandlerAsync));
             }
         }
 
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a queue.
         /// </summary>
-        public Action<IRecordedQueue, Exception, IConnection> QueueRecoveryExceptionHandler
+        public Func<IRecordedQueue, Exception, IConnection, Task> QueueRecoveryExceptionHandlerAsync
         {
-            get => _queueRecoveryExceptionHandler;
+            get => _queueRecoveryExceptionHandlerAsync;
 
             set
             {
-                if (_queueRecoveryExceptionHandler != null)
-                    throw new InvalidOperationException($"Cannot modify {nameof(QueueRecoveryExceptionHandler)} after it has been initialized.");
+                if (_queueRecoveryExceptionHandlerAsync != null)
+                {
+                    throw new InvalidOperationException($"Cannot modify {nameof(QueueRecoveryExceptionHandlerAsync)} after it has been initialized.");
+                }
 
-                _queueRecoveryExceptionHandler = value ?? throw new ArgumentNullException(nameof(QueueRecoveryExceptionHandler));
+                _queueRecoveryExceptionHandlerAsync = value ?? throw new ArgumentNullException(nameof(QueueRecoveryExceptionHandlerAsync));
             }
         }
 
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a binding.
         /// </summary>
-        public Action<IRecordedBinding, Exception, IConnection> BindingRecoveryExceptionHandler
+        public Func<IRecordedBinding, Exception, IConnection, Task> BindingRecoveryExceptionHandlerAsync
         {
-            get => _bindingRecoveryExceptionHandler;
+            get => _bindingRecoveryExceptionHandlerAsync;
 
             set
             {
-                if (_bindingRecoveryExceptionHandler != null)
-                    throw new InvalidOperationException($"Cannot modify {nameof(BindingRecoveryExceptionHandler)} after it has been initialized.");
+                if (_bindingRecoveryExceptionHandlerAsync != null)
+                {
+                    throw new InvalidOperationException($"Cannot modify {nameof(BindingRecoveryExceptionHandlerAsync)} after it has been initialized.");
+                }
 
-                _bindingRecoveryExceptionHandler = value ?? throw new ArgumentNullException(nameof(BindingRecoveryExceptionHandler));
+                _bindingRecoveryExceptionHandlerAsync = value ?? throw new ArgumentNullException(nameof(BindingRecoveryExceptionHandlerAsync));
             }
         }
 
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a consumer.
         /// </summary>
-        public Action<IRecordedConsumer, Exception, IConnection> ConsumerRecoveryExceptionHandler
+        public Func<IRecordedConsumer, Exception, IConnection, Task> ConsumerRecoveryExceptionHandlerAsync
         {
-            get => _consumerRecoveryExceptionHandler;
+            get => _consumerRecoveryExceptionHandlerAsync;
 
             set
             {
-                if (_consumerRecoveryExceptionHandler != null)
-                    throw new InvalidOperationException($"Cannot modify {nameof(ConsumerRecoveryExceptionHandler)} after it has been initialized.");
+                if (_consumerRecoveryExceptionHandlerAsync != null)
+                {
+                    throw new InvalidOperationException($"Cannot modify {nameof(ConsumerRecoveryExceptionHandlerAsync)} after it has been initialized.");
+                }
 
-                _consumerRecoveryExceptionHandler = value ?? throw new ArgumentNullException(nameof(ConsumerRecoveryExceptionHandler));
+                _consumerRecoveryExceptionHandlerAsync = value ?? throw new ArgumentNullException(nameof(ConsumerRecoveryExceptionHandlerAsync));
             }
         }
     }

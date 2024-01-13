@@ -185,6 +185,7 @@ namespace Test.AsyncIntegration
                     }
 
                     await pubCh.WaitForConfirmsOrDieAsync();
+                    await pubCh.CloseAsync();
                 }
             });
 
@@ -224,6 +225,7 @@ namespace Test.AsyncIntegration
                     arguments: null, consumer: consumer);
 
                 Assert.True(await tcs.Task);
+                await consumeCh.CloseAsync();
             }
 
             await pub;

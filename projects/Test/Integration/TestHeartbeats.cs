@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -46,36 +47,39 @@ namespace Test.Integration
         {
         }
 
-        protected override void SetUp()
+        public override Task InitializeAsync()
         {
+            // NB: nothing to do here since each test creates its own factory,
+            // connections and channels
             Assert.Null(_connFactory);
             Assert.Null(_conn);
             Assert.Null(_channel);
+            return Task.CompletedTask;
         }
 
         [SkippableFact(Timeout = 35000)]
         [Trait("Category", "LongRunning")]
-        public void TestThatHeartbeatWriterUsesConfigurableInterval()
+        public async Task TestThatHeartbeatWriterUsesConfigurableInterval()
         {
             Skip.IfNot(LongRunningTestsEnabled(), "RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
 
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.RequestedHeartbeat = _heartbeatTimeout;
             cf.AutomaticRecoveryEnabled = false;
 
-            RunSingleConnectionTest(cf);
+            await RunSingleConnectionTestAsync(cf);
         }
 
         [SkippableFact]
         [Trait("Category", "LongRunning")]
-        public void TestThatHeartbeatWriterWithTLSEnabled()
+        public async Task TestThatHeartbeatWriterWithTLSEnabled()
         {
             Skip.IfNot(LongRunningTestsEnabled(), "RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
 
             var sslEnv = new SslEnv();
             Skip.IfNot(sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.Port = 5671;
             cf.RequestedHeartbeat = _heartbeatTimeout;
             cf.AutomaticRecoveryEnabled = false;
@@ -85,12 +89,12 @@ namespace Test.Integration
             cf.Ssl.CertPassphrase = sslEnv.CertPassphrase;
             cf.Ssl.Enabled = true;
 
-            RunSingleConnectionTest(cf);
+            await RunSingleConnectionTestAsync(cf);
         }
 
         [SkippableFact(Timeout = 90000)]
         [Trait("Category", "LongRunning")]
-        public void TestHundredsOfConnectionsWithRandomHeartbeatInterval()
+        public async Task TestHundredsOfConnectionsWithRandomHeartbeatInterval()
         {
             Skip.IfNot(LongRunningTestsEnabled(), "RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
 
@@ -110,25 +114,26 @@ namespace Test.Integration
                     for (int i = 0; i < connectionCount; i++)
                     {
                         ushort n = Convert.ToUInt16(rnd.Next(2, 6));
-                        var cf = CreateConnectionFactory();
+                        ConnectionFactory cf = CreateConnectionFactory();
                         cf.RequestedHeartbeat = TimeSpan.FromSeconds(n);
                         cf.AutomaticRecoveryEnabled = false;
 
-                        IConnection conn = cf.CreateConnection($"{_testDisplayName}:{i}");
+                        IConnection conn = await cf.CreateConnectionAsync($"{_testDisplayName}:{i}");
                         conns.Add(conn);
-                        IChannel ch = conn.CreateChannel();
+                        IChannel ch = await conn.CreateChannelAsync();
                         conn.ConnectionShutdown += (sender, evt) =>
                             {
                                 CheckInitiator(evt);
                             };
                     }
-                    SleepFor(60);
+
+                    await SleepFor(60);
                 }
                 finally
                 {
                     foreach (IConnection conn in conns)
                     {
-                        conn.Close();
+                        await conn.CloseAsync();
                     }
                 }
             }
@@ -138,11 +143,11 @@ namespace Test.Integration
             }
         }
 
-        private void RunSingleConnectionTest(ConnectionFactory cf)
+        private async Task RunSingleConnectionTestAsync(ConnectionFactory cf)
         {
-            using (IConnection conn = cf.CreateConnection(_testDisplayName))
+            using (IConnection conn = await cf.CreateConnectionAsync(_testDisplayName))
             {
-                using (IChannel ch = conn.CreateChannel())
+                using (IChannel ch = await conn.CreateChannelAsync())
                 {
                     bool wasShutdown = false;
 
@@ -157,11 +162,16 @@ namespace Test.Integration
                             }
                         }
                     };
-                    SleepFor(30);
+
+                    await SleepFor(30);
 
                     Assert.False(wasShutdown, "shutdown event should not have been fired");
                     Assert.True(conn.IsOpen, "connection should be open");
+
+                    await ch.CloseAsync();
                 }
+
+                await conn.CloseAsync();
             }
         }
 
@@ -182,10 +192,10 @@ namespace Test.Integration
             return false;
         }
 
-        private void SleepFor(int t)
+        private Task SleepFor(int t)
         {
             _output.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
-            Thread.Sleep(t * 1000);
+            return Task.Delay(t * 1000);
         }
 
         private bool InitiatedByPeerOrLibrary(ShutdownEventArgs evt)

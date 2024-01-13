@@ -45,53 +45,61 @@ namespace Test.AsyncIntegration
         {
         }
 
-        protected override void SetUp()
+        public override Task InitializeAsync()
         {
             // NB: nothing to do here since each test creates its own factory,
             // connections and channels
             Assert.Null(_connFactory);
             Assert.Null(_conn);
             Assert.Null(_channel);
+            return Task.CompletedTask;
         }
 
         [Fact]
         public async Task TestCreateConnectionAsync_WithAlreadyCanceledToken()
         {
-            using var cts = new CancellationTokenSource();
-            cts.Cancel();
-
-            ConnectionFactory cf = CreateConnectionFactory();
-
-            bool passed = false;
-            /*
-             * If anyone wonders why TaskCanceledException is explicitly checked,
-             * even though it's a subclass of OperationCanceledException:
-             * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/383ca5c5f161edb717cf8fae7bf143c13143f634#r135400615
-             */
-            try
+            using (var cts = new CancellationTokenSource())
             {
-                await cf.CreateConnectionAsync(cts.Token);
-            }
-            catch (TaskCanceledException)
-            {
-                passed = true;
-            }
-            catch (OperationCanceledException)
-            {
-                passed = true;
-            }
+                cts.Cancel();
 
-            Assert.True(passed, "FAIL did not see TaskCanceledException nor OperationCanceledException");
+                ConnectionFactory cf = CreateConnectionFactory();
+
+                bool passed = false;
+                /*
+                 * If anyone wonders why TaskCanceledException is explicitly checked,
+                 * even though it's a subclass of OperationCanceledException:
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/383ca5c5f161edb717cf8fae7bf143c13143f634#r135400615
+                 */
+                try
+                {
+                    await cf.CreateConnectionAsync(cts.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    passed = true;
+                }
+                catch (OperationCanceledException)
+                {
+                    passed = true;
+                }
+
+                Assert.True(passed, "FAIL did not see TaskCanceledException nor OperationCanceledException");
+            }
         }
 
         [Fact]
         public async Task TestCreateConnectionAsync_UsesValidEndpointWhenMultipleSupplied()
         {
-            using var cts = new CancellationTokenSource(WaitSpan);
-            ConnectionFactory cf = CreateConnectionFactory();
-            var invalidEp = new AmqpTcpEndpoint("not_localhost");
-            var ep = new AmqpTcpEndpoint("localhost");
-            using IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep }, cts.Token);
+            using (var cts = new CancellationTokenSource(WaitSpan))
+            {
+                ConnectionFactory cf = CreateConnectionFactory();
+                var invalidEp = new AmqpTcpEndpoint("not_localhost");
+                var ep = new AmqpTcpEndpoint("localhost");
+                using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep }, cts.Token))
+                {
+                    await conn.CloseAsync();
+                }
+            }
         }
     }
 }

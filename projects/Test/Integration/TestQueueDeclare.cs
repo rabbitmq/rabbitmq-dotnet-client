@@ -31,7 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,22 +45,22 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestConcurrentQueueDeclare()
+        public async Task TestConcurrentQueueDeclare()
         {
             var qs = new List<string>();
-            var ts = new List<Thread>();
+            var tasks = new List<Task>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
             {
-                var t = new Thread(() =>
+                var t = Task.Run(async () =>
                         {
                             try
                             {
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
-                                Thread.Sleep(S_Random.Next(5, 50));
+                                await Task.Delay(S_Random.Next(5, 50));
                                 string q = GenerateQueueName();
-                                _channel.QueueDeclare(q, false, false, false, null);
+                                await _channel.QueueDeclareAsync(q, false, false, false);
                                 qs.Add(q);
                             }
                             catch (NotSupportedException e)
@@ -68,40 +68,33 @@ namespace Test.Integration
                                 nse = e;
                             }
                         });
-                ts.Add(t);
-                t.Start();
+                tasks.Add(t);
             }
 
-            foreach (Thread t in ts)
-            {
-                t.Join();
-            }
+            await Task.WhenAll(tasks);
 
             Assert.Null(nse);
-            ts.Clear();
+            tasks.Clear();
 
             foreach (string queueName in qs)
             {
-                var t = new Thread(() =>
+                string q = queueName;
+                var t = Task.Run(async () =>
                         {
                             try
                             {
-                                Thread.Sleep(S_Random.Next(5, 50));
-                                _channel.QueueDelete(queueName);
+                                await Task.Delay(S_Random.Next(5, 50));
+                                await _channel.QueueDeleteAsync(queueName);
                             }
                             catch (NotSupportedException e)
                             {
                                 nse = e;
                             }
                         });
-                ts.Add(t);
-                t.Start();
+                tasks.Add(t);
             }
 
-            foreach (Thread t in ts)
-            {
-                t.Join();
-            }
+            await Task.WhenAll(tasks);
 
             Assert.Null(nse);
         }

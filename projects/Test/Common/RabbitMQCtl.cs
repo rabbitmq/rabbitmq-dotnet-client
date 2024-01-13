@@ -33,6 +33,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit.Abstractions;
 
@@ -42,8 +43,10 @@ namespace Test
     {
         private static readonly char[] newLine = new char[] { '\n' };
         private static readonly Func<string, Process> s_invokeRabbitMqCtl = GetRabbitMqCtlInvokeAction();
+        // NOTE: \r?
+        // https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-options#multiline-mode
         private static readonly Regex s_getConnectionProperties =
-            new Regex(@"^(?<pid><[^>]*>)\s\[.*""connection_name"",""(?<connection_name>[^""]*)"".*\]$", RegexOptions.Multiline | RegexOptions.Compiled);
+            new Regex(@"^(?<pid><[^>]*>)\s\[.*""connection_name"",""(?<connection_name>[^""]*)"".*\]\r?$", RegexOptions.Multiline | RegexOptions.Compiled);
 
         private readonly ITestOutputHelper _output;
 
@@ -52,47 +55,39 @@ namespace Test
             _output = output;
         }
 
-        public void CloseConnection(IConnection conn)
+        public async Task CloseConnectionAsync(IConnection conn)
         {
-            CloseConnection(GetConnectionPid(conn.ClientProvidedName));
+            string pid = await GetConnectionPidAsync(conn.ClientProvidedName);
+            await CloseConnectionAsync(pid);
         }
 
-        public void AddUser(string username, string password)
+        public Task AddUserAsync(string username, string password)
         {
-            ExecRabbitMQCtl($"add_user {username} {password}");
+            return ExecRabbitMQCtlAsync($"add_user {username} {password}");
         }
 
-        public void ChangePassword(string username, string password)
+        public Task ChangePasswordAsync(string username, string password)
         {
-            ExecRabbitMQCtl($"change_password {username} {password}");
+            return ExecRabbitMQCtlAsync($"change_password {username} {password}");
         }
 
-        public void SetPermissions(string username, string conf, string write, string read)
+        public Task SetPermissionsAsync(string username, string conf, string write, string read)
         {
-            ExecRabbitMQCtl($"set_permissions {username} \"{conf}\" \"{write}\" \"${read}\" ");
+            return ExecRabbitMQCtlAsync($"set_permissions {username} \"{conf}\" \"{write}\" \"${read}\" ");
         }
 
-        public void DeleteUser(string username)
+        public Task DeleteUserAsync(string username)
         {
-            ExecRabbitMQCtl($"delete_user {username}");
+            return ExecRabbitMQCtlAsync($"delete_user {username}");
         }
 
-        public string ExecRabbitMQCtl(string args)
+        public async Task<string> ExecRabbitMQCtlAsync(string args)
         {
             try
             {
-                using var process = s_invokeRabbitMqCtl(args);
-                process.Start();
-                process.WaitForExit();
-                string stderr = process.StandardError.ReadToEnd();
-                string stdout = process.StandardOutput.ReadToEnd();
-
-                if (stderr.Length > 0 || process.ExitCode > 0)
-                {
-                    ReportExecFailure("rabbitmqctl", args, $"{stderr}\n{stdout}");
-                }
-
-                return stdout;
+                ProcessStartInfo rabbitmqCtlStartInfo = GetRabbitMqCtlStartInfo(args);
+                ProcessUtil.Result result = await ProcessUtil.RunAsync(rabbitmqCtlStartInfo);
+                return result.StdOut;
             }
             catch (Exception e)
             {
@@ -104,6 +99,54 @@ namespace Test
         private void ReportExecFailure(string cmd, string args, string msg)
         {
             _output.WriteLine($"Failure while running {cmd} {args}:\n{msg}");
+        }
+
+        private static ProcessStartInfo GetRabbitMqCtlStartInfo(string args)
+        {
+            string envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
+
+            if (false == string.IsNullOrWhiteSpace(envVariable))
+            {
+                const string DockerPrefix = "DOCKER:";
+                if (envVariable.StartsWith(DockerPrefix))
+                {
+                    // Call docker
+                    return CreateProcessStartInfo("docker",
+                        $"exec {envVariable.Substring(DockerPrefix.Length)} rabbitmqctl {args}");
+                }
+                else
+                {
+                    // call the path from the env var
+                    return CreateProcessStartInfo(envVariable, args);
+                }
+            }
+
+            // Try default
+            string umbrellaRabbitmqctlPath;
+            string providedRabbitmqctlPath;
+
+            if (IsRunningOnMonoOrDotNetCore())
+            {
+                umbrellaRabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
+                providedRabbitmqctlPath = "rabbitmqctl";
+            }
+            else
+            {
+                umbrellaRabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
+                providedRabbitmqctlPath = "rabbitmqctl.bat";
+            }
+
+            string path = File.Exists(umbrellaRabbitmqctlPath) ? umbrellaRabbitmqctlPath : providedRabbitmqctlPath;
+
+            if (IsRunningOnMonoOrDotNetCore())
+            {
+                return CreateProcessStartInfo(path, args);
+            }
+            else
+            {
+                // TODO is cmd.exe really necessary?
+                return CreateProcessStartInfo("cmd.exe", $"/c \"\"{path}\" {args}");
+            }
         }
 
         private static Func<string, Process> GetRabbitMqCtlInvokeAction()
@@ -155,11 +198,11 @@ namespace Test
             }
         }
 
-        private string GetConnectionPid(string connectionName)
+        private async Task<string> GetConnectionPidAsync(string connectionName)
         {
-            string stdout = ExecRabbitMQCtl("list_connections --silent pid client_properties");
+            string stdout = await ExecRabbitMQCtlAsync("list_connections --silent pid client_properties");
 
-            var match = s_getConnectionProperties.Match(stdout);
+            Match match = s_getConnectionProperties.Match(stdout);
             while (match.Success)
             {
                 if (match.Groups["connection_name"].Value == connectionName)
@@ -173,9 +216,9 @@ namespace Test
             throw new Exception($"No connection found with name: {connectionName}");
         }
 
-        private void CloseConnection(string pid)
+        private Task CloseConnectionAsync(string pid)
         {
-            ExecRabbitMQCtl($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"");
+            return ExecRabbitMQCtlAsync($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"");
         }
 
         private static bool IsRunningOnMonoOrDotNetCore()
@@ -185,6 +228,20 @@ namespace Test
 #else
             return Type.GetType("Mono.Runtime") != null;
 #endif
+        }
+
+        private static ProcessStartInfo CreateProcessStartInfo(string cmd, string arguments, string workDirectory = null)
+        {
+            return new ProcessStartInfo
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                FileName = cmd,
+                Arguments = arguments,
+                WorkingDirectory = workDirectory
+            };
         }
 
         private static Process CreateProcess(string cmd, string arguments, string workDirectory = null)

@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public ValueTask<QueueDeclareOk> RecoverAsync(IChannel channel)
+        public Task<QueueDeclareOk> RecoverAsync(IChannel channel)
         {
             string queueName = IsServerNamed ? string.Empty : Name;
             return channel.QueueDeclareAsync(queue: queueName, passive: false,

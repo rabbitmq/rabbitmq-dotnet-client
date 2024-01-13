@@ -248,7 +248,7 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     _channelWriter.Complete();
-                    if (_writerTask is not null)
+                    if (_writerTask != null)
                     {
                         await _writerTask.ConfigureAwait(false);
                     }

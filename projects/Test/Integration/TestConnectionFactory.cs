@@ -31,6 +31,7 @@
 
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
@@ -44,13 +45,14 @@ namespace Test.Integration
         {
         }
 
-        protected override void SetUp()
+        public override Task InitializeAsync()
         {
             // NB: nothing to do here since each test creates its own factory,
             // connections and channels
             Assert.Null(_connFactory);
             Assert.Null(_conn);
             Assert.Null(_channel);
+            return Task.CompletedTask;
         }
 
         [Fact]
@@ -97,7 +99,7 @@ namespace Test.Integration
                 defaultSendBufsz = defaultSocket.SendBufferSize;
             }
 
-            ConnectionFactory cf = new()
+            var cf = new ConnectionFactory
             {
                 SocketFactory = (AddressFamily af) =>
                 {
@@ -121,246 +123,271 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestCreateConnectionUsesSpecifiedPort()
+        public async Task TestCreateConnectionUsesSpecifiedPort()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
             cf.Port = 1234;
 
-            Assert.Throws<BrokerUnreachableException>(() =>
+            await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
             {
-                using IConnection conn = cf.CreateConnection();
+                return cf.CreateConnectionAsync();
             });
         }
 
         [Fact]
-        public void TestCreateConnectionWithClientProvidedNameUsesSpecifiedPort()
+        public async Task TestCreateConnectionWithClientProvidedNameUsesSpecifiedPort()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
             cf.Port = 123;
 
-            Assert.Throws<BrokerUnreachableException>(() =>
+            await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
             {
-                using IConnection conn = cf.CreateConnection();
+                return cf.CreateConnectionAsync();
             });
         }
 
         [Fact]
-        public void TestCreateConnectionWithClientProvidedNameUsesDefaultName()
+        public async Task TestCreateConnectionWithClientProvidedNameUsesDefaultName()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             string expectedName = cf.ClientProvidedName;
 
-            using (IConnection conn = cf.CreateConnection())
+            using (IConnection conn = await cf.CreateConnectionAsync())
             {
                 Assert.Equal(expectedName, conn.ClientProvidedName);
                 Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
+                await conn.CloseAsync();
             }
         }
 
         [Fact]
-        public void TestCreateConnectionWithClientProvidedNameUsesNameArgumentValue()
+        public async Task TestCreateConnectionWithClientProvidedNameUsesNameArgumentValue()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             string expectedName = cf.ClientProvidedName;
 
-            using (IConnection conn = cf.CreateConnection(expectedName))
+            using (IConnection conn = await cf.CreateConnectionAsync(expectedName))
             {
                 Assert.Equal(expectedName, conn.ClientProvidedName);
                 Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
+                await conn.CloseAsync();
             }
         }
 
         [Fact]
-        public void TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesNameArgumentValue()
+        public async Task TestCreateConnectionWithClientProvidedNameAndAutorecoveryUsesNameArgumentValue()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             string expectedName = cf.ClientProvidedName;
 
-            using (IConnection conn = cf.CreateConnection(expectedName))
+            using (IConnection conn = await cf.CreateConnectionAsync(expectedName))
             {
                 Assert.Equal(expectedName, conn.ClientProvidedName);
                 Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
+                await conn.CloseAsync();
             }
         }
 
         [Fact]
-        public void TestCreateConnectionAmqpTcpEndpointListAndClientProvidedName()
+        public async Task TestCreateConnectionAmqpTcpEndpointListAndClientProvidedName()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             string expectedName = cf.ClientProvidedName;
 
             var xs = new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint("localhost") };
-            using (IConnection conn = cf.CreateConnection(xs, expectedName))
+            using (IConnection conn = await cf.CreateConnectionAsync(xs, expectedName))
             {
                 Assert.Equal(expectedName, conn.ClientProvidedName);
                 Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
+                await conn.CloseAsync();
             }
         }
 
         [Fact]
-        public void TestCreateConnectionUsesDefaultPort()
+        public async Task TestCreateConnectionUsesDefaultPort()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
 
-            using (IConnection conn = cf.CreateConnection())
+            using (IConnection conn = await cf.CreateConnectionAsync())
             {
                 Assert.Equal(5672, conn.Endpoint.Port);
+                await conn.CloseAsync();
             }
         }
 
         [Fact]
-        public void TestCreateConnectionUsesDefaultMaxMessageSize()
+        public async Task TestCreateConnectionUsesDefaultMaxMessageSize()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
 
             Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, cf.MaxMessageSize);
             Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, cf.Endpoint.MaxMessageSize);
 
-            using (IConnection conn = cf.CreateConnection())
+            using (IConnection conn = await cf.CreateConnectionAsync())
             {
                 Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, conn.Endpoint.MaxMessageSize);
+                await conn.CloseAsync();
             }
         }
 
         [Fact]
-        public void TestCreateConnectionWithoutAutoRecoverySelectsAHostFromTheList()
+        public async Task TestCreateConnectionWithoutAutoRecoverySelectsAHostFromTheList()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             cf.HostName = "not_localhost";
 
-            IConnection conn = cf.CreateConnection(new List<string> { "localhost" });
-            conn.Close();
+            IConnection conn = await cf.CreateConnectionAsync(new List<string> { "localhost" });
+            await conn.CloseAsync();
             conn.Dispose();
             Assert.Equal("not_localhost", cf.HostName);
             Assert.Equal("localhost", conn.Endpoint.HostName);
         }
 
         [Fact]
-        public void TestCreateConnectionWithAutoRecoveryUsesAmqpTcpEndpoint()
+        public async Task TestCreateConnectionWithAutoRecoveryUsesAmqpTcpEndpoint()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "not_localhost";
             cf.Port = 1234;
             var ep = new AmqpTcpEndpoint("localhost");
-            using (IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { ep })) { }
+            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
+            {
+                await conn.CloseAsync();
+            }
         }
 
         [Fact]
-        public void TestCreateConnectionWithAutoRecoveryUsesInvalidAmqpTcpEndpoint()
+        public async Task TestCreateConnectionWithAutoRecoveryUsesInvalidAmqpTcpEndpoint()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             var ep = new AmqpTcpEndpoint("localhost", 1234);
-            Assert.Throws<BrokerUnreachableException>(() => { using IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { ep }); });
+            await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
+            {
+                return cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
+            });
         }
 
         [Fact]
-        public void TestCreateConnectionUsesAmqpTcpEndpoint()
+        public async Task TestCreateConnectionUsesAmqpTcpEndpoint()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.HostName = "not_localhost";
             cf.Port = 1234;
             var ep = new AmqpTcpEndpoint("localhost");
-            using (IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { ep })) { }
+            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
+            {
+                await conn.CloseAsync();
+            }
         }
 
         [Fact]
-        public void TestCreateConnectionWithForcedAddressFamily()
+        public async Task TestCreateConnectionWithForcedAddressFamily()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.HostName = "not_localhost";
             var ep = new AmqpTcpEndpoint("localhost")
             {
                 AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork
             };
             cf.Endpoint = ep;
-            using IConnection conn = cf.CreateConnection();
+            using (IConnection conn = await cf.CreateConnectionAsync())
+            {
+                await conn.CloseAsync();
+            }
         }
 
         [Fact]
-        public void TestCreateConnectionUsesInvalidAmqpTcpEndpoint()
+        public async Task TestCreateConnectionUsesInvalidAmqpTcpEndpoint()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             var ep = new AmqpTcpEndpoint("localhost", 1234);
-            Assert.Throws<BrokerUnreachableException>(() =>
+            await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
             {
-                using IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { ep });
+                return cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
             });
         }
 
         [Fact]
-        public void TestCreateConnectionUsesValidEndpointWhenMultipleSupplied()
+        public async Task TestCreateConnectionUsesValidEndpointWhenMultipleSupplied()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             var invalidEp = new AmqpTcpEndpoint("not_localhost");
             var ep = new AmqpTcpEndpoint("localhost");
-            using IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { invalidEp, ep });
+            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep }))
+            {
+                await conn.CloseAsync();
+            }
         }
 
         [Fact]
         public void TestCreateAmqpTCPEndPointOverridesMaxMessageSizeWhenGreaterThanMaximumAllowed()
         {
-            var ep = new AmqpTcpEndpoint("localhost", -1, new SslOption(), ConnectionFactory.MaximumMaxMessageSize);
+            _ = new AmqpTcpEndpoint("localhost", -1, new SslOption(), ConnectionFactory.MaximumMaxMessageSize);
         }
 
         [Fact]
-        public void TestCreateConnectionUsesConfiguredMaxMessageSize()
+        public async Task TestCreateConnectionUsesConfiguredMaxMessageSize()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.MaxMessageSize = 1500;
-            using (IConnection conn = cf.CreateConnection())
+            using (IConnection conn = await cf.CreateConnectionAsync())
             {
                 Assert.Equal(cf.MaxMessageSize, conn.Endpoint.MaxMessageSize);
-            };
+                await conn.CloseAsync();
+            }
         }
         [Fact]
-        public void TestCreateConnectionWithAmqpEndpointListUsesAmqpTcpEndpointMaxMessageSize()
+        public async Task TestCreateConnectionWithAmqpEndpointListUsesAmqpTcpEndpointMaxMessageSize()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.MaxMessageSize = 1500;
             var ep = new AmqpTcpEndpoint("localhost");
             Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, ep.MaxMessageSize);
-            using (IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { ep }))
+            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
             {
                 Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, conn.Endpoint.MaxMessageSize);
-            };
+                await conn.CloseAsync();
+            }
         }
 
         [Fact]
-        public void TestCreateConnectionWithAmqpEndpointResolverUsesAmqpTcpEndpointMaxMessageSize()
+        public async Task TestCreateConnectionWithAmqpEndpointResolverUsesAmqpTcpEndpointMaxMessageSize()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.MaxMessageSize = 1500;
             var ep = new AmqpTcpEndpoint("localhost", -1, new SslOption(), 1200);
-            using (IConnection conn = cf.CreateConnection(new List<AmqpTcpEndpoint> { ep }))
+            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
             {
                 Assert.Equal(ep.MaxMessageSize, conn.Endpoint.MaxMessageSize);
-            };
+                await conn.CloseAsync();
+            }
         }
 
         [Fact]
-        public void TestCreateConnectionWithHostnameListUsesConnectionFactoryMaxMessageSize()
+        public async Task TestCreateConnectionWithHostnameListUsesConnectionFactoryMaxMessageSize()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.MaxMessageSize = 1500;
-            using (IConnection conn = cf.CreateConnection(new List<string> { "localhost" }))
+            using (IConnection conn = await cf.CreateConnectionAsync(new List<string> { "localhost" }))
             {
                 Assert.Equal(cf.MaxMessageSize, conn.Endpoint.MaxMessageSize);
-            };
+                await conn.CloseAsync();
+            }
         }
     }
 }

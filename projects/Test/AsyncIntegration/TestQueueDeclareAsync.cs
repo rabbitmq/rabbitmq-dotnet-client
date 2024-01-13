@@ -50,10 +50,10 @@ namespace Test.AsyncIntegration
         {
             string q = GenerateQueueName();
 
-            QueueDeclareOk declareResult = await _channel.QueueDeclareAsync(q, passive: false, false, false, false, null);
+            QueueDeclareOk declareResult = await _channel.QueueDeclareAsync(q, false, false, false);
             Assert.Equal(q, declareResult.QueueName);
 
-            QueueDeclareOk passiveDeclareResult = await _channel.QueueDeclareAsync(q, passive: true, false, false, false, null);
+            QueueDeclareOk passiveDeclareResult = await _channel.QueueDeclarePassiveAsync(q);
             Assert.Equal(q, passiveDeclareResult.QueueName);
         }
 
@@ -97,9 +97,9 @@ namespace Test.AsyncIntegration
                         // sleep for a random amount of time to increase the chances
                         // of thread interleaving. MK.
                         await Task.Delay(S_Random.Next(5, 50));
-                        QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: string.Empty, passive: false, false, false, false, null);
+                        QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: string.Empty, false, false, false);
                         string queueName = r.QueueName;
-                        await _channel.QueueBindAsync(queue: queueName, exchange: "amq.fanout", routingKey: queueName, null);
+                        await _channel.QueueBindAsync(queue: queueName, exchange: "amq.fanout", routingKey: queueName);
                         queues.Add(queueName);
                     }
                     catch (NotSupportedException e)
@@ -125,7 +125,7 @@ namespace Test.AsyncIntegration
                     {
                         await Task.Delay(S_Random.Next(5, 50));
 
-                        QueueDeclareOk r = await _channel.QueueDeclareAsync(qname, passive: true, false, false, false, null);
+                        QueueDeclareOk r = await _channel.QueueDeclarePassiveAsync(qname);
                         Assert.Equal(qname, r.QueueName);
 
                         await _channel.QueueUnbindAsync(queue: qname, exchange: "amq.fanout", routingKey: qname, null);

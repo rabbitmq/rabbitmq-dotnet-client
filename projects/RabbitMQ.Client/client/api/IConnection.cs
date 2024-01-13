@@ -214,17 +214,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="newSecret">The new secret.</param>
         /// <param name="reason">The reason for the secret update.</param>
-        void UpdateSecret(string newSecret, string reason);
-
-        /// <summary>
-        /// Close this connection and all its channels
-        /// and wait with a timeout for all the in-progress close operations to complete.
-        /// </summary>
-        /// <param name="reasonCode">The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).</param>
-        /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
-        /// <param name="timeout">Operation timeout.</param>
-        /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
-        void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort);
+        Task UpdateSecretAsync(string newSecret, string reason);
 
         /// <summary>
         /// Asynchronously close this connection and all its channels
@@ -234,17 +224,12 @@ namespace RabbitMQ.Client
         /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
         /// <param name="timeout">Operation timeout.</param>
         /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
-        ValueTask CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort);
-
-        /// <summary>
-        /// Create and return a fresh channel, session, and channel.
-        /// </summary>
-        IChannel CreateChannel();
+        Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort);
 
         /// <summary>
         /// Asynchronously create and return a fresh channel, session, and channel.
         /// </summary>
         // TODO cancellation token
-        ValueTask<IChannel> CreateChannelAsync();
+        Task<IChannel> CreateChannelAsync();
     }
 }

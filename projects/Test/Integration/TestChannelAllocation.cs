@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -38,13 +37,12 @@ using Xunit;
 
 namespace Test.Integration
 {
-    public class TestChannelAllocation : IDisposable
+    public class TestChannelAllocation : IAsyncLifetime
     {
-        public const int CHANNEL_COUNT = 100;
+        private IConnection _c;
+        private const int CHANNEL_COUNT = 100;
 
-        IConnection _c;
-
-        public TestChannelAllocation()
+        public async Task InitializeAsync()
         {
             var cf = new ConnectionFactory
             {
@@ -52,70 +50,67 @@ namespace Test.Integration
                 HandshakeContinuationTimeout = IntegrationFixture.WaitSpan,
                 ClientProvidedName = nameof(TestChannelAllocation)
             };
-            _c = cf.CreateConnection();
+
+            _c = await cf.CreateConnectionAsync();
         }
 
-        public void Dispose() => _c.Close();
+        public async Task DisposeAsync()
+        {
+            await _c.CloseAsync();
+        }
 
         [Fact]
-        public void AllocateInOrder()
+        public async Task AllocateInOrder()
         {
             var channels = new List<IChannel>();
             for (int i = 1; i <= CHANNEL_COUNT; i++)
             {
-                IChannel channel = _c.CreateChannel();
+                IChannel channel = await _c.CreateChannelAsync();
                 channels.Add(channel);
                 Assert.Equal(i, ChannelNumber(channel));
             }
 
             foreach (IChannel channel in channels)
             {
+                await channel.CloseAsync();
                 channel.Dispose();
             }
         }
 
         [Fact]
-        public void AllocateAfterFreeingLast()
+        public async Task AllocateAfterFreeingLast()
         {
-            using IChannel ch0 = _c.CreateChannel();
-            Assert.Equal(1, ChannelNumber(ch0));
-            ch0.Close();
-
-            using IChannel ch1 = _c.CreateChannel();
-            Assert.Equal(1, ChannelNumber(ch1));
-        }
-
-        [Fact]
-        public async Task AllocateAfterFreeingLastAsync()
-        {
-            using IChannel ch0 = _c.CreateChannel();
+            IChannel ch0 = await _c.CreateChannelAsync();
             Assert.Equal(1, ChannelNumber(ch0));
             await ch0.CloseAsync();
+            ch0.Dispose();
 
-            using IChannel ch1 = _c.CreateChannel();
+            IChannel ch1 = await _c.CreateChannelAsync();
             Assert.Equal(1, ChannelNumber(ch1));
+            await ch1.CloseAsync();
+            ch1.Dispose();
         }
 
         [Fact]
-        public void AllocateAfterFreeingMany()
+        public async Task AllocateAfterFreeingMany()
         {
             var channels = new List<IChannel>();
 
             for (int i = 1; i <= CHANNEL_COUNT; i++)
             {
-                channels.Add(_c.CreateChannel());
+                channels.Add(await _c.CreateChannelAsync());
             }
 
             foreach (IChannel channel in channels)
             {
-                channel.Close();
+                await channel.CloseAsync();
             }
 
             channels.Clear();
 
             for (int j = 1; j <= CHANNEL_COUNT; j++)
             {
-                channels.Add(_c.CreateChannel());
+                channels.Add(await _c.CreateChannelAsync());
             }
 
             // In the current implementation the list should actually
@@ -126,7 +121,7 @@ namespace Test.Integration
             foreach (IChannel channel in channels)
             {
                 Assert.Equal(k++, ChannelNumber(channel));
-                channel.Close();
+                await channel.CloseAsync();
             }
         }
 

@@ -30,7 +30,7 @@ namespace Benchmarks.Networking
         public async Task Publish_Hello_World()
         {
             var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
-            using (var connection = cf.CreateConnection())
+            using (IConnection connection = await cf.CreateConnectionAsync())
             {
                 await Publish_Hello_World(connection);
             }

@@ -32,6 +32,7 @@
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -47,15 +48,16 @@ namespace Test.Integration
             _sslEnv = new SslEnv();
         }
 
-        protected override void SetUp()
+        public override Task InitializeAsync()
         {
             Assert.Null(_connFactory);
             Assert.Null(_conn);
             Assert.Null(_channel);
+            return Task.CompletedTask;
         }
 
         [SkippableFact]
-        public void TestServerVerifiedIgnoringNameMismatch()
+        public async Task TestServerVerifiedIgnoringNameMismatch()
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
@@ -65,11 +67,11 @@ namespace Test.Integration
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
             cf.Ssl.Enabled = true;
 
-            SendReceive(cf);
+            await SendReceiveAsync(cf);
         }
 
         [SkippableFact]
-        public void TestServerVerified()
+        public async Task TestServerVerified()
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
@@ -78,11 +80,11 @@ namespace Test.Integration
             cf.Ssl.ServerName = _sslEnv.Hostname;
             cf.Ssl.Enabled = true;
 
-            SendReceive(cf);
+            await SendReceiveAsync(cf);
         }
 
         [SkippableFact]
-        public void TestClientAndServerVerified()
+        public async Task TestClientAndServerVerified()
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
@@ -96,12 +98,12 @@ namespace Test.Integration
             cf.Ssl.CertPassphrase = _sslEnv.CertPassphrase;
             cf.Ssl.Enabled = true;
 
-            SendReceive(cf);
+            await SendReceiveAsync(cf);
         }
 
         // rabbitmq/rabbitmq-dotnet-client#46, also #44 and #45
         [SkippableFact]
-        public void TestNoClientCertificate()
+        public async Task TestNoClientCertificate()
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
@@ -118,29 +120,32 @@ namespace Test.Integration
                     SslPolicyErrors.RemoteCertificateNameMismatch
             };
 
-            SendReceive(cf);
+            await SendReceiveAsync(cf);
         }
 
-        private void SendReceive(ConnectionFactory connectionFactory)
+        private async Task SendReceiveAsync(ConnectionFactory connectionFactory)
         {
-            using (IConnection conn = CreateConnectionWithRetries(connectionFactory))
+            using (IConnection conn = await CreateConnectionAsyncWithRetries(connectionFactory))
             {
-                using (IChannel ch = conn.CreateChannel())
+                using (IChannel ch = await conn.CreateChannelAsync())
                 {
-                    ch.ExchangeDeclare("Exchange_TestSslEndPoint", ExchangeType.Direct);
-                    string qName = ch.QueueDeclare();
-                    ch.QueueBind(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint", null);
+                    await ch.ExchangeDeclareAsync("Exchange_TestSslEndPoint", ExchangeType.Direct);
+
+                    string qName = await ch.QueueDeclareAsync();
+                    await ch.QueueBindAsync(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint");
 
                     string message = "Hello C# SSL Client World";
                     byte[] msgBytes = _encoding.GetBytes(message);
-                    ch.BasicPublish("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", msgBytes);
+                    await ch.BasicPublishAsync("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", msgBytes);
 
                     bool autoAck = false;
-                    BasicGetResult result = ch.BasicGet(qName, autoAck);
+                    BasicGetResult result = await ch.BasicGetAsync(qName, autoAck);
                     byte[] body = result.Body.ToArray();
                     string resultMessage = _encoding.GetString(body);
 
                     Assert.Equal(message, resultMessage);
+
+                    await ch.CloseAsync();
                 }
             }
         }

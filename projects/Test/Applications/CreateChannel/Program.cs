@@ -15,24 +15,24 @@ namespace CreateChannel
         private static int channelsOpened;
         private static AutoResetEvent doneEvent;
 
-        public static void Main()
+        public static async Task Main()
         {
             ThreadPool.SetMinThreads(16 * Environment.ProcessorCount, 16 * Environment.ProcessorCount);
 
             doneEvent = new AutoResetEvent(false);
 
             var connectionFactory = new ConnectionFactory { DispatchConsumersAsync = true };
-            var connection = connectionFactory.CreateConnection();
+            IConnection connection = await connectionFactory.CreateConnectionAsync();
 
             var watch = Stopwatch.StartNew();
-            _ = Task.Run(() =>
+            _ = Task.Run(async () =>
             {
                 var channels = new IChannel[ChannelsToOpen];
                 for (int i = 0; i < Repeats; i++)
                 {
                     for (int j = 0; j < channels.Length; j++)
                     {
-                        channels[j] = connection.CreateChannel();
+                        channels[j] = await connection.CreateChannelAsync();
                         channelsOpened++;
                     }
 

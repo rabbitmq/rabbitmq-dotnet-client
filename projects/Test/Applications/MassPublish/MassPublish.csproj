@@ -9,8 +9,8 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
     <OutputType>Exe</OutputType>
+    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

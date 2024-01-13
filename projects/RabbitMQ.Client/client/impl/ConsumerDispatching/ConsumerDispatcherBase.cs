@@ -7,8 +7,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal abstract class ConsumerDispatcherBase
     {
-        private static readonly FallbackConsumer fallbackConsumer = new();
-        private readonly Dictionary<string, IBasicConsumer> _consumers = new();
+        private static readonly FallbackConsumer fallbackConsumer = new FallbackConsumer();
+        private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
 
         public IBasicConsumer? DefaultConsumer { get; set; }
 

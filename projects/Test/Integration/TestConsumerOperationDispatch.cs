@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
@@ -58,17 +59,19 @@ namespace Test.Integration
         {
         }
 
-        protected override void TearDown()
+        public override async Task DisposeAsync()
         {
             foreach (IChannel ch in _channels)
             {
                 if (ch.IsOpen)
                 {
-                    ch.Close();
+                    await ch.CloseAsync();
                 }
             }
 
             s_counter.Reset();
+
+            await base.DisposeAsync();
         }
 
         private class CollectingConsumer : DefaultBasicConsumer
@@ -81,9 +84,9 @@ namespace Test.Integration
                 DeliveryTags = new List<ulong>();
             }
 
-            public override void HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliverAsync(string consumerTag,
                 ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-                in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+                ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
             {
                 // we test concurrent dispatch from the moment basic.delivery is returned.
                 // delivery tags have guaranteed ordering and we verify that it is preserved
@@ -95,32 +98,32 @@ namespace Test.Integration
                     s_counter.Signal();
                 }
 
-                Channel.BasicAck(deliveryTag: deliveryTag, multiple: false);
+                return Channel.BasicAckAsync(deliveryTag: deliveryTag, multiple: false).AsTask();
             }
         }
 
         [SkippableFact]
-        public void TestDeliveryOrderingWithSingleChannel()
+        public async Task TestDeliveryOrderingWithSingleChannel()
         {
             Skip.If(IntegrationFixture.IsRunningInCI && IntegrationFixtureBase.IsWindows, "TODO - test is slow in CI on Windows");
 
-            _channel.ExchangeDeclare(_x, "fanout", durable: false);
+            await _channel.ExchangeDeclareAsync(_x, "fanout", durable: false);
 
             for (int i = 0; i < Y; i++)
             {
-                IChannel ch = _conn.CreateChannel();
-                QueueDeclareOk q = ch.QueueDeclare("", durable: false, exclusive: true, autoDelete: true, arguments: null);
-                ch.QueueBind(queue: q, exchange: _x, routingKey: "");
+                IChannel ch = await _conn.CreateChannelAsync();
+                QueueDeclareOk q = await ch.QueueDeclareAsync("", durable: false, exclusive: true, autoDelete: true, arguments: null);
+                await ch.QueueBindAsync(queue: q, exchange: _x, routingKey: "");
                 _channels.Add(ch);
                 _queues.Add(q);
                 var cons = new CollectingConsumer(ch);
                 _consumers.Add(cons);
-                ch.BasicConsume(queue: q, autoAck: false, consumer: cons);
+                await ch.BasicConsumeAsync(queue: q, autoAck: false, consumer: cons);
             }
 
             for (int i = 0; i < N; i++)
             {
-                _channel.BasicPublish(_x, "", _encoding.GetBytes("msg"));
+                await _channel.BasicPublishAsync(_x, "", _encoding.GetBytes("msg"));
             }
 
             if (IntegrationFixture.IsRunningInCI)
@@ -150,68 +153,75 @@ namespace Test.Integration
 
         // see rabbitmq/rabbitmq-dotnet-client#61
         [Fact]
-        public void TestChannelShutdownDoesNotShutDownDispatcher()
+        public async Task TestChannelShutdownDoesNotShutDownDispatcher()
         {
-            _channel.ExchangeDeclare(_x, "fanout", durable: false);
+            await _channel.ExchangeDeclareAsync(_x, "fanout", durable: false);
 
-            IChannel ch1 = _conn.CreateChannel();
-            IChannel ch2 = _conn.CreateChannel();
+            IChannel ch1 = await _conn.CreateChannelAsync();
+            IChannel ch2 = await _conn.CreateChannelAsync();
 
-            string q1 = ch1.QueueDeclare().QueueName;
-            string q2 = ch2.QueueDeclare().QueueName;
-            ch2.QueueBind(queue: q2, exchange: _x, routingKey: "");
+            string q1 = (await ch1.QueueDeclareAsync()).QueueName;
+            string q2 = (await ch2.QueueDeclareAsync()).QueueName;
+            await ch2.QueueBindAsync(queue: q2, exchange: _x, routingKey: "");
 
-            var latch = new ManualResetEventSlim(false);
-            ch1.BasicConsume(q1, true, new EventingBasicConsumer(ch1));
+            var tcs = new TaskCompletionSource<bool>();
+            await ch1.BasicConsumeAsync(q1, true, new EventingBasicConsumer(ch1));
             var c2 = new EventingBasicConsumer(ch2);
             c2.Received += (object sender, BasicDeliverEventArgs e) =>
             {
-                latch.Set();
+                tcs.SetResult(true);
             };
-            ch2.BasicConsume(q2, true, c2);
+            await ch2.BasicConsumeAsync(q2, true, c2);
             // closing this channel must not affect ch2
-            ch1.Close();
+            await ch1.CloseAsync();
 
-            ch2.BasicPublish(_x, "", _encoding.GetBytes("msg"));
-            Wait(latch, "received event");
+            await ch2.BasicPublishAsync(_x, "", _encoding.GetBytes("msg"));
+            await WaitAsync(tcs, "received event");
         }
 
         private class ShutdownLatchConsumer : DefaultBasicConsumer
         {
             public ShutdownLatchConsumer()
             {
-                Latch = new();
-                DuplicateLatch = new();
+                Latch = new TaskCompletionSource<bool>();
+                DuplicateLatch = new TaskCompletionSource<bool>();
             }
 
-            public readonly ManualResetEventSlim Latch;
-            public readonly ManualResetEventSlim DuplicateLatch;
+            public readonly TaskCompletionSource<bool> Latch;
+            public readonly TaskCompletionSource<bool> DuplicateLatch;
 
             public override void HandleChannelShutdown(object channel, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
-                if (Latch.Wait(0))
+                if (Latch.Task.IsCompletedSuccessfully())
                 {
-                    DuplicateLatch.Set();
+                    DuplicateLatch.SetResult(true);
                 }
                 else
                 {
-                    Latch.Set();
+                    Latch.SetResult(true);
                 }
             }
         }
 
         [Fact]
-        public void TestChannelShutdownHandler()
+        public async Task TestChannelShutdownHandler()
         {
-            string q = _channel.QueueDeclare();
+            string q = await _channel.QueueDeclareAsync();
             var c = new ShutdownLatchConsumer();
 
-            _channel.BasicConsume(queue: q, autoAck: true, consumer: c);
-            _channel.Close();
+            await _channel.BasicConsumeAsync(queue: q, autoAck: true, consumer: c);
+            await _channel.CloseAsync();
 
-            Wait(c.Latch, TimeSpan.FromSeconds(5), "channel shutdown");
-            Assert.False(c.DuplicateLatch.Wait(TimeSpan.FromSeconds(5)), "event handler fired more than once");
+            await c.Latch.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(c.Latch.Task.IsCompletedSuccessfully());
+
+            await Assert.ThrowsAsync<TimeoutException>(() =>
+            {
+                return c.DuplicateLatch.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            });
+
+            Assert.False(c.DuplicateLatch.Task.IsCompletedSuccessfully());
         }
     }
 }

@@ -105,7 +105,7 @@ namespace RabbitMQ.Client.Impl
             return new RecordedConsumer(old.Channel, old.Consumer, old.ConsumerTag, newQueueName, old.AutoAck, old.Exclusive, old.Arguments);
         }
 
-        public ValueTask<string> RecoverAsync(IChannel channel)
+        public Task<string> RecoverAsync(IChannel channel)
         {
             return channel.BasicConsumeAsync(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
         }

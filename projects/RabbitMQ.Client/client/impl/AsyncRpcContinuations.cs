@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Impl
                     // What to do if setting a result fails?
                     _tcs.TrySetResult(new ConnectionSecureOrTune
                     {
-                        m_tuneDetails = new() { m_channelMax = tune._channelMax, m_frameMax = tune._frameMax, m_heartbeatInSeconds = tune._heartbeat }
+                        m_tuneDetails = new ConnectionTuneDetails { m_channelMax = tune._channelMax, m_frameMax = tune._frameMax, m_heartbeatInSeconds = tune._heartbeat }
                     });
                 }
                 else

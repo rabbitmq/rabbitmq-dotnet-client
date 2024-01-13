@@ -99,27 +99,10 @@ namespace RabbitMQ.Client
         IAuthMechanismFactory AuthMechanismFactory(IEnumerable<string> mechanismNames);
 
         /// <summary>
-        /// Create a connection to the specified endpoint.
-        /// </summary>
-        IConnection CreateConnection();
-
-        /// <summary>
         /// Asynchronously create a connection to the specified endpoint.
         /// </summary>
         /// <param name="cancellationToken">Cancellation token for this connection</param>
-        ValueTask<IConnection> CreateConnectionAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Create a connection to the specified endpoint.
-        /// </summary>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        IConnection CreateConnection(string clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously create a connection to the specified endpoint.
@@ -132,14 +115,7 @@ namespace RabbitMQ.Client
         /// </param>
         /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        ValueTask<IConnection> CreateConnectionAsync(string clientProvidedName, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Connects to the first reachable hostname from the list.
-        /// </summary>
-        /// <param name="hostnames">List of host names to use</param>
-        /// <returns>Open connection</returns>
-        IConnection CreateConnection(IEnumerable<string> hostnames);
+        Task<IConnection> CreateConnectionAsync(string clientProvidedName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously connects to the first reachable hostname from the list.
@@ -147,20 +123,7 @@ namespace RabbitMQ.Client
         /// <param name="hostnames">List of host names to use</param>
         /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Connects to the first reachable hostname from the list.
-        /// </summary>
-        /// <param name="hostnames">List of host names to use</param>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        IConnection CreateConnection(IEnumerable<string> hostnames, string clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously connects to the first reachable hostname from the list.
@@ -174,24 +137,10 @@ namespace RabbitMQ.Client
         /// </param>
         /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
+        Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Create a connection using a list of endpoints.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
-        /// </summary>
-        /// <param name="endpoints">
-        /// List of endpoints to use for the initial
-        /// connection and recovery.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        IConnection CreateConnection(IEnumerable<AmqpTcpEndpoint> endpoints);
-
-        /// <summary>
         /// Asynchronously create a connection using a list of endpoints.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
@@ -204,27 +153,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Create a connection using a list of endpoints.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
-        /// </summary>
-        /// <param name="endpoints">
-        /// List of endpoints to use for the initial
-        /// connection and recovery.
-        /// </param>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        IConnection CreateConnection(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously create a connection using a list of endpoints.
@@ -245,7 +174,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        ValueTask<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName,
+        Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName,
             CancellationToken cancellationToken = default);
 
         /// <summary>

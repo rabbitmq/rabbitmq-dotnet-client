@@ -404,19 +404,6 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Create a connection to one of the endpoints provided by the IEndpointResolver
-        /// returned by the EndpointResolverFactory. By default the configured
-        /// hostname and port are used.
-        /// </summary>
-        /// <exception cref="BrokerUnreachableException">
-        /// When the configured hostname was not reachable.
-        /// </exception>
-        public IConnection CreateConnection()
-        {
-            return CreateConnection(ClientProvidedName);
-        }
-
-        /// <summary>
         /// Asynchronously reate a connection to one of the endpoints provided by the IEndpointResolver
         /// returned by the EndpointResolverFactory. By default the configured
         /// hostname and port are used.
@@ -425,29 +412,10 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnectionAsync(
+        public Task<IConnection> CreateConnectionAsync(
             CancellationToken cancellationToken = default)
         {
             return CreateConnectionAsync(ClientProvidedName, cancellationToken);
-        }
-
-        /// <summary>
-        /// Create a connection to one of the endpoints provided by the IEndpointResolver
-        /// returned by the EndpointResolverFactory. By default the configured
-        /// hostname and port are used.
-        /// </summary>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <exception cref="BrokerUnreachableException">
-        /// When the configured hostname was not reachable.
-        /// </exception>
-        public IConnection CreateConnection(string clientProvidedName)
-        {
-            return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
 
         /// <summary>
@@ -465,32 +433,13 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnectionAsync(string clientProvidedName,
+        public Task<IConnection> CreateConnectionAsync(string clientProvidedName,
             CancellationToken cancellationToken = default)
         {
             return CreateConnectionAsync(EndpointResolverFactory(LocalEndpoints()), clientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection using a list of hostnames using the configured port.
-        /// By default each hostname is tried in a random order until a successful connection is
-        /// found or the list is exhausted using the DefaultEndpointResolver.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
-        /// </summary>
-        /// <param name="hostnames">
-        /// List of hostnames to use for the initial
-        /// connection and recovery.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        public IConnection CreateConnection(IEnumerable<string> hostnames)
-        {
-            return CreateConnection(hostnames, ClientProvidedName);
-        }
-
-        /// <summary>
         /// Asynchronously create a connection using a list of hostnames using the configured port.
         /// By default each hostname is tried in a random order until a successful connection is
         /// found or the list is exhausted using the DefaultEndpointResolver.
@@ -505,39 +454,13 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames,
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames,
             CancellationToken cancellationToken = default)
         {
             return CreateConnectionAsync(hostnames, ClientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection using a list of hostnames using the configured port.
-        /// By default each endpoint is tried in a random order until a successful connection is
-        /// found or the list is exhausted.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
-        /// </summary>
-        /// <param name="hostnames">
-        /// List of hostnames to use for the initial
-        /// connection and recovery.
-        /// </param>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        public IConnection CreateConnection(IEnumerable<string> hostnames, string clientProvidedName)
-        {
-            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxMessageSize));
-            return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
-        }
-
-        /// <summary>
         /// Asynchronously create a connection using a list of hostnames using the configured port.
         /// By default each endpoint is tried in a random order until a successful connection is
         /// found or the list is exhausted.
@@ -558,7 +481,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
             CancellationToken cancellationToken = default)
         {
             IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxMessageSize));
@@ -566,24 +489,6 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Create a connection using a list of endpoints. By default each endpoint will be tried
-        /// in a random order until a successful connection is found or the list is exhausted.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
-        /// </summary>
-        /// <param name="endpoints">
-        /// List of endpoints to use for the initial
-        /// connection and recovery.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        public IConnection CreateConnection(IEnumerable<AmqpTcpEndpoint> endpoints)
-        {
-            return CreateConnection(endpoints, ClientProvidedName);
-        }
-
-        /// <summary>
         /// Asynchronously create a connection using a list of endpoints. By default each endpoint will be tried
         /// in a random order until a successful connection is found or the list is exhausted.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
@@ -597,37 +502,13 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints,
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints,
             CancellationToken cancellationToken = default)
         {
             return CreateConnectionAsync(endpoints, ClientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection using a list of endpoints. By default each endpoint will be tried
-        /// in a random order until a successful connection is found or the list is exhausted.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
-        /// </summary>
-        /// <param name="endpoints">
-        /// List of endpoints to use for the initial
-        /// connection and recovery.
-        /// </param>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        public IConnection CreateConnection(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName)
-        {
-            return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
-        }
-
-        /// <summary>
         /// Asynchronously create a connection using a list of endpoints. By default each endpoint will be tried
         /// in a random order until a successful connection is found or the list is exhausted.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
@@ -647,50 +528,10 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public ValueTask<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName,
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName,
             CancellationToken cancellationToken = default)
         {
             return CreateConnectionAsync(EndpointResolverFactory(endpoints), clientProvidedName, cancellationToken);
-        }
-
-        /// <summary>
-        /// Create a connection using an IEndpointResolver.
-        /// </summary>
-        /// <param name="endpointResolver">
-        /// The endpointResolver that returns the endpoints to use for the connection attempt.
-        /// </param>
-        /// <param name="clientProvidedName">
-        /// Application-specific connection name, will be displayed in the management UI
-        /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-        /// be used as a connection identifier, e.g. in HTTP API requests.
-        /// This value is supposed to be human-readable.
-        /// </param>
-        /// <returns>Open connection</returns>
-        /// <exception cref="BrokerUnreachableException">
-        /// When no hostname was reachable.
-        /// </exception>
-        public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
-        {
-            ConnectionConfig config = CreateConfig(clientProvidedName);
-            try
-            {
-                if (AutomaticRecoveryEnabled)
-                {
-                    var c = new AutorecoveringConnection(config, endpointResolver);
-                    return (AutorecoveringConnection)c.Open();
-                }
-                else
-                {
-                    IFrameHandler frameHandler = endpointResolver.SelectOneAsync(
-                        CreateFrameHandlerAsync, CancellationToken.None).EnsureCompleted();
-                    var c = new Connection(config, frameHandler);
-                    return (Connection)c.Open();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new BrokerUnreachableException(ex);
-            }
         }
 
         /// <summary>
@@ -710,7 +551,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public async ValueTask<IConnection> CreateConnectionAsync(IEndpointResolver endpointResolver, string clientProvidedName,
+        public async Task<IConnection> CreateConnectionAsync(IEndpointResolver endpointResolver, string clientProvidedName,
             CancellationToken cancellationToken = default)
         {
             ConnectionConfig config = CreateConfig(clientProvidedName);

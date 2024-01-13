@@ -29,7 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
@@ -44,47 +44,49 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestEventingConsumerRegistrationEvents()
+        public async Task TestEventingConsumerRegistrationEvents()
         {
-            string q = _channel.QueueDeclare();
+            string q = await _channel.QueueDeclareAsync();
 
-            var registeredLatch = new ManualResetEventSlim(false);
+            var registeredTcs = new TaskCompletionSource<bool>();
             object registeredSender = null;
-            var unregisteredLatch = new ManualResetEventSlim(false);
+
+            var unregisteredTcs = new TaskCompletionSource<bool>();
             object unregisteredSender = null;
 
             EventingBasicConsumer ec = new EventingBasicConsumer(_channel);
             ec.Registered += (s, args) =>
             {
                 registeredSender = s;
-                registeredLatch.Set();
+                registeredTcs.SetResult(true);
             };
 
             ec.Unregistered += (s, args) =>
             {
                 unregisteredSender = s;
-                unregisteredLatch.Set();
+                unregisteredTcs.SetResult(true);
             };
 
-            string tag = _channel.BasicConsume(q, false, ec);
-            Wait(registeredLatch, "consumer registered");
+            string tag = await _channel.BasicConsumeAsync(q, false, ec);
+            await WaitAsync(registeredTcs, "consumer registered");
 
             Assert.NotNull(registeredSender);
             Assert.Equal(ec, registeredSender);
             Assert.Equal(_channel, ((EventingBasicConsumer)registeredSender).Channel);
 
-            _channel.BasicCancel(tag);
-            Wait(unregisteredLatch, "consumer unregistered");
+            await _channel.BasicCancelAsync(tag);
+
+            await WaitAsync(unregisteredTcs, "consumer unregistered");
             Assert.NotNull(unregisteredSender);
             Assert.Equal(ec, unregisteredSender);
             Assert.Equal(_channel, ((EventingBasicConsumer)unregisteredSender).Channel);
         }
 
         [Fact]
-        public void TestEventingConsumerDeliveryEvents()
+        public async Task TestEventingConsumerDeliveryEvents()
         {
-            var mre = new ManualResetEventSlim(false);
-            string q = _channel.QueueDeclare();
+            var tcs0 = new TaskCompletionSource<bool>();
+            string q = await _channel.QueueDeclareAsync();
 
             bool receivedInvoked = false;
             object receivedSender = null;
@@ -94,14 +96,14 @@ namespace Test.Integration
             {
                 receivedInvoked = true;
                 receivedSender = s;
-                mre.Set();
+                tcs0.SetResult(true);
             };
 
-            _channel.BasicConsume(q, true, ec);
-            _channel.BasicPublish("", q, _encoding.GetBytes("msg"));
+            await _channel.BasicConsumeAsync(q, true, ec);
+            await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
 
-            Wait(mre, "received event");
-            mre.Reset();
+            await WaitAsync(tcs0, "received event");
+            var tcs1 = new TaskCompletionSource<bool>();
 
             Assert.True(receivedInvoked);
             Assert.NotNull(receivedSender);
@@ -115,12 +117,12 @@ namespace Test.Integration
             {
                 shutdownInvoked = true;
                 shutdownSender = s;
-                mre.Set();
+                tcs1.SetResult(true);
             };
 
-            _channel.Close();
+            await _channel.CloseAsync();
 
-            Wait(mre, "shutdown event");
+            await WaitAsync(tcs1, "shutdown event");
 
             Assert.True(shutdownInvoked);
             Assert.NotNull(shutdownSender);

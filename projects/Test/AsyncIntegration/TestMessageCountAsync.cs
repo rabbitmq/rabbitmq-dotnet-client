@@ -48,11 +48,11 @@ namespace Test.AsyncIntegration
             await _channel.ConfirmSelectAsync();
             string q = GenerateQueueName();
             await _channel.QueueDeclareAsync(queue: q, passive: false, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.Equal(0u, _channel.MessageCount(q));
+            Assert.Equal(0u, await _channel.MessageCountAsync(q));
 
             await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
             await _channel.WaitForConfirmsAsync();
-            Assert.Equal(1u, _channel.MessageCount(q));
+            Assert.Equal(1u, await _channel.MessageCountAsync(q));
         }
     }
 }

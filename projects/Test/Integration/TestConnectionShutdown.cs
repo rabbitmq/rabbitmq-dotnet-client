@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -46,81 +46,88 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestCleanClosureWithSocketClosedOutOfBand()
+        public async Task TestCleanClosureWithSocketClosedOutOfBand()
         {
-            var latch = new ManualResetEventSlim(false);
+            var tcs = new TaskCompletionSource<bool>();
             _channel.ChannelShutdown += (channel, args) =>
             {
-                latch.Set();
+                tcs.SetResult(true);
             };
 
             var c = (AutorecoveringConnection)_conn;
-            c.CloseFrameHandler();
+            await c.CloseFrameHandlerAsync();
 
-            _conn.Close(TimeSpan.FromSeconds(4));
-            Wait(latch, TimeSpan.FromSeconds(5), "channel shutdown");
+            await _conn.CloseAsync(TimeSpan.FromSeconds(4));
+            await WaitAsync(tcs, TimeSpan.FromSeconds(5), "channel shutdown");
         }
 
         [Fact]
-        public void TestAbortWithSocketClosedOutOfBand()
+        public async Task TestAbortWithSocketClosedOutOfBand()
         {
-            var latch = new ManualResetEventSlim(false);
+            var tcs = new TaskCompletionSource<bool>();
             _channel.ChannelShutdown += (channel, args) =>
             {
-                latch.Set();
+                tcs.SetResult(true);
             };
 
             var c = (AutorecoveringConnection)_conn;
-            c.CloseFrameHandler();
+            await c.CloseFrameHandlerAsync();
 
-            _conn.Abort();
+            await _conn.AbortAsync();
+
             // default Connection.Abort() timeout and then some
-            Wait(latch, TimeSpan.FromSeconds(6), "channel shutdown");
+            await WaitAsync(tcs, TimeSpan.FromSeconds(6), "channel shutdown");
         }
 
         [Fact]
-        public void TestDisposedWithSocketClosedOutOfBand()
+        public async Task TestDisposedWithSocketClosedOutOfBand()
         {
-            var latch = new ManualResetEventSlim(false);
+            var tcs = new TaskCompletionSource<bool>();
+
             _channel.ChannelShutdown += (channel, args) =>
             {
-                latch.Set();
+                tcs.SetResult(true);
             };
 
             var c = (AutorecoveringConnection)_conn;
-            c.CloseFrameHandler();
+            await c.CloseFrameHandlerAsync();
 
+            // TODO this fails due to a race condition caused by abrupt closure of the
+            // socket frame handler
+            // await _conn.CloseAsync();
             _conn.Dispose();
-            Wait(latch, TimeSpan.FromSeconds(3), "channel shutdown");
+            _conn = null;
+            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
         }
 
         [Fact]
-        public void TestShutdownSignalPropagationToChannels()
+        public async Task TestShutdownSignalPropagationToChannels()
         {
-            var latch = new ManualResetEventSlim(false);
+            var tcs = new TaskCompletionSource<bool>();
 
             _channel.ChannelShutdown += (channel, args) =>
             {
-                latch.Set();
+                tcs.SetResult(true);
             };
-            _conn.Close();
 
-            Wait(latch, TimeSpan.FromSeconds(3), "channel shutdown");
+            await _conn.CloseAsync();
+
+            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
         }
 
         [Fact]
-        public void TestConsumerDispatcherShutdown()
+        public async Task TestConsumerDispatcherShutdown()
         {
             var m = (AutorecoveringChannel)_channel;
-            var latch = new ManualResetEventSlim(false);
+            var tcs = new TaskCompletionSource<bool>();
 
             _channel.ChannelShutdown += (channel, args) =>
             {
-                latch.Set();
+                tcs.SetResult(true);
             };
             Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
-            _conn.Close();
-            Wait(latch, TimeSpan.FromSeconds(3), "channel shutdown");
+            await _conn.CloseAsync();
+            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
             Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }
     }

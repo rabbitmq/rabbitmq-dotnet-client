@@ -58,10 +58,10 @@ namespace RabbitMQ.Client.Impl
             _arguments = arguments;
         }
 
-        public ValueTask RecoverAsync(IChannel channel)
+        public Task RecoverAsync(IChannel channel)
         {
             return channel.ExchangeDeclareAsync(exchange: Name, type: _type, passive: false,
-                durable: _durable, autoDelete: AutoDelete, arguments: _arguments);
+                durable: _durable, autoDelete: AutoDelete, noWait: false, arguments: _arguments);
         }
 
         public override string ToString()

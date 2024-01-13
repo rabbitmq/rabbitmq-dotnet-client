@@ -253,16 +253,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public IChannel CreateChannel()
-        {
-            EnsureIsOpen();
-            ISession session = CreateSession();
-            var channel = new Channel(_config, session);
-            channel._Private_ChannelOpen();
-            return channel;
-        }
-
-        public ValueTask<IChannel> CreateChannelAsync()
+        public Task<IChannel> CreateChannelAsync()
         {
             EnsureIsOpen();
             ISession session = CreateSession();
@@ -290,97 +281,10 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
-        {
-            Close(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), abort, timeout);
-        }
-
         ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
-        public ValueTask CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
+        public Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
         {
             return CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText), abort, timeout);
-        }
-
-        ///<summary>Try to close connection in a graceful way</summary>
-        ///<remarks>
-        ///<para>
-        ///Shutdown reason contains code and text assigned when closing the connection,
-        ///as well as the information about what initiated the close
-        ///</para>
-        ///<para>
-        ///Abort flag, if true, signals to close the ongoing connection immediately
-        ///and do not report any errors if it was already closed.
-        ///</para>
-        ///<para>
-        ///Timeout determines how much time internal close operations should be given
-        ///to complete.
-        ///</para>
-        ///</remarks>
-        internal void Close(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
-        {
-            if (!SetCloseReason(reason))
-            {
-                if (!abort)
-                {
-                    ThrowAlreadyClosedException(CloseReason!);
-                }
-            }
-            else
-            {
-                OnShutdown(reason);
-                _session0.SetSessionClosing(false);
-
-                try
-                {
-                    // Try to send connection.close wait for CloseOk in the MainLoop
-                    if (!_closed)
-                    {
-                        _session0.Transmit(new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0));
-                    }
-                }
-                catch (AlreadyClosedException)
-                {
-                    if (!abort)
-                    {
-                        throw;
-                    }
-                }
-                catch (NotSupportedException)
-                {
-                    // buffered stream had unread data in it and Flush()
-                    // was called, ignore to not confuse the user
-                }
-                catch (IOException ioe)
-                {
-                    if (_channel0.CloseReason is null)
-                    {
-                        if (!abort)
-                        {
-                            throw;
-                        }
-                        else
-                        {
-                            LogCloseError("Couldn't close connection cleanly. Socket closed unexpectedly", ioe);
-                        }
-                    }
-                }
-                finally
-                {
-                    TerminateMainloop();
-                }
-            }
-
-            try
-            {
-                if (!_mainLoopTask.Wait(timeout))
-                {
-                    _frameHandler.Close();
-                }
-            }
-            catch (AggregateException) // TODO this could be more than just a timeout
-            {
-            }
         }
 
         ///<summary>Asychronously try to close connection in a graceful way</summary>
@@ -399,12 +303,12 @@ namespace RabbitMQ.Client.Framing.Impl
         ///</para>
         ///</remarks>
         // TODO cancellation token
-        internal async ValueTask CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
+        internal async Task CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
         {
-            // TODO CloseAsync and Close share a lot of code
-            if (!SetCloseReason(reason))
+            if (false == SetCloseReason(reason))
             {
-                if (!abort)
+                // close reason is already set
+                if (false == abort)
                 {
                     ThrowAlreadyClosedException(CloseReason!);
                 }
@@ -458,7 +362,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                await _mainLoopTask.TimeoutAfter(timeout)
+                await _mainLoopTask.WaitAsync(timeout)
                     .ConfigureAwait(false);
             }
             catch (TimeoutException)
@@ -562,8 +466,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
-                _mainLoopTask.Wait();
+                /*
+                 * TODO rabbitmq-dotnet-client-1472
+                 * this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
+                 * _mainLoopTask.Wait();
+                 */
+                if (IsOpen)
+                {
+                    throw new InvalidOperationException("Connection must be closed before calling Dispose!");
+                }
             }
             catch (OperationInterruptedException)
             {

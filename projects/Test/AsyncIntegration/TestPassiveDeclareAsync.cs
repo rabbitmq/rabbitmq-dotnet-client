@@ -49,8 +49,8 @@ namespace Test.AsyncIntegration
         {
             return Assert.ThrowsAsync<OperationInterruptedException>(() =>
             {
-                ValueTask r = _channel.ExchangeDeclareAsync(Guid.NewGuid().ToString(), ExchangeType.Fanout, true, false, false, null);
-                return r.AsTask();
+                return _channel.ExchangeDeclareAsync(exchange: Guid.NewGuid().ToString(), type: ExchangeType.Fanout,
+                    passive: true, durable: true, autoDelete: false);
             });
         }
 
@@ -59,8 +59,8 @@ namespace Test.AsyncIntegration
         {
             return Assert.ThrowsAsync<OperationInterruptedException>(() =>
             {
-                ValueTask<QueueDeclareOk> r = _channel.QueueDeclareAsync(Guid.NewGuid().ToString(), true, false, false, false, null);
-                return r.AsTask();
+                return _channel.QueueDeclareAsync(queue: Guid.NewGuid().ToString(), passive: true,
+                    durable: true, exclusive: true, autoDelete: false);
             });
         }
     }

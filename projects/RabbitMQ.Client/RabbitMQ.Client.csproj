@@ -27,9 +27,13 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>../../packages</PackageOutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-    <ReleaseVersion>7.0</ReleaseVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!--
+      https://learn.microsoft.com/en-us/answers/questions/1371494/for-net-standard-2-0-library-why-add-net-core-3-1
+      https://devblogs.microsoft.com/dotnet/embracing-nullable-reference-types/#what-should-library-authors-do
+      Note: only setting language version 8.0 for nullable reference types!
+    -->
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(CI)' == 'true'">

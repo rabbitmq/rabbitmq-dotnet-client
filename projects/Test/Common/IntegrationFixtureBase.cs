@@ -38,6 +38,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -46,7 +47,7 @@ using Xunit.Abstractions;
 
 namespace Test
 {
-    public abstract class IntegrationFixtureBase : IDisposable
+    public abstract class IntegrationFixtureBase : IAsyncLifetime
     {
         private static bool s_isRunningInCI = false;
         private static bool s_isWindows = false;
@@ -105,53 +106,64 @@ namespace Test
                 .Replace("AsyncIntegration.", "AI.")
                 .Replace("Integration.", "I.")
                 .Replace("SequentialI.", "SI.");
-
-            SetUp();
         }
 
-        protected virtual void SetUp()
+        public virtual async Task InitializeAsync()
         {
+            /*
+             * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/120f9bfce627f704956e1008d095b853b459d45b#r135400345
+             * 
+             * Integration tests must use CreateConnectionFactory so that ClientProvidedName is set for the connection.
+             * Tests that close connections via `rabbitmqctl` depend on finding the connection PID via its name.
+             */
             if (_connFactory == null)
             {
-                /*
-                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/120f9bfce627f704956e1008d095b853b459d45b#r135400345
-                 * 
-                 * Integration tests must use CreateConnectionFactory so that ClientProvidedName is set for the connection.
-                 * Tests that close connections via `rabbitmqctl` depend on finding the connection PID via its name.
-                 */
                 _connFactory = CreateConnectionFactory();
             }
 
             if (_conn == null)
             {
-                _conn = CreateConnectionWithRetries(_connFactory);
-                _channel = _conn.CreateChannel();
+                _conn = await CreateConnectionAsyncWithRetries(_connFactory);
+                _channel = await _conn.CreateChannelAsync();
                 AddCallbackHandlers();
             }
+
+            if (_connFactory.AutomaticRecoveryEnabled)
+            {
+                Assert.IsType<AutorecoveringConnection>(_conn);
+            }
+            else
+            {
+                Assert.IsType<Connection>(_conn);
+            }
         }
 
-        public virtual void Dispose()
+        public virtual async Task DisposeAsync()
         {
-            if (_channel != null)
+            try
             {
-                _channel.Dispose();
-            }
+                if (_channel != null)
+                {
+                    await _channel.CloseAsync();
+                }
 
-            if (_conn != null)
+                if (_conn != null)
+                {
+                    await _conn.CloseAsync();
+                }
+            }
+            finally
             {
-                _conn.Dispose();
+                _channel?.Dispose();
+                _conn?.Dispose();
+                _channel = null;
+                _conn = null;
             }
-
-            TearDown();
-        }
-
-        protected virtual void TearDown()
-        {
         }
 
         protected virtual void AddCallbackHandlers()
         {
-            if (IntegrationFixtureBase.IsVerbose)
+            if (IsVerbose)
             {
                 if (_conn != null)
                 {
@@ -206,13 +218,12 @@ namespace Test
             get { return s_isVerbose; }
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(IEnumerable<string> hostnames, bool expectException = false)
+        internal Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync(IEnumerable<string> hostnames, bool expectException = false)
         {
-
-            return CreateAutorecoveringConnection(hostnames, RequestedConnectionTimeout, RecoveryInterval, expectException);
+            return CreateAutorecoveringConnectionAsync(hostnames, RequestedConnectionTimeout, RecoveryInterval, expectException);
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(IEnumerable<string> hostnames,
+        internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync(IEnumerable<string> hostnames,
             TimeSpan requestedConnectionTimeout, TimeSpan networkRecoveryInterval, bool expectException = false)
         {
             if (hostnames is null)
@@ -228,10 +239,11 @@ namespace Test
             cf.RequestedConnectionTimeout = requestedConnectionTimeout;
             cf.NetworkRecoveryInterval = networkRecoveryInterval;
 
-            return (AutorecoveringConnection)CreateConnectionWithRetries(cf, hostnames, expectException);
+            IConnection conn = await CreateConnectionAsyncWithRetries(cf, hostnames, expectException);
+            return (AutorecoveringConnection)conn;
         }
 
-        protected IConnection CreateConnectionWithRetries(ConnectionFactory connectionFactory,
+        protected async Task<IConnection> CreateConnectionAsyncWithRetries(ConnectionFactory connectionFactory,
             IEnumerable<string> hostnames = null, bool expectException = false)
         {
             bool shouldRetry = IsWindows;
@@ -243,11 +255,11 @@ namespace Test
                 {
                     if (hostnames is null)
                     {
-                        return connectionFactory.CreateConnection();
+                        return await connectionFactory.CreateConnectionAsync();
                     }
                     else
                     {
-                        return connectionFactory.CreateConnection(hostnames);
+                        return await connectionFactory.CreateConnectionAsync(hostnames);
                     }
                 }
                 catch (BrokerUnreachableException ex)
@@ -263,10 +275,13 @@ namespace Test
                         if (ex.InnerException is AggregateException agex0)
                         {
                             AggregateException agex1 = agex0.Flatten();
-                            ioex = agex1.InnerExceptions.Where(ex => ex is IOException).FirstOrDefault() as IOException;
+                            ioex = agex1.InnerExceptions.Where(iex => iex is IOException).FirstOrDefault() as IOException;
                         }
 
-                        ioex ??= ex.InnerException as IOException;
+                        if (ioex == null)
+                        {
+                            ioex = ex.InnerException as IOException;
+                        }
 
                         if (ioex is null)
                         {
@@ -277,7 +292,7 @@ namespace Test
                             if (ioex.InnerException is SocketException)
                             {
                                 tries++;
-                                _output.WriteLine($"WARNING: {nameof(CreateConnectionWithRetries)} retrying ({tries}), caught exception: {ioex.InnerException}");
+                                _output.WriteLine($"WARNING: {nameof(CreateConnectionAsyncWithRetries)} retrying ({tries}), caught exception: {ioex.InnerException}");
                             }
                             else
                             {
@@ -289,21 +304,20 @@ namespace Test
             }
             while (shouldRetry && tries < 5);
 
-            Assert.Fail($"FAIL: {nameof(CreateConnectionWithRetries)} could not open connection");
+            Assert.Fail($"FAIL: {nameof(CreateConnectionAsyncWithRetries)} could not open connection");
             return null;
         }
 
-        protected void WithTemporaryChannel(Action<IChannel> action)
+        protected async Task WithTemporaryChannelAsync(Func<IChannel, Task> action)
         {
-            IChannel channel = _conn.CreateChannel();
-
+            IChannel channel = await _conn.CreateChannelAsync();
             try
             {
-                action(channel);
+                await action(channel);
             }
             finally
             {
-                channel.Abort();
+                await channel.AbortAsync();
             }
         }
 
@@ -317,58 +331,69 @@ namespace Test
             return $"{_testDisplayName}-queue-{Guid.NewGuid()}";
         }
 
-        protected void WithTemporaryNonExclusiveQueue(Action<IChannel, string> action)
+        protected Task WithTemporaryNonExclusiveQueueAsync(Func<IChannel, string, Task> action)
         {
-            WithTemporaryNonExclusiveQueue(_channel, action);
+            return WithTemporaryNonExclusiveQueueAsync(_channel, action);
         }
 
-        protected void WithTemporaryNonExclusiveQueue(IChannel channel, Action<IChannel, string> action)
+        protected Task WithTemporaryNonExclusiveQueueAsync(IChannel channel, Func<IChannel, string, Task> action)
         {
-            WithTemporaryNonExclusiveQueue(channel, action, GenerateQueueName());
+            return WithTemporaryNonExclusiveQueueAsync(channel, action, GenerateQueueName());
         }
 
-        protected void WithTemporaryNonExclusiveQueue(IChannel channel, Action<IChannel, string> action, string queue)
+        protected async Task WithTemporaryNonExclusiveQueueAsync(IChannel channel, Func<IChannel, string, Task> action, string queue)
         {
             try
             {
-                channel.QueueDeclare(queue, false, false, false, null);
-                action(channel, queue);
+                await channel.QueueDeclareAsync(queue, false, false, false);
+                await action(channel, queue);
             }
             finally
             {
-                WithTemporaryChannel(tm => tm.QueueDelete(queue));
+                await WithTemporaryChannelAsync(ch =>
+                {
+                    return ch.QueueDeleteAsync(queue);
+                });
             }
         }
 
-        protected void AssertMessageCount(string q, uint count)
+        protected Task AssertMessageCountAsync(string q, uint count)
         {
-            WithTemporaryChannel((m) =>
+            return WithTemporaryChannelAsync(async ch =>
             {
-                RabbitMQ.Client.QueueDeclareOk ok = m.QueueDeclarePassive(q);
+                RabbitMQ.Client.QueueDeclareOk ok = await ch.QueueDeclarePassiveAsync(q);
                 Assert.Equal(count, ok.MessageCount);
             });
         }
 
-        protected void AssertShutdownError(ShutdownEventArgs args, int code)
+        protected static void AssertShutdownError(ShutdownEventArgs args, int code)
         {
             Assert.Equal(args.ReplyCode, code);
         }
 
-        protected void AssertPreconditionFailed(ShutdownEventArgs args)
+        protected static void AssertPreconditionFailed(ShutdownEventArgs args)
         {
             AssertShutdownError(args, Constants.PreconditionFailed);
         }
 
-        protected void Wait(ManualResetEventSlim latch, string desc)
+        protected static Task WaitAsync(TaskCompletionSource<bool> tcs, string desc)
         {
-            Assert.True(latch.Wait(WaitSpan),
-                $"waiting {WaitSpan.TotalSeconds} seconds on a latch for '{desc}' timed out");
+            return WaitAsync(tcs, WaitSpan, desc);
         }
 
-        protected void Wait(ManualResetEventSlim latch, TimeSpan timeSpan, string desc)
+        protected static async Task WaitAsync(TaskCompletionSource<bool> tcs, TimeSpan timeSpan, string desc)
         {
-            Assert.True(latch.Wait(timeSpan),
-                $"waiting {timeSpan.TotalSeconds} seconds on a latch for '{desc}' timed out");
+            try
+            {
+                await tcs.Task.WaitAsync(timeSpan);
+                bool result = await tcs.Task;
+                Assert.True((true == result) && (tcs.Task.IsCompletedSuccessfully()),
+                    $"waiting {timeSpan.TotalSeconds} seconds on a tcs for '{desc}' timed out");
+            }
+            catch (TimeoutException)
+            {
+                Assert.Fail($"waiting {timeSpan.TotalSeconds} seconds on a tcs for '{desc}' timed out");
+            }
         }
 
         protected ConnectionFactory CreateConnectionFactory()

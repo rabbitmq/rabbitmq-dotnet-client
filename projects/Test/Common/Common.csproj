@@ -11,9 +11,8 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>../../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <LangVersion>latest</LangVersion>
-    <ReleaseVersion>7.0</ReleaseVersion>
     <IsTestProject>false</IsTestProject>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +26,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.6.2" />
+    <PackageReference Include="xunit" Version="2.6.6" />
     <PackageReference Include="xunit.abstractions" Version="2.0.3" />
   </ItemGroup>
 

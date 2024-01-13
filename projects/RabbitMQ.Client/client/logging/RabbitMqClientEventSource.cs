@@ -71,12 +71,6 @@ namespace RabbitMQ.Client.Logging
             {
 #if NET6_0_OR_GREATER
                 WriteExceptionEvent(message, ex);
-
-                [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
-                void WriteExceptionEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(string message, T ex)
-                {
-                    WriteEvent(3, message, ex);
-                }
 #else
                 WriteEvent(3, message, ex);
 #endif
@@ -88,5 +82,13 @@ namespace RabbitMQ.Client.Logging
         {
             Error(message, new RabbitMqExceptionDetail(ex));
         }
+
+#if NET6_0_OR_GREATER
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
+        private void WriteExceptionEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(string message, T ex)
+        {
+            WriteEvent(3, message, ex);
+        }
+#endif
     }
 }

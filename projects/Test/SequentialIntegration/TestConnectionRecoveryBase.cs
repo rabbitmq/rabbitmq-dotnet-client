@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing.Impl;
 using Xunit;
@@ -42,7 +43,7 @@ namespace Test.SequentialIntegration
     public class TestConnectionRecoveryBase : SequentialIntegrationFixture
     {
         protected readonly byte[] _messageBody;
-        protected const ushort _totalMessageCount = 8192;
+        protected const ushort _totalMessageCount = 16384;
         protected const ushort _closeAtCount = 16;
 
         public TestConnectionRecoveryBase(ITestOutputHelper output) : base(output)
@@ -50,54 +51,60 @@ namespace Test.SequentialIntegration
             _messageBody = GetRandomBody(4096);
         }
 
-        protected override void TearDown()
+        public override async Task DisposeAsync()
         {
-            Unblock();
+            await UnblockAsync();
+            await base.DisposeAsync();
         }
 
-        protected void AssertConsumerCount(string q, int count)
+        protected Task AssertConsumerCountAsync(string q, int count)
         {
-            WithTemporaryChannel((m) =>
+            return WithTemporaryChannelAsync(async ch =>
             {
-                RabbitMQ.Client.QueueDeclareOk ok = m.QueueDeclarePassive(q);
+                RabbitMQ.Client.QueueDeclareOk ok = await ch.QueueDeclarePassiveAsync(q);
                 Assert.Equal((uint)count, ok.ConsumerCount);
             });
         }
 
-        protected void AssertConsumerCount(IChannel m, string q, uint count)
+        protected async Task AssertConsumerCountAsync(IChannel ch, string q, uint count)
         {
-            RabbitMQ.Client.QueueDeclareOk ok = m.QueueDeclarePassive(q);
+            RabbitMQ.Client.QueueDeclareOk ok = await ch.QueueDeclarePassiveAsync(q);
             Assert.Equal(count, ok.ConsumerCount);
         }
 
-        protected void AssertExchangeRecovery(IChannel m, string x)
+        protected async Task AssertExchangeRecoveryAsync(IChannel m, string x)
         {
-            m.ConfirmSelect();
-            WithTemporaryNonExclusiveQueue(m, (_, q) =>
+            await m.ConfirmSelectAsync();
+            await WithTemporaryNonExclusiveQueueAsync(m, async (_, q) =>
             {
                 string rk = "routing-key";
-                m.QueueBind(q, x, rk);
-                m.BasicPublish(x, rk, _messageBody);
+                await m.QueueBindAsync(q, x, rk);
+                await m.BasicPublishAsync(x, rk, _messageBody);
 
-                Assert.True(WaitForConfirms(m));
-                m.ExchangeDeclarePassive(x);
+                Assert.True(await TestConnectionRecoveryBase.WaitForConfirmsWithCancellationAsync(m));
+                await m.ExchangeDeclarePassiveAsync(x);
             });
         }
 
-        protected void AssertQueueRecovery(IChannel m, string q)
+        protected Task AssertExclusiveQueueRecoveryAsync(IChannel m, string q)
         {
-            AssertQueueRecovery(m, q, true);
+            return AssertQueueRecoveryAsync(m, q, true);
         }
 
-        protected void AssertQueueRecovery(IChannel m, string q, bool exclusive, IDictionary<string, object> arguments = null)
+        protected async Task AssertQueueRecoveryAsync(IChannel ch, string q, bool exclusive, IDictionary<string, object> arguments = null)
         {
-            m.ConfirmSelect();
-            m.QueueDeclarePassive(q);
-            RabbitMQ.Client.QueueDeclareOk ok1 = m.QueueDeclare(q, false, exclusive, false, arguments);
+            await ch.ConfirmSelectAsync();
+            await ch.QueueDeclareAsync(queue: q, passive: true, durable: false, exclusive: false, autoDelete: false, arguments: null);
+
+            RabbitMQ.Client.QueueDeclareOk ok1 = await ch.QueueDeclareAsync(queue: q, passive: false,
+                durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
             Assert.Equal(0u, ok1.MessageCount);
-            m.BasicPublish("", q, _messageBody);
-            Assert.True(WaitForConfirms(m));
-            RabbitMQ.Client.QueueDeclareOk ok2 = m.QueueDeclare(q, false, exclusive, false, arguments);
+
+            await ch.BasicPublishAsync("", q, _messageBody);
+            Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
+
+            RabbitMQ.Client.QueueDeclareOk ok2 = await ch.QueueDeclareAsync(queue: q, passive: false,
+                durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
             Assert.Equal(1u, ok2.MessageCount);
         }
 
@@ -111,20 +118,21 @@ namespace Test.SequentialIntegration
             Assert.Equal(n, c.RecordedQueuesCount);
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection()
+        internal Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync()
         {
-            return CreateAutorecoveringConnection(RecoveryInterval);
+            return CreateAutorecoveringConnectionAsync(RecoveryInterval);
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(TimeSpan networkRecoveryInterval)
+        internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync(TimeSpan networkRecoveryInterval)
         {
             var cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.NetworkRecoveryInterval = networkRecoveryInterval;
-            return (AutorecoveringConnection)cf.CreateConnection();
+            IConnection conn = await cf.CreateConnectionAsync();
+            return (AutorecoveringConnection)conn;
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnection(IList<AmqpTcpEndpoint> endpoints)
+        internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync(IList<AmqpTcpEndpoint> endpoints)
         {
             var cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
@@ -132,257 +140,282 @@ namespace Test.SequentialIntegration
             // make sure we time out quickly on those
             cf.RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
             cf.NetworkRecoveryInterval = RecoveryInterval;
-            return (AutorecoveringConnection)cf.CreateConnection(endpoints);
+            IConnection conn = await cf.CreateConnectionAsync(endpoints);
+            return (AutorecoveringConnection)conn;
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryDisabled()
+        internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionWithTopologyRecoveryDisabledAsync()
         {
             var cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = false;
             cf.NetworkRecoveryInterval = RecoveryInterval;
-            return (AutorecoveringConnection)cf.CreateConnection();
+            IConnection conn = await cf.CreateConnectionAsync();
+            return (AutorecoveringConnection)conn;
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryFilter(TopologyRecoveryFilter filter)
+        internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(TopologyRecoveryFilter filter)
         {
             var cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = true;
             cf.TopologyRecoveryFilter = filter;
-            return (AutorecoveringConnection)cf.CreateConnection();
+            IConnection conn = await cf.CreateConnectionAsync();
+            return (AutorecoveringConnection)conn;
         }
 
-        internal AutorecoveringConnection CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandler(TopologyRecoveryExceptionHandler handler)
+        internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(TopologyRecoveryExceptionHandler handler)
         {
             var cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = true;
             cf.TopologyRecoveryExceptionHandler = handler;
-            return (AutorecoveringConnection)cf.CreateConnection();
+            IConnection conn = await cf.CreateConnectionAsync();
+            return (AutorecoveringConnection)conn;
         }
 
-        protected void CloseConnection(IConnection conn)
+        protected Task CloseConnectionAsync(IConnection conn)
         {
-            _rabbitMQCtl.CloseConnection(conn);
+            return _rabbitMQCtl.CloseConnectionAsync(conn);
         }
 
-        protected void CloseAndWaitForRecovery()
+        protected Task CloseAndWaitForRecoveryAsync()
         {
-            CloseAndWaitForRecovery((AutorecoveringConnection)_conn);
+            return CloseAndWaitForRecoveryAsync((AutorecoveringConnection)_conn);
         }
 
-        internal void CloseAndWaitForRecovery(AutorecoveringConnection conn)
+        internal async Task CloseAndWaitForRecoveryAsync(AutorecoveringConnection conn)
         {
-            ManualResetEventSlim sl = PrepareForShutdown(conn);
-            ManualResetEventSlim rl = PrepareForRecovery(conn);
-            CloseConnection(conn);
-            Wait(sl, "connection shutdown");
-            Wait(rl, "connection recovery");
+            TaskCompletionSource<bool> sl = PrepareForShutdown(conn);
+            TaskCompletionSource<bool> rl = PrepareForRecovery(conn);
+            await CloseConnectionAsync(conn);
+            await WaitAsync(sl, "connection shutdown");
+            await WaitAsync(rl, "connection recovery");
         }
 
-        internal void CloseAndWaitForShutdown(AutorecoveringConnection conn)
+        internal async Task CloseAndWaitForShutdownAsync(AutorecoveringConnection conn)
         {
-            ManualResetEventSlim sl = PrepareForShutdown(conn);
-            CloseConnection(conn);
-            Wait(sl, "connection shutdown");
+            TaskCompletionSource<bool> sl = PrepareForShutdown(conn);
+            await CloseConnectionAsync(conn);
+            await WaitAsync(sl, "connection shutdown");
         }
 
-        protected string DeclareNonDurableExchange(IChannel m, string x)
+        protected static async Task<string> DeclareNonDurableExchangeAsync(IChannel ch, string exchangeName)
         {
-            m.ExchangeDeclare(x, "fanout", false);
-            return x;
+            await ch.ExchangeDeclareAsync(exchangeName, "fanout", false);
+            return exchangeName;
         }
 
-        protected string DeclareNonDurableExchangeNoWait(IChannel m, string x)
+        protected async Task PublishMessagesWhileClosingConnAsync(string queueName)
         {
-            m.ExchangeDeclareNoWait(x, "fanout", false, false, null);
-            return x;
-        }
-
-        protected ManualResetEventSlim PrepareForRecovery(IConnection conn)
-        {
-            var latch = new ManualResetEventSlim(false);
-
-            AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.RecoverySucceeded += (source, ea) => latch.Set();
-
-            return latch;
-        }
-
-        protected void PublishMessagesWhileClosingConn(string queueName)
-        {
-            using (AutorecoveringConnection publishingConn = CreateAutorecoveringConnection())
+            using (AutorecoveringConnection publishingConn = await CreateAutorecoveringConnectionAsync())
             {
-                using (IChannel publishingChannel = publishingConn.CreateChannel())
+                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync())
                 {
                     for (ushort i = 0; i < _totalMessageCount; i++)
                     {
                         if (i == _closeAtCount)
                         {
-                            CloseConnection(_conn);
+                            await CloseConnectionAsync(_conn);
                         }
-                        publishingChannel.BasicPublish(string.Empty, queueName, _messageBody);
+
+                        await publishingChannel.BasicPublishAsync(string.Empty, queueName, _messageBody);
                     }
+
+                    await publishingChannel.CloseAsync();
                 }
             }
         }
 
-        protected static ManualResetEventSlim PrepareForShutdown(IConnection conn)
+        protected static TaskCompletionSource<bool> PrepareForShutdown(IConnection conn)
         {
-            var latch = new ManualResetEventSlim(false);
+            var tcs = new TaskCompletionSource<bool>();
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.ConnectionShutdown += (c, args) => latch.Set();
+            aconn.ConnectionShutdown += (c, args) => tcs.SetResult(true);
 
-            return latch;
+            return tcs;
         }
 
-        protected void RestartServerAndWaitForRecovery()
+        protected static TaskCompletionSource<bool> PrepareForRecovery(IConnection conn)
         {
-            RestartServerAndWaitForRecovery((AutorecoveringConnection)_conn);
+            var tcs = new TaskCompletionSource<bool>();
+
+            AutorecoveringConnection aconn = conn as AutorecoveringConnection;
+            aconn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+
+            return tcs;
         }
 
-        internal void RestartServerAndWaitForRecovery(AutorecoveringConnection conn)
+        protected Task RestartServerAndWaitForRecoveryAsync()
         {
-            ManualResetEventSlim sl = PrepareForShutdown(conn);
-            ManualResetEventSlim rl = PrepareForRecovery(conn);
-            RestartRabbitMQ();
-            Wait(sl, "connection shutdown");
-            Wait(rl, "connection recovery");
+            return RestartServerAndWaitForRecoveryAsync((AutorecoveringConnection)_conn);
         }
 
-        protected bool WaitForConfirms(IChannel m)
+        private async Task RestartServerAndWaitForRecoveryAsync(AutorecoveringConnection conn)
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-            return m.WaitForConfirmsAsync(cts.Token).EnsureCompleted();
+            TaskCompletionSource<bool> sl = PrepareForShutdown(conn);
+            TaskCompletionSource<bool> rl = PrepareForRecovery(conn);
+            await RestartRabbitMqAsync();
+            await WaitAsync(sl, "connection shutdown");
+            await WaitAsync(rl, "connection recovery");
         }
 
-        protected void WaitForRecovery()
+        protected static Task<bool> WaitForConfirmsWithCancellationAsync(IChannel m)
         {
-            Wait(PrepareForRecovery((AutorecoveringConnection)_conn), "recovery succeded");
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
+            {
+                return m.WaitForConfirmsAsync(cts.Token);
+            }
         }
 
-        internal void WaitForRecovery(AutorecoveringConnection conn)
+        protected Task WaitForRecoveryAsync()
         {
-            Wait(PrepareForRecovery(conn), "recovery succeeded");
+            TaskCompletionSource<bool> tcs = PrepareForRecovery((AutorecoveringConnection)_conn);
+            return WaitAsync(tcs, "recovery succeded");
         }
 
-        protected void WaitForShutdown()
+        internal Task WaitForRecoveryAsync(AutorecoveringConnection conn)
         {
-            Wait(PrepareForShutdown(_conn), "connection shutdown");
+            TaskCompletionSource<bool> tcs = PrepareForRecovery(conn);
+            return WaitAsync(tcs, "recovery succeeded");
         }
 
-        protected void WaitForShutdown(IConnection conn)
+        protected Task WaitForShutdownAsync()
         {
-            Wait(PrepareForShutdown(conn), "connection shutdown");
+            TaskCompletionSource<bool> tcs = PrepareForShutdown(_conn);
+            return WaitAsync(tcs, "connection shutdown");
         }
 
-        protected void WithTemporaryQueueNoWait(IChannel channel, Action<IChannel, string> action, string queue)
+        protected static Task WaitForShutdownAsync(IConnection conn)
+        {
+            TaskCompletionSource<bool> tcs = PrepareForShutdown(conn);
+            return WaitAsync(tcs, "connection shutdown");
+        }
+
+        protected async Task WithTemporaryExclusiveQueueNoWaitAsync(IChannel channel, Func<IChannel, string, Task> action, string queue)
         {
             try
             {
-                channel.QueueDeclareNoWait(queue, false, true, false, null);
-                action(channel, queue);
+                await channel.QueueDeclareAsync(queue: queue, durable: false, exclusive: true, autoDelete: false, noWait: true);
+                await action(channel, queue);
             }
             finally
             {
-                WithTemporaryChannel(x => x.QueueDelete(queue));
+                await WithTemporaryChannelAsync((ch) => ch.QueueDeleteAsync(queue));
             }
         }
 
         public class AckingBasicConsumer : TestBasicConsumer
         {
-            public AckingBasicConsumer(IChannel channel, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
+            public AckingBasicConsumer(IChannel channel, ushort totalMessageCount, TaskCompletionSource<bool> allMessagesSeenLatch)
                 : base(channel, totalMessageCount, allMessagesSeenLatch)
             {
             }
 
-            public override void PostHandleDelivery(ulong deliveryTag)
+            public override Task PostHandleDeliveryAsync(ulong deliveryTag)
             {
-                Channel.BasicAck(deliveryTag, false);
+                return Channel.BasicAckAsync(deliveryTag, false).AsTask();
             }
         }
 
         public class NackingBasicConsumer : TestBasicConsumer
         {
-            public NackingBasicConsumer(IChannel channel, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
-                : base(channel, totalMessageCount, allMessagesSeenLatch)
+            public NackingBasicConsumer(IChannel channel, ushort totalMessageCount, TaskCompletionSource<bool> allMessagesSeenTcs)
+                : base(channel, totalMessageCount, allMessagesSeenTcs)
             {
             }
 
-            public override void PostHandleDelivery(ulong deliveryTag)
+            public override Task PostHandleDeliveryAsync(ulong deliveryTag)
             {
-                Channel.BasicNack(deliveryTag, false, false);
+                return Channel.BasicNackAsync(deliveryTag, false, false).AsTask();
             }
         }
 
         public class RejectingBasicConsumer : TestBasicConsumer
         {
-            public RejectingBasicConsumer(IChannel channel, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
-                : base(channel, totalMessageCount, allMessagesSeenLatch)
+            public RejectingBasicConsumer(IChannel channel, ushort totalMessageCount, TaskCompletionSource<bool> allMessagesSeenTcs)
+                : base(channel, totalMessageCount, allMessagesSeenTcs)
             {
             }
 
-            public override void PostHandleDelivery(ulong deliveryTag)
+            public override Task PostHandleDeliveryAsync(ulong deliveryTag)
             {
-                Channel.BasicReject(deliveryTag, false);
+                return Channel.BasicRejectAsync(deliveryTag, false);
             }
         }
 
         public class TestBasicConsumer : DefaultBasicConsumer
         {
-            protected readonly ManualResetEventSlim _allMessagesSeenLatch;
+            protected readonly TaskCompletionSource<bool> _allMessagesSeenTcs;
             protected readonly ushort _totalMessageCount;
             protected ushort _counter = 0;
 
-            public TestBasicConsumer(IChannel channel, ushort totalMessageCount, ManualResetEventSlim allMessagesSeenLatch)
+            public TestBasicConsumer(IChannel channel, ushort totalMessageCount, TaskCompletionSource<bool> allMessagesSeenTcs)
                 : base(channel)
             {
                 _totalMessageCount = totalMessageCount;
-                _allMessagesSeenLatch = allMessagesSeenLatch;
+                _allMessagesSeenTcs = allMessagesSeenTcs;
             }
 
-            public override void HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliverAsync(string consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
                 string exchange,
                 string routingKey,
-                in ReadOnlyBasicProperties properties,
+                ReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
                 try
                 {
-                    PostHandleDelivery(deliveryTag);
+                    return PostHandleDeliveryAsync(deliveryTag);
                 }
                 finally
                 {
                     ++_counter;
                     if (_counter >= _totalMessageCount)
                     {
-                        _allMessagesSeenLatch.Set();
+                        _allMessagesSeenTcs.SetResult(true);
                     }
                 }
             }
 
-            public virtual void PostHandleDelivery(ulong deliveryTag)
+            public virtual Task PostHandleDeliveryAsync(ulong deliveryTag)
             {
+                return Task.CompletedTask;
             }
         }
 
-        protected bool SendAndConsumeMessage(IConnection conn, string queue, string exchange, string routingKey)
+        protected static async Task<bool> SendAndConsumeMessageAsync(IConnection conn, string queue, string exchange, string routingKey)
         {
-            using (IChannel ch = conn.CreateChannel())
+            using (IChannel ch = await conn.CreateChannelAsync())
             {
-                var latch = new ManualResetEventSlim(false);
+                await ch.ConfirmSelectAsync();
 
-                var consumer = new AckingBasicConsumer(ch, 1, latch);
+                var tcs = new TaskCompletionSource<bool>();
 
-                ch.BasicConsume(queue, false, consumer);
+                var consumer = new AckingBasicConsumer(ch, 1, tcs);
 
-                ch.BasicPublish(exchange, routingKey, _encoding.GetBytes("test message"));
+                await ch.BasicConsumeAsync(queue, false, consumer);
 
-                return latch.Wait(TimeSpan.FromSeconds(5));
+                await ch.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                    body: _encoding.GetBytes("test message"), mandatory: true);
+
+                await ch.WaitForConfirmsOrDieAsync();
+
+                try
+                {
+                    await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                    return tcs.Task.IsCompletedSuccessfully();
+                }
+                catch (TimeoutException)
+                {
+                    return false;
+                }
+                finally
+                {
+                    await ch.CloseAsync();
+                }
             }
         }
     }

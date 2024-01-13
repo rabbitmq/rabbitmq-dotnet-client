@@ -67,15 +67,15 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public ValueTask RecoverAsync(IChannel channel)
+        public Task RecoverAsync(IChannel channel)
         {
             if (_isQueueBinding)
             {
-                return channel.QueueBindAsync(_destination, _source, _routingKey, _arguments);
+                return channel.QueueBindAsync(_destination, _source, _routingKey, _arguments, false);
             }
             else
             {
-                return channel.ExchangeBindAsync(_destination, _source, _routingKey, _arguments);
+                return channel.ExchangeBindAsync(_destination, _source, _routingKey, _arguments, false);
             }
         }
 

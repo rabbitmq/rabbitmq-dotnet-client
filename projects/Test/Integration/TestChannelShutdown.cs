@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using Xunit;
@@ -45,20 +45,20 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestConsumerDispatcherShutdown()
+        public async Task TestConsumerDispatcherShutdown()
         {
-            var m = (AutorecoveringChannel)_channel;
-            var latch = new ManualResetEventSlim(false);
+            var autorecoveringChannel = (AutorecoveringChannel)_channel;
+            var tcs = new TaskCompletionSource<bool>();
 
             _channel.ChannelShutdown += (channel, args) =>
             {
-                latch.Set();
+                tcs.SetResult(true);
             };
 
-            Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
-            _channel.Close();
-            Wait(latch, TimeSpan.FromSeconds(5), "channel shutdown");
-            Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
+            Assert.False(autorecoveringChannel.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
+            await _channel.CloseAsync();
+            await WaitAsync(tcs, TimeSpan.FromSeconds(5), "channel shutdown");
+            Assert.True(autorecoveringChannel.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }
     }
 }

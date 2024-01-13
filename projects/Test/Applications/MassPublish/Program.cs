@@ -76,7 +76,7 @@ namespace MassPublish
             await consumeChannel.BasicQosAsync(prefetchSize: 0, prefetchCount: 128, global: false);
 
             await consumeChannel.ExchangeDeclareAsync(exchange: ExchangeName,
-                type: ExchangeType.Direct, passive: false, durable: false, autoDelete: false, arguments: null);
+                type: ExchangeType.Direct, passive: false, durable: false, autoDelete: false, noWait: false, arguments: null);
 
             await consumeChannel.QueueDeclareAsync(queue: QueueName,
                 passive: false, durable: false, exclusive: false, autoDelete: false, arguments: null);
@@ -125,6 +125,8 @@ namespace MassPublish
                     {
                         Console.WriteLine("[DEBUG] channel {0} done publishing and waiting for confirms", publishChannel.ChannelNumber);
                     }
+
+                    await publishChannel.CloseAsync();
                 }));
             }
 
@@ -152,6 +154,8 @@ namespace MassPublish
 
                 await c.CloseAsync();
             }
+
+            await consumeChannel.CloseAsync();
         }
 
         private static void PublishChannel_BasicNacks(object sender, BasicNackEventArgs e)

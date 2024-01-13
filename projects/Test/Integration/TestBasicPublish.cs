@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
@@ -46,125 +47,134 @@ namespace Test.Integration
         {
         }
 
-        protected override void SetUp()
+        public override Task InitializeAsync()
         {
             _connFactory = CreateConnectionFactory();
             Assert.Null(_conn);
             Assert.Null(_channel);
+            return Task.CompletedTask;
         }
 
         [Fact]
-        public void TestBasicRoundtripArray()
+        public async Task TestBasicRoundtripArray()
         {
-            _conn = _connFactory.CreateConnection();
-            _channel = _conn.CreateChannel();
+            _conn = await _connFactory.CreateConnectionAsync();
+            _channel = await _conn.CreateChannelAsync();
 
-            QueueDeclareOk q = _channel.QueueDeclare();
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
             var bp = new BasicProperties();
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
             var consumer = new EventingBasicConsumer(_channel);
-            var are = new AutoResetEvent(false);
-            consumer.Received += (o, a) =>
+            using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumeBody = a.Body.ToArray();
-                are.Set();
-            };
-            string tag = _channel.BasicConsume(q.QueueName, true, consumer);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    consumerReceivedSemaphore.Release();
+                };
+                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-            _channel.BasicPublish("", q.QueueName, bp, sendBody);
-            bool waitResFalse = are.WaitOne(5000);
-            _channel.BasicCancel(tag);
+                await _channel.BasicPublishAsync("", q.QueueName, bp, sendBody);
+                bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
+                await _channel.BasicCancelAsync(tag);
 
-            Assert.True(waitResFalse);
-            Assert.Equal(sendBody, consumeBody);
+                Assert.True(waitRes);
+                Assert.Equal(sendBody, consumeBody);
+            }
         }
 
         [Fact]
-        public void TestBasicRoundtripCachedString()
+        public async Task TestBasicRoundtripCachedString()
         {
-            _conn = _connFactory.CreateConnection();
-            _channel = _conn.CreateChannel();
+            _conn = await _connFactory.CreateConnectionAsync();
+            _channel = await _conn.CreateChannelAsync();
 
             CachedString exchangeName = new CachedString(string.Empty);
-            CachedString queueName = new CachedString(_channel.QueueDeclare().QueueName);
+            CachedString queueName = new CachedString((await _channel.QueueDeclareAsync()).QueueName);
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
             var consumer = new EventingBasicConsumer(_channel);
-            var are = new AutoResetEvent(false);
-            consumer.Received += (o, a) =>
+            using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumeBody = a.Body.ToArray();
-                are.Set();
-            };
-            string tag = _channel.BasicConsume(queueName.Value, true, consumer);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    consumerReceivedSemaphore.Release();
+                };
+                string tag = await _channel.BasicConsumeAsync(queueName.Value, true, consumer);
 
-            _channel.BasicPublish(exchangeName, queueName, sendBody);
-            bool waitResFalse = are.WaitOne(2000);
-            _channel.BasicCancel(tag);
+                await _channel.BasicPublishAsync(exchangeName, queueName, sendBody);
+                bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
+                await _channel.BasicCancelAsync(tag);
 
-            Assert.True(waitResFalse);
-            Assert.Equal(sendBody, consumeBody);
+                Assert.True(waitResFalse);
+                Assert.Equal(sendBody, consumeBody);
+            }
         }
 
         [Fact]
-        public void TestBasicRoundtripReadOnlyMemory()
+        public async Task TestBasicRoundtripReadOnlyMemory()
         {
-            _conn = _connFactory.CreateConnection();
-            _channel = _conn.CreateChannel();
+            _conn = await _connFactory.CreateConnectionAsync();
+            _channel = await _conn.CreateChannelAsync();
 
-            QueueDeclareOk q = _channel.QueueDeclare();
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
             var consumer = new EventingBasicConsumer(_channel);
-            var are = new AutoResetEvent(false);
-            consumer.Received += (o, a) =>
+            using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumeBody = a.Body.ToArray();
-                are.Set();
-            };
-            string tag = _channel.BasicConsume(q.QueueName, true, consumer);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    consumerReceivedSemaphore.Release();
+                };
+                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-            _channel.BasicPublish("", q.QueueName, new ReadOnlyMemory<byte>(sendBody));
-            bool waitResFalse = are.WaitOne(2000);
-            _channel.BasicCancel(tag);
+                await _channel.BasicPublishAsync("", q.QueueName, new ReadOnlyMemory<byte>(sendBody));
+                bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
+                await _channel.BasicCancelAsync(tag);
 
-            Assert.True(waitResFalse);
-            Assert.Equal(sendBody, consumeBody);
+                Assert.True(waitRes);
+                Assert.Equal(sendBody, consumeBody);
+            }
         }
 
         [Fact]
-        public void CanNotModifyPayloadAfterPublish()
+        public async Task CanNotModifyPayloadAfterPublish()
         {
-            _conn = _connFactory.CreateConnection();
-            _channel = _conn.CreateChannel();
+            _conn = await _connFactory.CreateConnectionAsync();
+            _channel = await _conn.CreateChannelAsync();
 
-            QueueDeclareOk q = _channel.QueueDeclare();
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
             byte[] sendBody = new byte[1000];
             var consumer = new EventingBasicConsumer(_channel);
-            var receivedMessage = new AutoResetEvent(false);
-            bool modified = true;
-            consumer.Received += (o, a) =>
+            using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                if (a.Body.Span.IndexOf((byte)1) < 0)
+                bool modified = true;
+                consumer.Received += (o, a) =>
                 {
-                    modified = false;
-                }
-                receivedMessage.Set();
-            };
-            string tag = _channel.BasicConsume(q.QueueName, true, consumer);
+                    if (a.Body.Span.IndexOf((byte)1) < 0)
+                    {
+                        modified = false;
+                    }
+                    consumerReceivedSemaphore.Release();
+                };
+                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-            _channel.BasicPublish("", q.QueueName, sendBody);
-            sendBody.AsSpan().Fill(1);
+                await _channel.BasicPublishAsync("", q.QueueName, sendBody);
+                sendBody.AsSpan().Fill(1);
 
-            Assert.True(receivedMessage.WaitOne(5000));
-            Assert.False(modified, "Payload was modified after the return of BasicPublish");
+                Assert.True(await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5)));
+                Assert.False(modified, "Payload was modified after the return of BasicPublish");
 
-            _channel.BasicCancel(tag);
+                await _channel.BasicCancelAsync(tag);
+            }
         }
 
         [Fact]
-        public void TestMaxMessageSize()
+        public async Task TestMaxMessageSize()
         {
             var re = new ManualResetEventSlim();
             const ushort maxMsgSize = 1024;
@@ -183,7 +193,7 @@ namespace Test.Integration
             bool sawConsumerRegistered = false;
             bool sawConsumerCancelled = false;
 
-            using (IConnection c = cf.CreateConnection())
+            using (IConnection c = await cf.CreateConnectionAsync())
             {
                 c.ConnectionShutdown += (o, a) =>
                 {
@@ -194,7 +204,7 @@ namespace Test.Integration
                 Assert.Equal(maxMsgSize, cf.Endpoint.MaxMessageSize);
                 Assert.Equal(maxMsgSize, c.Endpoint.MaxMessageSize);
 
-                using (IChannel channel = c.CreateChannel())
+                using (IChannel channel = await c.CreateChannelAsync())
                 {
                     channel.ChannelShutdown += (o, a) =>
                     {
@@ -206,7 +216,7 @@ namespace Test.Integration
                         throw new XunitException("Unexpected channel.CallbackException");
                     };
 
-                    QueueDeclareOk q = channel.QueueDeclare();
+                    QueueDeclareOk q = await channel.QueueDeclareAsync();
 
                     var consumer = new EventingBasicConsumer(channel);
 
@@ -235,10 +245,10 @@ namespace Test.Integration
                         Interlocked.Increment(ref count);
                     };
 
-                    string tag = channel.BasicConsume(q.QueueName, true, consumer);
+                    string tag = await channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-                    channel.BasicPublish("", q.QueueName, msg0);
-                    channel.BasicPublish("", q.QueueName, msg1);
+                    await channel.BasicPublishAsync("", q.QueueName, msg0);
+                    await channel.BasicPublishAsync("", q.QueueName, msg1);
                     Assert.True(re.Wait(TimeSpan.FromSeconds(5)));
 
                     Assert.Equal(1, count);
@@ -246,43 +256,47 @@ namespace Test.Integration
                     Assert.True(sawChannelShutdown);
                     Assert.True(sawConsumerRegistered);
                     Assert.True(sawConsumerCancelled);
+
+                    await channel.CloseAsync();
                 }
             }
         }
 
         [Fact]
-        public void TestPropertiesRoundtrip_Headers()
+        public async Task TestPropertiesRoundtrip_Headers()
         {
-            _conn = _connFactory.CreateConnection();
-            _channel = _conn.CreateChannel();
+            _conn = await _connFactory.CreateConnectionAsync();
+            _channel = await _conn.CreateChannelAsync();
 
             var subject = new BasicProperties
             {
                 Headers = new Dictionary<string, object>()
             };
 
-            QueueDeclareOk q = _channel.QueueDeclare();
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
             var bp = new BasicProperties() { Headers = new Dictionary<string, object>() };
             bp.Headers["Hello"] = "World";
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
             var consumer = new EventingBasicConsumer(_channel);
-            var are = new AutoResetEvent(false);
-            string response = null;
-            consumer.Received += (o, a) =>
+            using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                response = _encoding.GetString(a.BasicProperties.Headers["Hello"] as byte[]);
-                consumeBody = a.Body.ToArray();
-                are.Set();
-            };
+                string response = null;
+                consumer.Received += (o, a) =>
+                {
+                    response = _encoding.GetString(a.BasicProperties.Headers["Hello"] as byte[]);
+                    consumeBody = a.Body.ToArray();
+                    consumerReceivedSemaphore.Release();
+                };
 
-            string tag = _channel.BasicConsume(q.QueueName, true, consumer);
-            _channel.BasicPublish("", q.QueueName, bp, sendBody);
-            bool waitResFalse = are.WaitOne(5000);
-            _channel.BasicCancel(tag);
-            Assert.True(waitResFalse);
-            Assert.Equal(sendBody, consumeBody);
-            Assert.Equal("World", response);
+                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                await _channel.BasicPublishAsync("", q.QueueName, bp, sendBody);
+                bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
+                await _channel.BasicCancelAsync(tag);
+                Assert.True(waitResFalse);
+                Assert.Equal(sendBody, consumeBody);
+                Assert.Equal("World", response);
+            }
         }
     }
 }

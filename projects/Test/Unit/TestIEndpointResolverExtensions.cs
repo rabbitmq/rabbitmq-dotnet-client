@@ -66,7 +66,7 @@ namespace Test.Unit
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint>());
 
-            static Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep, CancellationToken ct)
+            Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep0, CancellationToken ct)
             {
                 return Task.FromResult<AmqpTcpEndpoint>(null);
             }
@@ -79,7 +79,7 @@ namespace Test.Unit
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint() });
 
-            static Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep, CancellationToken ct)
+            Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep0, CancellationToken ct)
             {
                 return Task.FromException<AmqpTcpEndpoint>(new TestEndpointException("bananas"));
             }
@@ -99,9 +99,9 @@ namespace Test.Unit
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint() });
 
-            static Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep, CancellationToken ct)
+            Task<AmqpTcpEndpoint> selector(AmqpTcpEndpoint ep0, CancellationToken ct)
             {
-                return Task.FromResult<AmqpTcpEndpoint>(ep);
+                return Task.FromResult<AmqpTcpEndpoint>(ep0);
             }
 
             Assert.NotNull(await ep.SelectOneAsync(selector, CancellationToken.None));
