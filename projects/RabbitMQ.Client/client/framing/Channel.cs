@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
@@ -47,21 +46,6 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelSend(new ConnectionTuneOk(channelMax, frameMax, heartbeat));
         }
 
-        public override void _Private_BasicCancel(string consumerTag, bool nowait)
-        {
-            ChannelSend(new BasicCancel(consumerTag, nowait));
-        }
-
-        public override void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IDictionary<string, object> arguments)
-        {
-            ChannelSend(new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, nowait, arguments));
-        }
-
-        public override void _Private_BasicGet(string queue, bool autoAck)
-        {
-            ChannelSend(new BasicGet(queue, autoAck));
-        }
-
         public override void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
         {
             ChannelSend(new ChannelClose(replyCode, replyText, classId, methodId));
@@ -77,136 +61,9 @@ namespace RabbitMQ.Client.Framing.Impl
             ChannelSend(new ChannelFlowOk(active));
         }
 
-        public override void _Private_ChannelOpen()
-        {
-            ChannelRpc(new ChannelOpen(), ProtocolCommandId.ChannelOpenOk);
-        }
-
-        public override void _Private_ConfirmSelect(bool nowait)
-        {
-            var method = new ConfirmSelect(nowait);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ConfirmSelectOk);
-            }
-        }
-
         public override void _Private_ConnectionCloseOk()
         {
             ChannelSend(new ConnectionCloseOk());
-        }
-
-        public override void _Private_UpdateSecret(byte[] newSecret, string reason)
-        {
-            ChannelRpc(new ConnectionUpdateSecret(newSecret, reason), ProtocolCommandId.ConnectionUpdateSecretOk);
-        }
-
-        public override void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
-        {
-            var method = new ExchangeBind(destination, source, routingKey, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ExchangeBindOk);
-            }
-        }
-
-        public override void _Private_ExchangeDeclare(string exchange, string type, bool passive, bool durable, bool autoDelete, bool @internal, bool nowait, IDictionary<string, object> arguments)
-        {
-            var method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, @internal, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ExchangeDeclareOk);
-            }
-        }
-
-        public override void _Private_ExchangeDelete(string exchange, bool ifUnused, bool nowait)
-        {
-            var method = new ExchangeDelete(exchange, ifUnused, nowait);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ExchangeDeleteOk);
-            }
-        }
-
-        public override void _Private_ExchangeUnbind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
-        {
-            var method = new ExchangeUnbind(destination, source, routingKey, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ExchangeUnbindOk);
-            }
-        }
-
-        public override void _Private_QueueBind(string queue, string exchange, string routingKey, bool nowait, IDictionary<string, object> arguments)
-        {
-            var method = new QueueBind(queue, exchange, routingKey, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.QueueBindOk);
-            }
-        }
-
-        public override void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, IDictionary<string, object> arguments)
-        {
-            /*
-             * Note:
-             * Even though nowait is a parameter, ChannelSend must be used
-             */
-            var method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, nowait, arguments);
-            ChannelSend(method);
-        }
-
-        public override uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait)
-        {
-            var method = new QueueDelete(queue, ifUnused, ifEmpty, nowait);
-            if (nowait)
-            {
-                ChannelSend(method);
-                return 0xFFFFFFFF;
-            }
-
-            return ChannelRpc(method, ProtocolCommandId.QueueDeleteOk, memory => new QueueDeleteOk(memory.Span)._messageCount);
-        }
-
-        public override uint _Private_QueuePurge(string queue, bool nowait)
-        {
-            var method = new QueuePurge(queue, nowait);
-            if (nowait)
-            {
-                ChannelSend(method);
-                return 0xFFFFFFFF;
-            }
-
-            return ChannelRpc(method, ProtocolCommandId.QueuePurgeOk, memory => new QueuePurgeOk(memory.Span)._messageCount);
-        }
-
-        public override void BasicAck(ulong deliveryTag, bool multiple)
-        {
-            ChannelSend(new BasicAck(deliveryTag, multiple));
         }
 
         public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
@@ -215,51 +72,16 @@ namespace RabbitMQ.Client.Framing.Impl
             return ModelSendAsync(method);
         }
 
-        public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
-        {
-            ChannelSend(new BasicNack(deliveryTag, multiple, requeue));
-        }
-
         public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
         {
             var method = new BasicNack(deliveryTag, multiple, requeue);
             return ModelSendAsync(method);
         }
 
-        public override void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
-        {
-            ChannelRpc(new BasicQos(prefetchSize, prefetchCount, global), ProtocolCommandId.BasicQosOk);
-        }
-
-        public override void BasicReject(ulong deliveryTag, bool requeue)
-        {
-            ChannelSend(new BasicReject(deliveryTag, requeue));
-        }
-
-        public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue)
+        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue)
         {
             var method = new BasicReject(deliveryTag, requeue);
-            return ModelSendAsync(method);
-        }
-
-        public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            ChannelRpc(new QueueUnbind(queue, exchange, routingKey, arguments), ProtocolCommandId.QueueUnbindOk);
-        }
-
-        public override void TxCommit()
-        {
-            ChannelRpc(new TxCommit(), ProtocolCommandId.TxCommitOk);
-        }
-
-        public override void TxRollback()
-        {
-            ChannelRpc(new TxRollback(), ProtocolCommandId.TxRollbackOk);
-        }
-
-        public override void TxSelect()
-        {
-            ChannelRpc(new TxSelect(), ProtocolCommandId.TxSelectOk);
+            return ModelSendAsync(method).AsTask();
         }
 
         protected override bool DispatchAsynchronous(in IncomingCommand cmd)

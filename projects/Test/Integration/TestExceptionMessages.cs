@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
@@ -43,12 +44,12 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestAlreadyClosedExceptionMessage()
+        public async Task TestAlreadyClosedExceptionMessage()
         {
-            string uuid = System.Guid.NewGuid().ToString();
+            string uuid = Guid.NewGuid().ToString();
             try
             {
-                _channel.QueueDeclarePassive(uuid);
+                await _channel.QueueDeclarePassiveAsync(uuid);
             }
             catch (Exception e)
             {
@@ -59,7 +60,7 @@ namespace Test.Integration
 
             try
             {
-                _channel.QueueDeclarePassive(uuid);
+                await _channel.QueueDeclarePassiveAsync(uuid);
             }
             catch (AlreadyClosedException e)
             {

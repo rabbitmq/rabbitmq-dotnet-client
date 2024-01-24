@@ -29,7 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -43,20 +43,20 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestAckWithUnknownConsumerTagAndMultipleFalse()
+        public async Task TestAckWithUnknownConsumerTagAndMultipleFalse()
         {
-            var mre = new ManualResetEventSlim();
+            var tcs = new TaskCompletionSource<bool>();
             bool shutdownFired = false;
             ShutdownEventArgs shutdownArgs = null;
             _channel.ChannelShutdown += (s, args) =>
             {
                 shutdownFired = true;
                 shutdownArgs = args;
-                mre.Set();
+                tcs.SetResult(true);
             };
 
-            _channel.BasicAck(123456, false);
-            Wait(mre, "ChannelShutdown");
+            await _channel.BasicAckAsync(123456, false);
+            await WaitAsync(tcs, "ChannelShutdown");
             Assert.True(shutdownFired);
             AssertPreconditionFailed(shutdownArgs);
         }

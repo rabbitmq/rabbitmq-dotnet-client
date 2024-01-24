@@ -21,7 +21,8 @@ namespace Benchmarks.Networking
             _container = RabbitMQBroker.Start();
 
             var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
-            _connection = cf.CreateConnection();
+            // TODO / NOTE: https://github.com/dotnet/BenchmarkDotNet/issues/1738
+            _connection = cf.CreateConnectionAsync().EnsureCompleted();
         }
 
         [GlobalCleanup]

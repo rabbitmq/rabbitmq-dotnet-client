@@ -154,6 +154,7 @@ namespace Test.AsyncIntegration
                 finally
                 {
                     await ch.QueueDeleteAsync(queue: queueName, ifUnused: false, ifEmpty: false);
+                    await ch.CloseAsync();
                 }
             }
         }
@@ -180,6 +181,7 @@ namespace Test.AsyncIntegration
                 finally
                 {
                     await ch.QueueDeleteAsync(queue: queueName, ifUnused: false, ifEmpty: false);
+                    await ch.CloseAsync();
                 }
             }
         }

@@ -46,6 +46,7 @@ namespace RabbitMQ.Client
         {
             Memory = memory;
             RentedArray = rentedArray;
+            _disposedValue = false;
         }
 
         internal readonly ReadOnlyMemory<byte> Memory;

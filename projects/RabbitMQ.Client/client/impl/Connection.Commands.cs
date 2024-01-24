@@ -43,9 +43,9 @@ namespace RabbitMQ.Client.Framing.Impl
 #nullable enable
     internal sealed partial class Connection
     {
-        public void UpdateSecret(string newSecret, string reason)
+        public Task UpdateSecretAsync(string newSecret, string reason)
         {
-            _channel0.UpdateSecret(newSecret, reason);
+            return _channel0.UpdateSecretAsync(newSecret, reason);
         }
 
         internal void NotifyReceivedCloseOk()
@@ -186,11 +186,15 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void NotifyCredentialRefreshed(bool succesfully)
+        private Task NotifyCredentialRefreshed(bool succesfully)
         {
             if (succesfully)
             {
-                UpdateSecret(_config.CredentialsProvider.Password, "Token refresh");
+                return UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh");
+            }
+            else
+            {
+                return Task.CompletedTask;
             }
         }
 

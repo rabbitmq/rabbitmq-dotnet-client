@@ -53,11 +53,6 @@ namespace Test.AsyncIntegration
             _openChannel = openChannel;
         }
 
-        protected override void SetUp()
-        {
-            // InitializeAsync
-        }
-
         protected static Task AssertRanToCompletion(params Task[] tasks)
         {
             return DoAssertRanToCompletion(tasks);
@@ -68,7 +63,7 @@ namespace Test.AsyncIntegration
             return DoAssertRanToCompletion(tasks);
         }
 
-        public virtual async Task InitializeAsync()
+        public override async Task InitializeAsync()
         {
             _connFactory = CreateConnectionFactory();
             _connFactory.DispatchConsumersAsync = _dispatchConsumersAsync;
@@ -92,33 +87,11 @@ namespace Test.AsyncIntegration
             base.AddCallbackHandlers();
         }
 
-        public virtual async Task DisposeAsync()
-        {
-            try
-            {
-                if (_channel != null)
-                {
-                    await _channel.CloseAsync();
-                }
-                await _conn.CloseAsync();
-            }
-            finally
-            {
-                if (_channel != null)
-                {
-                    _channel.Dispose();
-                }
-                _conn.Dispose();
-                _channel = null;
-                _conn = null;
-            }
-        }
-
         private static async Task DoAssertRanToCompletion(IEnumerable<Task> tasks)
         {
             Task whenAllTask = Task.WhenAll(tasks);
             await whenAllTask;
-            Assert.Equal(TaskStatus.RanToCompletion, whenAllTask.Status);
+            Assert.True(whenAllTask.IsCompletedSuccessfully());
         }
     }
 }

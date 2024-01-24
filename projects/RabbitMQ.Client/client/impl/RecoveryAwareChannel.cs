@@ -62,15 +62,6 @@ namespace RabbitMQ.Client.Impl
             return deliveryTag + ActiveDeliveryTagOffset;
         }
 
-        public override void BasicAck(ulong deliveryTag, bool multiple)
-        {
-            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-            if (realTag > 0 && realTag <= deliveryTag)
-            {
-                base.BasicAck(realTag, multiple);
-            }
-        }
-
         public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
@@ -81,15 +72,6 @@ namespace RabbitMQ.Client.Impl
             else
             {
                 return default;
-            }
-        }
-
-        public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
-        {
-            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-            if (realTag > 0 && realTag <= deliveryTag)
-            {
-                base.BasicNack(realTag, multiple, requeue);
             }
         }
 
@@ -106,16 +88,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override void BasicReject(ulong deliveryTag, bool requeue)
-        {
-            ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
-            if (realTag > 0 && realTag <= deliveryTag)
-            {
-                base.BasicReject(realTag, requeue);
-            }
-        }
-
-        public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue)
+        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
@@ -124,7 +97,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                return default;
+                return Task.CompletedTask;
             }
         }
     }

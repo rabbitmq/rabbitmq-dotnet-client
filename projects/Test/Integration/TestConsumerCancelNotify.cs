@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
@@ -40,9 +40,7 @@ namespace Test.Integration
 {
     public class TestConsumerCancelNotify : IntegrationFixture
     {
-        private readonly ManualResetEventSlim _latch = new ManualResetEventSlim();
-        private bool _notifiedCallback;
-        private bool _notifiedEvent;
+        private readonly TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
         private string _consumerTag;
 
         public TestConsumerCancelNotify(ITestOutputHelper output) : base(output)
@@ -50,53 +48,52 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestConsumerCancelNotification()
+        public Task TestConsumerCancelNotification()
         {
-            TestConsumerCancel("queue_consumer_cancel_notify", false, ref _notifiedCallback);
+            return TestConsumerCancelAsync("queue_consumer_cancel_notify", false);
         }
 
         [Fact]
-        public void TestConsumerCancelEvent()
+        public Task TestConsumerCancelEvent()
         {
-            TestConsumerCancel("queue_consumer_cancel_event", true, ref _notifiedEvent);
+            return TestConsumerCancelAsync("queue_consumer_cancel_event", true);
         }
 
         [Fact]
-        public void TestCorrectConsumerTag()
+        public async Task TestCorrectConsumerTag()
         {
             string q1 = GenerateQueueName();
             string q2 = GenerateQueueName();
 
-            _channel.QueueDeclare(q1, false, false, false, null);
-            _channel.QueueDeclare(q2, false, false, false, null);
+            await _channel.QueueDeclareAsync(q1, false, false, false);
+            await _channel.QueueDeclareAsync(q2, false, false, false);
 
             EventingBasicConsumer consumer = new EventingBasicConsumer(_channel);
-            string consumerTag1 = _channel.BasicConsume(q1, true, consumer);
-            string consumerTag2 = _channel.BasicConsume(q2, true, consumer);
+            string consumerTag1 = await _channel.BasicConsumeAsync(q1, true, consumer);
+            string consumerTag2 = await _channel.BasicConsumeAsync(q2, true, consumer);
 
             string notifiedConsumerTag = null;
             consumer.ConsumerCancelled += (sender, args) =>
             {
                 notifiedConsumerTag = args.ConsumerTags.First();
-                _latch.Set();
+                _tcs.SetResult(true);
             };
 
-            _channel.QueueDelete(q1);
-            Wait(_latch, "ConsumerCancelled event");
+            await _channel.QueueDeleteAsync(q1);
+            await WaitAsync(_tcs, "ConsumerCancelled event");
             Assert.Equal(consumerTag1, notifiedConsumerTag);
 
-            _channel.QueueDelete(q2);
+            await _channel.QueueDeleteAsync(q2);
         }
 
-        private void TestConsumerCancel(string queue, bool EventMode, ref bool notified)
+        private async Task TestConsumerCancelAsync(string queue, bool eventMode)
         {
-            _channel.QueueDeclare(queue, false, true, false, null);
-            IBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, EventMode);
-            string actualConsumerTag = _channel.BasicConsume(queue, false, consumer);
+            await _channel.QueueDeclareAsync(queue, false, true, false);
+            IBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, eventMode);
+            string actualConsumerTag = await _channel.BasicConsumeAsync(queue, false, consumer);
 
-            _channel.QueueDelete(queue);
-            Wait(_latch, "HandleBasicCancel / Cancelled event");
-            Assert.True(notified);
+            await _channel.QueueDeleteAsync(queue);
+            await WaitAsync(_tcs, "HandleBasicCancel / Cancelled event");
             Assert.Equal(actualConsumerTag, _consumerTag);
         }
 
@@ -105,12 +102,12 @@ namespace Test.Integration
             private readonly TestConsumerCancelNotify _testClass;
             private readonly bool _eventMode;
 
-            public CancelNotificationConsumer(IChannel channel, TestConsumerCancelNotify tc, bool EventMode)
+            public CancelNotificationConsumer(IChannel channel, TestConsumerCancelNotify tc, bool eventMode)
                 : base(channel)
             {
                 _testClass = tc;
-                _eventMode = EventMode;
-                if (EventMode)
+                _eventMode = eventMode;
+                if (eventMode)
                 {
                     ConsumerCancelled += Cancelled;
                 }
@@ -120,18 +117,17 @@ namespace Test.Integration
             {
                 if (!_eventMode)
                 {
-                    _testClass._notifiedCallback = true;
                     _testClass._consumerTag = consumerTag;
-                    _testClass._latch.Set();
+                    _testClass._tcs.SetResult(true);
                 }
+
                 base.HandleBasicCancel(consumerTag);
             }
 
             private void Cancelled(object sender, ConsumerEventArgs arg)
             {
-                _testClass._notifiedEvent = true;
                 _testClass._consumerTag = arg.ConsumerTags[0];
-                _testClass._latch.Set();
+                _testClass._tcs.SetResult(true);
             }
         }
     }

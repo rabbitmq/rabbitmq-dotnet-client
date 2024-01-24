@@ -25,35 +25,71 @@ namespace OAuth2Test
             _mode = mode;
         }
 
-        public string Name => _mode switch
+        public string Name
         {
-            Mode.uaa => "uaa",
-            Mode.keycloak => "keycloak",
-            _ => throw new InvalidOperationException(),
-        };
+            get
+            {
+                switch (_mode)
+                {
+                    case Mode.uaa:
+                        return "uaa";
+                    case Mode.keycloak:
+                        return "keycloak";
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
+        }
 
         public string ClientId => "producer";
 
-        public string ClientSecret => _mode switch
+        public string ClientSecret
         {
-            Mode.uaa => "producer_secret",
-            Mode.keycloak => "kbOFBXI9tANgKUq8vXHLhT6YhbivgXxn",
-            _ => throw new InvalidOperationException(),
-        };
+            get
+            {
+                switch (_mode)
+                {
+                    case Mode.uaa:
+                        return "producer_secret";
+                    case Mode.keycloak:
+                        return "kbOFBXI9tANgKUq8vXHLhT6YhbivgXxn";
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
+        }
 
-        public string Scope => _mode switch
+        public string Scope
         {
-            Mode.uaa => "",
-            Mode.keycloak => "rabbitmq:configure:*/* rabbitmq:read:*/* rabbitmq:write:*/*",
-            _ => throw new InvalidOperationException(),
-        };
+            get
+            {
+                switch (_mode)
+                {
+                    case Mode.uaa:
+                        return string.Empty;
+                    case Mode.keycloak:
+                        return "rabbitmq:configure:*/* rabbitmq:read:*/* rabbitmq:write:*/*";
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
+        }
 
-        public string TokenEndpoint => _mode switch
+        public string TokenEndpoint // => _mode switch
         {
-            Mode.uaa => "http://localhost:8080/oauth/token",
-            Mode.keycloak => "http://localhost:8080/realms/test/protocol/openid-connect/token",
-            _ => throw new InvalidOperationException(),
-        };
+            get
+            {
+                switch (_mode)
+                {
+                    case Mode.uaa:
+                        return "http://localhost:8080/oauth/token";
+                    case Mode.keycloak:
+                        return "http://localhost:8080/realms/test/protocol/openid-connect/token";
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
+        }
 
         public int TokenExpiresInSeconds => 60;
     }
@@ -62,7 +98,7 @@ namespace OAuth2Test
     {
         private const string Exchange = "test_direct";
 
-        private readonly AutoResetEvent _doneEvent = new AutoResetEvent(false);
+        private readonly SemaphoreSlim _doneEvent = new SemaphoreSlim(0, 1);
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IConnectionFactory _connectionFactory;
         private IConnection _connection;
@@ -95,38 +131,49 @@ namespace OAuth2Test
 
         public async Task DisposeAsync()
         {
-            await _connection.CloseAsync();
-            _connection.Dispose();
+            try
+            {
+                await _connection.CloseAsync();
+            }
+            finally
+            {
+                _doneEvent.Dispose();
+                _connection.Dispose();
+            }
         }
 
         [Fact]
         public async void IntegrationTest()
         {
             using (IChannel publishChannel = await DeclarePublisherAsync())
-            using (IChannel consumeChannel = await DeclareConsumerAsync())
             {
-                await PublishAsync(publishChannel);
-                Consume(consumeChannel);
-
-                if (_tokenExpiresInSeconds > 0)
+                using (IChannel consumeChannel = await DeclareConsumerAsync())
                 {
-                    for (int i = 0; i < 4; i++)
+                    await PublishAsync(publishChannel);
+                    await ConsumeAsync(consumeChannel);
+
+                    if (_tokenExpiresInSeconds > 0)
                     {
-                        _testOutputHelper.WriteLine("Wait until Token expires. Attempt #" + (i + 1));
+                        for (int i = 0; i < 4; i++)
+                        {
+                            _testOutputHelper.WriteLine("Wait until Token expires. Attempt #" + (i + 1));
 
-                        await Task.Delay(TimeSpan.FromSeconds(_tokenExpiresInSeconds + 10));
-                        _testOutputHelper.WriteLine("Resuming ..");
+                            await Task.Delay(TimeSpan.FromSeconds(_tokenExpiresInSeconds + 10));
+                            _testOutputHelper.WriteLine("Resuming ..");
 
-                        await PublishAsync(publishChannel);
-                        _doneEvent.Reset();
-
-                        Consume(consumeChannel);
+                            await PublishAsync(publishChannel);
+                            await ConsumeAsync(consumeChannel);
+                        }
                     }
+                    else
+                    {
+                        Assert.Fail("_tokenExpiresInSeconds is NOT greater than 0");
+                    }
+
+                    await consumeChannel.CloseAsync();
                 }
-                else
-                {
-                    Assert.Fail("_tokenExpiresInSeconds is NOT greater than 0");
-                }
+
+                await publishChannel.CloseAsync();
             }
         }
 
@@ -134,7 +181,8 @@ namespace OAuth2Test
         public async void SecondConnectionCrashes_GH1429()
         {
             // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429
-            using IConnection secondConnection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
+            IConnection secondConnection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
+            secondConnection.Dispose();
         }
 
         private async Task<IChannel> DeclarePublisherAsync()
@@ -164,20 +212,20 @@ namespace OAuth2Test
 
         private async ValueTask<IChannel> DeclareConsumerAsync()
         {
-            IChannel subscriber = _connection.CreateChannel();
-            await subscriber.QueueDeclareAsync(queue: "testqueue", passive: false, true, false, false, arguments: null);
-            subscriber.QueueBind("testqueue", Exchange, "hello");
+            IChannel subscriber = await _connection.CreateChannelAsync();
+            await subscriber.QueueDeclareAsync(queue: "testqueue", true, false, false);
+            await subscriber.QueueBindAsync("testqueue", Exchange, "hello");
             return subscriber;
         }
 
-        private void Consume(IChannel subscriber)
+        private async Task ConsumeAsync(IChannel subscriber)
         {
             var asyncListener = new AsyncEventingBasicConsumer(subscriber);
             asyncListener.Received += AsyncListener_Received;
-            string consumerTag = subscriber.BasicConsume("testqueue", true, "testconsumer", asyncListener);
-            _doneEvent.WaitOne(1);
+            string consumerTag = await subscriber.BasicConsumeAsync("testqueue", true, "testconsumer", asyncListener);
+            await _doneEvent.WaitAsync(TimeSpan.FromMilliseconds(500));
             _testOutputHelper.WriteLine("Received message");
-            subscriber.BasicCancel(consumerTag);
+            await subscriber.BasicCancelAsync(consumerTag);
         }
 
         private OAuth2ClientCredentialsProvider GetCredentialsProvider(OAuth2Options opts)
@@ -195,7 +243,7 @@ namespace OAuth2Test
 
         private Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
         {
-            _doneEvent.Set();
+            _doneEvent.Release();
             return Task.CompletedTask;
         }
 

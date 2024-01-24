@@ -84,18 +84,18 @@ namespace Test.AsyncIntegration
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
             return TestExceptionHandlingWith(consumer, (ch, q, c, ct) =>
-                ch.BasicPublishAsync("", q, _encoding.GetBytes("msg")));
+                ch.BasicPublishAsync("", q, _encoding.GetBytes("msg")).AsTask());
         }
 
         protected async Task TestExceptionHandlingWith(IBasicConsumer consumer,
-            Func<IChannel, string, IBasicConsumer, string, ValueTask> action)
+            Func<IChannel, string, IBasicConsumer, string, Task> action)
         {
             var waitSpan = TimeSpan.FromSeconds(5);
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cts = new CancellationTokenSource(waitSpan);
             cts.Token.Register(() => tcs.TrySetResult(false));
 
-            string q = await _channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            string q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
             _channel.CallbackException += (ch, evt) =>
             {
                 if (evt.Exception == TestException)

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -13,7 +11,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal abstract class ConsumerDispatcherChannelBase : ConsumerDispatcherBase, IConsumerDispatcher
     {
-        protected readonly CancellationTokenSource _consumerDispatcherCts = new();
+        protected readonly CancellationTokenSource _consumerDispatcherCts = new CancellationTokenSource();
         protected readonly CancellationToken _consumerDispatcherToken;
 
         protected readonly ChannelBase _channel;
@@ -140,13 +138,21 @@ namespace RabbitMQ.Client.ConsumerDispatching
                     catch (AggregateException aex)
                     {
                         AggregateException aexf = aex.Flatten();
-                        IEnumerable<Exception> nonTaskCanceled = aexf.InnerExceptions.Where(iex => iex is not TaskCanceledException);
-                        if (nonTaskCanceled.Any())
+                        bool foundUnexpectedException = false;
+                        foreach (Exception innerAexf in aexf.InnerExceptions)
+                        {
+                            if (false == (innerAexf is OperationCanceledException))
+                            {
+                                foundUnexpectedException = true;
+                                break;
+                            }
+                        }
+                        if (foundUnexpectedException)
                         {
                             ESLog.Warn("consumer dispatcher task had unexpected exceptions");
                         }
                     }
-                    catch (TaskCanceledException)
+                    catch (OperationCanceledException)
                     {
                     }
                 }
@@ -176,13 +182,21 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 catch (AggregateException aex)
                 {
                     AggregateException aexf = aex.Flatten();
-                    IEnumerable<Exception> nonTaskCanceled = aexf.InnerExceptions.Where(iex => iex is not TaskCanceledException);
-                    if (nonTaskCanceled.Any())
+                    bool foundUnexpectedException = false;
+                    foreach (Exception innerAexf in aexf.InnerExceptions)
+                    {
+                        if (false == (innerAexf is OperationCanceledException))
+                        {
+                            foundUnexpectedException = true;
+                            break;
+                        }
+                    }
+                    if (foundUnexpectedException)
                     {
                         ESLog.Warn("consumer dispatcher task had unexpected exceptions (async)");
                     }
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                 }
             }

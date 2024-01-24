@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -42,119 +41,122 @@ namespace Test.Integration
 {
     public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
     {
-        private const ushort _messageCount = 200;
+        private const ushort MessageCount = 256;
 
-        public TestConcurrentAccessWithSharedConnection(ITestOutputHelper output) : base(output)
+        public TestConcurrentAccessWithSharedConnection(ITestOutputHelper output)
+            : base(output)
         {
         }
 
-        protected override void SetUp()
+        public override async Task InitializeAsync()
         {
             _connFactory = CreateConnectionFactory();
-            _conn = _connFactory.CreateConnection();
+            _conn = await _connFactory.CreateConnectionAsync();
             // NB: not creating _channel because this test suite doesn't use it.
             Assert.Null(_channel);
         }
 
         [Fact]
-        public void TestConcurrentChannelOpenAndPublishingWithBlankMessages()
+        public async Task TestConcurrentChannelOpenAndPublishingWithBlankMessages()
         {
-            TestConcurrentChannelOpenAndPublishingWithBody(Array.Empty<byte>(), 30);
+            await TestConcurrentChannelOpenAndPublishingWithBodyAsync(Array.Empty<byte>(), 30);
         }
 
         [Fact]
-        public void TestConcurrentChannelOpenAndPublishingSize64()
+        public async Task TestConcurrentChannelOpenAndPublishingSize64()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(64);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(64);
         }
 
         [Fact]
-        public void TestConcurrentChannelOpenAndPublishingSize256()
+        public async Task TestConcurrentChannelOpenAndPublishingSize256()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(256);
+            await TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(256);
         }
 
         [Fact]
-        public void TestConcurrentChannelOpenAndPublishingSize1024()
+        public Task TestConcurrentChannelOpenAndPublishingSize1024()
         {
-            TestConcurrentChannelOpenAndPublishingWithBodyOfSize(1024);
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(1024);
         }
 
         [Fact]
-        public void TestConcurrentChannelOpenCloseLoop()
+        public async Task TestConcurrentChannelOpenCloseLoop()
         {
-            TestConcurrentChannelOperations((conn) =>
+            await TestConcurrentChannelOperationsAsync(async (conn) =>
             {
-                using (IChannel ch = conn.CreateChannel())
+                using (IChannel ch = await conn.CreateChannelAsync())
                 {
-                    ch.Close();
+                    await ch.CloseAsync();
                 }
             }, 50);
         }
 
-        private void TestConcurrentChannelOpenAndPublishingWithBodyOfSize(ushort length, int iterations = 30)
+        private Task TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(ushort length, int iterations = 30)
         {
             byte[] body = GetRandomBody(length);
-            TestConcurrentChannelOpenAndPublishingWithBody(body, iterations);
+            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(body, iterations);
         }
 
-        private void TestConcurrentChannelOpenAndPublishingWithBody(byte[] body, int iterations)
+        private Task TestConcurrentChannelOpenAndPublishingWithBodyAsync(byte[] body, int iterations)
         {
-            TestConcurrentChannelOperations((conn) =>
+            return TestConcurrentChannelOperationsAsync(async (conn) =>
             {
-                using (var localLatch = new ManualResetEvent(false))
+                var tcs = new TaskCompletionSource<bool>();
+
+                // publishing on a shared channel is not supported
+                // and would missing the point of this test anyway
+                using (IChannel ch = await _conn.CreateChannelAsync())
                 {
-                    // publishing on a shared channel is not supported
-                    // and would missing the point of this test anyway
-                    using (IChannel ch = _conn.CreateChannel())
+                    await ch.ConfirmSelectAsync();
+
+                    ch.BasicAcks += (object sender, BasicAckEventArgs e) =>
                     {
-                        ch.ConfirmSelect();
-
-                        ch.BasicAcks += (object sender, BasicAckEventArgs e) =>
+                        if (e.DeliveryTag >= MessageCount)
                         {
-                            if (e.DeliveryTag >= _messageCount)
-                            {
-                                localLatch.Set();
-                            }
-                        };
-
-                        ch.BasicNacks += (object sender, BasicNackEventArgs e) =>
-                        {
-                            localLatch.Set();
-                            Assert.Fail("should never see a nack");
-                        };
-
-                        QueueDeclareOk q = ch.QueueDeclare(queue: string.Empty, exclusive: true, autoDelete: true);
-                        for (ushort j = 0; j < _messageCount; j++)
-                        {
-                            ch.BasicPublish("", q.QueueName, body, true);
+                            tcs.SetResult(true);
                         }
+                    };
 
-                        Assert.True(localLatch.WaitOne(WaitSpan));
+                    ch.BasicNacks += (object sender, BasicNackEventArgs e) =>
+                    {
+                        tcs.SetResult(false);
+                        Assert.Fail("should never see a nack");
+                    };
+
+                    QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, exclusive: true, autoDelete: true);
+                    for (ushort j = 0; j < MessageCount; j++)
+                    {
+                        await ch.BasicPublishAsync("", q.QueueName, body, true);
                     }
+
+                    Assert.True(await tcs.Task);
+
+                    // NOTE: this is very important before a Dispose();
+                    await ch.CloseAsync();
                 }
             }, iterations);
         }
 
-        private void TestConcurrentChannelOperations(Action<IConnection> actions, int iterations)
-        {
-            TestConcurrentChannelOperations(actions, iterations, LongWaitSpan);
-        }
-
-        private void TestConcurrentChannelOperations(Action<IConnection> action, int iterations, TimeSpan timeout)
+        private async Task TestConcurrentChannelOperationsAsync(Func<IConnection, Task> action, int iterations)
         {
             var tasks = new List<Task>();
             for (int i = 0; i < _processorCount; i++)
             {
-                tasks.Add(Task.Run(() =>
+                tasks.Add(Task.Run(async () =>
                 {
                     for (int j = 0; j < iterations; j++)
                     {
-                        action(_conn);
+                        await action(_conn);
                     }
                 }));
             }
-            Assert.True(Task.WaitAll(tasks.ToArray(), timeout));
+
+            Task whenTask = Task.WhenAll(tasks);
+            await whenTask.WaitAsync(LongWaitSpan);
+            Assert.True(whenTask.IsCompleted);
+            Assert.False(whenTask.IsCanceled);
+            Assert.False(whenTask.IsFaulted);
 
             // incorrect frame interleaving in these tests will result
             // in an unrecoverable connection-level exception, thus

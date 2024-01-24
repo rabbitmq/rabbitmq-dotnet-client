@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
@@ -43,17 +44,17 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestConsumerCountMethod()
+        public async Task TestConsumerCountMethod()
         {
             string q = GenerateQueueName();
-            _channel.QueueDeclare(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            Assert.Equal(0u, _channel.ConsumerCount(q));
+            await _channel.QueueDeclareAsync(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
+            Assert.Equal(0u, await _channel.ConsumerCountAsync(q));
 
-            string tag = _channel.BasicConsume(q, true, new EventingBasicConsumer(_channel));
-            Assert.Equal(1u, _channel.ConsumerCount(q));
+            string tag = await _channel.BasicConsumeAsync(q, true, new EventingBasicConsumer(_channel));
+            Assert.Equal(1u, await _channel.ConsumerCountAsync(q));
 
-            _channel.BasicCancel(tag);
-            Assert.Equal(0u, _channel.ConsumerCount(q));
+            await _channel.BasicCancelAsync(tag);
+            Assert.Equal(0u, await _channel.ConsumerCountAsync(q));
         }
     }
 }

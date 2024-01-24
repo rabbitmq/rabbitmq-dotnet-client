@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,12 +45,12 @@ namespace Test.Integration
             {
             }
 
-            public override void HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliverAsync(string consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
                 string exchange,
                 string routingKey,
-                in ReadOnlyBasicProperties properties,
+                ReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
                 throw new Exception("oops");
@@ -105,22 +105,22 @@ namespace Test.Integration
             }
         }
 
-        protected void TestExceptionHandlingWith(IBasicConsumer consumer,
-            Action<IChannel, string, IBasicConsumer, string> action)
+        protected async Task TestExceptionHandlingWithAsync(IBasicConsumer consumer,
+            Func<IChannel, string, IBasicConsumer, string, Task> action)
         {
-            var mre = new ManualResetEventSlim(false);
+            var tcs = new TaskCompletionSource<bool>();
             bool notified = false;
-            string q = _channel.QueueDeclare();
+            string q = await _channel.QueueDeclareAsync();
 
             _channel.CallbackException += (m, evt) =>
             {
                 notified = true;
-                mre.Set();
+                tcs.SetResult(true);
             };
 
-            string tag = _channel.BasicConsume(q, true, consumer);
-            action(_channel, q, consumer, tag);
-            Wait(mre, "callback exception");
+            string tag = await _channel.BasicConsumeAsync(q, true, consumer);
+            await action(_channel, q, consumer, tag);
+            await WaitAsync(tcs, "callback exception");
 
             Assert.True(notified);
         }
@@ -130,38 +130,42 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestCancelNotificationExceptionHandling()
+        public Task TestCancelNotificationExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancel(_channel);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.QueueDelete(q));
+            return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) =>
+            {
+                return ch.QueueDeleteAsync(q);
+            });
         }
 
         [Fact]
-        public void TestConsumerCancelOkExceptionHandling()
+        public Task TestConsumerCancelOkExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancelOk(_channel);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicCancel(ct));
+            return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) => ch.BasicCancelAsync(ct));
         }
 
         [Fact]
-        public void TestConsumerConsumeOkExceptionHandling()
+        public Task TestConsumerConsumeOkExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_channel);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => { });
+            return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) => Task.CompletedTask);
         }
 
         [Fact]
-        public void TestConsumerShutdownExceptionHandling()
+        public Task TestConsumerShutdownExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnShutdown(_channel);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.Close());
+            return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) => ch.CloseAsync());
         }
 
         [Fact]
-        public void TestDeliveryExceptionHandling()
+        public Task TestDeliveryExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
-            TestExceptionHandlingWith(consumer, (m, q, c, ct) => m.BasicPublish("", q, _encoding.GetBytes("msg")));
+            return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) =>
+                ch.BasicPublishAsync("", q, _encoding.GetBytes("msg")).AsTask());
         }
     }
 }

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -42,39 +43,54 @@ namespace Test.Integration
         {
         }
 
-        protected override void SetUp()
+        public override Task InitializeAsync()
         {
+            // NB: nothing to do here since each test creates its own factory,
+            // connections and channels
+            Assert.Null(_connFactory);
+            Assert.Null(_conn);
+            Assert.Null(_channel);
+            return Task.CompletedTask;
         }
 
         [Fact]
-        public void TestConnectionFactoryContinuationTimeoutOnRecoveringConnection()
+        public async Task TestConnectionFactoryContinuationTimeoutOnRecoveringConnection()
         {
             var continuationTimeout = TimeSpan.FromSeconds(777);
-            using (IConnection c = CreateConnectionWithContinuationTimeout(true, continuationTimeout))
+            using (IConnection c = await CreateConnectionWithContinuationTimeoutAsync(true, continuationTimeout))
             {
-                Assert.Equal(continuationTimeout, c.CreateChannel().ContinuationTimeout);
-            }
-        }
-
-        [Fact]
-        public void TestConnectionFactoryContinuationTimeoutOnNonRecoveringConnection()
-        {
-            var continuationTimeout = TimeSpan.FromSeconds(777);
-            using (IConnection c = CreateConnectionWithContinuationTimeout(false, continuationTimeout))
-            {
-                using (IChannel ch = c.CreateChannel())
+                using (IChannel ch = await c.CreateChannelAsync())
                 {
                     Assert.Equal(continuationTimeout, ch.ContinuationTimeout);
+                    await ch.CloseAsync();
                 }
+
+                await c.CloseAsync();
             }
         }
 
-        private IConnection CreateConnectionWithContinuationTimeout(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)
+        [Fact]
+        public async Task TestConnectionFactoryContinuationTimeoutOnNonRecoveringConnection()
         {
-            var cf = CreateConnectionFactory();
+            var continuationTimeout = TimeSpan.FromSeconds(777);
+            using (IConnection c = await CreateConnectionWithContinuationTimeoutAsync(false, continuationTimeout))
+            {
+                using (IChannel ch = await c.CreateChannelAsync())
+                {
+                    Assert.Equal(continuationTimeout, ch.ContinuationTimeout);
+                    await ch.CloseAsync();
+                }
+
+                await c.CloseAsync();
+            }
+        }
+
+        private Task<IConnection> CreateConnectionWithContinuationTimeoutAsync(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)
+        {
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
             cf.ContinuationTimeout = continuationTimeout;
-            return cf.CreateConnection();
+            return cf.CreateConnectionAsync();
         }
     }
 }

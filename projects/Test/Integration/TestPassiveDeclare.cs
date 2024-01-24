@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
@@ -43,15 +44,21 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
+        public Task TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
         {
-            Assert.Throws<OperationInterruptedException>(() => _channel.ExchangeDeclarePassive(Guid.NewGuid().ToString()));
+            return Assert.ThrowsAsync<OperationInterruptedException>(() =>
+            {
+                return _channel.ExchangeDeclarePassiveAsync(Guid.NewGuid().ToString());
+            });
         }
 
         [Fact]
-        public void TestPassiveQueueDeclareWhenQueueDoesNotExist()
+        public Task TestPassiveQueueDeclareWhenQueueDoesNotExist()
         {
-            Assert.Throws<OperationInterruptedException>(() => _channel.QueueDeclarePassive(Guid.NewGuid().ToString()));
+            return Assert.ThrowsAsync<OperationInterruptedException>(() =>
+            {
+                return _channel.QueueDeclarePassiveAsync(Guid.NewGuid().ToString());
+            });
         }
     }
 }

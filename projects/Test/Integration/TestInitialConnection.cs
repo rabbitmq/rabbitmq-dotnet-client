@@ -30,8 +30,10 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -44,27 +46,27 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestBasicConnectionRecoveryWithHostnameList()
+        public async Task TestBasicConnectionRecoveryWithHostnameList()
         {
-            var c = CreateAutorecoveringConnection(new List<string>() { "127.0.0.1", "localhost" });
+            AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "127.0.0.1", "localhost" });
             Assert.True(c.IsOpen);
-            c.Close();
+            await c.CloseAsync();
         }
 
         [Fact]
-        public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
+        public async Task TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
         {
-            var c = CreateAutorecoveringConnection(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
+            AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
             Assert.True(c.IsOpen);
-            c.Close();
+            await c.CloseAsync();
         }
 
         [Fact]
-        public void TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
+        public async Task TestBasicConnectionRecoveryWithHostnameListWithOnlyUnreachableHosts()
         {
-            Assert.Throws<BrokerUnreachableException>(() =>
+            await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
             {
-                CreateAutorecoveringConnection(new List<string>() {
+                return CreateAutorecoveringConnectionAsync(new List<string>() {
                     "191.72.44.22",
                     "145.23.22.18",
                     "192.255.255.255"

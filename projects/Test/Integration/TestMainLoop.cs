@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
@@ -48,12 +48,12 @@ namespace Test.Integration
         {
             public FaultyConsumer(IChannel channel) : base(channel) { }
 
-            public override void HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliverAsync(string consumerTag,
                                                ulong deliveryTag,
                                                bool redelivered,
                                                string exchange,
                                                string routingKey,
-                                               in ReadOnlyBasicProperties properties,
+                                               ReadOnlyBasicProperties properties,
                                                ReadOnlyMemory<byte> body)
             {
                 throw new Exception("I am a bad consumer");
@@ -61,23 +61,23 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestCloseWithFaultyConsumer()
+        public async Task TestCloseWithFaultyConsumer()
         {
-            var mre = new ManualResetEventSlim();
-            QueueDeclareOk q = _channel.QueueDeclare(string.Empty, false, false, false, null);
+            var tcs = new TaskCompletionSource<bool>();
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
 
             CallbackExceptionEventArgs ea = null;
-            _channel.CallbackException += (_, evt) =>
+            _channel.CallbackException += async (_, evt) =>
             {
                 ea = evt;
-                _channel.Close();
-                mre.Set();
+                await _channel.CloseAsync();
+                tcs.SetResult(true);
             };
 
-            _channel.BasicConsume(q, true, new FaultyConsumer(_channel));
-            _channel.BasicPublish(string.Empty, q, _encoding.GetBytes("message"));
+            await _channel.BasicConsumeAsync(q, true, new FaultyConsumer(_channel));
+            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("message"));
 
-            Wait(mre, "CallbackException");
+            await WaitAsync(tcs, "CallbackException");
 
             Assert.NotNull(ea);
             Assert.False(_channel.IsOpen);

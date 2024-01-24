@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -42,44 +43,44 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestConfirmSelectIdempotency()
+        public async Task TestConfirmSelectIdempotency()
         {
-            void Publish()
+            ValueTask PublishAsync()
             {
-                _channel.BasicPublish("", "amq.fanout", _encoding.GetBytes("message"));
+                return _channel.BasicPublishAsync("", "amq.fanout", _encoding.GetBytes("message"));
             }
 
-            _channel.ConfirmSelect();
+            await _channel.ConfirmSelectAsync();
             Assert.Equal(1ul, _channel.NextPublishSeqNo);
-            Publish();
+            await PublishAsync();
             Assert.Equal(2ul, _channel.NextPublishSeqNo);
-            Publish();
+            await PublishAsync();
             Assert.Equal(3ul, _channel.NextPublishSeqNo);
 
-            _channel.ConfirmSelect();
-            Publish();
+            await _channel.ConfirmSelectAsync();
+            await PublishAsync();
             Assert.Equal(4ul, _channel.NextPublishSeqNo);
-            Publish();
+            await PublishAsync();
             Assert.Equal(5ul, _channel.NextPublishSeqNo);
-            Publish();
+            await PublishAsync();
             Assert.Equal(6ul, _channel.NextPublishSeqNo);
         }
 
         [Theory]
         [InlineData(255)]
         [InlineData(256)]
-        public void TestDeliveryTagDiverged_GH1043(ushort correlationIdLength)
+        public async Task TestDeliveryTagDiverged_GH1043(ushort correlationIdLength)
         {
             byte[] body = GetRandomBody(16);
 
-            _channel.ExchangeDeclare("sample", "fanout", autoDelete: true);
+            await _channel.ExchangeDeclareAsync("sample", "fanout", autoDelete: true);
             // _channel.BasicAcks += (s, e) => _output.WriteLine("Acked {0}", e.DeliveryTag);
-            _channel.ConfirmSelect();
+            await _channel.ConfirmSelectAsync();
 
             var properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
-            _channel.BasicPublish(exchange: "sample", routingKey: string.Empty, in properties, body);
-            _channel.WaitForConfirmsOrDie();
+            await _channel.BasicPublishAsync(exchange: "sample", routingKey: string.Empty, in properties, body);
+            await _channel.WaitForConfirmsOrDieAsync();
 
             try
             {
@@ -88,8 +89,8 @@ namespace Test.Integration
                     CorrelationId = new string('o', correlationIdLength)
                 };
                 // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
-                _channel.BasicPublish("sample", string.Empty, in properties, body);
-                _channel.WaitForConfirmsOrDie();
+                await _channel.BasicPublishAsync("sample", string.Empty, in properties, body);
+                await _channel.WaitForConfirmsOrDieAsync();
             }
             catch
             {
@@ -98,8 +99,8 @@ namespace Test.Integration
 
             properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
-            _channel.BasicPublish("sample", string.Empty, in properties, body);
-            _channel.WaitForConfirmsOrDie();
+            await _channel.BasicPublishAsync("sample", string.Empty, in properties, body);
+            await _channel.WaitForConfirmsOrDieAsync();
             // _output.WriteLine("I'm done...");
         }
     }

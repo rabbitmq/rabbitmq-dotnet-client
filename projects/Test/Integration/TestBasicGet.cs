@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
@@ -44,71 +45,77 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestBasicGetWithClosedChannel()
+        public Task TestBasicGetWithClosedChannel()
         {
-            WithNonEmptyQueue((_, q) =>
-               {
-                   WithClosedChannel(cm =>
-                   {
-                       Assert.Throws<AlreadyClosedException>(() => cm.BasicGet(q, true));
-                   });
-               });
+            return WithNonEmptyQueueAsync((_, q) =>
+            {
+                return WithClosedChannelAsync(ch =>
+                {
+                    return Assert.ThrowsAsync<AlreadyClosedException>(() =>
+                    {
+                        return ch.BasicGetAsync(q, true).AsTask();
+                    });
+                });
+            });
         }
 
         [Fact]
-        public void TestBasicGetWithEmptyResponse()
+        public Task TestBasicGetWithEmptyResponse()
         {
-            WithEmptyQueue((channel, queue) =>
+            return WithEmptyQueueAsync(async (channel, queue) =>
             {
-                BasicGetResult res = channel.BasicGet(queue, false);
+                BasicGetResult res = await channel.BasicGetAsync(queue, false);
                 Assert.Null(res);
             });
         }
 
         [Fact]
-        public void TestBasicGetWithNonEmptyResponseAndAutoAckMode()
+        public Task TestBasicGetWithNonEmptyResponseAndAutoAckMode()
         {
             const string msg = "for basic.get";
-            WithNonEmptyQueue((channel, queue) =>
+            return WithNonEmptyQueueAsync(async (channel, queue) =>
             {
-                BasicGetResult res = channel.BasicGet(queue, true);
+                BasicGetResult res = await channel.BasicGetAsync(queue, true);
                 Assert.Equal(msg, _encoding.GetString(res.Body.ToArray()));
-                AssertMessageCount(queue, 0);
+                await AssertMessageCountAsync(queue, 0);
             }, msg);
         }
 
-        private void EnsureNotEmpty(string q, string body)
+        private Task EnsureNotEmptyAsync(string q, string body)
         {
-            WithTemporaryChannel(x => x.BasicPublish("", q, _encoding.GetBytes(body)));
-        }
-
-        private void WithClosedChannel(Action<IChannel> action)
-        {
-            IChannel channel = _conn.CreateChannel();
-            channel.Close();
-            action(channel);
-        }
-
-        private void WithNonEmptyQueue(Action<IChannel, string> action)
-        {
-            WithNonEmptyQueue(action, "msg");
-        }
-
-        private void WithNonEmptyQueue(Action<IChannel, string> action, string msg)
-        {
-            WithTemporaryNonExclusiveQueue((m, q) =>
+            return WithTemporaryChannelAsync(ch =>
             {
-                EnsureNotEmpty(q, msg);
-                action(m, q);
+                return ch.BasicPublishAsync("", q, _encoding.GetBytes(body)).AsTask();
             });
         }
 
-        private void WithEmptyQueue(Action<IChannel, string> action)
+        private async Task WithClosedChannelAsync(Func<IChannel, Task> action)
         {
-            WithTemporaryNonExclusiveQueue((channel, queue) =>
+            IChannel channel = await _conn.CreateChannelAsync();
+            await channel.CloseAsync();
+            await action(channel);
+        }
+
+        private Task WithNonEmptyQueueAsync(Func<IChannel, string, Task> action)
+        {
+            return WithNonEmptyQueueAsync(action, "msg");
+        }
+
+        private Task WithNonEmptyQueueAsync(Func<IChannel, string, Task> action, string msg)
+        {
+            return WithTemporaryNonExclusiveQueueAsync(async (ch, q) =>
             {
-                channel.QueuePurge(queue);
-                action(channel, queue);
+                await EnsureNotEmptyAsync(q, msg);
+                await action(ch, q);
+            });
+        }
+
+        private Task WithEmptyQueueAsync(Func<IChannel, string, Task> action)
+        {
+            return WithTemporaryNonExclusiveQueueAsync(async (channel, queue) =>
+            {
+                await channel.QueuePurgeAsync(queue);
+                await action(channel, queue);
             });
         }
     }

@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -108,7 +108,7 @@ namespace Test.Unit
         [Fact]
         public void TestRegister()
         {
-            ICredentialsRefresher.NotifyCredentialRefreshed cb = (bool unused) => { };
+            Task cb(bool unused) => Task.CompletedTask;
             ICredentialsProvider credentialsProvider = new MockCredentialsProvider(_testOutputHelper);
 
             Assert.True(credentialsProvider == _refresher.Register(credentialsProvider, cb));
@@ -119,7 +119,7 @@ namespace Test.Unit
         public void TestDoNotRegisterWhenHasNoExpiry()
         {
             ICredentialsProvider credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.Zero);
-            ICredentialsRefresher.NotifyCredentialRefreshed cb = (bool unused) => { };
+            Task cb(bool unused) => Task.CompletedTask;
 
             _refresher.Register(credentialsProvider, cb);
 
@@ -127,22 +127,24 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void TestRefreshToken()
+        public async Task TestRefreshToken()
         {
-            var cbevt = new ManualResetEvent(false);
+            var cbtcs = new TaskCompletionSource<bool>();
             bool? callbackArg = null;
             var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
-            ICredentialsRefresher.NotifyCredentialRefreshed cb = (bool arg) =>
+            Task cb(bool arg)
             {
                 callbackArg = arg;
-                cbevt.Set();
-            };
+                cbtcs.SetResult(true);
+                return Task.CompletedTask;
+            }
 
             try
             {
                 _refresher.Register(credentialsProvider, cb);
 
-                Assert.True(cbevt.WaitOne());
+                await cbtcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(await cbtcs.Task);
 
                 Assert.True(credentialsProvider.RefreshCalled);
                 Assert.True(callbackArg);
@@ -154,16 +156,17 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void TestRefreshTokenFailed()
+        public async Task TestRefreshTokenFailed()
         {
-            var cbevt = new ManualResetEvent(false);
+            var cbtcs = new TaskCompletionSource<bool>();
             bool? callbackArg = null;
             var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
-            ICredentialsRefresher.NotifyCredentialRefreshed cb = (bool arg) =>
+            Task cb(bool arg)
             {
                 callbackArg = arg;
-                cbevt.Set();
-            };
+                cbtcs.SetResult(true);
+                return Task.CompletedTask;
+            }
 
             var ex = new Exception();
             credentialsProvider.PasswordThrows(ex);
@@ -171,7 +174,8 @@ namespace Test.Unit
             try
             {
                 _refresher.Register(credentialsProvider, cb);
-                Assert.True(cbevt.WaitOne());
+                await cbtcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(await cbtcs.Task);
 
                 Assert.True(credentialsProvider.RefreshCalled);
                 Assert.False(callbackArg);

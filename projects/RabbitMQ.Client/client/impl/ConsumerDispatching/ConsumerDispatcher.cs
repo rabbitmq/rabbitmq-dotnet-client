@@ -29,7 +29,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             switch (work.WorkType)
                             {
                                 case WorkType.Deliver:
-                                    consumer.HandleBasicDeliver(
+                                    await consumer.HandleBasicDeliverAsync(
                                         consumerTag, work.DeliveryTag, work.Redelivered,
                                         work.Exchange, work.RoutingKey, work.BasicProperties, work.Body.Memory);
                                     break;

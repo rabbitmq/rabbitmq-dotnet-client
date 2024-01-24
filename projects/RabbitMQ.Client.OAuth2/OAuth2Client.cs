@@ -34,23 +34,22 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.OAuth2
 {
     public interface IOAuth2Client
     {
-        public IToken RequestToken();
-        public IToken RefreshToken(IToken token);
+        IToken RequestToken();
+        IToken RefreshToken(IToken token);
     }
 
     public interface IToken
     {
-        public string AccessToken { get; }
-        public string RefreshToken { get; }
-        public TimeSpan ExpiresIn { get; }
-        public bool hasExpired { get; }
+        string AccessToken { get; }
+        string RefreshToken { get; }
+        TimeSpan ExpiresIn { get; }
+        bool hasExpired { get; }
     }
 
     public class Token : IToken

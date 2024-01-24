@@ -23,7 +23,7 @@ if ($RunTests)
     foreach ($csproj_file in $unit_csproj_file, $integration_csproj_file, $async_integration_csproj_file, $sequential_integration_csproj_file)
     {
         Write-Host "[INFO] running Unit / Integration tests from '$csproj_file' (all frameworks)" -ForegroundColor "Magenta"
-        dotnet test $csproj_file --no-restore --no-build --logger "console;verbosity=detailed"
+        dotnet test $csproj_file --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' --no-restore --no-build --logger "console;verbosity=detailed"
         if ($LASTEXITCODE -ne 0)
         {
             Write-Host "[ERROR] tests errored, exiting" -Foreground "Red"

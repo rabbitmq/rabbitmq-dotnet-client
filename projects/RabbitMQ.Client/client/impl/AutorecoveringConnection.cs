@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void CreateInnerConnection(IFrameHandler frameHandler)
         {
-            _innerConnection = new(_config, frameHandler);
+            _innerConnection = new Connection(_config, frameHandler);
 
             void onException(Exception exception, string context) =>
                 _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
@@ -183,14 +183,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IProtocol Protocol => Endpoint.Protocol;
 
-        public RecoveryAwareChannel CreateNonRecoveringChannel()
-        {
-            ISession session = InnerConnection.CreateSession();
-            var result = new RecoveryAwareChannel(_config, session);
-            result._Private_ChannelOpen();
-            return result;
-        }
-
         public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync()
         {
             ISession session = InnerConnection.CreateSession();
@@ -202,32 +194,21 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ToString()
             => $"AutorecoveringConnection({InnerConnection.Id},{Endpoint},{GetHashCode()})";
 
-        internal void CloseFrameHandler()
+        internal Task CloseFrameHandlerAsync()
         {
-            InnerConnection.FrameHandler.Close();
+            return InnerConnection.FrameHandler.CloseAsync();
         }
 
         ///<summary>API-side invocation of updating the secret.</summary>
-        public void UpdateSecret(string newSecret, string reason)
+        public Task UpdateSecretAsync(string newSecret, string reason)
         {
             ThrowIfDisposed();
             EnsureIsOpen();
-            _innerConnection.UpdateSecret(newSecret, reason);
-        }
-
-        ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
-        {
-            ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_innerConnection.IsOpen)
-            {
-                _innerConnection.Close(reasonCode, reasonText, timeout, abort);
-            }
+            return _innerConnection.UpdateSecretAsync(newSecret, reason);
         }
 
         ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
-        public async ValueTask CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
+        public async Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
         {
             ThrowIfDisposed();
             await StopRecoveryLoopAsync()
@@ -239,16 +220,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public IChannel CreateChannel()
-        {
-            EnsureIsOpen();
-            RecoveryAwareChannel recoveryAwareChannel = CreateNonRecoveringChannel();
-            AutorecoveringChannel channel = new AutorecoveringChannel(this, recoveryAwareChannel);
-            RecordChannel(channel);
-            return channel;
-        }
-
-        public async ValueTask<IChannel> CreateChannelAsync()
+        public async Task<IChannel> CreateChannelAsync()
         {
             EnsureIsOpen();
             RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync()
@@ -268,7 +240,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
+                // TODO rabbitmq-dotnet-client-1472
+                // this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
+                if (IsOpen)
+                {
+                    throw new InvalidOperationException("Connection must be closed before calling Dispose!");
+                }
             }
             catch (Exception)
             {

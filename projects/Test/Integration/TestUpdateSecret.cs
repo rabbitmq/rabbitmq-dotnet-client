@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading.Tasks;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Test.Integration
@@ -39,9 +41,10 @@ namespace Test.Integration
         {
         }
 
-        public void TestUpdatingConnectionSecret()
+        [Fact]
+        public Task TestUpdatingConnectionSecret()
         {
-            _conn.UpdateSecret("new-secret", "Test Case");
+            return _conn.UpdateSecretAsync("new-secret", "Test Case");
         }
     }
 }

@@ -30,8 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,89 +40,54 @@ namespace Test.SequentialIntegration
 {
     public class TestConnectionBlocked : SequentialIntegrationFixture
     {
-        private readonly ManualResetEventSlim _connDisposed = new ManualResetEventSlim(false);
-        private readonly object _lockObject = new object();
-        private bool _notified;
-
         public TestConnectionBlocked(ITestOutputHelper output) : base(output)
         {
         }
 
-        [Fact]
-        public void TestConnectionBlockedNotification()
+        public override async Task DisposeAsync()
         {
-            _notified = false;
-            _conn.ConnectionBlocked += HandleBlocked;
-            _conn.ConnectionUnblocked += HandleUnblocked;
-
-            try
-            {
-                Block();
-
-                lock (_lockObject)
-                {
-                    if (!_notified)
-                    {
-                        Monitor.Wait(_lockObject, TimeSpan.FromSeconds(15));
-                    }
-                }
-
-                if (!_notified)
-                {
-                    Assert.Fail("Unblock notification not received.");
-                }
-            }
-            finally
-            {
-                Unblock();
-            }
+            await UnblockAsync();
+            await base.DisposeAsync();
         }
 
         [Fact]
-        public void TestDisposeOnBlockedConnectionDoesNotHang()
+        public async Task TestConnectionBlockedNotification()
         {
-            _notified = false;
-
-            try
+            var tcs = new TaskCompletionSource<bool>();
+            _conn.ConnectionBlocked += (object sender, ConnectionBlockedEventArgs args) =>
             {
-                Block();
+                UnblockAsync();
+            };
 
-                Task.Factory.StartNew(DisposeConnection);
-
-                if (!_connDisposed.Wait(TimeSpan.FromSeconds(20)))
-                {
-                    Assert.Fail("Dispose must have finished within 20 seconds after starting");
-                }
-            }
-            finally
+            _conn.ConnectionUnblocked += (object sender, EventArgs ea) =>
             {
-                Unblock();
-            }
+                tcs.SetResult(true);
+            };
+
+            await BlockAsync(_channel);
+            await tcs.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            Assert.True(await tcs.Task, "Unblock notification not received.");
         }
 
-        protected override void TearDown()
+        [Fact]
+        public async Task TestDisposeOnBlockedConnectionDoesNotHang()
         {
-            Unblock();
-        }
+            var tcs = new TaskCompletionSource<bool>();
 
-        private void HandleBlocked(object sender, ConnectionBlockedEventArgs args)
-        {
-            Unblock();
-        }
+            await BlockAsync(_channel);
 
-        private void HandleUnblocked(object sender, EventArgs ea)
-        {
-            lock (_lockObject)
+            Task disposeTask = Task.Run(async () =>
             {
-                _notified = true;
-                Monitor.PulseAll(_lockObject);
-            }
-        }
+                await _conn.AbortAsync();
+                _conn.Dispose();
+                _conn = null;
+                tcs.SetResult(true);
+            });
 
-        private void DisposeConnection()
-        {
-            _conn.Dispose();
-            _connDisposed.Set();
+            Task anyTask = Task.WhenAny(tcs.Task, disposeTask);
+            await anyTask.WaitAsync(LongWaitSpan);
+            bool disposeSuccess = await tcs.Task;
+            Assert.True(disposeSuccess, "Dispose must have finished within 20 seconds after starting");
         }
     }
 }

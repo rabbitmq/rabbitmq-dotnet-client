@@ -173,22 +173,25 @@ namespace Test.AsyncIntegration
 
             Task publishTask = Task.Run(async () =>
                     {
-                        using (IChannel m = await _conn.CreateChannelAsync())
+                        using (IChannel publishChannel = await _conn.CreateChannelAsync())
                         {
-                            QueueDeclareOk q = _channel.QueueDeclare(queue: queueName, exclusive: false, durable: true);
+                            QueueDeclareOk pubQ = await publishChannel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
+                            Assert.Equal(queueName, pubQ.QueueName);
                             for (int i = 0; i < publish_total; i++)
                             {
-                                await _channel.BasicPublishAsync(string.Empty, queueName, body1);
-                                await _channel.BasicPublishAsync(string.Empty, queueName, body2);
+                                await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
+                                await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
                             }
+
+                            await publishChannel.CloseAsync();
                         }
                     });
 
             Task consumeTask = Task.Run(async () =>
                     {
-                        using (IChannel m = await _conn.CreateChannelAsync())
+                        using (IChannel consumeChannel = await _conn.CreateChannelAsync())
                         {
-                            var consumer = new AsyncEventingBasicConsumer(m);
+                            var consumer = new AsyncEventingBasicConsumer(consumeChannel);
 
                             int publish1_count = 0;
                             int publish2_count = 0;
@@ -214,7 +217,7 @@ namespace Test.AsyncIntegration
                                 }
                             };
 
-                            await _channel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
+                            await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
 
                             // ensure we get a delivery
                             await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
@@ -224,6 +227,8 @@ namespace Test.AsyncIntegration
 
                             bool result2 = await publish2SyncSource.Task;
                             Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+
+                            await consumeChannel.CloseAsync();
                         }
                     });
 
@@ -235,12 +240,172 @@ namespace Test.AsyncIntegration
         {
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            using var cancellationTokenSource = new CancellationTokenSource(TestTimeout);
-
-            cancellationTokenSource.Token.Register(() =>
+            using (var cancellationTokenSource = new CancellationTokenSource(TestTimeout))
             {
-                publishSyncSource.SetCanceled();
+                cancellationTokenSource.Token.Register(() =>
+                {
+                    publishSyncSource.SetCanceled();
+                });
+
+                _conn.ConnectionShutdown += (o, ea) =>
+                {
+                    HandleConnectionShutdown(_conn, ea, (args) =>
+                    {
+                        if (args.Initiator == ShutdownInitiator.Peer)
+                        {
+                            publishSyncSource.TrySetResult(false);
+                        }
+                    });
+                };
+
+                _channel.ChannelShutdown += (o, ea) =>
+                {
+                    HandleChannelShutdown(_channel, ea, (args) =>
+                    {
+                        if (args.Initiator == ShutdownInitiator.Peer)
+                        {
+                            publishSyncSource.TrySetResult(false);
+                        }
+                    });
+                };
+
+                var consumer = new AsyncEventingBasicConsumer(_channel);
+                consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+                {
+                    var c = sender as AsyncEventingBasicConsumer;
+                    Assert.Same(c, consumer);
+                    await _channel.BasicCancelAsync(c.ConsumerTags[0]);
+                    /*
+                     * https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/runs/7450578332/attempts/1
+                     * That job failed with a bizarre error where the delivery tag ack timed out:
+                     *
+                     * AI.TestAsyncConsumer.TestBasicRejectAsync channel 1 shut down:
+                     *     AMQP close-reason, initiated by Peer, code=406, text=
+                     *         'PRECONDITION_FAILED - delivery acknowledgement on channel 1 timed out. Timeout value used: 1800000 ms ...', classId=0, methodId=0
+                     *  
+                     * Added Task.Yield() to see if it ever happens again.
+                     */
+                    await Task.Yield();
+                    await _channel.BasicRejectAsync(args.DeliveryTag, true);
+                    publishSyncSource.TrySetResult(true);
+                };
+
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: string.Empty,
+                    durable: false, exclusive: true, autoDelete: false);
+                string queueName = q.QueueName;
+                const string publish1 = "sync-hi-1";
+                byte[] _body = _encoding.GetBytes(publish1);
+                await _channel.BasicPublishAsync(string.Empty, queueName, _body);
+
+                await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
+                    consumerTag: string.Empty, noLocal: false, exclusive: false,
+                    arguments: null, consumer);
+
+                Assert.True(await publishSyncSource.Task);
+
+                uint messageCount, consumerCount = 0;
+                ushort tries = 5;
+                do
+                {
+                    QueueDeclareOk result = await _channel.QueueDeclarePassiveAsync(queue: queueName);
+                    consumerCount = result.ConsumerCount;
+                    messageCount = result.MessageCount;
+                    if (consumerCount == 0 && messageCount > 0)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        await Task.Delay(500);
+                    }
+                } while (tries-- > 0);
+
+                if (tries == 0)
+                {
+                    Assert.Fail("[ERROR] failed waiting for MessageCount > 0 && ConsumerCount == 0");
+                }
+                else
+                {
+                    Assert.Equal((uint)1, messageCount);
+                    Assert.Equal((uint)0, consumerCount);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task TestBasicAckAsync()
+        {
+            const int messageCount = 1024;
+            int messagesReceived = 0;
+
+            var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _conn.ConnectionShutdown += (o, ea) =>
+            {
+                HandleConnectionShutdown(_conn, ea, (args) =>
+                {
+                    if (args.Initiator == ShutdownInitiator.Peer)
+                    {
+                        publishSyncSource.TrySetResult(false);
+                    }
+                });
+            };
+
+            _channel.ChannelShutdown += (o, ea) =>
+            {
+                HandleChannelShutdown(_channel, ea, (args) =>
+                {
+                    if (args.Initiator == ShutdownInitiator.Peer)
+                    {
+                        publishSyncSource.TrySetResult(false);
+                    }
+                });
+            };
+
+            await _channel.ConfirmSelectAsync();
+
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+            {
+                var c = sender as AsyncEventingBasicConsumer;
+                Assert.NotNull(c);
+                await _channel.BasicAckAsync(args.DeliveryTag, false);
+                messagesReceived++;
+                if (messagesReceived == messageCount)
+                {
+                    publishSyncSource.SetResult(true);
+                }
+            };
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            string queueName = q.QueueName;
+
+            await _channel.BasicQosAsync(0, 1, false);
+            await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
+                consumerTag: string.Empty, noLocal: false, exclusive: false,
+                arguments: null, consumer);
+
+            var publishTask = Task.Run(async () =>
+            {
+                for (int i = 0; i < messageCount; i++)
+                {
+                    byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
+                    await _channel.BasicPublishAsync(string.Empty, queueName, _body);
+                }
             });
+
+            await _channel.WaitForConfirmsOrDieAsync();
+            Assert.True(await publishSyncSource.Task);
+
+            Assert.Equal(messageCount, messagesReceived);
+
+            await _channel.CloseAsync(_closeArgs, false);
+        }
+
+        [Fact]
+        public async Task TestBasicNackAsync()
+        {
+            var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _conn.ConnectionShutdown += (o, ea) =>
             {
@@ -268,24 +433,13 @@ namespace Test.AsyncIntegration
             consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
             {
                 var c = sender as AsyncEventingBasicConsumer;
-                Assert.Same(c, consumer);
+                Assert.NotNull(c);
                 await _channel.BasicCancelAsync(c.ConsumerTags[0]);
-                /*
-                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/runs/7450578332/attempts/1
-                 * That job failed with a bizarre error where the delivery tag ack timed out:
-                 *
-                 * AI.TestAsyncConsumer.TestBasicRejectAsync channel 1 shut down:
-                 *     AMQP close-reason, initiated by Peer, code=406, text=
-                 *         'PRECONDITION_FAILED - delivery acknowledgement on channel 1 timed out. Timeout value used: 1800000 ms ...', classId=0, methodId=0
-                 *  
-                 * Added Task.Yield() to see if it ever happens again.
-                 */
-                await Task.Yield();
-                await _channel.BasicRejectAsync(args.DeliveryTag, true);
-                publishSyncSource.TrySetResult(true);
+                await _channel.BasicNackAsync(args.DeliveryTag, false, true);
+                publishSyncSource.SetResult(true);
             };
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
             string queueName = q.QueueName;
             const string publish1 = "sync-hi-1";
             byte[] _body = _encoding.GetBytes(publish1);
@@ -301,167 +455,7 @@ namespace Test.AsyncIntegration
             ushort tries = 5;
             do
             {
-                QueueDeclareOk result = await _channel.QueueDeclareAsync(queue: queueName, passive: true, false, false, false, null);
-                consumerCount = result.ConsumerCount;
-                messageCount = result.MessageCount;
-                if (consumerCount == 0 && messageCount > 0)
-                {
-                    break;
-                }
-                else
-                {
-                    await Task.Delay(500);
-                }
-            } while (tries-- > 0);
-
-            if (tries == 0)
-            {
-                Assert.Fail("[ERROR] failed waiting for MessageCount > 0 && ConsumerCount == 0");
-            }
-            else
-            {
-                Assert.Equal((uint)1, messageCount);
-                Assert.Equal((uint)0, consumerCount);
-            }
-        }
-
-        [Fact]
-        public async Task TestBasicAckAsync()
-        {
-            const int messageCount = 1024;
-            int messagesReceived = 0;
-
-            var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            var cf = CreateConnectionFactory();
-            cf.DispatchConsumersAsync = true;
-
-            using IConnection connection = await cf.CreateConnectionAsync();
-            using IChannel channel = await connection.CreateChannelAsync();
-
-            connection.ConnectionShutdown += (o, ea) =>
-            {
-                HandleConnectionShutdown(connection, ea, (args) =>
-                {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        publishSyncSource.TrySetResult(false);
-                    }
-                });
-            };
-
-            channel.ChannelShutdown += (o, ea) =>
-            {
-                HandleChannelShutdown(channel, ea, (args) =>
-                {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        publishSyncSource.TrySetResult(false);
-                    }
-                });
-            };
-
-            await channel.ConfirmSelectAsync();
-
-            var consumer = new AsyncEventingBasicConsumer(channel);
-            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
-            {
-                var c = sender as AsyncEventingBasicConsumer;
-                Assert.NotNull(c);
-                await channel.BasicAckAsync(args.DeliveryTag, false);
-                messagesReceived++;
-                if (messagesReceived == messageCount)
-                {
-                    publishSyncSource.SetResult(true);
-                }
-            };
-
-            QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
-            string queueName = q.QueueName;
-
-            await channel.BasicQosAsync(0, 1, false);
-            await channel.BasicConsumeAsync(queue: queueName, autoAck: false,
-                consumerTag: string.Empty, noLocal: false, exclusive: false,
-                arguments: null, consumer);
-
-            var publishTask = Task.Run(async () =>
-            {
-                for (int i = 0; i < messageCount; i++)
-                {
-                    byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
-                    await channel.BasicPublishAsync(string.Empty, queueName, _body);
-                }
-            });
-
-            await channel.WaitForConfirmsOrDieAsync();
-            Assert.True(await publishSyncSource.Task);
-
-            Assert.Equal(messageCount, messagesReceived);
-
-            // Note: closing channel explicitly just to test it.
-            await channel.CloseAsync(_closeArgs, false);
-        }
-
-        [Fact]
-        public async Task TestBasicNackAsync()
-        {
-            var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            var cf = CreateConnectionFactory();
-            cf.DispatchConsumersAsync = true;
-
-            using IConnection connection = await cf.CreateConnectionAsync();
-            using IChannel channel = await connection.CreateChannelAsync();
-
-            connection.ConnectionShutdown += (o, ea) =>
-            {
-                HandleConnectionShutdown(connection, ea, (args) =>
-                {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        publishSyncSource.TrySetResult(false);
-                    }
-                });
-            };
-
-            channel.ChannelShutdown += (o, ea) =>
-            {
-                HandleChannelShutdown(channel, ea, (args) =>
-                {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        publishSyncSource.TrySetResult(false);
-                    }
-                });
-            };
-
-            var consumer = new AsyncEventingBasicConsumer(channel);
-            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
-            {
-                var c = sender as AsyncEventingBasicConsumer;
-                Assert.NotNull(c);
-                await channel.BasicCancelAsync(c.ConsumerTags[0]);
-                await channel.BasicNackAsync(args.DeliveryTag, false, true);
-                publishSyncSource.SetResult(true);
-            };
-
-            QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, false, false, false, null);
-            string queueName = q.QueueName;
-            const string publish1 = "sync-hi-1";
-            byte[] _body = _encoding.GetBytes(publish1);
-            await channel.BasicPublishAsync(string.Empty, queueName, _body);
-
-            await channel.BasicConsumeAsync(queue: queueName, autoAck: false,
-                consumerTag: string.Empty, noLocal: false, exclusive: false,
-                arguments: null, consumer);
-
-            Assert.True(await publishSyncSource.Task);
-
-            uint messageCount, consumerCount = 0;
-            ushort tries = 5;
-            do
-            {
-                QueueDeclareOk result = await channel.QueueDeclareAsync(queue: queueName, passive: true, false, false, false, null);
+                QueueDeclareOk result = await _channel.QueueDeclarePassiveAsync(queue: queueName);
                 consumerCount = result.ConsumerCount;
                 messageCount = result.MessageCount;
                 if (consumerCount == 0 && messageCount > 0)
@@ -484,15 +478,14 @@ namespace Test.AsyncIntegration
                 Assert.Equal((uint)0, consumerCount);
             }
 
-            // Note: closing channel explicitly just to test it.
-            await channel.CloseAsync(_closeArgs, false);
+            await _channel.CloseAsync(_closeArgs, false);
         }
 
         [Fact]
         public async Task NonAsyncConsumerShouldThrowInvalidOperationException()
         {
             bool sawException = false;
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false, false, null);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
             await _channel.BasicPublishAsync(string.Empty, q.QueueName, GetRandomBody(1024));
             var consumer = new EventingBasicConsumer(_channel);
             try

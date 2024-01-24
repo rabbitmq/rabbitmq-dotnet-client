@@ -55,9 +55,9 @@ namespace Test.AsyncIntegration
         }
 
         [Fact]
-        public Task TestConfirmBeforeWait()
+        public async Task TestConfirmBeforeWait()
         {
-            return Assert.ThrowsAsync<InvalidOperationException>(() => _channel.WaitForConfirmsAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _channel.WaitForConfirmsAsync());
         }
 
         [Fact]
@@ -65,18 +65,18 @@ namespace Test.AsyncIntegration
         {
             await _channel.ConfirmSelectAsync();
 
-            await _channel.ExchangeDeclareAsync("src", ExchangeType.Direct, false, false, false, null);
-            await _channel.ExchangeDeclareAsync("dest", ExchangeType.Direct, false, false, false, null);
-            string queue = await _channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            await _channel.ExchangeDeclareAsync("src", ExchangeType.Direct, false, false);
+            await _channel.ExchangeDeclareAsync("dest", ExchangeType.Direct, false, false);
+            string queue = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
 
-            await _channel.ExchangeBindAsync("dest", "src", string.Empty, null);
-            await _channel.QueueBindAsync(queue, "dest", string.Empty, null);
+            await _channel.ExchangeBindAsync("dest", "src", string.Empty);
+            await _channel.QueueBindAsync(queue, "dest", string.Empty);
 
             await _channel.BasicPublishAsync("src", string.Empty);
             await _channel.WaitForConfirmsAsync();
             Assert.NotNull(await _channel.BasicGetAsync(queue, true));
 
-            await _channel.ExchangeUnbindAsync("dest", "src", string.Empty, null);
+            await _channel.ExchangeUnbindAsync("dest", "src", string.Empty);
             await _channel.BasicPublishAsync("src", string.Empty);
             await _channel.WaitForConfirmsAsync();
 

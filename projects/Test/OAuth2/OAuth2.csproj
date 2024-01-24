@@ -11,8 +11,8 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>../../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <LangVersion>latest</LangVersion>
-    <ReleaseVersion>7.0</ReleaseVersion>
+    <IsTestProject>true</IsTestProject>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,11 +23,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
-    <PackageReference Include="xunit" Version="2.6.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" PrivateAssets="all" />
+    <PackageReference Include="xunit" Version="2.6.6" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" PrivateAssets="all" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Text.Json" Version="8.0.0" />
-    <PackageReference Include="WireMock.Net" Version="1.5.41" />
+    <PackageReference Include="System.Text.Json" Version="8.0.1" />
+    <PackageReference Include="WireMock.Net" Version="1.5.46" />
   </ItemGroup>
 
 </Project>

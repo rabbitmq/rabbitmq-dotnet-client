@@ -51,7 +51,7 @@ namespace Test.AsyncIntegration
 
             await _channel.ConfirmSelectAsync();
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true, false, null);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
 
             var publishTask = Task.Run(async () =>
             {

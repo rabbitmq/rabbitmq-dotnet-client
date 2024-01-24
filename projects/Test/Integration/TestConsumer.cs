@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -49,65 +50,72 @@ namespace Test.Integration
         }
 
         [Fact]
-        public void TestBasicRoundtrip()
+        public async Task TestBasicRoundtrip()
         {
-            QueueDeclareOk q = _channel.QueueDeclare();
-            _channel.BasicPublish("", q.QueueName, _body);
+            TimeSpan waitSpan = TimeSpan.FromSeconds(2);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            await _channel.BasicPublishAsync("", q.QueueName, _body);
             var consumer = new EventingBasicConsumer(_channel);
-            var are = new AutoResetEvent(false);
-            consumer.Received += (o, a) =>
+            using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
+            {
+                consumer.Received += (o, a) =>
                 {
-                    are.Set();
+                    consumerReceivedSemaphore.Release();
                 };
-            string tag = _channel.BasicConsume(q.QueueName, true, consumer);
-            // ensure we get a delivery
-            bool waitRes = are.WaitOne(2000);
-            Assert.True(waitRes);
-            // unsubscribe and ensure no further deliveries
-            _channel.BasicCancel(tag);
-            _channel.BasicPublish("", q.QueueName, _body);
-            bool waitResFalse = are.WaitOne(2000);
-            Assert.False(waitResFalse);
+                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                // ensure we get a delivery
+                bool waitRes = await consumerReceivedSemaphore.WaitAsync(waitSpan);
+                Assert.True(waitRes);
+                // unsubscribe and ensure no further deliveries
+                await _channel.BasicCancelAsync(tag);
+                await _channel.BasicPublishAsync("", q.QueueName, _body);
+                bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(waitSpan);
+                Assert.False(waitResFalse);
+            }
         }
 
         [Fact]
-        public void TestBasicRoundtripNoWait()
+        public async Task TestBasicRoundtripNoWait()
         {
-            QueueDeclareOk q = _channel.QueueDeclare();
-            _channel.BasicPublish("", q.QueueName, _body);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            await _channel.BasicPublishAsync("", q.QueueName, _body);
             var consumer = new EventingBasicConsumer(_channel);
-            var are = new AutoResetEvent(false);
-            consumer.Received += (o, a) =>
+            using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
+            {
+                consumer.Received += (o, a) =>
                 {
-                    are.Set();
+                    consumerReceivedSemaphore.Release();
                 };
-            string tag = _channel.BasicConsume(q.QueueName, true, consumer);
-            // ensure we get a delivery
-            bool waitRes = are.WaitOne(2000);
-            Assert.True(waitRes);
-            // unsubscribe and ensure no further deliveries
-            _channel.BasicCancelNoWait(tag);
-            _channel.BasicPublish("", q.QueueName, _body);
-            bool waitResFalse = are.WaitOne(2000);
-            Assert.False(waitResFalse);
+                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                // ensure we get a delivery
+                bool waitRes0 = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
+                Assert.True(waitRes0);
+                // unsubscribe and ensure no further deliveries
+                await _channel.BasicCancelAsync(tag, noWait: true);
+                await _channel.BasicPublishAsync("", q.QueueName, _body);
+                bool waitRes1 = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
+                Assert.False(waitRes1);
+            }
         }
 
         [Fact]
-        public void ConcurrentEventingTestForReceived()
+        public async Task ConcurrentEventingTestForReceived()
         {
             const int NumberOfThreads = 4;
             const int NumberOfRegistrations = 5000;
 
-            var called = new byte[NumberOfThreads * NumberOfRegistrations];
+            byte[] called = new byte[NumberOfThreads * NumberOfRegistrations];
 
-            QueueDeclareOk q = _channel.QueueDeclare();
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
             var consumer = new EventingBasicConsumer(_channel);
-            _channel.BasicConsume(q.QueueName, true, consumer);
+            await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
             var countdownEvent = new CountdownEvent(NumberOfThreads);
+
+            var tasks = new List<Task>();
             for (int i = 0; i < NumberOfThreads; i++)
             {
                 int threadIndex = i;
-                Task.Run(() =>
+                tasks.Add(Task.Run(() =>
                 {
                     int start = threadIndex * NumberOfRegistrations;
                     for (int j = start; j < start + NumberOfRegistrations; j++)
@@ -119,21 +127,23 @@ namespace Test.Integration
                         };
                     }
                     countdownEvent.Signal();
-                });
+                }));
             }
 
             countdownEvent.Wait();
 
             // Add last receiver
-            var are = new AutoResetEvent(false);
+            var lastConsumerReceivedTcs = new TaskCompletionSource<bool>();
             consumer.Received += (o, a) =>
             {
-                are.Set();
+                lastConsumerReceivedTcs.SetResult(true);
             };
 
             // Send message
-            _channel.BasicPublish("", q.QueueName, ReadOnlyMemory<byte>.Empty);
-            are.WaitOne(TimingFixture.TestTimeout);
+            await _channel.BasicPublishAsync("", q.QueueName, ReadOnlyMemory<byte>.Empty);
+
+            await lastConsumerReceivedTcs.Task.WaitAsync(TimingFixture.TestTimeout);
+            Assert.True(await lastConsumerReceivedTcs.Task);
 
             // Check received messages
             Assert.Equal(-1, called.AsSpan().IndexOf((byte)0));

@@ -33,14 +33,15 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using System.Threading.Tasks;
 namespace RabbitMQ.Client
 {
     public interface ICredentialsRefresher
     {
-        ICredentialsProvider Register(ICredentialsProvider provider, NotifyCredentialRefreshed callback);
+        ICredentialsProvider Register(ICredentialsProvider provider, NotifyCredentialRefreshedAsync callback);
         bool Unregister(ICredentialsProvider provider);
 
-        delegate void NotifyCredentialRefreshed(bool successfully);
+        delegate Task NotifyCredentialRefreshedAsync(bool successfully);
     }
 
     [EventSource(Name = "TimerBasedCredentialRefresher")]
@@ -70,9 +71,9 @@ namespace RabbitMQ.Client
 
     public class TimerBasedCredentialRefresher : ICredentialsRefresher
     {
-        private readonly ConcurrentDictionary<ICredentialsProvider, System.Timers.Timer> _registrations = new();
+        private readonly ConcurrentDictionary<ICredentialsProvider, System.Timers.Timer> _registrations = new ConcurrentDictionary<ICredentialsProvider, System.Timers.Timer>();
 
-        public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshed callback)
+        public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
         {
             if (!provider.ValidUntil.HasValue || provider.ValidUntil.Value.Equals(TimeSpan.Zero))
             {
@@ -112,7 +113,7 @@ namespace RabbitMQ.Client
             }
         }
 
-        private System.Timers.Timer scheduleTimer(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshed callback)
+        private System.Timers.Timer scheduleTimer(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
         {
             System.Timers.Timer timer = new System.Timers.Timer();
             timer.Interval = provider.ValidUntil.Value.TotalMilliseconds * (1.0 - (1 / 3.0));
@@ -142,7 +143,7 @@ namespace RabbitMQ.Client
 
     class NoOpCredentialsRefresher : ICredentialsRefresher
     {
-        public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshed callback)
+        public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
         {
             return provider;
         }
