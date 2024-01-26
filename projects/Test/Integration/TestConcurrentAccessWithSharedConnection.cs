@@ -102,7 +102,7 @@ namespace Test.Integration
         {
             return TestConcurrentChannelOperationsAsync(async (conn) =>
             {
-                var tcs = new TaskCompletionSource<bool>();
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 // publishing on a shared channel is not supported
                 // and would missing the point of this test anyway

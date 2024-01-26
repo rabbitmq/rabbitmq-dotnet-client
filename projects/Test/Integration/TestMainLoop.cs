@@ -63,7 +63,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestCloseWithFaultyConsumer()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
 
             CallbackExceptionEventArgs ea = null;

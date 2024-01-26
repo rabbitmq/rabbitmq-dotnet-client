@@ -37,7 +37,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -80,11 +82,13 @@ namespace RabbitMQ.Client.Impl
                 ConsumerDispatcher = new ConsumerDispatcher(this, config.DispatchConsumerConcurrency);
             }
 
-            Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+            Action<Exception, string> onException = (exception, context) =>
+                OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);
             _basicNacksWrapper = new EventingWrapper<BasicNackEventArgs>("OnBasicNack", onException);
             _basicReturnWrapper = new EventingWrapper<BasicReturnEventArgs>("OnBasicReturn", onException);
-            _callbackExceptionWrapper = new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
+            _callbackExceptionWrapper =
+                new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
             _flowControlWrapper = new EventingWrapper<FlowControlEventArgs>("OnFlowControl", onException);
             _channelShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnChannelShutdown", onException);
             _recoveryWrapper = new EventingWrapper<EventArgs>("OnChannelRecovery", onException);
@@ -101,6 +105,7 @@ namespace RabbitMQ.Client.Impl
             add => _basicAcksWrapper.AddHandler(value);
             remove => _basicAcksWrapper.RemoveHandler(value);
         }
+
         private EventingWrapper<BasicAckEventArgs> _basicAcksWrapper;
 
         public event EventHandler<BasicNackEventArgs> BasicNacks
@@ -108,6 +113,7 @@ namespace RabbitMQ.Client.Impl
             add => _basicNacksWrapper.AddHandler(value);
             remove => _basicNacksWrapper.RemoveHandler(value);
         }
+
         private EventingWrapper<BasicNackEventArgs> _basicNacksWrapper;
 
         public event EventHandler<BasicReturnEventArgs> BasicReturn
@@ -115,6 +121,7 @@ namespace RabbitMQ.Client.Impl
             add => _basicReturnWrapper.AddHandler(value);
             remove => _basicReturnWrapper.RemoveHandler(value);
         }
+
         private EventingWrapper<BasicReturnEventArgs> _basicReturnWrapper;
 
         public event EventHandler<CallbackExceptionEventArgs> CallbackException
@@ -122,6 +129,7 @@ namespace RabbitMQ.Client.Impl
             add => _callbackExceptionWrapper.AddHandler(value);
             remove => _callbackExceptionWrapper.RemoveHandler(value);
         }
+
         private EventingWrapper<CallbackExceptionEventArgs> _callbackExceptionWrapper;
 
         public event EventHandler<FlowControlEventArgs> FlowControl
@@ -129,6 +137,7 @@ namespace RabbitMQ.Client.Impl
             add => _flowControlWrapper.AddHandler(value);
             remove => _flowControlWrapper.RemoveHandler(value);
         }
+
         private EventingWrapper<FlowControlEventArgs> _flowControlWrapper;
 
         public event EventHandler<ShutdownEventArgs> ChannelShutdown
@@ -146,6 +155,7 @@ namespace RabbitMQ.Client.Impl
             }
             remove => _channelShutdownWrapper.RemoveHandler(value);
         }
+
         private EventingWrapper<ShutdownEventArgs> _channelShutdownWrapper;
 
         public event EventHandler<EventArgs> Recovery
@@ -153,6 +163,7 @@ namespace RabbitMQ.Client.Impl
             add => _recoveryWrapper.AddHandler(value);
             remove => _recoveryWrapper.RemoveHandler(value);
         }
+
         private EventingWrapper<EventArgs> _recoveryWrapper;
 
         internal void RunRecoveryEventHandlers(object sender)
@@ -344,7 +355,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(IDictionary<string, object> clientProperties, string mechanism, byte[] response,
+        internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(
+            IDictionary<string, object> clientProperties, string mechanism, byte[] response,
             string locale)
         {
             await _rpcSemaphore.WaitAsync()
@@ -510,11 +522,13 @@ namespace RabbitMQ.Client.Impl
             {
                 _flowControlBlock.Wait();
             }
+
             Session.Transmit(in method, in header, body);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body)
+        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header,
+            ReadOnlyMemory<byte> body)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -556,9 +570,11 @@ namespace RabbitMQ.Client.Impl
                     {
                         confirmsTaskCompletionSource.TrySetException(exception);
                     }
+
                     _confirmsTaskCompletionSources.Clear();
                 }
             }
+
             _flowControlBlock.Set();
         }
 
@@ -680,6 +696,7 @@ namespace RabbitMQ.Client.Impl
                         {
                             confirmsTaskCompletionSource.TrySetResult(_onlyAcksReceived);
                         }
+
                         _confirmsTaskCompletionSources.Clear();
                         _onlyAcksReceived = true;
                     }
@@ -1134,7 +1151,17 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(method)
                     .ConfigureAwait(false);
 
-                return await k;
+                BasicGetResult result = await k;
+
+                using Activity activity = result != null
+                    ? RabbitMQActivitySource.Receive(result.RoutingKey,
+                        result.Exchange,
+                        result.DeliveryTag, result.BasicProperties, result.Body.Length)
+                    : RabbitMQActivitySource.ReceiveEmpty(queue);
+
+                activity?.SetStartTime(k.StartTime);
+
+                return result;
             }
             finally
             {
@@ -1158,6 +1185,17 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
+                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length, existingContext)
+                    : default;
+
+                if (sendActivity != null)
+                {
+                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
+                    return ModelSendAsync(in cmd, in props, body);
+                }
+
                 return ModelSendAsync(in cmd, in basicProperties, body);
             }
             catch
@@ -1175,7 +1213,22 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        private static void InjectTraceContextIntoBasicProperties(object propsObj, string key, string value)
+        {
+            if (!(propsObj is Dictionary<string, object> headers))
+            {
+                return;
+            }
+
+            // Only propagate headers if they haven't already been set
+            if (!headers.ContainsKey(key))
+            {
+                headers[key] = value;
+            }
+        }
+
+        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey,
+            in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (NextPublishSeqNo > 0)
@@ -1189,7 +1242,19 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-                return ModelSendAsync(in cmd, in basicProperties, body);
+                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
+                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length, existingContext)
+                    : default;
+
+                if (sendActivity != null)
+                {
+                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
+                    ChannelSend(in cmd, in props, body);
+                    return;
+                }
+
+                ChannelSend(in cmd, in basicProperties, body);
             }
             catch
             {
@@ -1205,6 +1270,114 @@ namespace RabbitMQ.Client.Impl
                 throw;
             }
         }
+
+        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            if (NextPublishSeqNo > 0)
+            {
+                lock (_confirmLock)
+                {
+                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+            }
+
+            try
+            {
+                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
+                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length, existingContext)
+                    : default;
+
+                if (sendActivity != null)
+                {
+                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
+                    await ModelSendAsync(in cmd, in props, body);
+                    return;
+                }
+
+                await ModelSendAsync(in cmd, in basicProperties, body);
+            }
+            catch
+            {
+                if (NextPublishSeqNo > 0)
+                {
+                    lock (_confirmLock)
+                    {
+                        NextPublishSeqNo--;
+                        _pendingDeliveryTags.RemoveLast();
+                    }
+                }
+
+                throw;
+            }
+        }
+
+        public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            if (NextPublishSeqNo > 0)
+            {
+                lock (_confirmLock)
+                {
+                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+            }
+
+            try
+            {
+                var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
+                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length, existingContext)
+                    : default;
+
+                if (sendActivity != null)
+                {
+                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
+                    await ModelSendAsync(in cmd, in props, body);
+                    return;
+                }
+
+                await ModelSendAsync(in cmd, in basicProperties, body);
+            }
+            catch
+            {
+                if (NextPublishSeqNo > 0)
+                {
+                    lock (_confirmLock)
+                    {
+                        NextPublishSeqNo--;
+                        _pendingDeliveryTags.RemoveLast();
+                    }
+                }
+
+                throw;
+            }
+        }
+
+#if FOO
+        BasicProperties props = default;
+            if (basicProperties is BasicProperties properties)
+            {
+                props = properties;
+            }
+            else if (basicProperties is EmptyBasicProperty)
+            {
+                props = new BasicProperties();
+            }
+
+            var headers = props.Headers ?? new Dictionary<string, object>();
+
+            // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
+            DistributedContextPropagator.Current.Inject(sendActivity, headers, InjectTraceContextIntoBasicProperties);
+            props.Headers = headers;
+            return props;
+        }
+#endif 
 
         public async Task UpdateSecretAsync(string newSecret, string reason)
         {
@@ -1710,6 +1883,7 @@ namespace RabbitMQ.Client.Impl
                         _onlyAcksReceived = true;
                         return Task.FromResult(false);
                     }
+
                     return Task.FromResult(true);
                 }
 
@@ -1779,6 +1953,36 @@ namespace RabbitMQ.Client.Impl
 
                 throw ex;
             }
+        }
+
+        private static BasicProperties PopulateActivityAndPropagateTraceId<TProperties>(TProperties basicProperties,
+            Activity sendActivity) where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            // This activity is marked as recorded, so let's propagate the trace and span ids.
+            if (sendActivity.IsAllDataRequested)
+            {
+                if (!string.IsNullOrEmpty(basicProperties.CorrelationId))
+                {
+                    sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, basicProperties.CorrelationId);
+                }
+            }
+
+            BasicProperties props = default;
+            if (basicProperties is BasicProperties properties)
+            {
+                props = properties;
+            }
+            else if (basicProperties is EmptyBasicProperty)
+            {
+                props = new BasicProperties();
+            }
+
+            var headers = props.Headers ?? new Dictionary<string, object>();
+
+            // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
+            DistributedContextPropagator.Current.Inject(sendActivity, headers, InjectTraceContextIntoBasicProperties);
+            props.Headers = headers;
+            return props;
         }
     }
 }

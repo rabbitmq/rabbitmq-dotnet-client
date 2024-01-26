@@ -70,7 +70,7 @@ namespace Test.SequentialIntegration
             await CloseAndWaitForRecoveryAsync();
             await AssertConsumerCountAsync(_channel, q, 1);
 
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             cons.Received += (s, args) => tcs.SetResult(true);
 
             await _channel.BasicPublishAsync("", q, _messageBody);
@@ -84,7 +84,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestTopologyRecoveryQueueFilter()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var filter = new TopologyRecoveryFilter
             {
@@ -130,7 +130,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestTopologyRecoveryExchangeFilter()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var filter = new TopologyRecoveryFilter
             {
@@ -174,7 +174,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestTopologyRecoveryBindingFilter()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var filter = new TopologyRecoveryFilter
             {
@@ -222,7 +222,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestTopologyRecoveryDefaultFilterRecoversAllEntities()
         {
-            var connectionRecoveryTcs = new TaskCompletionSource<bool>();
+            var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var filter = new TopologyRecoveryFilter();
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
             conn.RecoverySucceeded += (source, ea) => connectionRecoveryTcs.SetResult(true);
@@ -245,12 +245,12 @@ namespace Test.SequentialIntegration
                 await ch.QueuePurgeAsync(queue1);
                 await ch.QueuePurgeAsync(queue2);
 
-                var consumerReceivedTcs1 = new TaskCompletionSource<bool>();
+                var consumerReceivedTcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var consumer1 = new EventingBasicConsumer(ch);
                 consumer1.Received += (source, ea) => consumerReceivedTcs1.SetResult(true);
                 await ch.BasicConsumeAsync(queue1, true, "recovered.consumer", consumer1);
 
-                var consumerReceivedTcs2 = new TaskCompletionSource<bool>();
+                var consumerReceivedTcs2 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var consumer2 = new EventingBasicConsumer(ch);
                 consumer2.Received += (source, ea) => consumerReceivedTcs2.SetResult(true);
                 await ch.BasicConsumeAsync(queue2, true, "filtered.consumer", consumer2);
@@ -290,7 +290,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestTopologyRecoveryQueueExceptionHandler()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var changedQueueArguments = new Dictionary<string, object>
             {
@@ -352,7 +352,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestTopologyRecoveryExchangeExceptionHandler()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var exceptionHandler = new TopologyRecoveryExceptionHandler
             {
@@ -408,7 +408,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestTopologyRecoveryBindingExceptionHandler()
         {
-            var connectionRecoveryTcs = new TaskCompletionSource<bool>();
+            var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             const string exchange = "topology.recovery.exchange";
             const string queueWithExceptionBinding = "recovery.exception.queue";
@@ -469,7 +469,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestTopologyRecoveryConsumerExceptionHandler()
         {
-            var connectionRecoveryTcs = new TaskCompletionSource<bool>();
+            var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             string queueWithExceptionConsumer = "recovery.exception.queue";
 

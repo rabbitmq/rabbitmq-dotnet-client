@@ -133,7 +133,7 @@ namespace Test.Integration
             countdownEvent.Wait();
 
             // Add last receiver
-            var lastConsumerReceivedTcs = new TaskCompletionSource<bool>();
+            var lastConsumerReceivedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             consumer.Received += (o, a) =>
             {
                 lastConsumerReceivedTcs.SetResult(true);

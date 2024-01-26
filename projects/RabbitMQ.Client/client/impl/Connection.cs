@@ -31,7 +31,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -445,6 +448,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void Write(RentedMemory frames)
         {
+            Activity.Current.SetNetworkTags(_frameHandler);
             ValueTask task = _frameHandler.WriteAsync(frames);
             if (!task.IsCompletedSuccessfully)
             {
@@ -454,6 +458,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal ValueTask WriteAsync(RentedMemory frames)
         {
+            Activity.Current.SetNetworkTags(_frameHandler);
             return _frameHandler.WriteAsync(frames);
         }
 

@@ -48,7 +48,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestCleanClosureWithSocketClosedOutOfBand()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _channel.ChannelShutdown += (channel, args) =>
             {
                 tcs.SetResult(true);
@@ -64,7 +64,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestAbortWithSocketClosedOutOfBand()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _channel.ChannelShutdown += (channel, args) =>
             {
                 tcs.SetResult(true);
@@ -82,7 +82,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestDisposedWithSocketClosedOutOfBand()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _channel.ChannelShutdown += (channel, args) =>
             {
@@ -103,7 +103,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestShutdownSignalPropagationToChannels()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _channel.ChannelShutdown += (channel, args) =>
             {
@@ -119,7 +119,7 @@ namespace Test.Integration
         public async Task TestConsumerDispatcherShutdown()
         {
             var m = (AutorecoveringChannel)_channel;
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _channel.ChannelShutdown += (channel, args) =>
             {

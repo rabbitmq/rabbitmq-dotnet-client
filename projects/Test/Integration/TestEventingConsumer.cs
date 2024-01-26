@@ -48,10 +48,10 @@ namespace Test.Integration
         {
             string q = await _channel.QueueDeclareAsync();
 
-            var registeredTcs = new TaskCompletionSource<bool>();
+            var registeredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             object registeredSender = null;
 
-            var unregisteredTcs = new TaskCompletionSource<bool>();
+            var unregisteredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             object unregisteredSender = null;
 
             EventingBasicConsumer ec = new EventingBasicConsumer(_channel);
@@ -85,7 +85,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestEventingConsumerDeliveryEvents()
         {
-            var tcs0 = new TaskCompletionSource<bool>();
+            var tcs0 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             string q = await _channel.QueueDeclareAsync();
 
             bool receivedInvoked = false;
@@ -103,7 +103,7 @@ namespace Test.Integration
             await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
 
             await WaitAsync(tcs0, "received event");
-            var tcs1 = new TaskCompletionSource<bool>();
+            var tcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             Assert.True(receivedInvoked);
             Assert.NotNull(receivedSender);

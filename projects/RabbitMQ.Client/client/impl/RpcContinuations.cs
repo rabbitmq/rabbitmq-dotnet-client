@@ -38,6 +38,7 @@ namespace RabbitMQ.Client.Impl
     internal class SimpleBlockingRpcContinuation : IRpcContinuation
     {
         private readonly BlockingCell<Either<IncomingCommand, ShutdownEventArgs>> m_cell = new BlockingCell<Either<IncomingCommand, ShutdownEventArgs>>();
+        internal DateTime StartTime { get; } = DateTime.UtcNow;
 
         public void GetReply(TimeSpan timeout)
         {

@@ -132,7 +132,7 @@ namespace Test.SequentialIntegration
                     await CloseAndWaitForRecoveryAsync(c);
 
                     Assert.True(ch.IsOpen);
-                    var tcs = new TaskCompletionSource<bool>();
+                    var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     cons.Received += (s, args) => tcs.SetResult(true);
 
                     await ch.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
@@ -177,7 +177,7 @@ namespace Test.SequentialIntegration
                     await AssertConsumerCountAsync(ch, q1, 1);
                     Assert.False(queueNameChangeAfterRecoveryCalled);
 
-                    var tcs = new TaskCompletionSource<bool>();
+                    var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     cons.Received += (s, args) => tcs.SetResult(true);
 
                     await ch.BasicPublishAsync("", q1, _encoding.GetBytes("msg"));
@@ -265,7 +265,7 @@ namespace Test.SequentialIntegration
                 ConsumerFilter = consumer => !consumer.ConsumerTag.Contains("filtered")
             };
 
-            var connectionRecoveryTcs = new TaskCompletionSource<bool>();
+            var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             using (AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter))
             {
@@ -289,12 +289,12 @@ namespace Test.SequentialIntegration
                     await ch.QueuePurgeAsync(queueWithRecoveredConsumer);
                     await ch.QueuePurgeAsync(queueWithIgnoredConsumer);
 
-                    var consumerRecoveryTcs = new TaskCompletionSource<bool>();
+                    var consumerRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     var consumerToRecover = new EventingBasicConsumer(ch);
                     consumerToRecover.Received += (source, ea) => consumerRecoveryTcs.SetResult(true);
                     await ch.BasicConsumeAsync(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover);
 
-                    var ignoredTcs = new TaskCompletionSource<bool>();
+                    var ignoredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     var consumerToIgnore = new EventingBasicConsumer(ch);
                     consumerToIgnore.Received += (source, ea) => ignoredTcs.SetResult(true);
                     await ch.BasicConsumeAsync(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);

@@ -53,7 +53,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestConnectionBlockedNotification()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _conn.ConnectionBlocked += (object sender, ConnectionBlockedEventArgs args) =>
             {
                 UnblockAsync();
@@ -72,7 +72,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestDisposeOnBlockedConnectionDoesNotHang()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             await BlockAsync(_channel);
 

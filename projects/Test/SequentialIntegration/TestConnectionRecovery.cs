@@ -73,7 +73,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestBasicAckAfterChannelRecovery()
         {
-            var allMessagesSeenTcs = new TaskCompletionSource<bool>();
+            var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cons = new AckingBasicConsumer(_channel, _totalMessageCount, allMessagesSeenTcs);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, false, false, false);
@@ -96,7 +96,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestBasicNackAfterChannelRecovery()
         {
-            var allMessagesSeenTcs = new TaskCompletionSource<bool>();
+            var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cons = new NackingBasicConsumer(_channel, _totalMessageCount, allMessagesSeenTcs);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, false, false, false);
@@ -119,7 +119,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestBasicRejectAfterChannelRecovery()
         {
-            var allMessagesSeenTcs = new TaskCompletionSource<bool>();
+            var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cons = new RejectingBasicConsumer(_channel, _totalMessageCount, allMessagesSeenTcs);
 
             string queueName = (await _channel.QueueDeclareAsync(_queueName, false, false, false)).QueueName;
@@ -160,7 +160,7 @@ namespace Test.SequentialIntegration
         public async Task TestBasicAckEventHandlerRecovery()
         {
             await _channel.ConfirmSelectAsync();
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             ((AutorecoveringChannel)_channel).BasicAcks += (m, args) => tcs.SetResult(true);
             ((AutorecoveringChannel)_channel).BasicNacks += (m, args) => tcs.SetResult(true);
 
@@ -212,7 +212,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestChannelAfterDispose_GH1086()
         {
-            TaskCompletionSource<bool> sawChannelShutdownTcs = new TaskCompletionSource<bool>();
+            TaskCompletionSource<bool> sawChannelShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             void _channel_ChannelShutdown(object sender, ShutdownEventArgs e)
             {
@@ -269,7 +269,7 @@ namespace Test.SequentialIntegration
         {
             try
             {
-                var tcs = new TaskCompletionSource<bool>();
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _conn.ConnectionBlocked += (c, reason) => tcs.SetResult(true);
                 await CloseAndWaitForRecoveryAsync();
                 await CloseAndWaitForRecoveryAsync();
@@ -329,7 +329,7 @@ namespace Test.SequentialIntegration
                 await _channel.BasicConsumeAsync(q, true, cons);
             }
 
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             ((AutorecoveringConnection)_conn).ConsumerTagChangeAfterRecovery += (prev, current) => tcs.SetResult(true);
 
             await CloseAndWaitForRecoveryAsync();
@@ -522,7 +522,7 @@ namespace Test.SequentialIntegration
             string q = (await _channel.QueueDeclareAsync(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null)).QueueName;
             string nameBefore = q;
             string nameAfter = null;
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             ((AutorecoveringConnection)_conn).QueueNameChangedAfterRecovery += (source, ea) =>
             {
@@ -634,7 +634,7 @@ namespace Test.SequentialIntegration
             string nameBefore = q;
             string nameAfter = null;
 
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var connection = (AutorecoveringConnection)_conn;
             connection.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
             connection.QueueNameChangedAfterRecovery += (source, ea) => { nameAfter = ea.NameAfter; };
@@ -730,7 +730,7 @@ namespace Test.SequentialIntegration
             await CloseAndWaitForRecoveryAsync();
             await AssertConsumerCountAsync(_channel, q, 1);
 
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             cons.Received += (s, args) => tcs.SetResult(true);
 
             await _channel.BasicPublishAsync("", q, _messageBody);
@@ -752,7 +752,7 @@ namespace Test.SequentialIntegration
             properties.ReplyTo = "amq.rabbitmq.reply-to";
 
             TimeSpan doneSpan = TimeSpan.FromMilliseconds(100);
-            var doneTcs = new TaskCompletionSource<bool>();
+            var doneTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             Task closeTask = Task.Run(async () =>
             {
                 try
@@ -913,7 +913,7 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestUnblockedListenersRecovery()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             _conn.ConnectionUnblocked += (source, ea) => tcs.SetResult(true);
             await CloseAndWaitForRecoveryAsync();
             await CloseAndWaitForRecoveryAsync();

@@ -164,7 +164,7 @@ namespace Test.Integration
             string q2 = (await ch2.QueueDeclareAsync()).QueueName;
             await ch2.QueueBindAsync(queue: q2, exchange: _x, routingKey: "");
 
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             await ch1.BasicConsumeAsync(q1, true, new EventingBasicConsumer(ch1));
             var c2 = new EventingBasicConsumer(ch2);
             c2.Received += (object sender, BasicDeliverEventArgs e) =>
@@ -183,8 +183,8 @@ namespace Test.Integration
         {
             public ShutdownLatchConsumer()
             {
-                Latch = new TaskCompletionSource<bool>();
-                DuplicateLatch = new TaskCompletionSource<bool>();
+                Latch = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                DuplicateLatch = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             }
 
             public readonly TaskCompletionSource<bool> Latch;

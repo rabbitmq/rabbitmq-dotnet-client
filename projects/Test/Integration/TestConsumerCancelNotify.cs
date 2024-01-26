@@ -40,7 +40,7 @@ namespace Test.Integration
 {
     public class TestConsumerCancelNotify : IntegrationFixture
     {
-        private readonly TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         private string _consumerTag;
 
         public TestConsumerCancelNotify(ITestOutputHelper output) : base(output)

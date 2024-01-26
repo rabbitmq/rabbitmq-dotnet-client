@@ -72,6 +72,8 @@ namespace RabbitMQ.Client.Impl
             _tcsConfiguredTaskAwaitable = _tcs.Task.ConfigureAwait(false);
         }
 
+        internal DateTime StartTime { get; } = DateTime.UtcNow;
+
         public ConfiguredTaskAwaitable<T>.ConfiguredTaskAwaiter GetAwaiter()
         {
             return _tcsConfiguredTaskAwaitable.GetAwaiter();
