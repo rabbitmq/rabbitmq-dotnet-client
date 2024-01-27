@@ -38,6 +38,7 @@ namespace RabbitMQ.Client.Logging
     [EventSource(Name = "rabbitmq-dotnet-client")]
     public sealed class RabbitMqClientEventSource : EventSource
     {
+        public static readonly RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
         public class Keywords
         {
             public const EventKeywords Log = (EventKeywords)1;
@@ -46,8 +47,6 @@ namespace RabbitMQ.Client.Logging
         public RabbitMqClientEventSource() : base(EventSourceSettings.EtwSelfDescribingEventFormat)
         {
         }
-
-        public static RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
 
         [Event(1, Message = "INFO", Keywords = Keywords.Log, Level = EventLevel.Informational)]
         public void Info(string message)
@@ -67,14 +66,11 @@ namespace RabbitMQ.Client.Logging
         public void Error(string message, RabbitMqExceptionDetail ex)
         {
             if (IsEnabled())
+#if NET6_0_OR_GREATER
                 WriteExceptionEvent(message, ex);
-        }
-
-        [NonEvent]
-        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
-        private void WriteExceptionEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(string message, T ex)
-        {
-            WriteEvent(3, message, ex);
+#else
+                WriteEvent(3, message, ex);
+#endif
         }
 
         [NonEvent]
@@ -82,5 +78,13 @@ namespace RabbitMQ.Client.Logging
         {
             Error(message, new RabbitMqExceptionDetail(ex));
         }
+
+#if NET6_0_OR_GREATER
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
+        private void WriteExceptionEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(string message, T ex)
+        {
+            WriteEvent(3, message, ex);
+        }
+#endif
     }
 }
