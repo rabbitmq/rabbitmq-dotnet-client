@@ -38,9 +38,9 @@ using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestConcurrentAccessWithSharedConnectionAsync : AsyncIntegrationFixture
+    public class TestConcurrentAccessWithSharedConnectionAsync : IntegrationFixture
     {
         private const ushort _messageCount = 200;
 

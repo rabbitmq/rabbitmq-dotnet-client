@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -29,39 +29,30 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestPassiveDeclareAsync : AsyncIntegrationFixture
+    public class TestMessageCount : IntegrationFixture
     {
-        public TestPassiveDeclareAsync(ITestOutputHelper output) : base(output)
+        public TestMessageCount(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
-        public Task TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
+        public async Task TestMessageCountMethod()
         {
-            return Assert.ThrowsAsync<OperationInterruptedException>(() =>
-            {
-                return _channel.ExchangeDeclareAsync(exchange: Guid.NewGuid().ToString(), type: ExchangeType.Fanout,
-                    passive: true, durable: true, autoDelete: false);
-            });
-        }
+            await _channel.ConfirmSelectAsync();
+            string q = GenerateQueueName();
+            await _channel.QueueDeclareAsync(queue: q, passive: false, durable: false, exclusive: true, autoDelete: false, arguments: null);
+            Assert.Equal(0u, await _channel.MessageCountAsync(q));
 
-        [Fact]
-        public Task TestPassiveQueueDeclareWhenQueueDoesNotExist()
-        {
-            return Assert.ThrowsAsync<OperationInterruptedException>(() =>
-            {
-                return _channel.QueueDeclareAsync(queue: Guid.NewGuid().ToString(), passive: true,
-                    durable: true, exclusive: true, autoDelete: false);
-            });
+            await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
+            await _channel.WaitForConfirmsAsync();
+            Assert.Equal(1u, await _channel.MessageCountAsync(q));
         }
     }
 }

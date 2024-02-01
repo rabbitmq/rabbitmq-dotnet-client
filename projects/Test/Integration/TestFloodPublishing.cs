@@ -38,14 +38,14 @@ using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestFloodPublishingAsync : AsyncIntegrationFixture
+    public class TestFloodPublishing : IntegrationFixture
     {
         private static readonly TimeSpan TenSeconds = TimeSpan.FromSeconds(10);
         private readonly byte[] _body = GetRandomBody(2048);
 
-        public TestFloodPublishingAsync(ITestOutputHelper output) : base(output)
+        public TestFloodPublishing(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -56,7 +56,7 @@ namespace Test.AsyncIntegration
         }
 
         [Fact]
-        public async Task TestUnthrottledFloodPublishingAsync()
+        public async Task TestUnthrottledFloodPublishing()
         {
             bool sawUnexpectedShutdown = false;
             _connFactory = CreateConnectionFactory();
@@ -115,7 +115,7 @@ namespace Test.AsyncIntegration
         }
 
         [Fact]
-        public async Task TestMultithreadFloodPublishingAsync()
+        public async Task TestMultithreadFloodPublishing()
         {
             _connFactory = CreateConnectionFactory();
             _connFactory.DispatchConsumersAsync = true;

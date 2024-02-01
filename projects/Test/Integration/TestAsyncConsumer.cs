@@ -37,9 +37,9 @@ using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestAsyncConsumer : AsyncIntegrationFixture
+    public class TestAsyncConsumer : IntegrationFixture
     {
         private readonly ShutdownEventArgs _closeArgs = new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "normal shutdown");
 

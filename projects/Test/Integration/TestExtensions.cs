@@ -35,11 +35,11 @@ using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestExtensionsAsync : AsyncIntegrationFixture
+    public class TestExtensions : IntegrationFixture
     {
-        public TestExtensionsAsync(ITestOutputHelper output) : base(output)
+        public TestExtensions(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -61,7 +61,7 @@ namespace Test.AsyncIntegration
         }
 
         [Fact]
-        public async Task TestExchangeBindingAsync()
+        public async Task TestExchangeBinding()
         {
             await _channel.ConfirmSelectAsync();
 

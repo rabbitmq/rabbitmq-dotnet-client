@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
@@ -43,6 +44,61 @@ namespace Test.Integration
 
         public TestExchangeDeclare(ITestOutputHelper output) : base(output)
         {
+        }
+
+        [Fact]
+        public async Task TestConcurrentExchangeDeclareAndBind()
+        {
+            var exchangeNames = new ConcurrentBag<string>();
+            var tasks = new List<Task>();
+            NotSupportedException nse = null;
+            for (int i = 0; i < 256; i++)
+            {
+                async Task f()
+                {
+                    try
+                    {
+                        await Task.Delay(S_Random.Next(5, 50));
+                        string exchangeName = GenerateExchangeName();
+                        await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: "fanout", false, false);
+                        await _channel.ExchangeBindAsync(destination: "amq.fanout", source: exchangeName, routingKey: "unused");
+                        exchangeNames.Add(exchangeName);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                }
+                var t = Task.Run(f);
+                tasks.Add(t);
+            }
+
+            await AssertRanToCompletion(tasks);
+            Assert.Null(nse);
+            tasks.Clear();
+
+            foreach (string exchangeName in exchangeNames)
+            {
+                async Task f()
+                {
+                    try
+                    {
+                        await Task.Delay(S_Random.Next(5, 50));
+                        await _channel.ExchangeUnbindAsync(destination: "amq.fanout", source: exchangeName, routingKey: "unused",
+                            noWait: false, arguments: null);
+                        await _channel.ExchangeDeleteAsync(exchange: exchangeName, ifUnused: false);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                }
+                var t = Task.Run(f);
+                tasks.Add(t);
+            }
+
+            await AssertRanToCompletion(tasks);
+            Assert.Null(nse);
         }
 
         [Fact]

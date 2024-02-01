@@ -34,9 +34,9 @@ using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestBasicPublishAsync : AsyncIntegrationFixture
+    public class TestBasicPublishAsync : IntegrationFixture
     {
         public TestBasicPublishAsync(ITestOutputHelper output) : base(output)
         {

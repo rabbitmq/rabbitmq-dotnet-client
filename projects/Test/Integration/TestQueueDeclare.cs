@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -42,6 +43,108 @@ namespace Test.Integration
     {
         public TestQueueDeclare(ITestOutputHelper output) : base(output)
         {
+        }
+
+        [Fact]
+        public async void TestQueueDeclareAsync()
+        {
+            string q = GenerateQueueName();
+
+            QueueDeclareOk declareResult = await _channel.QueueDeclareAsync(q, false, false, false);
+            Assert.Equal(q, declareResult.QueueName);
+
+            QueueDeclareOk passiveDeclareResult = await _channel.QueueDeclarePassiveAsync(q);
+            Assert.Equal(q, passiveDeclareResult.QueueName);
+        }
+
+        [Fact]
+        public async void TestConcurrentQueueDeclareAndBindAsync()
+        {
+            bool sawShutdown = false;
+
+            _conn.ConnectionShutdown += (o, ea) =>
+            {
+                HandleConnectionShutdown(_conn, ea, (args) =>
+                {
+                    if (ea.Initiator == ShutdownInitiator.Peer)
+                    {
+                        sawShutdown = true;
+                    }
+                });
+            };
+
+            _channel.ChannelShutdown += (o, ea) =>
+            {
+                HandleChannelShutdown(_channel, ea, (args) =>
+                {
+                    if (args.Initiator == ShutdownInitiator.Peer)
+                    {
+                        sawShutdown = true;
+                    }
+                });
+            };
+
+            var tasks = new List<Task>();
+            var queues = new ConcurrentBag<string>();
+
+            NotSupportedException nse = null;
+            for (int i = 0; i < 256; i++)
+            {
+                async Task f()
+                {
+                    try
+                    {
+                        // sleep for a random amount of time to increase the chances
+                        // of thread interleaving. MK.
+                        await Task.Delay(S_Random.Next(5, 50));
+                        QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: string.Empty, false, false, false);
+                        string queueName = r.QueueName;
+                        await _channel.QueueBindAsync(queue: queueName, exchange: "amq.fanout", routingKey: queueName);
+                        queues.Add(queueName);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                }
+                var t = Task.Run(f);
+                tasks.Add(t);
+            }
+
+            await AssertRanToCompletion(tasks);
+            Assert.Null(nse);
+            tasks.Clear();
+
+            nse = null;
+            foreach (string q in queues)
+            {
+                async Task f()
+                {
+                    string qname = q;
+                    try
+                    {
+                        await Task.Delay(S_Random.Next(5, 50));
+
+                        QueueDeclareOk r = await _channel.QueueDeclarePassiveAsync(qname);
+                        Assert.Equal(qname, r.QueueName);
+
+                        await _channel.QueueUnbindAsync(queue: qname, exchange: "amq.fanout", routingKey: qname, null);
+
+                        uint deletedMessageCount = await _channel.QueueDeleteAsync(qname, false, false);
+                        Assert.Equal((uint)0, deletedMessageCount);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                }
+                var t = Task.Run(f);
+                tasks.Add(t);
+            }
+
+            await AssertRanToCompletion(tasks);
+            Assert.Null(nse);
+            Assert.False(sawShutdown);
         }
 
         [Fact]

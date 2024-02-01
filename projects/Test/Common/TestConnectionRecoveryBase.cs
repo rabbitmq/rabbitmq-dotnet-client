@@ -38,23 +38,17 @@ using RabbitMQ.Client.Framing.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.SequentialIntegration
+namespace Test
 {
-    public class TestConnectionRecoveryBase : SequentialIntegrationFixture
+    public class TestConnectionRecoveryBase : IntegrationFixture
     {
         protected readonly byte[] _messageBody;
-        protected const ushort _totalMessageCount = 16384;
-        protected const ushort _closeAtCount = 16;
+        protected const ushort TotalMessageCount = 16384;
+        protected const ushort CloseAtCount = 16;
 
         public TestConnectionRecoveryBase(ITestOutputHelper output) : base(output)
         {
             _messageBody = GetRandomBody(4096);
-        }
-
-        public override async Task DisposeAsync()
-        {
-            await UnblockAsync();
-            await base.DisposeAsync();
         }
 
         protected Task AssertConsumerCountAsync(string q, int count)
@@ -125,7 +119,7 @@ namespace Test.SequentialIntegration
 
         internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync(TimeSpan networkRecoveryInterval)
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.NetworkRecoveryInterval = networkRecoveryInterval;
             IConnection conn = await cf.CreateConnectionAsync();
@@ -134,7 +128,7 @@ namespace Test.SequentialIntegration
 
         internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync(IList<AmqpTcpEndpoint> endpoints)
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             // tests that use this helper will likely list unreachable hosts,
             // make sure we time out quickly on those
@@ -146,7 +140,7 @@ namespace Test.SequentialIntegration
 
         internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionWithTopologyRecoveryDisabledAsync()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = false;
             cf.NetworkRecoveryInterval = RecoveryInterval;
@@ -156,7 +150,7 @@ namespace Test.SequentialIntegration
 
         internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(TopologyRecoveryFilter filter)
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = true;
             cf.TopologyRecoveryFilter = filter;
@@ -166,7 +160,7 @@ namespace Test.SequentialIntegration
 
         internal async Task<AutorecoveringConnection> CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(TopologyRecoveryExceptionHandler handler)
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = true;
             cf.TopologyRecoveryExceptionHandler = handler;
@@ -212,9 +206,9 @@ namespace Test.SequentialIntegration
             {
                 using (IChannel publishingChannel = await publishingConn.CreateChannelAsync())
                 {
-                    for (ushort i = 0; i < _totalMessageCount; i++)
+                    for (ushort i = 0; i < TotalMessageCount; i++)
                     {
-                        if (i == _closeAtCount)
+                        if (i == CloseAtCount)
                         {
                             await CloseConnectionAsync(_conn);
                         }
@@ -245,20 +239,6 @@ namespace Test.SequentialIntegration
             aconn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
 
             return tcs;
-        }
-
-        protected Task RestartServerAndWaitForRecoveryAsync()
-        {
-            return RestartServerAndWaitForRecoveryAsync((AutorecoveringConnection)_conn);
-        }
-
-        private async Task RestartServerAndWaitForRecoveryAsync(AutorecoveringConnection conn)
-        {
-            TaskCompletionSource<bool> sl = PrepareForShutdown(conn);
-            TaskCompletionSource<bool> rl = PrepareForRecovery(conn);
-            await RestartRabbitMqAsync();
-            await WaitAsync(sl, "connection shutdown");
-            await WaitAsync(rl, "connection recovery");
         }
 
         protected static Task<bool> WaitForConfirmsWithCancellationAsync(IChannel m)

@@ -40,7 +40,7 @@ using RabbitMQ.Client.Framing.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.SequentialIntegration
+namespace Test.Integration
 {
     public class TestConnectionTopologyRecovery : TestConnectionRecoveryBase
     {
@@ -116,7 +116,7 @@ namespace Test.SequentialIntegration
             }
             catch (OperationInterruptedException e)
             {
-                IntegrationFixtureBase.AssertShutdownError(e.ShutdownReason, 404);
+                IntegrationFixture.AssertShutdownError(e.ShutdownReason, 404);
             }
             finally
             {
