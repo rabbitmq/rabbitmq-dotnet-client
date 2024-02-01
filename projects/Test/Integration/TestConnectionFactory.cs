@@ -123,7 +123,7 @@ namespace Test.Integration
         }
 
         [Fact]
-        public async Task TestCreateConnectionUsesSpecifiedPort()
+        public async Task TestCreateConnectionWithInvalidPortThrows()
         {
             ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = true;
@@ -312,7 +312,7 @@ namespace Test.Integration
         }
 
         [Fact]
-        public async Task TestCreateConnectionUsesInvalidAmqpTcpEndpoint()
+        public async Task TestCreateConnectionWithInvalidAmqpTcpEndpointThrows()
         {
             ConnectionFactory cf = CreateConnectionFactory();
             var ep = new AmqpTcpEndpoint("localhost", 1234);

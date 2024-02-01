@@ -92,7 +92,9 @@ namespace RabbitMQ.Client.Impl
 
         public override int GetHashCode()
         {
-#if NETSTANDARD
+#if NET6_0_OR_GREATER
+            return HashCode.Combine(_isQueueBinding, _destination, _source, _routingKey, _arguments);
+#else
             unchecked
             {
                 int hashCode = _isQueueBinding.GetHashCode();
@@ -102,8 +104,6 @@ namespace RabbitMQ.Client.Impl
                 hashCode = (hashCode * 397) ^ (_arguments != null ? _arguments.GetHashCode() : 0);
                 return hashCode;
             }
-#else
-            return HashCode.Combine(_isQueueBinding, _destination, _source, _routingKey, _arguments);
 #endif
         }
 

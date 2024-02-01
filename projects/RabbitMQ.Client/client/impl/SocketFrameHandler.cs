@@ -155,6 +155,8 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
 #if NET6_0_OR_GREATER
             _amqpTcpEndpointAddresses = await Dns.GetHostAddressesAsync(_amqpTcpEndpoint.HostName, cancellationToken)
                 .ConfigureAwait(false);
@@ -216,7 +218,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch
                 {
-                    await CloseAsync()
+                    await CloseAsync(cancellationToken)
                         .ConfigureAwait(false);
                     throw;
                 }
@@ -229,22 +231,17 @@ namespace RabbitMQ.Client.Impl
             _connected = true;
         }
 
-        public void Close()
-        {
-            CloseAsync().EnsureCompleted();
-        }
-
-        public async Task CloseAsync()
+        public async Task CloseAsync(CancellationToken cancellationToken)
         {
             if (_closed || _socket == null)
             {
                 return;
             }
 
-            await _closingSemaphore.WaitAsync()
-                .ConfigureAwait(false);
             try
             {
+                await _closingSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 try
                 {
                     _channelWriter.Complete();
@@ -271,16 +268,20 @@ namespace RabbitMQ.Client.Impl
                     // ignore, we are closing anyway
                 }
             }
+            catch
+            {
+            }
             finally
             {
                 _closingSemaphore.Release();
+                _closingSemaphore.Dispose();
                 _closed = true;
             }
         }
 
-        public ValueTask<InboundFrame> ReadFrameAsync()
+        public ValueTask<InboundFrame> ReadFrameAsync(CancellationToken cancellationToken)
         {
-            return InboundFrame.ReadFromPipeAsync(_pipeReader, _amqpTcpEndpoint.MaxMessageSize);
+            return InboundFrame.ReadFromPipeAsync(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, cancellationToken);
         }
 
         public bool TryReadFrame(out InboundFrame frame)
@@ -296,17 +297,31 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public async ValueTask WriteAsync(RentedMemory frames)
+        public void Write(RentedMemory frames)
         {
             if (_closed)
             {
                 frames.Dispose();
-                await Task.Yield();
             }
             else
             {
-                await _channelWriter.WriteAsync(frames)
-                    .ConfigureAwait(false);
+                if (false == _channelWriter.TryWrite(frames))
+                {
+                    // TODO what to do here?
+                }
+            }
+        }
+
+        public ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
+        {
+            if (_closed)
+            {
+                frames.Dispose();
+                return default;
+            }
+            else
+            {
+                return _channelWriter.WriteAsync(frames, cancellationToken);
             }
         }
 
@@ -406,8 +421,7 @@ namespace RabbitMQ.Client.Impl
              * https://learn.microsoft.com/en-us/dotnet/standard/threading/how-to-listen-for-multiple-cancellation-requests
              */
             using var timeoutTokenSource = new CancellationTokenSource(connectionTimeout);
-            CancellationToken timeoutToken = timeoutTokenSource.Token;
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutToken, externalCancellationToken);
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, externalCancellationToken);
 
             try
             {
@@ -428,8 +442,9 @@ namespace RabbitMQ.Client.Impl
             }
             catch (OperationCanceledException e)
             {
-                if (timeoutToken.IsCancellationRequested)
+                if (timeoutTokenSource.Token.IsCancellationRequested)
                 {
+                    // TODO maybe do not use System.TimeoutException here
                     var timeoutException = new TimeoutException(msg, e);
                     throw new ConnectFailureException(msg, timeoutException);
                 }

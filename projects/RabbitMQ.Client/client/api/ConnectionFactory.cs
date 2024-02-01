@@ -618,6 +618,7 @@ namespace RabbitMQ.Client
         internal async Task<IFrameHandler> CreateFrameHandlerAsync(
             AmqpTcpEndpoint endpoint, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             IFrameHandler fh = new SocketFrameHandler(endpoint, SocketFactory, RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
             await fh.ConnectAsync(cancellationToken)
                 .ConfigureAwait(false);

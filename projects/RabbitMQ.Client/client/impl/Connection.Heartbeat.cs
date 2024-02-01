@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                if (!_closed)
+                if (false == _closed)
                 {
                     if (_heartbeatDetected)
                     {
@@ -119,7 +119,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 if (shouldTerminate)
                 {
                     TerminateMainloop();
-                    FinishClose();
+                    // TODO hmmm
+                    FinishCloseAsync(CancellationToken.None).EnsureCompleted();
                 }
                 else
                 {
@@ -147,7 +148,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                if (!_closed)
+                if (false == _closed)
                 {
                     Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
                     _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);

@@ -91,48 +91,56 @@ namespace Test.AsyncIntegration
             {
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var tokenSource = new CancellationTokenSource(LongWaitSpan);
-                tokenSource.Token.Register(() =>
+                CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
                 {
                     tcs.TrySetResult(false);
                 });
 
-                using (IChannel ch = await _conn.CreateChannelAsync())
+                try
                 {
-                    ch.ChannelShutdown += (o, ea) =>
+                    using (IChannel ch = await _conn.CreateChannelAsync())
                     {
-                        HandleChannelShutdown(ch, ea, (args) =>
+                        ch.ChannelShutdown += (o, ea) =>
                         {
-                            if (args.Initiator == ShutdownInitiator.Peer)
+                            HandleChannelShutdown(ch, ea, (args) =>
                             {
-                                tcs.TrySetResult(false);
-                            }
-                        });
-                    };
+                                if (args.Initiator == ShutdownInitiator.Peer)
+                                {
+                                    tcs.TrySetResult(false);
+                                }
+                            });
+                        };
 
-                    await ch.ConfirmSelectAsync();
+                        await ch.ConfirmSelectAsync();
 
-                    ch.BasicAcks += (object sender, BasicAckEventArgs e) =>
-                    {
-                        if (e.DeliveryTag >= _messageCount)
+                        ch.BasicAcks += (object sender, BasicAckEventArgs e) =>
                         {
-                            tcs.SetResult(true);
+                            if (e.DeliveryTag >= _messageCount)
+                            {
+                                tcs.SetResult(true);
+                            }
+                        };
+
+                        ch.BasicNacks += (object sender, BasicNackEventArgs e) =>
+                        {
+                            tcs.SetResult(false);
+                            _output.WriteLine($"channel #{ch.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
+                        };
+
+                        QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
+                        for (ushort j = 0; j < _messageCount; j++)
+                        {
+                            await ch.BasicPublishAsync("", q.QueueName, body, mandatory: true);
                         }
-                    };
 
-                    ch.BasicNacks += (object sender, BasicNackEventArgs e) =>
-                    {
-                        tcs.SetResult(false);
-                        _output.WriteLine($"channel #{ch.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
-                    };
-
-                    QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
-                    for (ushort j = 0; j < _messageCount; j++)
-                    {
-                        await ch.BasicPublishAsync("", q.QueueName, body, mandatory: true);
+                        Assert.True(await tcs.Task);
+                        await ch.CloseAsync();
                     }
-
-                    Assert.True(await tcs.Task);
-                    await ch.CloseAsync();
+                }
+                finally
+                {
+                    tokenSource.Dispose();
+                    ctsr.Dispose();
                 }
             }, iterations);
         }

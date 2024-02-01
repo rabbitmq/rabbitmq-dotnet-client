@@ -196,7 +196,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal Task CloseFrameHandlerAsync()
         {
-            return InnerConnection.FrameHandler.CloseAsync();
+            return InnerConnection.FrameHandler.CloseAsync(CancellationToken.None);
         }
 
         ///<summary>API-side invocation of updating the secret.</summary>
@@ -208,15 +208,44 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
-        public async Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
+        public async Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,
+            CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            await StopRecoveryLoopAsync()
-                .ConfigureAwait(false);
-            if (_innerConnection.IsOpen)
+
+            Task CloseInnerConnectionAsync()
             {
-                await _innerConnection.CloseAsync(reasonCode, reasonText, timeout, abort)
+                if (_innerConnection.IsOpen)
+                {
+                    return _innerConnection.CloseAsync(reasonCode, reasonText, timeout, abort, cancellationToken);
+                }
+                else
+                {
+                    return Task.CompletedTask;
+                }
+            }
+
+            try
+            {
+                await StopRecoveryLoopAsync(cancellationToken)
                     .ConfigureAwait(false);
+
+                await CloseInnerConnectionAsync()
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    await CloseInnerConnectionAsync()
+                        .ConfigureAwait(false);
+                }
+                catch (Exception innerConnectionException)
+                {
+                    throw new AggregateException(ex, innerConnectionException);
+                }
+
+                throw;
             }
         }
 
@@ -255,9 +284,10 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 _channels.Clear();
                 _innerConnection = null;
-                _disposed = true;
                 _recordedEntitiesSemaphore.Dispose();
                 _channelsSemaphore.Dispose();
+                _recoveryCancellationTokenSource.Dispose();
+                _disposed = true;
             }
         }
 

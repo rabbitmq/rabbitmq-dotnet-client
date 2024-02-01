@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Threading;
 using Xunit.Abstractions;
 
 namespace Test.Integration
@@ -39,18 +38,6 @@ namespace Test.Integration
         public IntegrationFixture(ITestOutputHelper output)
             : base(output)
         {
-            int threadCount;
-            if (IsRunningInCI)
-            {
-                threadCount = _processorCount * 16;
-            }
-            else
-            {
-                // Assuming that dev machines have more cores
-                threadCount = _processorCount * 8;
-            }
-
-            ThreadPool.SetMinThreads(threadCount, threadCount);
         }
     }
 }

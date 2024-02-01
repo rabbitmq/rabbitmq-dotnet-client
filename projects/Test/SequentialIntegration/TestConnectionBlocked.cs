@@ -44,6 +44,12 @@ namespace Test.SequentialIntegration
         {
         }
 
+        public override async Task InitializeAsync()
+        {
+            await UnblockAsync();
+            await base.InitializeAsync();
+        }
+
         public override async Task DisposeAsync()
         {
             await UnblockAsync();
@@ -78,16 +84,26 @@ namespace Test.SequentialIntegration
 
             Task disposeTask = Task.Run(async () =>
             {
-                await _conn.AbortAsync();
-                _conn.Dispose();
-                _conn = null;
-                tcs.SetResult(true);
+                try
+                {
+                    await _conn.AbortAsync();
+                    _conn.Dispose();
+                    tcs.SetResult(true);
+                }
+                catch (Exception)
+                {
+                    tcs.SetResult(false);
+                }
+                finally
+                {
+                    _conn = null;
+                }
             });
 
             Task anyTask = Task.WhenAny(tcs.Task, disposeTask);
             await anyTask.WaitAsync(LongWaitSpan);
             bool disposeSuccess = await tcs.Task;
-            Assert.True(disposeSuccess, "Dispose must have finished within 20 seconds after starting");
+            Assert.True(disposeSuccess, $"Dispose must have finished within {LongWaitSpan.TotalSeconds} seconds after starting");
         }
     }
 }

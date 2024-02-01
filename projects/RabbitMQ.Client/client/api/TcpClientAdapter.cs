@@ -29,7 +29,7 @@ namespace RabbitMQ.Client
 #else
         public virtual Task ConnectAsync(IPAddress ep, int port, CancellationToken cancellationToken = default)
         {
-            return _sock.ConnectAsync(ep, port).WithCancellation(cancellationToken);
+            return _sock.ConnectAsync(ep, port).WaitAsync(cancellationToken);
         }
 #endif
 

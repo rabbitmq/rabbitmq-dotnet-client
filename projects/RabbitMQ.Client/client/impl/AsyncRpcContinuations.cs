@@ -44,8 +44,8 @@ namespace RabbitMQ.Client.Impl
     internal abstract class AsyncRpcContinuation<T> : IRpcContinuation, IDisposable
     {
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenRegistration _cancellationTokenRegistration;
         private readonly ConfiguredTaskAwaitable<T> _tcsConfiguredTaskAwaitable;
-
         protected readonly TaskCompletionSource<T> _tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private bool _disposedValue;
@@ -59,20 +59,42 @@ namespace RabbitMQ.Client.Impl
              */
             _cancellationTokenSource = new CancellationTokenSource(continuationTimeout);
 
-            _cancellationTokenSource.Token.Register(() =>
+#if NET6_0_OR_GREATER
+            _cancellationTokenRegistration = _cancellationTokenSource.Token.UnsafeRegister((object state) =>
             {
-                if (_tcs.TrySetCanceled())
+                var tcs = (TaskCompletionSource<T>)state;
+                if (tcs.TrySetCanceled())
                 {
                     // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
                     // Cancellation was successful, does this mean we should set a TimeoutException
                     // in the same manner as BlockingCell?
                 }
-            }, useSynchronizationContext: false);
+            }, _tcs);
+#else
+            _cancellationTokenRegistration = _cancellationTokenSource.Token.Register((object state) =>
+            {
+                var tcs = (TaskCompletionSource<T>)state;
+                if (tcs.TrySetCanceled())
+                {
+                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
+                    // Cancellation was successful, does this mean we should set a TimeoutException
+                    // in the same manner as BlockingCell?
+                }
+            }, state: _tcs, useSynchronizationContext: false);
+#endif
 
             _tcsConfiguredTaskAwaitable = _tcs.Task.ConfigureAwait(false);
         }
 
         internal DateTime StartTime { get; } = DateTime.UtcNow;
+
+        public CancellationToken CancellationToken
+        {
+            get
+            {
+                return _cancellationTokenSource.Token;
+            }
+        }
 
         public ConfiguredTaskAwaitable<T>.ConfiguredTaskAwaiter GetAwaiter()
         {
@@ -92,6 +114,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (disposing)
                 {
+                    _cancellationTokenRegistration.Dispose();
                     _cancellationTokenSource.Dispose();
                 }
 

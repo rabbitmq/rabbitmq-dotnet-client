@@ -93,20 +93,27 @@ namespace Test.AsyncIntegration
             var waitSpan = TimeSpan.FromSeconds(5);
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cts = new CancellationTokenSource(waitSpan);
-            cts.Token.Register(() => tcs.TrySetResult(false));
-
-            string q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
-            _channel.CallbackException += (ch, evt) =>
+            CancellationTokenRegistration ctsr = cts.Token.Register(() => tcs.TrySetResult(false));
+            try
             {
-                if (evt.Exception == TestException)
+                string q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
+                _channel.CallbackException += (ch, evt) =>
                 {
-                    tcs.SetResult(true);
-                }
-            };
+                    if (evt.Exception == TestException)
+                    {
+                        tcs.SetResult(true);
+                    }
+                };
 
-            string tag = await _channel.BasicConsumeAsync(q, true, string.Empty, false, false, null, consumer);
-            await action(_channel, q, consumer, tag);
-            Assert.True(await tcs.Task);
+                string tag = await _channel.BasicConsumeAsync(q, true, string.Empty, false, false, null, consumer);
+                await action(_channel, q, consumer, tag);
+                Assert.True(await tcs.Task);
+            }
+            finally
+            {
+                cts.Dispose();
+                ctsr.Dispose();
+            }
         }
 
         private class ConsumerFailingOnDelivery : AsyncEventingBasicConsumer

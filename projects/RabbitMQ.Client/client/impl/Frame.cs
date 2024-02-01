@@ -34,6 +34,7 @@ using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
@@ -253,9 +254,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize)
+        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize, CancellationToken cancellationToken)
         {
-            ReadResult result = await reader.ReadAsync()
+            ReadResult result = await reader.ReadAsync(cancellationToken)
                .ConfigureAwait(false);
 
             ReadOnlySequence<byte> buffer = result.Buffer;
@@ -269,7 +270,7 @@ namespace RabbitMQ.Client.Impl
                 reader.AdvanceTo(buffer.Start, buffer.End);
 
                 // Not enough data, read a bit more
-                result = await reader.ReadAsync()
+                result = await reader.ReadAsync(cancellationToken)
                    .ConfigureAwait(false);
 
                 MaybeThrowEndOfStream(result, buffer);
@@ -381,8 +382,7 @@ namespace RabbitMQ.Client.Impl
             // TODO
             // https://blog.marcgravell.com/2018/07/pipe-dreams-part-1.html
             // Uses &&
-            // if (result.IsCompleted && buffer.IsEmpty)
-            if (result.IsCompleted || buffer.IsEmpty)
+            if (result.IsCompleted && buffer.IsEmpty)
             {
                 throw new EndOfStreamException("Pipe is completed.");
             }

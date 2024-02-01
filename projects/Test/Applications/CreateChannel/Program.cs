@@ -17,8 +17,6 @@ namespace CreateChannel
 
         public static async Task Main()
         {
-            ThreadPool.SetMinThreads(16 * Environment.ProcessorCount, 16 * Environment.ProcessorCount);
-
             doneEvent = new AutoResetEvent(false);
 
             var connectionFactory = new ConnectionFactory { DispatchConsumersAsync = true };
