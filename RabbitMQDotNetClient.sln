@@ -38,8 +38,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SequentialIntegration", "pr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "projects\Test\Common\Common.csproj", "{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsyncIntegration", "projects\Test\AsyncIntegration\AsyncIntegration.csproj", "{D98F96C5-F7FB-45FC-92A0-9133850FB432}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,10 +84,6 @@ Global
 		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D98F96C5-F7FB-45FC-92A0-9133850FB432}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D98F96C5-F7FB-45FC-92A0-9133850FB432}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D98F96C5-F7FB-45FC-92A0-9133850FB432}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D98F96C5-F7FB-45FC-92A0-9133850FB432}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,7 +97,6 @@ Global
 		{B01347D8-C327-471B-A1FE-7B86F7684A27} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 		{F25725D7-2978-45F4-B90F-25D6F8B71C9E} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 		{C11F25F4-7EA1-4874-9E25-DEB42E3A7C67} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
-		{D98F96C5-F7FB-45FC-92A0-9133850FB432} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3C6A0C44-FA63-4101-BBF9-2598641167D1}

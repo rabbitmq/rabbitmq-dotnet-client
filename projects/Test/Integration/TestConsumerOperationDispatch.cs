@@ -105,7 +105,7 @@ namespace Test.Integration
         [SkippableFact]
         public async Task TestDeliveryOrderingWithSingleChannel()
         {
-            Skip.If(IntegrationFixture.IsRunningInCI && IntegrationFixtureBase.IsWindows, "TODO - test is slow in CI on Windows");
+            Skip.If(IntegrationFixture.IsRunningInCI && IntegrationFixture.IsWindows, "TODO - test is slow in CI on Windows");
 
             await _channel.ExchangeDeclareAsync(_x, "fanout", durable: false);
 

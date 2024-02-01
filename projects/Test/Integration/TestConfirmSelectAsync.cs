@@ -34,31 +34,38 @@ using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestBasicGetAsync : AsyncIntegrationFixture
+    public class TestConfirmSelectAsync : IntegrationFixture
     {
-        public TestBasicGetAsync(ITestOutputHelper output) : base(output)
+        readonly byte[] _message = GetRandomBody(64);
+
+        public TestConfirmSelectAsync(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
-        public async Task TestBasicGet()
+        public async Task TestConfirmSelectIdempotency()
         {
-            const string msg = "for async basic.get";
+            await _channel.ConfirmSelectAsync();
+            Assert.Equal(1ul, _channel.NextPublishSeqNo);
+            await Publish();
+            Assert.Equal(2ul, _channel.NextPublishSeqNo);
+            await Publish();
+            Assert.Equal(3ul, _channel.NextPublishSeqNo);
 
-            QueueDeclareOk queueResult = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
-            string queueName = queueResult.QueueName;
+            await _channel.ConfirmSelectAsync();
+            await Publish();
+            Assert.Equal(4ul, _channel.NextPublishSeqNo);
+            await Publish();
+            Assert.Equal(5ul, _channel.NextPublishSeqNo);
+            await Publish();
+            Assert.Equal(6ul, _channel.NextPublishSeqNo);
+        }
 
-            await _channel.BasicPublishAsync(string.Empty, queueName, _encoding.GetBytes(msg), true);
-
-            BasicGetResult getResult = await _channel.BasicGetAsync(queueName, true);
-            Assert.Equal(msg, _encoding.GetString(getResult.Body.ToArray()));
-
-            QueueDeclareOk queueResultPassive = await _channel.QueueDeclarePassiveAsync(queue: queueName);
-            Assert.Equal((uint)0, queueResultPassive.MessageCount);
-
-            Assert.Null(await _channel.BasicGetAsync(queueName, true));
+        private ValueTask Publish()
+        {
+            return _channel.BasicPublishAsync("", "amq.fanout", _message);
         }
     }
 }

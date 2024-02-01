@@ -37,9 +37,9 @@ using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestAsyncConsumerExceptions : AsyncIntegrationFixture
+    public class TestAsyncConsumerExceptions : IntegrationFixture
     {
         private static readonly Exception TestException = new Exception("oops");
 

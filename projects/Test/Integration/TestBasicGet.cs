@@ -45,6 +45,25 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task TestBasicGetRoundTrip()
+        {
+            const string msg = "for async basic.get";
+
+            QueueDeclareOk queueResult = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
+            string queueName = queueResult.QueueName;
+
+            await _channel.BasicPublishAsync(string.Empty, queueName, _encoding.GetBytes(msg), true);
+
+            BasicGetResult getResult = await _channel.BasicGetAsync(queueName, true);
+            Assert.Equal(msg, _encoding.GetString(getResult.Body.ToArray()));
+
+            QueueDeclareOk queueResultPassive = await _channel.QueueDeclarePassiveAsync(queue: queueName);
+            Assert.Equal((uint)0, queueResultPassive.MessageCount);
+
+            Assert.Null(await _channel.BasicGetAsync(queueName, true));
+        }
+
+        [Fact]
         public Task TestBasicGetWithClosedChannel()
         {
             return WithNonEmptyQueueAsync((_, q) =>

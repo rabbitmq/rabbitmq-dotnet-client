@@ -35,9 +35,9 @@ using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestPublishSharedChannelAsync : AsyncIntegrationFixture
+    public class TestPublishSharedChannelAsync : IntegrationFixture
     {
         private const string QueueName = "TestPublishSharedChannel_Queue";
         private static readonly CachedString ExchangeName = new CachedString("TestPublishSharedChannel_Ex");

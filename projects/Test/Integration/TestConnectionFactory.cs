@@ -29,8 +29,10 @@
 //  Copyright (c) 2011-2020 VMware, Inc. or its affiliates.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -387,6 +389,53 @@ namespace Test.Integration
             {
                 Assert.Equal(cf.MaxMessageSize, conn.Endpoint.MaxMessageSize);
                 await conn.CloseAsync();
+            }
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionAsync_WithAlreadyCanceledToken()
+        {
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+
+                ConnectionFactory cf = CreateConnectionFactory();
+
+                bool passed = false;
+                /*
+                 * If anyone wonders why TaskCanceledException is explicitly checked,
+                 * even though it's a subclass of OperationCanceledException:
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/383ca5c5f161edb717cf8fae7bf143c13143f634#r135400615
+                 */
+                try
+                {
+                    await cf.CreateConnectionAsync(cts.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    passed = true;
+                }
+                catch (OperationCanceledException)
+                {
+                    passed = true;
+                }
+
+                Assert.True(passed, "FAIL did not see TaskCanceledException nor OperationCanceledException");
+            }
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionAsync_UsesValidEndpointWhenMultipleSupplied()
+        {
+            using (var cts = new CancellationTokenSource(WaitSpan))
+            {
+                ConnectionFactory cf = CreateConnectionFactory();
+                var invalidEp = new AmqpTcpEndpoint("not_localhost");
+                var ep = new AmqpTcpEndpoint("localhost");
+                using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep }, cts.Token))
+                {
+                    await conn.CloseAsync();
+                }
             }
         }
     }

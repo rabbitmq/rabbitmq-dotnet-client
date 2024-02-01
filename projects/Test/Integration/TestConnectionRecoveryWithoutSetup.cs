@@ -39,7 +39,7 @@ using RabbitMQ.Client.Framing.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.SequentialIntegration
+namespace Test.Integration
 {
     public class TestConnectionRecoveryWithoutSetup : TestConnectionRecoveryBase
     {
@@ -251,7 +251,6 @@ namespace Test.SequentialIntegration
                 }
                 finally
                 {
-                    await StartRabbitMqAsync();
                     await conn.CloseAsync();
                 }
             }

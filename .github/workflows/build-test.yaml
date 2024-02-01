@@ -37,7 +37,6 @@ jobs:
           name: rabbitmq-dotnet-client-build-win32
           path: |
             projects/Test/Unit/bin
-            projects/Test/AsyncIntegration/bin
             projects/Test/Integration/bin
             projects/Test/SequentialIntegration/bin
             projects/RabbitMQ.*/bin
@@ -67,8 +66,6 @@ jobs:
       - name: Install and Start RabbitMQ
         id: install-start-rabbitmq
         run: .\.ci\windows\gha-setup.ps1
-      - name: Async Integration Tests
-        run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' "${{ github.workspace }}\projects\Test\AsyncIntegration\AsyncIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Integration Tests
         run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' --environment 'PASSWORD=grapefruit' --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" "${{ github.workspace }}\projects\Test\Integration\Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
@@ -146,7 +143,6 @@ jobs:
           name: rabbitmq-dotnet-client-build-ubuntu
           path: |
             projects/Test/Unit/bin
-            projects/Test/AsyncIntegration/bin
             projects/Test/Integration/bin
             projects/Test/SequentialIntegration/bin
             projects/RabbitMQ.*/bin
@@ -170,11 +166,6 @@ jobs:
       - name: Start RabbitMQ
         id: start-rabbitmq
         run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
-      - name: Async Integration Tests
-        run: |
-            dotnet test \
-                --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
-                "${{ github.workspace }}/projects/Test/AsyncIntegration/AsyncIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Integration Tests
         run: |
             dotnet test \

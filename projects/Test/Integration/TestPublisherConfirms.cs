@@ -38,13 +38,13 @@ using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.AsyncIntegration
+namespace Test.Integration
 {
-    public class TestPublisherConfirmsAsync : AsyncIntegrationFixture
+    public class TestPublisherConfirms : IntegrationFixture
     {
         private readonly byte[] _messageBody;
 
-        public TestPublisherConfirmsAsync(ITestOutputHelper output)
+        public TestPublisherConfirms(ITestOutputHelper output)
             : base(output, openChannel: false)
         {
             _messageBody = GetRandomBody(4096);

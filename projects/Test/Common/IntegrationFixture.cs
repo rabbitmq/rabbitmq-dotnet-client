@@ -47,7 +47,7 @@ using Xunit.Abstractions;
 
 namespace Test
 {
-    public abstract class IntegrationFixtureBase : IAsyncLifetime
+    public abstract class IntegrationFixture : IAsyncLifetime
     {
         private static bool s_isRunningInCI = false;
         private static bool s_isWindows = false;
@@ -66,6 +66,10 @@ namespace Test
         protected readonly ITestOutputHelper _output;
         protected readonly string _testDisplayName;
 
+        protected readonly bool _dispatchConsumersAsync = false;
+        protected readonly ushort _consumerDispatchConcurrency = 1;
+        protected readonly bool _openChannel = true;
+
         public static readonly TimeSpan WaitSpan;
         public static readonly TimeSpan LongWaitSpan;
         public static readonly TimeSpan RecoveryInterval = TimeSpan.FromSeconds(2);
@@ -73,7 +77,7 @@ namespace Test
         public static readonly TimeSpan RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
         public static readonly Random S_Random;
 
-        static IntegrationFixtureBase()
+        static IntegrationFixture()
         {
             S_Random = new Random();
             InitIsRunningInCI();
@@ -93,9 +97,16 @@ namespace Test
             }
         }
 
-        public IntegrationFixtureBase(ITestOutputHelper output)
+        public IntegrationFixture(ITestOutputHelper output,
+            bool dispatchConsumersAsync = false,
+            ushort consumerDispatchConcurrency = 1,
+            bool openChannel = true)
         {
+            _dispatchConsumersAsync = dispatchConsumersAsync;
+            _consumerDispatchConcurrency = consumerDispatchConcurrency;
+            _openChannel = openChannel;
             _output = output;
+
             _rabbitMQCtl = new RabbitMQCtl(_output);
 
             Type type = _output.GetType();
@@ -103,7 +114,6 @@ namespace Test
             ITest test = (ITest)testMember.GetValue(output);
             _testDisplayName = test.DisplayName
                 .Replace("Test.", string.Empty)
-                .Replace("AsyncIntegration.", "AI.")
                 .Replace("Integration.", "I.")
                 .Replace("SequentialI.", "SI.");
 
@@ -121,12 +131,19 @@ namespace Test
             if (_connFactory == null)
             {
                 _connFactory = CreateConnectionFactory();
+                _connFactory.DispatchConsumersAsync = _dispatchConsumersAsync;
+                _connFactory.ConsumerDispatchConcurrency = _consumerDispatchConcurrency;
             }
 
             if (_conn == null)
             {
                 _conn = await CreateConnectionAsyncWithRetries(_connFactory);
-                _channel = await _conn.CreateChannelAsync();
+
+                if (_openChannel)
+                {
+                    _channel = await _conn.CreateChannelAsync();
+                }
+
                 AddCallbackHandlers();
             }
 
@@ -378,6 +395,16 @@ namespace Test
             AssertShutdownError(args, Constants.PreconditionFailed);
         }
 
+        protected static Task AssertRanToCompletion(params Task[] tasks)
+        {
+            return DoAssertRanToCompletion(tasks);
+        }
+
+        protected static Task AssertRanToCompletion(IEnumerable<Task> tasks)
+        {
+            return DoAssertRanToCompletion(tasks);
+        }
+
         protected static Task WaitAsync(TaskCompletionSource<bool> tcs, string desc)
         {
             return WaitAsync(tcs, WaitSpan, desc);
@@ -498,6 +525,13 @@ namespace Test
         private static int GetConnectionIdx()
         {
             return Interlocked.Increment(ref _connectionIdx);
+        }
+
+        private static async Task DoAssertRanToCompletion(IEnumerable<Task> tasks)
+        {
+            Task whenAllTask = Task.WhenAll(tasks);
+            await whenAllTask;
+            Assert.True(whenAllTask.IsCompletedSuccessfully());
         }
 
         protected static string GetUniqueString(ushort length)

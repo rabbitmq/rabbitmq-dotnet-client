@@ -36,7 +36,7 @@ using Xunit.Abstractions;
 
 namespace Test.SequentialIntegration
 {
-    public class SequentialIntegrationFixture : IntegrationFixtureBase
+    public class SequentialIntegrationFixture : TestConnectionRecoveryBase
     {
         public SequentialIntegrationFixture(ITestOutputHelper output) : base(output)
         {
@@ -71,6 +71,20 @@ namespace Test.SequentialIntegration
         public Task StartRabbitMqAsync()
         {
             return _rabbitMQCtl.ExecRabbitMQCtlAsync("start_app");
+        }
+
+        public Task RestartServerAndWaitForRecoveryAsync()
+        {
+            return RestartServerAndWaitForRecoveryAsync(_conn);
+        }
+
+        public async Task RestartServerAndWaitForRecoveryAsync(IConnection conn)
+        {
+            TaskCompletionSource<bool> sl = PrepareForShutdown(conn);
+            TaskCompletionSource<bool> rl = PrepareForRecovery(conn);
+            await RestartRabbitMqAsync();
+            await WaitAsync(sl, "connection shutdown");
+            await WaitAsync(rl, "connection recovery");
         }
 
         private Task AwaitRabbitMqAsync()
