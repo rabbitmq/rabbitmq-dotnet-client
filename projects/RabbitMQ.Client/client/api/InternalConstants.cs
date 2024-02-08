@@ -37,5 +37,7 @@ namespace RabbitMQ.Client
     {
         internal static readonly TimeSpan DefaultConnectionAbortTimeout = TimeSpan.FromSeconds(5);
         internal static readonly TimeSpan DefaultConnectionCloseTimeout = TimeSpan.FromSeconds(30);
+
+        internal static string Now => DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture);
     }
 }

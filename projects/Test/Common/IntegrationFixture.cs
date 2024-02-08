@@ -550,5 +550,7 @@ namespace Test
 #endif
             return body;
         }
+
+        public static string Now => DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
     }
 }

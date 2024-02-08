@@ -26,7 +26,7 @@ jobs:
       - name: Build (Debug)
         run: dotnet build ${{ github.workspace }}\Build.csproj
       - name: Verify
-        run: dotnet format ${{ github.workspace }}\RabbitMQDotNetClient.sln --no-restore --verify-no-changes --verbosity=diagnostic
+        run: dotnet format ${{ github.workspace }}\RabbitMQDotNetClient.sln --no-restore --verify-no-changes
       - name: APIApproval Test
         run: dotnet test "${{ github.workspace }}\projects\Test\Unit\Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed' --filter='FullyQualifiedName=Test.Unit.APIApproval.Approve'
       - name: Unit Tests
@@ -67,7 +67,18 @@ jobs:
         id: install-start-rabbitmq
         run: .\.ci\windows\gha-setup.ps1
       - name: Integration Tests
-        run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' --environment 'PASSWORD=grapefruit' --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" "${{ github.workspace }}\projects\Test\Integration\Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+        run: |
+          $tx = Start-Job -Verbose -ScriptBlock { & "${{ github.workspace }}\.ci\windows\toxiproxy\toxiproxy-server.exe" }; `
+          Start-Sleep -Seconds 1; `
+          Receive-Job -Job $tx; `
+          & "${{ github.workspace }}\.ci\windows\toxiproxy\toxiproxy-cli.exe" list; `
+          dotnet test `
+            --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" `
+            --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' `
+            --environment 'RABBITMQ_TOXIPROXY_TESTS=true' `
+            --environment 'PASSWORD=grapefruit' `
+            --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" `
+            "${{ github.workspace }}\projects\Test\Integration\Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
         uses: actions/upload-artifact@v3
@@ -132,11 +143,11 @@ jobs:
       - name: Build (Debug)
         run: dotnet build ${{ github.workspace }}/Build.csproj
       - name: Verify
-        run: dotnet format ${{ github.workspace }}/RabbitMQDotNetClient.sln --no-restore --verify-no-changes --verbosity=diagnostic
+        run: dotnet format ${{ github.workspace }}/RabbitMQDotNetClient.sln --no-restore --verify-no-changes
       - name: APIApproval Test
         run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed' --filter='FullyQualifiedName=Test.Unit.APIApproval.Approve'
       - name: Unit Tests
-        run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --verbosity=diagnostic --logger 'console;verbosity=detailed'
+        run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Upload Build (Debug)
         uses: actions/upload-artifact@v3
         with:
@@ -165,12 +176,13 @@ jobs:
           path: projects
       - name: Start RabbitMQ
         id: start-rabbitmq
-        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
+        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh toxiproxy
       - name: Integration Tests
         run: |
             dotnet test \
                 --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
                 --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
+                --environment 'RABBITMQ_TOXIPROXY_TESTS=true' \
                 --environment 'PASSWORD=grapefruit' \
                 --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
                 "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
