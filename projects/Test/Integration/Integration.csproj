@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="../../RabbitMQ.Client/RabbitMQ.Client.csproj" />
     <ProjectReference Include="../Common/Common.csproj" />
+    <ProjectReference Include="../../toxiproxy-netcore/src/ToxiproxyNetCore/ToxiproxyNetCore.csproj" />
   </ItemGroup>
 
   <!--

@@ -104,7 +104,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestConcurrentExchangeDeclareAndDelete()
         {
-            var exchangeNames = new List<string>();
+            var exchangeNames = new ConcurrentBag<string>();
             var tasks = new List<Task>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)

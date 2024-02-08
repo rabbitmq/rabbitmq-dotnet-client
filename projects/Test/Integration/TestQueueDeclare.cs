@@ -85,7 +85,7 @@ namespace Test.Integration
             };
 
             var tasks = new List<Task>();
-            var queues = new ConcurrentBag<string>();
+            var queueNames = new ConcurrentBag<string>();
 
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
@@ -100,7 +100,7 @@ namespace Test.Integration
                         QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: string.Empty, false, false, false);
                         string queueName = r.QueueName;
                         await _channel.QueueBindAsync(queue: queueName, exchange: "amq.fanout", routingKey: queueName);
-                        queues.Add(queueName);
+                        queueNames.Add(queueName);
                     }
                     catch (NotSupportedException e)
                     {
@@ -116,7 +116,7 @@ namespace Test.Integration
             tasks.Clear();
 
             nse = null;
-            foreach (string q in queues)
+            foreach (string q in queueNames)
             {
                 async Task f()
                 {
@@ -150,7 +150,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestConcurrentQueueDeclare()
         {
-            var qs = new List<string>();
+            var queueNames = new ConcurrentBag<string>();
             var tasks = new List<Task>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
@@ -164,7 +164,7 @@ namespace Test.Integration
                                 await Task.Delay(S_Random.Next(5, 50));
                                 string q = GenerateQueueName();
                                 await _channel.QueueDeclareAsync(q, false, false, false);
-                                qs.Add(q);
+                                queueNames.Add(q);
                             }
                             catch (NotSupportedException e)
                             {
@@ -179,7 +179,7 @@ namespace Test.Integration
             Assert.Null(nse);
             tasks.Clear();
 
-            foreach (string queueName in qs)
+            foreach (string queueName in queueNames)
             {
                 string q = queueName;
                 var t = Task.Run(async () =>

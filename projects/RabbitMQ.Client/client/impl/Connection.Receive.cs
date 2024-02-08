@@ -53,11 +53,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 await ReceiveLoopAsync(mainLoopToken)
                     .ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
-            {
-                // TODO what to do here?
-                // Debug log?
-            }
             catch (EndOfStreamException eose)
             {
                 // Possible heartbeat exception
@@ -223,7 +218,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             try
             {
-                _frameHandler.ReadTimeout = TimeSpan.Zero;
+                _frameHandler.ReadTimeout = default;
                 // Wait for response/socket closure or timeout
                 await ReceiveLoopAsync(cancellationToken)
                    .ConfigureAwait(false);

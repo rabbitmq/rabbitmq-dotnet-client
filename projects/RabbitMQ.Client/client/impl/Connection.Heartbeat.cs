@@ -103,11 +103,9 @@ namespace RabbitMQ.Client.Framing.Impl
                         _missedHeartbeats++;
                     }
 
-                    // We check against 8 = 2 * 4 because we need to wait for at
-                    // least two complete heartbeat setting intervals before
-                    // complaining, and we've set the socket timeout to a quarter
-                    // of the heartbeat setting in setHeartbeat above.
-                    if (_missedHeartbeats > 2 * 4)
+                    // We need to wait for at least two complete heartbeat setting
+                    // intervals before complaining
+                    if (_missedHeartbeats > 2)
                     {
                         var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
                         LogCloseError(eose.Message, eose);

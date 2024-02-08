@@ -9,6 +9,7 @@ readonly script_dir
 echo "[INFO] script_dir: '$script_dir'"
 
 readonly docker_name_prefix='rabbitmq-dotnet-client'
+readonly docker_network_name="$docker_name_prefix-network"
 
 if [[ ! -v GITHUB_ACTIONS ]]
 then
@@ -23,18 +24,46 @@ else
     echo "[INFO] set GITHUB_WORKSPACE to: '$GITHUB_WORKSPACE'"
 fi
 
+if [[ $1 == 'toxiproxy' ]]
+then
+    readonly run_toxiproxy='true'
+else
+    readonly run_toxiproxy='false'
+fi
+
 set -o nounset
 
 declare -r rabbitmq_docker_name="$docker_name_prefix-rabbitmq"
+declare -r toxiproxy_docker_name="$docker_name_prefix-toxiproxy"
+
+function start_toxiproxy
+{
+    if [[ $run_toxiproxy == 'true' ]]
+    then
+        sudo ss -4nlp
+        echo "[INFO] starting Toxiproxy server docker container"
+        docker rm --force "$toxiproxy_docker_name" 2>/dev/null || echo "[INFO] $toxiproxy_docker_name was not running"
+        docker run --pull always --detach \
+            --name "$toxiproxy_docker_name" \
+            --hostname "$toxiproxy_docker_name" \
+            --publish 8474:8474 \
+            --publish 55672:55672 \
+            --network "$docker_network_name" \
+            'ghcr.io/shopify/toxiproxy:2.7.0'
+    fi
+}
 
 function start_rabbitmq
 {
+    echo "[INFO] starting RabbitMQ server docker container"
     chmod 0777 "$GITHUB_WORKSPACE/.ci/ubuntu/log"
     docker rm --force "$rabbitmq_docker_name" 2>/dev/null || echo "[INFO] $rabbitmq_docker_name was not running"
-    docker run --pull always --detach --name "$rabbitmq_docker_name" \
+    docker run --pull always --detach \
+        --name "$rabbitmq_docker_name" \
+        --hostname "$rabbitmq_docker_name" \
         --publish 5671:5671 \
         --publish 5672:5672 \
-        --publish 15672:15672 \
+        --network "$docker_network_name" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/enabled_plugins:/etc/rabbitmq/enabled_plugins" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro" \
         --volume "$GITHUB_WORKSPACE/.ci/certs:/etc/rabbitmq/certs:ro" \
@@ -108,6 +137,10 @@ function install_ca_certificate
         -key "$GITHUB_WORKSPACE/.ci/certs/client_localhost_key.pem" \
         -pass pass:grapefruit < /dev/null
 }
+
+docker network create "$docker_network_name" || echo "[INFO] network '$docker_network_name' is already created"
+
+start_toxiproxy
 
 start_rabbitmq
 
