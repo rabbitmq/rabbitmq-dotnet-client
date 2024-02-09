@@ -123,17 +123,34 @@ namespace RabbitMQ.Client
         /// </summary>
         public string ReplyText { get; private set; }
 
-        /// <summary>
-        /// Override ToString to be useful for debugging.
-        /// </summary>
-        public override string ToString()
+        private string GetMessageCore()
         {
             return $"AMQP close-reason, initiated by {Initiator}"
                 + $", code={ReplyCode}"
                 + (ReplyText != null ? $", text='{ReplyText}'" : string.Empty)
                 + $", classId={ClassId}"
                 + $", methodId={MethodId}"
-                + (Cause != null ? $", cause={Cause}" : string.Empty)
+                + (Cause != null ? $", cause={Cause}" : string.Empty);
+        }
+
+        /// <summary>
+        /// Gets a message suitable for logging.
+        /// </summary>
+        /// <remarks>
+        /// This leaves out the full exception ToString since logging will include it separately.
+        /// </remarks>
+        internal string GetLogMessage()
+        {
+            return GetMessageCore()
+                + (_exception != null ? $", exception={_exception.Message}" : string.Empty);
+        }
+
+        /// <summary>
+        /// Override ToString to be useful for debugging.
+        /// </summary>
+        public override string ToString()
+        {
+            return GetMessageCore()
                 + (_exception != null ? $", exception={_exception}" : string.Empty);
         }
     }
