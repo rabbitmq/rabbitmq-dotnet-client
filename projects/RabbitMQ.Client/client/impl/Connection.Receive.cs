@@ -175,16 +175,17 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void HandleMainLoopException(ShutdownEventArgs reason)
         {
+            string message = reason.GetLogMessage();
             if (!SetCloseReason(reason))
             {
-                LogCloseError($"Unexpected Main Loop Exception while closing: {reason}", reason.Exception);
+                LogCloseError($"Unexpected Main Loop Exception while closing: {message}", reason.Exception);
                 return;
             }
 
             _channel0.MaybeSetConnectionStartException(reason.Exception);
 
             OnShutdown(reason);
-            LogCloseError($"Unexpected connection closure: {reason}", reason.Exception);
+            LogCloseError($"Unexpected connection closure: {message}", reason.Exception);
         }
 
         private async Task HardProtocolExceptionHandlerAsync(HardProtocolException hpe, CancellationToken cancellationToken)
