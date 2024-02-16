@@ -78,12 +78,14 @@ namespace RabbitMQ.Client.Impl
         private readonly byte[] _frameHeaderBuffer;
         private bool _closed;
         private ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
+        private readonly bool _enableSynchronousWriteLoop;
 
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
-            TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+            TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout, bool enableSynchronousWriteLoop)
         {
             _endpoint = endpoint;
+            _enableSynchronousWriteLoop = enableSynchronousWriteLoop;
             _frameHeaderBuffer = new byte[6];
             var channel = Channel.CreateUnbounded<ReadOnlyMemory<byte>>(
                 new UnboundedChannelOptions
@@ -134,7 +136,15 @@ namespace RabbitMQ.Client.Impl
             _writer = new BufferedStream(netstream, _socket.Client.SendBufferSize);
 
             WriteTimeout = writeTimeout;
-            _writerTask = Task.Run(WriteLoop, CancellationToken.None);
+            if (_enableSynchronousWriteLoop)
+            {
+                TaskCreationOptions tco = TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach;
+                _writerTask = Task.Factory.StartNew(SynchronousWriteLoop, CancellationToken.None, tco, TaskScheduler.Default);
+            }
+            else
+            {
+                _writerTask = Task.Run(WriteLoop, CancellationToken.None);
+            }
         }
 
         public AmqpTcpEndpoint Endpoint
@@ -270,14 +280,38 @@ namespace RabbitMQ.Client.Impl
             while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
             {
                 _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
-                while (_channelReader.TryRead(out var memory))
+                while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
                 {
-                    MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment);
-                    await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
-                    MemoryPool.Return(segment.Array);
+                    if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
+                    {
+                        if (segment.Array != null)
+                        {
+                            await _writer.WriteAsync(segment.Array, segment.Offset, segment.Count).ConfigureAwait(false);
+                            MemoryPool.Return(segment.Array);
+                        }
+                    }
                 }
-
                 await _writer.FlushAsync().ConfigureAwait(false);
+            }
+        }
+
+        private void SynchronousWriteLoop()
+        {
+            while (_channelReader.WaitToReadAsync().AsTask().Result)
+            {
+                _socket.Client.Poll(_writeableStateTimeoutMicroSeconds, SelectMode.SelectWrite);
+                while (_channelReader.TryRead(out ReadOnlyMemory<byte> memory))
+                {
+                    if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
+                    {
+                        if (segment.Array != null)
+                        {
+                            _writer.Write(segment.Array, segment.Offset, segment.Count);
+                            MemoryPool.Return(segment.Array);
+                        }
+                    }
+                }
+                _writer.Flush();
             }
         }
 
