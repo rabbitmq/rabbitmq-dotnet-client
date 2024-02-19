@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
@@ -43,19 +42,16 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override void ConnectionTuneOk(ushort channelMax, uint frameMax, ushort heartbeat)
+        public override Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
         {
-            ChannelSend(new ConnectionTuneOk(channelMax, frameMax, heartbeat));
+            var method = new ConnectionTuneOk(channelMax, frameMax, heartbeat);
+            return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
-        public override void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
+        public override Task _Private_ChannelCloseOkAsync(CancellationToken cancellationToken)
         {
-            ChannelSend(new ChannelClose(replyCode, replyText, classId, methodId));
-        }
-
-        public override void _Private_ChannelCloseOk()
-        {
-            ChannelSend(new ChannelCloseOk());
+            var method = new ChannelCloseOk();
+            return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
         public override void _Private_ChannelFlowOk(bool active)
