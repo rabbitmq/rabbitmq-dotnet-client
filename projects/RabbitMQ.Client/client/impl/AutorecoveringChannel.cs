@@ -201,20 +201,6 @@ namespace RabbitMQ.Client.Impl
             _innerChannel.RunRecoveryEventHandlers(this);
         }
 
-        public void Close(ushort replyCode, string replyText, bool abort)
-        {
-            ThrowIfDisposed();
-            try
-            {
-                _innerChannel.Close(replyCode, replyText, abort);
-            }
-            finally
-            {
-                _connection.DeleteRecordedChannel(this,
-                    channelsSemaphoreHeld: false, recordedEntitiesSemaphoreHeld: false);
-            }
-        }
-
         public Task CloseAsync(ushort replyCode, string replyText, bool abort)
         {
             ThrowIfDisposed();

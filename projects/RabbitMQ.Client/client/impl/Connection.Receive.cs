@@ -111,6 +111,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
+        // TODO async
         private void ProcessFrame(InboundFrame frame)
         {
             bool shallReturnPayload = true;

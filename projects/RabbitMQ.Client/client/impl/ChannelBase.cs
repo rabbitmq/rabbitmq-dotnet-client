@@ -211,52 +211,6 @@ namespace RabbitMQ.Client.Impl
             _recoveryWrapper.Takeover(other._recoveryWrapper);
         }
 
-        public void Close(ushort replyCode, string replyText, bool abort)
-        {
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText);
-            var k = new ShutdownContinuation();
-            ChannelShutdown += k.OnConnectionShutdown;
-
-            try
-            {
-                ConsumerDispatcher.Quiesce();
-
-                if (SetCloseReason(reason))
-                {
-                    _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, reason.ClassId, reason.MethodId);
-                }
-
-                k.Wait(TimeSpan.FromMilliseconds(10000));
-
-                ConsumerDispatcher.WaitForShutdown();
-            }
-            catch (AlreadyClosedException)
-            {
-                if (!abort)
-                {
-                    throw;
-                }
-            }
-            catch (IOException)
-            {
-                if (!abort)
-                {
-                    throw;
-                }
-            }
-            catch (Exception)
-            {
-                if (!abort)
-                {
-                    throw;
-                }
-            }
-            finally
-            {
-                ChannelShutdown -= k.OnConnectionShutdown;
-            }
-        }
-
         public Task CloseAsync(ushort replyCode, string replyText, bool abort)
         {
             var args = new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText);
@@ -448,63 +402,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void ChannelRpc<TMethod>(in TMethod method, ProtocolCommandId returnCommandId)
-            where TMethod : struct, IOutgoingAmqpMethod
-        {
-            var k = new SimpleBlockingRpcContinuation();
-            IncomingCommand reply = default;
-            _rpcSemaphore.Wait();
-            try
-            {
-                Enqueue(k);
-                Session.Transmit(in method);
-                k.GetReply(ContinuationTimeout, out reply);
-
-                if (reply.CommandId != returnCommandId)
-                {
-                    throw new UnexpectedMethodException(reply.CommandId, returnCommandId);
-                }
-            }
-            finally
-            {
-                reply.ReturnBuffers();
-                _rpcSemaphore.Release();
-            }
-        }
-
-        protected TReturn ChannelRpc<TMethod, TReturn>(in TMethod method, ProtocolCommandId returnCommandId, Func<RentedMemory, TReturn> createFunc)
-            where TMethod : struct, IOutgoingAmqpMethod
-        {
-            IncomingCommand reply = default;
-            try
-            {
-                var k = new SimpleBlockingRpcContinuation();
-
-                _rpcSemaphore.Wait();
-                try
-                {
-                    Enqueue(k);
-                    Session.Transmit(in method);
-                    k.GetReply(ContinuationTimeout, out reply);
-                }
-                finally
-                {
-                    _rpcSemaphore.Release();
-                }
-
-                if (reply.CommandId != returnCommandId)
-                {
-                    throw new UnexpectedMethodException(reply.CommandId, returnCommandId);
-                }
-
-                return createFunc(reply.Method);
-            }
-            finally
-            {
-                reply.ReturnBuffers();
-            }
-        }
-
+        // TODO REMOVE rabbitmq-dotnet-client-1472
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ChannelSend<T>(in T method) where T : struct, IOutgoingAmqpMethod
         {
@@ -515,19 +413,6 @@ namespace RabbitMQ.Client.Impl
         protected ValueTask ModelSendAsync<T>(in T method, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod
         {
             return Session.TransmitAsync(in method, cancellationToken);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ChannelSend<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body)
-            where TMethod : struct, IOutgoingAmqpMethod
-            where THeader : IAmqpHeader
-        {
-            if (!_flowControlBlock.IsSet)
-            {
-                _flowControlBlock.Wait();
-            }
-
-            Session.Transmit(in method, in header, body);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -620,7 +505,7 @@ namespace RabbitMQ.Client.Impl
             // dispose unmanaged resources
         }
 
-        public abstract void ConnectionTuneOk(ushort channelMax, uint frameMax, ushort heartbeat);
+        public abstract Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken);
 
         protected void HandleBasicAck(in IncomingCommand cmd)
         {
@@ -884,7 +769,8 @@ namespace RabbitMQ.Client.Impl
 
                 Session.Close(CloseReason, false);
 
-                _Private_ChannelCloseOk();
+                // TODO async
+                _Private_ChannelCloseOkAsync(CancellationToken.None).EnsureCompleted();
             }
             finally
             {
@@ -1067,12 +953,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public abstract void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId);
+        public abstract Task _Private_ChannelCloseOkAsync(CancellationToken cancellationToken);
 
-        public abstract void _Private_ChannelCloseOk();
-
+        // TODO async
         public abstract void _Private_ChannelFlowOk(bool active);
 
+        // TODO async
         public abstract void _Private_ConnectionCloseOk();
 
         public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple);

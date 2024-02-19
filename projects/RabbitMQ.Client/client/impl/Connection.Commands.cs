@@ -180,8 +180,7 @@ namespace RabbitMQ.Client.Framing.Impl
             uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
-            // TODO cancellationToken / async
-            _channel0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
+            await _channel0.ConnectionTuneOkAsync(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds, cancellationToken);
 
             // TODO check for cancellation
             MaybeStartCredentialRefresher();
