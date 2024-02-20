@@ -169,6 +169,66 @@ namespace Test.Integration
             _output.WriteLine($"[INFO] heartbeat timeout took {sw.Elapsed}");
         }
 
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestTcpReset_GH1464()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), ProxyPort);
+            cf.Port = ProxyPort;
+            cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
+            cf.AutomaticRecoveryEnabled = true;
+
+            var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            Task recoveryTask = Task.Run(async () =>
+            {
+                using (IConnection conn = await cf.CreateConnectionAsync())
+                {
+                    conn.ConnectionShutdown += (o, ea) =>
+                    {
+                        connectionShutdownTcs.SetResult(true);
+                    };
+
+                    using (IChannel ch = await conn.CreateChannelAsync())
+                    {
+                        channelCreatedTcs.SetResult(true);
+                        await WaitForRecoveryAsync(conn);
+                        await ch.CloseAsync();
+                    }
+
+                    await conn.CloseAsync();
+                }
+            });
+
+            Assert.True(await channelCreatedTcs.Task);
+
+            const string toxicName = "rmq-localhost-reset_peer";
+            var resetPeerToxic = new ResetPeerToxic();
+            resetPeerToxic.Name = toxicName;
+            resetPeerToxic.Attributes.Timeout = 500;
+            resetPeerToxic.Toxicity = 1.0;
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            await _rmqProxy.AddAsync(resetPeerToxic);
+            Task<Proxy> updateProxyTask = _rmqProxy.UpdateAsync();
+
+            await Task.WhenAll(updateProxyTask, connectionShutdownTcs.Task);
+
+            await _rmqProxy.RemoveToxicAsync(toxicName);
+
+            await recoveryTask;
+
+            sw.Stop();
+
+            _output.WriteLine($"[INFO] reset peer took {sw.Elapsed}");
+        }
+
         private bool AreToxiproxyTestsEnabled
         {
             get

@@ -551,6 +551,22 @@ namespace Test
             return body;
         }
 
+        protected static Task WaitForRecoveryAsync(IConnection conn)
+        {
+            TaskCompletionSource<bool> tcs = PrepareForRecovery((AutorecoveringConnection)conn);
+            return WaitAsync(tcs, "recovery succeded");
+        }
+
+        protected static TaskCompletionSource<bool> PrepareForRecovery(IConnection conn)
+        {
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            AutorecoveringConnection aconn = conn as AutorecoveringConnection;
+            aconn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+
+            return tcs;
+        }
+
         public static string Now => DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
     }
 }
