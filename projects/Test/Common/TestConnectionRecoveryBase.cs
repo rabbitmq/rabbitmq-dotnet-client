@@ -231,34 +231,12 @@ namespace Test
             return tcs;
         }
 
-        protected static TaskCompletionSource<bool> PrepareForRecovery(IConnection conn)
-        {
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
-
-            return tcs;
-        }
-
         protected static Task<bool> WaitForConfirmsWithCancellationAsync(IChannel m)
         {
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
             {
                 return m.WaitForConfirmsAsync(cts.Token);
             }
-        }
-
-        protected Task WaitForRecoveryAsync()
-        {
-            TaskCompletionSource<bool> tcs = PrepareForRecovery((AutorecoveringConnection)_conn);
-            return WaitAsync(tcs, "recovery succeded");
-        }
-
-        internal Task WaitForRecoveryAsync(AutorecoveringConnection conn)
-        {
-            TaskCompletionSource<bool> tcs = PrepareForRecovery(conn);
-            return WaitAsync(tcs, "recovery succeeded");
         }
 
         protected Task WaitForShutdownAsync()
