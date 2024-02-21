@@ -44,6 +44,7 @@ namespace Test.Integration
 {
     public class TestToxiproxy : IntegrationFixture
     {
+        private const string ProxyName = "rmq-localhost";
         private const ushort ProxyPort = 55672;
         private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(1);
         private readonly Connection _proxyConnection;
@@ -54,7 +55,7 @@ namespace Test.Integration
         {
             if (AreToxiproxyTestsEnabled)
             {
-                _proxyConnection = new Connection();
+                _proxyConnection = new Connection(resetAllToxicsAndProxiesOnClose: true);
                 _proxyClient = _proxyConnection.Client();
 
                 // to start, assume everything is on localhost

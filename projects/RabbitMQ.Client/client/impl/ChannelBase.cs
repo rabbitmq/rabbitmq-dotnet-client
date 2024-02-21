@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Impl
             _flowControlWrapper = new EventingWrapper<FlowControlEventArgs>("OnFlowControl", onException);
             _channelShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnChannelShutdown", onException);
             _recoveryWrapper = new EventingWrapper<EventArgs>("OnChannelRecovery", onException);
-            session.CommandReceived = HandleCommand;
+            session.CommandReceived = HandleCommandAsync;
             session.SessionShutdown += OnSessionShutdown;
             Session = session;
         }
@@ -344,7 +344,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected abstract bool DispatchAsynchronous(in IncomingCommand cmd);
+        protected abstract Task<bool> DispatchCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken);
 
         protected void Enqueue(IRpcContinuation k)
         {
@@ -393,20 +393,14 @@ namespace RabbitMQ.Client.Impl
             m_connectionStartCell?.TrySetResult(null);
         }
 
-        private void HandleCommand(in IncomingCommand cmd)
+        private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            if (!DispatchAsynchronous(in cmd)) // Was asynchronous. Already processed. No need to process further.
+            // Was asynchronous. Already processed. No need to process further.
+            if (false == await DispatchCommandAsync(cmd, cancellationToken).ConfigureAwait(false))
             {
                 IRpcContinuation c = _continuationQueue.Next();
                 c.HandleCommand(in cmd);
             }
-        }
-
-        // TODO REMOVE rabbitmq-dotnet-client-1472
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ChannelSend<T>(in T method) where T : struct, IOutgoingAmqpMethod
-        {
-            Session.Transmit(in method);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -756,7 +750,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void HandleChannelClose(in IncomingCommand cmd)
+        protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             try
             {
@@ -769,8 +763,9 @@ namespace RabbitMQ.Client.Impl
 
                 Session.Close(CloseReason, false);
 
-                // TODO async
-                _Private_ChannelCloseOkAsync(CancellationToken.None).EnsureCompleted();
+                await _Private_ChannelCloseOkAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                return true;
             }
             finally
             {
@@ -801,11 +796,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void HandleChannelFlow(in IncomingCommand cmd)
+        protected async Task<bool> HandleChannelFlowAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             try
             {
-                var active = new ChannelFlow(cmd.MethodSpan)._active;
+                bool active = new ChannelFlow(cmd.MethodSpan)._active;
                 if (active)
                 {
                     _flowControlBlock.Set();
@@ -815,12 +810,15 @@ namespace RabbitMQ.Client.Impl
                     _flowControlBlock.Reset();
                 }
 
-                _Private_ChannelFlowOk(active);
+                await _Private_ChannelFlowOkAsync(active, cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (!_flowControlWrapper.IsEmpty)
                 {
                     _flowControlWrapper.Invoke(this, new FlowControlEventArgs(active));
                 }
+
+                return true;
             }
             finally
             {
@@ -841,7 +839,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void HandleConnectionClose(in IncomingCommand cmd)
+        protected async Task<bool> HandleConnectionCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             try
             {
@@ -850,7 +848,8 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     Session.Connection.ClosedViaPeer(reason);
-                    _Private_ConnectionCloseOk();
+                    await _Private_ConnectionCloseOkAsync(cancellationToken)
+                        .ConfigureAwait(false);
                     SetCloseReason(Session.Connection.CloseReason);
                 }
                 catch (IOException)
@@ -863,6 +862,8 @@ namespace RabbitMQ.Client.Impl
                     // Ignored. We're only trying to be polite by sending
                     // the close-ok, after all.
                 }
+
+                return true;
             }
             finally
             {
@@ -955,11 +956,9 @@ namespace RabbitMQ.Client.Impl
 
         public abstract Task _Private_ChannelCloseOkAsync(CancellationToken cancellationToken);
 
-        // TODO async
-        public abstract void _Private_ChannelFlowOk(bool active);
+        public abstract Task _Private_ChannelFlowOkAsync(bool active, CancellationToken cancellationToken);
 
-        // TODO async
-        public abstract void _Private_ConnectionCloseOk();
+        public abstract Task _Private_ConnectionCloseOkAsync(CancellationToken cancellationToken);
 
         public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple);
 

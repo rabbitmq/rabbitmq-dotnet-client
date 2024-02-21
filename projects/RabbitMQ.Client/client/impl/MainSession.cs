@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override bool HandleFrame(in InboundFrame frame)
+        public override Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
         {
             if (_closing)
             {
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
                     switch (Connection.Protocol.DecodeCommandIdFrom(frame.Payload.Span))
                     {
                         case ProtocolCommandId.ConnectionClose:
-                            return base.HandleFrame(in frame);
+                            return base.HandleFrameAsync(frame, cancellationToken);
                         case ProtocolCommandId.ConnectionCloseOk:
                             // This is the reply (CloseOk) we were looking for
                             // Call any listener attached to this session
@@ -75,10 +75,10 @@ namespace RabbitMQ.Client.Impl
 
                 // Either a non-method frame, or not what we were looking
                 // for. Ignore it - we're quiescing.
-                return true;
+                return Task.FromResult(true);
             }
 
-            return base.HandleFrame(in frame);
+            return base.HandleFrameAsync(frame, cancellationToken);
         }
 
         ///<summary> Set channel 0 as quiescing </summary>
@@ -131,23 +131,6 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new InvalidOperationException("[DEBUG] couldn't async enter semaphore");
             }
-        }
-
-        public override void Transmit<T>(in T cmd)
-        {
-            // Are we closing?
-            if (_closing)
-            {
-                if ((cmd.ProtocolCommandId != ProtocolCommandId.ConnectionCloseOk) && // is this not a close-ok?
-                    (_closeIsServerInitiated || cmd.ProtocolCommandId != ProtocolCommandId.ConnectionClose)) // is this either server initiated or not a close?
-                {
-                    // We shouldn't do anything since we are closing, not sending a connection-close-ok command
-                    // and this is either a server-initiated close or not a connection-close command.
-                    return;
-                }
-            }
-
-            base.Transmit(in cmd);
         }
 
         public override ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken)

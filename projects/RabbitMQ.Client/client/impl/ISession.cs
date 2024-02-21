@@ -36,7 +36,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal delegate void CommandReceivedAction(in IncomingCommand cmd);
+    internal delegate Task CommandReceivedAction(IncomingCommand cmd, CancellationToken cancellationToken);
 
     internal interface ISession
     {
@@ -74,15 +74,9 @@ namespace RabbitMQ.Client.Impl
 
         void Close(ShutdownEventArgs reason, bool notify);
 
-        bool HandleFrame(in InboundFrame frame);
+        Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
 
         void Notify();
-
-        void Transmit<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
-
-        void Transmit<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
-            where TMethod : struct, IOutgoingAmqpMethod
-            where THeader : IAmqpHeader;
 
         ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod;
 

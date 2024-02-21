@@ -54,20 +54,22 @@ namespace RabbitMQ.Client.Framing.Impl
             return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
-        public override void _Private_ChannelFlowOk(bool active)
+        public override Task _Private_ChannelFlowOkAsync(bool active, CancellationToken cancellationToken)
         {
-            ChannelSend(new ChannelFlowOk(active));
+            var method = new ChannelFlowOk(active);
+            return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
-        public override void _Private_ConnectionCloseOk()
+        public override Task _Private_ConnectionCloseOkAsync(CancellationToken cancellationToken)
         {
-            ChannelSend(new ConnectionCloseOk());
+            var method = new ConnectionCloseOk();
+            return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
         public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
         {
             var method = new BasicAck(deliveryTag, multiple);
-            // TODO cancellation token?
+            // TODO use cancellation token
             return ModelSendAsync(method, CancellationToken.None);
         }
 
@@ -85,101 +87,103 @@ namespace RabbitMQ.Client.Framing.Impl
             return ModelSendAsync(method, CancellationToken.None).AsTask();
         }
 
-        protected override bool DispatchAsynchronous(in IncomingCommand cmd)
+        protected override Task<bool> DispatchCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             switch (cmd.CommandId)
             {
                 case ProtocolCommandId.BasicDeliver:
                     {
                         HandleBasicDeliver(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.BasicAck:
                     {
                         HandleBasicAck(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.BasicCancel:
                     {
                         HandleBasicCancel(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.BasicCancelOk:
                     {
-                        return HandleBasicCancelOk(in cmd);
+                        bool result = HandleBasicCancelOk(in cmd);
+                        return Task.FromResult(result);
                     }
                 case ProtocolCommandId.BasicConsumeOk:
                     {
-                        return HandleBasicConsumeOk(in cmd);
+                        bool result = HandleBasicConsumeOk(in cmd);
+                        return Task.FromResult(result);
                     }
                 case ProtocolCommandId.BasicGetEmpty:
                     {
-                        return HandleBasicGetEmpty(in cmd);
+                        bool result = HandleBasicGetEmpty(in cmd);
+                        return Task.FromResult(result);
                     }
                 case ProtocolCommandId.BasicGetOk:
                     {
-                        return HandleBasicGetOk(in cmd);
+                        bool result = HandleBasicGetOk(in cmd);
+                        return Task.FromResult(result);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
                         HandleBasicNack(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.BasicReturn:
                     {
                         HandleBasicReturn(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ChannelClose:
                     {
-                        HandleChannelClose(in cmd);
-                        return true;
+                        return HandleChannelCloseAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ChannelCloseOk:
                     {
                         HandleChannelCloseOk(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ChannelFlow:
                     {
-                        HandleChannelFlow(in cmd);
-                        return true;
+                        return HandleChannelFlowAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionBlocked:
                     {
                         HandleConnectionBlocked(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ConnectionClose:
                     {
-                        HandleConnectionClose(in cmd);
-                        return true;
+                        return HandleConnectionCloseAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionSecure:
                     {
                         HandleConnectionSecure(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ConnectionStart:
                     {
                         HandleConnectionStart(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ConnectionTune:
                     {
                         HandleConnectionTune(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ConnectionUnblocked:
                     {
                         HandleConnectionUnblocked(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.QueueDeclareOk:
                     {
-                        return HandleQueueDeclareOk(in cmd);
+                        bool result = HandleQueueDeclareOk(in cmd);
+                        return Task.FromResult(result);
                     }
-                default: return false;
+                default: return Task.FromResult(false);
             }
         }
     }

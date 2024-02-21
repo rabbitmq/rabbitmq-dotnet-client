@@ -100,19 +100,20 @@ namespace RabbitMQ.Client.Framing.Impl
                 while (_frameHandler.TryReadFrame(out InboundFrame frame))
                 {
                     NotifyHeartbeatListener();
-                    ProcessFrame(frame);
+                    await ProcessFrameAsync(frame, mainLoopCancelllationToken)
+                        .ConfigureAwait(false);
                 }
 
                 // Done reading frames synchronously, go async
                 InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync(mainLoopCancelllationToken)
                     .ConfigureAwait(false);
                 NotifyHeartbeatListener();
-                ProcessFrame(asyncFrame);
+                await ProcessFrameAsync(asyncFrame, mainLoopCancelllationToken)
+                        .ConfigureAwait(false);
             }
         }
 
-        // TODO async
-        private void ProcessFrame(InboundFrame frame)
+        private async Task ProcessFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
         {
             bool shallReturnPayload = true;
             if (frame.Channel == 0)
@@ -133,7 +134,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     // quiescing situation, even though technically we
                     // should be ignoring everything except
                     // connection.close-ok.
-                    shallReturnPayload = _session0.HandleFrame(in frame);
+                    shallReturnPayload = await _session0.HandleFrameAsync(frame, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             else
@@ -150,7 +152,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     // Session itself may be quiescing this particular
                     // channel, but that's none of our concern.)
                     ISession session = _sessionManager.Lookup(frame.Channel);
-                    shallReturnPayload = session.HandleFrame(in frame);
+                    shallReturnPayload = await session.HandleFrameAsync(frame, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
 

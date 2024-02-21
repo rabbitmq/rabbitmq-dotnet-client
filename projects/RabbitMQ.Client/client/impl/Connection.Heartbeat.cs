@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
     internal sealed partial class Connection
     {
         private TimeSpan _heartbeat;
-        private TimeSpan _heartbeatTimeSpan;
+        private TimeSpan _heartbeatWriteTimeSpan;
         private int _missedHeartbeats;
         private bool _heartbeatDetected;
 
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 _heartbeat = value;
                 // timers fire at slightly below half the interval to avoid race
                 // conditions
-                _heartbeatTimeSpan = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds / 4);
+                _heartbeatWriteTimeSpan = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds / 2);
                 _frameHandler.ReadTimeout = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds * 2);
             }
         }
@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeatDetected = true;
         }
 
-        private void HeartbeatReadTimerCallback(object? state)
+        private async void HeartbeatReadTimerCallback(object? state)
         {
             if (_heartbeatReadTimer is null)
             {
@@ -117,8 +117,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 if (shouldTerminate)
                 {
                     TerminateMainloop();
-                    // TODO hmmm
-                    FinishCloseAsync(CancellationToken.None).EnsureCompleted();
+                    await FinishCloseAsync(_mainLoopCts.Token)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -137,7 +137,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void HeartbeatWriteTimerCallback(object? state)
+        private async void HeartbeatWriteTimerCallback(object? state)
         {
             if (_heartbeatWriteTimer is null)
             {
@@ -148,8 +148,9 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (false == _closed)
                 {
-                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
-                    _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
+                    await WriteAsync(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame(), _mainLoopCts.Token)
+                        .ConfigureAwait(false);
+                    _heartbeatWriteTimer?.Change((int)_heartbeatWriteTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
             catch (ObjectDisposedException)
