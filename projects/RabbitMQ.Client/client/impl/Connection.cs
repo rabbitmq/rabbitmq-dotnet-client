@@ -416,7 +416,8 @@ namespace RabbitMQ.Client.Framing.Impl
             _closed = true;
             MaybeStopHeartbeatTimers();
 
-            await _frameHandler.CloseAsync(cancellationToken);
+            await _frameHandler.CloseAsync(cancellationToken)
+                .ConfigureAwait(false);
             _channel0.SetCloseReason(CloseReason);
             _channel0.FinishClose();
             RabbitMqClientEventSource.Log.ConnectionClosed();
@@ -452,12 +453,6 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionWrapper.Invoke(this, args);
         }
 
-        internal void Write(RentedMemory frames)
-        {
-            Activity.Current.SetNetworkTags(_frameHandler);
-            _frameHandler.Write(frames);
-        }
-
         internal ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
         {
             Activity.Current.SetNetworkTags(_frameHandler);
@@ -473,11 +468,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                /*
-                 * TODO rabbitmq-dotnet-client-1472
-                 * this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
-                 * _mainLoopTask.Wait();
-                 */
                 if (IsOpen)
                 {
                     throw new InvalidOperationException("Connection must be closed before calling Dispose!");

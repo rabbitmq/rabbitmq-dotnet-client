@@ -273,7 +273,6 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                _closingSemaphore.Release();
                 _closingSemaphore.Dispose();
                 _closed = true;
             }

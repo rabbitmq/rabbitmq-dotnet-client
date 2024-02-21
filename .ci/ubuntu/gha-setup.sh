@@ -40,7 +40,7 @@ function start_toxiproxy
 {
     if [[ $run_toxiproxy == 'true' ]]
     then
-        sudo ss -4nlp
+        # sudo ss -4nlp
         echo "[INFO] starting Toxiproxy server docker container"
         docker rm --force "$toxiproxy_docker_name" 2>/dev/null || echo "[INFO] $toxiproxy_docker_name was not running"
         docker run --pull always --detach \
