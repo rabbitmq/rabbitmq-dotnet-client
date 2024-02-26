@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 using Xunit;
 
@@ -37,11 +38,19 @@ namespace Test.Unit
 {
     public class TestRpcContinuationQueue
     {
+        private class TestSimpleAsyncRpcContinuation : SimpleAsyncRpcContinuation
+        {
+            public TestSimpleAsyncRpcContinuation()
+                : base(ProtocolCommandId.BasicGet, TimeSpan.FromSeconds(10))
+            {
+            }
+        }
+
         [Fact]
         public void TestRpcContinuationQueueEnqueueAndRelease()
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
-            var inputContinuation = new SimpleBlockingRpcContinuation();
+            var inputContinuation = new TestSimpleAsyncRpcContinuation();
             queue.Enqueue(inputContinuation);
             IRpcContinuation outputContinuation = queue.Next();
             Assert.Equal(outputContinuation, inputContinuation);
@@ -51,7 +60,7 @@ namespace Test.Unit
         public void TestRpcContinuationQueueEnqueueAndRelease2()
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
-            var inputContinuation = new SimpleBlockingRpcContinuation();
+            var inputContinuation = new TestSimpleAsyncRpcContinuation();
             queue.Enqueue(inputContinuation);
             IRpcContinuation outputContinuation = queue.Next();
             Assert.Equal(outputContinuation, inputContinuation);
@@ -63,8 +72,8 @@ namespace Test.Unit
         public void TestRpcContinuationQueueEnqueue2()
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
-            var inputContinuation = new SimpleBlockingRpcContinuation();
-            var inputContinuation1 = new SimpleBlockingRpcContinuation();
+            var inputContinuation = new TestSimpleAsyncRpcContinuation();
+            var inputContinuation1 = new TestSimpleAsyncRpcContinuation();
             queue.Enqueue(inputContinuation);
             Assert.Throws<NotSupportedException>(() =>
             {

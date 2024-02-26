@@ -65,14 +65,6 @@ namespace RabbitMQ.Client.Framing.Impl
             _endpoints = endpoints;
         }
 
-        internal IConnection Open()
-        {
-            IFrameHandler fh = _endpoints.SelectOneAsync(_config.FrameHandlerFactoryAsync, CancellationToken.None).EnsureCompleted();
-            CreateInnerConnection(fh);
-            _innerConnection.Open();
-            return this;
-        }
-
         internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
         {
             IFrameHandler fh = await _endpoints.SelectOneAsync(_config.FrameHandlerFactoryAsync, cancellationToken)

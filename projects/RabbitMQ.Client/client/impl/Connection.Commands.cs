@@ -113,8 +113,7 @@ namespace RabbitMQ.Client.Framing.Impl
             if (!serverVersion.Equals(Protocol.Version))
             {
                 TerminateMainloop();
-                // TODO hmmm
-                FinishCloseAsync(CancellationToken.None).EnsureCompleted();
+                await FinishCloseAsync(cancellationToken);
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
             }
 

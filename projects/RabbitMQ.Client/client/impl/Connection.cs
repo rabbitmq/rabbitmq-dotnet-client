@@ -213,11 +213,6 @@ namespace RabbitMQ.Client.Framing.Impl
             _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
         }
 
-        internal IConnection Open()
-        {
-            return OpenAsync(CancellationToken.None).EnsureCompleted();
-        }
-
         internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

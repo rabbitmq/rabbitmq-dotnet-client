@@ -296,21 +296,6 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public void Write(RentedMemory frames)
-        {
-            if (_closed)
-            {
-                frames.Dispose();
-            }
-            else
-            {
-                if (false == _channelWriter.TryWrite(frames))
-                {
-                    // TODO what to do here?
-                }
-            }
-        }
-
         public ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
         {
             if (_closed)
