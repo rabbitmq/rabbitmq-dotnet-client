@@ -277,6 +277,7 @@ namespace RabbitMQ.Client.Impl
             using var timeoutTokenSource = new CancellationTokenSource(HandshakeContinuationTimeout);
             using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
             var m = new ConnectionOpen(virtualHost);
+            // Note: must be awaited or else the timeoutTokenSource instance will be disposed
             await ModelSendAsync(m, lts.Token).ConfigureAwait(false);
         }
 
@@ -590,59 +591,12 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                var consumerTag = new Client.Framing.Impl.BasicCancel(cmd.MethodSpan)._consumerTag;
+                string consumerTag = new Client.Framing.Impl.BasicCancel(cmd.MethodSpan)._consumerTag;
                 ConsumerDispatcher.HandleBasicCancel(consumerTag);
             }
             finally
             {
                 cmd.ReturnBuffers();
-            }
-        }
-
-        protected bool HandleBasicCancelOk(in IncomingCommand cmd)
-        {
-            if (_continuationQueue.TryPeek<BasicConsumeRpcContinuation>(out var k))
-            {
-                try
-                {
-                    _continuationQueue.Next();
-                    string consumerTag = new Client.Framing.Impl.BasicCancelOk(cmd.MethodSpan)._consumerTag;
-                    ConsumerDispatcher.HandleBasicCancelOk(consumerTag);
-                    k.HandleCommand(IncomingCommand.Empty); // release the continuation.
-                    return true;
-                }
-                finally
-                {
-                    cmd.ReturnBuffers();
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        protected bool HandleBasicConsumeOk(in IncomingCommand cmd)
-        {
-            if (_continuationQueue.TryPeek<BasicConsumeRpcContinuation>(out var k))
-            {
-                try
-                {
-                    _continuationQueue.Next();
-                    var consumerTag = new Client.Framing.Impl.BasicConsumeOk(cmd.MethodSpan)._consumerTag;
-                    k.m_consumerTag = consumerTag;
-                    ConsumerDispatcher.HandleBasicConsumeOk(k.m_consumer, consumerTag);
-                    k.HandleCommand(IncomingCommand.Empty); // release the continuation.
-                    return true;
-                }
-                finally
-                {
-                    cmd.ReturnBuffers();
-                }
-            }
-            else
-            {
-                return false;
             }
         }
 
@@ -671,63 +625,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected bool HandleBasicGetOk(in IncomingCommand cmd)
-        {
-            if (_continuationQueue.TryPeek<BasicGetRpcContinuation>(out var k))
-            {
-                try
-                {
-                    var method = new BasicGetOk(cmd.MethodSpan);
-                    var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
-                    _continuationQueue.Next();
-                    k.m_result = new BasicGetResult(
-                        AdjustDeliveryTag(method._deliveryTag),
-                        method._redelivered,
-                        method._exchange,
-                        method._routingKey,
-                        method._messageCount,
-                        header,
-                        cmd.Body.ToArray());
-                    k.HandleCommand(IncomingCommand.Empty); // release the continuation.
-                    return true;
-                }
-                finally
-                {
-                    // Note: since we copy the body buffer above, we want to return all buffers here
-                    cmd.ReturnBuffers();
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         protected virtual ulong AdjustDeliveryTag(ulong deliveryTag)
         {
             return deliveryTag;
-        }
-
-        protected bool HandleBasicGetEmpty(in IncomingCommand cmd)
-        {
-            if (_continuationQueue.TryPeek<BasicGetRpcContinuation>(out var k))
-            {
-                try
-                {
-                    _continuationQueue.Next();
-                    k.m_result = null;
-                    k.HandleCommand(IncomingCommand.Empty); // release the continuation.
-                    return true;
-                }
-                finally
-                {
-                    cmd.ReturnBuffers();
-                }
-            }
-            else
-            {
-                return false;
-            }
         }
 
         protected void HandleBasicReturn(in IncomingCommand cmd)
@@ -830,7 +730,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                var reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
+                string reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
                 Session.Connection.HandleConnectionBlocked(reason);
             }
             finally
@@ -877,17 +777,16 @@ namespace RabbitMQ.Client.Impl
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
 
-        protected void HandleConnectionStart(in IncomingCommand cmd)
+        protected async Task<bool> HandleConnectionStartAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             try
             {
                 if (m_connectionStartCell is null)
                 {
                     var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
-                    // // TODO async / cancellation token
-                    Session.Connection.CloseAsync(reason, false,
+                    await Session.Connection.CloseAsync(reason, false,
                         InternalConstants.DefaultConnectionCloseTimeout,
-                        CancellationToken.None).EnsureCompleted();
+                        cancellationToken);
                 }
                 else
                 {
@@ -903,6 +802,8 @@ namespace RabbitMQ.Client.Impl
                     m_connectionStartCell.SetResult(details);
                     m_connectionStartCell = null;
                 }
+
+                return true;
             }
             finally
             {
@@ -931,27 +832,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // TODO rabbitmq-dotnet-client-1472 remove this method
         protected bool HandleQueueDeclareOk(in IncomingCommand cmd)
         {
-            if (_continuationQueue.TryPeek<QueueDeclareRpcContinuation>(out var k))
-            {
-                try
-                {
-                    _continuationQueue.Next();
-                    var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodSpan);
-                    k.m_result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
-                    k.HandleCommand(IncomingCommand.Empty); // release the continuation.
-                    return true;
-                }
-                finally
-                {
-                    cmd.ReturnBuffers();
-                }
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public abstract Task _Private_ChannelCloseOkAsync(CancellationToken cancellationToken);
@@ -1219,26 +1103,6 @@ namespace RabbitMQ.Client.Impl
                 throw;
             }
         }
-
-#if FOO
-        BasicProperties props = default;
-            if (basicProperties is BasicProperties properties)
-            {
-                props = properties;
-            }
-            else if (basicProperties is EmptyBasicProperty)
-            {
-                props = new BasicProperties();
-            }
-
-            var headers = props.Headers ?? new Dictionary<string, object>();
-
-            // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-            DistributedContextPropagator.Current.Inject(sendActivity, headers, InjectTraceContextIntoBasicProperties);
-            props.Headers = headers;
-            return props;
-        }
-#endif 
 
         public async Task UpdateSecretAsync(string newSecret, string reason)
         {

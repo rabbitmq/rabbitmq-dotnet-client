@@ -108,23 +108,19 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.BasicCancelOk:
                     {
-                        bool result = HandleBasicCancelOk(in cmd);
-                        return Task.FromResult(result);
+                        return Task.FromResult(false);
                     }
                 case ProtocolCommandId.BasicConsumeOk:
                     {
-                        bool result = HandleBasicConsumeOk(in cmd);
-                        return Task.FromResult(result);
+                        return Task.FromResult(false);
                     }
                 case ProtocolCommandId.BasicGetEmpty:
                     {
-                        bool result = HandleBasicGetEmpty(in cmd);
-                        return Task.FromResult(result);
+                        return Task.FromResult(false);
                     }
                 case ProtocolCommandId.BasicGetOk:
                     {
-                        bool result = HandleBasicGetOk(in cmd);
-                        return Task.FromResult(result);
+                        return Task.FromResult(false);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
@@ -165,8 +161,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionStart:
                     {
-                        HandleConnectionStart(in cmd);
-                        return Task.FromResult(true);
+                        return HandleConnectionStartAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionTune:
                     {

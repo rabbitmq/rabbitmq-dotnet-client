@@ -70,7 +70,6 @@ namespace RabbitMQ.Client.Impl
 
         Task SendProtocolHeaderAsync(CancellationToken cancellationToken);
 
-        void Write(RentedMemory frames); // TODO remove, should be async only
         ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken);
     }
 }

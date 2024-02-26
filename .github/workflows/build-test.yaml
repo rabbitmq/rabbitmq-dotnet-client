@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: true
       - name: Cache NuGet packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.nuget/packages
@@ -32,7 +32,7 @@ jobs:
       - name: Unit Tests
         run: dotnet test "${{ github.workspace }}\projects\Test\Unit\Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Upload Build (Debug)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rabbitmq-dotnet-client-build-win32
           path: |
@@ -52,14 +52,14 @@ jobs:
         with:
           submodules: true
       - name: Cache installers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
           path: ~/installers
           key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
       - name: Download Build (Debug)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rabbitmq-dotnet-client-build-win32
           path: projects
@@ -81,7 +81,7 @@ jobs:
             "${{ github.workspace }}\projects\Test\Integration\Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rabbitmq-logs-integration-win32
           path: ~/AppData/Roaming/RabbitMQ/log/
@@ -97,14 +97,14 @@ jobs:
         with:
           submodules: true
       - name: Cache installers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
           path: ~/installers
           key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
       - name: Download Build (Debug)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rabbitmq-dotnet-client-build-win32
           path: projects
@@ -115,7 +115,7 @@ jobs:
         run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" "${{ github.workspace }}\projects\Test\SequentialIntegration\SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rabbitmq-logs-sequential-integration-win32
           path: ~/AppData/Roaming/RabbitMQ/log/
@@ -128,11 +128,11 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 6.x
       - name: Cache NuGet packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.nuget/packages
@@ -149,7 +149,7 @@ jobs:
       - name: Unit Tests
         run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Upload Build (Debug)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rabbitmq-dotnet-client-build-ubuntu
           path: |
@@ -166,11 +166,11 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 6.x
       - name: Download Build (Debug)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rabbitmq-dotnet-client-build-ubuntu
           path: projects
@@ -188,7 +188,7 @@ jobs:
                 "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rabbitmq-logs-integration-ubuntu
           path: ${{ github.workspace }}/.ci/ubuntu/log/
@@ -201,11 +201,11 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 6.x
       - name: Download Build (Debug)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rabbitmq-dotnet-client-build-ubuntu
           path: projects
@@ -219,7 +219,7 @@ jobs:
                 "${{ github.workspace }}/projects/Test/SequentialIntegration/SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rabbitmq-logs-sequential-integration-ubuntu
           path: ${{ github.workspace }}/.ci/ubuntu/log/

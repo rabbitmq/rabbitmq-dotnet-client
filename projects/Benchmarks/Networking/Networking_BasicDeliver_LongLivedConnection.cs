@@ -22,7 +22,7 @@ namespace Benchmarks.Networking
 
             var cf = new ConnectionFactory { ConsumerDispatchConcurrency = 2 };
             // TODO / NOTE: https://github.com/dotnet/BenchmarkDotNet/issues/1738
-            _connection = cf.CreateConnectionAsync().EnsureCompleted();
+            _connection = EnsureCompleted(cf.CreateConnectionAsync());
         }
 
         [GlobalCleanup]
@@ -37,5 +37,7 @@ namespace Benchmarks.Networking
         {
             return Networking_BasicDeliver_Commons.Publish_Hello_World(_connection, messageCount, _body);
         }
+
+        private static T EnsureCompleted<T>(Task<T> task) => task.GetAwaiter().GetResult();
     }
 }

@@ -203,34 +203,6 @@ namespace RabbitMQ.Client
 #endif
         }
 
-        /*
-         * https://devblogs.microsoft.com/dotnet/configureawait-faq/
-         * I'm using GetAwaiter().GetResult(). Do I need to use ConfigureAwait(false)?
-         * Answer: No
-         */
-        public static void EnsureCompleted(this Task task)
-        {
-            task.GetAwaiter().GetResult();
-        }
-
-        public static T EnsureCompleted<T>(this Task<T> task)
-        {
-            return task.GetAwaiter().GetResult();
-        }
-
-        public static T EnsureCompleted<T>(this ValueTask<T> task)
-        {
-            return task.GetAwaiter().GetResult();
-        }
-
-        public static void EnsureCompleted(this ValueTask task)
-        {
-            if (false == task.IsCompletedSuccessfully)
-            {
-                task.GetAwaiter().GetResult();
-            }
-        }
-
 #if NETSTANDARD
         // https://github.com/dotnet/runtime/issues/23878
         // https://github.com/dotnet/runtime/issues/23878#issuecomment-1398958645

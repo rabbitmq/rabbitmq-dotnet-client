@@ -68,6 +68,7 @@ namespace RabbitMQ.Client.Impl
                     // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
                     // Cancellation was successful, does this mean we should set a TimeoutException
                     // in the same manner as BlockingCell?
+                    tcs.SetException(new TimeoutException("TODO LRB rabbitmq/rabbitmq-dotnet-client#1347"));
                 }
             }, _tcs);
 #else
