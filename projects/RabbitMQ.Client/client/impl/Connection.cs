@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
-        private readonly ChannelBase _channel0; // TODO this isn't disposed, hmm
+        private readonly ChannelBase _channel0; // FUTURE Note: this is not disposed
         private readonly MainSession _session0;
 
         private Guid _id = Guid.NewGuid();
@@ -390,7 +390,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void ClosedViaPeer(ShutdownEventArgs reason)
         {
-            if (!SetCloseReason(reason))
+            if (false == SetCloseReason(reason))
             {
                 if (_closed)
                 {
@@ -427,6 +427,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool SetCloseReason(ShutdownEventArgs reason)
         {
+            if (reason is null)
+            {
+                throw new ArgumentNullException(nameof(reason));
+            }
+
             return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
@@ -465,7 +470,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (IsOpen)
                 {
-                    throw new InvalidOperationException("Connection must be closed before calling Dispose!");
+                    this.AbortAsync().GetAwaiter().GetResult();
                 }
 
                 _session0.Dispose();

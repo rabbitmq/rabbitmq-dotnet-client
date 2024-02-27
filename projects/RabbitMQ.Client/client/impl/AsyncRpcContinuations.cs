@@ -65,9 +65,8 @@ namespace RabbitMQ.Client.Impl
                 var tcs = (TaskCompletionSource<T>)state;
                 if (tcs.TrySetCanceled())
                 {
-                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-                    // Cancellation was successful, does this mean we should set a TimeoutException
-                    // in the same manner as BlockingCell?
+                    // Cancellation was successful, does this mean we set a TimeoutException
+                    // in the same manner as BlockingCell used to
                     tcs.SetException(new TimeoutException("TODO LRB rabbitmq/rabbitmq-dotnet-client#1347"));
                 }
             }, _tcs);
@@ -77,9 +76,9 @@ namespace RabbitMQ.Client.Impl
                 var tcs = (TaskCompletionSource<T>)state;
                 if (tcs.TrySetCanceled())
                 {
-                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-                    // Cancellation was successful, does this mean we should set a TimeoutException
-                    // in the same manner as BlockingCell?
+                    // Cancellation was successful, does this mean we set a TimeoutException
+                    // in the same manner as BlockingCell used to
+                    tcs.SetException(new TimeoutException("TODO LRB rabbitmq/rabbitmq-dotnet-client#1347"));
                 }
             }, state: _tcs, useSynchronizationContext: false);
 #endif
@@ -148,8 +147,6 @@ namespace RabbitMQ.Client.Impl
                 else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
                 {
                     var tune = new ConnectionTune(cmd.MethodSpan);
-                    // TODO LRB rabbitmq/rabbitmq-dotnet-client#1347
-                    // What to do if setting a result fails?
                     _tcs.TrySetResult(new ConnectionSecureOrTune
                     {
                         m_tuneDetails = new ConnectionTuneDetails { m_channelMax = tune._channelMax, m_frameMax = tune._frameMax, m_heartbeatInSeconds = tune._heartbeat }

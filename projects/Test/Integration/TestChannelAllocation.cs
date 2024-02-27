@@ -78,6 +78,23 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task AllocateInOrderOnlyUsingDispose()
+        {
+            var channels = new List<IChannel>();
+            for (int i = 1; i <= CHANNEL_COUNT; i++)
+            {
+                IChannel channel = await _c.CreateChannelAsync();
+                channels.Add(channel);
+                Assert.Equal(i, ChannelNumber(channel));
+            }
+
+            foreach (IChannel channel in channels)
+            {
+                channel.Dispose();
+            }
+        }
+
+        [Fact]
         public async Task AllocateAfterFreeingLast()
         {
             IChannel ch0 = await _c.CreateChannelAsync();

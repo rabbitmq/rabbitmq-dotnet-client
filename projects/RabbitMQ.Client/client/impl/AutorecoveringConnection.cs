@@ -261,12 +261,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                // TODO rabbitmq-dotnet-client-1472
-                // this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
-                if (IsOpen)
-                {
-                    throw new InvalidOperationException("Connection must be closed before calling Dispose!");
-                }
+                _innerConnection.Dispose();
             }
             catch (Exception)
             {

@@ -234,11 +234,9 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
-            // TODO rabbitmq-dotnet-client-1472
-            // this.Abort();
             if (IsOpen)
             {
-                throw new InvalidOperationException("AutorecoveringChannel must be closed before calling Dispose!");
+                this.AbortAsync().GetAwaiter().GetResult();
             }
 
             _recordedConsumerTags.Clear();

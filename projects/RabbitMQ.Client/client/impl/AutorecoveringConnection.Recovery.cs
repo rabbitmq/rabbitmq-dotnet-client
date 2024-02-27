@@ -153,7 +153,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivity, ignoring it", e);
         }
 
-        // TODO propagate token
+        // TODO propagate cancellation token
         private async ValueTask<bool> TryPerformAutomaticRecoveryAsync(CancellationToken cancellationToken)
         {
             ESLog.Info("Performing automatic recovery");

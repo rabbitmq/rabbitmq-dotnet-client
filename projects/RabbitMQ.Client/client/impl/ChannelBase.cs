@@ -471,6 +471,11 @@ namespace RabbitMQ.Client.Impl
 
         internal bool SetCloseReason(ShutdownEventArgs reason)
         {
+            if (reason is null)
+            {
+                throw new ArgumentNullException(nameof(reason));
+            }
+
             // NB: this ensures that Close is only called once on a channel
             return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
@@ -487,20 +492,21 @@ namespace RabbitMQ.Client.Impl
         {
             if (disposing)
             {
-                // dispose managed resources
-                // TODO exception?
                 if (IsOpen)
                 {
-                    throw new InvalidOperationException("Channel must be closed before calling Dispose!");
+                    this.AbortAsync().GetAwaiter().GetResult();
                 }
+
                 ConsumerDispatcher.Dispose();
                 _rpcSemaphore.Dispose();
             }
-
-            // dispose unmanaged resources
         }
 
-        public abstract Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken);
+        public Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
+        {
+            var method = new ConnectionTuneOk(channelMax, frameMax, heartbeat);
+            return ModelSendAsync(method, cancellationToken).AsTask();
+        }
 
         protected void HandleBasicAck(in IncomingCommand cmd)
         {
@@ -663,8 +669,10 @@ namespace RabbitMQ.Client.Impl
 
                 Session.Close(CloseReason, false);
 
-                await _Private_ChannelCloseOkAsync(cancellationToken)
+                var method = new ChannelCloseOk();
+                await ModelSendAsync(method, cancellationToken)
                     .ConfigureAwait(false);
+
                 return true;
             }
             finally
@@ -710,8 +718,9 @@ namespace RabbitMQ.Client.Impl
                     _flowControlBlock.Reset();
                 }
 
-                await _Private_ChannelFlowOkAsync(active, cancellationToken)
-                    .ConfigureAwait(false);
+                var method = new ChannelFlowOk(active);
+                await ModelSendAsync(method, cancellationToken).
+                    ConfigureAwait(false);
 
                 if (!_flowControlWrapper.IsEmpty)
                 {
@@ -748,8 +757,11 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     Session.Connection.ClosedViaPeer(reason);
-                    await _Private_ConnectionCloseOkAsync(cancellationToken)
+
+                    var replyMethod = new ConnectionCloseOk();
+                    await ModelSendAsync(replyMethod, cancellationToken)
                         .ConfigureAwait(false);
+
                     SetCloseReason(Session.Connection.CloseReason);
                 }
                 catch (IOException)
@@ -832,19 +844,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        // TODO rabbitmq-dotnet-client-1472 remove this method
-        protected bool HandleQueueDeclareOk(in IncomingCommand cmd)
-        {
-            return false;
-        }
-
-        public abstract Task _Private_ChannelCloseOkAsync(CancellationToken cancellationToken);
-
-        public abstract Task _Private_ChannelFlowOkAsync(bool active, CancellationToken cancellationToken);
-
-        public abstract Task _Private_ConnectionCloseOkAsync(CancellationToken cancellationToken);
-
         public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple);
+
+        public abstract ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue);
+
+        public abstract Task BasicRejectAsync(ulong deliveryTag, bool requeue);
 
         public async Task BasicCancelAsync(string consumerTag, bool noWait)
         {
@@ -945,8 +949,6 @@ namespace RabbitMQ.Client.Impl
                 _rpcSemaphore.Release();
             }
         }
-
-        public abstract ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue);
 
         public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -1161,8 +1163,6 @@ namespace RabbitMQ.Client.Impl
                 _rpcSemaphore.Release();
             }
         }
-
-        public abstract Task BasicRejectAsync(ulong deliveryTag, bool requeue);
 
         public async Task ConfirmSelectAsync()
         {
