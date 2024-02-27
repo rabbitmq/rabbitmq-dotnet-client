@@ -92,9 +92,6 @@ namespace Test.Integration
             var c = (AutorecoveringConnection)_conn;
             await c.CloseFrameHandlerAsync();
 
-            // TODO this fails due to a race condition caused by abrupt closure of the
-            // socket frame handler
-            // await _conn.CloseAsync();
             _conn.Dispose();
             _conn = null;
             await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
@@ -111,6 +108,22 @@ namespace Test.Integration
             };
 
             await _conn.CloseAsync();
+
+            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
+        }
+
+        [Fact]
+        public async Task TestShutdownSignalPropagationToChannelsUsingDispose()
+        {
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _channel.ChannelShutdown += (channel, args) =>
+            {
+                tcs.SetResult(true);
+            };
+
+            _conn.Dispose();
+            _conn = null;
 
             await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
         }

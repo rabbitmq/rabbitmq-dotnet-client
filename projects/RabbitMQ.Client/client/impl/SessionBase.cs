@@ -111,6 +111,7 @@ namespace RabbitMQ.Client.Impl
             {
                 RabbitMqClientEventSource.Log.ChannelClosed();
             }
+
             if (notify)
             {
                 OnSessionShutdown(CloseReason);
@@ -126,7 +127,7 @@ namespace RabbitMQ.Client.Impl
             ShutdownEventArgs reason = CloseReason;
             if (reason is null)
             {
-                throw new InvalidOperationException("Internal Error in Session.Close");
+                throw new InvalidOperationException("Internal Error in SessionBase.Notify");
             }
 
             OnSessionShutdown(reason);

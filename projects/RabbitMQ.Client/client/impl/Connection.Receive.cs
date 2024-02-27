@@ -86,7 +86,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 HandleMainLoopException(ea);
             }
 
-            // TODO is this the best way?
             using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionCloseTimeout);
             await FinishCloseAsync(cts.Token);
         }
@@ -175,7 +174,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private void HandleMainLoopException(ShutdownEventArgs reason)
         {
             string message = reason.GetLogMessage();
-            if (!SetCloseReason(reason))
+            if (false == SetCloseReason(reason))
             {
                 LogCloseError($"Unexpected Main Loop Exception while closing: {message}", reason.Exception);
                 return;

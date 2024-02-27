@@ -379,7 +379,6 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void MaybeThrowEndOfStream(ReadResult result, ReadOnlySequence<byte> buffer)
         {
-            // TODO
             // https://blog.marcgravell.com/2018/07/pipe-dreams-part-1.html
             // Uses &&
             if (result.IsCompleted && buffer.IsEmpty)

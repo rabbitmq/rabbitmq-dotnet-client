@@ -42,55 +42,45 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
-        {
-            var method = new ConnectionTuneOk(channelMax, frameMax, heartbeat);
-            return ModelSendAsync(method, cancellationToken).AsTask();
-        }
-
-        public override Task _Private_ChannelCloseOkAsync(CancellationToken cancellationToken)
-        {
-            var method = new ChannelCloseOk();
-            return ModelSendAsync(method, cancellationToken).AsTask();
-        }
-
-        public override Task _Private_ChannelFlowOkAsync(bool active, CancellationToken cancellationToken)
-        {
-            var method = new ChannelFlowOk(active);
-            return ModelSendAsync(method, cancellationToken).AsTask();
-        }
-
-        public override Task _Private_ConnectionCloseOkAsync(CancellationToken cancellationToken)
-        {
-            var method = new ConnectionCloseOk();
-            return ModelSendAsync(method, cancellationToken).AsTask();
-        }
-
         public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
         {
             var method = new BasicAck(deliveryTag, multiple);
-            // TODO use cancellation token
+            // TODO cancellation token
             return ModelSendAsync(method, CancellationToken.None);
         }
 
         public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
         {
             var method = new BasicNack(deliveryTag, multiple, requeue);
-            // TODO use cancellation token
+            // TODO cancellation token
             return ModelSendAsync(method, CancellationToken.None);
         }
 
         public override Task BasicRejectAsync(ulong deliveryTag, bool requeue)
         {
             var method = new BasicReject(deliveryTag, requeue);
-            // TODO cancellation token?
+            // TODO cancellation token
             return ModelSendAsync(method, CancellationToken.None).AsTask();
         }
 
+        /// <summary>
+        /// Returning <c>true</c> from this method means that the command was server-originated,
+        /// and handled already.
+        /// Returning <c>false</c> (the default) means that the incoming command is the response to
+        /// a client-initiated RPC call, and must be handled.
+        /// </summary>
+        /// <param name="cmd">The incoming command from the AMQP server</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns></returns>
         protected override Task<bool> DispatchCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             switch (cmd.CommandId)
             {
+                case ProtocolCommandId.BasicCancel:
+                    {
+                        HandleBasicCancel(in cmd);
+                        return Task.FromResult(true);
+                    }
                 case ProtocolCommandId.BasicDeliver:
                     {
                         HandleBasicDeliver(in cmd);
@@ -100,27 +90,6 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         HandleBasicAck(in cmd);
                         return Task.FromResult(true);
-                    }
-                case ProtocolCommandId.BasicCancel:
-                    {
-                        HandleBasicCancel(in cmd);
-                        return Task.FromResult(true);
-                    }
-                case ProtocolCommandId.BasicCancelOk:
-                    {
-                        return Task.FromResult(false);
-                    }
-                case ProtocolCommandId.BasicConsumeOk:
-                    {
-                        return Task.FromResult(false);
-                    }
-                case ProtocolCommandId.BasicGetEmpty:
-                    {
-                        return Task.FromResult(false);
-                    }
-                case ProtocolCommandId.BasicGetOk:
-                    {
-                        return Task.FromResult(false);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
@@ -134,6 +103,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ChannelClose:
                     {
+                        // Note: always returns true
                         return HandleChannelCloseAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ChannelCloseOk:
@@ -143,6 +113,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ChannelFlow:
                     {
+                        // Note: always returns true
                         return HandleChannelFlowAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionBlocked:
@@ -152,6 +123,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionClose:
                     {
+                        // Note: always returns true
                         return HandleConnectionCloseAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionSecure:
@@ -161,6 +133,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionStart:
                     {
+                        // Note: always returns true
                         return HandleConnectionStartAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionTune:
@@ -173,12 +146,10 @@ namespace RabbitMQ.Client.Framing.Impl
                         HandleConnectionUnblocked(in cmd);
                         return Task.FromResult(true);
                     }
-                case ProtocolCommandId.QueueDeclareOk:
+                default:
                     {
-                        bool result = HandleQueueDeclareOk(in cmd);
-                        return Task.FromResult(result);
+                        return Task.FromResult(false);
                     }
-                default: return Task.FromResult(false);
             }
         }
     }

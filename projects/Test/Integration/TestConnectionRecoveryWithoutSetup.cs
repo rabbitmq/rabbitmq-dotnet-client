@@ -149,7 +149,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
-            string q0 = "dotnet-client.recovery.queue1";
+            const string q0 = "dotnet-client.recovery.queue1";
             using (AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync())
             {
                 using (IChannel ch = await c.CreateChannelAsync())
