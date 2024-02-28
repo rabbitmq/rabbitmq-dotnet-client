@@ -41,7 +41,7 @@ using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class AsyncRpcContinuation<T> : IRpcContinuation, IDisposable
+    internal abstract class AsyncRpcContinuation<T> : IRpcContinuation
     {
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationTokenRegistration _cancellationTokenRegistration;
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client.Impl
             return _tcsConfiguredTaskAwaitable.GetAwaiter();
         }
 
-        public abstract void HandleCommand(in IncomingCommand cmd);
+        public abstract Task HandleCommandAsync(IncomingCommand cmd);
 
         public virtual void HandleChannelShutdown(ShutdownEventArgs reason)
         {
@@ -135,7 +135,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void HandleCommand(in IncomingCommand cmd)
+        public override Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
             {
@@ -156,6 +156,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
                 }
+
+                return Task.CompletedTask;
             }
             finally
             {
@@ -173,7 +175,7 @@ namespace RabbitMQ.Client.Impl
             _expectedCommandId = expectedCommandId;
         }
 
-        public override void HandleCommand(in IncomingCommand cmd)
+        public override Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
             {
@@ -185,6 +187,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
                 }
+
+                return Task.CompletedTask;
             }
             finally
             {
@@ -205,7 +209,7 @@ namespace RabbitMQ.Client.Impl
             _consumerDispatcher = consumerDispatcher;
         }
 
-        public override void HandleCommand(in IncomingCommand cmd)
+        public override async Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
             {
@@ -214,7 +218,8 @@ namespace RabbitMQ.Client.Impl
                     var method = new Client.Framing.Impl.BasicCancelOk(cmd.MethodSpan);
                     _tcs.TrySetResult(true);
                     Debug.Assert(_consumerTag == method._consumerTag);
-                    _consumerDispatcher.HandleBasicCancelOk(_consumerTag);
+                    await _consumerDispatcher.HandleBasicCancelOkAsync(_consumerTag, CancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -240,7 +245,7 @@ namespace RabbitMQ.Client.Impl
             _consumerDispatcher = consumerDispatcher;
         }
 
-        public override void HandleCommand(in IncomingCommand cmd)
+        public override async Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
             {
@@ -248,7 +253,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     var method = new Client.Framing.Impl.BasicConsumeOk(cmd.MethodSpan);
                     _tcs.TrySetResult(method._consumerTag);
-                    _consumerDispatcher.HandleBasicConsumeOk(_consumer, method._consumerTag);
+                    await _consumerDispatcher.HandleBasicConsumeOkAsync(_consumer, method._consumerTag, CancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -272,7 +278,7 @@ namespace RabbitMQ.Client.Impl
             _adjustDeliveryTag = adjustDeliveryTag;
         }
 
-        public override void HandleCommand(in IncomingCommand cmd)
+        public override Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
             {
@@ -300,6 +306,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
                 }
+
+                return Task.CompletedTask;
             }
             finally
             {
@@ -389,7 +397,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void HandleCommand(in IncomingCommand cmd)
+        public override Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
             {
@@ -403,6 +411,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
                 }
+
+                return Task.CompletedTask;
             }
             finally
             {
@@ -433,7 +443,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void HandleCommand(in IncomingCommand cmd)
+        public override Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
             {
@@ -446,6 +456,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
                 }
+
+                return Task.CompletedTask;
             }
             finally
             {
@@ -460,7 +472,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override void HandleCommand(in IncomingCommand cmd)
+        public override Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
             {
@@ -473,6 +485,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
                 }
+
+                return Task.CompletedTask;
             }
             finally
             {

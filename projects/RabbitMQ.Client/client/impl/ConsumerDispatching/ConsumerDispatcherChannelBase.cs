@@ -59,37 +59,55 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public void HandleBasicConsumeOk(IBasicConsumer consumer, string consumerTag)
+        public ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
                 AddConsumer(consumer, consumerTag);
-                _writer.TryWrite(new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag));
+                return _writer.WriteAsync(new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag), cancellationToken);
+            }
+            else
+            {
+                return default;
             }
         }
 
-        public void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body)
+        public ValueTask HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
+            string exchange, string routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body,
+            CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
-                _writer.TryWrite(new WorkStruct(GetConsumerOrDefault(consumerTag), consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body));
+                var work = new WorkStruct(GetConsumerOrDefault(consumerTag), consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
+                return _writer.WriteAsync(work, cancellationToken);
+            }
+            else
+            {
+                return default;
             }
         }
 
-        public void HandleBasicCancelOk(string consumerTag)
+        public ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
-                _writer.TryWrite(new WorkStruct(WorkType.CancelOk, GetAndRemoveConsumer(consumerTag), consumerTag));
+                return _writer.WriteAsync(new WorkStruct(WorkType.CancelOk, GetAndRemoveConsumer(consumerTag), consumerTag), cancellationToken);
+            }
+            else
+            {
+                return default;
             }
         }
 
-        public void HandleBasicCancel(string consumerTag)
+        public ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
-                _writer.TryWrite(new WorkStruct(WorkType.Cancel, GetAndRemoveConsumer(consumerTag), consumerTag));
+                return _writer.WriteAsync(new WorkStruct(WorkType.Cancel, GetAndRemoveConsumer(consumerTag), consumerTag), cancellationToken);
+            }
+            else
+            {
+                return default;
             }
         }
 

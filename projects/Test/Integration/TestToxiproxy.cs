@@ -167,7 +167,7 @@ namespace Test.Integration
 
             sw.Stop();
 
-            _output.WriteLine($"[INFO] heartbeat timeout took {sw.Elapsed}");
+            // _output.WriteLine($"[INFO] heartbeat timeout took {sw.Elapsed}");
         }
 
         [SkippableFact]
@@ -227,7 +227,7 @@ namespace Test.Integration
 
             sw.Stop();
 
-            _output.WriteLine($"[INFO] reset peer took {sw.Elapsed}");
+            // _output.WriteLine($"[INFO] reset peer took {sw.Elapsed}");
         }
 
         private bool AreToxiproxyTestsEnabled

@@ -182,7 +182,7 @@ namespace Test.Integration
 
         private Task SleepFor(int t)
         {
-            _output.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
+            // _output.WriteLine("Testing heartbeats, sleeping for {0} seconds", t);
             return Task.Delay(t * 1000);
         }
 
