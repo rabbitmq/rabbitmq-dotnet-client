@@ -78,13 +78,13 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 case ProtocolCommandId.BasicCancel:
                     {
-                        HandleBasicCancel(in cmd);
-                        return Task.FromResult(true);
+                        // Note: always returns true
+                        return HandleBasicCancelAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.BasicDeliver:
                     {
-                        HandleBasicDeliver(in cmd);
-                        return Task.FromResult(true);
+                        // Note: always returns true
+                        return HandleBasicDeliverAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.BasicAck:
                     {
@@ -108,8 +108,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ChannelCloseOk:
                     {
-                        HandleChannelCloseOk(in cmd);
-                        return Task.FromResult(true);
+                        // Note: always returns true
+                        return HandleChannelCloseOkAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ChannelFlow:
                     {
@@ -128,8 +128,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionSecure:
                     {
-                        HandleConnectionSecure(in cmd);
-                        return Task.FromResult(true);
+                        // Note: always returns true
+                        return HandleConnectionSecureAsync(cmd);
                     }
                 case ProtocolCommandId.ConnectionStart:
                     {
@@ -138,8 +138,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionTune:
                     {
-                        HandleConnectionTune(in cmd);
-                        return Task.FromResult(true);
+                        // Note: always returns true
+                        return HandleConnectionTuneAsync(cmd);
                     }
                 case ProtocolCommandId.ConnectionUnblocked:
                     {

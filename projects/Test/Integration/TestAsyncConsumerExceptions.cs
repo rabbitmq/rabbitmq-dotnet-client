@@ -52,10 +52,7 @@ namespace Test.Integration
         public Task TestCancelNotificationExceptionHandling()
         {
             IBasicConsumer consumer = new ConsumerFailingOnCancel(_channel);
-            return TestExceptionHandlingWith(consumer, async (ch, q, c, ct) =>
-            {
-                await ch.QueueDeleteAsync(q, false, false);
-            });
+            return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => ch.QueueDeleteAsync(q, false, false));
         }
 
         [Fact]
@@ -99,6 +96,7 @@ namespace Test.Integration
                 string q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
                 _channel.CallbackException += (ch, evt) =>
                 {
+                    // _output.WriteLine($"[INFO] _channel.CallbackException: {evt.Exception}");
                     if (evt.Exception == TestException)
                     {
                         tcs.SetResult(true);

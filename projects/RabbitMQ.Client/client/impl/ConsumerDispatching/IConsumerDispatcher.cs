@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.ConsumerDispatching
@@ -43,19 +44,20 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         IBasicConsumer GetAndRemoveConsumer(string tag);
 
-        void HandleBasicConsumeOk(IBasicConsumer consumer, string consumerTag);
+        ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken);
 
-        void HandleBasicDeliver(string consumerTag,
+        ValueTask HandleBasicDeliverAsync(string consumerTag,
                             ulong deliveryTag,
                             bool redelivered,
                             string exchange,
                             string routingKey,
                             in ReadOnlyBasicProperties basicProperties,
-                            RentedMemory body);
+                            RentedMemory body,
+                            CancellationToken cancellationToken);
 
-        void HandleBasicCancelOk(string consumerTag);
+        ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken);
 
-        void HandleBasicCancel(string consumerTag);
+        ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken);
 
         void Quiesce();
 
