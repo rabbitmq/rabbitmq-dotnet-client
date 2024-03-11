@@ -313,8 +313,14 @@ namespace RabbitMQ.Client.Impl
                 return false;
             }
 
-            // TODO check this?
-            // buffer.IsSingleSegment;
+            /*
+             * Note:
+             * The use of buffer.Slice seems to take all segments into account, thus there appears to be no need to check IsSingleSegment
+             * Debug.Assert(buffer.IsSingleSegment);
+             * In addition, the TestBasicRoundtripConcurrentManyMessages asserts that the consumed message bodies are equivalent to
+             * the published bodies, and if there were an issue parsing frames, it would show up there for sure.
+             * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1516#issuecomment-1991943017
+             */
 
             byte firstByte = buffer.First.Span[0];
             if (firstByte == 'A')

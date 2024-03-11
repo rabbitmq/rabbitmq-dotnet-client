@@ -175,11 +175,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IProtocol Protocol => Endpoint.Protocol;
 
-        public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync()
+        public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(CancellationToken cancellationToken)
         {
             ISession session = InnerConnection.CreateSession();
             var result = new RecoveryAwareChannel(_config, session);
-            return await result.OpenAsync()
+            return await result.OpenAsync(cancellationToken)
                 .ConfigureAwait(false) as RecoveryAwareChannel;
         }
 
@@ -241,13 +241,13 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync()
+        public async Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
-            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync()
+            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(cancellationToken)
                 .ConfigureAwait(false);
             AutorecoveringChannel channel = new AutorecoveringChannel(this, recoveryAwareChannel);
-            await RecordChannelAsync(channel, channelsSemaphoreHeld: false)
+            await RecordChannelAsync(channel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
             return channel;
         }

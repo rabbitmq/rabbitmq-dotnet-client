@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
-        private readonly object _confirmLock = new object();
+        private object _confirmLock;
         private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
 
         private bool _onlyAcksReceived = true;
@@ -183,7 +183,6 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsOpen => CloseReason is null;
 
-        // TODO add private bool for Confirm mode
         public ulong NextPublishSeqNo { get; private set; }
 
         public string CurrentQueue { get; private set; }
@@ -376,19 +375,22 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal async Task<IChannel> OpenAsync()
+        internal async Task<IChannel> OpenAsync(CancellationToken cancellationToken)
         {
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout);
 
-            await _rpcSemaphore.WaitAsync(k.CancellationToken)
+            using CancellationTokenSource lts =
+                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, k.CancellationToken);
+
+            await _rpcSemaphore.WaitAsync(lts.Token)
                 .ConfigureAwait(false);
             try
             {
                 enqueued = Enqueue(k);
 
                 var method = new ChannelOpen();
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(method, lts.Token)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -415,6 +417,8 @@ namespace RabbitMQ.Client.Impl
 
             m_connectionStartCell?.TrySetResult(null);
         }
+
+        private bool ConfirmsAreEnabled => _confirmLock != null;
 
         private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
@@ -475,17 +479,21 @@ namespace RabbitMQ.Client.Impl
         {
             _continuationQueue.HandleChannelShutdown(reason);
             _channelShutdownWrapper.Invoke(this, reason);
-            lock (_confirmLock)
-            {
-                if (_confirmsTaskCompletionSources?.Count > 0)
-                {
-                    var exception = new AlreadyClosedException(reason);
-                    foreach (var confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
-                    {
-                        confirmsTaskCompletionSource.TrySetException(exception);
-                    }
 
-                    _confirmsTaskCompletionSources.Clear();
+            if (ConfirmsAreEnabled)
+            {
+                lock (_confirmLock)
+                {
+                    if (_confirmsTaskCompletionSources?.Count > 0)
+                    {
+                        var exception = new AlreadyClosedException(reason);
+                        foreach (var confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                        {
+                            confirmsTaskCompletionSource.TrySetException(exception);
+                        }
+
+                        _confirmsTaskCompletionSources.Clear();
+                    }
                 }
             }
 
@@ -581,7 +589,7 @@ namespace RabbitMQ.Client.Impl
         protected void HandleAckNack(ulong deliveryTag, bool multiple, bool isNack)
         {
             // No need to do this if publisher confirms have never been enabled.
-            if (NextPublishSeqNo > 0)
+            if (ConfirmsAreEnabled)
             {
                 // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
                 lock (_confirmLock)
@@ -1017,7 +1025,7 @@ namespace RabbitMQ.Client.Impl
         public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            if (NextPublishSeqNo > 0)
+            if (ConfirmsAreEnabled)
             {
                 lock (_confirmLock)
                 {
@@ -1047,7 +1055,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
-                if (NextPublishSeqNo > 0)
+                if (ConfirmsAreEnabled)
                 {
                     lock (_confirmLock)
                     {
@@ -1078,7 +1086,7 @@ namespace RabbitMQ.Client.Impl
             TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            if (NextPublishSeqNo > 0)
+            if (ConfirmsAreEnabled)
             {
                 lock (_confirmLock)
                 {
@@ -1109,7 +1117,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
-                if (NextPublishSeqNo > 0)
+                if (ConfirmsAreEnabled)
                 {
                     lock (_confirmLock)
                     {
@@ -1126,7 +1134,7 @@ namespace RabbitMQ.Client.Impl
             TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            if (NextPublishSeqNo > 0)
+            if (ConfirmsAreEnabled)
             {
                 lock (_confirmLock)
                 {
@@ -1157,7 +1165,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
-                if (NextPublishSeqNo > 0)
+                if (ConfirmsAreEnabled)
                 {
                     lock (_confirmLock)
                     {
@@ -1262,6 +1270,10 @@ namespace RabbitMQ.Client.Impl
 
                 bool result = await k;
                 Debug.Assert(result);
+
+                // Note:
+                // Non-null means confirms are enabled
+                _confirmLock = new object();
 
                 return;
             }
@@ -1747,7 +1759,7 @@ namespace RabbitMQ.Client.Impl
 
         public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
         {
-            if (NextPublishSeqNo == 0UL)
+            if (false == ConfirmsAreEnabled)
             {
                 throw new InvalidOperationException("Confirms not selected");
             }
@@ -1821,17 +1833,15 @@ namespace RabbitMQ.Client.Impl
                 await CloseAsync(ea, false)
                     .ConfigureAwait(false);
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException ex)
             {
                 const string msg = "timed out waiting for acks";
-
-                var ex = new IOException(msg);
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.ReplySuccess, msg, ex);
 
                 await CloseAsync(ea, false)
                     .ConfigureAwait(false);
 
-                throw ex;
+                throw;
             }
         }
 

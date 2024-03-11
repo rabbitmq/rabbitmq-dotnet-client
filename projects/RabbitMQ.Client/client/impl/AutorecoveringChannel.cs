@@ -146,7 +146,7 @@ namespace RabbitMQ.Client.Impl
         public string CurrentQueue => InnerChannel.CurrentQueue;
 
         internal async Task AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
-            bool recordedEntitiesSemaphoreHeld = false)
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (false == recordedEntitiesSemaphoreHeld)
             {
@@ -156,7 +156,7 @@ namespace RabbitMQ.Client.Impl
             ThrowIfDisposed();
             _connection = conn;
 
-            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync()
+            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(cancellationToken)
                 .ConfigureAwait(false);
             newChannel.TakeOver(_innerChannel);
 

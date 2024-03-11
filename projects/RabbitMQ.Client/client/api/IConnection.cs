@@ -225,13 +225,14 @@ namespace RabbitMQ.Client
         /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
         /// <param name="timeout"></param>
         /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
-        /// <param name="cancellationToken"></param>
-        Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort, CancellationToken cancellationToken = default);
+        /// <param name="cancellationToken">Cancellation token</param>
+        Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously create and return a fresh channel, session, and channel.
         /// </summary>
-        // TODO cancellation token
-        Task<IChannel> CreateChannelAsync();
+        /// <param name="cancellationToken">Cancellation token</param>
+        Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default);
     }
 }
