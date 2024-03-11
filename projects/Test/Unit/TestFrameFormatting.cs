@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -59,7 +60,7 @@ namespace Test.Unit
             }
             finally
             {
-                ClientArrayPool.Return(sfc.RentedArray);
+                ArrayPool<byte>.Shared.Return(sfc.RentedArray);
             }
         }
 
