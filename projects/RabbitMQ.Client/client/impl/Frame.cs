@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Impl
             public static RentedMemory GetHeartbeatFrame()
             {
                 // Is returned by SocketFrameHandler.WriteLoop
-                byte[] buffer = ClientArrayPool.Rent(FrameSize);
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
                 Payload.CopyTo(buffer);
                 var mem = new ReadOnlyMemory<byte>(buffer, 0, FrameSize);
                 return new RentedMemory(mem, buffer);
@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.Impl
             int size = Method.FrameSize + method.GetRequiredBufferSize();
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            byte[] array = ClientArrayPool.Rent(size);
+            byte[] array = ArrayPool<byte>.Shared.Rent(size);
             int offset = Method.WriteTo(array, channelNumber, ref method);
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
@@ -176,7 +176,7 @@ namespace RabbitMQ.Client.Impl
                        BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes) + remainingBodyBytes;
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            byte[] array = ClientArrayPool.Rent(size);
+            byte[] array = ArrayPool<byte>.Shared.Rent(size);
 
             int offset = Method.WriteTo(array, channelNumber, ref method);
             offset += Header.WriteTo(array.AsSpan(offset), channelNumber, ref header, remainingBodyBytes);
@@ -342,14 +342,14 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                byte[] payloadBytes = ClientArrayPool.Rent(readSize);
+                byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
                 ReadOnlySequence<byte> framePayload = buffer.Slice(7, readSize);
                 framePayload.CopyTo(payloadBytes);
 
                 if (payloadBytes[payloadSize] != Constants.FrameEnd)
                 {
                     byte frameEndMarker = payloadBytes[payloadSize];
-                    ClientArrayPool.Return(payloadBytes);
+                    ArrayPool<byte>.Shared.Return(payloadBytes);
                     throw new MalformedFrameException($"Bad frame end marker: {frameEndMarker}");
                 }
 
@@ -368,7 +368,7 @@ namespace RabbitMQ.Client.Impl
 
         public void ReturnPayload()
         {
-            ClientArrayPool.Return(_rentedArray);
+            ArrayPool<byte>.Shared.Return(_rentedArray);
         }
 
         public override string ToString()

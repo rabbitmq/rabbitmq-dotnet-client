@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 
 namespace RabbitMQ.Client
 {
@@ -73,7 +74,7 @@ namespace RabbitMQ.Client
             {
                 if (disposing && RentedArray != null)
                 {
-                    ClientArrayPool.Return(RentedArray);
+                    ArrayPool<byte>.Shared.Return(RentedArray);
                 }
 
                 _disposedValue = true;

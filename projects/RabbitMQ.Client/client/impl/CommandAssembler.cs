@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
@@ -185,7 +186,7 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 // Is returned by IncomingCommand.ReturnPayload in Session.HandleFrame
-                _rentedBodyArray = ClientArrayPool.Rent(_remainingBodyByteCount);
+                _rentedBodyArray = ArrayPool<byte>.Shared.Rent(_remainingBodyByteCount);
                 _bodyMemory = new ReadOnlyMemory<byte>(_rentedBodyArray, 0, _remainingBodyByteCount);
             }
 
