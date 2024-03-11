@@ -256,12 +256,12 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public Task<IChannel> CreateChannelAsync()
+        public Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
             ISession session = CreateSession();
             var channel = new Channel(_config, session);
-            return channel.OpenAsync();
+            return channel.OpenAsync(cancellationToken);
         }
 
         internal ISession CreateSession()
@@ -285,7 +285,8 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
-        public Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort, CancellationToken cancellationToken)
+        public Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,
+            CancellationToken cancellationToken = default)
         {
             var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText);
             return CloseAsync(reason, abort, timeout, cancellationToken);

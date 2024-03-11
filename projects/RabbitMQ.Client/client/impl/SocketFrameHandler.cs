@@ -428,7 +428,6 @@ namespace RabbitMQ.Client.Impl
             {
                 if (timeoutTokenSource.Token.IsCancellationRequested)
                 {
-                    // TODO maybe do not use System.TimeoutException here
                     var timeoutException = new TimeoutException(msg, e);
                     throw new ConnectFailureException(msg, timeoutException);
                 }

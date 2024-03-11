@@ -184,7 +184,7 @@ namespace RabbitMQ.Client.Framing.Impl
                                 .ConfigureAwait(false);
 
                         }
-                        await RecoverChannelsAndItsConsumersAsync(recordedEntitiesSemaphoreHeld: true)
+                        await RecoverChannelsAndItsConsumersAsync(recordedEntitiesSemaphoreHeld: true, cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     finally
@@ -541,7 +541,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private async ValueTask RecoverChannelsAndItsConsumersAsync(bool recordedEntitiesSemaphoreHeld = false)
+        private async ValueTask RecoverChannelsAndItsConsumersAsync(bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (false == recordedEntitiesSemaphoreHeld)
             {
@@ -551,7 +551,8 @@ namespace RabbitMQ.Client.Framing.Impl
             foreach (AutorecoveringChannel channel in _channels)
             {
                 await channel.AutomaticallyRecoverAsync(this, _config.TopologyRecoveryEnabled,
-                    recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld)
+                    recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld,
+                    cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
         }

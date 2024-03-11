@@ -731,7 +731,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         private async Task RecordChannelAsync(AutorecoveringChannel channel,
-            bool channelsSemaphoreHeld = false)
+            bool channelsSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (channelsSemaphoreHeld)
             {
@@ -739,7 +739,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                await _channelsSemaphore.WaitAsync()
+                await _channelsSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
@@ -757,6 +757,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _channels.Add(channel);
         }
 
+        // TODO remove this unused method
         internal void DeleteRecordedChannel(in AutorecoveringChannel channel,
             bool channelsSemaphoreHeld, bool recordedEntitiesSemaphoreHeld)
         {
