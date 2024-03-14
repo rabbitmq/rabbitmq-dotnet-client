@@ -248,11 +248,13 @@ namespace RabbitMQ.Client.Impl
         public ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
             => InnerChannel.BasicAckAsync(deliveryTag, multiple);
 
-        public Task BasicCancelAsync(string consumerTag, bool noWait)
+        public async Task BasicCancelAsync(string consumerTag, bool noWait)
         {
             ThrowIfDisposed();
-            _connection.DeleteRecordedConsumer(consumerTag, recordedEntitiesSemaphoreHeld: false);
-            return _innerChannel.BasicCancelAsync(consumerTag, noWait);
+            await _connection.DeleteRecordedConsumerAsync(consumerTag, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
+            await _innerChannel.BasicCancelAsync(consumerTag, noWait)
+                .ConfigureAwait(false);
         }
 
         public async Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,

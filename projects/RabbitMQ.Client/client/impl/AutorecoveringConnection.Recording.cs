@@ -50,32 +50,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal int RecordedExchangesCount => _recordedExchanges.Count;
 
-        internal void RecordExchange(in RecordedExchange exchange,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoRecordExchange(exchange);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoRecordExchange(exchange);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
-        }
-
         internal async ValueTask RecordExchangeAsync(RecordedExchange exchange,
             bool recordedEntitiesSemaphoreHeld)
         {
@@ -106,49 +80,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private void DoRecordExchange(in RecordedExchange exchange)
         {
             _recordedExchanges[exchange.Name] = exchange;
-        }
-
-        internal void DeleteRecordedExchange(string exchangeName,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoDeleteRecordedExchange(exchangeName);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoDeleteRecordedExchange(exchangeName);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
-
-            void DoDeleteRecordedExchange(string exchangeName)
-            {
-                _recordedExchanges.Remove(exchangeName);
-
-                // find bindings that need removal, check if some auto-delete exchanges might need the same
-                foreach (RecordedBinding binding in _recordedBindings.ToArray())
-                {
-                    if (binding.Destination == exchangeName)
-                    {
-                        DeleteRecordedBinding(binding,
-                            recordedEntitiesSemaphoreHeld: true);
-                        DeleteAutoDeleteExchange(binding.Source,
-                            recordedEntitiesSemaphoreHeld: true);
-                    }
-                }
-            }
         }
 
         internal async ValueTask DeleteRecordedExchangeAsync(string exchangeName,
@@ -195,32 +126,6 @@ namespace RabbitMQ.Client.Framing.Impl
                             recordedEntitiesSemaphoreHeld: true)
                                 .ConfigureAwait(false);
                     }
-                }
-            }
-        }
-
-        internal void DeleteAutoDeleteExchange(string exchangeName,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoDeleteAutoDeleteExchange(exchangeName);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoDeleteAutoDeleteExchange(exchangeName);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
                 }
             }
         }
@@ -279,32 +184,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal int RecordedQueuesCount => _recordedQueues.Count;
 
-        internal void RecordQueue(in RecordedQueue queue,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoRecordQueue(queue);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoRecordQueue(queue);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
-        }
-
         internal async ValueTask RecordQueueAsync(RecordedQueue queue,
             bool recordedEntitiesSemaphoreHeld)
         {
@@ -335,49 +214,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private void DoRecordQueue(RecordedQueue queue)
         {
             _recordedQueues[queue.Name] = queue;
-        }
-
-        internal void DeleteRecordedQueue(string queueName,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoDeleteRecordedQueue(queueName);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoDeleteRecordedQueue(queueName);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
-
-            void DoDeleteRecordedQueue(string queueName)
-            {
-                _recordedQueues.Remove(queueName);
-
-                // find bindings that need removal, check if some auto-delete exchanges might need the same
-                foreach (RecordedBinding binding in _recordedBindings.ToArray())
-                {
-                    if (binding.Destination == queueName)
-                    {
-                        DeleteRecordedBinding(binding,
-                            recordedEntitiesSemaphoreHeld: true);
-                        DeleteAutoDeleteExchange(binding.Source,
-                            recordedEntitiesSemaphoreHeld: true);
-                    }
-                }
-            }
         }
 
         internal async ValueTask DeleteRecordedQueueAsync(string queueName,
@@ -429,32 +265,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         }
 
-        internal void RecordBinding(in RecordedBinding binding,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoRecordBinding(binding);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoRecordBinding(binding);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
-        }
-
         internal async ValueTask RecordBindingAsync(RecordedBinding binding,
             bool recordedEntitiesSemaphoreHeld)
         {
@@ -487,32 +297,6 @@ namespace RabbitMQ.Client.Framing.Impl
             _recordedBindings.Add(binding);
         }
 
-        internal void DeleteRecordedBinding(in RecordedBinding rb,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoDeleteRecordedBinding(rb);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoDeleteRecordedBinding(rb);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
-        }
-
         internal async ValueTask DeleteRecordedBindingAsync(RecordedBinding rb,
             bool recordedEntitiesSemaphoreHeld)
         {
@@ -543,37 +327,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private void DoDeleteRecordedBinding(in RecordedBinding rb)
         {
             _recordedBindings.Remove(rb);
-        }
-
-        internal void RecordConsumer(in RecordedConsumer consumer,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (!_config.TopologyRecoveryEnabled)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoRecordConsumer(consumer);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoRecordConsumer(consumer);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
         }
 
         internal async ValueTask RecordConsumerAsync(RecordedConsumer consumer,
@@ -611,37 +364,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private void DoRecordConsumer(in RecordedConsumer consumer)
         {
             _recordedConsumers[consumer.ConsumerTag] = consumer;
-        }
-
-        internal void DeleteRecordedConsumer(string consumerTag,
-            bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (!_config.TopologyRecoveryEnabled)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoDeleteRecordedConsumer(consumerTag);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoDeleteRecordedConsumer(consumerTag);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
         }
 
         internal async ValueTask DeleteRecordedConsumerAsync(string consumerTag,
@@ -709,27 +431,6 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private void RecordChannel(in AutorecoveringChannel channel,
-            bool channelsSemaphoreHeld = false)
-        {
-            if (channelsSemaphoreHeld)
-            {
-                DoAddRecordedChannel(channel);
-            }
-            else
-            {
-                _channelsSemaphore.Wait();
-                try
-                {
-                    DoAddRecordedChannel(channel);
-                }
-                finally
-                {
-                    _channelsSemaphore.Release();
-                }
-            }
-        }
-
         private async Task RecordChannelAsync(AutorecoveringChannel channel,
             bool channelsSemaphoreHeld, CancellationToken cancellationToken)
         {
@@ -757,50 +458,6 @@ namespace RabbitMQ.Client.Framing.Impl
             _channels.Add(channel);
         }
 
-        // TODO remove this unused method
-        internal void DeleteRecordedChannel(in AutorecoveringChannel channel,
-            bool channelsSemaphoreHeld, bool recordedEntitiesSemaphoreHeld)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (recordedEntitiesSemaphoreHeld)
-            {
-                DoDeleteRecordedConsumers(channel);
-            }
-            else
-            {
-                _recordedEntitiesSemaphore.Wait();
-                try
-                {
-                    DoDeleteRecordedConsumers(channel);
-                }
-                finally
-                {
-                    _recordedEntitiesSemaphore.Release();
-                }
-            }
-
-            if (channelsSemaphoreHeld)
-            {
-                DoDeleteRecordedChannel(channel);
-            }
-            else
-            {
-                _channelsSemaphore.Wait();
-                try
-                {
-                    DoDeleteRecordedChannel(channel);
-                }
-                finally
-                {
-                    _channelsSemaphore.Release();
-                }
-            }
-        }
-
         internal async Task DeleteRecordedChannelAsync(AutorecoveringChannel channel,
             bool channelsSemaphoreHeld, bool recordedEntitiesSemaphoreHeld)
         {
@@ -811,7 +468,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
             if (recordedEntitiesSemaphoreHeld)
             {
-                DoDeleteRecordedConsumers(channel);
+                await DoDeleteRecordedConsumersAsync(channel)
+                    .ConfigureAwait(false);
             }
             else
             {
@@ -819,7 +477,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     .ConfigureAwait(false);
                 try
                 {
-                    DoDeleteRecordedConsumers(channel);
+                    await DoDeleteRecordedConsumersAsync(channel)
+                        .ConfigureAwait(false);
                 }
                 finally
                 {
@@ -846,11 +505,12 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void DoDeleteRecordedConsumers(in AutorecoveringChannel channel)
+        private async Task DoDeleteRecordedConsumersAsync(AutorecoveringChannel channel)
         {
             foreach (string ct in channel.ConsumerTags)
             {
-                DeleteRecordedConsumer(ct, recordedEntitiesSemaphoreHeld: true);
+                await DeleteRecordedConsumerAsync(ct, recordedEntitiesSemaphoreHeld: true)
+                    .ConfigureAwait(false);
             }
         }
 

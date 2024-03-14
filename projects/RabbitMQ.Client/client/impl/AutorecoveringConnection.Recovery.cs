@@ -341,11 +341,14 @@ namespace RabbitMQ.Client.Framing.Impl
                         // see rabbitmq/rabbitmq-dotnet-client#43
                         if (recordedQueue.IsServerNamed)
                         {
-                            DeleteRecordedQueue(oldName,
-                                recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld);
+                            await DeleteRecordedQueueAsync(oldName,
+                                recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld)
+                                .ConfigureAwait(false);
                         }
-                        RecordQueue(new RecordedQueue(newName, recordedQueue),
-                            recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld);
+
+                        await RecordQueueAsync(new RecordedQueue(newName, recordedQueue),
+                            recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld)
+                            .ConfigureAwait(false);
 
                         if (!_queueNameChangedAfterRecoveryWrapper.IsEmpty)
                         {
