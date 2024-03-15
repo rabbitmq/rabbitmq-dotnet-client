@@ -38,7 +38,7 @@ using VerifyTests;
 namespace RabbitMQ.Client.Unit
 {
     [TestFixture]
-    [Platform(Exclude="Mono,Linux")]
+    [Platform(Exclude = "Mono,Linux")]
     public class APIApproval
     {
         [Test]
@@ -48,6 +48,7 @@ namespace RabbitMQ.Client.Unit
 
             var settings = new VerifySettings();
             settings.DisableDiff();
+            settings.UniqueForTargetFramework();
 
             return Verifier.Verify(publicApi, settings);
         }

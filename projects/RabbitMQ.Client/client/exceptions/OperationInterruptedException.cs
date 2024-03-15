@@ -40,9 +40,7 @@ namespace RabbitMQ.Client.Exceptions
     /// operation, an OperationInterruptedException will be thrown to
     /// the caller of IModel.QueueDeclare.
     /// </summary>
-#if !NETSTANDARD1_5
     [Serializable]
-#endif
     public class OperationInterruptedException
         // TODO: inherit from OperationCanceledException
         : RabbitMQClientException

@@ -985,7 +985,7 @@ namespace RabbitMQ.Client.Logging
     [System.Diagnostics.Tracing.EventSource(Name="rabbitmq-dotnet-client")]
     public sealed class RabbitMqClientEventSource : System.Diagnostics.Tracing.EventSource
     {
-        public static RabbitMQ.Client.Logging.RabbitMqClientEventSource Log;
+        public static readonly RabbitMQ.Client.Logging.RabbitMqClientEventSource Log;
         public RabbitMqClientEventSource() { }
         [System.Diagnostics.Tracing.Event(3, Keywords=System.Diagnostics.Tracing.EventKeywords.None, Level=System.Diagnostics.Tracing.EventLevel.Error, Message="ERROR")]
         public void Error(string message, RabbitMQ.Client.Logging.RabbitMqExceptionDetail ex) { }

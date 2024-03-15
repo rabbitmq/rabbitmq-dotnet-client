@@ -25,7 +25,7 @@ namespace RabbitMQ.Util
             span[5] = (byte)((tempVal >> 16) & 0xFF);
             span[6] = (byte)((tempVal >> 8) & 0xFF);
             span[7] = (byte)(tempVal & 0xFF);
-#elif NETSTANDARD
+#else
             long tempVal = BitConverter.DoubleToInt64Bits(val);
             BinaryPrimitives.WriteInt64BigEndian(span, tempVal);
 #endif
@@ -42,7 +42,7 @@ namespace RabbitMQ.Util
 
             span[0] = (byte)((val >> 8) & 0xFF);
             span[1] = (byte)(val & 0xFF);
-#elif NETSTANDARD
+#else
             BinaryPrimitives.WriteInt16BigEndian(span, val);
 #endif
         }
@@ -60,7 +60,7 @@ namespace RabbitMQ.Util
             span[1] = (byte)((val >> 16) & 0xFF);
             span[2] = (byte)((val >> 8) & 0xFF);
             span[3] = (byte)(val & 0xFF);
-#elif NETSTANDARD
+#else
             BinaryPrimitives.WriteInt32BigEndian(span, val);
 #endif
         }
@@ -82,7 +82,7 @@ namespace RabbitMQ.Util
             span[5] = (byte)((val >> 16) & 0xFF);
             span[6] = (byte)((val >> 8) & 0xFF);
             span[7] = (byte)(val & 0xFF);
-#elif NETSTANDARD
+#else
             BinaryPrimitives.WriteInt64BigEndian(span, val);
 #endif
         }
@@ -101,7 +101,7 @@ namespace RabbitMQ.Util
             span[1] = (byte)((tempVal >> 16) & 0xFF);
             span[2] = (byte)((tempVal >> 8) & 0xFF);
             span[3] = (byte)(tempVal & 0xFF);
-#elif NETSTANDARD
+#else
             int tempVal = Unsafe.As<float, int>(ref val);
             BinaryPrimitives.WriteInt32BigEndian(span, tempVal);
 #endif
@@ -118,7 +118,7 @@ namespace RabbitMQ.Util
 
             span[0] = (byte)((val >> 8) & 0xFF);
             span[1] = (byte)(val & 0xFF);
-#elif NETSTANDARD
+#else
             BinaryPrimitives.WriteUInt16BigEndian(span, val);
 #endif
         }
@@ -136,7 +136,7 @@ namespace RabbitMQ.Util
             span[1] = (byte)((val >> 16) & 0xFF);
             span[2] = (byte)((val >> 8) & 0xFF);
             span[3] = (byte)(val & 0xFF);
-#elif NETSTANDARD
+#else
             BinaryPrimitives.WriteUInt32BigEndian(span, val);
 #endif
         }
@@ -159,7 +159,7 @@ namespace RabbitMQ.Util
             span[5] = (byte)((val >> 16) & 0xFF);
             span[6] = (byte)((val >> 8) & 0xFF);
             span[7] = (byte)(val & 0xFF);
-#elif NETSTANDARD
+#else
             BinaryPrimitives.WriteUInt64BigEndian(span, val);
 #endif
         }
