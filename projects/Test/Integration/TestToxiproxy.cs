@@ -47,7 +47,7 @@ namespace Test.Integration
         private const string ProxyName = "rmq-localhost";
         private const ushort ProxyPort = 55672;
         private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(1);
-        private readonly Connection _proxyConnection;
+        private readonly Toxiproxy.Net.Connection _proxyConnection;
         private readonly Client _proxyClient;
         private readonly Proxy _rmqProxy;
 
@@ -55,13 +55,13 @@ namespace Test.Integration
         {
             if (AreToxiproxyTestsEnabled)
             {
-                _proxyConnection = new Connection(resetAllToxicsAndProxiesOnClose: true);
+                _proxyConnection = new Toxiproxy.Net.Connection(resetAllToxicsAndProxiesOnClose: true);
                 _proxyClient = _proxyConnection.Client();
 
                 // to start, assume everything is on localhost
                 _rmqProxy = new Proxy
                 {
-                    Name = "rmq-localhost",
+                    Name = ProxyName,
                     Enabled = true,
                     Listen = $"{IPAddress.Loopback}:{ProxyPort}",
                     Upstream = $"{IPAddress.Loopback}:5672",
@@ -84,7 +84,7 @@ namespace Test.Integration
             }
         }
 
-        public override Task InitializeAsync()
+        public override async Task InitializeAsync()
         {
             // NB: nothing to do here since each test creates its own factory,
             // connections and channels
@@ -94,11 +94,14 @@ namespace Test.Integration
 
             if (AreToxiproxyTestsEnabled)
             {
-                return _proxyClient.AddAsync(_rmqProxy);
-            }
-            else
-            {
-                return Task.CompletedTask;
+                try
+                {
+                    await _proxyClient.DeleteAsync(ProxyName);
+                }
+                catch
+                {
+                }
+                await _proxyClient.AddAsync(_rmqProxy);
             }
         }
 
@@ -113,6 +116,87 @@ namespace Test.Integration
                 return Task.CompletedTask;
             }
         }
+
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestCloseConnection()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Port = ProxyPort;
+            cf.RequestedHeartbeat = _heartbeatTimeout;
+            cf.AutomaticRecoveryEnabled = true;
+
+            var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var recoverySucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var testSucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            Task pubTask = Task.Run(async () =>
+            {
+                using (IConnection conn = await cf.CreateConnectionAsync())
+                {
+                    conn.ConnectionShutdown += (s, ea) => connectionShutdownTcs.SetResult(true);
+                    conn.RecoverySucceeded += (s, ea) => recoverySucceededTcs.SetResult(true);
+
+                    async Task PublishLoop()
+                    {
+                        using (IChannel ch = await conn.CreateChannelAsync())
+                        {
+                            await ch.ConfirmSelectAsync();
+                            RabbitMQ.Client.QueueDeclareOk q = await ch.QueueDeclareAsync();
+                            while (conn.IsOpen)
+                            {
+                                await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                                await ch.WaitForConfirmsAsync();
+                                await Task.Delay(TimeSpan.FromSeconds(1));
+                                messagePublishedTcs.TrySetResult(true);
+                            }
+
+                            await ch.CloseAsync();
+                        }
+                    }
+
+                    try
+                    {
+                        await PublishLoop();
+                    }
+                    catch (Exception ex)
+                    {
+                        _output.WriteLine($"[INFO] 1 caught exception: {ex}");
+                    }
+
+                    Assert.True(await testSucceededTcs.Task);
+                    await conn.CloseAsync();
+                }
+            });
+
+            Assert.True(await messagePublishedTcs.Task);
+
+            _rmqProxy.Enabled = false;
+            Task<Proxy> disableProxyTask = _proxyClient.UpdateAsync(_rmqProxy);
+
+            try
+            {
+                await Task.WhenAll(disableProxyTask, connectionShutdownTcs.Task);
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine($"[INFO] 2 caught exception: {ex}");
+            }
+
+            _rmqProxy.Enabled = true;
+            Task<Proxy> enableProxyTask = _proxyClient.UpdateAsync(_rmqProxy);
+
+            await Task.WhenAll(enableProxyTask, recoverySucceededTcs.Task);
+            Assert.True(await recoverySucceededTcs.Task);
+
+            testSucceededTcs.SetResult(true);
+            await pubTask;
+        }
+
+        private void Conn_ConnectionShutdown(object sender, ShutdownEventArgs e) => throw new NotImplementedException();
 
         [SkippableFact]
         [Trait("Category", "Toxiproxy")]
@@ -134,7 +218,7 @@ namespace Test.Integration
                     using (IChannel ch = await conn.CreateChannelAsync())
                     {
                         await ch.ConfirmSelectAsync();
-                        QueueDeclareOk q = await ch.QueueDeclareAsync();
+                        RabbitMQ.Client.QueueDeclareOk q = await ch.QueueDeclareAsync();
                         while (conn.IsOpen)
                         {
                             await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
@@ -144,8 +228,9 @@ namespace Test.Integration
                         }
 
                         await ch.CloseAsync();
-                        await conn.CloseAsync();
                     }
+
+                    await conn.CloseAsync();
                 }
             });
 

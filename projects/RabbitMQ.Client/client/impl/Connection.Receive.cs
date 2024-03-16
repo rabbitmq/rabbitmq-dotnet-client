@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 HandleMainLoopException(ea);
             }
 
-            using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionCloseTimeout);
+            using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionAbortTimeout);
             await FinishCloseAsync(cts.Token);
         }
 
