@@ -326,7 +326,7 @@ namespace RabbitMQ.Client
         public string Password { get; set; } = DefaultPass;
 
         /// <summary>
-        /// CredemtialsProvider used to obtain username and pasword.
+        /// CredentialsProvider used to obtain username and password.
         /// </summary>
         public ICredentialsProvider CredentialsProvider { get; set; }
 
@@ -404,7 +404,7 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Asynchronously reate a connection to one of the endpoints provided by the IEndpointResolver
+        /// Asynchronously create a connection to one of the endpoints provided by the IEndpointResolver
         /// returned by the EndpointResolverFactory. By default the configured
         /// hostname and port are used.
         /// </summary>
