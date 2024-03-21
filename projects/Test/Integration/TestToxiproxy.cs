@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -158,15 +157,7 @@ namespace Test.Integration
                         }
                     }
 
-                    try
-                    {
-                        await PublishLoop();
-                    }
-                    catch (Exception ex)
-                    {
-                        _output.WriteLine($"[INFO] 1 caught exception: {ex}");
-                    }
-
+                    await PublishLoop();
                     Assert.True(await testSucceededTcs.Task);
                     await conn.CloseAsync();
                 }
@@ -177,14 +168,7 @@ namespace Test.Integration
             _rmqProxy.Enabled = false;
             Task<Proxy> disableProxyTask = _proxyClient.UpdateAsync(_rmqProxy);
 
-            try
-            {
-                await Task.WhenAll(disableProxyTask, connectionShutdownTcs.Task);
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"[INFO] 2 caught exception: {ex}");
-            }
+            await Task.WhenAll(disableProxyTask, connectionShutdownTcs.Task);
 
             _rmqProxy.Enabled = true;
             Task<Proxy> enableProxyTask = _proxyClient.UpdateAsync(_rmqProxy);
@@ -209,7 +193,7 @@ namespace Test.Integration
             cf.RequestedHeartbeat = _heartbeatTimeout;
             cf.AutomaticRecoveryEnabled = false;
 
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var canTimeoutConnectionTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             Task pubTask = Task.Run(async () =>
             {
@@ -224,7 +208,7 @@ namespace Test.Integration
                             await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
                             await ch.WaitForConfirmsAsync();
                             await Task.Delay(TimeSpan.FromSeconds(1));
-                            tcs.TrySetResult(true);
+                            canTimeoutConnectionTcs.TrySetResult(true);
                         }
 
                         await ch.CloseAsync();
@@ -234,25 +218,19 @@ namespace Test.Integration
                 }
             });
 
-            Assert.True(await tcs.Task);
+            Assert.True(await canTimeoutConnectionTcs.Task);
 
             var timeoutToxic = new TimeoutToxic();
             timeoutToxic.Attributes.Timeout = 0;
             timeoutToxic.Toxicity = 1.0;
 
             await _rmqProxy.AddAsync(timeoutToxic);
-            var sw = new Stopwatch();
-            sw.Start();
             Task<Proxy> updateProxyTask = _rmqProxy.UpdateAsync();
 
             await Assert.ThrowsAsync<AlreadyClosedException>(() =>
             {
                 return Task.WhenAll(updateProxyTask, pubTask);
             });
-
-            sw.Stop();
-
-            // _output.WriteLine($"[INFO] heartbeat timeout took {sw.Elapsed}");
         }
 
         [SkippableFact]
@@ -298,9 +276,6 @@ namespace Test.Integration
             resetPeerToxic.Attributes.Timeout = 500;
             resetPeerToxic.Toxicity = 1.0;
 
-            var sw = new Stopwatch();
-            sw.Start();
-
             await _rmqProxy.AddAsync(resetPeerToxic);
             Task<Proxy> updateProxyTask = _rmqProxy.UpdateAsync();
 
@@ -309,10 +284,6 @@ namespace Test.Integration
             await _rmqProxy.RemoveToxicAsync(toxicName);
 
             await recoveryTask;
-
-            sw.Stop();
-
-            // _output.WriteLine($"[INFO] reset peer took {sw.Elapsed}");
         }
 
         private bool AreToxiproxyTestsEnabled
