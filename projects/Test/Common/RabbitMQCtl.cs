@@ -98,7 +98,7 @@ namespace Test
 
         private void ReportExecFailure(string cmd, string args, string msg)
         {
-            _output.WriteLine($"Failure while running {cmd} {args}:\n{msg}");
+            _output.WriteLine($"Failure while running '{cmd} {args}' : {msg}");
         }
 
         private static ProcessStartInfo GetRabbitMqCtlStartInfo(string args)

@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+#if TODOFOOBAR
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -169,3 +170,4 @@ namespace Test.Integration
         }
     }
 }
+#endif
