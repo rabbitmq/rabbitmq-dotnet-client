@@ -180,8 +180,6 @@ namespace Test.Integration
             await pubTask;
         }
 
-        private void Conn_ConnectionShutdown(object sender, ShutdownEventArgs e) => throw new NotImplementedException();
-
         [SkippableFact]
         [Trait("Category", "Toxiproxy")]
         public async Task TestThatStoppedSocketResultsInHeartbeatTimeout()

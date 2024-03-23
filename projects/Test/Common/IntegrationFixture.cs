@@ -117,7 +117,7 @@ namespace Test
                 .Replace("Integration.", "I.")
                 .Replace("SequentialI.", "SI.");
 
-            // Console.SetOut(new TestOutputWriter(output, _testDisplayName));
+            Console.SetOut(new TestOutputWriter(output, _testDisplayName));
         }
 
         public virtual async Task InitializeAsync()
