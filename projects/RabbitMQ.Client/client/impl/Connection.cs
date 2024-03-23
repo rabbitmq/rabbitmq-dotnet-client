@@ -322,7 +322,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 cancellationToken.ThrowIfCancellationRequested();
 
                 OnShutdown(reason);
-                await _session0.SetSessionClosingAsync(false);
+                await _session0.SetSessionClosingAsync(false)
+                    .ConfigureAwait(false);
 
                 try
                 {

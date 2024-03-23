@@ -157,20 +157,20 @@ namespace Test
                 Task processCompletionTask = Task.WhenAll(processTasks);
 
                 int attempts = 0;
-                while (true)
+                while (attempts < 3)
                 {
                     try
                     {
                         // Task to wait for exit OR timeout (if defined)
                         await processCompletionTask.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-
                         // -> Process exited cleanly
                         result.ExitCode = process.ExitCode;
+                        break;
                     }
                     catch (OperationCanceledException ex)
                     {
                         KillProcess(process);
-                        if (attempts > 2)
+                        if (attempts == 2)
                         {
                             throw;
                         }
@@ -182,7 +182,7 @@ namespace Test
                     catch (TimeoutException ex)
                     {
                         KillProcess(process);
-                        if (attempts > 2)
+                        if (attempts == 2)
                         {
                             throw;
                         }

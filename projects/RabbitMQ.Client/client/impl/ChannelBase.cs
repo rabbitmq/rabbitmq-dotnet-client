@@ -846,7 +846,8 @@ namespace RabbitMQ.Client.Impl
                     var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
                     await Session.Connection.CloseAsync(reason, false,
                         InternalConstants.DefaultConnectionCloseTimeout,
-                        cancellationToken);
+                        cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -1045,12 +1046,14 @@ namespace RabbitMQ.Client.Impl
                 {
                     BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     // TODO cancellation token
-                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
                     // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
             }
             catch
@@ -1107,12 +1110,14 @@ namespace RabbitMQ.Client.Impl
                 {
                     BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
                     // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
             }
             catch
@@ -1155,12 +1160,14 @@ namespace RabbitMQ.Client.Impl
                 {
                     BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     // TODO cancellation token
-                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
                     // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
             }
             catch
@@ -1564,13 +1571,15 @@ namespace RabbitMQ.Client.Impl
 
         public async Task<uint> MessageCountAsync(string queue)
         {
-            QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue);
+            QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue)
+                .ConfigureAwait(false);
             return ok.MessageCount;
         }
 
         public async Task<uint> ConsumerCountAsync(string queue)
         {
-            QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue);
+            QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue)
+                .ConfigureAwait(false);
             return ok.ConsumerCount;
         }
 

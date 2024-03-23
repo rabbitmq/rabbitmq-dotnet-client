@@ -113,7 +113,8 @@ namespace RabbitMQ.Client.Framing.Impl
             if (!serverVersion.Equals(Protocol.Version))
             {
                 TerminateMainloop();
-                await FinishCloseAsync(cancellationToken);
+                await FinishCloseAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
             }
 
@@ -179,7 +180,8 @@ namespace RabbitMQ.Client.Framing.Impl
             uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
-            await _channel0.ConnectionTuneOkAsync(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds, cancellationToken);
+            await _channel0.ConnectionTuneOkAsync(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds, cancellationToken)
+                .ConfigureAwait(false);
 
             // TODO check for cancellation
             MaybeStartCredentialRefresher();

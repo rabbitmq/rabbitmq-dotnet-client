@@ -2,6 +2,7 @@
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <NoWarn>$(NoWarn);CA2007</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
