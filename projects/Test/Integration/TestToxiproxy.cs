@@ -85,8 +85,8 @@ namespace Test.Integration
                 }
             }
 
-            Proxy p = _proxyClient.AddAsync(_proxy).GetAwaiter().GetResult();
-            Assert.True(p.Enabled);
+            _proxy = _proxyClient.AddAsync(_proxy).GetAwaiter().GetResult();
+            Assert.True(_proxy.Enabled);
         }
 
         public int ProxyPort => _proxyPort;

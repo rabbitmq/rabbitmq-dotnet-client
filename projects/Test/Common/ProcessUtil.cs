@@ -34,7 +34,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
-using RabbitMQ.Client;
 
 namespace Test
 {
@@ -176,7 +175,7 @@ namespace Test
                         }
                         else
                         {
-                            Console.WriteLine("[WARNING] caught exception and re-trying: {0}", ex);
+                            Console.WriteLine("[WARNING] caught exception and re-trying ({0}): {1}", attempts, ex);
                         }
                     }
                     catch (TimeoutException ex)
@@ -188,7 +187,7 @@ namespace Test
                         }
                         else
                         {
-                            Console.WriteLine("[WARNING] caught exception and re-trying: {0}", ex);
+                            Console.WriteLine("[WARNING] caught exception and re-trying ({0}): {1}", attempts, ex);
                         }
                     }
 

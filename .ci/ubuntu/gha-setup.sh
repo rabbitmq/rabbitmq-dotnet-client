@@ -47,7 +47,7 @@ function start_toxiproxy
             --name "$toxiproxy_docker_name" \
             --hostname "$toxiproxy_docker_name" \
             --publish 8474:8474 \
-            --publish 55672:55672 \
+            --publish 55670-55680:55670-55680 \
             --network "$docker_network_name" \
             'ghcr.io/shopify/toxiproxy:2.7.0'
     fi
