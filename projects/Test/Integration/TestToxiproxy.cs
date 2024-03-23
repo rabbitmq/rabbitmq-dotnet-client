@@ -31,6 +31,7 @@
 
 using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -41,49 +42,107 @@ using Xunit.Abstractions;
 
 namespace Test.Integration
 {
-    public class TestToxiproxy : IntegrationFixture
+    public class ProxyManager : IDisposable
     {
-        private const string ProxyName = "rmq-localhost";
-        private const ushort ProxyPort = 55672;
-        private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(1);
-        private readonly Toxiproxy.Net.Connection _proxyConnection;
+        private static int s_proxyPort = 55669;
+
+        private readonly string _proxyName;
+        private readonly int _proxyPort;
+        private readonly Connection _proxyConnection;
         private readonly Client _proxyClient;
-        private readonly Proxy _rmqProxy;
+        private readonly Proxy _proxy;
+        private bool _disposedValue;
 
-        public TestToxiproxy(ITestOutputHelper output) : base(output)
+        public ProxyManager(string testName, bool isRunningInCI, bool isWindows)
         {
-            if (AreToxiproxyTestsEnabled)
+            _proxyPort = Interlocked.Increment(ref s_proxyPort);
+            _proxyConnection = new Connection(resetAllToxicsAndProxiesOnClose: true);
+            _proxyClient = _proxyConnection.Client();
+
+            _proxyName = $"rabbitmq-localhost-{testName}-{_proxyPort}";
+
+            // to start, assume everything is on localhost
+            _proxy = new Proxy
             {
-                _proxyConnection = new Toxiproxy.Net.Connection(resetAllToxicsAndProxiesOnClose: true);
-                _proxyClient = _proxyConnection.Client();
+                Name = _proxyName,
+                Enabled = true,
+                Listen = $"{IPAddress.Loopback}:{_proxyPort}",
+                Upstream = $"{IPAddress.Loopback}:5672",
+            };
 
-                // to start, assume everything is on localhost
-                _rmqProxy = new Proxy
+            if (isRunningInCI)
+            {
+                _proxy.Listen = $"0.0.0.0:{_proxyPort}";
+
+                // GitHub Actions
+                if (false == isWindows)
                 {
-                    Name = ProxyName,
-                    Enabled = true,
-                    Listen = $"{IPAddress.Loopback}:{ProxyPort}",
-                    Upstream = $"{IPAddress.Loopback}:5672",
-                };
-
-                if (IsRunningInCI)
-                {
-                    _rmqProxy.Listen = $"0.0.0.0:{ProxyPort}";
-
-                    // GitHub Actions
-                    if (false == IsWindows)
-                    {
-                        /*
-                         * Note: See the following setup script:
-                         * .ci/ubuntu/gha-setup.sh
-                         */
-                        _rmqProxy.Upstream = "rabbitmq-dotnet-client-rabbitmq:5672";
-                    }
+                    /*
+                     * Note: See the following setup script:
+                     * .ci/ubuntu/gha-setup.sh
+                     */
+                    _proxy.Upstream = "rabbitmq-dotnet-client-rabbitmq:5672";
                 }
+            }
+
+            Proxy p = _proxyClient.AddAsync(_proxy).GetAwaiter().GetResult();
+            Assert.True(p.Enabled);
+        }
+
+        public int ProxyPort => _proxyPort;
+
+        public Task<T> AddToxicAsync<T>(T toxic) where T : ToxicBase
+        {
+            return _proxy.AddAsync(toxic);
+        }
+
+        public Task RemoveToxicAsync<T>(T toxic) where T : ToxicBase
+        {
+            return _proxy.RemoveToxicAsync(toxic.Name);
+        }
+
+        public Task DisableAsync()
+        {
+            _proxy.Enabled = false;
+            return _proxyClient.UpdateAsync(_proxy);
+        }
+
+        public Task EnableAsync()
+        {
+            _proxy.Enabled = true;
+            return _proxyClient.UpdateAsync(_proxy);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _proxyClient.DeleteAsync(_proxy).Wait();
+                    _proxyConnection.Dispose();
+                }
+
+                _disposedValue = true;
             }
         }
 
-        public override async Task InitializeAsync()
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+    }
+
+    public class TestToxiproxy : IntegrationFixture
+    {
+        private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(1);
+
+        public TestToxiproxy(ITestOutputHelper output) : base(output)
+        {
+        }
+
+        public override Task InitializeAsync()
         {
             // NB: nothing to do here since each test creates its own factory,
             // connections and channels
@@ -91,29 +150,7 @@ namespace Test.Integration
             Assert.Null(_conn);
             Assert.Null(_channel);
 
-            if (AreToxiproxyTestsEnabled)
-            {
-                try
-                {
-                    await _proxyClient.DeleteAsync(ProxyName);
-                }
-                catch
-                {
-                }
-                await _proxyClient.AddAsync(_rmqProxy);
-            }
-        }
-
-        public override Task DisposeAsync()
-        {
-            if (_proxyClient != null)
-            {
-                return _proxyClient.DeleteAsync(_rmqProxy);
-            }
-            else
-            {
-                return Task.CompletedTask;
-            }
+            return Task.CompletedTask;
         }
 
         [SkippableFact]
@@ -122,62 +159,63 @@ namespace Test.Integration
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
 
-            ConnectionFactory cf = CreateConnectionFactory();
-            cf.Port = ProxyPort;
-            cf.RequestedHeartbeat = _heartbeatTimeout;
-            cf.AutomaticRecoveryEnabled = true;
-
-            var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var recoverySucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var testSucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            Task pubTask = Task.Run(async () =>
+            using (var proxyManager = new ProxyManager(_testDisplayName, IsRunningInCI, IsWindows))
             {
-                using (IConnection conn = await cf.CreateConnectionAsync())
+                ConnectionFactory cf = CreateConnectionFactory();
+                cf.Port = proxyManager.ProxyPort;
+                cf.RequestedHeartbeat = _heartbeatTimeout;
+                cf.AutomaticRecoveryEnabled = true;
+
+                var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var recoverySucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var testSucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                Task pubTask = Task.Run(async () =>
                 {
-                    conn.ConnectionShutdown += (s, ea) => connectionShutdownTcs.SetResult(true);
-                    conn.RecoverySucceeded += (s, ea) => recoverySucceededTcs.SetResult(true);
-
-                    async Task PublishLoop()
+                    using (IConnection conn = await cf.CreateConnectionAsync())
                     {
-                        using (IChannel ch = await conn.CreateChannelAsync())
+                        conn.ConnectionShutdown += (s, ea) => connectionShutdownTcs.SetResult(true);
+                        conn.RecoverySucceeded += (s, ea) => recoverySucceededTcs.SetResult(true);
+
+                        async Task PublishLoop()
                         {
-                            await ch.ConfirmSelectAsync();
-                            RabbitMQ.Client.QueueDeclareOk q = await ch.QueueDeclareAsync();
-                            while (conn.IsOpen)
+                            using (IChannel ch = await conn.CreateChannelAsync())
                             {
-                                await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                                await ch.WaitForConfirmsAsync();
-                                await Task.Delay(TimeSpan.FromSeconds(1));
-                                messagePublishedTcs.TrySetResult(true);
+                                await ch.ConfirmSelectAsync();
+                                RabbitMQ.Client.QueueDeclareOk q = await ch.QueueDeclareAsync();
+                                while (conn.IsOpen)
+                                {
+                                    await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                                    await ch.WaitForConfirmsAsync();
+                                    await Task.Delay(TimeSpan.FromSeconds(1));
+                                    messagePublishedTcs.TrySetResult(true);
+                                }
+
+                                await ch.CloseAsync();
                             }
-
-                            await ch.CloseAsync();
                         }
+
+                        await PublishLoop();
+                        Assert.True(await testSucceededTcs.Task);
+                        await conn.CloseAsync();
                     }
+                });
 
-                    await PublishLoop();
-                    Assert.True(await testSucceededTcs.Task);
-                    await conn.CloseAsync();
-                }
-            });
+                Assert.True(await messagePublishedTcs.Task);
 
-            Assert.True(await messagePublishedTcs.Task);
+                Task disableProxyTask = proxyManager.DisableAsync();
 
-            _rmqProxy.Enabled = false;
-            Task<Proxy> disableProxyTask = _proxyClient.UpdateAsync(_rmqProxy);
+                await Task.WhenAll(disableProxyTask, connectionShutdownTcs.Task);
 
-            await Task.WhenAll(disableProxyTask, connectionShutdownTcs.Task);
+                Task enableProxyTask = proxyManager.EnableAsync();
 
-            _rmqProxy.Enabled = true;
-            Task<Proxy> enableProxyTask = _proxyClient.UpdateAsync(_rmqProxy);
+                await Task.WhenAll(enableProxyTask, recoverySucceededTcs.Task);
+                Assert.True(await recoverySucceededTcs.Task);
 
-            await Task.WhenAll(enableProxyTask, recoverySucceededTcs.Task);
-            Assert.True(await recoverySucceededTcs.Task);
-
-            testSucceededTcs.SetResult(true);
-            await pubTask;
+                testSucceededTcs.SetResult(true);
+                await pubTask;
+            }
         }
 
         [SkippableFact]
@@ -186,49 +224,51 @@ namespace Test.Integration
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
 
-            ConnectionFactory cf = CreateConnectionFactory();
-            cf.Port = ProxyPort;
-            cf.RequestedHeartbeat = _heartbeatTimeout;
-            cf.AutomaticRecoveryEnabled = false;
-
-            var canTimeoutConnectionTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            Task pubTask = Task.Run(async () =>
+            using (var proxyManager = new ProxyManager(_testDisplayName, IsRunningInCI, IsWindows))
             {
-                using (IConnection conn = await cf.CreateConnectionAsync())
+                ConnectionFactory cf = CreateConnectionFactory();
+                cf.Port = proxyManager.ProxyPort;
+                cf.RequestedHeartbeat = _heartbeatTimeout;
+                cf.AutomaticRecoveryEnabled = false;
+
+                var canTimeoutConnectionTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                Task pubTask = Task.Run(async () =>
                 {
-                    using (IChannel ch = await conn.CreateChannelAsync())
+                    using (IConnection conn = await cf.CreateConnectionAsync())
                     {
-                        await ch.ConfirmSelectAsync();
-                        RabbitMQ.Client.QueueDeclareOk q = await ch.QueueDeclareAsync();
-                        while (conn.IsOpen)
+                        using (IChannel ch = await conn.CreateChannelAsync())
                         {
-                            await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                            await ch.WaitForConfirmsAsync();
-                            await Task.Delay(TimeSpan.FromSeconds(1));
-                            canTimeoutConnectionTcs.TrySetResult(true);
+                            await ch.ConfirmSelectAsync();
+                            QueueDeclareOk q = await ch.QueueDeclareAsync();
+                            while (conn.IsOpen)
+                            {
+                                await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                                await ch.WaitForConfirmsAsync();
+                                await Task.Delay(TimeSpan.FromSeconds(1));
+                                canTimeoutConnectionTcs.TrySetResult(true);
+                            }
+
+                            await ch.CloseAsync();
                         }
 
-                        await ch.CloseAsync();
+                        await conn.CloseAsync();
                     }
+                });
 
-                    await conn.CloseAsync();
-                }
-            });
+                Assert.True(await canTimeoutConnectionTcs.Task);
 
-            Assert.True(await canTimeoutConnectionTcs.Task);
+                var timeoutToxic = new TimeoutToxic();
+                timeoutToxic.Attributes.Timeout = 0;
+                timeoutToxic.Toxicity = 1.0;
 
-            var timeoutToxic = new TimeoutToxic();
-            timeoutToxic.Attributes.Timeout = 0;
-            timeoutToxic.Toxicity = 1.0;
+                Task addToxicTask = proxyManager.AddToxicAsync(timeoutToxic);
 
-            await _rmqProxy.AddAsync(timeoutToxic);
-            Task<Proxy> updateProxyTask = _rmqProxy.UpdateAsync();
-
-            await Assert.ThrowsAsync<AlreadyClosedException>(() =>
-            {
-                return Task.WhenAll(updateProxyTask, pubTask);
-            });
+                await Assert.ThrowsAsync<AlreadyClosedException>(() =>
+                {
+                    return Task.WhenAll(addToxicTask, pubTask);
+                });
+            }
         }
 
         [SkippableFact]
@@ -237,51 +277,53 @@ namespace Test.Integration
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
 
-            ConnectionFactory cf = CreateConnectionFactory();
-            cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), ProxyPort);
-            cf.Port = ProxyPort;
-            cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
-            cf.AutomaticRecoveryEnabled = true;
-
-            var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            Task recoveryTask = Task.Run(async () =>
+            using (var proxyManager = new ProxyManager(_testDisplayName, IsRunningInCI, IsWindows))
             {
-                using (IConnection conn = await cf.CreateConnectionAsync())
+                ConnectionFactory cf = CreateConnectionFactory();
+                cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), proxyManager.ProxyPort);
+                cf.Port = proxyManager.ProxyPort;
+                cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
+                cf.AutomaticRecoveryEnabled = true;
+
+                var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                Task recoveryTask = Task.Run(async () =>
                 {
-                    conn.ConnectionShutdown += (o, ea) =>
+                    using (IConnection conn = await cf.CreateConnectionAsync())
                     {
-                        connectionShutdownTcs.SetResult(true);
-                    };
+                        conn.ConnectionShutdown += (o, ea) =>
+                        {
+                            connectionShutdownTcs.SetResult(true);
+                        };
 
-                    using (IChannel ch = await conn.CreateChannelAsync())
-                    {
-                        channelCreatedTcs.SetResult(true);
-                        await WaitForRecoveryAsync(conn);
-                        await ch.CloseAsync();
+                        using (IChannel ch = await conn.CreateChannelAsync())
+                        {
+                            channelCreatedTcs.SetResult(true);
+                            await WaitForRecoveryAsync(conn);
+                            await ch.CloseAsync();
+                        }
+
+                        await conn.CloseAsync();
                     }
+                });
 
-                    await conn.CloseAsync();
-                }
-            });
+                Assert.True(await channelCreatedTcs.Task);
 
-            Assert.True(await channelCreatedTcs.Task);
+                const string toxicName = "rmq-localhost-reset_peer";
+                var resetPeerToxic = new ResetPeerToxic();
+                resetPeerToxic.Name = toxicName;
+                resetPeerToxic.Attributes.Timeout = 500;
+                resetPeerToxic.Toxicity = 1.0;
 
-            const string toxicName = "rmq-localhost-reset_peer";
-            var resetPeerToxic = new ResetPeerToxic();
-            resetPeerToxic.Name = toxicName;
-            resetPeerToxic.Attributes.Timeout = 500;
-            resetPeerToxic.Toxicity = 1.0;
+                Task addToxicTask = proxyManager.AddToxicAsync(resetPeerToxic);
 
-            await _rmqProxy.AddAsync(resetPeerToxic);
-            Task<Proxy> updateProxyTask = _rmqProxy.UpdateAsync();
+                await Task.WhenAll(addToxicTask, connectionShutdownTcs.Task);
 
-            await Task.WhenAll(updateProxyTask, connectionShutdownTcs.Task);
+                await proxyManager.RemoveToxicAsync(resetPeerToxic);
 
-            await _rmqProxy.RemoveToxicAsync(toxicName);
-
-            await recoveryTask;
+                await recoveryTask;
+            }
         }
 
         private bool AreToxiproxyTestsEnabled

@@ -176,7 +176,7 @@ namespace Test
                         }
                         else
                         {
-                            Console.Error.WriteLine("[WARNING] caught exception and re-trying: {0}", ex);
+                            Console.WriteLine("[WARNING] caught exception and re-trying: {0}", ex);
                         }
                     }
                     catch (TimeoutException ex)
@@ -188,7 +188,7 @@ namespace Test
                         }
                         else
                         {
-                            Console.Error.WriteLine("[WARNING] caught exception and re-trying: {0}", ex);
+                            Console.WriteLine("[WARNING] caught exception and re-trying: {0}", ex);
                         }
                     }
 
