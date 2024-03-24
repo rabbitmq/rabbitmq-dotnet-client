@@ -24,12 +24,7 @@ else
     echo "[INFO] set GITHUB_WORKSPACE to: '$GITHUB_WORKSPACE'"
 fi
 
-if [[ $1 == 'toxiproxy' ]]
-then
-    readonly run_toxiproxy='true'
-else
-    readonly run_toxiproxy='false'
-fi
+readonly run_toxiproxy='true'
 
 set -o nounset
 
