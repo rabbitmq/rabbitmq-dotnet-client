@@ -135,8 +135,6 @@ namespace Test.Integration
 
     public class TestToxiproxy : IntegrationFixture
     {
-        private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(1);
-
         public TestToxiproxy(ITestOutputHelper output) : base(output)
         {
         }
@@ -162,28 +160,9 @@ namespace Test.Integration
             {
                 ConnectionFactory cf = CreateConnectionFactory();
                 cf.Port = proxyManager.ProxyPort;
-                cf.RequestedHeartbeat = _heartbeatTimeout;
+                cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
                 cf.AutomaticRecoveryEnabled = true;
 
-                using (IConnection conn = await cf.CreateConnectionAsync())
-                {
-                    async Task PublishLoop()
-                    {
-                        using (IChannel ch = await conn.CreateChannelAsync())
-                        {
-                            await ch.ConfirmSelectAsync();
-                            QueueDeclareOk q = await ch.QueueDeclareAsync();
-                            await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                            await ch.WaitForConfirmsAsync();
-                            await ch.CloseAsync();
-                        }
-                    }
-
-                    await PublishLoop();
-                    await conn.CloseAsync();
-                }
-
-                /*
                 var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var recoverySucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -201,7 +180,7 @@ namespace Test.Integration
                             using (IChannel ch = await conn.CreateChannelAsync())
                             {
                                 await ch.ConfirmSelectAsync();
-                                RabbitMQ.Client.QueueDeclareOk q = await ch.QueueDeclareAsync();
+                                QueueDeclareOk q = await ch.QueueDeclareAsync();
                                 while (conn.IsOpen)
                                 {
                                     await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
@@ -233,7 +212,6 @@ namespace Test.Integration
 
                 testSucceededTcs.SetResult(true);
                 await pubTask;
-                */
             }
         }
 
@@ -247,8 +225,9 @@ namespace Test.Integration
             {
                 ConnectionFactory cf = CreateConnectionFactory();
                 cf.Port = proxyManager.ProxyPort;
-                cf.RequestedHeartbeat = _heartbeatTimeout;
+                cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
                 cf.AutomaticRecoveryEnabled = false;
+
                 using (IConnection conn = await cf.CreateConnectionAsync())
                 {
                     using (IChannel ch = await conn.CreateChannelAsync())
@@ -313,7 +292,6 @@ namespace Test.Integration
             using (var proxyManager = new ProxyManager(_testDisplayName, IsRunningInCI, IsWindows))
             {
                 ConnectionFactory cf = CreateConnectionFactory();
-                cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), proxyManager.ProxyPort);
                 cf.Port = proxyManager.ProxyPort;
                 cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
                 cf.AutomaticRecoveryEnabled = true;

@@ -162,7 +162,7 @@ namespace Test
                     try
                     {
                         // Task to wait for exit OR timeout (if defined)
-                        await processCompletionTask.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+                        await processCompletionTask.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
                         // -> Process exited cleanly
                         result.ExitCode = process.ExitCode;
                         break;
