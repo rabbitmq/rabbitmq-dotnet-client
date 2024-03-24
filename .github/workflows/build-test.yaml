@@ -57,7 +57,7 @@ jobs:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
           path: ~/installers
-          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
+          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/windows/versions.json') }}
       - name: Download Build (Debug)
         uses: actions/download-artifact@v4
         with:
@@ -102,7 +102,7 @@ jobs:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
           path: ~/installers
-          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
+          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/windows/versions.json') }}
       - name: Download Build (Debug)
         uses: actions/download-artifact@v4
         with:
@@ -176,13 +176,12 @@ jobs:
           path: projects
       - name: Start RabbitMQ
         id: start-rabbitmq
-        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh toxiproxy
+        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
       - name: Integration Tests
         run: |
             dotnet test \
                 --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
                 --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
-                --environment 'RABBITMQ_TOXIPROXY_TESTS=true' \
                 --environment 'PASSWORD=grapefruit' \
                 --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
                 "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
