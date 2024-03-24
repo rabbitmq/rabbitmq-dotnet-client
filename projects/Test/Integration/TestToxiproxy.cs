@@ -172,6 +172,18 @@ namespace Test.Integration
                 {
                     using (IConnection conn = await cf.CreateConnectionAsync())
                     {
+                        conn.CallbackException += (s, ea) =>
+                        {
+                            _output.WriteLine($"[ERROR] unexpected callback exception {ea.Detail} {ea.Exception}");
+                            recoverySucceededTcs.SetResult(false);
+                        };
+
+                        conn.ConnectionRecoveryError += (s, ea) =>
+                        {
+                            _output.WriteLine($"[ERROR] connection recovery error {ea.Exception}");
+                            recoverySucceededTcs.SetResult(false);
+                        };
+
                         conn.ConnectionShutdown += (s, ea) => connectionShutdownTcs.SetResult(true);
                         conn.RecoverySucceeded += (s, ea) => recoverySucceededTcs.SetResult(true);
 
@@ -207,7 +219,9 @@ namespace Test.Integration
 
                 Task enableProxyTask = proxyManager.EnableAsync();
 
-                await Task.WhenAll(enableProxyTask, recoverySucceededTcs.Task);
+                Task whenAllTask = Task.WhenAll(enableProxyTask, recoverySucceededTcs.Task);
+                await whenAllTask.WaitAsync(TimeSpan.FromSeconds(30));
+
                 Assert.True(await recoverySucceededTcs.Task);
 
                 testSucceededTcs.SetResult(true);
