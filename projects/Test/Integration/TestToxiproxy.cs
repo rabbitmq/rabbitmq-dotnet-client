@@ -184,7 +184,15 @@ namespace Test.Integration
                             recoverySucceededTcs.SetResult(false);
                         };
 
-                        conn.ConnectionShutdown += (s, ea) => connectionShutdownTcs.SetResult(true);
+                        conn.ConnectionShutdown += (s, ea) =>
+                        {
+                            _output.WriteLine($"[INFO] connection shutdown");
+                            if (false == connectionShutdownTcs.TrySetResult(true))
+                            {
+                                _output.WriteLine($"[ERROR] could not set result for connectionShutdownTcs");
+                            }
+                        };
+
                         conn.RecoverySucceeded += (s, ea) => recoverySucceededTcs.SetResult(true);
 
                         async Task PublishLoop()
