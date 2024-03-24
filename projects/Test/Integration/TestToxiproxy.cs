@@ -160,8 +160,8 @@ namespace Test.Integration
             {
                 ConnectionFactory cf = CreateConnectionFactory();
                 cf.Port = proxyManager.ProxyPort;
-                cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
                 cf.AutomaticRecoveryEnabled = true;
+                cf.NetworkRecoveryInterval = TimeSpan.FromSeconds(1);
 
                 var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -193,7 +193,11 @@ namespace Test.Integration
                             }
                         };
 
-                        conn.RecoverySucceeded += (s, ea) => recoverySucceededTcs.SetResult(true);
+                        conn.RecoverySucceeded += (s, ea) =>
+                        {
+                            _output.WriteLine($"[INFO] connection recovery succeeded");
+                            recoverySucceededTcs.SetResult(true);
+                        };
 
                         async Task PublishLoop()
                         {
