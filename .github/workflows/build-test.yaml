@@ -182,6 +182,7 @@ jobs:
             dotnet test \
                 --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
                 --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
+                --environment 'RABBITMQ_TOXIPROXY_TESTS=true' \
                 --environment 'PASSWORD=grapefruit' \
                 --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
                 "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'

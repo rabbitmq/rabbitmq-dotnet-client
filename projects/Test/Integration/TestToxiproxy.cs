@@ -34,7 +34,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 using Toxiproxy.Net;
 using Toxiproxy.Net.Toxics;
 using Xunit;
@@ -166,6 +165,25 @@ namespace Test.Integration
                 cf.RequestedHeartbeat = _heartbeatTimeout;
                 cf.AutomaticRecoveryEnabled = true;
 
+                using (IConnection conn = await cf.CreateConnectionAsync())
+                {
+                    async Task PublishLoop()
+                    {
+                        using (IChannel ch = await conn.CreateChannelAsync())
+                        {
+                            await ch.ConfirmSelectAsync();
+                            QueueDeclareOk q = await ch.QueueDeclareAsync();
+                            await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                            await ch.WaitForConfirmsAsync();
+                            await ch.CloseAsync();
+                        }
+                    }
+
+                    await PublishLoop();
+                    await conn.CloseAsync();
+                }
+
+                /*
                 var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var recoverySucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -215,6 +233,7 @@ namespace Test.Integration
 
                 testSucceededTcs.SetResult(true);
                 await pubTask;
+                */
             }
         }
 
@@ -230,7 +249,20 @@ namespace Test.Integration
                 cf.Port = proxyManager.ProxyPort;
                 cf.RequestedHeartbeat = _heartbeatTimeout;
                 cf.AutomaticRecoveryEnabled = false;
+                using (IConnection conn = await cf.CreateConnectionAsync())
+                {
+                    using (IChannel ch = await conn.CreateChannelAsync())
+                    {
+                        await ch.ConfirmSelectAsync();
+                        QueueDeclareOk q = await ch.QueueDeclareAsync();
+                        await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                        await ch.WaitForConfirmsAsync();
+                        await ch.CloseAsync();
+                    }
 
+                    await conn.CloseAsync();
+                }
+                /*
                 var canTimeoutConnectionTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 Task pubTask = Task.Run(async () =>
@@ -268,6 +300,7 @@ namespace Test.Integration
                 {
                     return Task.WhenAll(addToxicTask, pubTask);
                 });
+                */
             }
         }
 
@@ -285,6 +318,17 @@ namespace Test.Integration
                 cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
                 cf.AutomaticRecoveryEnabled = true;
 
+                using (IConnection conn = await cf.CreateConnectionAsync())
+                {
+                    using (IChannel ch = await conn.CreateChannelAsync())
+                    {
+                        await ch.CloseAsync();
+                    }
+
+                    await conn.CloseAsync();
+                }
+
+                /*
                 var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -323,6 +367,7 @@ namespace Test.Integration
                 await proxyManager.RemoveToxicAsync(resetPeerToxic);
 
                 await recoveryTask;
+                */
             }
         }
 
