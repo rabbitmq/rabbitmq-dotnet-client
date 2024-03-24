@@ -59,6 +59,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             static bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
             {
+                Console.WriteLine("[INFO] ShouldTriggerConnectionRecovery args {0}", args);
                 if (args.Initiator == ShutdownInitiator.Peer)
                 {
                     if (args.ReplyCode == Constants.AccessRefused)
