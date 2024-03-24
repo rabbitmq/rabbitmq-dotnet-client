@@ -186,6 +186,9 @@ jobs:
                 --environment 'PASSWORD=grapefruit' \
                 --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
                 "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Maybe collect toxiproxy logs
+        if: failure()
+        run: docker logs rabbitmq-dotnet-client-toxiproxy > ${{ github.workspace }}/.ci/ubuntu/log/toxiproxy.log
       - name: Maybe upload RabbitMQ logs
         if: failure()
         uses: actions/upload-artifact@v4
