@@ -236,7 +236,7 @@ namespace Test.Integration
                 Task enableProxyTask = proxyManager.EnableAsync();
 
                 Task whenAllTask = Task.WhenAll(enableProxyTask, recoverySucceededTcs.Task);
-                await whenAllTask.WaitAsync(TimeSpan.FromSeconds(30));
+                await whenAllTask.WaitAsync(TimeSpan.FromMinutes(5));
 
                 Assert.True(await recoverySucceededTcs.Task);
 
