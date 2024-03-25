@@ -75,9 +75,16 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeatWriteTimer?.Dispose();
         }
 
-        private void NotifyHeartbeatListener()
+        private void NotifyHeartbeatListener(bool receivedData = true)
         {
             _heartbeatDetected = true;
+            if (false == receivedData)
+            {
+                if (CheckTooManyMissedHeartbeats())
+                {
+                    TerminateMainloop();
+                }
+            }
         }
 
         private async void HeartbeatReadTimerCallback(object? state)
@@ -89,37 +96,16 @@ namespace RabbitMQ.Client.Framing.Impl
                 return;
             }
 
-            bool shouldTerminate = false;
-
+            bool shouldTerminate;
             try
             {
-                if (false == _closed)
-                {
-                    if (_heartbeatDetected)
-                    {
-                        _heartbeatDetected = false;
-                        _missedHeartbeats = 0;
-                    }
-                    else
-                    {
-                        _missedHeartbeats++;
-                    }
-
-                    // We need to wait for at least two complete heartbeat setting
-                    // intervals before complaining
-                    if (_missedHeartbeats > 2)
-                    {
-                        var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
-                        LogCloseError(eose.Message, eose);
-                        HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
-                        shouldTerminate = true;
-                    }
-                }
-
+                shouldTerminate = CheckTooManyMissedHeartbeats();
                 if (shouldTerminate)
                 {
                     TerminateMainloop();
-                    await FinishCloseAsync(_mainLoopCts.Token)
+                    // TODO this is the wrong CTS to use since it was just cancelled!
+                    // await FinishCloseAsync(_mainLoopCts.Token)
+                    await FinishCloseAsync(CancellationToken.None)
                         .ConfigureAwait(false);
                 }
                 else
@@ -165,6 +151,36 @@ namespace RabbitMQ.Client.Framing.Impl
                 // ignore, let the read callback detect
                 // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
             }
+        }
+
+        private bool CheckTooManyMissedHeartbeats()
+        {
+            bool shouldTerminate = false;
+
+            if (false == _closed)
+            {
+                if (_heartbeatDetected)
+                {
+                    _heartbeatDetected = false;
+                    _missedHeartbeats = 0;
+                }
+                else
+                {
+                    _missedHeartbeats++;
+                }
+
+                // We need to wait for at least two complete heartbeat setting
+                // intervals before complaining
+                if (_missedHeartbeats > 2)
+                {
+                    var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
+                    LogCloseError(eose.Message, eose);
+                    HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
+                    shouldTerminate = true;
+                }
+            }
+
+            return shouldTerminate;
         }
     }
 }

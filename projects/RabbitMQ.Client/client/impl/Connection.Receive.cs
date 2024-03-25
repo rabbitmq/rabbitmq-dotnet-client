@@ -104,8 +104,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         .ConfigureAwait(false);
                 }
 
-                // using (var readTimeoutCts = new CancellationTokenSource(Heartbeat))
-                using (var readTimeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
+                using (var readTimeoutCts = new CancellationTokenSource(Heartbeat))
                 {
                     CancellationToken readTimeoutToken = readTimeoutCts.Token;
                     using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(mainLoopCancelllationToken, readTimeoutToken))
@@ -128,6 +127,7 @@ namespace RabbitMQ.Client.Framing.Impl
                             }
                             else
                             {
+                                NotifyHeartbeatListener(false);
                                 Console.WriteLine("[WARNING] ReceiveLoopAsync read timeout!");
                             }
                         }
