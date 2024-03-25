@@ -166,6 +166,7 @@ namespace Test.Integration
                 ConnectionFactory cf = CreateConnectionFactory();
                 cf.Port = proxyManager.ProxyPort;
                 cf.AutomaticRecoveryEnabled = true;
+                cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
 
                 var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
