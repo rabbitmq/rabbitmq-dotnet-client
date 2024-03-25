@@ -129,7 +129,6 @@ namespace RabbitMQ.Client.Framing.Impl
                             }
                             else
                             {
-                                Console.WriteLine("[WARNING] ReceiveLoopAsync read timeout!");
                                 await NotifyHeartbeatListenerAsync(false)
                                     .ConfigureAwait(false);
                             }

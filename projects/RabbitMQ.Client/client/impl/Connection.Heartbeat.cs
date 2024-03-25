@@ -78,8 +78,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private async Task NotifyHeartbeatListenerAsync(bool receivedData = true)
         {
-            Console.WriteLine("[INFO] NotifyHeartbeatListenerAsync receivedData {0} _heartbeatDetected {1} _missedHeartbeats {2}",
-                receivedData, _heartbeatDetected, _missedHeartbeats);
             if (receivedData)
             {
                 _heartbeatDetected = true;
@@ -100,8 +98,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private async void HeartbeatReadTimerCallback(object? state)
         {
-            Console.WriteLine("[INFO] HeartbeatReadTimerCallback _heartbeatDetected {0} _missedHeartbeats {1}",
-                _heartbeatDetected, _missedHeartbeats);
             if (_heartbeatReadTimer is null)
             {
                 return;
@@ -166,9 +162,6 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool CheckTooManyMissedHeartbeats()
         {
-            Console.WriteLine("[INFO] CheckTooManyMissedHeartbeats _heartbeatDetected {0} _missedHeartbeats {1}",
-                _heartbeatDetected, _missedHeartbeats);
-
             bool shouldTerminate = false;
 
             if (false == _closed)
