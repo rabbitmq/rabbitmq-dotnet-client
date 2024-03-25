@@ -76,23 +76,17 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeatWriteTimer?.Dispose();
         }
 
-        private async Task NotifyHeartbeatListenerAsync(bool receivedData = true)
+        private Task NotifyHeartbeatListenerAsync(bool receivedData = true)
         {
             if (receivedData)
             {
                 _heartbeatDetected = true;
+                return Task.CompletedTask;
             }
             else
             {
                 _heartbeatDetected = false;
-                if (CheckTooManyMissedHeartbeats())
-                {
-                    TerminateMainloop();
-                    // TODO this is the wrong CTS to use since it was just cancelled!
-                    // await FinishCloseAsync(_mainLoopCts.Token)
-                    await FinishCloseAsync(CancellationToken.None)
-                        .ConfigureAwait(false);
-                }
+                return CheckTooManyMissedHeartbeatsAsync();
             }
         }
 
@@ -103,19 +97,9 @@ namespace RabbitMQ.Client.Framing.Impl
                 return;
             }
 
-            bool shouldTerminate;
             try
             {
-                shouldTerminate = CheckTooManyMissedHeartbeats();
-                if (shouldTerminate)
-                {
-                    TerminateMainloop();
-                    // TODO this is the wrong CTS to use since it was just cancelled!
-                    // await FinishCloseAsync(_mainLoopCts.Token)
-                    await FinishCloseAsync(CancellationToken.None)
-                        .ConfigureAwait(false);
-                }
-                else
+                if (false == await CheckTooManyMissedHeartbeatsAsync().ConfigureAwait(false))
                 {
                     _heartbeatReadTimer?.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
                 }
@@ -160,10 +144,8 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private bool CheckTooManyMissedHeartbeats()
+        private async Task<bool> CheckTooManyMissedHeartbeatsAsync()
         {
-            bool shouldTerminate = false;
-
             if (false == _closed)
             {
                 if (_heartbeatDetected)
@@ -183,11 +165,19 @@ namespace RabbitMQ.Client.Framing.Impl
                     var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
                     LogCloseError(eose.Message, eose);
                     HandleMainLoopException(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
-                    shouldTerminate = true;
+
+                    TerminateMainloop();
+
+                    // TODO this is the wrong CTS to use since it was just cancelled!
+                    // await FinishCloseAsync(_mainLoopCts.Token)
+                    await FinishCloseAsync(CancellationToken.None)
+                        .ConfigureAwait(false);
+
+                    return true;
                 }
             }
 
-            return shouldTerminate;
+            return false;
         }
     }
 }
