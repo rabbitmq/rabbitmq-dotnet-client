@@ -24,7 +24,7 @@ else
     echo "[INFO] set GITHUB_WORKSPACE to: '$GITHUB_WORKSPACE'"
 fi
 
-readonly run_toxiproxy='true'
+readonly run_toxiproxy='false'
 
 set -o nounset
 
