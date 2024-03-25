@@ -192,10 +192,11 @@ namespace Test.Integration
                         conn.ConnectionShutdown += (s, ea) =>
                         {
                             _output.WriteLine($"[INFO] connection shutdown");
-                            if (false == connectionShutdownTcs.TrySetResult(true))
-                            {
-                                _output.WriteLine($"[WARNING] could not set result for connectionShutdownTcs");
-                            }
+                            /*
+                             * Note: using TrySetResult because this callback will be called when the
+                             * test exits, and connectionShutdownTcs will have already been set
+                             */
+                            connectionShutdownTcs.TrySetResult(true);
                         };
 
                         conn.RecoverySucceeded += (s, ea) =>
