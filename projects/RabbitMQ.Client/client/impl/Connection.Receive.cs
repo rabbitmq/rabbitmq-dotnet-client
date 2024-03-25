@@ -125,6 +125,10 @@ namespace RabbitMQ.Client.Framing.Impl
                             {
                                 throw;
                             }
+                            else
+                            {
+                                Console.WriteLine("[WARNING] ReceiveLoopAsync read timeout!");
+                            }
                         }
                     }
                 }
