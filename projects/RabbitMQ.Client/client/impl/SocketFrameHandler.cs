@@ -115,6 +115,11 @@ namespace RabbitMQ.Client.Impl
 
         public TimeSpan ReadTimeout
         {
+            get
+            {
+                return _readTimeout;
+            }
+
             set
             {
                 try

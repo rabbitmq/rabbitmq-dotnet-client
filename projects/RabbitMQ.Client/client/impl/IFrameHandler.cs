@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Impl
         Task ConnectAsync(CancellationToken cancellationToken);
 
         ///<summary>Socket read timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
-        TimeSpan ReadTimeout { set; }
+        TimeSpan ReadTimeout { set; get; }
 
         ///<summary>Socket write timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
         TimeSpan WriteTimeout { set; }

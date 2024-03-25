@@ -167,6 +167,7 @@ namespace Test.Integration
                 cf.Port = proxyManager.ProxyPort;
                 cf.AutomaticRecoveryEnabled = true;
                 cf.RequestedHeartbeat = TimeSpan.FromSeconds(1);
+                cf.SocketReadTimeout = cf.RequestedHeartbeat;
 
                 var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
