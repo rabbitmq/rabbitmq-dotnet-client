@@ -104,7 +104,8 @@ namespace RabbitMQ.Client.Framing.Impl
                         .ConfigureAwait(false);
                 }
 
-                using (var readTimeoutCts = new CancellationTokenSource(Heartbeat))
+                // using (var readTimeoutCts = new CancellationTokenSource(Heartbeat))
+                using (var readTimeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
                 {
                     CancellationToken readTimeoutToken = readTimeoutCts.Token;
                     using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(mainLoopCancelllationToken, readTimeoutToken))
