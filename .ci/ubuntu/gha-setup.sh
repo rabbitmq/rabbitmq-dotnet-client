@@ -24,7 +24,7 @@ else
     echo "[INFO] set GITHUB_WORKSPACE to: '$GITHUB_WORKSPACE'"
 fi
 
-readonly run_toxiproxy='false'
+readonly run_toxiproxy='true'
 
 set -o nounset
 
@@ -38,7 +38,7 @@ function start_toxiproxy
         # sudo ss -4nlp
         echo "[INFO] starting Toxiproxy server docker container"
         docker rm --force "$toxiproxy_docker_name" 2>/dev/null || echo "[INFO] $toxiproxy_docker_name was not running"
-        docker run --pull always --detach \
+        docker run --detach \
             --name "$toxiproxy_docker_name" \
             --hostname "$toxiproxy_docker_name" \
             --publish 8474:8474 \
@@ -53,7 +53,7 @@ function start_rabbitmq
     echo "[INFO] starting RabbitMQ server docker container"
     chmod 0777 "$GITHUB_WORKSPACE/.ci/ubuntu/log"
     docker rm --force "$rabbitmq_docker_name" 2>/dev/null || echo "[INFO] $rabbitmq_docker_name was not running"
-    docker run --pull always --detach \
+    docker run --detach \
         --name "$rabbitmq_docker_name" \
         --hostname "$rabbitmq_docker_name" \
         --publish 5671:5671 \
