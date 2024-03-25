@@ -49,7 +49,7 @@ namespace Test.Integration
         private readonly int _proxyPort;
         private readonly Connection _proxyConnection;
         private readonly Client _proxyClient;
-        private readonly Proxy _proxy;
+        private Proxy _proxy;
         private bool _disposedValue;
 
         public ProxyManager(string testName, bool isRunningInCI, bool isWindows)
@@ -83,8 +83,11 @@ namespace Test.Integration
                     _proxy.Upstream = "rabbitmq-dotnet-client-rabbitmq:5672";
                 }
             }
+        }
 
-            _proxy = _proxyClient.AddAsync(_proxy).GetAwaiter().GetResult();
+        public async Task InitializeAsync()
+        {
+            _proxy = await _proxyClient.AddAsync(_proxy);
             Assert.True(_proxy.Enabled);
         }
 
@@ -158,10 +161,11 @@ namespace Test.Integration
 
             using (var proxyManager = new ProxyManager(_testDisplayName, IsRunningInCI, IsWindows))
             {
+                await proxyManager.InitializeAsync();
+
                 ConnectionFactory cf = CreateConnectionFactory();
                 cf.Port = proxyManager.ProxyPort;
                 cf.AutomaticRecoveryEnabled = true;
-                cf.NetworkRecoveryInterval = TimeSpan.FromSeconds(1);
 
                 var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -189,7 +193,7 @@ namespace Test.Integration
                             _output.WriteLine($"[INFO] connection shutdown");
                             if (false == connectionShutdownTcs.TrySetResult(true))
                             {
-                                _output.WriteLine($"[ERROR] could not set result for connectionShutdownTcs");
+                                _output.WriteLine($"[WARNING] could not set result for connectionShutdownTcs");
                             }
                         };
 
@@ -249,6 +253,8 @@ namespace Test.Integration
 
             using (var proxyManager = new ProxyManager(_testDisplayName, IsRunningInCI, IsWindows))
             {
+                await proxyManager.InitializeAsync();
+
                 ConnectionFactory cf = CreateConnectionFactory();
                 cf.Port = proxyManager.ProxyPort;
                 cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
@@ -317,6 +323,8 @@ namespace Test.Integration
 
             using (var proxyManager = new ProxyManager(_testDisplayName, IsRunningInCI, IsWindows))
             {
+                await proxyManager.InitializeAsync();
+
                 ConnectionFactory cf = CreateConnectionFactory();
                 cf.Port = proxyManager.ProxyPort;
                 cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
