@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private async Task NotifyHeartbeatListenerAsync(bool receivedData = true)
         {
-            Console.WriteLine("[INFO] NotifyHeartbeatListenerAsync receivedData {0} _heartbeatDetected {1} _missedHeartbeats {1}",
+            Console.WriteLine("[INFO] NotifyHeartbeatListenerAsync receivedData {0} _heartbeatDetected {1} _missedHeartbeats {2}",
                 receivedData, _heartbeatDetected, _missedHeartbeats);
             if (receivedData)
             {
