@@ -155,6 +155,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool CheckTooManyMissedHeartbeats()
         {
+            Console.WriteLine("[INFO] CheckTooManyMissedHeartbeats _heartbeatDetected {0} _missedHeartbeats {1}",
+                _heartbeatDetected, _missedHeartbeats);
+
             bool shouldTerminate = false;
 
             if (false == _closed)
@@ -171,7 +174,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 // We need to wait for at least two complete heartbeat setting
                 // intervals before complaining
-                if (_missedHeartbeats > 2)
+                if (_missedHeartbeats > 1)
                 {
                     var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
                     LogCloseError(eose.Message, eose);
