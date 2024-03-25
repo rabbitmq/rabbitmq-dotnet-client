@@ -104,12 +104,30 @@ namespace RabbitMQ.Client.Framing.Impl
                         .ConfigureAwait(false);
                 }
 
-                // Done reading frames synchronously, go async
-                InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync(mainLoopCancelllationToken)
-                    .ConfigureAwait(false);
-                NotifyHeartbeatListener();
-                await ProcessFrameAsync(asyncFrame, mainLoopCancelllationToken)
-                        .ConfigureAwait(false);
+                using (var readTimeoutCts = new CancellationTokenSource(Heartbeat))
+                {
+                    CancellationToken readTimeoutToken = readTimeoutCts.Token;
+                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(mainLoopCancelllationToken, readTimeoutToken))
+                    {
+                        try
+                        {
+                            // Done reading frames synchronously, go async
+                            InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync(mainLoopCancelllationToken)
+                                .ConfigureAwait(false);
+
+                            NotifyHeartbeatListener();
+                            await ProcessFrameAsync(asyncFrame, mainLoopCancelllationToken)
+                                .ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException ex)
+                        {
+                            if (ex.CancellationToken == mainLoopCancelllationToken)
+                            {
+                                throw;
+                            }
+                        }
+                    }
+                }
             }
         }
 
