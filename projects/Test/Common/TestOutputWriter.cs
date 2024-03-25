@@ -53,7 +53,7 @@ namespace Test
         {
             if (count > 2)
             {
-                string now = DateTime.Now.ToString("s", System.Globalization.CultureInfo.InvariantCulture);
+                string now = DateTime.Now.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
                 var sb = new StringBuilder(now);
                 sb.Append(" [DEBUG] ");
                 sb.Append(_testDisplayName);
