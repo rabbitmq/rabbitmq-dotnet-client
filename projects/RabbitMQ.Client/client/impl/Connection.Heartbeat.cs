@@ -82,6 +82,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private async void HeartbeatReadTimerCallback(object? state)
         {
+            Console.WriteLine("[INFO] HeartbeatReadTimerCallback _heartbeatDetected {0} _missedHeartbeats {1}",
+                _heartbeatDetected, _missedHeartbeats);
             if (_heartbeatReadTimer is null)
             {
                 return;
