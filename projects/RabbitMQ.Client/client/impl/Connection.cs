@@ -412,7 +412,6 @@ namespace RabbitMQ.Client.Framing.Impl
             _mainLoopCts.Cancel();
             _closed = true;
             MaybeStopHeartbeatTimers();
-
             await _frameHandler.CloseAsync(cancellationToken)
                 .ConfigureAwait(false);
             _channel0.SetCloseReason(CloseReason);

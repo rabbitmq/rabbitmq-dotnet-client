@@ -32,6 +32,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -70,12 +71,12 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void MaybeStopHeartbeatTimers()
         {
-            NotifyHeartbeatListener();
+            _heartbeatDetected = true;
             _heartbeatReadTimer?.Dispose();
             _heartbeatWriteTimer?.Dispose();
         }
 
-        private void NotifyHeartbeatListener(bool receivedData = true)
+        private async Task NotifyHeartbeatListenerAsync(bool receivedData = true)
         {
             if (receivedData)
             {
@@ -87,6 +88,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 if (CheckTooManyMissedHeartbeats())
                 {
                     TerminateMainloop();
+                    // TODO this is the wrong CTS to use since it was just cancelled!
+                    // await FinishCloseAsync(_mainLoopCts.Token)
+                    await FinishCloseAsync(CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
             }
         }

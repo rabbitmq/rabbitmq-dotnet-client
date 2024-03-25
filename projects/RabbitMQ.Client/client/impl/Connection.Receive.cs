@@ -99,7 +99,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 while (_frameHandler.TryReadFrame(out InboundFrame frame))
                 {
-                    NotifyHeartbeatListener();
+                    await NotifyHeartbeatListenerAsync()
+                        .ConfigureAwait(false);
                     await ProcessFrameAsync(frame, mainLoopCancelllationToken)
                         .ConfigureAwait(false);
                 }
@@ -115,7 +116,8 @@ namespace RabbitMQ.Client.Framing.Impl
                             InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync(mainLoopCancelllationToken)
                                 .ConfigureAwait(false);
 
-                            NotifyHeartbeatListener();
+                            await NotifyHeartbeatListenerAsync()
+                                .ConfigureAwait(false);
                             await ProcessFrameAsync(asyncFrame, mainLoopCancelllationToken)
                                 .ConfigureAwait(false);
                         }
@@ -127,7 +129,8 @@ namespace RabbitMQ.Client.Framing.Impl
                             }
                             else
                             {
-                                NotifyHeartbeatListener(false);
+                                await NotifyHeartbeatListenerAsync(false)
+                                    .ConfigureAwait(false);
                                 Console.WriteLine("[WARNING] ReceiveLoopAsync read timeout!");
                             }
                         }
