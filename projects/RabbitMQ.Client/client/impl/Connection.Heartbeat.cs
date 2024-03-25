@@ -77,9 +77,13 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void NotifyHeartbeatListener(bool receivedData = true)
         {
-            _heartbeatDetected = true;
-            if (false == receivedData)
+            if (receivedData)
             {
+                _heartbeatDetected = true;
+            }
+            else
+            {
+                _heartbeatDetected = false;
                 if (CheckTooManyMissedHeartbeats())
                 {
                     TerminateMainloop();
