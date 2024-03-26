@@ -214,7 +214,8 @@ namespace RabbitMQ.Client.Framing.Impl
                      */
                     if (_innerConnection?.IsOpen == true)
                     {
-                        await _innerConnection.AbortAsync(Constants.InternalError, "FailedAutoRecovery", _config.RequestedConnectionTimeout);
+                        await _innerConnection.AbortAsync(Constants.InternalError, "FailedAutoRecovery", _config.RequestedConnectionTimeout)
+                            .ConfigureAwait(false);
                     }
                 }
                 catch (Exception e2)
@@ -447,7 +448,8 @@ namespace RabbitMQ.Client.Framing.Impl
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
-                            await _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync(binding, ex, this);
+                            await _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync(binding, ex, this)
+                                .ConfigureAwait(false);
                         }
                         finally
                         {
@@ -523,7 +525,8 @@ namespace RabbitMQ.Client.Framing.Impl
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
-                            await _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync(consumer, ex, this);
+                            await _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync(consumer, ex, this)
+                                .ConfigureAwait(false);
                         }
                         finally
                         {
