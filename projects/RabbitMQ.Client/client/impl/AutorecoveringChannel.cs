@@ -396,7 +396,8 @@ namespace RabbitMQ.Client.Impl
 
         public async Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty, bool noWait)
         {
-            uint result = await InnerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty, noWait);
+            uint result = await InnerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty, noWait)
+                .ConfigureAwait(false);
             await _connection.DeleteRecordedQueueAsync(queue, recordedEntitiesSemaphoreHeld: false)
                 .ConfigureAwait(false);
             return result;

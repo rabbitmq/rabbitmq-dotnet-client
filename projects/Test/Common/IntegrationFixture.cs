@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -49,9 +48,8 @@ namespace Test
 {
     public abstract class IntegrationFixture : IAsyncLifetime
     {
-        private static bool s_isRunningInCI = false;
-        private static bool s_isWindows = false;
-        private static bool s_isVerbose = false;
+        private static readonly bool s_isRunningInCI = false;
+        private static readonly bool s_isVerbose = false;
         private static int _connectionIdx = 0;
 
         protected readonly RabbitMQCtl _rabbitMQCtl;
@@ -80,9 +78,8 @@ namespace Test
         static IntegrationFixture()
         {
             S_Random = new Random();
-            InitIsRunningInCI();
-            InitIsWindows();
-            InitIsVerbose();
+            s_isRunningInCI = InitIsRunningInCI();
+            s_isVerbose = InitIsVerbose();
 
             if (s_isRunningInCI)
             {
@@ -117,7 +114,10 @@ namespace Test
                 .Replace("Integration.", "I.")
                 .Replace("SequentialI.", "SI.");
 
-            // Console.SetOut(new TestOutputWriter(output, _testDisplayName));
+            if (IsVerbose)
+            {
+                Console.SetOut(new TestOutputWriter(output, _testDisplayName));
+            }
         }
 
         public virtual async Task InitializeAsync()
@@ -229,7 +229,7 @@ namespace Test
 
         protected static bool IsWindows
         {
-            get { return s_isWindows; }
+            get { return Util.IsWindows; }
         }
 
         protected static bool IsVerbose
@@ -427,10 +427,9 @@ namespace Test
 
         protected ConnectionFactory CreateConnectionFactory()
         {
-            string now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
             return new ConnectionFactory
             {
-                ClientProvidedName = $"{_testDisplayName}:{now}:{GetConnectionIdx()}",
+                ClientProvidedName = $"{_testDisplayName}:{Util.Now}:{GetConnectionIdx()}",
                 ContinuationTimeout = WaitSpan,
                 HandshakeContinuationTimeout = WaitSpan,
             };
@@ -472,54 +471,36 @@ namespace Test
             a(args);
         }
 
-        private static void InitIsRunningInCI()
+        private static bool InitIsRunningInCI()
         {
             bool ci;
             if (bool.TryParse(Environment.GetEnvironmentVariable("CI"), out ci))
             {
                 if (ci == true)
                 {
-                    s_isRunningInCI = true;
+                    return true;
                 }
             }
             else if (bool.TryParse(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"), out ci))
             {
                 if (ci == true)
                 {
-                    s_isRunningInCI = true;
+                    return true;
                 }
             }
-            else
-            {
-                s_isRunningInCI = false;
-            }
+
+            return false;
         }
 
-        private static void InitIsWindows()
-        {
-            PlatformID platform = Environment.OSVersion.Platform;
-            if (platform == PlatformID.Win32NT)
-            {
-                s_isWindows = true;
-                return;
-            }
-
-            string os = Environment.GetEnvironmentVariable("OS");
-            if (os != null)
-            {
-                os = os.Trim();
-                s_isWindows = os == "Windows_NT";
-                return;
-            }
-        }
-
-        private static void InitIsVerbose()
+        private static bool InitIsVerbose()
         {
             if (bool.TryParse(
                 Environment.GetEnvironmentVariable("RABBITMQ_CLIENT_TESTS_VERBOSE"), out _))
             {
-                s_isVerbose = true;
+                return true;
             }
+
+            return false;
         }
 
         private static int GetConnectionIdx()
@@ -566,7 +547,5 @@ namespace Test
 
             return tcs;
         }
-
-        public static string Now => DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
     }
 }

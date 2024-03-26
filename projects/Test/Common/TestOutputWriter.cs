@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.IO;
 using System.Text;
 using Xunit.Abstractions;
@@ -52,11 +53,23 @@ namespace Test
         {
             if (count > 2)
             {
-                var sb = new StringBuilder("[DEBUG] ");
+                var sb = new StringBuilder(Util.Now);
+                sb.Append(" [DEBUG] ");
                 sb.Append(_testDisplayName);
                 sb.Append(" | ");
                 sb.Append(buffer, index, count);
-                _output.WriteLine(sb.ToString().TrimEnd());
+                try
+                {
+                    _output.WriteLine(sb.ToString().TrimEnd());
+                }
+                catch (InvalidOperationException)
+                {
+                    /*
+                     * Note:
+                     * This exception can be thrown if there is no running test.
+                     * Catch it here to prevent it causing an incorrect test failure.
+                     */
+                }
             }
         }
     }
