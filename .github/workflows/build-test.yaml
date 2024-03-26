@@ -57,7 +57,7 @@ jobs:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
           path: ~/installers
-          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
+          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/windows/versions.json') }}
       - name: Download Build (Debug)
         uses: actions/download-artifact@v4
         with:
@@ -104,7 +104,7 @@ jobs:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
           path: ~/installers
-          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/versions.json') }}
+          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/windows/versions.json') }}
       - name: Download Build (Debug)
         uses: actions/download-artifact@v4
         with:
@@ -190,6 +190,9 @@ jobs:
                 "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Check for errors in RabbitMQ logs
         run: ${{ github.workspace}}/.ci/ubuntu/gha-log-check.sh
+      - name: Maybe collect toxiproxy logs
+        if: failure()
+        run: docker logs rabbitmq-dotnet-client-toxiproxy > ${{ github.workspace }}/.ci/ubuntu/log/toxiproxy.log
       - name: Maybe upload RabbitMQ logs
         if: failure()
         uses: actions/upload-artifact@v4

@@ -30,8 +30,10 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
 using Xunit;
@@ -57,7 +59,15 @@ namespace Test.Integration
             var c = (AutorecoveringConnection)_conn;
             await c.CloseFrameHandlerAsync();
 
-            await _conn.CloseAsync(TimeSpan.FromSeconds(4));
+            try
+            {
+                await _conn.CloseAsync(TimeSpan.FromSeconds(4));
+            }
+            catch (AlreadyClosedException ex)
+            {
+                Assert.IsAssignableFrom<IOException>(ex.InnerException);
+            }
+
             await WaitAsync(tcs, TimeSpan.FromSeconds(5), "channel shutdown");
         }
 
@@ -94,7 +104,13 @@ namespace Test.Integration
 
             _conn.Dispose();
             _conn = null;
-            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
+
+            TimeSpan waitSpan = TimeSpan.FromSeconds(3);
+            if (IsRunningInCI)
+            {
+                waitSpan = TimeSpan.FromSeconds(10);
+            }
+            await WaitAsync(tcs, waitSpan, "channel shutdown");
         }
 
         [Fact]

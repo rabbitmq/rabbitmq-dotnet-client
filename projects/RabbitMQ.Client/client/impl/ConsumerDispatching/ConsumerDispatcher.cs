@@ -31,7 +31,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                 case WorkType.Deliver:
                                     await consumer.HandleBasicDeliverAsync(
                                         consumerTag, work.DeliveryTag, work.Redelivered,
-                                        work.Exchange, work.RoutingKey, work.BasicProperties, work.Body.Memory);
+                                        work.Exchange, work.RoutingKey, work.BasicProperties, work.Body.Memory)
+                                        .ConfigureAwait(false);
                                     break;
                                 case WorkType.Cancel:
                                     consumer.HandleBasicCancel(consumerTag);

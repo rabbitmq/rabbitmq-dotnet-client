@@ -42,7 +42,6 @@ namespace Test
     public class RabbitMQCtl
     {
         private static readonly char[] newLine = new char[] { '\n' };
-        private static readonly Func<string, Process> s_invokeRabbitMqCtl = GetRabbitMqCtlInvokeAction();
         // NOTE: \r?
         // https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-options#multiline-mode
         private static readonly Regex s_getConnectionProperties =
@@ -121,87 +120,28 @@ namespace Test
                 }
             }
 
-            // Try default
             string umbrellaRabbitmqctlPath;
             string providedRabbitmqctlPath;
 
-            if (IsRunningOnMonoOrDotNetCore())
-            {
-                umbrellaRabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
-                providedRabbitmqctlPath = "rabbitmqctl";
-            }
-            else
+            if (Util.IsWindows)
             {
                 umbrellaRabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
                 providedRabbitmqctlPath = "rabbitmqctl.bat";
             }
-
-            string path = File.Exists(umbrellaRabbitmqctlPath) ? umbrellaRabbitmqctlPath : providedRabbitmqctlPath;
-
-            if (IsRunningOnMonoOrDotNetCore())
-            {
-                return CreateProcessStartInfo(path, args);
-            }
             else
-            {
-                // FUTURE TODO is cmd.exe really necessary?
-                return CreateProcessStartInfo("cmd.exe", $"/c \"\"{path}\" {args}");
-            }
-        }
-
-        private static Func<string, Process> GetRabbitMqCtlInvokeAction()
-        {
-            string precomputedArguments;
-            string envVariable = Environment.GetEnvironmentVariable("RABBITMQ_RABBITMQCTL_PATH");
-
-            if (!string.IsNullOrWhiteSpace(envVariable))
-            {
-                const string DockerPrefix = "DOCKER:";
-                if (envVariable.StartsWith(DockerPrefix))
-                {
-                    // Call docker
-                    precomputedArguments = $"exec {envVariable.Substring(DockerPrefix.Length)} rabbitmqctl ";
-                    return args => CreateProcess("docker", precomputedArguments + args);
-                }
-                else
-                {
-                    // call the path from the env var
-                    return args => CreateProcess(envVariable, args);
-                }
-            }
-
-            // Try default
-            string umbrellaRabbitmqctlPath;
-            string providedRabbitmqctlPath;
-
-            if (IsRunningOnMonoOrDotNetCore())
             {
                 umbrellaRabbitmqctlPath = "../../../../../../rabbit/scripts/rabbitmqctl";
                 providedRabbitmqctlPath = "rabbitmqctl";
             }
-            else
-            {
-                umbrellaRabbitmqctlPath = @"..\..\..\..\..\..\rabbit\scripts\rabbitmqctl.bat";
-                providedRabbitmqctlPath = "rabbitmqctl.bat";
-            }
 
             string path = File.Exists(umbrellaRabbitmqctlPath) ? umbrellaRabbitmqctlPath : providedRabbitmqctlPath;
 
-            if (IsRunningOnMonoOrDotNetCore())
-            {
-                return args => CreateProcess(path, args);
-            }
-            else
-            {
-                precomputedArguments = $"/c \"\"{path}\" ";
-                return args => CreateProcess("cmd.exe", precomputedArguments + args);
-            }
+            return CreateProcessStartInfo(path, args);
         }
 
         private async Task<string> GetConnectionPidAsync(string connectionName)
         {
             string stdout = await ExecRabbitMQCtlAsync("list_connections --silent pid client_properties");
-
             Match match = s_getConnectionProperties.Match(stdout);
             while (match.Success)
             {
@@ -221,15 +161,6 @@ namespace Test
             return ExecRabbitMQCtlAsync($"close_connection \"{pid}\" \"Closed via rabbitmqctl\"");
         }
 
-        private static bool IsRunningOnMonoOrDotNetCore()
-        {
-#if NETCOREAPP
-            return true;
-#else
-            return Type.GetType("Mono.Runtime") != null;
-#endif
-        }
-
         private static ProcessStartInfo CreateProcessStartInfo(string cmd, string arguments, string workDirectory = null)
         {
             return new ProcessStartInfo
@@ -241,23 +172,6 @@ namespace Test
                 FileName = cmd,
                 Arguments = arguments,
                 WorkingDirectory = workDirectory
-            };
-        }
-
-        private static Process CreateProcess(string cmd, string arguments, string workDirectory = null)
-        {
-            return new Process
-            {
-                StartInfo =
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    FileName = cmd,
-                    Arguments = arguments,
-                    WorkingDirectory = workDirectory
-                }
             };
         }
     }
