@@ -286,7 +286,8 @@ namespace RabbitMQ.Client.Framing.Impl
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
-                            await _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync(recordedExchange, ex, this);
+                            await _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync(recordedExchange, ex, this)
+                                .ConfigureAwait(false);
                         }
                         finally
                         {
@@ -373,7 +374,8 @@ namespace RabbitMQ.Client.Framing.Impl
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
-                            await _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync(recordedQueue, ex, this);
+                            await _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync(recordedQueue, ex, this)
+                                .ConfigureAwait(false);
                         }
                         finally
                         {

@@ -1107,12 +1107,14 @@ namespace RabbitMQ.Client.Impl
                 {
                     BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
                     // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
             }
             catch
