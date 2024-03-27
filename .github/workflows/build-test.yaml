@@ -65,7 +65,7 @@ jobs:
           path: projects
       - name: Install and Start RabbitMQ
         id: install-start-rabbitmq
-        run: .\.ci\windows\gha-setup.ps1
+        run: ${{ github.workspace }}\.ci\windows\gha-setup.ps1
       - name: Integration Tests
         run: |
           $tx = Start-Job -Verbose -ScriptBlock { & "${{ github.workspace }}\.ci\windows\toxiproxy\toxiproxy-server.exe" }; `
@@ -79,6 +79,8 @@ jobs:
             --environment 'PASSWORD=grapefruit' `
             --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" `
             "${{ github.workspace }}\projects\Test\Integration\Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Check for errors in RabbitMQ logs
+        run: ${{ github.workspace }}\.ci\windows\gha-log-check.ps1
       - name: Maybe upload RabbitMQ logs
         if: failure()
         uses: actions/upload-artifact@v4
@@ -110,7 +112,7 @@ jobs:
           path: projects
       - name: Install and Start RabbitMQ
         id: install-start-rabbitmq
-        run: .\.ci\windows\gha-setup.ps1
+        run: ${{ github.workspace }}\.ci\windows\gha-setup.ps1
       - name: Sequential Integration Tests
         run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" "${{ github.workspace }}\projects\Test\SequentialIntegration\SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
@@ -186,6 +188,8 @@ jobs:
                 --environment 'PASSWORD=grapefruit' \
                 --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
                 "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Check for errors in RabbitMQ logs
+        run: ${{ github.workspace}}/.ci/ubuntu/gha-log-check.sh
       - name: Maybe upload RabbitMQ logs
         if: failure()
         uses: actions/upload-artifact@v4
