@@ -61,7 +61,7 @@ namespace Test.Integration
                 // to start, assume everything is on localhost
                 _rmqProxy = new Proxy
                 {
-                    Name = "rmq-localhost",
+                    Name = ProxyName,
                     Enabled = true,
                     Listen = $"{IPAddress.Loopback}:{ProxyPort}",
                     Upstream = $"{IPAddress.Loopback}:5672",
