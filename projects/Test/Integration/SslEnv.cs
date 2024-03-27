@@ -41,7 +41,6 @@ namespace Test.Integration
         private const string _hostname = "localhost";
         private readonly string _sslDir;
         private readonly bool _isSslConfigured;
-        private readonly bool _isGithubActions;
 
         public SslEnv()
         {
@@ -53,7 +52,6 @@ namespace Test.Integration
 
             if (_isSslConfigured)
             {
-                Boolean.TryParse(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"), out _isGithubActions);
                 _certPath = Path.Combine(_sslDir, $"client_{_hostname}.p12");
             }
         }
@@ -76,11 +74,6 @@ namespace Test.Integration
         public bool IsSslConfigured
         {
             get { return _isSslConfigured; }
-        }
-
-        public bool IsGitHubActions
-        {
-            get { return _isGithubActions; }
         }
     }
 }
