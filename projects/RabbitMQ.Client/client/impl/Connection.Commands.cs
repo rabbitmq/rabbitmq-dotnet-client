@@ -112,6 +112,10 @@ namespace RabbitMQ.Client.Framing.Impl
             var serverVersion = new AmqpVersion(connectionStart.m_versionMajor, connectionStart.m_versionMinor);
             if (!serverVersion.Equals(Protocol.Version))
             {
+                /*
+                 * Note:
+                 * FinishCloseAsync will cancel the main loop
+                 */
                 MaybeTerminateMainloopAndStopHeartbeatTimers();
                 await FinishCloseAsync(cancellationToken);
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);

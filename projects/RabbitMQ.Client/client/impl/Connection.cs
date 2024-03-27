@@ -362,6 +362,10 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 finally
                 {
+                    /*
+                     * Note:
+                     * NotifyReceivedCloseOk will cancel the main loop
+                     */
                     MaybeTerminateMainloopAndStopHeartbeatTimers();
                 }
             }
