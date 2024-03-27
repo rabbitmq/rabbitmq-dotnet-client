@@ -117,7 +117,8 @@ namespace RabbitMQ.Client.Framing.Impl
                  * FinishCloseAsync will cancel the main loop
                  */
                 MaybeTerminateMainloopAndStopHeartbeatTimers();
-                await FinishCloseAsync(cancellationToken);
+                await FinishCloseAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
             }
 
