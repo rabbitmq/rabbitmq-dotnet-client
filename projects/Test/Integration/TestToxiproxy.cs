@@ -84,7 +84,7 @@ namespace Test.Integration
             }
         }
 
-        public override Task InitializeAsync()
+        public override async Task InitializeAsync()
         {
             // NB: nothing to do here since each test creates its own factory,
             // connections and channels
@@ -94,11 +94,15 @@ namespace Test.Integration
 
             if (AreToxiproxyTestsEnabled)
             {
-                return _proxyClient.AddAsync(_rmqProxy);
-            }
-            else
-            {
-                return Task.CompletedTask;
+                try
+                {
+                    await _proxyClient.DeleteAsync(_rmqProxy);
+                }
+                catch
+                {
+                }
+
+                await _proxyClient.AddAsync(_rmqProxy);
             }
         }
 
