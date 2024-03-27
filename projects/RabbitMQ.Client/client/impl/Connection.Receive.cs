@@ -165,9 +165,12 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<remarks>
         /// May be called more than once. Should therefore be idempotent.
         ///</remarks>
-        private void TerminateMainloop()
+        private void MaybeTerminateMainloopAndStopHeartbeatTimers(bool cancelMainLoop = false)
         {
-            _mainLoopCts.Cancel();
+            if (cancelMainLoop)
+            {
+                _mainLoopCts.Cancel();
+            }
             MaybeStopHeartbeatTimers();
         }
 
