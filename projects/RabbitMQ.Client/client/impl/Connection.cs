@@ -362,7 +362,11 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 finally
                 {
-                    TerminateMainloop();
+                    /*
+                     * Note:
+                     * NotifyReceivedCloseOk will cancel the main loop
+                     */
+                    MaybeTerminateMainloopAndStopHeartbeatTimers();
                 }
             }
 
@@ -402,7 +406,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             OnShutdown(reason);
             _session0.SetSessionClosing(true);
-            TerminateMainloop();
+            MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: true);
         }
 
         // Only call at the end of the Mainloop or HeartbeatLoop

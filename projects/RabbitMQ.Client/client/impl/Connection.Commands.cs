@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void NotifyReceivedCloseOk()
         {
-            TerminateMainloop();
+            MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: true);
             _closed = true;
         }
 
@@ -112,7 +112,11 @@ namespace RabbitMQ.Client.Framing.Impl
             var serverVersion = new AmqpVersion(connectionStart.m_versionMajor, connectionStart.m_versionMinor);
             if (!serverVersion.Equals(Protocol.Version))
             {
-                TerminateMainloop();
+                /*
+                 * Note:
+                 * FinishCloseAsync will cancel the main loop
+                 */
+                MaybeTerminateMainloopAndStopHeartbeatTimers();
                 await FinishCloseAsync(cancellationToken);
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
             }
