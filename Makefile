@@ -22,7 +22,7 @@ test:
 	dotnet test $(CURDIR)/projects/Test/Unit/Unit.csproj --logger 'console;verbosity=detailed'
 	dotnet test --environment 'GITHUB_ACTIONS=true' \
 		--environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:$$(docker inspect --format='{{.Id}}' $(RABBITMQ_DOCKER_NAME))" \
-		--environment 'RABBITMQ_LONG_RUNNING_TESTS=true' $(CURDIR)/projects/Test/Integration/Integration.csproj --logger 'console;verbosity=detailed'
+		--environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
 		--environment 'RABBITMQ_TOXIPROXY_TESTS=true' \
 		--environment 'PASSWORD=grapefruit' \
 		--environment SSL_CERTS_DIR="$(CURDIR)/.ci/certs" \
