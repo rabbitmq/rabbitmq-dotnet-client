@@ -59,6 +59,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
             static bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
             {
+                // TODO
+                // string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+                // Console.WriteLine("{0} [DEBUG] ShouldTriggerConnectionRecovery args {1}", now, args);
                 if (args.Initiator == ShutdownInitiator.Peer)
                 {
                     if (args.ReplyCode == Constants.AccessRefused)

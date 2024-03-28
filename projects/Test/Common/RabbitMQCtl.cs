@@ -200,13 +200,13 @@ namespace Test
 
         private async Task<string> GetConnectionPidAsync(string connectionName)
         {
-            string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
-            _output.WriteLine($"{now} [DEBUG] GetConnectionPidAsync connectionName: {connectionName}");
+            // string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+            // _output.WriteLine($"{now} [DEBUG] GetConnectionPidAsync connectionName: {connectionName}");
 
             string stdout = await ExecRabbitMQCtlAsync("list_connections --silent pid client_properties");
 
-            now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
-            _output.WriteLine($"{now} [DEBUG] GetConnectionPidAsync rabbitmqctl list_connections returned");
+            // now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+            // _output.WriteLine($"{now} [DEBUG] GetConnectionPidAsync rabbitmqctl list_connections returned");
 
             Match match = s_getConnectionProperties.Match(stdout);
             while (match.Success)
