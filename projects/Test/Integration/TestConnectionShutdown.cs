@@ -94,7 +94,13 @@ namespace Test.Integration
 
             _conn.Dispose();
             _conn = null;
-            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
+
+            TimeSpan waitSpan = TimeSpan.FromSeconds(3);
+            if (IsRunningInCI)
+            {
+                waitSpan = TimeSpan.FromSeconds(10);
+            }
+            await WaitAsync(tcs, waitSpan, "channel shutdown");
         }
 
         [Fact]

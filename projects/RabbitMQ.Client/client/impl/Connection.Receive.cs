@@ -87,7 +87,8 @@ namespace RabbitMQ.Client.Framing.Impl
             }
 
             using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionCloseTimeout);
-            await FinishCloseAsync(cts.Token);
+            await FinishCloseAsync(cts.Token)
+                .ConfigureAwait(false);
         }
 
         private async Task ReceiveLoopAsync(CancellationToken mainLoopCancelllationToken)
@@ -194,7 +195,8 @@ namespace RabbitMQ.Client.Framing.Impl
             if (SetCloseReason(hpe.ShutdownReason))
             {
                 OnShutdown(hpe.ShutdownReason);
-                await _session0.SetSessionClosingAsync(false);
+                await _session0.SetSessionClosingAsync(false)
+                    .ConfigureAwait(false);
                 try
                 {
                     var cmd = new ConnectionClose(hpe.ShutdownReason.ReplyCode, hpe.ShutdownReason.ReplyText, 0, 0);
