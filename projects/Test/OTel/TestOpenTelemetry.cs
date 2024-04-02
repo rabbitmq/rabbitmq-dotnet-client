@@ -189,6 +189,121 @@ namespace Test.OpenTelemetry
                 AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
             }
         }
+        
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
+        {
+            var exportedItems = new List<Activity>();
+            using (var tracer = Sdk.CreateTracerProviderBuilder()
+                       .AddRabbitMQ(new RabbitMQOpenTelemetryConfiguration())
+                       .AddInMemoryExporter(exportedItems)
+                       .Build())
+            {
+                string baggageGuid = Guid.NewGuid().ToString();
+                Baggage.SetBaggage("TestItem", baggageGuid);
+                Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
+                await _channel.ConfirmSelectAsync();
+
+                RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+                await Task.Delay(500);
+
+                string queueName = $"{Guid.NewGuid()}";
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+                byte[] consumeBody = null;
+                var consumer = new EventingBasicConsumer(_channel);
+                var consumerReceivedTcs =
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    string baggageItem = Baggage.GetBaggage("TestItem");
+                    if (baggageItem == baggageGuid)
+                    {
+                        consumerReceivedTcs.SetResult(true);
+                    }
+                    else
+                    {
+                        consumerReceivedTcs.SetException(
+                            EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
+                    }
+                };
+
+                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", queueName);
+                await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
+                await _channel.WaitForConfirmsOrDieAsync();
+                Baggage.ClearBaggage();
+                Assert.Null(Baggage.GetBaggage("TestItem"));
+
+                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(await consumerReceivedTcs.Task);
+
+                await _channel.BasicCancelAsync(consumerTag);
+                await Task.Delay(500);
+                AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
+            }
+        }
+        
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
+        {
+            var exportedItems = new List<Activity>();
+            using (var tracer = Sdk.CreateTracerProviderBuilder()
+                       .AddRabbitMQ(new RabbitMQOpenTelemetryConfiguration())
+                       .AddInMemoryExporter(exportedItems)
+                       .Build())
+            {
+                string baggageGuid = Guid.NewGuid().ToString();
+                Baggage.SetBaggage("TestItem", baggageGuid);
+                Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
+                await _channel.ConfirmSelectAsync();
+
+                RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+                await Task.Delay(500);
+
+                string queueName = $"{Guid.NewGuid()}";
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+                byte[] consumeBody = null;
+                var consumer = new EventingBasicConsumer(_channel);
+                var consumerReceivedTcs =
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    string baggageItem = Baggage.GetBaggage("TestItem");
+                    if (baggageItem == baggageGuid)
+                    {
+                        consumerReceivedTcs.SetResult(true);
+                    }
+                    else
+                    {
+                        consumerReceivedTcs.SetException(
+                            EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
+                    }
+                };
+
+                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                CachedString exchange = new CachedString("");
+                CachedString routingKey = new CachedString(queueName);
+                await _channel.BasicPublishAsync(exchange, routingKey, sendBody);
+                await _channel.WaitForConfirmsOrDieAsync();
+                Baggage.ClearBaggage();
+                Assert.Null(Baggage.GetBaggage("TestItem"));
+
+                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(await consumerReceivedTcs.Task);
+
+                await _channel.BasicCancelAsync(consumerTag);
+                await Task.Delay(500);
+                AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
+            }
+        }
 
         [Theory]
         [InlineData(true)]

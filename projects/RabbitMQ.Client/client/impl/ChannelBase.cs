@@ -1036,7 +1036,19 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-                await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length)
+                    : default;
+
+                if (sendActivity != null)
+                {
+                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
+                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
+                }
+                else
+                {
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                }
             }
             catch
             {
@@ -1068,7 +1080,19 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-                await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length)
+                    : default;
+
+                if (sendActivity != null)
+                {
+                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
+                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
+                }
+                else
+                {
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                }
             }
             catch
             {
@@ -1100,7 +1124,19 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-                await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length)
+                    : default;
+
+                if (sendActivity != null)
+                {
+                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
+                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
+                }
+                else
+                {
+                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                }
             }
             catch
             {
@@ -1782,6 +1818,35 @@ namespace RabbitMQ.Client.Impl
 
                 throw;
             }
+        }
+        
+        private static BasicProperties PopulateActivityAndPropagateTraceId<TProperties>(TProperties basicProperties,
+            Activity sendActivity) where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            // This activity is marked as recorded, so let's propagate the trace and span ids.
+            if (sendActivity.IsAllDataRequested)
+            {
+                if (!string.IsNullOrEmpty(basicProperties.CorrelationId))
+                {
+                    sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, basicProperties.CorrelationId);
+                }
+            }
+
+            BasicProperties props = default;
+            if (basicProperties is BasicProperties properties)
+            {
+                props = properties;
+            }
+            else if (basicProperties is EmptyBasicProperty)
+            {
+                props = new BasicProperties();
+            }
+
+            var headers = props.Headers ?? new Dictionary<string, object>();
+            // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
+            RabbitMQActivitySource.ContextInjector(sendActivity, headers);
+            props.Headers = headers;
+            return props;
         }
     }
 }

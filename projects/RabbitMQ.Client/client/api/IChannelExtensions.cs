@@ -87,58 +87,20 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
-        public static async ValueTask BasicPublishAsync<T>(this IChannel channel, PublicationAddress addr, T basicProperties, ReadOnlyMemory<byte> body)
+        public static ValueTask BasicPublishAsync<T>(this IChannel channel, PublicationAddress addr, in T basicProperties,
+            ReadOnlyMemory<byte> body)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
-            using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                ? RabbitMQActivitySource.Send(addr.RoutingKey, addr.ExchangeName, body.Length)
-                : default;
-
-            if (sendActivity != null)
-            {
-                BasicProperties props = PopulateActivityAndPropagateTraceId(EmptyBasicProperty.Empty, sendActivity);
-                await channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, props, body);
-            }
-            else
-            {
-                await channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties, body);
-            }
+            return channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties, body);
         }
 
-        public static async ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-        {
-            using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length)
-                : default;
+        public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey,
+            ReadOnlyMemory<byte> body = default, bool mandatory = false) =>
+            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
 
-            if (sendActivity != null)
-            {
-                BasicProperties props = PopulateActivityAndPropagateTraceId(EmptyBasicProperty.Empty, sendActivity);
-                await channel.BasicPublishAsync(exchange, routingKey, props, body, mandatory);
-            }
-            else
-            {
-                await channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
-            }
-        }
-
-        public static async ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange,
-            CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-        {
-            using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length)
-                : default;
-
-            if (sendActivity != null)
-            {
-                BasicProperties props = PopulateActivityAndPropagateTraceId(EmptyBasicProperty.Empty, sendActivity);
-                await channel.BasicPublishAsync(exchange, routingKey, props, body, mandatory);
-            }
-            else
-            {
-                await channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
-            }
-        }
+        public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange,
+            CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false) =>
+            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
 
 #nullable disable
 
@@ -226,35 +188,6 @@ namespace RabbitMQ.Client
         public static Task CloseAsync(this IChannel channel, ushort replyCode, string replyText)
         {
             return channel.CloseAsync(replyCode, replyText, false);
-        }
-
-        private static BasicProperties PopulateActivityAndPropagateTraceId<TProperties>(TProperties basicProperties,
-            Activity sendActivity) where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            // This activity is marked as recorded, so let's propagate the trace and span ids.
-            if (sendActivity.IsAllDataRequested)
-            {
-                if (!string.IsNullOrEmpty(basicProperties.CorrelationId))
-                {
-                    sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, basicProperties.CorrelationId);
-                }
-            }
-
-            BasicProperties props = default;
-            if (basicProperties is BasicProperties properties)
-            {
-                props = properties;
-            }
-            else if (basicProperties is EmptyBasicProperty)
-            {
-                props = new BasicProperties();
-            }
-
-            var headers = props.Headers ?? new Dictionary<string, object>();
-            // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-            RabbitMQActivitySource.ContextInjector(sendActivity, headers);
-            props.Headers = headers;
-            return props;
         }
     }
 }
