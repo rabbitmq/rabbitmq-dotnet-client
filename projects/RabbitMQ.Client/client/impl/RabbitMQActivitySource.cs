@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -29,11 +30,19 @@ namespace RabbitMQ.Client
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion ?? "";
 
-        private static readonly ActivitySource s_publisherSource = new ActivitySource(PublisherSourceName, AssemblyVersion);
-        private static readonly ActivitySource s_subscriberSource = new ActivitySource(SubscriberSourceName, AssemblyVersion);
+        private static readonly ActivitySource s_publisherSource =
+            new ActivitySource(PublisherSourceName, AssemblyVersion);
+
+        private static readonly ActivitySource s_subscriberSource =
+            new ActivitySource(SubscriberSourceName, AssemblyVersion);
 
         public const string PublisherSourceName = "RabbitMQ.Client.Publisher";
         public const string SubscriberSourceName = "RabbitMQ.Client.Subscriber";
+
+        public static Action<Activity, IDictionary<string, object>> ContextInjector { get; set; } = DefaultContextInjector;
+
+        public static Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor { get; set; } =
+            DefaultContextExtractor;
 
         public static bool UseRoutingKeyAsOperationName { get; set; } = true;
         internal static bool PublisherHasListeners => s_publisherSource.HasListeners();
@@ -52,9 +61,11 @@ namespace RabbitMQ.Client
             if (s_publisherSource.HasListeners())
             {
                 Activity activity = linkedContext == default
-                    ? s_publisherSource.StartRabbitMQActivity(UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
+                    ? s_publisherSource.StartRabbitMQActivity(
+                        UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
                         ActivityKind.Producer)
-                    : s_publisherSource.StartLinkedRabbitMQActivity(UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
+                    : s_publisherSource.StartLinkedRabbitMQActivity(
+                        UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
                         ActivityKind.Producer, linkedContext);
                 if (activity?.IsAllDataRequested == true)
                 {
@@ -74,7 +85,8 @@ namespace RabbitMQ.Client
                 return null;
             }
 
-            Activity activity = s_subscriberSource.StartRabbitMQActivity(UseRoutingKeyAsOperationName ? $"{queue} receive" : "receive",
+            Activity activity = s_subscriberSource.StartRabbitMQActivity(
+                UseRoutingKeyAsOperationName ? $"{queue} receive" : "receive",
                 ActivityKind.Consumer);
             if (activity.IsAllDataRequested)
             {
@@ -95,12 +107,9 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            DistributedContextPropagator.Current.ExtractTraceIdAndState(readOnlyBasicProperties.Headers,
-                ExtractTraceIdAndState, out string traceParent, out string traceState);
-            ActivityContext.TryParse(traceParent, traceState, out ActivityContext linkedContext);
             Activity activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{routingKey} receive" : "receive", ActivityKind.Consumer,
-                linkedContext);
+                ContextExtractor(readOnlyBasicProperties));
             if (activity.IsAllDataRequested)
             {
                 PopulateMessagingTags("receive", routingKey, exchange, deliveryTag, readOnlyBasicProperties,
@@ -118,12 +127,9 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            DistributedContextPropagator.Current.ExtractTraceIdAndState(deliverEventArgs.BasicProperties.Headers,
-                ExtractTraceIdAndState, out string traceparent, out string traceState);
-            ActivityContext.TryParse(traceparent, traceState, out ActivityContext parentContext);
             Activity activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{deliverEventArgs.RoutingKey} deliver" : "deliver",
-                ActivityKind.Consumer, parentContext);
+                ActivityKind.Consumer, ContextExtractor(deliverEventArgs.BasicProperties));
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags("deliver", deliverEventArgs.RoutingKey, deliverEventArgs.Exchange,
@@ -192,52 +198,6 @@ namespace RabbitMQ.Client
             }
         }
 
-        internal static bool TryGetExistingContext<T>(T props, out ActivityContext context)
-            where T : IReadOnlyBasicProperties
-        {
-            if (props.Headers == null)
-            {
-                context = default;
-                return false;
-            }
-
-            bool hasHeaders = false;
-            foreach (string header in DistributedContextPropagator.Current.Fields)
-            {
-                if (props.Headers.ContainsKey(header))
-                {
-                    hasHeaders = true;
-                    break;
-                }
-            }
-
-            if (hasHeaders)
-            {
-                DistributedContextPropagator.Current.ExtractTraceIdAndState(props.Headers, ExtractTraceIdAndState,
-                    out string traceParent, out string traceState);
-                return ActivityContext.TryParse(traceParent, traceState, out context);
-            }
-
-            context = default;
-            return false;
-        }
-
-        private static void ExtractTraceIdAndState(object props, string name, out string value,
-            out IEnumerable<string> values)
-        {
-            if (props is Dictionary<string, object> headers && headers.TryGetValue(name, out object propsVal) &&
-                propsVal is byte[] bytes)
-            {
-                value = Encoding.UTF8.GetString(bytes);
-                values = default;
-            }
-            else
-            {
-                value = default;
-                values = default;
-            }
-        }
-
         internal static void SetNetworkTags(this Activity activity, IFrameHandler frameHandler)
         {
             if (PublisherHasListeners && activity != null && activity.IsAllDataRequested)
@@ -284,6 +244,66 @@ namespace RabbitMQ.Client
                         .SetTag("network.local.address", localAddress)
                         .SetTag("network.local.port", localEndpoint.Port);
                 }
+            }
+        }
+
+        private static void DefaultContextInjector(Activity sendActivity, IDictionary<string, object> props)
+        {
+            props ??= new Dictionary<string, object>();
+            DistributedContextPropagator.Current.Inject(sendActivity, props, DefaultContextSetter);
+        }
+
+        private static ActivityContext DefaultContextExtractor(IReadOnlyBasicProperties props)
+        {
+            if (props.Headers == null)
+            {
+                return default;
+            }
+
+            bool hasHeaders = false;
+            foreach (string header in DistributedContextPropagator.Current.Fields)
+            {
+                if (props.Headers.ContainsKey(header))
+                {
+                    hasHeaders = true;
+                    break;
+                }
+            }
+
+
+            if (!hasHeaders)
+            {
+                return default;
+            }
+
+            DistributedContextPropagator.Current.ExtractTraceIdAndState(props.Headers, DefaultContextGetter, out string traceParent, out string traceState);
+            return ActivityContext.TryParse(traceParent, traceState, out ActivityContext context) ? context : default;
+        }
+
+        private static void DefaultContextSetter(object carrier, string name, string value)
+        {
+            if (!(carrier is IDictionary<string, object> carrierDictionary))
+            {
+                return;
+            }
+
+            // Only propagate headers if they haven't already been set
+            carrierDictionary[name] = value;
+        }
+
+        private static void DefaultContextGetter(object carrier, string name, out string value,
+            out IEnumerable<string> values)
+        {
+            if (carrier is IDictionary<string, object> carrierDict &&
+                carrierDict.TryGetValue(name, out object propsVal) && propsVal is byte[] bytes)
+            {
+                value = Encoding.UTF8.GetString(bytes);
+                values = default;
+            }
+            else
+            {
+                value = default;
+                values = default;
             }
         }
     }

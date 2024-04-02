@@ -1036,22 +1036,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
-                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length, existingContext)
-                    : default;
-
-                if (sendActivity != null)
-                {
-                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    // TODO cancellation token
-                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
-                }
-                else
-                {
-                    // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
-                }
+                await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
             }
             catch
             {
@@ -1065,20 +1050,6 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 throw;
-            }
-        }
-
-        private static void InjectTraceContextIntoBasicProperties(object propsObj, string key, string value)
-        {
-            if (!(propsObj is Dictionary<string, object> headers))
-            {
-                return;
-            }
-
-            // Only propagate headers if they haven't already been set
-            if (!headers.ContainsKey(key))
-            {
-                headers[key] = value;
             }
         }
 
@@ -1097,23 +1068,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-
-                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
-                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length, existingContext)
-                    : default;
-
-                if (sendActivity != null)
-                {
-                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
-                }
-                else
-                {
-                    // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
-                }
+                await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
             }
             catch
             {
@@ -1145,23 +1100,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-
-                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
-                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length, existingContext)
-                    : default;
-
-                if (sendActivity != null)
-                {
-                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    // TODO cancellation token
-                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
-                }
-                else
-                {
-                    // TODO cancellation token
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
-                }
+                await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
             }
             catch
             {
@@ -1843,36 +1782,6 @@ namespace RabbitMQ.Client.Impl
 
                 throw;
             }
-        }
-
-        private static BasicProperties PopulateActivityAndPropagateTraceId<TProperties>(TProperties basicProperties,
-            Activity sendActivity) where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            // This activity is marked as recorded, so let's propagate the trace and span ids.
-            if (sendActivity.IsAllDataRequested)
-            {
-                if (!string.IsNullOrEmpty(basicProperties.CorrelationId))
-                {
-                    sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, basicProperties.CorrelationId);
-                }
-            }
-
-            BasicProperties props = default;
-            if (basicProperties is BasicProperties properties)
-            {
-                props = properties;
-            }
-            else if (basicProperties is EmptyBasicProperty)
-            {
-                props = new BasicProperties();
-            }
-
-            var headers = props.Headers ?? new Dictionary<string, object>();
-
-            // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-            DistributedContextPropagator.Current.Inject(sendActivity, headers, InjectTraceContextIntoBasicProperties);
-            props.Headers = headers;
-            return props;
         }
     }
 }

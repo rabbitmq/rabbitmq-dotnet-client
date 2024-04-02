@@ -1,20 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <AssemblyTitle>RabbitMQ Client Library for .NET</AssemblyTitle>
+    <AssemblyTitle>RabbitMQ OpenTelemetry Integration Package for .NET</AssemblyTitle>
     <Authors>VMware</Authors>
     <Company>VMware, Inc. or its affiliates.</Company>
-    <Copyright>Copyright © 2007-2022 VMware, Inc. or its affiliates.</Copyright>
-    <Description>The RabbitMQ .NET client is the official client library for C# (and, implicitly, other .NET languages)</Description>
+    <Copyright>Copyright © 2007-2023 VMware, Inc. or its affiliates.</Copyright>
+    <Description>The RabbitMQ OAuth2 Client Library for .NET enables OAuth2 token refresh for RabbitMQ.Client</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>Apache-2.0 OR MPL-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://www.rabbitmq.com/dotnet.html</PackageProjectUrl>
-    <PackageTags>rabbitmq, amqp</PackageTags>
+    <PackageTags>rabbitmq, amqp, oauth2</PackageTags>
     <Product>RabbitMQ</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/rabbitmq/rabbitmq-dotnet-client.git</RepositoryUrl>
@@ -22,18 +21,12 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AssemblyOriginatorKeyFile>../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerTagPrefix>otel-</MinVerTagPrefix>
     <MinVerVerbosity>minimal</MinVerVerbosity>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>../../packages</PackageOutputPath>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <!--
-      https://learn.microsoft.com/en-us/answers/questions/1371494/for-net-standard-2-0-library-why-add-net-core-3-1
-      https://devblogs.microsoft.com/dotnet/embracing-nullable-reference-types/#what-should-library-authors-do
-      Note: only setting language version 8.0 for nullable reference types!
-    -->
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(CI)' == 'true'">
@@ -50,33 +43,22 @@
     <None Remove="icon.png" />
     <Content Include="icon.png" PackagePath="" />
     <None Include="README.md" Pack="true" PackagePath="/" />
-    <InternalsVisibleTo Include="Common" />
     <InternalsVisibleTo Include="Unit" />
-    <InternalsVisibleTo Include="Integration" />
-    <InternalsVisibleTo Include="SequentialIntegration" />
     <InternalsVisibleTo Include="Benchmarks" />
-    <InternalsVisibleTo Include="OTel" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageReference Include="MinVer" Version="5.0.0" PrivateAssets="all" />
-    <!--
-      Note: do NOT upgrade this dependency unless necessary
-      See https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
-    -->
-    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
-    <!--
-      Note: do NOT upgrade these dependencies unless necessary
-      See https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
-    -->
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../RabbitMQ.Client/RabbitMQ.Client.csproj" />
+  </ItemGroup>
+
 </Project>
