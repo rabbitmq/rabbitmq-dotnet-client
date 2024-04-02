@@ -1819,7 +1819,7 @@ namespace RabbitMQ.Client.Impl
                 throw;
             }
         }
-        
+
         private static BasicProperties PopulateActivityAndPropagateTraceId<TProperties>(TProperties basicProperties,
             Activity sendActivity) where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {

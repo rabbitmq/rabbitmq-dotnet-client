@@ -189,7 +189,7 @@ namespace Test.OpenTelemetry
                 AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
             }
         }
-        
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
@@ -246,7 +246,7 @@ namespace Test.OpenTelemetry
                 AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
             }
         }
-        
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
