@@ -18,7 +18,7 @@ namespace OpenTelemetry.Trace
             {
                 configuration = RabbitMQOpenTelemetryConfiguration.Default;
             }
-            
+
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = configuration.UseRoutingKeyAsOperationName;
             RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
             RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
@@ -39,7 +39,7 @@ namespace OpenTelemetry.Trace
         private static ActivityContext OpenTelemetryContextExtractor(IReadOnlyBasicProperties props)
         {
             // Extract the PropagationContext of the upstream parent from the message headers.
-            var parentContext =  Propagators.DefaultTextMapPropagator.Extract(default, props.Headers, OpenTelemetryContextGetter);
+            var parentContext = Propagators.DefaultTextMapPropagator.Extract(default, props.Headers, OpenTelemetryContextGetter);
             Baggage.Current = parentContext.Baggage;
             return parentContext.ActivityContext;
         }
