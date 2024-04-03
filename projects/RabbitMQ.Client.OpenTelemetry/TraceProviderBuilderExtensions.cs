@@ -11,23 +11,14 @@ namespace OpenTelemetry.Trace
 {
     public static class OpenTelemetryExtensions
     {
-        internal static TextMapPropagator s_propagator = Propagators.DefaultTextMapPropagator;
-
-        public static TracerProviderBuilder AddRabbitMQ(this TracerProviderBuilder builder,
-            RabbitMQOpenTelemetryConfiguration configuration)
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder,
+            RabbitMQOpenTelemetryConfiguration configuration = null)
         {
-            if (configuration.PropagateBaggage)
+            if (configuration == null)
             {
-                s_propagator = new CompositeTextMapPropagator(new TextMapPropagator[]
-                {
-                    new TraceContextPropagator(), new BaggagePropagator()
-                });
+                configuration = RabbitMQOpenTelemetryConfiguration.Default;
             }
-            else
-            {
-                s_propagator = new TraceContextPropagator();
-            }
-
+            
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = configuration.UseRoutingKeyAsOperationName;
             RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
             RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
@@ -48,7 +39,7 @@ namespace OpenTelemetry.Trace
         private static ActivityContext OpenTelemetryContextExtractor(IReadOnlyBasicProperties props)
         {
             // Extract the PropagationContext of the upstream parent from the message headers.
-            var parentContext = s_propagator.Extract(default, props.Headers, OpenTelemetryContextGetter);
+            var parentContext =  Propagators.DefaultTextMapPropagator.Extract(default, props.Headers, OpenTelemetryContextGetter);
             Baggage.Current = parentContext.Baggage;
             return parentContext.ActivityContext;
         }
@@ -57,9 +48,8 @@ namespace OpenTelemetry.Trace
         {
             try
             {
-                if (carrier.TryGetValue(key, out object value))
+                if (carrier.TryGetValue(key, out object value) && value is byte[] bytes)
                 {
-                    byte[] bytes = value as byte[];
                     return new[] { Encoding.UTF8.GetString(bytes) };
                 }
             }
@@ -74,7 +64,7 @@ namespace OpenTelemetry.Trace
         private static void OpenTelemetryContextInjector(Activity activity, IDictionary<string, object> props)
         {
             // Inject the current Activity's context into the message headers.
-            s_propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), props, OpenTelemetryContextSetter);
+            Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), props, OpenTelemetryContextSetter);
         }
 
         private static void OpenTelemetryContextSetter(IDictionary<string, object> carrier, string key, string value)

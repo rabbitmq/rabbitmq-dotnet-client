@@ -36,6 +36,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -51,6 +52,10 @@ namespace Test.OpenTelemetry
     {
         public TestOpenTelemetry(ITestOutputHelper output) : base(output)
         {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
+            {
+                new TraceContextPropagator(), new BaggagePropagator()
+            }));
         }
 
         void AssertStringTagEquals(Activity activity, string name, string expected)
@@ -86,7 +91,7 @@ namespace Test.OpenTelemetry
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQ(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
@@ -141,7 +146,7 @@ namespace Test.OpenTelemetry
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQ(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
@@ -197,7 +202,7 @@ namespace Test.OpenTelemetry
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQ(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
@@ -254,7 +259,7 @@ namespace Test.OpenTelemetry
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQ(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
@@ -312,7 +317,7 @@ namespace Test.OpenTelemetry
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQ(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
