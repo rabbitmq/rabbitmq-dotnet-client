@@ -55,7 +55,6 @@
     <InternalsVisibleTo Include="Integration" />
     <InternalsVisibleTo Include="SequentialIntegration" />
     <InternalsVisibleTo Include="Benchmarks" />
-    <InternalsVisibleTo Include="OTel" />
   </ItemGroup>
 
   <ItemGroup>

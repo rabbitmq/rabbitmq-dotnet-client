@@ -41,12 +41,11 @@ using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.OpenTelemetry;
-using Test.OpenTelemetry.SequentialIntegration;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Test.OpenTelemetry
+namespace Test.SequentialIntegration
 {
     public class TestOpenTelemetry : SequentialIntegrationFixture
     {
