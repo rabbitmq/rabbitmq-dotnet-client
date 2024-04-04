@@ -5,34 +5,17 @@ using System.Linq;
 using System.Text;
 using OpenTelemetry.Context.Propagation;
 using RabbitMQ.Client;
-using RabbitMQ.Client.OpenTelemetry;
 
 namespace OpenTelemetry.Trace
 {
     public static class OpenTelemetryExtensions
     {
-        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder,
-            RabbitMQOpenTelemetryConfiguration configuration = null)
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder)
         {
-            if (configuration == null)
-            {
-                configuration = RabbitMQOpenTelemetryConfiguration.Default;
-            }
-
-            RabbitMQActivitySource.UseRoutingKeyAsOperationName = configuration.UseRoutingKeyAsOperationName;
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = true;
             RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
             RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
-
-            if (configuration.IncludeSubscribers)
-            {
-                builder.AddSource(RabbitMQActivitySource.SubscriberSourceName);
-            }
-
-            if (configuration.IncludePublishers)
-            {
-                builder.AddSource(RabbitMQActivitySource.PublisherSourceName);
-            }
-
+            builder.AddSource("RabbitMQ.Client.*");
             return builder;
         }
 

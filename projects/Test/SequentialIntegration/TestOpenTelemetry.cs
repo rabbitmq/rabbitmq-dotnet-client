@@ -40,7 +40,6 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.OpenTelemetry;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -90,7 +89,7 @@ namespace Test.SequentialIntegration
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation()
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
@@ -145,7 +144,7 @@ namespace Test.SequentialIntegration
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation()
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
@@ -201,7 +200,7 @@ namespace Test.SequentialIntegration
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation()
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
@@ -258,7 +257,7 @@ namespace Test.SequentialIntegration
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation()
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
@@ -316,7 +315,7 @@ namespace Test.SequentialIntegration
         {
             var exportedItems = new List<Activity>();
             using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation(new RabbitMQOpenTelemetryConfiguration())
+                       .AddRabbitMQInstrumentation()
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
