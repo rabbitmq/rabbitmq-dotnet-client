@@ -263,10 +263,12 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 _innerConnection.Dispose();
             }
+            /*
             catch (Exception)
             {
                 // TODO: log
             }
+            */
             finally
             {
                 _channels.Clear();
