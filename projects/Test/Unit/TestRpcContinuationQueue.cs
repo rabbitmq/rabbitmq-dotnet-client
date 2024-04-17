@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
 using Xunit;
@@ -41,7 +42,7 @@ namespace Test.Unit
         private class TestSimpleAsyncRpcContinuation : SimpleAsyncRpcContinuation
         {
             public TestSimpleAsyncRpcContinuation()
-                : base(ProtocolCommandId.BasicGet, TimeSpan.FromSeconds(10))
+                : base(ProtocolCommandId.BasicGet, TimeSpan.FromSeconds(10), CancellationToken.None)
             {
             }
         }

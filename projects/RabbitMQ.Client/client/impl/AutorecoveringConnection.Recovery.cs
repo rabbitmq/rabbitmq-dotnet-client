@@ -153,7 +153,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivity, ignoring it", e);
         }
 
-        // TODO propagate cancellation token
+        // TODO cancellation token
         private async ValueTask<bool> TryPerformAutomaticRecoveryAsync(CancellationToken cancellationToken)
         {
             ESLog.Info("Performing automatic recovery");
@@ -176,10 +176,13 @@ namespace RabbitMQ.Client.Framing.Impl
                             // 2. Recover queues
                             // 3. Recover bindings
                             // 4. Recover consumers
+                            // TODO cancellation token
                             await RecoverExchangesAsync(_innerConnection, recordedEntitiesSemaphoreHeld: true)
                                 .ConfigureAwait(false);
+                            // TODO cancellation token
                             await RecoverQueuesAsync(_innerConnection, recordedEntitiesSemaphoreHeld: true)
                                 .ConfigureAwait(false);
+                            // TODO cancellation token
                             await RecoverBindingsAsync(_innerConnection, recordedEntitiesSemaphoreHeld: true)
                                 .ConfigureAwait(false);
 

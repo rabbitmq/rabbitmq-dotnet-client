@@ -627,7 +627,7 @@ namespace RabbitMQ.Client
 
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
         {
-            // TODO: add user-provided configurator, like in the Java client
+            // FUTURE: add user-provided configurator, like in the Java client
             fh.ReadTimeout = RequestedHeartbeat;
             fh.WriteTimeout = RequestedHeartbeat;
 

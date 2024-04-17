@@ -421,7 +421,7 @@ namespace Test.Integration
 
             Assert.Equal(messageCount, messagesReceived);
 
-            await _channel.CloseAsync(_closeArgs, false);
+            await _channel.CloseAsync(_closeArgs, false, CancellationToken.None);
         }
 
         [Fact]
@@ -500,7 +500,7 @@ namespace Test.Integration
                 Assert.Equal((uint)0, consumerCount);
             }
 
-            await _channel.CloseAsync(_closeArgs, false);
+            await _channel.CloseAsync(_closeArgs, false, CancellationToken.None);
         }
 
         [Fact]
