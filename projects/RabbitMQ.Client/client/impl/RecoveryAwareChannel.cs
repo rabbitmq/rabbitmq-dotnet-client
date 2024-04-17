@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
@@ -62,12 +63,13 @@ namespace RabbitMQ.Client.Impl
             return deliveryTag + ActiveDeliveryTagOffset;
         }
 
-        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
+        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
+            CancellationToken cancellationToken)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                return base.BasicAckAsync(realTag, multiple);
+                return base.BasicAckAsync(realTag, multiple, cancellationToken);
             }
             else
             {
@@ -75,12 +77,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
+        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
+            CancellationToken cancellationToken)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                return base.BasicNackAsync(realTag, multiple, requeue);
+                return base.BasicNackAsync(realTag, multiple, requeue, cancellationToken);
             }
             else
             {
@@ -88,12 +91,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue)
+        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+            CancellationToken cancellationToken)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                return base.BasicRejectAsync(realTag, requeue);
+                return base.BasicRejectAsync(realTag, requeue, cancellationToken);
             }
             else
             {

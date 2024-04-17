@@ -35,6 +35,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -192,11 +193,12 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>API-side invocation of updating the secret.</summary>
-        public Task UpdateSecretAsync(string newSecret, string reason)
+        public Task UpdateSecretAsync(string newSecret, string reason,
+            CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
             EnsureIsOpen();
-            return _innerConnection.UpdateSecretAsync(newSecret, reason);
+            return _innerConnection.UpdateSecretAsync(newSecret, reason, cancellationToken);
         }
 
         ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
@@ -263,9 +265,9 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 _innerConnection.Dispose();
             }
-            catch (Exception)
+            catch (OperationInterruptedException)
             {
-                // TODO: log
+                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
             }
             finally
             {

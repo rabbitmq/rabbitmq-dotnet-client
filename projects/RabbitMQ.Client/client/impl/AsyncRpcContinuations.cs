@@ -43,24 +43,25 @@ namespace RabbitMQ.Client.Impl
 {
     internal abstract class AsyncRpcContinuation<T> : IRpcContinuation
     {
-        private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly CancellationTokenRegistration _cancellationTokenRegistration;
+        private readonly CancellationTokenSource _continuationTimeoutCancellationTokenSource;
+        private readonly CancellationTokenRegistration _continuationTimeoutCancellationTokenRegistration;
+        private readonly CancellationTokenSource _linkedCancellationTokenSource;
         private readonly ConfiguredTaskAwaitable<T> _tcsConfiguredTaskAwaitable;
         protected readonly TaskCompletionSource<T> _tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private bool _disposedValue;
 
-        public AsyncRpcContinuation(TimeSpan continuationTimeout)
+        public AsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
         {
             /*
              * Note: we can't use an ObjectPool for these because the netstandard2.0
              * version of CancellationTokenSource can't be reset prior to checking
              * in to the ObjectPool
              */
-            _cancellationTokenSource = new CancellationTokenSource(continuationTimeout);
+            _continuationTimeoutCancellationTokenSource = new CancellationTokenSource(continuationTimeout);
 
 #if NET6_0_OR_GREATER
-            _cancellationTokenRegistration = _cancellationTokenSource.Token.UnsafeRegister((object state) =>
+            _continuationTimeoutCancellationTokenRegistration = _continuationTimeoutCancellationTokenSource.Token.UnsafeRegister((object state) =>
             {
                 var tcs = (TaskCompletionSource<T>)state;
                 if (tcs.TrySetCanceled())
@@ -71,7 +72,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }, _tcs);
 #else
-            _cancellationTokenRegistration = _cancellationTokenSource.Token.Register((object state) =>
+            _continuationTimeoutCancellationTokenRegistration = _continuationTimeoutCancellationTokenSource.Token.Register((object state) =>
             {
                 var tcs = (TaskCompletionSource<T>)state;
                 if (tcs.TrySetCanceled())
@@ -84,6 +85,9 @@ namespace RabbitMQ.Client.Impl
 #endif
 
             _tcsConfiguredTaskAwaitable = _tcs.Task.ConfigureAwait(false);
+
+            _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                _continuationTimeoutCancellationTokenSource.Token, cancellationToken);
         }
 
         internal DateTime StartTime { get; } = DateTime.UtcNow;
@@ -92,7 +96,7 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                return _cancellationTokenSource.Token;
+                return _linkedCancellationTokenSource.Token;
             }
         }
 
@@ -114,8 +118,9 @@ namespace RabbitMQ.Client.Impl
             {
                 if (disposing)
                 {
-                    _cancellationTokenRegistration.Dispose();
-                    _cancellationTokenSource.Dispose();
+                    _continuationTimeoutCancellationTokenRegistration.Dispose();
+                    _continuationTimeoutCancellationTokenSource.Dispose();
+                    _linkedCancellationTokenSource.Dispose();
                 }
 
                 _disposedValue = true;
@@ -131,7 +136,8 @@ namespace RabbitMQ.Client.Impl
 
     internal class ConnectionSecureOrTuneAsyncRpcContinuation : AsyncRpcContinuation<ConnectionSecureOrTune>
     {
-        public ConnectionSecureOrTuneAsyncRpcContinuation(TimeSpan continuationTimeout) : base(continuationTimeout)
+        public ConnectionSecureOrTuneAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(continuationTimeout, cancellationToken)
         {
         }
 
@@ -170,7 +176,9 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly ProtocolCommandId _expectedCommandId;
 
-        public SimpleAsyncRpcContinuation(ProtocolCommandId expectedCommandId, TimeSpan continuationTimeout) : base(continuationTimeout)
+        public SimpleAsyncRpcContinuation(ProtocolCommandId expectedCommandId, TimeSpan continuationTimeout,
+            CancellationToken cancellationToken)
+            : base(continuationTimeout, cancellationToken)
         {
             _expectedCommandId = expectedCommandId;
         }
@@ -202,8 +210,9 @@ namespace RabbitMQ.Client.Impl
         private readonly string _consumerTag;
         private readonly IConsumerDispatcher _consumerDispatcher;
 
-        public BasicCancelAsyncRpcContinuation(string consumerTag, IConsumerDispatcher consumerDispatcher, TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.BasicCancelOk, continuationTimeout)
+        public BasicCancelAsyncRpcContinuation(string consumerTag, IConsumerDispatcher consumerDispatcher,
+            TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.BasicCancelOk, continuationTimeout, cancellationToken)
         {
             _consumerTag = consumerTag;
             _consumerDispatcher = consumerDispatcher;
@@ -238,8 +247,9 @@ namespace RabbitMQ.Client.Impl
         private readonly IBasicConsumer _consumer;
         private readonly IConsumerDispatcher _consumerDispatcher;
 
-        public BasicConsumeAsyncRpcContinuation(IBasicConsumer consumer, IConsumerDispatcher consumerDispatcher, TimeSpan continuationTimeout)
-            : base(continuationTimeout)
+        public BasicConsumeAsyncRpcContinuation(IBasicConsumer consumer, IConsumerDispatcher consumerDispatcher,
+            TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(continuationTimeout, cancellationToken)
         {
             _consumer = consumer;
             _consumerDispatcher = consumerDispatcher;
@@ -272,8 +282,9 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly Func<ulong, ulong> _adjustDeliveryTag;
 
-        public BasicGetAsyncRpcContinuation(Func<ulong, ulong> adjustDeliveryTag, TimeSpan continuationTimeout)
-            : base(continuationTimeout)
+        public BasicGetAsyncRpcContinuation(Func<ulong, ulong> adjustDeliveryTag,
+            TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(continuationTimeout, cancellationToken)
         {
             _adjustDeliveryTag = adjustDeliveryTag;
         }
@@ -319,24 +330,24 @@ namespace RabbitMQ.Client.Impl
 
     internal class BasicQosAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public BasicQosAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.BasicQosOk, continuationTimeout)
+        public BasicQosAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.BasicQosOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class ChannelOpenAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ChannelOpenAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.ChannelOpenOk, continuationTimeout)
+        public ChannelOpenAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.ChannelOpenOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class ChannelCloseAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ChannelCloseAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.ChannelCloseOk, continuationTimeout)
+        public ChannelCloseAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.ChannelCloseOk, continuationTimeout, cancellationToken)
         {
         }
 
@@ -353,47 +364,48 @@ namespace RabbitMQ.Client.Impl
 
     internal class ConfirmSelectAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ConfirmSelectAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.ConfirmSelectOk, continuationTimeout)
+        public ConfirmSelectAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.ConfirmSelectOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class ExchangeBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.ExchangeBindOk, continuationTimeout)
+        public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.ExchangeBindOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class ExchangeDeclareAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ExchangeDeclareAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.ExchangeDeclareOk, continuationTimeout)
+        public ExchangeDeclareAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.ExchangeDeclareOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class ExchangeDeleteAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ExchangeDeleteAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.ExchangeDeleteOk, continuationTimeout)
+        public ExchangeDeleteAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.ExchangeDeleteOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class ExchangeUnbindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public ExchangeUnbindAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.ExchangeUnbindOk, continuationTimeout)
+        public ExchangeUnbindAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.ExchangeUnbindOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class QueueDeclareAsyncRpcContinuation : AsyncRpcContinuation<QueueDeclareOk>
     {
-        public QueueDeclareAsyncRpcContinuation(TimeSpan continuationTimeout) : base(continuationTimeout)
+        public QueueDeclareAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(continuationTimeout, cancellationToken)
         {
         }
 
@@ -423,23 +435,24 @@ namespace RabbitMQ.Client.Impl
 
     internal class QueueBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public QueueBindAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.QueueBindOk, continuationTimeout)
+        public QueueBindAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.QueueBindOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class QueueUnbindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public QueueUnbindAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.QueueUnbindOk, continuationTimeout)
+        public QueueUnbindAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.QueueUnbindOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class QueueDeleteAsyncRpcContinuation : AsyncRpcContinuation<uint>
     {
-        public QueueDeleteAsyncRpcContinuation(TimeSpan continuationTimeout) : base(continuationTimeout)
+        public QueueDeleteAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(continuationTimeout, cancellationToken)
         {
         }
 
@@ -468,7 +481,8 @@ namespace RabbitMQ.Client.Impl
 
     internal class QueuePurgeAsyncRpcContinuation : AsyncRpcContinuation<uint>
     {
-        public QueuePurgeAsyncRpcContinuation(TimeSpan continuationTimeout) : base(continuationTimeout)
+        public QueuePurgeAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(continuationTimeout, cancellationToken)
         {
         }
 
@@ -497,24 +511,24 @@ namespace RabbitMQ.Client.Impl
 
     internal class TxCommitAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public TxCommitAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.TxCommitOk, continuationTimeout)
+        public TxCommitAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.TxCommitOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class TxRollbackAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public TxRollbackAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.TxRollbackOk, continuationTimeout)
+        public TxRollbackAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.TxRollbackOk, continuationTimeout, cancellationToken)
         {
         }
     }
 
     internal class TxSelectAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        public TxSelectAsyncRpcContinuation(TimeSpan continuationTimeout)
-            : base(ProtocolCommandId.TxSelectOk, continuationTimeout)
+        public TxSelectAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.TxSelectOk, continuationTimeout, cancellationToken)
         {
         }
     }

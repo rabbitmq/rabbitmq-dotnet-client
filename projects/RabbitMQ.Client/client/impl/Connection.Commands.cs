@@ -43,9 +43,10 @@ namespace RabbitMQ.Client.Framing.Impl
 #nullable enable
     internal sealed partial class Connection
     {
-        public Task UpdateSecretAsync(string newSecret, string reason)
+        public Task UpdateSecretAsync(string newSecret, string reason,
+            CancellationToken cancellationToken)
         {
-            return _channel0.UpdateSecretAsync(newSecret, reason);
+            return _channel0.UpdateSecretAsync(newSecret, reason, cancellationToken);
         }
 
         internal void NotifyReceivedCloseOk()
@@ -137,18 +138,13 @@ namespace RabbitMQ.Client.Framing.Impl
                     ConnectionSecureOrTune res;
                     if (challenge is null)
                     {
-                        // TODO cancellationToken
-                        // Note: when token is passed, OperationCanceledException could be raised
                         res = await _channel0.ConnectionStartOkAsync(ClientProperties,
-                            mechanismFactory.Name,
-                            response,
-                            "en_US").ConfigureAwait(false);
+                            mechanismFactory.Name, response, "en_US", cancellationToken)
+                            .ConfigureAwait(false);
                     }
                     else
                     {
-                        // TODO cancellationToken
-                        // Note: when token is passed, OperationCanceledException could be raised
-                        res = await _channel0.ConnectionSecureOkAsync(response)
+                        res = await _channel0.ConnectionSecureOkAsync(response, cancellationToken)
                             .ConfigureAwait(false);
                     }
 
@@ -187,11 +183,11 @@ namespace RabbitMQ.Client.Framing.Impl
             await _channel0.ConnectionTuneOkAsync(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds, cancellationToken)
                 .ConfigureAwait(false);
 
-            // TODO check for cancellation
+            cancellationToken.ThrowIfCancellationRequested();
             MaybeStartCredentialRefresher();
 
             // now we can start heartbeat timers
-            // TODO check for cancellation
+            cancellationToken.ThrowIfCancellationRequested();
             MaybeStartHeartbeatTimers();
         }
 
@@ -207,7 +203,8 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (succesfully)
             {
-                return UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh");
+                return UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh",
+                    CancellationToken.None); // TODO
             }
             else
             {

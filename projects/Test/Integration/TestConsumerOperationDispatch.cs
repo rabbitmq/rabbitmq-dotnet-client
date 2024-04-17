@@ -213,7 +213,7 @@ namespace Test.Integration
             await _channel.BasicConsumeAsync(queue: q, autoAck: true, consumer: c);
             await _channel.CloseAsync();
 
-            await c.Latch.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await c.Latch.Task.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.True(c.Latch.Task.IsCompletedSuccessfully());
 
             await Assert.ThrowsAsync<TimeoutException>(() =>
