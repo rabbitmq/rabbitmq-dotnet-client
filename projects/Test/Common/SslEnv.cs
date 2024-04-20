@@ -32,7 +32,7 @@
 using System;
 using System.IO;
 
-namespace Test.Integration
+namespace Test
 {
     public class SslEnv
     {
