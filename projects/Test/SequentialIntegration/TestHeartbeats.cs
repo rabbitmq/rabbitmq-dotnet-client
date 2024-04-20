@@ -36,9 +36,9 @@ using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.Integration
+namespace Test.SequentialIntegration
 {
-    public class TestHeartbeats : IntegrationFixture
+    public class TestHeartbeats : SequentialIntegrationFixture
     {
         private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(2);
 

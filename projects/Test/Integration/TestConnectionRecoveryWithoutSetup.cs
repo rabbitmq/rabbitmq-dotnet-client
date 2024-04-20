@@ -150,6 +150,7 @@ namespace Test.Integration
         public async Task TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
             const string q0 = "dotnet-client.recovery.queue1";
+            // connection #1
             using (AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync())
             {
                 using (IChannel ch = await c.CreateChannelAsync())
@@ -162,17 +163,19 @@ namespace Test.Integration
                     await AssertConsumerCountAsync(ch, q1, 1);
 
                     bool queueNameChangeAfterRecoveryCalled = false;
-
                     c.QueueNameChangedAfterRecovery += (source, ea) => { queueNameChangeAfterRecoveryCalled = true; };
 
+                    // connection #2
                     await CloseAndWaitForRecoveryAsync(c);
                     await AssertConsumerCountAsync(ch, q1, 1);
                     Assert.False(queueNameChangeAfterRecoveryCalled);
 
+                    // connection #3
                     await CloseAndWaitForRecoveryAsync(c);
                     await AssertConsumerCountAsync(ch, q1, 1);
                     Assert.False(queueNameChangeAfterRecoveryCalled);
 
+                    // connection #4
                     await CloseAndWaitForRecoveryAsync(c);
                     await AssertConsumerCountAsync(ch, q1, 1);
                     Assert.False(queueNameChangeAfterRecoveryCalled);
