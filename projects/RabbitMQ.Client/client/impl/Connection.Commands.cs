@@ -204,7 +204,7 @@ namespace RabbitMQ.Client.Framing.Impl
             if (succesfully)
             {
                 return UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh",
-                    CancellationToken.None); // TODO
+                    CancellationToken.None); // TODO cancellation token
             }
             else
             {

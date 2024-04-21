@@ -59,8 +59,7 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
-        // TODO replace with SemaphoreSlim
-        private object _confirmLock;
+        private SemaphoreSlim _confirmSemaphore;
         private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
 
         private bool _onlyAcksReceived = true;
@@ -420,7 +419,7 @@ namespace RabbitMQ.Client.Impl
             m_connectionStartCell?.TrySetResult(null);
         }
 
-        private bool ConfirmsAreEnabled => _confirmLock != null;
+        private bool ConfirmsAreEnabled => _confirmSemaphore != null;
 
         private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
@@ -484,7 +483,8 @@ namespace RabbitMQ.Client.Impl
 
             if (ConfirmsAreEnabled)
             {
-                lock (_confirmLock)
+                _confirmSemaphore.Wait();
+                try
                 {
                     if (_confirmsTaskCompletionSources?.Count > 0)
                     {
@@ -496,6 +496,10 @@ namespace RabbitMQ.Client.Impl
 
                         _confirmsTaskCompletionSources.Clear();
                     }
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
                 }
             }
 
@@ -542,6 +546,7 @@ namespace RabbitMQ.Client.Impl
 
                 ConsumerDispatcher.Dispose();
                 _rpcSemaphore.Dispose();
+                _confirmSemaphore?.Dispose();
             }
         }
 
@@ -596,7 +601,8 @@ namespace RabbitMQ.Client.Impl
             if (ConfirmsAreEnabled)
             {
                 // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
-                lock (_confirmLock)
+                _confirmSemaphore.Wait();
+                try
                 {
                     // No need to do anything if there are no delivery tags in the list
                     if (_pendingDeliveryTags.Count > 0)
@@ -632,6 +638,10 @@ namespace RabbitMQ.Client.Impl
                         _confirmsTaskCompletionSources.Clear();
                         _onlyAcksReceived = true;
                     }
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
                 }
             }
         }
@@ -1054,9 +1064,15 @@ namespace RabbitMQ.Client.Impl
         {
             if (ConfirmsAreEnabled)
             {
-                lock (_confirmLock)
+                await _confirmSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
                 {
                     _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
                 }
             }
 
@@ -1084,10 +1100,16 @@ namespace RabbitMQ.Client.Impl
             {
                 if (ConfirmsAreEnabled)
                 {
-                    lock (_confirmLock)
+                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    try
                     {
                         NextPublishSeqNo--;
                         _pendingDeliveryTags.RemoveLast();
+                    }
+                    finally
+                    {
+                        _confirmSemaphore.Release();
                     }
                 }
 
@@ -1102,9 +1124,15 @@ namespace RabbitMQ.Client.Impl
         {
             if (ConfirmsAreEnabled)
             {
-                lock (_confirmLock)
+                await _confirmSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
                 {
                     _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
                 }
             }
 
@@ -1133,10 +1161,16 @@ namespace RabbitMQ.Client.Impl
             {
                 if (ConfirmsAreEnabled)
                 {
-                    lock (_confirmLock)
+                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    try
                     {
                         NextPublishSeqNo--;
                         _pendingDeliveryTags.RemoveLast();
+                    }
+                    finally
+                    {
+                        _confirmSemaphore.Release();
                     }
                 }
 
@@ -1242,7 +1276,7 @@ namespace RabbitMQ.Client.Impl
 
                 // Note:
                 // Non-null means confirms are enabled
-                _confirmLock = new object();
+                _confirmSemaphore = new SemaphoreSlim(1, 1);
 
                 return;
             }
@@ -1742,7 +1776,7 @@ namespace RabbitMQ.Client.Impl
 
         private List<TaskCompletionSource<bool>> _confirmsTaskCompletionSources;
 
-        public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
+        public async Task<bool> WaitForConfirmsAsync(CancellationToken cancellationToken = default)
         {
             if (false == ConfirmsAreEnabled)
             {
@@ -1750,55 +1784,42 @@ namespace RabbitMQ.Client.Impl
             }
 
             TaskCompletionSource<bool> tcs;
-            lock (_confirmLock)
+            await _confirmSemaphore.WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+            try
             {
                 if (_pendingDeliveryTags.Count == 0)
                 {
                     if (_onlyAcksReceived == false)
                     {
                         _onlyAcksReceived = true;
-                        return Task.FromResult(false);
+                        return false;
                     }
 
-                    return Task.FromResult(true);
+                    return true;
                 }
 
                 tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _confirmsTaskCompletionSources.Add(tcs);
             }
-
-            if (!token.CanBeCanceled)
-            {
-                return tcs.Task;
-            }
-
-            return WaitForConfirmsWithTokenAsync(tcs, token);
-        }
-
-        private async Task<bool> WaitForConfirmsWithTokenAsync(TaskCompletionSource<bool> tcs, CancellationToken token)
-        {
-            CancellationTokenRegistration tokenRegistration =
-#if NET6_0_OR_GREATER
-                token.UnsafeRegister(
-                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(), tcs);
-#else
-                token.Register(
-                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
-                    state: tcs, useSynchronizationContext: false);
-#endif
-            try
-            {
-                return await tcs.Task.ConfigureAwait(false);
-            }
             finally
             {
-#if NET6_0_OR_GREATER
-                await tokenRegistration.DisposeAsync()
-                    .ConfigureAwait(false);
-#else
-                tokenRegistration.Dispose();
-#endif
+                _confirmSemaphore.Release();
             }
+
+            bool rv;
+
+            if (false == cancellationToken.CanBeCanceled)
+            {
+                rv = await tcs.Task.ConfigureAwait(false);
+            }
+            else
+            {
+                rv = await WaitForConfirmsWithTokenAsync(tcs, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return rv;
         }
 
         public async Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
@@ -1827,6 +1848,33 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
 
                 throw;
+            }
+        }
+
+        private async Task<bool> WaitForConfirmsWithTokenAsync(TaskCompletionSource<bool> tcs,
+            CancellationToken cancellationToken)
+        {
+            CancellationTokenRegistration tokenRegistration =
+#if NET6_0_OR_GREATER
+                cancellationToken.UnsafeRegister(
+                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(), tcs);
+#else
+                cancellationToken.Register(
+                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
+                    state: tcs, useSynchronizationContext: false);
+#endif
+            try
+            {
+                return await tcs.Task.ConfigureAwait(false);
+            }
+            finally
+            {
+#if NET6_0_OR_GREATER
+                await tokenRegistration.DisposeAsync()
+                    .ConfigureAwait(false);
+#else
+                tokenRegistration.Dispose();
+#endif
             }
         }
 
