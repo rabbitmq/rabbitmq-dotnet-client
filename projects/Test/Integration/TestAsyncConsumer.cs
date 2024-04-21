@@ -392,7 +392,7 @@ namespace Test.Integration
                 var c = sender as AsyncEventingBasicConsumer;
                 Assert.NotNull(c);
                 await _channel.BasicAckAsync(args.DeliveryTag, false);
-                messagesReceived++;
+                Interlocked.Increment(ref messagesReceived);
                 if (messagesReceived == messageCount)
                 {
                     publishSyncSource.SetResult(true);
@@ -413,14 +413,12 @@ namespace Test.Integration
                 {
                     byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
                     await _channel.BasicPublishAsync(string.Empty, queueName, _body);
+                    await _channel.WaitForConfirmsOrDieAsync();
                 }
             });
 
-            await _channel.WaitForConfirmsOrDieAsync();
             Assert.True(await publishSyncSource.Task);
-
             Assert.Equal(messageCount, messagesReceived);
-
             await _channel.CloseAsync(_closeArgs, false, CancellationToken.None);
         }
 

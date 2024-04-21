@@ -144,7 +144,10 @@ namespace Test
                     _channel = await _conn.CreateChannelAsync();
                 }
 
-                AddCallbackHandlers();
+                if (IsVerbose)
+                {
+                    AddCallbackHandlers();
+                }
             }
 
             if (_connFactory.AutomaticRecoveryEnabled)
@@ -182,43 +185,40 @@ namespace Test
 
         protected virtual void AddCallbackHandlers()
         {
-            if (IsVerbose)
+            if (_conn != null)
             {
-                if (_conn != null)
+                _conn.CallbackException += (o, ea) =>
                 {
-                    _conn.CallbackException += (o, ea) =>
-                    {
-                        _output.WriteLine("{0} connection callback exception: {1}",
-                            _testDisplayName, ea.Exception);
-                    };
+                    _output.WriteLine("{0} connection callback exception: {1}",
+                        _testDisplayName, ea.Exception);
+                };
 
-                    _conn.ConnectionShutdown += (o, ea) =>
-                    {
-                        HandleConnectionShutdown(_conn, ea, (args) =>
-                        {
-                            _output.WriteLine("{0} connection shutdown, args: {1}",
-                                _testDisplayName, args);
-                        });
-                    };
-                }
-
-                if (_channel != null)
+                _conn.ConnectionShutdown += (o, ea) =>
                 {
-                    _channel.CallbackException += (o, ea) =>
+                    HandleConnectionShutdown(_conn, ea, (args) =>
                     {
-                        _output.WriteLine("{0} channel callback exception: {1}",
-                            _testDisplayName, ea.Exception);
-                    };
+                        _output.WriteLine("{0} connection shutdown, args: {1}",
+                            _testDisplayName, args);
+                    });
+                };
+            }
 
-                    _channel.ChannelShutdown += (o, ea) =>
+            if (_channel != null)
+            {
+                _channel.CallbackException += (o, ea) =>
+                {
+                    _output.WriteLine("{0} channel callback exception: {1}",
+                        _testDisplayName, ea.Exception);
+                };
+
+                _channel.ChannelShutdown += (o, ea) =>
+                {
+                    HandleChannelShutdown(_channel, ea, (args) =>
                     {
-                        HandleChannelShutdown(_channel, ea, (args) =>
-                        {
-                            _output.WriteLine("{0} channel shutdown, args: {1}",
-                                _testDisplayName, args);
-                        });
-                    };
-                }
+                        _output.WriteLine("{0} channel shutdown, args: {1}",
+                            _testDisplayName, args);
+                    });
+                };
             }
         }
 
