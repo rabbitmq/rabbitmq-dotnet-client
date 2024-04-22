@@ -170,7 +170,7 @@ namespace Test
 
         protected Task CloseConnectionAsync(IConnection conn)
         {
-            return _rabbitMQCtl.CloseConnectionAsync(conn);
+            return Util.CloseConnectionAsync(conn);
         }
 
         protected Task CloseAndWaitForRecoveryAsync()
