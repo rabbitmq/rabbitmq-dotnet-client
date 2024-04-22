@@ -63,12 +63,13 @@ function start_rabbitmq
         --hostname "$rabbitmq_docker_name" \
         --publish 5671:5671 \
         --publish 5672:5672 \
+        --publish 15672:15672 \
         --network "$docker_network_name" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/enabled_plugins:/etc/rabbitmq/enabled_plugins" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro" \
         --volume "$GITHUB_WORKSPACE/.ci/certs:/etc/rabbitmq/certs:ro" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/log:/var/log/rabbitmq" \
-        rabbitmq:latest
+        rabbitmq:management
 }
 
 function wait_rabbitmq
