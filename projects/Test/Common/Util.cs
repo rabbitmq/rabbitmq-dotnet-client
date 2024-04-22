@@ -10,7 +10,6 @@ namespace Test
 {
     public static class Util
     {
-        private static readonly TimeSpan s_closeConnectionDelay = TimeSpan.FromSeconds(2);
         private static readonly ManagementClient s_managementClient;
         private static readonly bool s_isWindows = false;
 
@@ -45,7 +44,7 @@ namespace Test
 
         public static async Task CloseConnectionAsync(IConnection conn)
         {
-            ushort tries = 30; // 60 seconds
+            ushort tries = 1;
             EasyNetQ.Management.Client.Model.Connection connectionToClose = null;
             do
             {
@@ -54,7 +53,14 @@ namespace Test
                 {
                     do
                     {
-                        await Task.Delay(s_closeConnectionDelay);
+                        ushort delaySeconds = (ushort)(tries * 2);
+                        if (delaySeconds > 10)
+                        {
+                            delaySeconds = 10;
+                        }
+
+                        await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+
                         connections = await s_managementClient.GetConnectionsAsync();
                     } while (connections.Count == 0);
 
@@ -64,7 +70,7 @@ namespace Test
 
                     if (connectionToClose == null)
                     {
-                        tries--;
+                        tries++;
                     }
                     else
                     {
@@ -74,18 +80,13 @@ namespace Test
                 catch (ArgumentNullException)
                 {
                     // Sometimes we see this in GitHub CI
-                    tries--;
+                    tries++;
                 }
-            } while (tries > 0);
-
-            if (tries == 0)
-            {
-                throw new InvalidOperationException($"Could not delete connection: '{conn.ClientProvidedName}'");
-            }
+            } while (tries <= 30);
 
             if (connectionToClose == null)
             {
-                throw new InvalidOperationException($"connectionToClose should not be null here");
+                throw new InvalidOperationException($"Could not delete connection: '{conn.ClientProvidedName}'");
             }
 
             await s_managementClient.CloseConnectionAsync(connectionToClose);
