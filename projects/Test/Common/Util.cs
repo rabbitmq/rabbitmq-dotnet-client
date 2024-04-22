@@ -45,7 +45,7 @@ namespace Test
 
         public static async Task CloseConnectionAsync(IConnection conn)
         {
-            ushort tries = 10;
+            ushort tries = 30; // 60 seconds
             EasyNetQ.Management.Client.Model.Connection connectionToClose = null;
             do
             {
