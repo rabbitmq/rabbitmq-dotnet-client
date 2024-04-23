@@ -193,7 +193,8 @@ namespace RabbitMQ.Client.Impl
 
             if (recoverConsumers)
             {
-                await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld)
+                await _connection.RecoverConsumersAsync(
+                    this, newChannel, recordedEntitiesSemaphoreHeld, cancellationToken)
                     .ConfigureAwait(false);
             }
 

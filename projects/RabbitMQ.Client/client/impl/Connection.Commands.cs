@@ -171,6 +171,8 @@ namespace RabbitMQ.Client.Framing.Impl
             }
 
             ushort channelMax = (ushort)NegotiatedMaxValue(_config.MaxChannelCount, connectionTune.m_channelMax);
+
+            _sessionManager?.Dispose();
             _sessionManager = new SessionManager(this, channelMax);
 
             uint frameMax = NegotiatedMaxValue(_config.MaxFrameSize, connectionTune.m_frameMax);
@@ -199,12 +201,12 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private Task NotifyCredentialRefreshed(bool succesfully)
+        private Task NotifyCredentialRefreshed(bool succesfully, CancellationToken cancellationToken)
         {
             if (succesfully)
             {
                 return UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh",
-                    CancellationToken.None); // TODO cancellation token
+                    cancellationToken);
             }
             else
             {

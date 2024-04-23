@@ -241,7 +241,8 @@ namespace OAuth2Test
             return new OAuth2ClientCredentialsProvider(opts.Name, oAuth2Client);
         }
 
-        private Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
+        private Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event,
+            CancellationToken cancellationToken)
         {
             _doneEvent.Release();
             return Task.CompletedTask;

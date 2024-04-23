@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.ConsumerDispatching
@@ -7,7 +8,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal abstract class ConsumerDispatcherBase
     {
-        private static readonly FallbackConsumer fallbackConsumer = new FallbackConsumer();
+        private static readonly FallbackConsumer s_fallbackConsumer = new FallbackConsumer();
+        private readonly SemaphoreSlim _consumersSemaphore = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
 
         public IBasicConsumer? DefaultConsumer { get; set; }
@@ -18,43 +20,55 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected void AddConsumer(IBasicConsumer consumer, string tag)
         {
-            lock (_consumers)
+            _consumersSemaphore.Wait();
+            try
             {
                 _consumers[tag] = consumer;
+            }
+            finally
+            {
+                _consumersSemaphore.Release();
             }
         }
 
         protected IBasicConsumer GetConsumerOrDefault(string tag)
         {
-            lock (_consumers)
+            _consumersSemaphore.Wait();
+            try
             {
                 return _consumers.TryGetValue(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
+            }
+            finally
+            {
+                _consumersSemaphore.Release();
             }
         }
 
         public IBasicConsumer GetAndRemoveConsumer(string tag)
         {
-            lock (_consumers)
+            _consumersSemaphore.Wait();
+            try
             {
                 return _consumers.Remove(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
             }
+            finally
+            {
+                _consumersSemaphore.Release();
+            }
         }
 
-        public void Shutdown(ShutdownEventArgs reason)
+        public Task ShutdownAsync(ShutdownEventArgs reason, CancellationToken cancellationToken)
         {
             DoShutdownConsumers(reason);
-            InternalShutdown();
+            return InternalShutdownAsync(cancellationToken);
         }
 
-        public Task ShutdownAsync(ShutdownEventArgs reason)
-        {
-            DoShutdownConsumers(reason);
-            return InternalShutdownAsync();
-        }
+        public virtual void Dispose() => _consumersSemaphore.Dispose();
 
         private void DoShutdownConsumers(ShutdownEventArgs reason)
         {
-            lock (_consumers)
+            _consumersSemaphore.Wait();
+            try
             {
                 foreach (KeyValuePair<string, IBasicConsumer> pair in _consumers)
                 {
@@ -62,19 +76,21 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 }
                 _consumers.Clear();
             }
+            finally
+            {
+                _consumersSemaphore.Release();
+            }
         }
 
         protected abstract void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason);
 
-        protected abstract void InternalShutdown();
-
-        protected abstract Task InternalShutdownAsync();
+        protected abstract Task InternalShutdownAsync(CancellationToken cancellationToken);
 
         // Do not inline as it's not the default case on a hot path
         [MethodImpl(MethodImplOptions.NoInlining)]
         private IBasicConsumer GetDefaultOrFallbackConsumer()
         {
-            return DefaultConsumer ?? fallbackConsumer;
+            return DefaultConsumer ?? s_fallbackConsumer;
         }
     }
 }

@@ -33,6 +33,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using System.Threading;
 using System.Threading.Tasks;
 namespace RabbitMQ.Client
 {
@@ -41,7 +42,8 @@ namespace RabbitMQ.Client
         ICredentialsProvider Register(ICredentialsProvider provider, NotifyCredentialRefreshedAsync callback);
         bool Unregister(ICredentialsProvider provider);
 
-        delegate Task NotifyCredentialRefreshedAsync(bool successfully);
+        delegate Task NotifyCredentialRefreshedAsync(bool successfully,
+            CancellationToken cancellationToken = default);
     }
 
     [EventSource(Name = "TimerBasedCredentialRefresher")]
@@ -124,12 +126,12 @@ namespace RabbitMQ.Client
                 {
                     provider.Refresh();
                     scheduleTimer(provider, callback);
-                    callback.Invoke(provider.Password != null);
+                    callback.Invoke(provider.Password != null, CancellationToken.None); // TODO cancellation token
                     TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, true);
                 }
                 catch (Exception)
                 {
-                    callback.Invoke(false);
+                    callback.Invoke(false, CancellationToken.None); // TODO cancellation token
                     TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, false);
                 }
 

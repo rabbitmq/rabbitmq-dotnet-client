@@ -29,9 +29,11 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Events
 {
-    public delegate Task AsyncEventHandler<in TEvent>(object sender, TEvent @event);
+    public delegate Task AsyncEventHandler<in TEvent>(object sender, TEvent @event,
+        CancellationToken cancellationToken = default);
 }

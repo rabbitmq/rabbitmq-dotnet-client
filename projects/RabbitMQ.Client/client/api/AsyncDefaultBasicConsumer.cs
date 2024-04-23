@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
@@ -141,7 +142,8 @@ namespace RabbitMQ.Client
             IsRunning = false;
             if (!_consumerCancelledWrapper.IsEmpty)
             {
-                await _consumerCancelledWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags))
+                // TODO cancellation token
+                await _consumerCancelledWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags), CancellationToken.None)
                     .ConfigureAwait(false);
             }
             foreach (string consumerTag in consumerTags)

@@ -181,7 +181,8 @@ namespace MassPublish
             }
         }
 
-        private static Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
+        private static Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event,
+            CancellationToken cancellationToken)
         {
             if (Interlocked.Increment(ref s_messagesReceived) == TotalMessages)
             {

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
@@ -108,7 +109,7 @@ namespace Test.Unit
         [Fact]
         public void TestRegister()
         {
-            Task cb(bool unused) => Task.CompletedTask;
+            Task cb(bool unused0, CancellationToken unused1) => Task.CompletedTask;
             ICredentialsProvider credentialsProvider = new MockCredentialsProvider(_testOutputHelper);
 
             Assert.True(credentialsProvider == _refresher.Register(credentialsProvider, cb));
@@ -119,7 +120,7 @@ namespace Test.Unit
         public void TestDoNotRegisterWhenHasNoExpiry()
         {
             ICredentialsProvider credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.Zero);
-            Task cb(bool unused) => Task.CompletedTask;
+            Task cb(bool unused0, CancellationToken unused1) => Task.CompletedTask;
 
             _refresher.Register(credentialsProvider, cb);
 
@@ -132,7 +133,7 @@ namespace Test.Unit
             var cbtcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool? callbackArg = null;
             var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
-            Task cb(bool arg)
+            Task cb(bool arg, CancellationToken _)
             {
                 callbackArg = arg;
                 cbtcs.SetResult(true);
@@ -161,7 +162,7 @@ namespace Test.Unit
             var cbtcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool? callbackArg = null;
             var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
-            Task cb(bool arg)
+            Task cb(bool arg, CancellationToken unused)
             {
                 callbackArg = arg;
                 cbtcs.SetResult(true);

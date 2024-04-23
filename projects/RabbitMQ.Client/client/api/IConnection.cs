@@ -158,6 +158,16 @@ namespace RabbitMQ.Client
         event EventHandler<ShutdownEventArgs> ConnectionShutdown;
 
         /// <summary>
+        /// Asynchronously raised when the connection is destroyed.
+        /// </summary>
+        /// <remarks>
+        /// If the connection is already destroyed at the time an
+        /// event handler is added to this event, the event handler
+        /// will be fired immediately.
+        /// </remarks>
+        event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync;
+
+        /// <summary>
         /// Raised when the connection completes recovery.
         /// </summary>
         /// <remarks>

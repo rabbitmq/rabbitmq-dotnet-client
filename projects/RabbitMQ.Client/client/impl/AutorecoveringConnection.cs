@@ -123,6 +123,12 @@ namespace RabbitMQ.Client.Framing.Impl
             remove => InnerConnection.ConnectionShutdown -= value;
         }
 
+        public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync
+        {
+            add => InnerConnection.ConnectionShutdownAsync += value;
+            remove => InnerConnection.ConnectionShutdownAsync -= value;
+        }
+
         public event EventHandler<EventArgs> ConnectionUnblocked
         {
             add => InnerConnection.ConnectionUnblocked += value;

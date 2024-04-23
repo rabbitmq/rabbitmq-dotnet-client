@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -105,9 +106,10 @@ namespace RabbitMQ.Client.Impl
             return new RecordedConsumer(old.Channel, old.Consumer, old.ConsumerTag, newQueueName, old.AutoAck, old.Exclusive, old.Arguments);
         }
 
-        public Task<string> RecoverAsync(IChannel channel)
+        public Task<string> RecoverAsync(IChannel channel, CancellationToken cancellationToken)
         {
-            return channel.BasicConsumeAsync(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
+            return channel.BasicConsumeAsync(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer,
+                cancellationToken);
         }
     }
 }
