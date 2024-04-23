@@ -29,18 +29,22 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class SessionManager
+    internal class SessionManager : IDisposable
     {
         public readonly ushort ChannelMax;
         private readonly IntAllocator _ints;
         private readonly Connection _connection;
+        private readonly SemaphoreSlim _sessionMapSemaphore = new SemaphoreSlim(1, 1);
         private readonly Dictionary<int, ISession> _sessionMap = new Dictionary<int, ISession>();
 
         public SessionManager(Connection connection, ushort channelMax)
@@ -54,16 +58,22 @@ namespace RabbitMQ.Client.Impl
         {
             get
             {
-                lock (_sessionMap)
+                _sessionMapSemaphore.Wait();
+                try
                 {
                     return _sessionMap.Count;
+                }
+                finally
+                {
+                    _sessionMapSemaphore.Release();
                 }
             }
         }
 
         public ISession Create()
         {
-            lock (_sessionMap)
+            _sessionMapSemaphore.Wait();
+            try
             {
                 int channelNumber = _ints.Allocate();
                 if (channelNumber == -1)
@@ -72,28 +82,46 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 ISession session = new Session(_connection, (ushort)channelNumber);
-                session.SessionShutdown += HandleSessionShutdown;
+                session.SessionShutdownAsync += HandleSessionShutdownAsync;
                 _sessionMap[channelNumber] = session;
                 return session;
             }
+            finally
+            {
+                _sessionMapSemaphore.Release();
+            }
         }
 
-        private void HandleSessionShutdown(object sender, ShutdownEventArgs reason)
+        private async Task HandleSessionShutdownAsync(object sender, ShutdownEventArgs reason,
+            CancellationToken cancellationToken)
         {
-            lock (_sessionMap)
+            await _sessionMapSemaphore.WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+            try
             {
                 var session = (ISession)sender;
                 _sessionMap.Remove(session.ChannelNumber);
                 _ints.Free(session.ChannelNumber);
             }
+            finally
+            {
+                _sessionMapSemaphore.Release();
+            }
         }
 
         public ISession Lookup(int number)
         {
-            lock (_sessionMap)
+            _sessionMapSemaphore.Wait();
+            try
             {
                 return _sessionMap[number];
             }
+            finally
+            {
+                _sessionMapSemaphore.Release();
+            }
         }
+
+        public void Dispose() => _sessionMapSemaphore.Dispose();
     }
 }

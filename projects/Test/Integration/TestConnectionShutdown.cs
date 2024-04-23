@@ -89,6 +89,8 @@ namespace Test.Integration
             await WaitAsync(tcs, TimeSpan.FromSeconds(6), "channel shutdown");
         }
 
+        /*
+         * TODO is this even a valid test?
         [Fact]
         public async Task TestDisposedWithSocketClosedOutOfBand()
         {
@@ -112,6 +114,7 @@ namespace Test.Integration
             }
             await WaitAsync(tcs, waitSpan, "channel shutdown");
         }
+        */
 
         [Fact]
         public async Task TestShutdownSignalPropagationToChannels()

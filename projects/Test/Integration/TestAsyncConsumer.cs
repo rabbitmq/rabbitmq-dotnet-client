@@ -99,7 +99,7 @@ namespace Test.Integration
                     });
                 };
 
-                consumer.Received += async (o, a) =>
+                consumer.Received += async (o, a, ct) =>
                 {
                     string decoded = _encoding.GetString(a.Body.ToArray());
                     if (decoded == publish1)
@@ -207,7 +207,7 @@ namespace Test.Integration
                                 int publish1_count = 0;
                                 int publish2_count = 0;
 
-                                consumer.Received += async (o, a) =>
+                                consumer.Received += async (o, a, ct) =>
                                 {
                                     string decoded = _encoding.GetString(a.Body.ToArray());
                                     if (decoded == publish1)
@@ -287,11 +287,12 @@ namespace Test.Integration
                 };
 
                 var consumer = new AsyncEventingBasicConsumer(_channel);
-                consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+                consumer.Received += async (object sender, BasicDeliverEventArgs args,
+                    CancellationToken cancellationToken) =>
                 {
                     var c = sender as AsyncEventingBasicConsumer;
                     Assert.Same(c, consumer);
-                    await _channel.BasicCancelAsync(c.ConsumerTags[0]);
+                    await _channel.BasicCancelAsync(c.ConsumerTags[0], false, cancellationToken);
                     /*
                      * https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/runs/7450578332/attempts/1
                      * That job failed with a bizarre error where the delivery tag ack timed out:
@@ -303,7 +304,7 @@ namespace Test.Integration
                      * Added Task.Yield() to see if it ever happens again.
                      */
                     await Task.Yield();
-                    await _channel.BasicRejectAsync(args.DeliveryTag, true);
+                    await _channel.BasicRejectAsync(args.DeliveryTag, true, cancellationToken);
                     publishSyncSource.TrySetResult(true);
                 };
 
@@ -387,11 +388,12 @@ namespace Test.Integration
             await _channel.ConfirmSelectAsync();
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+            consumer.Received += async (object sender, BasicDeliverEventArgs args,
+                CancellationToken cancellationToken) =>
             {
                 var c = sender as AsyncEventingBasicConsumer;
                 Assert.NotNull(c);
-                await _channel.BasicAckAsync(args.DeliveryTag, false);
+                await _channel.BasicAckAsync(args.DeliveryTag, false, cancellationToken);
                 Interlocked.Increment(ref messagesReceived);
                 if (messagesReceived == messageCount)
                 {
@@ -450,12 +452,13 @@ namespace Test.Integration
             };
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+            consumer.Received += async (object sender, BasicDeliverEventArgs args,
+                CancellationToken cancellationToken) =>
             {
                 var c = sender as AsyncEventingBasicConsumer;
                 Assert.NotNull(c);
-                await _channel.BasicCancelAsync(c.ConsumerTags[0]);
-                await _channel.BasicNackAsync(args.DeliveryTag, false, true);
+                await _channel.BasicCancelAsync(c.ConsumerTags[0], false, cancellationToken);
+                await _channel.BasicNackAsync(args.DeliveryTag, false, true, cancellationToken);
                 publishSyncSource.SetResult(true);
             };
 

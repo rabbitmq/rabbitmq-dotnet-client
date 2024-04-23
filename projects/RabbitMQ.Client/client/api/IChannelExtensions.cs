@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.impl;
 
@@ -145,7 +146,7 @@ namespace RabbitMQ.Client
         /// method does nothing but wait for the in-progress close
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
-        /// In comparison to normal <see cref="CloseAsync(IChannel)"/> method, <see cref="AbortAsync(IChannel)"/> will not throw
+        /// In comparison to normal <see cref="CloseAsync(IChannel, CancellationToken)"/> method, <see cref="AbortAsync(IChannel)"/> will not throw
         /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing channel.
         /// </remarks>
         public static Task AbortAsync(this IChannel channel)
@@ -160,9 +161,10 @@ namespace RabbitMQ.Client
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
         /// </remarks>
-        public static Task CloseAsync(this IChannel channel)
+        public static Task CloseAsync(this IChannel channel, CancellationToken cancellationToken = default)
         {
-            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", false);
+            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", false,
+                cancellationToken);
         }
 
         /// <summary>

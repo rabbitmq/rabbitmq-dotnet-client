@@ -211,7 +211,7 @@ namespace Test.Integration
                     };
 
                     var consumer = new AsyncEventingBasicConsumer(consumeCh);
-                    consumer.Received += async (o, a) =>
+                    consumer.Received += async (o, a, ct) =>
                     {
                         string receivedMessage = _encoding.GetString(a.Body.ToArray());
                         Assert.Equal(message, receivedMessage);

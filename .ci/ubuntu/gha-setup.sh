@@ -31,6 +31,13 @@ else
     readonly run_toxiproxy='false'
 fi
 
+if [[ $2 == 'pull' ]]
+then
+    readonly docker_pull_args='--pull always'
+else
+    readonly docker_pull_args=''
+fi
+
 set -o nounset
 
 declare -r rabbitmq_docker_name="$docker_name_prefix-rabbitmq"
@@ -43,7 +50,8 @@ function start_toxiproxy
         # sudo ss -4nlp
         echo "[INFO] starting Toxiproxy server docker container"
         docker rm --force "$toxiproxy_docker_name" 2>/dev/null || echo "[INFO] $toxiproxy_docker_name was not running"
-        docker run --detach \
+        # shellcheck disable=SC2086
+        docker run --detach $docker_pull_args \
             --name "$toxiproxy_docker_name" \
             --hostname "$toxiproxy_docker_name" \
             --publish 8474:8474 \
@@ -58,7 +66,8 @@ function start_rabbitmq
     echo "[INFO] starting RabbitMQ server docker container"
     chmod 0777 "$GITHUB_WORKSPACE/.ci/ubuntu/log"
     docker rm --force "$rabbitmq_docker_name" 2>/dev/null || echo "[INFO] $rabbitmq_docker_name was not running"
-    docker run --detach \
+    # shellcheck disable=SC2086
+    docker run --detach $docker_pull_args \
         --name "$rabbitmq_docker_name" \
         --hostname "$rabbitmq_docker_name" \
         --publish 5671:5671 \
@@ -101,7 +110,8 @@ function wait_rabbitmq
 
 function get_rabbitmq_id
 {
-    local rabbitmq_docker_id="$(docker inspect --format='{{.Id}}' "$rabbitmq_docker_name")"
+    local rabbitmq_docker_id
+    rabbitmq_docker_id="$(docker inspect --format='{{.Id}}' "$rabbitmq_docker_name")"
     echo "[INFO] '$rabbitmq_docker_name' docker id is '$rabbitmq_docker_id'"
     if [[ -v GITHUB_OUTPUT ]]
     then

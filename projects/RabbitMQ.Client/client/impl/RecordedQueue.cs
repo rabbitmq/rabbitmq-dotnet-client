@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -71,11 +72,12 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public Task<QueueDeclareOk> RecoverAsync(IChannel channel)
+        public Task<QueueDeclareOk> RecoverAsync(IChannel channel, CancellationToken cancellationToken)
         {
             string queueName = IsServerNamed ? string.Empty : Name;
             return channel.QueueDeclareAsync(queue: queueName, passive: false,
-                durable: _durable, exclusive: _exclusive, autoDelete: AutoDelete, arguments: _arguments);
+                durable: _durable, exclusive: _exclusive, autoDelete: AutoDelete, arguments: _arguments,
+                cancellationToken: cancellationToken);
         }
 
         public override string ToString()

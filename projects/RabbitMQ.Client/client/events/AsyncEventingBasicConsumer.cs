@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 
@@ -58,8 +59,10 @@ namespace RabbitMQ.Client.Events
                 .ConfigureAwait(false);
             if (!_unregisteredWrapper.IsEmpty)
             {
-                await _unregisteredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }))
-                    .ConfigureAwait(false);
+                // TODO cancellation token
+                await _unregisteredWrapper.InvokeAsync(
+                    this, new ConsumerEventArgs(new[] { consumerTag }), CancellationToken.None)
+                        .ConfigureAwait(false);
             }
         }
 
@@ -70,8 +73,10 @@ namespace RabbitMQ.Client.Events
                 .ConfigureAwait(false);
             if (!_registeredWrapper.IsEmpty)
             {
-                await _registeredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }))
-                    .ConfigureAwait(false);
+                // TODO cancellation token
+                await _registeredWrapper.InvokeAsync(
+                    this, new ConsumerEventArgs(new[] { consumerTag }), CancellationToken.None)
+                        .ConfigureAwait(false);
             }
         }
 
@@ -91,7 +96,8 @@ namespace RabbitMQ.Client.Events
                 .ConfigureAwait(false);
             if (!_shutdownWrapper.IsEmpty)
             {
-                await _shutdownWrapper.InvokeAsync(this, reason)
+                // TODO cancellation token
+                await _shutdownWrapper.InvokeAsync(this, reason, CancellationToken.None)
                     .ConfigureAwait(false);
             }
         }
@@ -100,7 +106,9 @@ namespace RabbitMQ.Client.Events
         {
             using (Activity activity = RabbitMQActivitySource.Deliver(eventArgs))
             {
-                await _receivedWrapper.InvokeAsync(this, eventArgs).ConfigureAwait(false);
+                // TODO cancellation token
+                await _receivedWrapper.InvokeAsync(this, eventArgs, CancellationToken.None)
+                    .ConfigureAwait(false);
             }
         }
     }

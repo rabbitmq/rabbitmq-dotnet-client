@@ -305,13 +305,14 @@ namespace Test.Integration
                         && ex is OperationInterruptedException operationInterruptedException
                         && operationInterruptedException.ShutdownReason.ReplyCode == Constants.PreconditionFailed;
                 },
-                QueueRecoveryExceptionHandlerAsync = async (rq, ex, connection) =>
+                QueueRecoveryExceptionHandlerAsync = async (rq, ex, connection, cancellationToken) =>
                 {
-                    using (IChannel channel = await connection.CreateChannelAsync())
+                    using (IChannel channel = await connection.CreateChannelAsync(cancellationToken))
                     {
                         await channel.QueueDeclareAsync(rq.Name, false, false, false,
-                            noWait: false, arguments: changedQueueArguments);
-                        await channel.CloseAsync();
+                            noWait: false, arguments: changedQueueArguments,
+                            cancellationToken: cancellationToken);
+                        await channel.CloseAsync(cancellationToken);
                     }
                 }
             };
@@ -362,12 +363,14 @@ namespace Test.Integration
                         && ex is OperationInterruptedException operationInterruptedException
                         && operationInterruptedException.ShutdownReason.ReplyCode == Constants.PreconditionFailed;
                 },
-                ExchangeRecoveryExceptionHandlerAsync = async (re, ex, connection) =>
+
+                ExchangeRecoveryExceptionHandlerAsync = async (re, ex, connection, cancellationToken) =>
                 {
                     using (IChannel channel = await connection.CreateChannelAsync())
                     {
-                        await channel.ExchangeDeclareAsync(re.Name, "topic", false, false);
-                        await channel.CloseAsync();
+                        await channel.ExchangeDeclareAsync(re.Name, "topic", false, false,
+                            cancellationToken: cancellationToken);
+                        await channel.CloseAsync(cancellationToken: cancellationToken);
                     }
                 }
             };
@@ -422,13 +425,15 @@ namespace Test.Integration
                         && ex is OperationInterruptedException operationInterruptedException
                         && operationInterruptedException.ShutdownReason.ReplyCode == Constants.NotFound;
                 },
-                BindingRecoveryExceptionHandlerAsync = async (b, ex, connection) =>
+                BindingRecoveryExceptionHandlerAsync = async (b, ex, connection, cancellationToken) =>
                 {
                     using (IChannel channel = await connection.CreateChannelAsync())
                     {
-                        await channel.QueueDeclareAsync(queueWithExceptionBinding, false, false, false);
-                        await channel.QueueBindAsync(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
-                        await channel.CloseAsync();
+                        await channel.QueueDeclareAsync(queueWithExceptionBinding, false, false, false,
+                            cancellationToken: cancellationToken);
+                        await channel.QueueBindAsync(queueWithExceptionBinding, exchange, bindingToRecoverWithException,
+                            cancellationToken: cancellationToken);
+                        await channel.CloseAsync(cancellationToken);
                     }
                 }
             };
@@ -481,12 +486,13 @@ namespace Test.Integration
                         && ex is OperationInterruptedException operationInterruptedException
                         && operationInterruptedException.ShutdownReason.ReplyCode == Constants.NotFound;
                 },
-                ConsumerRecoveryExceptionHandlerAsync = async (c, ex, connection) =>
+                ConsumerRecoveryExceptionHandlerAsync = async (c, ex, connection, cancellationToken) =>
                 {
-                    using (IChannel channel = await connection.CreateChannelAsync())
+                    using (IChannel channel = await connection.CreateChannelAsync(cancellationToken))
                     {
-                        await channel.QueueDeclareAsync(queueWithExceptionConsumer, false, false, false);
-                        await channel.CloseAsync();
+                        await channel.QueueDeclareAsync(queueWithExceptionConsumer, false, false, false,
+                            cancellationToken: cancellationToken);
+                        await channel.CloseAsync(cancellationToken);
                     }
 
                     // So topology recovery runs again. This time he missing queue should exist, making
