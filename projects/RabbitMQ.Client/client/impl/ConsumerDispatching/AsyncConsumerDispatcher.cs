@@ -14,11 +14,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
         }
 
-        protected override async Task ProcessChannelAsync(CancellationToken token)
+        protected override async Task ProcessChannelAsync(CancellationToken cancellationToken)
         {
             try
             {
-                while (await _reader.WaitToReadAsync(token).ConfigureAwait(false))
+                while (await _reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     while (_reader.TryRead(out WorkStruct work))
                     {
@@ -28,20 +28,22 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             {
                                 Task task = work.WorkType switch
                                 {
-                                    WorkType.Deliver => work.AsyncConsumer.HandleBasicDeliver(
+                                    WorkType.Deliver => work.AsyncConsumer.HandleBasicDeliverAsync(
                                         work.ConsumerTag, work.DeliveryTag, work.Redelivered,
-                                        work.Exchange, work.RoutingKey, work.BasicProperties, work.Body.Memory),
+                                        work.Exchange, work.RoutingKey, work.BasicProperties, work.Body.Memory,
+                                        cancellationToken: cancellationToken),
 
-                                    WorkType.Cancel => work.AsyncConsumer.HandleBasicCancel(work.ConsumerTag),
+                                    WorkType.Cancel => work.AsyncConsumer.HandleBasicCancelAsync(work.ConsumerTag),
 
-                                    WorkType.CancelOk => work.AsyncConsumer.HandleBasicCancelOk(work.ConsumerTag),
+                                    WorkType.CancelOk => work.AsyncConsumer.HandleBasicCancelOkAsync(work.ConsumerTag),
 
-                                    WorkType.ConsumeOk => work.AsyncConsumer.HandleBasicConsumeOk(work.ConsumerTag),
+                                    WorkType.ConsumeOk => work.AsyncConsumer.HandleBasicConsumeOkAsync(work.ConsumerTag),
 
-                                    WorkType.Shutdown => work.AsyncConsumer.HandleChannelShutdown(_channel, work.Reason),
+                                    WorkType.Shutdown => work.AsyncConsumer.HandleChannelShutdownAsync(_channel, work.Reason),
 
                                     _ => Task.CompletedTask
                                 };
+
                                 await task.ConfigureAwait(false);
                             }
                             catch (Exception e)

@@ -92,25 +92,38 @@ namespace Test.Integration
         [Fact]
         public async Task TestDisposedWithSocketClosedOutOfBand()
         {
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            _channel.ChannelShutdown += (channel, args) =>
+            try
             {
-                tcs.SetResult(true);
-            };
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            var c = (AutorecoveringConnection)_conn;
-            await c.CloseFrameHandlerAsync();
+                _conn.ConnectionShutdown += (conn, args) =>
+                {
+                    tcs.TrySetResult(true);
+                };
 
-            _conn.Dispose();
-            _conn = null;
+                _channel.ChannelShutdown += (channel, args) =>
+                {
+                    tcs.TrySetResult(true);
+                };
 
-            TimeSpan waitSpan = TimeSpan.FromSeconds(3);
-            if (IsRunningInCI)
-            {
-                waitSpan = TimeSpan.FromSeconds(10);
+                var c = (AutorecoveringConnection)_conn;
+                await c.CloseFrameHandlerAsync();
+
+                _conn.Dispose();
+
+                TimeSpan waitSpan = TimeSpan.FromSeconds(3);
+                if (IsRunningInCI)
+                {
+                    waitSpan = TimeSpan.FromSeconds(10);
+                }
+
+                await WaitAsync(tcs, waitSpan, "connection or channel shutdown");
             }
-            await WaitAsync(tcs, waitSpan, "channel shutdown");
+            finally
+            {
+                _channel = null;
+                _conn = null;
+            }
         }
 
         [Fact]
@@ -131,17 +144,25 @@ namespace Test.Integration
         [Fact]
         public async Task TestShutdownSignalPropagationToChannelsUsingDispose()
         {
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            _channel.ChannelShutdown += (channel, args) =>
+            try
             {
-                tcs.SetResult(true);
-            };
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _conn.Dispose();
-            _conn = null;
+                _channel.ChannelShutdown += (channel, args) =>
+                {
+                    tcs.SetResult(true);
+                };
 
-            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
+                _conn.Dispose();
+                _conn = null;
+
+                await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
+            }
+            finally
+            {
+                _channel = null;
+                _conn = null;
+            }
         }
 
         [Fact]

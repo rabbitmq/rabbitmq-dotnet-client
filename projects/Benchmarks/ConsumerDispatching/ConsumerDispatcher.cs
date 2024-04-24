@@ -64,7 +64,7 @@ namespace RabbitMQ.Benchmarks
         public async Task SetUpConsumer()
         {
             _consumer.Count = Count;
-            _dispatcher = new ConsumerDispatcher(null, Concurrency);
+            _dispatcher = new AsyncConsumerDispatcher(null, Concurrency);
             await _dispatcher.HandleBasicConsumeOkAsync(_consumer, _consumerTag, CancellationToken.None);
         }
 

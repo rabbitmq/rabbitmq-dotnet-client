@@ -10,15 +10,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
     {
         private static readonly FallbackConsumer s_fallbackConsumer = new FallbackConsumer();
         private readonly SemaphoreSlim _consumersSemaphore = new SemaphoreSlim(1, 1);
-        private readonly Dictionary<string, IBasicConsumer> _consumers = new Dictionary<string, IBasicConsumer>();
+        private readonly Dictionary<string, IAsyncBasicConsumer> _consumers = new Dictionary<string, IAsyncBasicConsumer>();
 
-        public IBasicConsumer? DefaultConsumer { get; set; }
+        public IAsyncBasicConsumer? DefaultConsumer { get; set; }
 
         protected ConsumerDispatcherBase()
         {
         }
 
-        protected void AddConsumer(IBasicConsumer consumer, string tag)
+        protected void AddConsumer(IAsyncBasicConsumer consumer, string tag)
         {
             _consumersSemaphore.Wait();
             try
@@ -31,7 +31,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        protected IBasicConsumer GetConsumerOrDefault(string tag)
+        protected IAsyncBasicConsumer GetConsumerOrDefault(string tag)
         {
             _consumersSemaphore.Wait();
             try
@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public IBasicConsumer GetAndRemoveConsumer(string tag)
+        public IAsyncBasicConsumer GetAndRemoveConsumer(string tag)
         {
             _consumersSemaphore.Wait();
             try
@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             _consumersSemaphore.Wait();
             try
             {
-                foreach (KeyValuePair<string, IBasicConsumer> pair in _consumers)
+                foreach (KeyValuePair<string, IAsyncBasicConsumer> pair in _consumers)
                 {
                     ShutdownConsumer(pair.Value, reason);
                 }
@@ -82,13 +82,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        protected abstract void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason);
+        protected abstract void ShutdownConsumer(IAsyncBasicConsumer consumer, ShutdownEventArgs reason);
 
         protected abstract Task InternalShutdownAsync(CancellationToken cancellationToken);
 
         // Do not inline as it's not the default case on a hot path
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private IBasicConsumer GetDefaultOrFallbackConsumer()
+        private IAsyncBasicConsumer GetDefaultOrFallbackConsumer()
         {
             return DefaultConsumer ?? s_fallbackConsumer;
         }

@@ -164,12 +164,12 @@ namespace Test
         {
             try
             {
-                if (_channel != null)
+                if (_channel != null && _channel.IsOpen)
                 {
                     await _channel.CloseAsync();
                 }
 
-                if (_conn != null)
+                if (_conn != null && _conn.IsOpen)
                 {
                     await _conn.CloseAsync();
                 }

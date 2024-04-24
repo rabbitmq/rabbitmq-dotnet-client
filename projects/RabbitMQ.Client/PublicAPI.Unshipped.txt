@@ -60,13 +60,6 @@ override RabbitMQ.Client.AmqpTcpEndpoint.ToString() -> string
 override RabbitMQ.Client.AmqpTimestamp.Equals(object obj) -> bool
 override RabbitMQ.Client.AmqpTimestamp.GetHashCode() -> int
 override RabbitMQ.Client.AmqpTimestamp.ToString() -> string
-override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicCancelOk(string consumerTag) -> System.Threading.Tasks.Task
-override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicConsumeOk(string consumerTag) -> System.Threading.Tasks.Task
-override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
-override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
-override RabbitMQ.Client.Events.EventingBasicConsumer.HandleBasicCancelOk(string consumerTag) -> void
-override RabbitMQ.Client.Events.EventingBasicConsumer.HandleBasicConsumeOk(string consumerTag) -> void
-override RabbitMQ.Client.Events.EventingBasicConsumer.HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> void
 override RabbitMQ.Client.Exceptions.MalformedFrameException.ReplyCode.get -> ushort
 override RabbitMQ.Client.Exceptions.SyntaxErrorException.ReplyCode.get -> ushort
 override RabbitMQ.Client.Exceptions.UnexpectedFrameException.ReplyCode.get -> ushort
@@ -263,17 +256,6 @@ RabbitMQ.Client.ConnectionFactoryBase
 RabbitMQ.Client.ConnectionFactoryBase.ConnectionFactoryBase() -> void
 RabbitMQ.Client.ConnectionFactoryBase.SocketFactory -> System.Func<System.Net.Sockets.AddressFamily, RabbitMQ.Client.ITcpClient>
 RabbitMQ.Client.Constants
-RabbitMQ.Client.DefaultBasicConsumer
-RabbitMQ.Client.DefaultBasicConsumer.Channel.get -> RabbitMQ.Client.IChannel
-RabbitMQ.Client.DefaultBasicConsumer.Channel.set -> void
-RabbitMQ.Client.DefaultBasicConsumer.ConsumerCancelled -> System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs>
-RabbitMQ.Client.DefaultBasicConsumer.ConsumerTags.get -> string[]
-RabbitMQ.Client.DefaultBasicConsumer.DefaultBasicConsumer() -> void
-RabbitMQ.Client.DefaultBasicConsumer.DefaultBasicConsumer(RabbitMQ.Client.IChannel channel) -> void
-RabbitMQ.Client.DefaultBasicConsumer.IsRunning.get -> bool
-RabbitMQ.Client.DefaultBasicConsumer.IsRunning.set -> void
-RabbitMQ.Client.DefaultBasicConsumer.ShutdownReason.get -> RabbitMQ.Client.ShutdownEventArgs
-RabbitMQ.Client.DefaultBasicConsumer.ShutdownReason.set -> void
 RabbitMQ.Client.DefaultEndpointResolver
 RabbitMQ.Client.DefaultEndpointResolver.All() -> System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>
 RabbitMQ.Client.DefaultEndpointResolver.DefaultEndpointResolver(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> tcpEndpoints) -> void
@@ -308,12 +290,6 @@ RabbitMQ.Client.Events.ConsumerEventArgs
 RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerEventArgs(string[] consumerTags) -> void
 RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs
 RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs.ConsumerTagChangedAfterRecoveryEventArgs(string tagBefore, string tagAfter) -> void
-RabbitMQ.Client.Events.EventingBasicConsumer
-RabbitMQ.Client.Events.EventingBasicConsumer.EventingBasicConsumer(RabbitMQ.Client.IChannel channel) -> void
-RabbitMQ.Client.Events.EventingBasicConsumer.Received -> System.EventHandler<RabbitMQ.Client.Events.BasicDeliverEventArgs>
-RabbitMQ.Client.Events.EventingBasicConsumer.Registered -> System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs>
-RabbitMQ.Client.Events.EventingBasicConsumer.Shutdown -> System.EventHandler<RabbitMQ.Client.ShutdownEventArgs>
-RabbitMQ.Client.Events.EventingBasicConsumer.Unregistered -> System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs>
 RabbitMQ.Client.Events.FlowControlEventArgs
 RabbitMQ.Client.Events.FlowControlEventArgs.FlowControlEventArgs(bool active) -> void
 RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs
@@ -408,26 +384,14 @@ RabbitMQ.Client.IAmqpHeader.ProtocolClassId.get -> ushort
 RabbitMQ.Client.IAmqpWriteable
 RabbitMQ.Client.IAmqpWriteable.GetRequiredBufferSize() -> int
 RabbitMQ.Client.IAmqpWriteable.WriteTo(System.Span<byte> span) -> int
-RabbitMQ.Client.IAsyncBasicConsumer
-RabbitMQ.Client.IAsyncBasicConsumer.Channel.get -> RabbitMQ.Client.IChannel
 RabbitMQ.Client.IAsyncBasicConsumer.ConsumerCancelled -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs>
-RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancel(string consumerTag) -> System.Threading.Tasks.Task
-RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelOk(string consumerTag) -> System.Threading.Tasks.Task
-RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicConsumeOk(string consumerTag) -> System.Threading.Tasks.Task
-RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
-RabbitMQ.Client.IAsyncBasicConsumer.HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
 RabbitMQ.Client.IAuthMechanism
 RabbitMQ.Client.IAuthMechanism.handleChallenge(byte[] challenge, RabbitMQ.Client.ConnectionConfig config) -> byte[]
 RabbitMQ.Client.IAuthMechanismFactory
 RabbitMQ.Client.IAuthMechanismFactory.GetInstance() -> RabbitMQ.Client.IAuthMechanism
 RabbitMQ.Client.IAuthMechanismFactory.Name.get -> string
-RabbitMQ.Client.IBasicConsumer
-RabbitMQ.Client.IBasicConsumer.Channel.get -> RabbitMQ.Client.IChannel
-RabbitMQ.Client.IBasicConsumer.ConsumerCancelled -> System.EventHandler<RabbitMQ.Client.Events.ConsumerEventArgs>
-RabbitMQ.Client.IBasicConsumer.HandleBasicCancel(string consumerTag) -> void
-RabbitMQ.Client.IBasicConsumer.HandleBasicCancelOk(string consumerTag) -> void
-RabbitMQ.Client.IBasicConsumer.HandleBasicConsumeOk(string consumerTag) -> void
-RabbitMQ.Client.IBasicConsumer.HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> void
+RabbitMQ.Client.IAsyncBasicConsumer
+RabbitMQ.Client.IAsyncBasicConsumer.Channel.get -> RabbitMQ.Client.IChannel
 RabbitMQ.Client.IBasicProperties
 RabbitMQ.Client.IBasicProperties.AppId.get -> string
 RabbitMQ.Client.IBasicProperties.AppId.set -> void
@@ -490,7 +454,7 @@ RabbitMQ.Client.IChannel.CloseReason.get -> RabbitMQ.Client.ShutdownEventArgs
 RabbitMQ.Client.IChannel.ContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.IChannel.ContinuationTimeout.set -> void
 RabbitMQ.Client.IChannel.CurrentQueue.get -> string
-RabbitMQ.Client.IChannel.DefaultConsumer.get -> RabbitMQ.Client.IBasicConsumer
+RabbitMQ.Client.IChannel.DefaultConsumer.get -> RabbitMQ.Client.IAsyncBasicConsumer
 RabbitMQ.Client.IChannel.DefaultConsumer.set -> void
 RabbitMQ.Client.IChannel.FlowControl -> System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs>
 RabbitMQ.Client.IChannel.IsClosed.get -> bool
@@ -862,17 +826,6 @@ static readonly RabbitMQ.Client.ConnectionFactory.DefaultHeartbeat -> System.Tim
 static readonly RabbitMQ.Client.Protocols.AMQP_0_9_1 -> RabbitMQ.Client.IProtocol
 static readonly RabbitMQ.Client.Protocols.DefaultProtocol -> RabbitMQ.Client.IProtocol
 static readonly RabbitMQ.Client.PublicationAddress.PSEUDO_URI_PARSER -> System.Text.RegularExpressions.Regex
-virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicCancel(string consumerTag) -> System.Threading.Tasks.Task
-virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicCancelOk(string consumerTag) -> System.Threading.Tasks.Task
-virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicConsumeOk(string consumerTag) -> System.Threading.Tasks.Task
-virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
-virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
-virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.OnCancel(params string[] consumerTags) -> System.Threading.Tasks.Task
-virtual RabbitMQ.Client.DefaultBasicConsumer.HandleBasicCancel(string consumerTag) -> void
-virtual RabbitMQ.Client.DefaultBasicConsumer.HandleBasicCancelOk(string consumerTag) -> void
-virtual RabbitMQ.Client.DefaultBasicConsumer.HandleBasicConsumeOk(string consumerTag) -> void
-virtual RabbitMQ.Client.DefaultBasicConsumer.HandleChannelShutdown(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> void
-virtual RabbitMQ.Client.DefaultBasicConsumer.OnCancel(params string[] consumerTags) -> void
 virtual RabbitMQ.Client.Exceptions.ProtocolException.ShutdownReason.get -> RabbitMQ.Client.ShutdownEventArgs
 virtual RabbitMQ.Client.TcpClientAdapter.Client.get -> System.Net.Sockets.Socket
 virtual RabbitMQ.Client.TcpClientAdapter.Close() -> void
@@ -884,7 +837,10 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.get -> System.TimeSpan
 virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~const RabbitMQ.Client.RabbitMQActivitySource.PublisherSourceName = "RabbitMQ.Client.Publisher" -> string
 ~const RabbitMQ.Client.RabbitMQActivitySource.SubscriberSourceName = "RabbitMQ.Client.Subscriber" -> string
-~override RabbitMQ.Client.Events.EventingBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
+~override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicCancelOkAsync(string consumerTag) -> System.Threading.Tasks.Task
+~override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag) -> System.Threading.Tasks.Task
+~override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+~override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleChannelShutdownAsync(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(RabbitMQ.Client.IEndpointResolver endpointResolver, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
@@ -892,9 +848,13 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
-~RabbitMQ.Client.IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
+~RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelAsync(string consumerTag) -> System.Threading.Tasks.Task
+~RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelOkAsync(string consumerTag) -> System.Threading.Tasks.Task
+~RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag) -> System.Threading.Tasks.Task
+~RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+~RabbitMQ.Client.IAsyncBasicConsumer.HandleChannelShutdownAsync(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.IChannel.BasicCancelAsync(string consumerTag, bool noWait = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
-~RabbitMQ.Client.IChannel.BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string>
+~RabbitMQ.Client.IChannel.BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IAsyncBasicConsumer consumer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string>
 ~RabbitMQ.Client.IChannel.BasicGetAsync(string queue, bool autoAck, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<RabbitMQ.Client.BasicGetResult>
 ~RabbitMQ.Client.IChannel.BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.IChannel.BasicRejectAsync(ulong deliveryTag, bool requeue, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
@@ -939,10 +899,10 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync.get -> System.Func<RabbitMQ.Client.IRecordedQueue, System.Exception, RabbitMQ.Client.IConnection, System.Threading.CancellationToken, System.Threading.Tasks.Task>
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync.set -> void
 ~static RabbitMQ.Client.IChannelExtensions.AbortAsync(this RabbitMQ.Client.IChannel channel) -> System.Threading.Tasks.Task
-~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.IBasicConsumer consumer, string queue, bool autoAck = false, string consumerTag = "", bool noLocal = false, bool exclusive = false, System.Collections.Generic.IDictionary<string, object> arguments = null) -> System.Threading.Tasks.Task<string>
-~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, RabbitMQ.Client.IBasicConsumer consumer) -> System.Threading.Tasks.Task<string>
-~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, string consumerTag, RabbitMQ.Client.IBasicConsumer consumer) -> System.Threading.Tasks.Task<string>
-~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, string consumerTag, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IBasicConsumer consumer) -> System.Threading.Tasks.Task<string>
+~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.IAsyncBasicConsumer consumer, string queue, bool autoAck = false, string consumerTag = "", bool noLocal = false, bool exclusive = false, System.Collections.Generic.IDictionary<string, object> arguments = null) -> System.Threading.Tasks.Task<string>
+~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, RabbitMQ.Client.IAsyncBasicConsumer consumer) -> System.Threading.Tasks.Task<string>
+~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, string consumerTag, RabbitMQ.Client.IAsyncBasicConsumer consumer) -> System.Threading.Tasks.Task<string>
+~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, string consumerTag, System.Collections.Generic.IDictionary<string, object> arguments, RabbitMQ.Client.IAsyncBasicConsumer consumer) -> System.Threading.Tasks.Task<string>
 ~static RabbitMQ.Client.IChannelExtensions.CloseAsync(this RabbitMQ.Client.IChannel channel, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.IChannelExtensions.CloseAsync(this RabbitMQ.Client.IChannel channel, ushort replyCode, string replyText) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.IChannelExtensions.ExchangeDeclareAsync(this RabbitMQ.Client.IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false, System.Collections.Generic.IDictionary<string, object> arguments = null, bool noWait = false) -> System.Threading.Tasks.Task
@@ -957,4 +917,9 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~static RabbitMQ.Client.IConnectionExtensions.CloseAsync(this RabbitMQ.Client.IConnection connection, System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.IConnectionExtensions.CloseAsync(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.IConnectionExtensions.CloseAsync(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
-~virtual RabbitMQ.Client.DefaultBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
+~virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicCancelAsync(string consumerTag) -> System.Threading.Tasks.Task
+~virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicCancelOkAsync(string consumerTag) -> System.Threading.Tasks.Task
+~virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag) -> System.Threading.Tasks.Task
+~virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+~virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleChannelShutdownAsync(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
+~virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.OnCancelAsync(params string[] consumerTags) -> System.Threading.Tasks.Task

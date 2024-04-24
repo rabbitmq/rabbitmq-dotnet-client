@@ -85,13 +85,13 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsOpen => CloseReason is null;
 
-        public virtual Task OnConnectionShutdownAsync(object conn, ShutdownEventArgs reason,
+        public Task OnConnectionShutdownAsync(object conn, ShutdownEventArgs reason,
             CancellationToken cancellationToken)
         {
             return CloseAsync(reason, cancellationToken);
         }
 
-        public virtual Task OnSessionShutdownAsync(ShutdownEventArgs reason,
+        public Task OnSessionShutdownAsync(ShutdownEventArgs reason,
             CancellationToken cancellationToken)
         {
             Connection.ConnectionShutdownAsync -= OnConnectionShutdownAsync;

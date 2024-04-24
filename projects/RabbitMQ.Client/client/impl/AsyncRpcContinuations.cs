@@ -246,10 +246,10 @@ namespace RabbitMQ.Client.Impl
 
     internal class BasicConsumeAsyncRpcContinuation : AsyncRpcContinuation<string>
     {
-        private readonly IBasicConsumer _consumer;
+        private readonly IAsyncBasicConsumer _consumer;
         private readonly IConsumerDispatcher _consumerDispatcher;
 
-        public BasicConsumeAsyncRpcContinuation(IBasicConsumer consumer, IConsumerDispatcher consumerDispatcher,
+        public BasicConsumeAsyncRpcContinuation(IAsyncBasicConsumer consumer, IConsumerDispatcher consumerDispatcher,
             TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(continuationTimeout, cancellationToken)
         {

@@ -54,17 +54,19 @@ namespace Test.Integration
             var unregisteredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             object unregisteredSender = null;
 
-            EventingBasicConsumer ec = new EventingBasicConsumer(_channel);
-            ec.Registered += (s, args) =>
+            var ec = new AsyncEventingBasicConsumer(_channel);
+            ec.Registered += (s, args, ct) =>
             {
                 registeredSender = s;
                 registeredTcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
-            ec.Unregistered += (s, args) =>
+            ec.Unregistered += (s, args, ct) =>
             {
                 unregisteredSender = s;
                 unregisteredTcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             string tag = await _channel.BasicConsumeAsync(q, false, ec);
@@ -72,14 +74,14 @@ namespace Test.Integration
 
             Assert.NotNull(registeredSender);
             Assert.Equal(ec, registeredSender);
-            Assert.Equal(_channel, ((EventingBasicConsumer)registeredSender).Channel);
+            Assert.Equal(_channel, ((AsyncEventingBasicConsumer)registeredSender).Channel);
 
             await _channel.BasicCancelAsync(tag);
 
             await WaitAsync(unregisteredTcs, "consumer unregistered");
             Assert.NotNull(unregisteredSender);
             Assert.Equal(ec, unregisteredSender);
-            Assert.Equal(_channel, ((EventingBasicConsumer)unregisteredSender).Channel);
+            Assert.Equal(_channel, ((AsyncEventingBasicConsumer)unregisteredSender).Channel);
         }
 
         [Fact]
@@ -91,12 +93,13 @@ namespace Test.Integration
             bool receivedInvoked = false;
             object receivedSender = null;
 
-            var ec = new EventingBasicConsumer(_channel);
-            ec.Received += (s, args) =>
+            var ec = new AsyncEventingBasicConsumer(_channel);
+            ec.Received += (s, args, ct) =>
             {
                 receivedInvoked = true;
                 receivedSender = s;
                 tcs0.SetResult(true);
+                return Task.CompletedTask;
             };
 
             await _channel.BasicConsumeAsync(q, true, ec);
@@ -108,16 +111,17 @@ namespace Test.Integration
             Assert.True(receivedInvoked);
             Assert.NotNull(receivedSender);
             Assert.Equal(ec, receivedSender);
-            Assert.Equal(_channel, ((EventingBasicConsumer)receivedSender).Channel);
+            Assert.Equal(_channel, ((AsyncEventingBasicConsumer)receivedSender).Channel);
 
             bool shutdownInvoked = false;
             object shutdownSender = null;
 
-            ec.Shutdown += (s, args) =>
+            ec.Shutdown += (s, args, ct) =>
             {
                 shutdownInvoked = true;
                 shutdownSender = s;
                 tcs1.SetResult(true);
+                return Task.CompletedTask;
             };
 
             await _channel.CloseAsync();
@@ -127,7 +131,7 @@ namespace Test.Integration
             Assert.True(shutdownInvoked);
             Assert.NotNull(shutdownSender);
             Assert.Equal(ec, shutdownSender);
-            Assert.Equal(_channel, ((EventingBasicConsumer)shutdownSender).Channel);
+            Assert.Equal(_channel, ((AsyncEventingBasicConsumer)shutdownSender).Channel);
         }
     }
 }

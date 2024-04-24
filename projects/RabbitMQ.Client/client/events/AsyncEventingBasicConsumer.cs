@@ -53,9 +53,9 @@ namespace RabbitMQ.Client.Events
         private AsyncEventingWrapper<ConsumerEventArgs> _unregisteredWrapper;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public override async Task HandleBasicCancelOk(string consumerTag)
+        public override async Task HandleBasicCancelOkAsync(string consumerTag)
         {
-            await base.HandleBasicCancelOk(consumerTag)
+            await base.HandleBasicCancelOkAsync(consumerTag)
                 .ConfigureAwait(false);
             if (!_unregisteredWrapper.IsEmpty)
             {
@@ -67,9 +67,9 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public override async Task HandleBasicConsumeOk(string consumerTag)
+        public override async Task HandleBasicConsumeOkAsync(string consumerTag)
         {
-            await base.HandleBasicConsumeOk(consumerTag)
+            await base.HandleBasicConsumeOkAsync(consumerTag)
                 .ConfigureAwait(false);
             if (!_registeredWrapper.IsEmpty)
             {
@@ -81,18 +81,19 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        public override Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken)
         {
             var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             // No need to call base, it's empty.
-            return BasicDeliverWrapper(deliverEventArgs);
+            return BasicDeliverWrapper(deliverEventArgs, cancellationToken);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override async Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+        public override async Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
         {
-            await base.HandleChannelShutdown(channel, reason)
+            await base.HandleChannelShutdownAsync(channel, reason)
                 .ConfigureAwait(false);
             if (!_shutdownWrapper.IsEmpty)
             {
@@ -102,12 +103,11 @@ namespace RabbitMQ.Client.Events
             }
         }
 
-        private async Task BasicDeliverWrapper(BasicDeliverEventArgs eventArgs)
+        private async Task BasicDeliverWrapper(BasicDeliverEventArgs eventArgs, CancellationToken cancellationToken)
         {
             using (Activity activity = RabbitMQActivitySource.Deliver(eventArgs))
             {
-                // TODO cancellation token
-                await _receivedWrapper.InvokeAsync(this, eventArgs, CancellationToken.None)
+                await _receivedWrapper.InvokeAsync(this, eventArgs, cancellationToken)
                     .ConfigureAwait(false);
             }
         }

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -44,7 +45,7 @@ namespace Test.Integration
         {
         }
 
-        private sealed class FaultyConsumer : DefaultBasicConsumer
+        private sealed class FaultyConsumer : AsyncDefaultBasicConsumer
         {
             public FaultyConsumer(IChannel channel) : base(channel) { }
 
@@ -54,7 +55,8 @@ namespace Test.Integration
                                                string exchange,
                                                string routingKey,
                                                ReadOnlyBasicProperties properties,
-                                               ReadOnlyMemory<byte> body)
+                                               ReadOnlyMemory<byte> body,
+                                               CancellationToken cancellationToken)
             {
                 throw new Exception("I am a bad consumer");
             }

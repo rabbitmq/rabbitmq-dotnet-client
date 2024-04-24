@@ -65,13 +65,14 @@ namespace Test.Integration
             var bp = new BasicProperties();
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumer.Received += (o, a) =>
+                consumer.Received += (o, a, ct) =>
                 {
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
+                    return Task.CompletedTask;
                 };
                 string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
@@ -94,13 +95,14 @@ namespace Test.Integration
             CachedString queueName = new CachedString((await _channel.QueueDeclareAsync()).QueueName);
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumer.Received += (o, a) =>
+                consumer.Received += (o, a, ct) =>
                 {
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
+                    return Task.CompletedTask;
                 };
                 string tag = await _channel.BasicConsumeAsync(queueName.Value, true, consumer);
 
@@ -122,13 +124,14 @@ namespace Test.Integration
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumer.Received += (o, a) =>
+                consumer.Received += (o, a, ct) =>
                 {
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
+                    return Task.CompletedTask;
                 };
                 string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
@@ -149,17 +152,18 @@ namespace Test.Integration
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             byte[] sendBody = new byte[1000];
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
                 bool modified = true;
-                consumer.Received += (o, a) =>
+                consumer.Received += (o, a, ct) =>
                 {
                     if (a.Body.Span.IndexOf((byte)1) < 0)
                     {
                         modified = false;
                     }
                     consumerReceivedSemaphore.Release();
+                    return Task.CompletedTask;
                 };
                 string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
@@ -218,31 +222,35 @@ namespace Test.Integration
 
                     QueueDeclareOk q = await channel.QueueDeclareAsync();
 
-                    var consumer = new EventingBasicConsumer(channel);
+                    var consumer = new AsyncEventingBasicConsumer(channel);
 
-                    consumer.Shutdown += (o, a) =>
+                    consumer.Shutdown += (o, a, ct) =>
                     {
                         re.Set();
+                        return Task.CompletedTask;
                     };
 
-                    consumer.Registered += (o, a) =>
+                    consumer.Registered += (o, a, ct) =>
                     {
                         sawConsumerRegistered = true;
+                        return Task.CompletedTask;
                     };
 
-                    consumer.Unregistered += (o, a) =>
+                    consumer.Unregistered += (o, a, ct) =>
                     {
                         throw new XunitException("Unexpected consumer.Unregistered");
                     };
 
-                    consumer.ConsumerCancelled += (o, a) =>
+                    consumer.ConsumerCancelled += (o, a, ct) =>
                     {
                         sawConsumerCancelled = true;
+                        return Task.CompletedTask;
                     };
 
-                    consumer.Received += (o, a) =>
+                    consumer.Received += (o, a, ct) =>
                     {
                         Interlocked.Increment(ref count);
+                        return Task.CompletedTask;
                     };
 
                     string tag = await channel.BasicConsumeAsync(q.QueueName, true, consumer);
@@ -278,15 +286,16 @@ namespace Test.Integration
             bp.Headers["Hello"] = "World";
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
                 string response = null;
-                consumer.Received += (o, a) =>
+                consumer.Received += (o, a, ct) =>
                 {
                     response = _encoding.GetString(a.BasicProperties.Headers["Hello"] as byte[]);
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
+                    return Task.CompletedTask;
                 };
 
                 string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
