@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void HandleChannelShutdown(ShutdownEventArgs reason)
         {
-            _tcs.SetException(new OperationInterruptedException(reason));
+            _tcs.TrySetException(new OperationInterruptedException(reason));
         }
 
         protected virtual void Dispose(bool disposing)
