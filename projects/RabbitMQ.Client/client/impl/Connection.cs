@@ -431,7 +431,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
             await OnShutdownAsync(reason, cancellationToken)
                 .ConfigureAwait(false);
-            _session0.SetSessionClosing(true);
+            await _session0.SetSessionClosingAsync(true)
+                .ConfigureAwait(false);
             MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: true);
         }
 
@@ -492,31 +493,38 @@ namespace RabbitMQ.Client.Framing.Impl
             return _frameHandler.WriteAsync(frames, cancellationToken);
         }
 
-        public void Dispose()
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+
+        private void Dispose(bool disposing)
         {
             if (_disposed)
             {
                 return;
             }
 
-            try
+            if (disposing)
             {
-                if (IsOpen)
+                try
                 {
-                    this.AbortAsync().GetAwaiter().GetResult();
+                    if (IsOpen)
+                    {
+                        this.AbortAsync().GetAwaiter().GetResult();
+                    }
+                    _session0.Dispose();
+                    _mainLoopCts.Dispose();
+                    _sessionManager.Dispose();
                 }
-
-                _session0.Dispose();
-                _mainLoopCts.Dispose();
-                _sessionManager.Dispose();
-            }
-            catch (OperationInterruptedException)
-            {
-                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
-            }
-            finally
-            {
-                _disposed = true;
+                catch (OperationInterruptedException)
+                {
+                    // ignored, see rabbitmq/rabbitmq-dotnet-client#133
+                }
+                finally
+                {
+                    _disposed = true;
+                }
             }
         }
 
@@ -524,11 +532,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private void ThrowIfDisposed()
         {
             if (_disposed)
-            {
-                ThrowObjectDisposedException();
-            }
-
-            static void ThrowObjectDisposedException()
             {
                 throw new ObjectDisposedException(typeof(Connection).FullName);
             }

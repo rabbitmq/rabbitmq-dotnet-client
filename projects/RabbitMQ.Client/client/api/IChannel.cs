@@ -82,7 +82,7 @@ namespace RabbitMQ.Client
         ///
         /// Most people will not need to use this.
         /// </remarks>
-        IBasicConsumer DefaultConsumer { get; set; }
+        IAsyncBasicConsumer DefaultConsumer { get; set; }
 
         /// <summary>
         /// Returns true if the channel is no longer in a state where it can be used.
@@ -127,7 +127,7 @@ namespace RabbitMQ.Client
         /// Signalled when an exception occurs in a callback invoked by the channel.
         ///
         /// Examples of cases where this event will be signalled
-        /// include exceptions thrown in <see cref="IBasicConsumer"/> methods, or
+        /// include exceptions thrown in <see cref="IAsyncBasicConsumer"/> methods, or
         /// exceptions thrown in <see cref="ChannelShutdown"/> delegates etc.
         /// </summary>
         event EventHandler<CallbackExceptionEventArgs> CallbackException;
@@ -174,11 +174,11 @@ namespace RabbitMQ.Client
         /// <param name="noLocal">If set to <c>true</c>, this consumer will not receive messages published by the same connection.</param>
         /// <param name="exclusive">If set to <c>true</c>, the consumer is exclusive.</param>
         /// <param name="arguments">Consumer arguments.</param>
-        /// <param name="consumer">The consumer, an instance of <see cref="IBasicConsumer"/></param>
+        /// <param name="consumer">The consumer, an instance of <see cref="IAsyncBasicConsumer"/></param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns></returns>
         Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
-            IDictionary<string, object> arguments, IBasicConsumer consumer,
+            IDictionary<string, object> arguments, IAsyncBasicConsumer consumer,
             CancellationToken cancellationToken = default);
 
         /// <summary>

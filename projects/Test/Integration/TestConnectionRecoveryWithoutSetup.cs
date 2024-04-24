@@ -125,7 +125,7 @@ namespace Test.Integration
                 {
                     string q = (await ch.QueueDeclareAsync("dotnet-client.recovery.consumer_work_pool1",
                         false, false, false)).QueueName;
-                    var cons = new EventingBasicConsumer(ch);
+                    var cons = new AsyncEventingBasicConsumer(ch);
                     await ch.BasicConsumeAsync(q, true, cons);
                     await AssertConsumerCountAsync(ch, q, 1);
 
@@ -133,7 +133,11 @@ namespace Test.Integration
 
                     Assert.True(ch.IsOpen);
                     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    cons.Received += (s, args) => tcs.SetResult(true);
+                    cons.Received += (s, args, ct) =>
+                    {
+                        tcs.SetResult(true);
+                        return Task.CompletedTask;
+                    };
 
                     await ch.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
                     await WaitAsync(tcs, "received event");
@@ -158,7 +162,7 @@ namespace Test.Integration
                     string q1 = (await ch.QueueDeclareAsync(q0, false, false, false)).QueueName;
                     Assert.Equal(q0, q1);
 
-                    var cons = new EventingBasicConsumer(ch);
+                    var cons = new AsyncEventingBasicConsumer(ch);
                     await ch.BasicConsumeAsync(q1, true, cons);
                     await AssertConsumerCountAsync(ch, q1, 1);
 
@@ -181,7 +185,11 @@ namespace Test.Integration
                     Assert.False(queueNameChangeAfterRecoveryCalled);
 
                     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    cons.Received += (s, args) => tcs.SetResult(true);
+                    cons.Received += (s, args, ct) =>
+                    {
+                        tcs.SetResult(true);
+                        return Task.CompletedTask;
+                    };
 
                     await ch.BasicPublishAsync("", q1, _encoding.GetBytes("msg"));
                     await WaitAsync(tcs, "received event");
@@ -207,7 +215,7 @@ namespace Test.Integration
                     string qname = queueDeclareResult.QueueName;
                     Assert.False(string.IsNullOrEmpty(qname));
 
-                    var cons = new EventingBasicConsumer(ch);
+                    var cons = new AsyncEventingBasicConsumer(ch);
                     await ch.BasicConsumeAsync(string.Empty, true, cons);
                     await AssertConsumerCountAsync(ch, qname, 1);
 
@@ -292,13 +300,21 @@ namespace Test.Integration
                     await ch.QueuePurgeAsync(queueWithIgnoredConsumer);
 
                     var consumerRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    var consumerToRecover = new EventingBasicConsumer(ch);
-                    consumerToRecover.Received += (source, ea) => consumerRecoveryTcs.SetResult(true);
+                    var consumerToRecover = new AsyncEventingBasicConsumer(ch);
+                    consumerToRecover.Received += (source, ea, ct) =>
+                    {
+                        consumerRecoveryTcs.SetResult(true);
+                        return Task.CompletedTask;
+                    };
                     await ch.BasicConsumeAsync(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover);
 
                     var ignoredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    var consumerToIgnore = new EventingBasicConsumer(ch);
-                    consumerToIgnore.Received += (source, ea) => ignoredTcs.SetResult(true);
+                    var consumerToIgnore = new AsyncEventingBasicConsumer(ch);
+                    consumerToIgnore.Received += (source, ea, ct) =>
+                    {
+                        ignoredTcs.SetResult(true);
+                        return Task.CompletedTask;
+                    };
                     await ch.BasicConsumeAsync(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
 
                     try

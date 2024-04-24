@@ -49,6 +49,8 @@ namespace RabbitMQ.Client.Impl
 {
     internal abstract class ChannelBase : IChannel, IRecoverable
     {
+        private bool _disposed;
+
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.OpenAsync"/> </summary>
         internal TaskCompletionSource<ConnectionStartDetails> m_connectionStartCell;
@@ -73,14 +75,7 @@ namespace RabbitMQ.Client.Impl
         {
             ContinuationTimeout = config.ContinuationTimeout;
 
-            if (config.DispatchConsumersAsync)
-            {
-                ConsumerDispatcher = new AsyncConsumerDispatcher(this, config.DispatchConsumerConcurrency);
-            }
-            else
-            {
-                ConsumerDispatcher = new ConsumerDispatcher(this, config.DispatchConsumerConcurrency);
-            }
+            ConsumerDispatcher = new AsyncConsumerDispatcher(this, config.DispatchConsumerConcurrency);
 
             Action<Exception, string> onException = (exception, context) =>
                 OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
@@ -173,7 +168,7 @@ namespace RabbitMQ.Client.Impl
 
         public int ChannelNumber => ((Session)Session).ChannelNumber;
 
-        public IBasicConsumer DefaultConsumer
+        public IAsyncBasicConsumer DefaultConsumer
         {
             get => ConsumerDispatcher.DefaultConsumer;
             set => ConsumerDispatcher.DefaultConsumer = value;
@@ -535,16 +530,27 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void Dispose(bool disposing)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (disposing)
             {
-                if (IsOpen)
+                try
                 {
-                    this.AbortAsync().GetAwaiter().GetResult();
+                    if (IsOpen)
+                    {
+                        this.AbortAsync().GetAwaiter().GetResult();
+                    }
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore?.Dispose();
                 }
-
-                ConsumerDispatcher.Dispose();
-                _rpcSemaphore.Dispose();
-                _confirmSemaphore?.Dispose();
+                finally
+                {
+                    _disposed = true;
+                }
             }
         }
 
@@ -967,7 +973,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
-            IDictionary<string, object> arguments, IBasicConsumer consumer,
+            IDictionary<string, object> arguments, IAsyncBasicConsumer consumer,
             CancellationToken cancellationToken)
         {
             if (ConsumerDispatcher is AsyncConsumerDispatcher)

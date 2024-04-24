@@ -81,35 +81,6 @@ namespace RabbitMQ.Client.Impl
             return base.HandleFrameAsync(frame, cancellationToken);
         }
 
-        ///<summary> Set channel 0 as quiescing </summary>
-        ///<remarks>
-        /// Method should be idempotent. Cannot use base.Close
-        /// method call because that would prevent us from
-        /// sending/receiving Close/CloseOk commands
-        ///</remarks>
-        public void SetSessionClosing(bool closeIsServerInitiated)
-        {
-            if (_closingSemaphore.Wait(InternalConstants.DefaultConnectionAbortTimeout))
-            {
-                try
-                {
-                    if (false == _closing)
-                    {
-                        _closing = true;
-                        _closeIsServerInitiated = closeIsServerInitiated;
-                    }
-                }
-                finally
-                {
-                    _closingSemaphore.Release();
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("[DEBUG] couldn't enter semaphore");
-            }
-        }
-
         public async Task SetSessionClosingAsync(bool closeIsServerInitiated)
         {
             if (await _closingSemaphore.WaitAsync(InternalConstants.DefaultConnectionAbortTimeout).ConfigureAwait(false))

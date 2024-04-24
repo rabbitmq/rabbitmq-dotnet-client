@@ -132,12 +132,7 @@ namespace RabbitMQ.Client
         public readonly TimeSpan RequestedConnectionTimeout;
 
         /// <summary>
-        /// Set to true will enable an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/>.
-        /// </summary>
-        public readonly bool DispatchConsumersAsync;
-
-        /// <summary>
-        /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IBasicConsumer"/>
+        /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
         /// </summary>
@@ -152,7 +147,7 @@ namespace RabbitMQ.Client
             ushort maxChannelCount, uint maxFrameSize, bool topologyRecoveryEnabled,
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
-            bool dispatchConsumersAsync, int dispatchConsumerConcurrency,
+            int dispatchConsumerConcurrency,
             Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
         {
             VirtualHost = virtualHost;
@@ -173,7 +168,6 @@ namespace RabbitMQ.Client
             ContinuationTimeout = continuationTimeout;
             HandshakeContinuationTimeout = handshakeContinuationTimeout;
             RequestedConnectionTimeout = requestedConnectionTimeout;
-            DispatchConsumersAsync = dispatchConsumersAsync;
             DispatchConsumerConcurrency = dispatchConsumerConcurrency;
             FrameHandlerFactoryAsync = frameHandlerFactoryAsync;
         }

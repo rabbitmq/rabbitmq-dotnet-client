@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
@@ -21,22 +22,25 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
         ///  e.g. the queue has been deleted (either by this channel or  by any other channel).
-        ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
+        ///  See <see cref="HandleBasicCancelOkAsync"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicCancel(string consumerTag);
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicCancelOk(string consumerTag);
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicConsumeOk(string consumerTag);
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Called each time a message arrives for this consumer.
@@ -46,19 +50,22 @@ namespace RabbitMQ.Client
         /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAckAsync"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
-        Task HandleBasicDeliver(string consumerTag,
+        Task HandleBasicDeliverAsync(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             string exchange,
             string routingKey,
-            in ReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body);
+            ReadOnlyBasicProperties properties,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        ///  Called when the channel shuts down.
-        ///  </summary>
-        ///  <param name="channel"> Common AMQP channel.</param>
+        /// Called when the channel shuts down.
+        /// </summary>
+        /// <param name="channel"> Common AMQP channel.</param>
         /// <param name="reason"> Information about the reason why a particular channel, session, or connection was destroyed.</param>
-        Task HandleChannelShutdown(object channel, ShutdownEventArgs reason);
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -68,15 +69,16 @@ namespace Test.Integration
             await _channel.QueueDeclareAsync(q1, false, false, false);
             await _channel.QueueDeclareAsync(q2, false, false, false);
 
-            EventingBasicConsumer consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             string consumerTag1 = await _channel.BasicConsumeAsync(q1, true, consumer);
             string consumerTag2 = await _channel.BasicConsumeAsync(q2, true, consumer);
 
             string notifiedConsumerTag = null;
-            consumer.ConsumerCancelled += (sender, args) =>
+            consumer.ConsumerCancelled += (sender, args, ct) =>
             {
                 notifiedConsumerTag = args.ConsumerTags.First();
                 _tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             await _channel.QueueDeleteAsync(q1);
@@ -89,7 +91,7 @@ namespace Test.Integration
         private async Task TestConsumerCancelAsync(string queue, bool eventMode)
         {
             await _channel.QueueDeclareAsync(queue, false, true, false);
-            IBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, eventMode);
+            IAsyncBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, eventMode);
             string actualConsumerTag = await _channel.BasicConsumeAsync(queue, false, consumer);
 
             await _channel.QueueDeleteAsync(queue);
@@ -97,7 +99,7 @@ namespace Test.Integration
             Assert.Equal(actualConsumerTag, _consumerTag);
         }
 
-        private class CancelNotificationConsumer : DefaultBasicConsumer
+        private class CancelNotificationConsumer : AsyncDefaultBasicConsumer
         {
             private readonly TestConsumerCancelNotify _testClass;
             private readonly bool _eventMode;
@@ -113,7 +115,7 @@ namespace Test.Integration
                 }
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
             {
                 if (!_eventMode)
                 {
@@ -121,13 +123,15 @@ namespace Test.Integration
                     _testClass._tcs.SetResult(true);
                 }
 
-                base.HandleBasicCancel(consumerTag);
+                return base.HandleBasicCancelAsync(consumerTag, cancellationToken);
             }
 
-            private void Cancelled(object sender, ConsumerEventArgs arg)
+            private Task Cancelled(object sender, ConsumerEventArgs arg,
+                CancellationToken cancellationToken)
             {
                 _testClass._consumerTag = arg.ConsumerTags[0];
                 _testClass._tcs.SetResult(true);
+                return Task.CompletedTask;
             }
         }
     }

@@ -39,7 +39,8 @@ namespace RabbitMQ.Client
 {
     public interface ICredentialsRefresher
     {
-        ICredentialsProvider Register(ICredentialsProvider provider, NotifyCredentialRefreshedAsync callback);
+        ICredentialsProvider Register(ICredentialsProvider provider, NotifyCredentialRefreshedAsync callback,
+            CancellationToken cancellationToken = default);
         bool Unregister(ICredentialsProvider provider);
 
         delegate Task NotifyCredentialRefreshedAsync(bool successfully,
@@ -75,14 +76,15 @@ namespace RabbitMQ.Client
     {
         private readonly ConcurrentDictionary<ICredentialsProvider, System.Timers.Timer> _registrations = new ConcurrentDictionary<ICredentialsProvider, System.Timers.Timer>();
 
-        public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
+        public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback,
+            CancellationToken cancellationToken)
         {
             if (!provider.ValidUntil.HasValue || provider.ValidUntil.Value.Equals(TimeSpan.Zero))
             {
                 return provider;
             }
 
-            if (_registrations.TryAdd(provider, scheduleTimer(provider, callback)))
+            if (_registrations.TryAdd(provider, scheduleTimer(provider, callback, cancellationToken)))
             {
                 TimerBasedCredentialRefresherEventSource.Log.Registered(provider.Name);
             }
@@ -115,7 +117,8 @@ namespace RabbitMQ.Client
             }
         }
 
-        private System.Timers.Timer scheduleTimer(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
+        private System.Timers.Timer scheduleTimer(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback,
+            CancellationToken cancellationToken)
         {
             System.Timers.Timer timer = new System.Timers.Timer();
             timer.Interval = provider.ValidUntil.Value.TotalMilliseconds * (1.0 - (1 / 3.0));
@@ -125,13 +128,13 @@ namespace RabbitMQ.Client
                 try
                 {
                     provider.Refresh();
-                    scheduleTimer(provider, callback);
-                    callback.Invoke(provider.Password != null, CancellationToken.None); // TODO cancellation token
+                    scheduleTimer(provider, callback, cancellationToken);
+                    callback.Invoke(provider.Password != null, cancellationToken);
                     TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, true);
                 }
                 catch (Exception)
                 {
-                    callback.Invoke(false, CancellationToken.None); // TODO cancellation token
+                    callback.Invoke(false, cancellationToken);
                     TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, false);
                 }
 
@@ -145,7 +148,8 @@ namespace RabbitMQ.Client
 
     class NoOpCredentialsRefresher : ICredentialsRefresher
     {
-        public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
+        public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback,
+            CancellationToken _)
         {
             return provider;
         }

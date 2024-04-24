@@ -50,7 +50,7 @@ namespace Test.Integration
             await _channel.QueueDeclareAsync(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
             Assert.Equal(0u, await _channel.ConsumerCountAsync(q));
 
-            string tag = await _channel.BasicConsumeAsync(q, true, new EventingBasicConsumer(_channel));
+            string tag = await _channel.BasicConsumeAsync(q, true, new AsyncEventingBasicConsumer(_channel));
             Assert.Equal(1u, await _channel.ConsumerCountAsync(q));
 
             await _channel.BasicCancelAsync(tag);

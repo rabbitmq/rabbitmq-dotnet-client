@@ -185,23 +185,6 @@ namespace RabbitMQ.Client.Framing.Impl
             MaybeStopHeartbeatTimers();
         }
 
-        // TODO use async version
-        private void HandleMainLoopException(ShutdownEventArgs reason)
-        {
-            string message = reason.GetLogMessage();
-            if (false == SetCloseReason(reason))
-            {
-                LogCloseError($"Unexpected Main Loop Exception while closing: {message}", reason.Exception);
-                return;
-            }
-
-            _channel0.MaybeSetConnectionStartException(reason.Exception);
-
-            // NOTE: not awaited!
-            OnShutdownAsync(reason, CancellationToken.None);
-            LogCloseError($"Unexpected connection closure: {message}", reason.Exception);
-        }
-
         private Task HandleMainLoopExceptionAsync(ShutdownEventArgs reason, CancellationToken cancellationToken)
         {
             string message = reason.GetLogMessage();

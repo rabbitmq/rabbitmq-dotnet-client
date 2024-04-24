@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
@@ -39,7 +40,7 @@ namespace Test.Integration
 {
     public class TestConsumerExceptions : IntegrationFixture
     {
-        private class ConsumerFailingOnDelivery : DefaultBasicConsumer
+        private class ConsumerFailingOnDelivery : AsyncDefaultBasicConsumer
         {
             public ConsumerFailingOnDelivery(IChannel channel) : base(channel)
             {
@@ -51,62 +52,63 @@ namespace Test.Integration
                 string exchange,
                 string routingKey,
                 ReadOnlyBasicProperties properties,
-                ReadOnlyMemory<byte> body)
+                ReadOnlyMemory<byte> body,
+                CancellationToken cancellationToken)
             {
                 throw new Exception("oops");
             }
         }
 
-        private class ConsumerFailingOnCancel : DefaultBasicConsumer
+        private class ConsumerFailingOnCancel : AsyncDefaultBasicConsumer
         {
             public ConsumerFailingOnCancel(IChannel channel) : base(channel)
             {
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag, CancellationToken _)
             {
                 throw new Exception("oops");
             }
         }
 
-        private class ConsumerFailingOnShutdown : DefaultBasicConsumer
+        private class ConsumerFailingOnShutdown : AsyncDefaultBasicConsumer
         {
             public ConsumerFailingOnShutdown(IChannel channel) : base(channel)
             {
             }
 
-            public override void HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+            public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason, CancellationToken _)
             {
                 throw new Exception("oops");
             }
         }
 
-        private class ConsumerFailingOnConsumeOk : DefaultBasicConsumer
+        private class ConsumerFailingOnConsumeOk : AsyncDefaultBasicConsumer
         {
             public ConsumerFailingOnConsumeOk(IChannel channel) : base(channel)
             {
             }
 
-            public override void HandleBasicConsumeOk(string consumerTag)
+            public override Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken _)
             {
                 throw new Exception("oops");
             }
         }
 
-        private class ConsumerFailingOnCancelOk : DefaultBasicConsumer
+        private class ConsumerFailingOnCancelOk : AsyncDefaultBasicConsumer
         {
             public ConsumerFailingOnCancelOk(IChannel channel) : base(channel)
             {
             }
 
-            public override void HandleBasicCancelOk(string consumerTag)
+            public override Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken _)
             {
                 throw new Exception("oops");
             }
         }
 
-        protected async Task TestExceptionHandlingWithAsync(IBasicConsumer consumer,
-            Func<IChannel, string, IBasicConsumer, string, Task> action)
+        protected async Task TestExceptionHandlingWithAsync(IAsyncBasicConsumer consumer,
+            Func<IChannel, string, IAsyncBasicConsumer, string, Task> action)
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool notified = false;
@@ -132,7 +134,7 @@ namespace Test.Integration
         [Fact]
         public Task TestCancelNotificationExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnCancel(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnCancel(_channel);
             return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) =>
             {
                 return ch.QueueDeleteAsync(q);
@@ -142,28 +144,28 @@ namespace Test.Integration
         [Fact]
         public Task TestConsumerCancelOkExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnCancelOk(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnCancelOk(_channel);
             return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) => ch.BasicCancelAsync(ct));
         }
 
         [Fact]
         public Task TestConsumerConsumeOkExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_channel);
             return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) => Task.CompletedTask);
         }
 
         [Fact]
         public Task TestConsumerShutdownExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnShutdown(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnShutdown(_channel);
             return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) => ch.CloseAsync());
         }
 
         [Fact]
         public Task TestDeliveryExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
             return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) =>
                 ch.BasicPublishAsync("", q, _encoding.GetBytes("msg")).AsTask());
         }

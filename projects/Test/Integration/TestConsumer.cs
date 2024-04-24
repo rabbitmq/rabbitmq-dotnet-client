@@ -55,12 +55,13 @@ namespace Test.Integration
             TimeSpan waitSpan = TimeSpan.FromSeconds(2);
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             await _channel.BasicPublishAsync("", q.QueueName, _body);
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumer.Received += (o, a) =>
+                consumer.Received += (o, a, ct) =>
                 {
                     consumerReceivedSemaphore.Release();
+                    return Task.CompletedTask;
                 };
                 string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
                 // ensure we get a delivery
@@ -79,12 +80,13 @@ namespace Test.Integration
         {
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             await _channel.BasicPublishAsync("", q.QueueName, _body);
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumer.Received += (o, a) =>
+                consumer.Received += (o, a, ct) =>
                 {
                     consumerReceivedSemaphore.Release();
+                    return Task.CompletedTask;
                 };
                 string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
                 // ensure we get a delivery
@@ -107,7 +109,7 @@ namespace Test.Integration
             byte[] called = new byte[NumberOfThreads * NumberOfRegistrations];
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
             var countdownEvent = new CountdownEvent(NumberOfThreads);
 
@@ -121,9 +123,10 @@ namespace Test.Integration
                     for (int j = start; j < start + NumberOfRegistrations; j++)
                     {
                         int receivedIndex = j;
-                        consumer.Received += (sender, eventArgs) =>
+                        consumer.Received += (sender, eventArgs, ct) =>
                         {
                             called[receivedIndex] = 1;
+                            return Task.CompletedTask;
                         };
                     }
                     countdownEvent.Signal();
@@ -134,9 +137,10 @@ namespace Test.Integration
 
             // Add last receiver
             var lastConsumerReceivedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            consumer.Received += (o, a) =>
+            consumer.Received += (o, a, ct) =>
             {
                 lastConsumerReceivedTcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             // Send message

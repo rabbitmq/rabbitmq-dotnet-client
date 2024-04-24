@@ -53,61 +53,59 @@ namespace RabbitMQ.Client.Events
         private AsyncEventingWrapper<ConsumerEventArgs> _unregisteredWrapper;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public override async Task HandleBasicCancelOk(string consumerTag)
+        public override async Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
-            await base.HandleBasicCancelOk(consumerTag)
+            await base.HandleBasicCancelOkAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
             if (!_unregisteredWrapper.IsEmpty)
             {
-                // TODO cancellation token
                 await _unregisteredWrapper.InvokeAsync(
-                    this, new ConsumerEventArgs(new[] { consumerTag }), CancellationToken.None)
+                    this, new ConsumerEventArgs(new[] { consumerTag }), cancellationToken)
                         .ConfigureAwait(false);
             }
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public override async Task HandleBasicConsumeOk(string consumerTag)
+        public override async Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
-            await base.HandleBasicConsumeOk(consumerTag)
+            await base.HandleBasicConsumeOkAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
             if (!_registeredWrapper.IsEmpty)
             {
-                // TODO cancellation token
                 await _registeredWrapper.InvokeAsync(
-                    this, new ConsumerEventArgs(new[] { consumerTag }), CancellationToken.None)
+                    this, new ConsumerEventArgs(new[] { consumerTag }), cancellationToken)
                         .ConfigureAwait(false);
             }
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        public override Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken)
         {
             var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             // No need to call base, it's empty.
-            return BasicDeliverWrapper(deliverEventArgs);
+            return BasicDeliverWrapper(deliverEventArgs, cancellationToken);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override async Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+        public override async Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason,
+            CancellationToken cancellationToken)
         {
-            await base.HandleChannelShutdown(channel, reason)
+            await base.HandleChannelShutdownAsync(channel, reason, cancellationToken)
                 .ConfigureAwait(false);
             if (!_shutdownWrapper.IsEmpty)
             {
-                // TODO cancellation token
-                await _shutdownWrapper.InvokeAsync(this, reason, CancellationToken.None)
+                await _shutdownWrapper.InvokeAsync(this, reason, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
 
-        private async Task BasicDeliverWrapper(BasicDeliverEventArgs eventArgs)
+        private async Task BasicDeliverWrapper(BasicDeliverEventArgs eventArgs, CancellationToken cancellationToken)
         {
             using (Activity activity = RabbitMQActivitySource.Deliver(eventArgs))
             {
-                // TODO cancellation token
-                await _receivedWrapper.InvokeAsync(this, eventArgs, CancellationToken.None)
+                await _receivedWrapper.InvokeAsync(this, eventArgs, cancellationToken)
                     .ConfigureAwait(false);
             }
         }

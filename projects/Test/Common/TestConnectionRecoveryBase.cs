@@ -303,7 +303,7 @@ namespace Test
             }
         }
 
-        public class TestBasicConsumer : DefaultBasicConsumer
+        public class TestBasicConsumer : AsyncDefaultBasicConsumer
         {
             protected readonly TaskCompletionSource<bool> _allMessagesSeenTcs;
             protected readonly ushort _totalMessageCount;
@@ -322,7 +322,8 @@ namespace Test
                 string exchange,
                 string routingKey,
                 ReadOnlyBasicProperties properties,
-                ReadOnlyMemory<byte> body)
+                ReadOnlyMemory<byte> body,
+                CancellationToken cancellationToken)
             {
                 try
                 {

@@ -223,7 +223,7 @@ namespace Test.Integration
 
             for (int i = 0; i < n; i++)
             {
-                var cons = new EventingBasicConsumer(_channel);
+                var cons = new AsyncEventingBasicConsumer(_channel);
                 await _channel.BasicConsumeAsync(q, true, cons);
             }
 
@@ -309,7 +309,7 @@ namespace Test.Integration
             {
                 string q = Guid.NewGuid().ToString();
                 await _channel.QueueDeclareAsync(q, false, false, true);
-                var dummy = new EventingBasicConsumer(_channel);
+                var dummy = new AsyncEventingBasicConsumer(_channel);
                 string tag = await _channel.BasicConsumeAsync(q, true, dummy);
                 await _channel.BasicCancelAsync(tag);
             }
@@ -407,7 +407,7 @@ namespace Test.Integration
         public async Task TestRecoveringConsumerHandlerOnConnection(int iterations)
         {
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
-            var cons = new EventingBasicConsumer(_channel);
+            var cons = new AsyncEventingBasicConsumer(_channel);
             await _channel.BasicConsumeAsync(q, true, cons);
 
             int counter = 0;
@@ -426,7 +426,7 @@ namespace Test.Integration
         {
             var myArgs = new Dictionary<string, object> { { "first-argument", "some-value" } };
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
-            var cons = new EventingBasicConsumer(_channel);
+            var cons = new AsyncEventingBasicConsumer(_channel);
             string expectedCTag = await _channel.BasicConsumeAsync(cons, q, arguments: myArgs);
 
             bool ctagMatches = false;
@@ -511,7 +511,7 @@ namespace Test.Integration
         {
             string testQueueName = $"dotnet-client.test.{nameof(TestPublishRpcRightAfterReconnect)}";
             await _channel.QueueDeclareAsync(testQueueName, false, false, false);
-            var replyConsumer = new EventingBasicConsumer(_channel);
+            var replyConsumer = new AsyncEventingBasicConsumer(_channel);
             await _channel.BasicConsumeAsync("amq.rabbitmq.reply-to", true, replyConsumer);
             var properties = new BasicProperties();
             properties.ReplyTo = "amq.rabbitmq.reply-to";
@@ -566,7 +566,7 @@ namespace Test.Integration
 
             for (int i = 0; i < n; i++)
             {
-                var cons = new EventingBasicConsumer(_channel);
+                var cons = new AsyncEventingBasicConsumer(_channel);
                 string tag = await _channel.BasicConsumeAsync(q, true, cons);
                 await _channel.BasicCancelAsync(tag);
             }
@@ -683,9 +683,10 @@ namespace Test.Integration
 
             var receivedMessageSemaphore = new SemaphoreSlim(0, 1);
 
-            void MessageReceived(object sender, BasicDeliverEventArgs e)
+            Task MessageReceived(object sender, BasicDeliverEventArgs e, CancellationToken ct)
             {
                 receivedMessageSemaphore.Release();
+                return Task.CompletedTask;
             }
 
             string exchangeName = $"ex-gh-1035-{Guid.NewGuid()}";
@@ -715,7 +716,7 @@ namespace Test.Integration
 
             await _channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: routingKey);
 
-            var c = new EventingBasicConsumer(_channel);
+            var c = new AsyncEventingBasicConsumer(_channel);
             c.Received += MessageReceived;
             await _channel.BasicConsumeAsync(queue: queueName, autoAck: true, consumer: c);
 

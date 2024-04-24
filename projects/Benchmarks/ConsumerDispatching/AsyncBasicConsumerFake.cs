@@ -6,7 +6,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Benchmarks
 {
-    internal sealed class AsyncBasicConsumerFake : IAsyncBasicConsumer, IBasicConsumer
+    internal sealed class AsyncBasicConsumerFake : IAsyncBasicConsumer
     {
         private readonly ManualResetEventSlim _autoResetEvent;
         private int _current;
@@ -18,64 +18,33 @@ namespace RabbitMQ.Benchmarks
             _autoResetEvent = autoResetEvent;
         }
 
-        public Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        Task IAsyncBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken)
         {
             if (Interlocked.Increment(ref _current) == Count)
             {
                 _current = 0;
                 _autoResetEvent.Set();
             }
+
             return Task.CompletedTask;
         }
 
-        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
-        {
-            if (Interlocked.Increment(ref _current) == Count)
-            {
-                _current = 0;
-                _autoResetEvent.Set();
-            }
-            return Task.CompletedTask;
-        }
+        Task IAsyncBasicConsumer.HandleBasicCancelAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleBasicCancel(string consumerTag) => Task.CompletedTask;
+        Task IAsyncBasicConsumer.HandleBasicCancelOkAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleBasicCancelOk(string consumerTag) => Task.CompletedTask;
+        Task IAsyncBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleBasicConsumeOk(string consumerTag) => Task.CompletedTask;
-
-        public Task HandleChannelShutdown(object channel, ShutdownEventArgs reason) => Task.CompletedTask;
+        Task IAsyncBasicConsumer.HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason, CancellationToken _) => Task.CompletedTask;
 
         public IChannel Channel { get; }
-
-        event EventHandler<ConsumerEventArgs> IBasicConsumer.ConsumerCancelled
-        {
-            add { }
-            remove { }
-        }
 
         public event AsyncEventHandler<ConsumerEventArgs> ConsumerCancelled
         {
             add { }
             remove { }
-        }
-
-        void IBasicConsumer.HandleBasicCancelOk(string consumerTag)
-        {
-        }
-
-        void IBasicConsumer.HandleBasicConsumeOk(string consumerTag)
-        {
-        }
-
-        void IBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
-        {
-        }
-
-        void IBasicConsumer.HandleBasicCancel(string consumerTag)
-        {
         }
     }
 }

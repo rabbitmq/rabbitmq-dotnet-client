@@ -44,7 +44,7 @@ namespace Test.Integration
         private readonly ShutdownEventArgs _closeArgs = new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "normal shutdown");
 
         public TestAsyncConsumer(ITestOutputHelper output)
-            : base(output, dispatchConsumersAsync: true, consumerDispatchConcurrency: 2)
+            : base(output, consumerDispatchConcurrency: 2)
         {
         }
 
@@ -502,24 +502,6 @@ namespace Test.Integration
             }
 
             await _channel.CloseAsync(_closeArgs, false, CancellationToken.None);
-        }
-
-        [Fact]
-        public async Task NonAsyncConsumerShouldThrowInvalidOperationException()
-        {
-            bool sawException = false;
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
-            await _channel.BasicPublishAsync(string.Empty, q.QueueName, GetRandomBody(1024));
-            var consumer = new EventingBasicConsumer(_channel);
-            try
-            {
-                string consumerTag = await _channel.BasicConsumeAsync(q.QueueName, false, string.Empty, false, false, null, consumer);
-            }
-            catch (InvalidOperationException)
-            {
-                sawException = true;
-            }
-            Assert.True(sawException, "did not see expected InvalidOperationException");
         }
     }
 }

@@ -38,13 +38,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal interface IConsumerDispatcher : IDisposable
     {
-        IBasicConsumer? DefaultConsumer { get; set; }
+        IAsyncBasicConsumer? DefaultConsumer { get; set; }
 
         bool IsShutdown { get; }
 
-        IBasicConsumer GetAndRemoveConsumer(string tag);
+        IAsyncBasicConsumer GetAndRemoveConsumer(string tag);
 
-        ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken);
+        ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken);
 
         ValueTask HandleBasicDeliverAsync(string consumerTag,
                             ulong deliveryTag,

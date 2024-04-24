@@ -269,7 +269,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                _innerConnection.Dispose();
+                ((IDisposable)_innerConnection).Dispose();
             }
             catch (OperationInterruptedException)
             {

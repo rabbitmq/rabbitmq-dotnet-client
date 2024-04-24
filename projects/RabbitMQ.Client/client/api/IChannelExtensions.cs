@@ -41,7 +41,7 @@ namespace RabbitMQ.Client
     {
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
         public static Task<string> BasicConsumeAsync(this IChannel channel,
-            IBasicConsumer consumer,
+            IAsyncBasicConsumer consumer,
             string queue,
             bool autoAck = false,
             string consumerTag = "",
@@ -55,7 +55,7 @@ namespace RabbitMQ.Client
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
         public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
             bool autoAck,
-            IBasicConsumer consumer)
+            IAsyncBasicConsumer consumer)
         {
             return channel.BasicConsumeAsync(queue, autoAck, string.Empty, false, false, null, consumer);
         }
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client
         public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
             bool autoAck,
             string consumerTag,
-            IBasicConsumer consumer)
+            IAsyncBasicConsumer consumer)
         {
             return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, null, consumer);
         }
@@ -74,7 +74,7 @@ namespace RabbitMQ.Client
             bool autoAck,
             string consumerTag,
             IDictionary<string, object> arguments,
-            IBasicConsumer consumer)
+            IAsyncBasicConsumer consumer)
         {
             return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, arguments, consumer);
         }

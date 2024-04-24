@@ -16,14 +16,17 @@ namespace Benchmarks.Networking
             {
                 QueueDeclareOk queue = await channel.QueueDeclareAsync();
                 int consumed = 0;
-                var consumer = new EventingBasicConsumer(channel);
-                consumer.Received += (s, args) =>
+                var consumer = new AsyncEventingBasicConsumer(channel);
+                consumer.Received += (s, args, ct) =>
                 {
                     if (Interlocked.Increment(ref consumed) == messageCount)
                     {
                         tcs.SetResult(true);
                     }
+
+                    return Task.CompletedTask;
                 };
+
                 await channel.BasicConsumeAsync(queue.QueueName, true, consumer);
 
                 for (int i = 0; i < messageCount; i++)

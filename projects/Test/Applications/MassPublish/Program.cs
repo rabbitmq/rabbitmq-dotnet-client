@@ -50,7 +50,6 @@ namespace MassPublish
         {
             HostName = RmqHost,
             ClientProvidedName = AppId + "-CONSUME",
-            DispatchConsumersAsync = true
         };
 
         static readonly Random s_random;

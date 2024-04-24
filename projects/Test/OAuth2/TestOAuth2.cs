@@ -115,7 +115,6 @@ namespace OAuth2Test
             _connectionFactory = new ConnectionFactory
             {
                 AutomaticRecoveryEnabled = true,
-                DispatchConsumersAsync = true,
                 CredentialsProvider = GetCredentialsProvider(options),
                 CredentialsRefresher = GetCredentialsRefresher(),
                 ClientProvidedName = nameof(TestOAuth2)
