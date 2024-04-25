@@ -31,13 +31,13 @@ namespace RabbitMQ.Benchmarks
             return Task.CompletedTask;
         }
 
-        public Task HandleBasicCancelAsync(string consumerTag) => Task.CompletedTask;
+        public Task HandleBasicCancelAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleBasicCancelOkAsync(string consumerTag) => Task.CompletedTask;
+        public Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleBasicConsumeOkAsync(string consumerTag) => Task.CompletedTask;
+        public Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason) => Task.CompletedTask;
+        public Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason, CancellationToken _) => Task.CompletedTask;
 
         public IChannel Channel { get; }
 

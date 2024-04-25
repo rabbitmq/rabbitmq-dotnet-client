@@ -53,23 +53,22 @@ namespace RabbitMQ.Client.Events
         private AsyncEventingWrapper<ConsumerEventArgs> _unregisteredWrapper;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public override async Task HandleBasicCancelOkAsync(string consumerTag)
+        public override async Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
-            await base.HandleBasicCancelOkAsync(consumerTag)
+            await base.HandleBasicCancelOkAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
             if (!_unregisteredWrapper.IsEmpty)
             {
-                // TODO cancellation token
                 await _unregisteredWrapper.InvokeAsync(
-                    this, new ConsumerEventArgs(new[] { consumerTag }), CancellationToken.None)
+                    this, new ConsumerEventArgs(new[] { consumerTag }), cancellationToken)
                         .ConfigureAwait(false);
             }
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public override async Task HandleBasicConsumeOkAsync(string consumerTag)
+        public override async Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
-            await base.HandleBasicConsumeOkAsync(consumerTag)
+            await base.HandleBasicConsumeOkAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
             if (!_registeredWrapper.IsEmpty)
             {
@@ -91,14 +90,14 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override async Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
+        public override async Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason,
+            CancellationToken cancellationToken)
         {
-            await base.HandleChannelShutdownAsync(channel, reason)
+            await base.HandleChannelShutdownAsync(channel, reason, cancellationToken)
                 .ConfigureAwait(false);
             if (!_shutdownWrapper.IsEmpty)
             {
-                // TODO cancellation token
-                await _shutdownWrapper.InvokeAsync(this, reason, CancellationToken.None)
+                await _shutdownWrapper.InvokeAsync(this, reason, cancellationToken)
                     .ConfigureAwait(false);
             }
         }

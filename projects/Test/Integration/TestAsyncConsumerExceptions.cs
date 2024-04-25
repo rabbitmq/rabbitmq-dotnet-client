@@ -139,7 +139,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicCancelAsync(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag, CancellationToken _)
             {
                 return Task.FromException(TestException);
             }
@@ -151,7 +151,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
+            public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason, CancellationToken _)
             {
                 return Task.FromException(TestException);
             }
@@ -163,7 +163,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicConsumeOkAsync(string consumerTag)
+            public override Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken _)
             {
                 return Task.FromException(TestException);
             }
@@ -175,7 +175,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicCancelOkAsync(string consumerTag)
+            public override Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken _)
             {
                 return Task.FromException(TestException);
             }

@@ -115,7 +115,7 @@ namespace Test.Integration
                 }
             }
 
-            public override Task HandleBasicCancelAsync(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
             {
                 if (!_eventMode)
                 {
@@ -123,7 +123,7 @@ namespace Test.Integration
                     _testClass._tcs.SetResult(true);
                 }
 
-                return base.HandleBasicCancelAsync(consumerTag);
+                return base.HandleBasicCancelAsync(consumerTag, cancellationToken);
             }
 
             private Task Cancelled(object sender, ConsumerEventArgs arg,

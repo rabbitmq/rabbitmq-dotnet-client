@@ -73,25 +73,28 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOkAsync"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicCancelAsync(string consumerTag)
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        public virtual Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
         {
-            return OnCancelAsync(consumerTag);
+            return OnCancelAsync(cancellationToken, consumerTag);
         }
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicCancelOkAsync(string consumerTag)
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        public virtual Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
-            return OnCancelAsync(consumerTag);
+            return OnCancelAsync(cancellationToken, consumerTag);
         }
 
         /// <summary>
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicConsumeOkAsync(string consumerTag)
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        public virtual Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
             _consumerTags.Add(consumerTag);
             IsRunning = true;
@@ -126,25 +129,27 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="channel">A channel this consumer was registered on.</param>
         /// <param name="reason">Shutdown context.</param>
-        public virtual Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        public virtual Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason,
+            CancellationToken cancellationToken)
         {
             ShutdownReason = reason;
-            return OnCancelAsync(_consumerTags.ToArray());
+            return OnCancelAsync(cancellationToken, _consumerTags.ToArray());
         }
 
         /// <summary>
         /// Default implementation - overridable in subclasses.</summary>
-        /// <param name="consumerTags">The set of consumer tags that where cancelled</param>
         /// <remarks>
+        /// <param name="cancellationToken">The cancellation token for this operation.</param>
+        /// <param name="consumerTags">The set of consumer tags that where cancelled</param>
         /// This default implementation simply sets the <see cref="IsRunning"/> property to false, and takes no further action.
         /// </remarks>
-        public virtual async Task OnCancelAsync(params string[] consumerTags)
+        public virtual async Task OnCancelAsync(CancellationToken cancellationToken, params string[] consumerTags)
         {
             IsRunning = false;
             if (!_consumerCancelledWrapper.IsEmpty)
             {
-                // TODO cancellation token
-                await _consumerCancelledWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags), CancellationToken.None)
+                await _consumerCancelledWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags), cancellationToken)
                     .ConfigureAwait(false);
             }
             foreach (string consumerTag in consumerTags)

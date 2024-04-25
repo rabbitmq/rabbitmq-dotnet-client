@@ -192,7 +192,7 @@ namespace Test.Integration
             public readonly TaskCompletionSource<bool> Latch;
             public readonly TaskCompletionSource<bool> DuplicateLatch;
 
-            public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
+            public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason, CancellationToken _)
             {
                 // keep track of duplicates
                 if (Latch.Task.IsCompletedSuccessfully())

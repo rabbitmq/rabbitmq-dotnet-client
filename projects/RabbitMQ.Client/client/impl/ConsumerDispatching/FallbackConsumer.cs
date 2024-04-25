@@ -17,19 +17,19 @@ namespace RabbitMQ.Client.ConsumerDispatching
             remove { }
         }
 
-        Task IAsyncBasicConsumer.HandleBasicCancelAsync(string consumerTag)
+        Task IAsyncBasicConsumer.HandleBasicCancelAsync(string consumerTag, CancellationToken _)
         {
             ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleBasicCancelAsync)} for tag {consumerTag}");
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleBasicCancelOkAsync(string consumerTag)
+        Task IAsyncBasicConsumer.HandleBasicCancelOkAsync(string consumerTag, CancellationToken _)
         {
             ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleBasicCancelOkAsync)} for tag {consumerTag}");
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag)
+        Task IAsyncBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag, CancellationToken _)
         {
             ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleBasicConsumeOkAsync)} for tag {consumerTag}");
             return Task.CompletedTask;
@@ -43,7 +43,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
+        Task IAsyncBasicConsumer.HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason, CancellationToken _)
         {
             ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleChannelShutdownAsync)}");
             return Task.CompletedTask;
