@@ -6,7 +6,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Benchmarks
 {
-    public sealed class AsyncBasicConsumerFake : IAsyncBasicConsumer
+    internal sealed class AsyncBasicConsumerFake : IAsyncBasicConsumer
     {
         private readonly ManualResetEventSlim _autoResetEvent;
         private int _current;
@@ -18,7 +18,7 @@ namespace RabbitMQ.Benchmarks
             _autoResetEvent = autoResetEvent;
         }
 
-        public Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+        Task IAsyncBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
             ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken)
         {
@@ -31,13 +31,13 @@ namespace RabbitMQ.Benchmarks
             return Task.CompletedTask;
         }
 
-        public Task HandleBasicCancelAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
+        Task IAsyncBasicConsumer.HandleBasicCancelAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
+        Task IAsyncBasicConsumer.HandleBasicCancelOkAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
+        Task IAsyncBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag, CancellationToken _) => Task.CompletedTask;
 
-        public Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason, CancellationToken _) => Task.CompletedTask;
+        Task IAsyncBasicConsumer.HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason, CancellationToken _) => Task.CompletedTask;
 
         public IChannel Channel { get; }
 
