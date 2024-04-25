@@ -44,7 +44,7 @@ namespace Test.Integration
         private static readonly Exception TestException = new Exception("oops");
 
         public TestAsyncConsumerExceptions(ITestOutputHelper output)
-            : base(output, dispatchConsumersAsync: true, consumerDispatchConcurrency: 1)
+            : base(output, consumerDispatchConcurrency: 1)
         {
         }
 

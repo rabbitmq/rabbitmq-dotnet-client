@@ -64,7 +64,6 @@ namespace Test
         protected readonly ITestOutputHelper _output;
         protected readonly string _testDisplayName;
 
-        protected readonly bool _dispatchConsumersAsync = false;
         protected readonly ushort _consumerDispatchConcurrency = 1;
         protected readonly bool _openChannel = true;
 
@@ -95,11 +94,9 @@ namespace Test
         }
 
         public IntegrationFixture(ITestOutputHelper output,
-            bool dispatchConsumersAsync = false,
             ushort consumerDispatchConcurrency = 1,
             bool openChannel = true)
         {
-            _dispatchConsumersAsync = dispatchConsumersAsync;
             _consumerDispatchConcurrency = consumerDispatchConcurrency;
             _openChannel = openChannel;
             _output = output;
@@ -131,7 +128,6 @@ namespace Test
             if (_connFactory == null)
             {
                 _connFactory = CreateConnectionFactory();
-                _connFactory.DispatchConsumersAsync = _dispatchConsumersAsync;
                 _connFactory.ConsumerDispatchConcurrency = _consumerDispatchConcurrency;
             }
 

@@ -208,8 +208,6 @@ RabbitMQ.Client.ConnectionFactory.CredentialsProvider.get -> RabbitMQ.Client.ICr
 RabbitMQ.Client.ConnectionFactory.CredentialsProvider.set -> void
 RabbitMQ.Client.ConnectionFactory.CredentialsRefresher.get -> RabbitMQ.Client.ICredentialsRefresher
 RabbitMQ.Client.ConnectionFactory.CredentialsRefresher.set -> void
-RabbitMQ.Client.ConnectionFactory.DispatchConsumersAsync.get -> bool
-RabbitMQ.Client.ConnectionFactory.DispatchConsumersAsync.set -> void
 RabbitMQ.Client.ConnectionFactory.Endpoint.get -> RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.ConnectionFactory.Endpoint.set -> void
 RabbitMQ.Client.ConnectionFactory.EndpointResolverFactory.get -> System.Func<System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>, RabbitMQ.Client.IEndpointResolver>
@@ -498,8 +496,6 @@ RabbitMQ.Client.IConnectionFactory.CredentialsProvider.get -> RabbitMQ.Client.IC
 RabbitMQ.Client.IConnectionFactory.CredentialsProvider.set -> void
 RabbitMQ.Client.IConnectionFactory.CredentialsRefresher.get -> RabbitMQ.Client.ICredentialsRefresher
 RabbitMQ.Client.IConnectionFactory.CredentialsRefresher.set -> void
-RabbitMQ.Client.IConnectionFactory.DispatchConsumersAsync.get -> bool
-RabbitMQ.Client.IConnectionFactory.DispatchConsumersAsync.set -> void
 RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout.set -> void
 RabbitMQ.Client.IConnectionFactory.Password.get -> string
@@ -747,7 +743,6 @@ readonly RabbitMQ.Client.ConnectionConfig.ClientProperties -> System.Collections
 readonly RabbitMQ.Client.ConnectionConfig.ClientProvidedName -> string
 readonly RabbitMQ.Client.ConnectionConfig.ContinuationTimeout -> System.TimeSpan
 readonly RabbitMQ.Client.ConnectionConfig.DispatchConsumerConcurrency -> int
-readonly RabbitMQ.Client.ConnectionConfig.DispatchConsumersAsync -> bool
 readonly RabbitMQ.Client.ConnectionConfig.HandshakeContinuationTimeout -> System.TimeSpan
 readonly RabbitMQ.Client.ConnectionConfig.HeartbeatInterval -> System.TimeSpan
 readonly RabbitMQ.Client.ConnectionConfig.MaxChannelCount -> ushort

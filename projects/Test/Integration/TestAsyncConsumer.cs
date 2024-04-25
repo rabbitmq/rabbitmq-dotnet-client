@@ -44,7 +44,7 @@ namespace Test.Integration
         private readonly ShutdownEventArgs _closeArgs = new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "normal shutdown");
 
         public TestAsyncConsumer(ITestOutputHelper output)
-            : base(output, dispatchConsumersAsync: true, consumerDispatchConcurrency: 2)
+            : base(output, consumerDispatchConcurrency: 2)
         {
         }
 
