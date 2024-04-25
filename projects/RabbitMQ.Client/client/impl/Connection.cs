@@ -509,7 +509,6 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    // TODO used to check IsOpen here
                     this.AbortAsync().GetAwaiter().GetResult();
                     _session0.Dispose();
                     _mainLoopCts.Dispose();

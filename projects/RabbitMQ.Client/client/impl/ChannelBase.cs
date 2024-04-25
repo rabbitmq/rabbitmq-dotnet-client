@@ -539,7 +539,6 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    // TODO used to check IsOpen here
                     this.AbortAsync().GetAwaiter().GetResult();
                     ConsumerDispatcher.Dispose();
                     _rpcSemaphore.Dispose();

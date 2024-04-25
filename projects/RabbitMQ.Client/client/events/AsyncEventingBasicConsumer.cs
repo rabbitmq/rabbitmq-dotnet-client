@@ -72,9 +72,8 @@ namespace RabbitMQ.Client.Events
                 .ConfigureAwait(false);
             if (!_registeredWrapper.IsEmpty)
             {
-                // TODO cancellation token
                 await _registeredWrapper.InvokeAsync(
-                    this, new ConsumerEventArgs(new[] { consumerTag }), CancellationToken.None)
+                    this, new ConsumerEventArgs(new[] { consumerTag }), cancellationToken)
                         .ConfigureAwait(false);
             }
         }

@@ -112,7 +112,7 @@ namespace Test.Unit
             Task cb(bool unused0, CancellationToken unused1) => Task.CompletedTask;
             ICredentialsProvider credentialsProvider = new MockCredentialsProvider(_testOutputHelper);
 
-            Assert.True(credentialsProvider == _refresher.Register(credentialsProvider, cb));
+            Assert.True(credentialsProvider == _refresher.Register(credentialsProvider, cb, CancellationToken.None));
             Assert.True(_refresher.Unregister(credentialsProvider));
         }
 
@@ -122,7 +122,7 @@ namespace Test.Unit
             ICredentialsProvider credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.Zero);
             Task cb(bool unused0, CancellationToken unused1) => Task.CompletedTask;
 
-            _refresher.Register(credentialsProvider, cb);
+            _refresher.Register(credentialsProvider, cb, CancellationToken.None);
 
             Assert.False(_refresher.Unregister(credentialsProvider));
         }
@@ -142,7 +142,7 @@ namespace Test.Unit
 
             try
             {
-                _refresher.Register(credentialsProvider, cb);
+                _refresher.Register(credentialsProvider, cb, CancellationToken.None);
 
                 await cbtcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
                 Assert.True(await cbtcs.Task);
@@ -174,7 +174,7 @@ namespace Test.Unit
 
             try
             {
-                _refresher.Register(credentialsProvider, cb);
+                _refresher.Register(credentialsProvider, cb, CancellationToken.None);
                 await cbtcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
                 Assert.True(await cbtcs.Task);
 
