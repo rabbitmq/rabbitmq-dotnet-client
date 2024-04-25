@@ -509,7 +509,10 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    this.AbortAsync().GetAwaiter().GetResult();
+                    if (IsOpen)
+                    {
+                        this.AbortAsync().GetAwaiter().GetResult();
+                    }
                     _session0.Dispose();
                     _mainLoopCts.Dispose();
                     _sessionManager.Dispose();

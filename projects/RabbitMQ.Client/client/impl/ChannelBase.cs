@@ -539,7 +539,10 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    this.AbortAsync().GetAwaiter().GetResult();
+                    if (IsOpen)
+                    {
+                        this.AbortAsync().GetAwaiter().GetResult();
+                    }
                     ConsumerDispatcher.Dispose();
                     _rpcSemaphore.Dispose();
                     _confirmSemaphore?.Dispose();
