@@ -127,6 +127,7 @@ namespace Test.Integration
 
                         QueueDeclareOk r = await _channel.QueueDeclarePassiveAsync(qname);
                         Assert.Equal(qname, r.QueueName);
+                        Assert.Equal((uint)0, r.MessageCount);
 
                         await _channel.QueueUnbindAsync(queue: qname, exchange: "amq.fanout", routingKey: qname, null);
 
