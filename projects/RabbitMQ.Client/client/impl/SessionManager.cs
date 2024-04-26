@@ -122,6 +122,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void Dispose() => _sessionMapSemaphore.Dispose();
+        public void Dispose() => ((IDisposable)_sessionMapSemaphore).Dispose();
     }
 }

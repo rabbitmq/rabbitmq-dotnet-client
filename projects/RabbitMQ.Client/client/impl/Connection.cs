@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
-        private readonly ChannelBase _channel0; // FUTURE Note: this is not disposed
+        private readonly ChannelBase _channel0;
         private readonly MainSession _session0;
 
         private Guid _id = Guid.NewGuid();
@@ -513,7 +513,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     {
                         this.AbortAsync().GetAwaiter().GetResult();
                     }
-                    _session0.Dispose();
+                    ((IDisposable)_channel0).Dispose();
+                    ((IDisposable)_session0).Dispose();
                     _mainLoopCts.Dispose();
                     _sessionManager.Dispose();
                 }

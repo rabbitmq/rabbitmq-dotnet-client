@@ -43,7 +43,7 @@ using RabbitMQ.Client.Framing.Impl;
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Small ISession implementation used only for channel 0.</summary>
-    internal sealed class MainSession : Session, IDisposable
+    internal sealed class MainSession : Session
     {
         private volatile bool _closeIsServerInitiated;
         private volatile bool _closing;
@@ -121,6 +121,17 @@ namespace RabbitMQ.Client.Impl
             return base.TransmitAsync(in cmd, cancellationToken);
         }
 
-        public void Dispose() => ((IDisposable)_closingSemaphore).Dispose();
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (false == _disposedValue)
+                {
+                    ((IDisposable)_closingSemaphore).Dispose();
+                }
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }
