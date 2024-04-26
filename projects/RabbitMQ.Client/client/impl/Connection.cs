@@ -57,7 +57,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private SessionManager _sessionManager;
 
         private ShutdownEventArgs? _closeReason;
-        public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
+        private object _closeReasonLock = new object();
 
         internal Connection(ConnectionConfig config, IFrameHandler frameHandler)
         {
@@ -95,7 +95,27 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public uint FrameMax { get; private set; }
 
-        public bool IsOpen => CloseReason is null;
+        public bool IsOpen
+        {
+            get
+            {
+                lock (_closeReasonLock)
+                {
+                    return _closeReason is null;
+                }
+            }
+        }
+
+        public ShutdownEventArgs? CloseReason
+        {
+            get
+            {
+                lock (_closeReasonLock)
+                {
+                    return _closeReason;
+                }
+            }
+        }
 
         public int LocalPort => _frameHandler.LocalPort;
         public int RemotePort => _frameHandler.RemotePort;
@@ -466,7 +486,17 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new ArgumentNullException(nameof(reason));
             }
 
-            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+            // NB: this ensures that Close is only called once on a connection
+            lock (_closeReasonLock)
+            {
+                bool rv = false;
+                if (_closeReason is null)
+                {
+                    _closeReason = reason;
+                    rv = true;
+                }
+                return rv;
+            }
         }
 
         private void LogCloseError(string error, Exception ex)

@@ -66,8 +66,8 @@ namespace RabbitMQ.Client.Impl
 
         private bool _onlyAcksReceived = true;
 
-        private ShutdownEventArgs _closeReason;
-        public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
+        private ShutdownEventArgs _closeReason = null;
+        private readonly object _closeReasonLock = new object();
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
@@ -174,9 +174,27 @@ namespace RabbitMQ.Client.Impl
             set => ConsumerDispatcher.DefaultConsumer = value;
         }
 
-        public bool IsClosed => !IsOpen;
+        public bool IsClosed
+        {
+            get
+            {
+                lock (_closeReasonLock)
+                {
+                    return _closeReason != null;
+                }
+            }
+        }
 
-        public bool IsOpen => CloseReason is null;
+        public bool IsOpen
+        {
+            get
+            {
+                lock (_closeReasonLock)
+                {
+                    return _closeReason is null;
+                }
+            }
+        }
 
         public ulong NextPublishSeqNo { get; private set; }
 
@@ -509,6 +527,17 @@ namespace RabbitMQ.Client.Impl
             return ConsumerDispatcher.ShutdownAsync(reason, cancellationToken);
         }
 
+        public ShutdownEventArgs CloseReason
+        {
+            get
+            {
+                lock (_closeReasonLock)
+                {
+                    return _closeReason;
+                }
+            }
+        }
+
         internal bool SetCloseReason(ShutdownEventArgs reason)
         {
             if (reason is null)
@@ -517,7 +546,16 @@ namespace RabbitMQ.Client.Impl
             }
 
             // NB: this ensures that Close is only called once on a channel
-            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+            lock (_closeReasonLock)
+            {
+                bool rv = false;
+                if (_closeReason is null)
+                {
+                    _closeReason = reason;
+                    rv = true;
+                }
+                return rv;
+            }
         }
 
         public override string ToString()

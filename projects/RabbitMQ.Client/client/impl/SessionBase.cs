@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Impl
     {
         protected bool _disposedValue;
         private ShutdownEventArgs _closeReason;
-        public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
+        private readonly object _closeReasonLock = new object();
 
         protected SessionBase(Connection connection, ushort channelNumber)
         {
@@ -84,7 +84,27 @@ namespace RabbitMQ.Client.Impl
         public CommandReceivedAction CommandReceived { get; set; }
         public Connection Connection { get; }
 
-        public bool IsOpen => CloseReason is null;
+        public bool IsOpen
+        {
+            get
+            {
+                lock (_closeReasonLock)
+                {
+                    return _closeReason is null;
+                }
+            }
+        }
+
+        public ShutdownEventArgs CloseReason
+        {
+            get
+            {
+                lock (_closeReasonLock)
+                {
+                    return _closeReason;
+                }
+            }
+        }
 
         public Task OnConnectionShutdownAsync(object conn, ShutdownEventArgs reason,
             CancellationToken cancellationToken)
