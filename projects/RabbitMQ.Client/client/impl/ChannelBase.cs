@@ -544,6 +544,7 @@ namespace RabbitMQ.Client.Impl
                         this.AbortAsync().GetAwaiter().GetResult();
                     }
                     ConsumerDispatcher.Dispose();
+                    Session.Dispose();
                     _rpcSemaphore.Dispose();
                     _confirmSemaphore?.Dispose();
                 }

@@ -44,6 +44,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal abstract class SessionBase : ISession
     {
+        protected bool _disposedValue;
         private ShutdownEventArgs _closeReason;
         public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
 
@@ -169,5 +170,20 @@ namespace RabbitMQ.Client.Impl
 
         private void ThrowAlreadyClosedException()
             => throw new AlreadyClosedException(CloseReason);
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

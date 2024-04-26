@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal delegate Task CommandReceivedAction(IncomingCommand cmd, CancellationToken cancellationToken);
 
-    internal interface ISession
+    internal interface ISession : IDisposable
     {
         /// <summary>
         /// Gets the channel number.
