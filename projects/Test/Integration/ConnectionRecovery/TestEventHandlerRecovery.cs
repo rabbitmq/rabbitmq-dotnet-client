@@ -81,7 +81,7 @@ namespace Test.Integration.ConnectionRecovery
         public async Task TestRecoveringConsumerHandlerOnConnection(int iterations)
         {
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
-            var cons = new AsyncEventingBasicConsumer(_channel);
+            var cons = new EventingBasicConsumer(_channel);
             await _channel.BasicConsumeAsync(q, true, cons);
 
             int counter = 0;
@@ -100,7 +100,7 @@ namespace Test.Integration.ConnectionRecovery
         {
             var myArgs = new Dictionary<string, object> { { "first-argument", "some-value" } };
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
-            var cons = new AsyncEventingBasicConsumer(_channel);
+            var cons = new EventingBasicConsumer(_channel);
             string expectedCTag = await _channel.BasicConsumeAsync(cons, q, arguments: myArgs);
 
             bool ctagMatches = false;

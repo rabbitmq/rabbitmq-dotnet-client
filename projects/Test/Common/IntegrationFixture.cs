@@ -52,6 +52,10 @@ namespace Test
         private static readonly bool s_isVerbose = false;
         private static int _connectionIdx = 0;
 
+        private Exception _connectionCallbackException;
+        private Exception _connectionRecoveryException;
+        private Exception _channelCallbackException;
+
         protected readonly RabbitMQCtl _rabbitMQCtl;
 
         protected ConnectionFactory _connFactory;
@@ -77,7 +81,12 @@ namespace Test
 
         static IntegrationFixture()
         {
+
+#if NET6_0_OR_GREATER
+            S_Random = Random.Shared;
+#else
             S_Random = new Random();
+#endif
             s_isRunningInCI = InitIsRunningInCI();
             s_isVerbose = InitIsVerbose();
 
@@ -146,8 +155,10 @@ namespace Test
 
                 if (IsVerbose)
                 {
-                    AddCallbackHandlers();
+                    AddCallbackShutdownHandlers();
                 }
+
+                AddCallbackExceptionHandlers();
             }
 
             if (_connFactory.AutomaticRecoveryEnabled)
@@ -181,25 +192,64 @@ namespace Test
                 _channel = null;
                 _conn = null;
             }
+
+            DisposeAssertions();
         }
 
-        protected virtual void AddCallbackHandlers()
+        protected virtual void DisposeAssertions()
+        {
+            if (_connectionRecoveryException != null)
+            {
+                Assert.Fail($"unexpected connection recovery exception: {_connectionRecoveryException}");
+            }
+
+            if (_connectionCallbackException != null)
+            {
+                Assert.Fail($"unexpected connection callback exception: {_connectionCallbackException}");
+            }
+
+            if (_channelCallbackException != null)
+            {
+                Assert.Fail($"unexpected channel callback exception: {_channelCallbackException}");
+            }
+        }
+
+        protected void AddCallbackExceptionHandlers()
         {
             if (_conn != null)
             {
-                _conn.CallbackException += (o, ea) =>
+                _conn.ConnectionRecoveryError += (s, ea) =>
                 {
-                    _output.WriteLine("{0} connection callback exception: {1}",
-                        _testDisplayName, ea.Exception);
+                    _connectionRecoveryException = ea.Exception;
+
+                    if (IsVerbose)
+                    {
+                        try
+                        {
+                            _output.WriteLine($"{0} connection recovery exception: {1}",
+                                _testDisplayName, _connectionRecoveryException);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    }
                 };
 
-                _conn.ConnectionShutdown += (o, ea) =>
+                _conn.CallbackException += (o, ea) =>
                 {
-                    HandleConnectionShutdown(_conn, ea, (args) =>
+                    _connectionCallbackException = ea.Exception;
+
+                    if (IsVerbose)
                     {
-                        _output.WriteLine("{0} connection shutdown, args: {1}",
-                            _testDisplayName, args);
-                    });
+                        try
+                        {
+                            _output.WriteLine("{0} connection callback exception: {1}",
+                                _testDisplayName, _connectionCallbackException);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    }
                 };
             }
 
@@ -207,16 +257,57 @@ namespace Test
             {
                 _channel.CallbackException += (o, ea) =>
                 {
-                    _output.WriteLine("{0} channel callback exception: {1}",
-                        _testDisplayName, ea.Exception);
-                };
+                    _channelCallbackException = ea.Exception;
 
+                    if (IsVerbose)
+                    {
+                        try
+                        {
+                            _output.WriteLine("{0} channel callback exception: {1}",
+                                _testDisplayName, _channelCallbackException);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    }
+                };
+            }
+        }
+
+        protected void AddCallbackShutdownHandlers()
+        {
+            if (_conn != null)
+            {
+                _conn.ConnectionShutdown += (o, ea) =>
+                {
+                    HandleConnectionShutdown(_conn, ea, (args) =>
+                    {
+                        try
+                        {
+                            _output.WriteLine("{0} connection shutdown, args: {1}",
+                                _testDisplayName, args);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    });
+                };
+            }
+
+            if (_channel != null)
+            {
                 _channel.ChannelShutdown += (o, ea) =>
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
-                        _output.WriteLine("{0} channel shutdown, args: {1}",
-                            _testDisplayName, args);
+                        try
+                        {
+                            _output.WriteLine("{0} channel shutdown, args: {1}",
+                                _testDisplayName, args);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
                     });
                 };
             }
@@ -405,6 +496,11 @@ namespace Test
             return DoAssertRanToCompletion(tasks);
         }
 
+        internal static void AssertRecordedQueues(AutorecoveringConnection c, int n)
+        {
+            Assert.Equal(n, c.RecordedQueuesCount);
+        }
+
         protected static Task WaitAsync(TaskCompletionSource<bool> tcs, string desc)
         {
             return WaitAsync(tcs, WaitSpan, desc);
@@ -524,11 +620,7 @@ namespace Test
         protected static byte[] GetRandomBody(ushort size = 1024)
         {
             var body = new byte[size];
-#if NET6_0_OR_GREATER
-            Random.Shared.NextBytes(body);
-#else
             S_Random.NextBytes(body);
-#endif
             return body;
         }
 
@@ -543,7 +635,7 @@ namespace Test
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+            aconn.RecoverySucceeded += (source, ea) => tcs.TrySetResult(true);
 
             return tcs;
         }

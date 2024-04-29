@@ -207,12 +207,16 @@ namespace Test.SequentialIntegration
             string childName = isDeliver ? "deliver" : "receive";
             Activity[] activities = activityList.ToArray();
             Assert.NotEmpty(activities);
-            foreach (var item in activities)
+
+            if (IsVerbose)
             {
-                _output.WriteLine(
-                    $"{item.Context.TraceId}: {item.OperationName}");
-                _output.WriteLine($"  Tags: {string.Join(", ", item.Tags.Select(x => $"{x.Key}: {x.Value}"))}");
-                _output.WriteLine($"  Links: {string.Join(", ", item.Links.Select(x => $"{x.Context.TraceId}"))}");
+                foreach (Activity item in activities)
+                {
+                    _output.WriteLine(
+                        $"{item.Context.TraceId}: {item.OperationName}");
+                    _output.WriteLine($"  Tags: {string.Join(", ", item.Tags.Select(x => $"{x.Key}: {x.Value}"))}");
+                    _output.WriteLine($"  Links: {string.Join(", ", item.Links.Select(x => $"{x.Context.TraceId}"))}");
+                }
             }
 
             Activity sendActivity = activities.First(x =>

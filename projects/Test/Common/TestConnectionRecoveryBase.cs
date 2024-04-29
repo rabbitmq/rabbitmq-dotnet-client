@@ -46,7 +46,8 @@ namespace Test
         protected const ushort TotalMessageCount = 16384;
         protected const ushort CloseAtCount = 16;
 
-        public TestConnectionRecoveryBase(ITestOutputHelper output) : base(output)
+        public TestConnectionRecoveryBase(ITestOutputHelper output, bool dispatchConsumersAsync = false)
+            : base(output, dispatchConsumersAsync: dispatchConsumersAsync)
         {
             _messageBody = GetRandomBody(4096);
         }
@@ -105,11 +106,6 @@ namespace Test
         internal void AssertRecordedExchanges(AutorecoveringConnection c, int n)
         {
             Assert.Equal(n, c.RecordedExchangesCount);
-        }
-
-        internal void AssertRecordedQueues(AutorecoveringConnection c, int n)
-        {
-            Assert.Equal(n, c.RecordedQueuesCount);
         }
 
         internal Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync()
@@ -226,7 +222,7 @@ namespace Test
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.ConnectionShutdown += (c, args) => tcs.SetResult(true);
+            aconn.ConnectionShutdown += (c, args) => tcs.TrySetResult(true);
 
             return tcs;
         }

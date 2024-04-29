@@ -119,7 +119,7 @@ namespace Test.Integration.ConnectionRecovery
             {
                 string q = Guid.NewGuid().ToString();
                 await _channel.QueueDeclareAsync(q, false, false, true);
-                var dummy = new AsyncEventingBasicConsumer(_channel);
+                var dummy = new EventingBasicConsumer(_channel);
                 string tag = await _channel.BasicConsumeAsync(q, true, dummy);
                 await _channel.BasicCancelAsync(tag);
             }

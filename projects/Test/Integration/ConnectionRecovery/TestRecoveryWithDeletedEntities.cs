@@ -97,26 +97,26 @@ namespace Test.Integration.ConnectionRecovery
         public async Task TestThatDeletedQueueBindingsDontReappearOnRecovery()
         {
             string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
-            string x1 = "amq.fanout";
-            string x2 = GenerateExchangeName();
+            string ex_amq_fanout = "amq.fanout";
+            string ex_test = GenerateExchangeName();
 
-            await _channel.ExchangeDeclareAsync(x2, "fanout");
-            await _channel.ExchangeBindAsync(x1, x2, "");
-            await _channel.QueueBindAsync(q, x1, "");
-            await _channel.QueueUnbindAsync(q, x1, "", null);
+            await _channel.ExchangeDeclareAsync(ex_test, ExchangeType.Fanout);
+            await _channel.ExchangeBindAsync(destination: ex_amq_fanout, source: ex_test, routingKey: "");
+            await _channel.QueueBindAsync(q, ex_amq_fanout, "");
+            await _channel.QueueUnbindAsync(q, ex_amq_fanout, "");
 
             try
             {
                 await CloseAndWaitForRecoveryAsync();
                 Assert.True(_channel.IsOpen);
-                await _channel.BasicPublishAsync(x2, "", _encoding.GetBytes("msg"));
+                await _channel.BasicPublishAsync(ex_test, "", _encoding.GetBytes("msg"));
                 await AssertMessageCountAsync(q, 0);
             }
             finally
             {
                 await WithTemporaryChannelAsync(async ch =>
                 {
-                    await ch.ExchangeDeleteAsync(x2);
+                    await ch.ExchangeDeleteAsync(ex_test);
                     await ch.QueueDeleteAsync(q);
                 });
             }

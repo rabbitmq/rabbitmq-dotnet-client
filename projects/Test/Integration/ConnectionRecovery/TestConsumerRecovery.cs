@@ -40,7 +40,8 @@ namespace Test.Integration.ConnectionRecovery
 {
     public class TestConsumerRecovery : TestConnectionRecoveryBase
     {
-        public TestConsumerRecovery(ITestOutputHelper output) : base(output)
+        public TestConsumerRecovery(ITestOutputHelper output)
+            : base(output, dispatchConsumersAsync: true)
         {
         }
 
@@ -57,7 +58,7 @@ namespace Test.Integration.ConnectionRecovery
             }
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            ((AutorecoveringConnection)_conn).ConsumerTagChangeAfterRecovery += (prev, current) => tcs.SetResult(true);
+            ((AutorecoveringConnection)_conn).ConsumerTagChangeAfterRecovery += (prev, current) => tcs.TrySetResult(true);
 
             await CloseAndWaitForRecoveryAsync();
             await WaitAsync(tcs, "consumer tag change after recovery");

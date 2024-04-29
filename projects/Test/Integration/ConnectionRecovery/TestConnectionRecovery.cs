@@ -42,7 +42,8 @@ namespace Test.Integration.ConnectionRecovery
 {
     public class TestConnectionRecovery : TestConnectionRecoveryBase
     {
-        public TestConnectionRecovery(ITestOutputHelper output) : base(output)
+        public TestConnectionRecovery(ITestOutputHelper output)
+            : base(output, dispatchConsumersAsync: true)
         {
         }
 
@@ -60,8 +61,9 @@ namespace Test.Integration.ConnectionRecovery
                 return Task.CompletedTask;
             }
 
-            string exchangeName = $"ex-gh-1035-{Guid.NewGuid()}";
-            string queueName = $"q-gh-1035-{Guid.NewGuid()}";
+            var guid = Guid.NewGuid();
+            string exchangeName = $"ex-gh-1035-{guid}";
+            string queueName = $"q-gh-1035-{guid}";
 
             await _channel.ExchangeDeclareAsync(exchange: exchangeName,
                 type: "fanout", durable: false, autoDelete: true,
@@ -77,6 +79,9 @@ namespace Test.Integration.ConnectionRecovery
             _channel = null;
 
             _channel = await _conn.CreateChannelAsync();
+
+            // NB: add this for debugging
+            // AddCallbackHandlers();
 
             await _channel.ExchangeDeclareAsync(exchange: exchangeName,
                 type: "fanout", durable: false, autoDelete: true,

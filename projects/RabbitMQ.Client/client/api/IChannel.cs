@@ -418,7 +418,7 @@ namespace RabbitMQ.Client
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         Task QueueUnbindAsync(string queue, string exchange, string routingKey,
-            IDictionary<string, object> arguments,
+            IDictionary<string, object> arguments = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>

@@ -76,7 +76,7 @@ namespace Test.Integration
             consumer.ConsumerCancelled += (sender, args) =>
             {
                 notifiedConsumerTag = args.ConsumerTags.First();
-                _tcs.SetResult(true);
+                _tcs.TrySetResult(true);
             };
 
             await _channel.QueueDeleteAsync(q1);

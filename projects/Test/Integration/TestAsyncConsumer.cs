@@ -518,5 +518,20 @@ namespace Test.Integration
             }
             Assert.True(sawException, "did not see expected InvalidOperationException");
         }
+
+        [Fact]
+        public async Task TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
+        {
+            AssertRecordedQueues((RabbitMQ.Client.Framing.Impl.AutorecoveringConnection)_conn, 0);
+            for (int i = 0; i < 1000; i++)
+            {
+                string q = Guid.NewGuid().ToString();
+                await _channel.QueueDeclareAsync(q, false, false, true);
+                var dummy = new AsyncEventingBasicConsumer(_channel);
+                string tag = await _channel.BasicConsumeAsync(q, true, dummy);
+                await _channel.BasicCancelAsync(tag);
+            }
+            AssertRecordedQueues((RabbitMQ.Client.Framing.Impl.AutorecoveringConnection)_conn, 0);
+        }
     }
 }
