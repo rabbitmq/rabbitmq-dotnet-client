@@ -40,12 +40,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public void Shutdown(ShutdownEventArgs reason)
-        {
-            DoShutdownConsumers(reason);
-            InternalShutdown();
-        }
-
         public Task ShutdownAsync(ShutdownEventArgs reason)
         {
             DoShutdownConsumers(reason);
@@ -65,8 +59,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         protected abstract void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason);
-
-        protected abstract void InternalShutdown();
 
         protected abstract Task InternalShutdownAsync();
 

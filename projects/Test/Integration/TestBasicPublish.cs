@@ -195,9 +195,10 @@ namespace Test.Integration
 
             using (IConnection c = await cf.CreateConnectionAsync())
             {
-                c.ConnectionShutdown += (o, a) =>
+                c.ConnectionShutdownAsync += (o, a) =>
                 {
                     sawConnectionShutdown = true;
+                    return Task.CompletedTask;
                 };
 
                 Assert.Equal(maxMsgSize, cf.MaxMessageSize);

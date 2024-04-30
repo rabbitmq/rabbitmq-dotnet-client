@@ -52,7 +52,7 @@ namespace Test.Integration
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync();
-            _conn.ConnectionShutdown += HandleConnectionShutdown;
+            _conn.ConnectionShutdownAsync += HandleConnectionShutdownAsync;
         }
 
         [Fact]

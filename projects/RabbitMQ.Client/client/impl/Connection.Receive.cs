@@ -59,7 +59,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                     0, "End of stream",
                     exception: eose);
-                HandleMainLoopException(ea);
+                await HandleMainLoopExceptionAsync(ea)
+                    .ConfigureAwait(false);
             }
             catch (HardProtocolException hpe)
             {
@@ -75,7 +76,20 @@ namespace RabbitMQ.Client.Framing.Impl
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                     Constants.InternalError, fileLoadException.Message,
                     exception: fileLoadException);
-                HandleMainLoopException(ea);
+                await HandleMainLoopExceptionAsync(ea)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException ocex)
+            {
+                if (ocex.CancellationToken != mainLoopToken)
+                {
+                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                        Constants.InternalError,
+                        $"Unexpected Exception: {ocex.Message}",
+                        exception: ocex);
+                    await HandleMainLoopExceptionAsync(ea)
+                        .ConfigureAwait(false);
+                }
             }
             catch (Exception ex)
             {
@@ -83,7 +97,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     Constants.InternalError,
                     $"Unexpected Exception: {ex.Message}",
                     exception: ex);
-                HandleMainLoopException(ea);
+                await HandleMainLoopExceptionAsync(ea)
+                    .ConfigureAwait(false);
             }
 
             using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionCloseTimeout);
@@ -175,26 +190,29 @@ namespace RabbitMQ.Client.Framing.Impl
             MaybeStopHeartbeatTimers();
         }
 
-        private void HandleMainLoopException(ShutdownEventArgs reason)
+        private Task HandleMainLoopExceptionAsync(ShutdownEventArgs reason)
         {
             string message = reason.GetLogMessage();
             if (false == SetCloseReason(reason))
             {
                 LogCloseError($"Unexpected Main Loop Exception while closing: {message}", reason.Exception);
-                return;
+                return Task.CompletedTask;
             }
 
             _channel0.MaybeSetConnectionStartException(reason.Exception);
 
-            OnShutdown(reason);
             LogCloseError($"Unexpected connection closure: {message}", reason.Exception);
+
+            return OnShutdownAsync(reason);
         }
 
         private async Task HardProtocolExceptionHandlerAsync(HardProtocolException hpe, CancellationToken cancellationToken)
         {
             if (SetCloseReason(hpe.ShutdownReason))
             {
-                OnShutdown(hpe.ShutdownReason);
+                await OnShutdownAsync(hpe.ShutdownReason)
+                    .ConfigureAwait(false);
+
                 await _session0.SetSessionClosingAsync(false)
                     .ConfigureAwait(false);
                 try

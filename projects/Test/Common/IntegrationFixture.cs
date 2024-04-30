@@ -176,12 +176,13 @@ namespace Test
         {
             try
             {
-                if (_channel != null)
+                if (_conn != null && _conn.IsOpen &&
+                    _channel != null && _channel.IsOpen)
                 {
                     await _channel.CloseAsync();
                 }
 
-                if (_conn != null)
+                if (_conn != null && _conn.IsOpen)
                 {
                     await _conn.CloseAsync();
                 }
@@ -279,9 +280,9 @@ namespace Test
         {
             if (_conn != null)
             {
-                _conn.ConnectionShutdown += (o, ea) =>
+                _conn.ConnectionShutdownAsync += (o, ea) =>
                 {
-                    HandleConnectionShutdown(_conn, ea, (args) =>
+                    return HandleConnectionShutdownAsync(_conn, ea, (args) =>
                     {
                         try
                         {
@@ -532,22 +533,27 @@ namespace Test
             };
         }
 
-        protected void HandleConnectionShutdown(object sender, ShutdownEventArgs args)
+        protected Task HandleConnectionShutdownAsync(object sender, ShutdownEventArgs args)
         {
             if (args.Initiator == ShutdownInitiator.Peer)
             {
                 IConnection conn = (IConnection)sender;
                 _output.WriteLine($"{_testDisplayName} connection {conn.ClientProvidedName} shut down: {args}");
             }
+
+            return Task.CompletedTask;
         }
 
-        protected void HandleConnectionShutdown(IConnection conn, ShutdownEventArgs args, Action<ShutdownEventArgs> a)
+        protected Task HandleConnectionShutdownAsync(IConnection conn, ShutdownEventArgs args, Action<ShutdownEventArgs> a)
         {
             if (args.Initiator == ShutdownInitiator.Peer)
             {
                 _output.WriteLine($"{_testDisplayName} connection {conn.ClientProvidedName} shut down: {args}");
             }
+
             a(args);
+
+            return Task.CompletedTask;
         }
 
         protected void HandleChannelShutdown(object sender, ShutdownEventArgs args)

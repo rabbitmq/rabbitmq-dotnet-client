@@ -131,56 +131,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public void WaitForShutdown()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (_quiesce)
-            {
-                if (IsCancellationRequested)
-                {
-                    try
-                    {
-                        if (false == _reader.Completion.Wait(TimeSpan.FromSeconds(2)))
-                        {
-                            ESLog.Warn("consumer dispatcher did not shut down in a timely fashion (sync)");
-                        }
-                        if (false == _worker.Wait(TimeSpan.FromSeconds(2)))
-                        {
-                            ESLog.Warn("consumer dispatcher did not shut down in a timely fashion (sync)");
-                        }
-                    }
-                    catch (AggregateException aex)
-                    {
-                        AggregateException aexf = aex.Flatten();
-                        bool foundUnexpectedException = false;
-                        foreach (Exception innerAexf in aexf.InnerExceptions)
-                        {
-                            if (false == (innerAexf is OperationCanceledException))
-                            {
-                                foundUnexpectedException = true;
-                                break;
-                            }
-                        }
-                        if (foundUnexpectedException)
-                        {
-                            ESLog.Warn("consumer dispatcher task had unexpected exceptions");
-                        }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                    }
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("WaitForShutdown called but _quiesce is false");
-            }
-        }
-
         public async Task WaitForShutdownAsync()
         {
             if (_disposed)
@@ -227,12 +177,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
         protected sealed override void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             _writer.TryWrite(new WorkStruct(consumer, reason));
-        }
-
-        protected override void InternalShutdown()
-        {
-            _writer.Complete();
-            CancelConsumerDispatcherCts();
         }
 
         protected override Task InternalShutdownAsync()

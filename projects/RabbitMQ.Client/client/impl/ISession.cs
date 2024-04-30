@@ -32,6 +32,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -68,15 +69,15 @@ namespace RabbitMQ.Client.Impl
         ///<summary>
         /// Multicast session shutdown event.
         ///</summary>
-        event EventHandler<ShutdownEventArgs> SessionShutdown;
+        event AsyncEventHandler<ShutdownEventArgs> SessionShutdownAsync;
 
-        void Close(ShutdownEventArgs reason);
+        Task CloseAsync(ShutdownEventArgs reason);
 
-        void Close(ShutdownEventArgs reason, bool notify);
+        Task CloseAsync(ShutdownEventArgs reason, bool notify);
 
         Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
 
-        void Notify();
+        Task NotifyAsync();
 
         ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod;
 

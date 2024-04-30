@@ -84,6 +84,7 @@ namespace RabbitMQ.Client.Impl
 
             Action<Exception, string> onException = (exception, context) =>
                 OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+
             _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);
             _basicNacksWrapper = new EventingWrapper<BasicNackEventArgs>("OnBasicNack", onException);
             _basicReturnWrapper = new EventingWrapper<BasicReturnEventArgs>("OnBasicReturn", onException);
@@ -93,7 +94,7 @@ namespace RabbitMQ.Client.Impl
             _channelShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnChannelShutdown", onException);
             _recoveryWrapper = new EventingWrapper<EventArgs>("OnChannelRecovery", onException);
             session.CommandReceived = HandleCommandAsync;
-            session.SessionShutdown += OnSessionShutdown;
+            session.SessionShutdownAsync += OnSessionShutdownAsync;
             Session = session;
         }
 
@@ -407,12 +408,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal void FinishClose()
+        internal async Task FinishCloseAsync()
         {
             ShutdownEventArgs reason = CloseReason;
             if (reason != null)
             {
-                Session.Close(reason);
+                await Session.CloseAsync(reason)
+                    .ConfigureAwait(false);
             }
 
             m_connectionStartCell?.TrySetResult(null);
@@ -488,7 +490,7 @@ namespace RabbitMQ.Client.Impl
                     if (_confirmsTaskCompletionSources?.Count > 0)
                     {
                         var exception = new AlreadyClosedException(reason);
-                        foreach (var confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
                         {
                             confirmsTaskCompletionSource.TrySetException(exception);
                         }
@@ -505,14 +507,12 @@ namespace RabbitMQ.Client.Impl
             _flowControlBlock.Set();
         }
 
-        // TODO async
-        private void OnSessionShutdown(object sender, ShutdownEventArgs reason)
+        private Task OnSessionShutdownAsync(object sender, ShutdownEventArgs reason)
         {
             ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnChannelShutdown(reason);
-            // TODO async
-            ConsumerDispatcher.Shutdown(reason);
+            return ConsumerDispatcher.ShutdownAsync(reason);
         }
 
         internal bool SetCloseReason(ShutdownEventArgs reason)
@@ -723,7 +723,8 @@ namespace RabbitMQ.Client.Impl
                     channelClose._classId,
                     channelClose._methodId));
 
-                Session.Close(CloseReason, false);
+                await Session.CloseAsync(CloseReason, false)
+                    .ConfigureAwait(false);
 
                 var method = new ChannelCloseOk();
                 await ModelSendAsync(method, cancellationToken)
@@ -734,7 +735,8 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 cmd.ReturnBuffers();
-                Session.Notify();
+                await Session.NotifyAsync()
+                    .ConfigureAwait(false);
             }
         }
 
@@ -746,7 +748,8 @@ namespace RabbitMQ.Client.Impl
                  * Note:
                  * This call _must_ come before completing the async continuation
                  */
-                FinishClose();
+                await FinishCloseAsync()
+                    .ConfigureAwait(false);
 
                 if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out var k))
                 {
@@ -815,7 +818,8 @@ namespace RabbitMQ.Client.Impl
                 var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
                 try
                 {
-                    Session.Connection.ClosedViaPeer(reason);
+                    await Session.Connection.ClosedViaPeerAsync(reason)
+                        .ConfigureAwait(false);
 
                     var replyMethod = new ConnectionCloseOk();
                     await ModelSendAsync(replyMethod, cancellationToken)

@@ -126,7 +126,11 @@ namespace Test.Integration.ConnectionRecovery
         public async Task TestShutdownEventHandlersRecoveryOnConnection()
         {
             int counter = 0;
-            _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+            _conn.ConnectionShutdownAsync += (c, args) =>
+            {
+                Interlocked.Increment(ref counter);
+                return Task.CompletedTask;
+            };
 
             Assert.True(_conn.IsOpen);
             await CloseAndWaitForRecoveryAsync();

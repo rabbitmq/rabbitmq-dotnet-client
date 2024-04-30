@@ -97,7 +97,7 @@ namespace Test.Integration
                             recoverySucceededTcs.SetResult(false);
                         };
 
-                        conn.ConnectionShutdown += (s, ea) =>
+                        conn.ConnectionShutdownAsync += (s, ea) =>
                         {
                             if (IsVerbose)
                             {
@@ -109,6 +109,8 @@ namespace Test.Integration
                              * test exits, and connectionShutdownTcs will have already been set
                              */
                             connectionShutdownTcs.TrySetResult(true);
+
+                            return Task.CompletedTask;
                         };
 
                         conn.RecoverySucceeded += (s, ea) =>
@@ -265,9 +267,10 @@ namespace Test.Integration
                 {
                     using (IConnection conn = await cf.CreateConnectionAsync())
                     {
-                        conn.ConnectionShutdown += (o, ea) =>
+                        conn.ConnectionShutdownAsync += (o, ea) =>
                         {
-                            connectionShutdownTcs.SetResult(true);
+                            connectionShutdownTcs.TrySetResult(true);
+                            return Task.CompletedTask;
                         };
 
                         using (IChannel ch = await conn.CreateChannelAsync())

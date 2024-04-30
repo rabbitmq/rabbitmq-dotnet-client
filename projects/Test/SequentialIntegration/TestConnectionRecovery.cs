@@ -248,7 +248,11 @@ namespace Test.SequentialIntegration
         public async Task TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()
         {
             int counter = 0;
-            _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+            _conn.ConnectionShutdownAsync += (c, args) =>
+            {
+                Interlocked.Increment(ref counter);
+                return Task.CompletedTask;
+            };
             TaskCompletionSource<bool> shutdownLatch = PrepareForShutdown(_conn);
             TaskCompletionSource<bool> recoveryLatch = PrepareForRecovery((AutorecoveringConnection)_conn);
 

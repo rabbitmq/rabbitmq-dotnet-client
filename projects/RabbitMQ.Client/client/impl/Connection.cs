@@ -64,11 +64,13 @@ namespace RabbitMQ.Client.Framing.Impl
             _config = config;
             _frameHandler = frameHandler;
 
-            Action<Exception, string> onException = (exception, context) => OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+            Action<Exception, string> onException = (exception, context) =>
+                OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+
             _callbackExceptionWrapper = new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
             _connectionBlockedWrapper = new EventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
             _connectionUnblockedWrapper = new EventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
-            _connectionShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
+            _connectionShutdownWrapperAsync = new AsyncEventingWrapper<ShutdownEventArgs>("OnConnectionShutdown", onException);
 
             _sessionManager = new SessionManager(this, 0);
             _session0 = new MainSession(this);
@@ -146,7 +148,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private EventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecovered;
 
-        public event EventHandler<ShutdownEventArgs> ConnectionShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync
         {
             add
             {
@@ -154,7 +156,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 ShutdownEventArgs? reason = CloseReason;
                 if (reason is null)
                 {
-                    _connectionShutdownWrapper.AddHandler(value);
+                    _connectionShutdownWrapperAsync.AddHandler(value);
                 }
                 else
                 {
@@ -164,10 +166,10 @@ namespace RabbitMQ.Client.Framing.Impl
             remove
             {
                 ThrowIfDisposed();
-                _connectionShutdownWrapper.RemoveHandler(value);
+                _connectionShutdownWrapperAsync.RemoveHandler(value);
             }
         }
-        private EventingWrapper<ShutdownEventArgs> _connectionShutdownWrapper;
+        private AsyncEventingWrapper<ShutdownEventArgs> _connectionShutdownWrapperAsync;
 
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
@@ -210,7 +212,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionWrapper.Takeover(other._callbackExceptionWrapper);
             _connectionBlockedWrapper.Takeover(other._connectionBlockedWrapper);
             _connectionUnblockedWrapper.Takeover(other._connectionUnblockedWrapper);
-            _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
+            _connectionShutdownWrapperAsync.Takeover(other._connectionShutdownWrapperAsync);
         }
 
         internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
@@ -321,7 +323,9 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                OnShutdown(reason);
+                await OnShutdownAsync(reason)
+                    .ConfigureAwait(false);
+
                 await _session0.SetSessionClosingAsync(false)
                     .ConfigureAwait(false);
 
@@ -394,7 +398,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal void ClosedViaPeer(ShutdownEventArgs reason)
+        internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason)
         {
             if (false == SetCloseReason(reason))
             {
@@ -405,8 +409,11 @@ namespace RabbitMQ.Client.Framing.Impl
                 // We are quiescing, but still allow for server-close
             }
 
-            OnShutdown(reason);
+            await OnShutdownAsync(reason)
+                .ConfigureAwait(false);
+
             _session0.SetSessionClosing(true);
+
             MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: true);
         }
 
@@ -414,21 +421,27 @@ namespace RabbitMQ.Client.Framing.Impl
         private async Task FinishCloseAsync(CancellationToken cancellationToken)
         {
             _mainLoopCts.Cancel();
+
             _closed = true;
+
             MaybeStopHeartbeatTimers();
 
             await _frameHandler.CloseAsync(cancellationToken)
                 .ConfigureAwait(false);
+
             _channel0.SetCloseReason(CloseReason);
-            _channel0.FinishClose();
+
+            await _channel0.FinishCloseAsync()
+                .ConfigureAwait(false);
+
             RabbitMqClientEventSource.Log.ConnectionClosed();
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
-        private void OnShutdown(ShutdownEventArgs reason)
+        private Task OnShutdownAsync(ShutdownEventArgs reason)
         {
             ThrowIfDisposed();
-            _connectionShutdownWrapper.Invoke(this, reason);
+            return _connectionShutdownWrapperAsync.InvokeAsync(this, reason);
         }
 
         private bool SetCloseReason(ShutdownEventArgs reason)
