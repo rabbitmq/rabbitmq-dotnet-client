@@ -47,7 +47,8 @@ namespace Test.SequentialIntegration
             await _rabbitMQCtl.ExecRabbitMQCtlAsync("set_vm_memory_high_watermark 0.000000001");
             // give rabbitmqctl some time to do its job
             await Task.Delay(TimeSpan.FromSeconds(5));
-            await channel.BasicPublishAsync("amq.fanout", "", _encoding.GetBytes("message"));
+            await channel.BasicPublishAsync(exchange: "amq.direct",
+                routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
         }
 
         public Task UnblockAsync()

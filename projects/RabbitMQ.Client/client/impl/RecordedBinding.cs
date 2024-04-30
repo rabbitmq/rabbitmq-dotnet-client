@@ -81,8 +81,11 @@ namespace RabbitMQ.Client.Impl
 
         public bool Equals(RecordedBinding other)
         {
-            return _isQueueBinding == other._isQueueBinding && _destination == other._destination && _source == other._source &&
-                   _routingKey == other._routingKey && _arguments == other._arguments;
+            return _isQueueBinding == other._isQueueBinding &&
+                _destination == other._destination &&
+                _source == other._source &&
+               _routingKey == other._routingKey &&
+               _arguments == other._arguments;
         }
 
         public override bool Equals(object? obj)

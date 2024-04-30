@@ -85,7 +85,11 @@ namespace Test.Integration
             };
 
             var tasks = new List<Task>();
-            var queueNames = new ConcurrentBag<string>();
+            var queueNames = new ConcurrentDictionary<string, bool>();
+
+            string exchangeName = GenerateExchangeName();
+            await _channel.ExchangeDeclareAsync(exchange: exchangeName, ExchangeType.Fanout,
+                durable: false, autoDelete: true);
 
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
@@ -97,10 +101,16 @@ namespace Test.Integration
                         // sleep for a random amount of time to increase the chances
                         // of thread interleaving. MK.
                         await Task.Delay(S_Random.Next(5, 50));
-                        QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: string.Empty, false, false, false);
-                        string queueName = r.QueueName;
-                        await _channel.QueueBindAsync(queue: queueName, exchange: "amq.fanout", routingKey: queueName);
-                        queueNames.Add(queueName);
+                        string queueName = GenerateQueueName();
+                        QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: queueName,
+                            durable: false, exclusive: true, autoDelete: false);
+                        Assert.Equal(queueName, r.QueueName);
+                        await _channel.QueueBindAsync(queue: queueName,
+                            exchange: exchangeName, routingKey: queueName);
+                        if (false == queueNames.TryAdd(queueName, true))
+                        {
+                            throw new InvalidOperationException($"queue with name {queueName} already added!");
+                        }
                     }
                     catch (NotSupportedException e)
                     {
@@ -116,7 +126,7 @@ namespace Test.Integration
             tasks.Clear();
 
             nse = null;
-            foreach (string q in queueNames)
+            foreach (string q in queueNames.Keys)
             {
                 async Task f()
                 {
@@ -127,8 +137,10 @@ namespace Test.Integration
 
                         QueueDeclareOk r = await _channel.QueueDeclarePassiveAsync(qname);
                         Assert.Equal(qname, r.QueueName);
+                        Assert.Equal((uint)0, r.MessageCount);
 
-                        await _channel.QueueUnbindAsync(queue: qname, exchange: "amq.fanout", routingKey: qname, null);
+                        await _channel.QueueUnbindAsync(queue: qname,
+                            exchange: exchangeName, routingKey: qname, null);
 
                         uint deletedMessageCount = await _channel.QueueDeleteAsync(qname, false, false);
                         Assert.Equal((uint)0, deletedMessageCount);

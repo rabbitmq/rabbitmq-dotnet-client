@@ -29,45 +29,56 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.Integration
+namespace Test.Integration.ConnectionRecovery
 {
-    public class TestConfirmSelectAsync : IntegrationFixture
+    public class TestBasicConnectionRecovery : TestConnectionRecoveryBase
     {
-        readonly byte[] _message = GetRandomBody(64);
-
-        public TestConfirmSelectAsync(ITestOutputHelper output) : base(output)
+        public TestBasicConnectionRecovery(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
-        public async Task TestConfirmSelectIdempotency()
+        public async Task TestBasicConnectionRecoveryTest()
         {
-            await _channel.ConfirmSelectAsync();
-            Assert.Equal(1ul, _channel.NextPublishSeqNo);
-            await Publish();
-            Assert.Equal(2ul, _channel.NextPublishSeqNo);
-            await Publish();
-            Assert.Equal(3ul, _channel.NextPublishSeqNo);
-
-            await _channel.ConfirmSelectAsync();
-            await Publish();
-            Assert.Equal(4ul, _channel.NextPublishSeqNo);
-            await Publish();
-            Assert.Equal(5ul, _channel.NextPublishSeqNo);
-            await Publish();
-            Assert.Equal(6ul, _channel.NextPublishSeqNo);
+            Assert.True(_conn.IsOpen);
+            await CloseAndWaitForRecoveryAsync();
+            Assert.True(_conn.IsOpen);
         }
 
-        private ValueTask Publish()
+        [Fact]
+        public async Task TestBasicChannelRecovery()
         {
-            return _channel.BasicPublishAsync(exchange: "",
-                routingKey: Guid.NewGuid().ToString(), _message);
+            Assert.True(_channel.IsOpen);
+            await CloseAndWaitForRecoveryAsync();
+            Assert.True(_channel.IsOpen);
+        }
+
+        [Fact]
+        public Task TestClientNamedQueueRecovery()
+        {
+            string s = "dotnet-client.test.recovery.q1";
+            return WithTemporaryNonExclusiveQueueAsync(_channel, async (m, q) =>
+            {
+                await CloseAndWaitForRecoveryAsync();
+                await AssertQueueRecoveryAsync(m, q, false);
+                await _channel.QueueDeleteAsync(q);
+            }, s);
+        }
+
+        [Fact]
+        public Task TestClientNamedQueueRecoveryNoWait()
+        {
+            string s = "dotnet-client.test.recovery.q1-nowait";
+            return WithTemporaryExclusiveQueueNoWaitAsync(_channel, async (ch, q) =>
+            {
+                await CloseAndWaitForRecoveryAsync();
+                await AssertExclusiveQueueRecoveryAsync(ch, q);
+            }, s);
         }
     }
 }

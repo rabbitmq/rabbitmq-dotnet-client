@@ -105,11 +105,7 @@ namespace Test.Integration
             _conn.Dispose();
             _conn = null;
 
-            TimeSpan waitSpan = TimeSpan.FromSeconds(3);
-            if (IsRunningInCI)
-            {
-                waitSpan = TimeSpan.FromSeconds(10);
-            }
+            TimeSpan waitSpan = TimeSpan.FromSeconds(10);
             await WaitAsync(tcs, waitSpan, "channel shutdown");
         }
 

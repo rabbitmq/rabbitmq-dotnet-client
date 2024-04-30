@@ -29,45 +29,55 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.Integration
+namespace Test.Integration.ConnectionRecovery
 {
-    public class TestConfirmSelectAsync : IntegrationFixture
+    public class TestExchangeRecovery : TestConnectionRecoveryBase
     {
-        readonly byte[] _message = GetRandomBody(64);
-
-        public TestConfirmSelectAsync(ITestOutputHelper output) : base(output)
+        public TestExchangeRecovery(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
-        public async Task TestConfirmSelectIdempotency()
+        public async Task TestExchangeRecoveryTest()
         {
-            await _channel.ConfirmSelectAsync();
-            Assert.Equal(1ul, _channel.NextPublishSeqNo);
-            await Publish();
-            Assert.Equal(2ul, _channel.NextPublishSeqNo);
-            await Publish();
-            Assert.Equal(3ul, _channel.NextPublishSeqNo);
-
-            await _channel.ConfirmSelectAsync();
-            await Publish();
-            Assert.Equal(4ul, _channel.NextPublishSeqNo);
-            await Publish();
-            Assert.Equal(5ul, _channel.NextPublishSeqNo);
-            await Publish();
-            Assert.Equal(6ul, _channel.NextPublishSeqNo);
+            string x = "dotnet-client.test.recovery.x1";
+            await DeclareNonDurableExchangeAsync(_channel, x);
+            await CloseAndWaitForRecoveryAsync();
+            await AssertExchangeRecoveryAsync(_channel, x);
+            await _channel.ExchangeDeleteAsync(x);
         }
 
-        private ValueTask Publish()
+        [Fact]
+        public async Task TestExchangeToExchangeBindingRecovery()
         {
-            return _channel.BasicPublishAsync(exchange: "",
-                routingKey: Guid.NewGuid().ToString(), _message);
+            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
+            string x1 = "amq.fanout";
+            string x2 = GenerateExchangeName();
+
+            await _channel.ExchangeDeclareAsync(x2, "fanout");
+            await _channel.ExchangeBindAsync(x1, x2, "");
+            await _channel.QueueBindAsync(q, x1, "");
+
+            try
+            {
+                await CloseAndWaitForRecoveryAsync();
+                Assert.True(_channel.IsOpen);
+                await _channel.BasicPublishAsync(x2, "", _encoding.GetBytes("msg"));
+                await AssertMessageCountAsync(q, 1);
+            }
+            finally
+            {
+                await WithTemporaryChannelAsync(async ch =>
+                {
+                    await ch.ExchangeDeleteAsync(x2);
+                    await ch.QueueDeleteAsync(q);
+                });
+            }
         }
     }
 }
