@@ -5,7 +5,7 @@ on:
 
 jobs:
   build-win32:
-    runs-on: windows-2019
+    runs-on: windows-latest
     # https://github.com/NuGet/Home/issues/11548
     env:
       NUGET_CERT_REVOCATION_MODE: offline
@@ -42,7 +42,7 @@ jobs:
             projects/RabbitMQ.*/bin
   integration-win32:
     needs: build-win32
-    runs-on: windows-2019
+    runs-on: windows-latest
     # https://github.com/NuGet/Home/issues/11548
     env:
       NUGET_CERT_REVOCATION_MODE: offline
@@ -89,7 +89,7 @@ jobs:
           path: ~/AppData/Roaming/RabbitMQ/log/
   sequential-integration-win32:
     needs: build-win32
-    runs-on: windows-2019
+    runs-on: windows-latest
     # https://github.com/NuGet/Home/issues/11548
     env:
       NUGET_CERT_REVOCATION_MODE: offline
