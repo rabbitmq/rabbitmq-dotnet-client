@@ -35,6 +35,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -619,7 +620,7 @@ namespace Test
 
         protected static byte[] GetRandomBody(ushort size = 1024)
         {
-            var body = new byte[size];
+            byte[] body = new byte[size];
             S_Random.NextBytes(body);
             return body;
         }
@@ -638,6 +639,16 @@ namespace Test
             aconn.RecoverySucceeded += (source, ea) => tcs.TrySetResult(true);
 
             return tcs;
+        }
+
+        protected void LogWarning(string text,
+                        [CallerFilePath] string file = "",
+                        [CallerMemberName] string member = "",
+                        [CallerLineNumber] int line = 0)
+        {
+            // https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-a-warning-message
+            _output.WriteLine("::warning file={0},line={1}::{2} {3}",
+                Path.GetFileName(file), line, member, text);
         }
     }
 }
