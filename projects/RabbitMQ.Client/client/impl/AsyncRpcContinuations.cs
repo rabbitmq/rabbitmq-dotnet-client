@@ -68,7 +68,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     // Cancellation was successful, does this mean we set a TimeoutException
                     // in the same manner as BlockingCell used to
-                    tcs.SetException(new TimeoutException("TODO LRB rabbitmq/rabbitmq-dotnet-client#1347"));
+                    string msg = $"operation '{GetType().FullName}' timed out after {continuationTimeout}";
+                    tcs.TrySetException(new TimeoutException(msg));
                 }
             }, _tcs);
 #else
@@ -79,7 +80,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     // Cancellation was successful, does this mean we set a TimeoutException
                     // in the same manner as BlockingCell used to
-                    tcs.SetException(new TimeoutException("TODO LRB rabbitmq/rabbitmq-dotnet-client#1347"));
+                    string msg = $"operation '{GetType().FullName}' timed out after {continuationTimeout}";
+                    tcs.TrySetException(new TimeoutException(msg));
                 }
             }, state: _tcs, useSynchronizationContext: false);
 #endif
@@ -109,7 +111,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void HandleChannelShutdown(ShutdownEventArgs reason)
         {
-            _tcs.SetException(new OperationInterruptedException(reason));
+            _tcs.TrySetException(new OperationInterruptedException(reason));
         }
 
         protected virtual void Dispose(bool disposing)

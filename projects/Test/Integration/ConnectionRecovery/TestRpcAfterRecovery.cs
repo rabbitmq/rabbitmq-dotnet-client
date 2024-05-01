@@ -30,8 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -97,7 +95,7 @@ namespace Test.Integration.ConnectionRecovery
                          */
                         if (a.ShutdownReason.ReplyCode == 406)
                         {
-                            LogWarning(_output, "FIXME saw code 406");
+                            LogWarning("FIXME saw code 406");
                         }
                     }
                 }
@@ -106,22 +104,12 @@ namespace Test.Integration.ConnectionRecovery
 
                 if (now - start > WaitSpan)
                 {
-                    LogWarning(_output, $"FIXME test exceeded wait time of {WaitSpan}");
+                    LogWarning($"FIXME test exceeded wait time of {WaitSpan}");
                 }
 
             } while (false == doneTcs.Task.IsCompletedSuccessfully());
 
             await closeTask;
-        }
-
-        private static void LogWarning(ITestOutputHelper output, string text,
-                        [CallerFilePath] string file = "",
-                        [CallerMemberName] string member = "",
-                        [CallerLineNumber] int line = 0)
-        {
-            // https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-a-warning-message
-            output.WriteLine($"::warning file={0},line={1}::{2} {3}",
-                Path.GetFileName(file), line, member, text);
         }
     }
 }
