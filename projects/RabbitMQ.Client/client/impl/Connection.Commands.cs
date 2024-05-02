@@ -195,20 +195,17 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (_config.CredentialsProvider.ValidUntil != null)
             {
-                _config.CredentialsRefresher.Register(_config.CredentialsProvider, NotifyCredentialRefreshed);
+                _config.CredentialsRefresher.Register(_config.CredentialsProvider, NotifyCredentialRefreshedAsync);
             }
         }
 
-        private Task NotifyCredentialRefreshed(bool succesfully)
+        private async Task NotifyCredentialRefreshedAsync(bool succesfully)
         {
             if (succesfully)
             {
-                return UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh",
-                    CancellationToken.None); // TODO cancellation token
-            }
-            else
-            {
-                return Task.CompletedTask;
+                using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionCloseTimeout);
+                await UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh", cts.Token)
+                    .ConfigureAwait(false);
             }
         }
 

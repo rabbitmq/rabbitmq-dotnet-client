@@ -351,7 +351,7 @@ namespace RabbitMQ.Client.Impl
         {
             await InnerChannel.ExchangeDeleteAsync(exchange, ifUnused, noWait, cancellationToken)
                 .ConfigureAwait(false);
-            await _connection.DeleteRecordedExchangeAsync(exchange, recordedEntitiesSemaphoreHeld: false)
+            await _connection.DeleteRecordedExchangeAsync(exchange, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -361,11 +361,11 @@ namespace RabbitMQ.Client.Impl
         {
             ThrowIfDisposed();
             var recordedBinding = new RecordedBinding(false, destination, source, routingKey, arguments);
-            await _connection.DeleteRecordedBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false)
+            await _connection.DeleteRecordedBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                 .ConfigureAwait(false);
             await InnerChannel.ExchangeUnbindAsync(destination, source, routingKey, arguments, noWait, cancellationToken)
                 .ConfigureAwait(false);
-            await _connection.DeleteAutoDeleteExchangeAsync(source, recordedEntitiesSemaphoreHeld: false)
+            await _connection.DeleteAutoDeleteExchangeAsync(source, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -396,7 +396,7 @@ namespace RabbitMQ.Client.Impl
             if (false == passive)
             {
                 var recordedQueue = new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
-                await _connection.RecordQueueAsync(recordedQueue, recordedEntitiesSemaphoreHeld: false)
+                await _connection.RecordQueueAsync(recordedQueue, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                     .ConfigureAwait(false);
             }
             return result;
@@ -415,7 +415,7 @@ namespace RabbitMQ.Client.Impl
         {
             uint result = await InnerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty, noWait, cancellationToken)
                 .ConfigureAwait(false);
-            await _connection.DeleteRecordedQueueAsync(queue, recordedEntitiesSemaphoreHeld: false)
+            await _connection.DeleteRecordedQueueAsync(queue, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                 .ConfigureAwait(false);
             return result;
         }
@@ -429,11 +429,11 @@ namespace RabbitMQ.Client.Impl
         {
             ThrowIfDisposed();
             var recordedBinding = new RecordedBinding(true, queue, exchange, routingKey, arguments);
-            await _connection.DeleteRecordedBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false)
+            await _connection.DeleteRecordedBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                 .ConfigureAwait(false);
             await _innerChannel.QueueUnbindAsync(queue, exchange, routingKey, arguments, cancellationToken)
                 .ConfigureAwait(false);
-            await _connection.DeleteAutoDeleteExchangeAsync(exchange, recordedEntitiesSemaphoreHeld: false)
+            await _connection.DeleteAutoDeleteExchangeAsync(exchange, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                 .ConfigureAwait(false);
         }
 

@@ -242,7 +242,6 @@ namespace RabbitMQ.Client.Impl
                 bool result = await k;
                 Debug.Assert(result);
 
-                // TODO cancellation token
                 await ConsumerDispatcher.WaitForShutdownAsync()
                     .ConfigureAwait(false);
             }
