@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
@@ -67,15 +68,17 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public Task RecoverAsync(IChannel channel)
+        public Task RecoverAsync(IChannel channel, CancellationToken cancellationToken)
         {
             if (_isQueueBinding)
             {
-                return channel.QueueBindAsync(_destination, _source, _routingKey, _arguments, false);
+                return channel.QueueBindAsync(_destination, _source, _routingKey, _arguments, false,
+                    cancellationToken);
             }
             else
             {
-                return channel.ExchangeBindAsync(_destination, _source, _routingKey, _arguments, false);
+                return channel.ExchangeBindAsync(_destination, _source, _routingKey, _arguments, false,
+                    cancellationToken);
             }
         }
 
