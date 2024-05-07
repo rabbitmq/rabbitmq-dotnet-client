@@ -70,12 +70,14 @@ namespace Test.Integration
             var tasks = new List<Task>();
             for (int i = 0; i < _processorCount; i++)
             {
-                tasks.Add(Task.Run(async () =>
+                tasks.Add(Task.Run(() =>
                 {
+                    var subTasks = new List<Task>();
                     for (int j = 0; j < iterations; j++)
                     {
-                        await action(_conn);
+                        subTasks.Add(action(_conn));
                     }
+                    return Task.WhenAll(subTasks);
                 }));
             }
 
