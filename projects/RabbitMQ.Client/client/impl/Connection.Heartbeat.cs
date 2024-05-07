@@ -159,6 +159,13 @@ namespace RabbitMQ.Client.Framing.Impl
                     _heartbeatWriteTimer?.Change((int)_heartbeatWriteTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
+            catch (OperationCanceledException ocex)
+            {
+                if (ocex.CancellationToken != _mainLoopCts.Token)
+                {
+                    throw;
+                }
+            }
             catch (ObjectDisposedException)
             {
                 // timer is already disposed,
