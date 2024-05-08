@@ -355,7 +355,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     if (_channel0.CloseReason is null)
                     {
-                        if (!abort)
+                        if (false == abort)
                         {
                             throw;
                         }
@@ -365,13 +365,31 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                     }
                 }
+                catch (Exception ex)
+                {
+                    if (false == abort)
+                    {
+                        throw;
+                    }
+                    else
+                    {
+                        LogCloseError("Couldn't close connection cleanly.", ex);
+                    }
+                }
                 finally
                 {
                     /*
                      * Note:
                      * NotifyReceivedCloseOk will cancel the main loop
                      */
-                    MaybeTerminateMainloopAndStopHeartbeatTimers();
+                    try
+                    {
+                        MaybeTerminateMainloopAndStopHeartbeatTimers();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogCloseError("Couldn't close connection cleanly (main loop termination)", ex);
+                    }
                 }
             }
 
