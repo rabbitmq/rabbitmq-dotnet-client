@@ -135,7 +135,6 @@ namespace Test.Integration
         public async Task TestBasicRoundtripConcurrentManyMessages()
         {
             const int publish_total = 4096;
-            string queueName = $"{nameof(TestBasicRoundtripConcurrentManyMessages)}-{Guid.NewGuid()}";
 
             string publish1 = GetUniqueString(32768);
             byte[] body1 = _encoding.GetBytes(publish1);
@@ -178,19 +177,23 @@ namespace Test.Integration
                     });
                 };
 
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
-                Assert.Equal(q, queueName);
+                QueueDeclareOk q = await _channel.QueueDeclareAsync();
+                string queueName = q.QueueName;
 
                 Task publishTask = Task.Run(async () =>
                         {
                             using (IChannel publishChannel = await _conn.CreateChannelAsync())
                             {
+                                await publishChannel.ConfirmSelectAsync();
+
                                 QueueDeclareOk pubQ = await publishChannel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
                                 Assert.Equal(queueName, pubQ.QueueName);
+
                                 for (int i = 0; i < publish_total; i++)
                                 {
                                     await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
                                     await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
+                                    await publishChannel.WaitForConfirmsOrDieAsync();
                                 }
 
                                 await publishChannel.CloseAsync();
