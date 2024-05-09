@@ -254,9 +254,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize, CancellationToken cancellationToken)
+        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize,
+            CancellationToken mainLoopCancellationToken)
         {
-            ReadResult result = await reader.ReadAsync(cancellationToken)
+            ReadResult result = await reader.ReadAsync(mainLoopCancellationToken)
                .ConfigureAwait(false);
 
             ReadOnlySequence<byte> buffer = result.Buffer;
@@ -270,7 +271,7 @@ namespace RabbitMQ.Client.Impl
                 reader.AdvanceTo(buffer.Start, buffer.End);
 
                 // Not enough data, read a bit more
-                result = await reader.ReadAsync(cancellationToken)
+                result = await reader.ReadAsync(mainLoopCancellationToken)
                    .ConfigureAwait(false);
 
                 MaybeThrowEndOfStream(result, buffer);

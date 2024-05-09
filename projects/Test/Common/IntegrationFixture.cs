@@ -57,6 +57,8 @@ namespace Test
         private Exception _connectionRecoveryException;
         private Exception _channelCallbackException;
 
+        private readonly TestOutputWriterEventListener _eventListener = null;
+
         protected readonly RabbitMQCtl _rabbitMQCtl;
 
         protected ConnectionFactory _connFactory;
@@ -127,6 +129,7 @@ namespace Test
             if (IsVerbose)
             {
                 Console.SetOut(new TestOutputWriter(output, _testDisplayName));
+                _eventListener = new TestOutputWriterEventListener(output);
             }
         }
 
@@ -188,6 +191,7 @@ namespace Test
             }
             finally
             {
+                _eventListener?.Dispose();
                 _channel?.Dispose();
                 _conn?.Dispose();
                 _channel = null;

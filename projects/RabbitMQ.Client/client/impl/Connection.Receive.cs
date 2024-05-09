@@ -57,7 +57,8 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 // Possible heartbeat exception
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
-                    0, "End of stream",
+                    0,
+                    "End of stream",
                     exception: eose);
                 HandleMainLoopException(ea);
             }
@@ -73,15 +74,31 @@ namespace RabbitMQ.Client.Framing.Impl
                  * Ensure that these exceptions eventually make it to application code
                  */
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
-                    Constants.InternalError, fileLoadException.Message,
+                    Constants.InternalError,
+                    fileLoadException.Message,
                     exception: fileLoadException);
                 HandleMainLoopException(ea);
+            }
+            catch (OperationCanceledException ocex)
+            {
+                if (mainLoopToken.IsCancellationRequested)
+                {
+                    // ignore
+                }
+                else
+                {
+                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                        Constants.InternalError,
+                        ocex.Message,
+                        exception: ocex);
+                    HandleMainLoopException(ea);
+                }
             }
             catch (Exception ex)
             {
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                     Constants.InternalError,
-                    $"Unexpected Exception: {ex.Message}",
+                    ex.Message,
                     exception: ex);
                 HandleMainLoopException(ea);
             }
@@ -91,24 +108,24 @@ namespace RabbitMQ.Client.Framing.Impl
                 .ConfigureAwait(false);
         }
 
-        private async Task ReceiveLoopAsync(CancellationToken mainLoopCancelllationToken)
+        private async Task ReceiveLoopAsync(CancellationToken mainLoopCancellationToken)
         {
             while (false == _closed)
             {
-                mainLoopCancelllationToken.ThrowIfCancellationRequested();
+                mainLoopCancellationToken.ThrowIfCancellationRequested();
 
                 while (_frameHandler.TryReadFrame(out InboundFrame frame))
                 {
                     NotifyHeartbeatListener();
-                    await ProcessFrameAsync(frame, mainLoopCancelllationToken)
+                    await ProcessFrameAsync(frame, mainLoopCancellationToken)
                         .ConfigureAwait(false);
                 }
 
                 // Done reading frames synchronously, go async
-                InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync(mainLoopCancelllationToken)
+                InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync(mainLoopCancellationToken)
                     .ConfigureAwait(false);
                 NotifyHeartbeatListener();
-                await ProcessFrameAsync(asyncFrame, mainLoopCancelllationToken)
+                await ProcessFrameAsync(asyncFrame, mainLoopCancellationToken)
                         .ConfigureAwait(false);
             }
         }
@@ -180,17 +197,18 @@ namespace RabbitMQ.Client.Framing.Impl
             string message = reason.GetLogMessage();
             if (false == SetCloseReason(reason))
             {
-                LogCloseError($"Unexpected Main Loop Exception while closing: {message}", reason.Exception);
+                LogCloseError($"unexpected main loop exception while closing: {message}", reason.Exception);
                 return;
             }
 
             _channel0.MaybeSetConnectionStartException(reason.Exception);
 
             OnShutdown(reason);
-            LogCloseError($"Unexpected connection closure: {message}", reason.Exception);
+            LogCloseError($"unexpected connection closure: {message}", reason.Exception);
         }
 
-        private async Task HardProtocolExceptionHandlerAsync(HardProtocolException hpe, CancellationToken cancellationToken)
+        private async Task HardProtocolExceptionHandlerAsync(HardProtocolException hpe,
+            CancellationToken mainLoopCancellationToken)
         {
             if (SetCloseReason(hpe.ShutdownReason))
             {
@@ -200,11 +218,11 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     var cmd = new ConnectionClose(hpe.ShutdownReason.ReplyCode, hpe.ShutdownReason.ReplyText, 0, 0);
-                    await _session0.TransmitAsync(in cmd, cancellationToken)
+                    await _session0.TransmitAsync(in cmd, mainLoopCancellationToken)
                         .ConfigureAwait(false);
                     if (hpe.CanShutdownCleanly)
                     {
-                        await ClosingLoopAsync(cancellationToken)
+                        await ClosingLoopAsync(mainLoopCancellationToken)
                            .ConfigureAwait(false);
                     }
                 }
@@ -222,13 +240,13 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<remarks>
         /// Loop only used while quiescing. Use only to cleanly close connection
         ///</remarks>
-        private async Task ClosingLoopAsync(CancellationToken cancellationToken)
+        private async Task ClosingLoopAsync(CancellationToken mainLoopCancellationToken)
         {
             try
             {
                 _frameHandler.ReadTimeout = default;
                 // Wait for response/socket closure or timeout
-                await ReceiveLoopAsync(cancellationToken)
+                await ReceiveLoopAsync(mainLoopCancellationToken)
                    .ConfigureAwait(false);
             }
             catch (ObjectDisposedException ode)

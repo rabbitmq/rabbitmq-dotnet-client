@@ -29,13 +29,15 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client.Logging
 {
     internal static class ESLog
     {
         public static void Info(string message)
         {
-            Logging.RabbitMqClientEventSource.Log.Info(message);
+            RabbitMqClientEventSource.Log.Info(message);
         }
 
         public static void Info(string message, params object[] args)
@@ -46,7 +48,7 @@ namespace RabbitMQ.Client.Logging
 
         public static void Warn(string message)
         {
-            Logging.RabbitMqClientEventSource.Log.Warn(message);
+            RabbitMqClientEventSource.Log.Warn(message);
         }
 
         public static void Warn(string message, params object[] args)
@@ -55,12 +57,12 @@ namespace RabbitMQ.Client.Logging
             Warn(msg);
         }
 
-        public static void Error(string message, System.Exception ex)
+        public static void Error(string message, Exception ex)
         {
-            Logging.RabbitMqClientEventSource.Log.Error(message, ex);
+            RabbitMqClientEventSource.Log.Error(message, ex);
         }
 
-        public static void Error(string message, System.Exception ex, params object[] args)
+        public static void Error(string message, Exception ex, params object[] args)
         {
             string msg = string.Format(message, args);
             Error(msg, ex);
