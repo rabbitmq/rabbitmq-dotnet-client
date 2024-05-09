@@ -159,8 +159,8 @@ namespace Test.Integration
                     {
                         if (args.Initiator == ShutdownInitiator.Peer)
                         {
-                            publish1SyncSource.TrySetResult(false);
-                            publish2SyncSource.TrySetResult(false);
+                            publish1SyncSource.TrySetException(ea.Exception);
+                            publish2SyncSource.TrySetException(ea.Exception);
                         }
                     });
                 };
@@ -171,8 +171,8 @@ namespace Test.Integration
                     {
                         if (args.Initiator == ShutdownInitiator.Peer)
                         {
-                            publish1SyncSource.TrySetResult(false);
-                            publish2SyncSource.TrySetResult(false);
+                            publish1SyncSource.TrySetException(ea.Exception);
+                            publish2SyncSource.TrySetException(ea.Exception);
                         }
                     });
                 };
@@ -209,7 +209,7 @@ namespace Test.Integration
                                 int publish1_count = 0;
                                 int publish2_count = 0;
 
-                                consumer.Received += async (o, a) =>
+                                consumer.Received += (o, a) =>
                                 {
                                     string decoded = _encoding.GetString(a.Body.ToArray());
                                     if (decoded == publish1)
@@ -217,7 +217,6 @@ namespace Test.Integration
                                         if (Interlocked.Increment(ref publish1_count) >= publish_total)
                                         {
                                             publish1SyncSource.TrySetResult(true);
-                                            await publish2SyncSource.Task;
                                         }
                                     }
                                     else if (decoded == publish2)
@@ -225,9 +224,15 @@ namespace Test.Integration
                                         if (Interlocked.Increment(ref publish2_count) >= publish_total)
                                         {
                                             publish2SyncSource.TrySetResult(true);
-                                            await publish1SyncSource.Task;
                                         }
                                     }
+                                    else
+                                    {
+                                        var ex = new InvalidOperationException("incorrect message - should never happen!");
+                                        publish1SyncSource.TrySetException(ex);
+                                        publish2SyncSource.TrySetException(ex);
+                                    }
+                                    return Task.CompletedTask;
                                 };
 
                                 await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
