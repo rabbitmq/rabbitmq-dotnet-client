@@ -505,13 +505,19 @@ namespace RabbitMQ.Client.Impl
             _flowControlBlock.Set();
         }
 
-        // TODO async
+        /*
+         * Note:
+         * Attempting to make this method async, with the resulting fallout,
+         * resulted in many flaky test results, especially around disposing
+         * Channels/Connections
+         *
+         * Aborted PR: https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1551
+         */
         private void OnSessionShutdown(object sender, ShutdownEventArgs reason)
         {
             ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnChannelShutdown(reason);
-            // TODO async
             ConsumerDispatcher.Shutdown(reason);
         }
 
