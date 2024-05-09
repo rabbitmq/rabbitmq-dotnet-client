@@ -73,8 +73,8 @@ jobs:
           Receive-Job -Job $tx; `
           & "${{ github.workspace }}\.ci\windows\toxiproxy\toxiproxy-cli.exe" list; `
           dotnet test `
-            --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" `
             --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' `
+            --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" `
             --environment 'RABBITMQ_TOXIPROXY_TESTS=true' `
             --environment 'PASSWORD=grapefruit' `
             --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" `
@@ -114,7 +114,12 @@ jobs:
         id: install-start-rabbitmq
         run: ${{ github.workspace }}\.ci\windows\gha-setup.ps1
       - name: Sequential Integration Tests
-        run: dotnet test --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" "${{ github.workspace }}\projects\Test\SequentialIntegration\SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+        run: dotnet test `
+            --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' `
+            --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" `
+            --environment 'PASSWORD=grapefruit' `
+            --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" `
+            "${{ github.workspace }}\projects\Test\SequentialIntegration\SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
         uses: actions/upload-artifact@v4
@@ -182,8 +187,8 @@ jobs:
       - name: Integration Tests
         run: |
             dotnet test \
-                --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
                 --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
+                --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
                 --environment 'RABBITMQ_TOXIPROXY_TESTS=true' \
                 --environment 'PASSWORD=grapefruit' \
                 --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
@@ -222,7 +227,10 @@ jobs:
       - name: Sequential Integration Tests
         run: |
             dotnet test \
+                --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
                 --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
+                --environment 'PASSWORD=grapefruit' \
+                --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
                 "${{ github.workspace }}/projects/Test/SequentialIntegration/SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
