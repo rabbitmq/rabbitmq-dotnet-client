@@ -130,6 +130,13 @@ namespace RabbitMQ.Client.Framing.Impl
                     _heartbeatReadTimer?.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
                 }
             }
+            catch (OperationCanceledException)
+            {
+                if (false == _mainLoopCts.IsCancellationRequested)
+                {
+                    throw;
+                }
+            }
             catch (ObjectDisposedException)
             {
                 // timer is already disposed,

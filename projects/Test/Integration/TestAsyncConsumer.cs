@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -52,6 +53,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripConcurrent()
         {
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
+
             string publish1 = GetUniqueString(1024);
             byte[] body = _encoding.GetBytes(publish1);
             await _channel.BasicPublishAsync("", q.QueueName, body);
@@ -64,13 +66,12 @@ namespace Test.Integration
 
             var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var maximumWaitTime = TimeSpan.FromSeconds(10);
 
-            var tokenSource = new CancellationTokenSource(maximumWaitTime);
+            var tokenSource = new CancellationTokenSource(WaitSpan);
             CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
             {
-                publish1SyncSource.TrySetResult(false);
-                publish2SyncSource.TrySetResult(false);
+                publish1SyncSource.TrySetCanceled();
+                publish2SyncSource.TrySetCanceled();
             });
 
             try
@@ -81,8 +82,7 @@ namespace Test.Integration
                     {
                         if (args.Initiator == ShutdownInitiator.Peer)
                         {
-                            publish1SyncSource.TrySetResult(false);
-                            publish2SyncSource.TrySetResult(false);
+                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                         }
                     });
                 };
@@ -93,25 +93,28 @@ namespace Test.Integration
                     {
                         if (args.Initiator == ShutdownInitiator.Peer)
                         {
-                            publish1SyncSource.TrySetResult(false);
-                            publish2SyncSource.TrySetResult(false);
+                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                         }
                     });
                 };
 
-                consumer.Received += async (o, a) =>
+                consumer.Received += (o, a) =>
                 {
                     string decoded = _encoding.GetString(a.Body.ToArray());
                     if (decoded == publish1)
                     {
                         publish1SyncSource.TrySetResult(true);
-                        await publish2SyncSource.Task;
                     }
                     else if (decoded == publish2)
                     {
                         publish2SyncSource.TrySetResult(true);
-                        await publish1SyncSource.Task;
                     }
+                    else
+                    {
+                        var ex = new InvalidOperationException("incorrect message - should never happen!");
+                        SetException(ex, publish1SyncSource, publish2SyncSource);
+                    }
+                    return Task.CompletedTask;
                 };
 
                 await _channel.BasicConsumeAsync(q.QueueName, true, string.Empty, false, false, null, consumer);
@@ -120,15 +123,15 @@ namespace Test.Integration
                 await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
 
                 bool result1 = await publish1SyncSource.Task;
-                Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {WaitSpan}");
 
                 bool result2 = await publish2SyncSource.Task;
-                Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {WaitSpan}");
             }
             finally
             {
-                tokenSource.Dispose();
                 ctsr.Dispose();
+                tokenSource.Dispose();
             }
         }
 
@@ -136,7 +139,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripConcurrentManyMessages()
         {
             const int publish_total = 4096;
-            string queueName = $"{nameof(TestBasicRoundtripConcurrentManyMessages)}-{Guid.NewGuid()}";
+            string queueName = GenerateQueueName();
 
             string publish1 = GetUniqueString(32768);
             byte[] body1 = _encoding.GetBytes(publish1);
@@ -145,12 +148,14 @@ namespace Test.Integration
 
             var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var maximumWaitTime = TimeSpan.FromSeconds(30);
-            var tokenSource = new CancellationTokenSource(maximumWaitTime);
+            var consumerSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var tokenSource = new CancellationTokenSource(WaitSpan);
             CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
             {
-                publish1SyncSource.TrySetResult(false);
-                publish2SyncSource.TrySetResult(false);
+                publish1SyncSource.TrySetCanceled();
+                publish2SyncSource.TrySetCanceled();
+                consumerSyncSource.TrySetCanceled();
             });
 
             try
@@ -161,8 +166,7 @@ namespace Test.Integration
                     {
                         if (args.Initiator == ShutdownInitiator.Peer)
                         {
-                            publish1SyncSource.TrySetResult(false);
-                            publish2SyncSource.TrySetResult(false);
+                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                         }
                     });
                 };
@@ -173,88 +177,146 @@ namespace Test.Integration
                     {
                         if (args.Initiator == ShutdownInitiator.Peer)
                         {
-                            publish1SyncSource.TrySetResult(false);
-                            publish2SyncSource.TrySetResult(false);
+                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                         }
                     });
                 };
 
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
-                Assert.Equal(q, queueName);
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, autoDelete: true);
+                Assert.Equal(queueName, q.QueueName);
 
                 Task publishTask = Task.Run(async () =>
                         {
-                            using (IChannel publishChannel = await _conn.CreateChannelAsync())
+                            using (IConnection publishConn = await _connFactory.CreateConnectionAsync())
                             {
-                                QueueDeclareOk pubQ = await publishChannel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
-                                Assert.Equal(queueName, pubQ.QueueName);
-                                for (int i = 0; i < publish_total; i++)
+                                publishConn.ConnectionShutdown += (o, ea) =>
                                 {
-                                    await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
-                                    await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
+                                    HandleConnectionShutdown(publishConn, ea, (args) =>
+                                    {
+                                        if (args.Initiator == ShutdownInitiator.Peer)
+                                        {
+                                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
+                                        }
+                                    });
+                                };
+                                using (IChannel publishChannel = await publishConn.CreateChannelAsync())
+                                {
+                                    publishChannel.ChannelShutdown += (o, ea) =>
+                                    {
+                                        HandleChannelShutdown(publishChannel, ea, (args) =>
+                                        {
+                                            if (args.Initiator == ShutdownInitiator.Peer)
+                                            {
+                                                MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
+                                            }
+                                        });
+                                    };
+                                    await publishChannel.ConfirmSelectAsync();
+
+                                    for (int i = 0; i < publish_total; i++)
+                                    {
+                                        await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
+                                        await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
+                                        await publishChannel.WaitForConfirmsOrDieAsync();
+                                    }
+
+                                    await publishChannel.CloseAsync();
                                 }
 
-                                await publishChannel.CloseAsync();
+                                await publishConn.CloseAsync();
                             }
                         });
 
                 Task consumeTask = Task.Run(async () =>
                         {
-                            using (IChannel consumeChannel = await _conn.CreateChannelAsync())
+                            using (IConnection consumeConn = await _connFactory.CreateConnectionAsync())
                             {
-                                var consumer = new AsyncEventingBasicConsumer(consumeChannel);
-
-                                int publish1_count = 0;
-                                int publish2_count = 0;
-
-                                consumer.Received += async (o, a) =>
+                                consumeConn.ConnectionShutdown += (o, ea) =>
                                 {
-                                    string decoded = _encoding.GetString(a.Body.ToArray());
-                                    if (decoded == publish1)
+                                    HandleConnectionShutdown(consumeConn, ea, (args) =>
                                     {
-                                        if (Interlocked.Increment(ref publish1_count) >= publish_total)
+                                        if (args.Initiator == ShutdownInitiator.Peer)
                                         {
-                                            publish1SyncSource.TrySetResult(true);
-                                            await publish2SyncSource.Task;
+                                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                                         }
-                                    }
-                                    else if (decoded == publish2)
-                                    {
-                                        if (Interlocked.Increment(ref publish2_count) >= publish_total)
-                                        {
-                                            publish2SyncSource.TrySetResult(true);
-                                            await publish1SyncSource.Task;
-                                        }
-                                    }
+                                    });
                                 };
+                                using (IChannel consumeChannel = await consumeConn.CreateChannelAsync())
+                                {
+                                    consumeChannel.ChannelShutdown += (o, ea) =>
+                                    {
+                                        HandleChannelShutdown(consumeChannel, ea, (args) =>
+                                        {
+                                            if (args.Initiator == ShutdownInitiator.Peer)
+                                            {
+                                                MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
+                                            }
+                                        });
+                                    };
 
-                                await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
+                                    var consumer = new AsyncEventingBasicConsumer(consumeChannel);
 
-                                // ensure we get a delivery
-                                await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
+                                    int publish1_count = 0;
+                                    int publish2_count = 0;
 
-                                bool result1 = await publish1SyncSource.Task;
-                                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                                    consumer.Received += (o, a) =>
+                                    {
+                                        string decoded = _encoding.GetString(a.Body.ToArray());
+                                        if (decoded == publish1)
+                                        {
+                                            if (Interlocked.Increment(ref publish1_count) >= publish_total)
+                                            {
+                                                publish1SyncSource.TrySetResult(true);
+                                            }
+                                        }
+                                        else if (decoded == publish2)
+                                        {
+                                            if (Interlocked.Increment(ref publish2_count) >= publish_total)
+                                            {
+                                                publish2SyncSource.TrySetResult(true);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            var ex = new InvalidOperationException("incorrect message - should never happen!");
+                                            SetException(ex, publish1SyncSource, publish2SyncSource);
+                                        }
+                                        return Task.CompletedTask;
+                                    };
 
-                                bool result2 = await publish2SyncSource.Task;
-                                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                                    await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
+                                    await consumerSyncSource.Task;
 
-                                await consumeChannel.CloseAsync();
+                                    await consumeChannel.CloseAsync();
+                                }
+
+                                await consumeConn.CloseAsync();
                             }
                         });
 
-                await AssertRanToCompletion(publishTask, consumeTask);
+                await AssertRanToCompletion(publishTask);
+
+                await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
+                consumerSyncSource.TrySetResult(true);
+
+                bool result1 = await publish1SyncSource.Task;
+                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {WaitSpan}");
+
+                bool result2 = await publish2SyncSource.Task;
+                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {WaitSpan}");
             }
             finally
             {
-                tokenSource.Dispose();
                 ctsr.Dispose();
+                tokenSource.Dispose();
             }
         }
 
         [Fact]
         public async Task TestBasicRejectAsync()
         {
+            string queueName = GenerateQueueName();
+
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cancellationTokenSource = new CancellationTokenSource(TestTimeout);
             CancellationTokenRegistration ctsr = cancellationTokenSource.Token.Register(() =>
@@ -270,7 +332,7 @@ namespace Test.Integration
                     {
                         if (args.Initiator == ShutdownInitiator.Peer)
                         {
-                            publishSyncSource.TrySetResult(false);
+                            MaybeSetException(ea, publishSyncSource);
                         }
                     });
                 };
@@ -279,10 +341,7 @@ namespace Test.Integration
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
-                        if (args.Initiator == ShutdownInitiator.Peer)
-                        {
-                            publishSyncSource.TrySetResult(false);
-                        }
+                        MaybeSetException(ea, publishSyncSource);
                     });
                 };
 
@@ -307,9 +366,8 @@ namespace Test.Integration
                     publishSyncSource.TrySetResult(true);
                 };
 
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: string.Empty,
-                    durable: false, exclusive: true, autoDelete: false);
-                string queueName = q.QueueName;
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName, false, false, false);
+
                 const string publish1 = "sync-hi-1";
                 byte[] _body = _encoding.GetBytes(publish1);
                 await _channel.BasicPublishAsync(string.Empty, queueName, _body);
@@ -349,14 +407,17 @@ namespace Test.Integration
             }
             finally
             {
-                cancellationTokenSource.Dispose();
+                await _channel.QueueDeleteAsync(queue: queueName);
                 ctsr.Dispose();
+                cancellationTokenSource.Dispose();
             }
         }
 
         [Fact]
         public async Task TestBasicAckAsync()
         {
+            string queueName = GenerateQueueName();
+
             const int messageCount = 1024;
             int messagesReceived = 0;
 
@@ -368,7 +429,7 @@ namespace Test.Integration
                 {
                     if (args.Initiator == ShutdownInitiator.Peer)
                     {
-                        publishSyncSource.TrySetResult(false);
+                        MaybeSetException(ea, publishSyncSource);
                     }
                 });
             };
@@ -379,7 +440,7 @@ namespace Test.Integration
                 {
                     if (args.Initiator == ShutdownInitiator.Peer)
                     {
-                        publishSyncSource.TrySetResult(false);
+                        MaybeSetException(ea, publishSyncSource);
                     }
                 });
             };
@@ -399,15 +460,14 @@ namespace Test.Integration
                 }
             };
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
-            string queueName = q.QueueName;
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName, false, false, true);
 
             await _channel.BasicQosAsync(0, 1, false);
             await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
                 consumerTag: string.Empty, noLocal: false, exclusive: false,
                 arguments: null, consumer);
 
-            var publishTask = Task.Run(async () =>
+            Task<bool> publishTask = Task.Run(async () =>
             {
                 for (int i = 0; i < messageCount; i++)
                 {
@@ -415,10 +475,14 @@ namespace Test.Integration
                     await _channel.BasicPublishAsync(string.Empty, queueName, _body);
                     await _channel.WaitForConfirmsOrDieAsync();
                 }
+
+                return true;
             });
 
+            Assert.True(await publishTask);
             Assert.True(await publishSyncSource.Task);
             Assert.Equal(messageCount, messagesReceived);
+            await _channel.QueueDeleteAsync(queue: queueName);
             await _channel.CloseAsync(_closeArgs, false, CancellationToken.None);
         }
 
@@ -433,7 +497,7 @@ namespace Test.Integration
                 {
                     if (args.Initiator == ShutdownInitiator.Peer)
                     {
-                        publishSyncSource.TrySetResult(false);
+                        MaybeSetException(ea, publishSyncSource);
                     }
                 });
             };
@@ -444,7 +508,7 @@ namespace Test.Integration
                 {
                     if (args.Initiator == ShutdownInitiator.Peer)
                     {
-                        publishSyncSource.TrySetResult(false);
+                        MaybeSetException(ea, publishSyncSource);
                     }
                 });
             };
@@ -523,15 +587,45 @@ namespace Test.Integration
         public async Task TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
         {
             AssertRecordedQueues((RabbitMQ.Client.Framing.Impl.AutorecoveringConnection)_conn, 0);
-            for (int i = 0; i < 1000; i++)
+            var tasks = new List<Task>();
+            for (int i = 0; i < 256; i++)
             {
-                string q = Guid.NewGuid().ToString();
-                await _channel.QueueDeclareAsync(q, false, false, true);
-                var dummy = new AsyncEventingBasicConsumer(_channel);
-                string tag = await _channel.BasicConsumeAsync(q, true, dummy);
-                await _channel.BasicCancelAsync(tag);
+                tasks.Add(Task.Run(async () =>
+                {
+                    string q = GenerateQueueName();
+                    await _channel.QueueDeclareAsync(q, false, false, true);
+                    var dummy = new AsyncEventingBasicConsumer(_channel);
+                    string tag = await _channel.BasicConsumeAsync(q, true, dummy);
+                    await _channel.BasicCancelAsync(tag);
+                }));
             }
+            await Task.WhenAll(tasks);
             AssertRecordedQueues((RabbitMQ.Client.Framing.Impl.AutorecoveringConnection)_conn, 0);
+        }
+
+        private static void SetException(Exception ex, params TaskCompletionSource<bool>[] tcsAry)
+        {
+            foreach (TaskCompletionSource<bool> tcs in tcsAry)
+            {
+                tcs.TrySetException(ex);
+            }
+        }
+
+        private static void MaybeSetException(ShutdownEventArgs ea, params TaskCompletionSource<bool>[] tcsAry)
+        {
+            foreach (TaskCompletionSource<bool> tcs in tcsAry)
+            {
+                MaybeSetException(ea, tcs);
+            }
+        }
+
+        private static void MaybeSetException(ShutdownEventArgs ea, TaskCompletionSource<bool> tcs)
+        {
+            if (ea.Initiator == ShutdownInitiator.Peer)
+            {
+                Exception ex = ea.Exception ?? new Exception(ea.ReplyText);
+                tcs.TrySetException(ex);
+            }
         }
     }
 }
