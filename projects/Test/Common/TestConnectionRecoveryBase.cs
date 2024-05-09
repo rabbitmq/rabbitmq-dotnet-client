@@ -202,6 +202,8 @@ namespace Test
             {
                 using (IChannel publishingChannel = await publishingConn.CreateChannelAsync())
                 {
+                    await publishingChannel.ConfirmSelectAsync();
+
                     for (ushort i = 0; i < TotalMessageCount; i++)
                     {
                         if (i == CloseAtCount)
@@ -210,6 +212,7 @@ namespace Test
                         }
 
                         await publishingChannel.BasicPublishAsync(string.Empty, queueName, _messageBody);
+                        await publishingChannel.WaitForConfirmsOrDieAsync();
                     }
 
                     await publishingChannel.CloseAsync();
