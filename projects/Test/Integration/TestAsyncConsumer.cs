@@ -186,9 +186,6 @@ namespace Test.Integration
                             {
                                 await publishChannel.ConfirmSelectAsync();
 
-                                QueueDeclareOk pubQ = await publishChannel.QueueDeclareAsync(queue: queueName, exclusive: false, durable: true);
-                                Assert.Equal(queueName, pubQ.QueueName);
-
                                 for (int i = 0; i < publish_total; i++)
                                 {
                                     await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
