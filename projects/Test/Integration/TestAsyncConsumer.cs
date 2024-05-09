@@ -64,9 +64,8 @@ namespace Test.Integration
 
             var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var maximumWaitTime = TimeSpan.FromSeconds(10);
 
-            var tokenSource = new CancellationTokenSource(maximumWaitTime);
+            var tokenSource = new CancellationTokenSource(WaitSpan);
             CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
             {
                 publish1SyncSource.TrySetResult(false);
@@ -120,10 +119,10 @@ namespace Test.Integration
                 await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
 
                 bool result1 = await publish1SyncSource.Task;
-                Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {WaitSpan}");
 
                 bool result2 = await publish2SyncSource.Task;
-                Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {WaitSpan}");
             }
             finally
             {
@@ -145,8 +144,8 @@ namespace Test.Integration
 
             var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var maximumWaitTime = TimeSpan.FromSeconds(30);
-            var tokenSource = new CancellationTokenSource(maximumWaitTime);
+
+            var tokenSource = new CancellationTokenSource(WaitSpan);
             CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
             {
                 publish1SyncSource.TrySetResult(false);
@@ -234,10 +233,10 @@ namespace Test.Integration
                                 await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
 
                                 bool result1 = await publish1SyncSource.Task;
-                                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {WaitSpan}");
 
                                 bool result2 = await publish2SyncSource.Task;
-                                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {maximumWaitTime}");
+                                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {WaitSpan}");
 
                                 await consumeChannel.CloseAsync();
                             }
