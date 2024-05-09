@@ -31,6 +31,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -38,7 +40,8 @@ namespace RabbitMQ.Client.Framing.Impl
 #nullable enable
     internal sealed partial class AutorecoveringConnection
     {
-        private readonly object _recordedEntitiesLock = new object();
+        private readonly SemaphoreSlim _recordedEntitiesSemaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _channelsSemaphore = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, RecordedExchange> _recordedExchanges = new Dictionary<string, RecordedExchange>();
         private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
         private readonly HashSet<RecordedBinding> _recordedBindings = new HashSet<RecordedBinding>();
@@ -47,17 +50,67 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal int RecordedExchangesCount => _recordedExchanges.Count;
 
-        internal void RecordExchange(in RecordedExchange exchange)
+        internal async ValueTask RecordExchangeAsync(RecordedExchange exchange,
+            bool recordedEntitiesSemaphoreHeld)
         {
-            lock (_recordedEntitiesLock)
+            if (_disposed)
             {
-                _recordedExchanges[exchange.Name] = exchange;
+                return;
+            }
+
+            if (recordedEntitiesSemaphoreHeld)
+            {
+                DoRecordExchange(exchange);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync()
+                    .ConfigureAwait(false);
+                try
+                {
+                    DoRecordExchange(exchange);
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Release();
+                }
             }
         }
 
-        internal void DeleteRecordedExchange(string exchangeName)
+        private void DoRecordExchange(in RecordedExchange exchange)
         {
-            lock (_recordedEntitiesLock)
+            _recordedExchanges[exchange.Name] = exchange;
+        }
+
+        internal async ValueTask DeleteRecordedExchangeAsync(string exchangeName,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (recordedEntitiesSemaphoreHeld)
+            {
+                await DoDeleteRecordedExchangeAsync(exchangeName, cancellationToken)
+                        .ConfigureAwait(false);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
+                {
+                    await DoDeleteRecordedExchangeAsync(exchangeName, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Release();
+                }
+            }
+
+            async Task DoDeleteRecordedExchangeAsync(string exchangeName, CancellationToken cancellationToken)
             {
                 _recordedExchanges.Remove(exchangeName);
 
@@ -66,24 +119,52 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     if (binding.Destination == exchangeName)
                     {
-                        DeleteRecordedBinding(binding);
-                        DeleteAutoDeleteExchange(binding.Source);
+                        await DeleteRecordedBindingAsync(binding,
+                            recordedEntitiesSemaphoreHeld: true, cancellationToken)
+                                .ConfigureAwait(false);
+                        await DeleteAutoDeleteExchangeAsync(binding.Source,
+                            recordedEntitiesSemaphoreHeld: true, cancellationToken)
+                                .ConfigureAwait(false);
                     }
                 }
             }
         }
 
-        internal void DeleteAutoDeleteExchange(string exchangeName)
+        internal async ValueTask DeleteAutoDeleteExchangeAsync(string exchangeName,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            lock (_recordedEntitiesLock)
+            if (_disposed)
             {
-                if (_recordedExchanges.TryGetValue(exchangeName, out var recordedExchange) && recordedExchange.AutoDelete)
+                return;
+            }
+
+            if (recordedEntitiesSemaphoreHeld)
+            {
+                DoDeleteAutoDeleteExchange(exchangeName);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
                 {
-                    if (!AnyBindingsOnExchange(exchangeName))
-                    {
-                        // last binding where this exchange is the source is gone, remove recorded exchange if it is auto-deleted.
-                        _recordedExchanges.Remove(exchangeName);
-                    }
+                    DoDeleteAutoDeleteExchange(exchangeName);
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Release();
+                }
+            }
+        }
+
+        private void DoDeleteAutoDeleteExchange(string exchangeName)
+        {
+            if (_recordedExchanges.TryGetValue(exchangeName, out var recordedExchange) && recordedExchange.AutoDelete)
+            {
+                if (!AnyBindingsOnExchange(exchangeName))
+                {
+                    // last binding where this exchange is the source is gone, remove recorded exchange if it is auto-deleted.
+                    _recordedExchanges.Remove(exchangeName);
                 }
             }
 
@@ -103,163 +184,339 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal int RecordedQueuesCount => _recordedQueues.Count;
 
-        internal void RecordQueue(in RecordedQueue queue)
+        internal async ValueTask RecordQueueAsync(RecordedQueue queue,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            lock (_recordedEntitiesLock)
+            if (_disposed)
             {
-                _recordedQueues[queue.Name] = queue;
+                return;
+            }
+
+            if (recordedEntitiesSemaphoreHeld)
+            {
+                DoRecordQueue(queue);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
+                {
+                    DoRecordQueue(queue);
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Release();
+                }
             }
         }
 
-        internal void DeleteRecordedQueue(string queueName)
+        private void DoRecordQueue(RecordedQueue queue)
         {
-            lock (_recordedEntitiesLock)
+            _recordedQueues[queue.Name] = queue;
+        }
+
+        internal async ValueTask DeleteRecordedQueueAsync(string queueName,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (recordedEntitiesSemaphoreHeld)
+            {
+                await DoDeleteRecordedQueueAsync(queueName, cancellationToken)
+                        .ConfigureAwait(false);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
+                {
+                    await DoDeleteRecordedQueueAsync(queueName, cancellationToken)
+                            .ConfigureAwait(false);
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Release();
+                }
+            }
+
+            async ValueTask DoDeleteRecordedQueueAsync(string queueName, CancellationToken cancellationToken)
             {
                 _recordedQueues.Remove(queueName);
 
                 // find bindings that need removal, check if some auto-delete exchanges might need the same
-                foreach (var binding in _recordedBindings.ToArray())
+                foreach (RecordedBinding binding in _recordedBindings.ToArray())
                 {
                     if (binding.Destination == queueName)
                     {
-                        DeleteRecordedBinding(binding);
-                        DeleteAutoDeleteExchange(binding.Source);
+                        await DeleteRecordedBindingAsync(binding,
+                            recordedEntitiesSemaphoreHeld: true, cancellationToken)
+                                .ConfigureAwait(false);
+                        await DeleteAutoDeleteExchangeAsync(binding.Source,
+                            recordedEntitiesSemaphoreHeld: true, cancellationToken)
+                                .ConfigureAwait(false);
                     }
                 }
             }
+
         }
 
-        private void UpdateBindingsDestination(string oldName, string newName)
+        internal async ValueTask RecordBindingAsync(RecordedBinding binding,
+            bool recordedEntitiesSemaphoreHeld)
         {
-            lock (_recordedEntitiesLock)
+            if (_disposed)
             {
-                foreach (RecordedBinding b in _recordedBindings.ToArray())
+                return;
+            }
+
+            if (recordedEntitiesSemaphoreHeld)
+            {
+                DoRecordBinding(binding);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync()
+                    .ConfigureAwait(false);
+                try
                 {
-                    if (b.Destination == oldName)
-                    {
-                        _recordedBindings.Remove(b);
-                        _recordedBindings.Add(new RecordedBinding(newName, b));
-                    }
+                    DoRecordBinding(binding);
                 }
-            }
-        }
-
-        private void UpdateConsumerQueue(string oldName, string newName)
-        {
-            lock (_recordedEntitiesLock)
-            {
-                foreach (RecordedConsumer consumer in _recordedConsumers.Values.ToArray())
+                finally
                 {
-                    if (consumer.Queue == oldName)
-                    {
-                        _recordedConsumers[consumer.ConsumerTag] = RecordedConsumer.WithNewQueueName(newName, consumer);
-                    }
+                    _recordedEntitiesSemaphore.Release();
                 }
             }
         }
 
-        internal void RecordBinding(in RecordedBinding rb)
+        private void DoRecordBinding(in RecordedBinding binding)
         {
-            lock (_recordedEntitiesLock)
+            _recordedBindings.Add(binding);
+        }
+
+        internal async ValueTask DeleteRecordedBindingAsync(RecordedBinding rb,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
+        {
+            if (_disposed)
             {
-                _recordedBindings.Add(rb);
+                return;
+            }
+
+            if (recordedEntitiesSemaphoreHeld)
+            {
+                DoDeleteRecordedBinding(rb);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
+                {
+                    DoDeleteRecordedBinding(rb);
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Release();
+                }
             }
         }
 
-        internal void DeleteRecordedBinding(in RecordedBinding rb)
+        private void DoDeleteRecordedBinding(in RecordedBinding rb)
         {
-            lock (_recordedEntitiesLock)
-            {
-                _recordedBindings.Remove(rb);
-            }
+            _recordedBindings.Remove(rb);
         }
 
-        internal void RecordConsumer(in RecordedConsumer consumer)
+        internal async ValueTask RecordConsumerAsync(RecordedConsumer consumer,
+            bool recordedEntitiesSemaphoreHeld)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (!_config.TopologyRecoveryEnabled)
             {
                 return;
             }
 
-            lock (_recordedEntitiesLock)
+            if (recordedEntitiesSemaphoreHeld)
             {
-                _recordedConsumers[consumer.ConsumerTag] = consumer;
+                DoRecordConsumer(consumer);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync()
+                    .ConfigureAwait(false);
+                try
+                {
+                    DoRecordConsumer(consumer);
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Release();
+                }
             }
         }
 
-        internal void DeleteRecordedConsumer(string consumerTag)
+        private void DoRecordConsumer(in RecordedConsumer consumer)
         {
+            _recordedConsumers[consumer.ConsumerTag] = consumer;
+        }
+
+        internal async ValueTask DeleteRecordedConsumerAsync(string consumerTag,
+            bool recordedEntitiesSemaphoreHeld)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (!_config.TopologyRecoveryEnabled)
             {
                 return;
             }
 
-            lock (_recordedEntitiesLock)
+            if (recordedEntitiesSemaphoreHeld)
             {
-                if (_recordedConsumers.Remove(consumerTag, out var recordedConsumer))
-                {
-                    DeleteAutoDeleteQueue(recordedConsumer.Queue);
-                }
+                DoDeleteRecordedConsumer(consumerTag);
             }
-
-            void DeleteAutoDeleteQueue(string queue)
+            else
             {
-                if (_recordedQueues.TryGetValue(queue, out var recordedQueue) && recordedQueue.AutoDelete)
+                await _recordedEntitiesSemaphore.WaitAsync()
+                    .ConfigureAwait(false);
+                try
                 {
-                    // last consumer on this connection is gone, remove recorded queue if it is auto-deleted.
-                    if (!AnyConsumersOnQueue(queue))
-                    {
-                        _recordedQueues.Remove(queue);
-                    }
+                    DoDeleteRecordedConsumer(consumerTag);
                 }
-            }
-
-            bool AnyConsumersOnQueue(string queue)
-            {
-                foreach (var pair in _recordedConsumers)
+                finally
                 {
-                    if (pair.Value.Queue == queue)
-                    {
-                        return true;
-                    }
+                    _recordedEntitiesSemaphore.Release();
                 }
-
-                return false;
             }
         }
 
-        private void UpdateConsumer(string oldTag, string newTag, in RecordedConsumer consumer)
+        private void DoDeleteRecordedConsumer(string consumerTag)
         {
-            lock (_recordedEntitiesLock)
+            if (_recordedConsumers.Remove(consumerTag, out var recordedConsumer))
             {
-                // make sure server-generated tags are re-added
-                _recordedConsumers.Remove(oldTag);
-                _recordedConsumers.Add(newTag, consumer);
+                DeleteAutoDeleteQueue(recordedConsumer.Queue);
             }
         }
 
-        private void RecordChannel(AutorecoveringChannel m)
+        private void DeleteAutoDeleteQueue(string queue)
         {
-            lock (_channels)
+            if (_recordedQueues.TryGetValue(queue, out var recordedQueue) && recordedQueue.AutoDelete)
             {
-                _channels.Add(m);
-            }
-        }
-
-        internal void DeleteRecordedChannel(AutorecoveringChannel channel)
-        {
-            lock (_recordedEntitiesLock)
-            {
-                foreach (string ct in channel.ConsumerTags)
+                // last consumer on this connection is gone, remove recorded queue if it is auto-deleted.
+                if (!AnyConsumersOnQueue(queue))
                 {
-                    DeleteRecordedConsumer(ct);
+                    _recordedQueues.Remove(queue);
+                }
+            }
+        }
+
+        private bool AnyConsumersOnQueue(string queue)
+        {
+            foreach (var pair in _recordedConsumers)
+            {
+                if (pair.Value.Queue == queue)
+                {
+                    return true;
                 }
             }
 
-            lock (_channels)
+            return false;
+        }
+
+        private async Task RecordChannelAsync(AutorecoveringChannel channel,
+            bool channelsSemaphoreHeld, CancellationToken cancellationToken)
+        {
+            if (channelsSemaphoreHeld)
             {
-                _channels.Remove(channel);
+                DoAddRecordedChannel(channel);
             }
+            else
+            {
+                await _channelsSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
+                {
+                    DoAddRecordedChannel(channel);
+                }
+                finally
+                {
+                    _channelsSemaphore.Release();
+                }
+            }
+        }
+
+        private void DoAddRecordedChannel(AutorecoveringChannel channel)
+        {
+            _channels.Add(channel);
+        }
+
+        internal async Task DeleteRecordedChannelAsync(AutorecoveringChannel channel,
+            bool channelsSemaphoreHeld, bool recordedEntitiesSemaphoreHeld)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (recordedEntitiesSemaphoreHeld)
+            {
+                await DoDeleteRecordedConsumersAsync(channel)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await _recordedEntitiesSemaphore.WaitAsync()
+                    .ConfigureAwait(false);
+                try
+                {
+                    await DoDeleteRecordedConsumersAsync(channel)
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Release();
+                }
+            }
+
+            if (channelsSemaphoreHeld)
+            {
+                DoDeleteRecordedChannel(channel);
+            }
+            else
+            {
+                await _channelsSemaphore.WaitAsync()
+                    .ConfigureAwait(false);
+                try
+                {
+                    DoDeleteRecordedChannel(channel);
+                }
+                finally
+                {
+                    _channelsSemaphore.Release();
+                }
+            }
+        }
+
+        private async Task DoDeleteRecordedConsumersAsync(AutorecoveringChannel channel)
+        {
+            foreach (string ct in channel.ConsumerTags)
+            {
+                await DeleteRecordedConsumerAsync(ct, recordedEntitiesSemaphoreHeld: true)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private void DoDeleteRecordedChannel(in AutorecoveringChannel channel)
+        {
+            _channels.Remove(channel);
         }
     }
 }

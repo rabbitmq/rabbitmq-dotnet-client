@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -61,30 +63,45 @@ namespace RabbitMQ.Client.Impl
             return deliveryTag + ActiveDeliveryTagOffset;
         }
 
-        public override void BasicAck(ulong deliveryTag, bool multiple)
+        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
+            CancellationToken cancellationToken)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                base.BasicAck(realTag, multiple);
+                return base.BasicAckAsync(realTag, multiple, cancellationToken);
+            }
+            else
+            {
+                return default;
             }
         }
 
-        public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
+        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
+            CancellationToken cancellationToken)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                base.BasicNack(realTag, multiple, requeue);
+                return base.BasicNackAsync(realTag, multiple, requeue, cancellationToken);
+            }
+            else
+            {
+                return default;
             }
         }
 
-        public override void BasicReject(ulong deliveryTag, bool requeue)
+        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+            CancellationToken cancellationToken)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
             if (realTag > 0 && realTag <= deliveryTag)
             {
-                base.BasicReject(realTag, requeue);
+                return base.BasicRejectAsync(realTag, requeue, cancellationToken);
+            }
+            else
+            {
+                return Task.CompletedTask;
             }
         }
     }

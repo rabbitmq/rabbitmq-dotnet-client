@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 
@@ -39,7 +40,7 @@ namespace RabbitMQ.Client
 {
     /// <summary>
     /// Useful default/base implementation of <see cref="IBasicConsumer"/>.
-    /// Subclass and override <see cref="HandleBasicDeliver"/> in application code.
+    /// Subclass and override <see cref="HandleBasicDeliverAsync"/> in application code.
     /// </summary>
     /// <remarks>
     /// Note that the "Handle*" methods run in the connection's thread!
@@ -68,7 +69,7 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Retrieve the consumer tags this consumer is registered as; to be used to identify
-        /// this consumer, for example, when cancelling it with <see cref="IChannel.BasicCancel"/>.
+        /// this consumer, for example, when cancelling it with <see cref="IChannel.BasicCancelAsync"/>.
         /// This value is an array because a single consumer instance can be reused to consume on
         /// multiple channels.
         /// </summary>
@@ -141,21 +142,22 @@ namespace RabbitMQ.Client
         /// Called each time a message is delivered for this consumer.
         /// </summary>
         /// <remarks>
-        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IChannel.BasicAck"/>
+        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IChannel.BasicAckAsync"/>
         /// if consuming in automatic acknowledgement mode.
         /// Subclasses must copy or fully use delivery body before returning.
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.
         /// </remarks>
-        public virtual void HandleBasicDeliver(string consumerTag,
+        public virtual Task HandleBasicDeliverAsync(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
             ReadOnlyMemory<byte> exchange,
             ReadOnlyMemory<byte> routingKey,
-            in ReadOnlyBasicProperties properties,
+            ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
             // Nothing to do here.
+            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>../../rabbit.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <IsTestProject>true</IsTestProject>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../RabbitMQ.Client/RabbitMQ.Client.csproj" />
+    <ProjectReference Include="../Common/Common.csproj" />
+  </ItemGroup>
+
+  <!--
+    https://github.com/dotnet/msbuild/issues/2281
+    https://stackoverflow.com/a/44502158/1466825
+    https://xunit.net/docs/running-tests-in-parallel
+    <AssemblyAttribute Include="Xunit.CollectionBehavior">
+      <_Parameter1>Xunit.CollectionBehavior.CollectionPerAssembly</_Parameter1>
+      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>  
+      <_Parameter1_TypeName>Xunit.CollectionBehavior.CollectionPerAssembly</_Parameter1_TypeName>
+    </AssemblyAttribute>
+  <ItemGroup>
+    <AssemblyAttribute Include="Xunit.CollectionBehavior">
+      <_Parameter1>MaxParallelThreads=1</_Parameter1>
+      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
+    </AssemblyAttribute>
+  </ItemGroup>
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="xunit" Version="2.6.6" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

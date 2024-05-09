@@ -31,12 +31,10 @@
 
 using System;
 using System.Buffers;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Net.Sockets;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
@@ -142,31 +140,33 @@ namespace RabbitMQ.Client.Impl
             ///</summary>
             private static ReadOnlySpan<byte> Payload => new byte[] { Constants.FrameHeartbeat, 0, 0, 0, 0, 0, 0, Constants.FrameEnd };
 
-            public static Memory<byte> GetHeartbeatFrame()
+            public static RentedMemory GetHeartbeatFrame()
             {
                 // Is returned by SocketFrameHandler.WriteLoop
                 byte[] buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
                 Payload.CopyTo(buffer);
-                return new Memory<byte>(buffer, 0, FrameSize);
+                var mem = new ReadOnlyMemory<byte>(buffer, 0, FrameSize);
+                return new RentedMemory(mem, buffer);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlyMemory<byte> SerializeToFrames<T>(ref T method, ushort channelNumber)
+        public static RentedMemory SerializeToFrames<T>(ref T method, ushort channelNumber)
             where T : struct, IOutgoingAmqpMethod
         {
             int size = Method.FrameSize + method.GetRequiredBufferSize();
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            var array = ArrayPool<byte>.Shared.Rent(size);
+            byte[] array = ArrayPool<byte>.Shared.Rent(size);
             int offset = Method.WriteTo(array, channelNumber, ref method);
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            return new ReadOnlyMemory<byte>(array, 0, size);
+            var mem = new ReadOnlyMemory<byte>(array, 0, size);
+            return new RentedMemory(mem, array);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlyMemory<byte> SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+        public static RentedMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -176,11 +176,11 @@ namespace RabbitMQ.Client.Impl
                        BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes) + remainingBodyBytes;
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            var array = ArrayPool<byte>.Shared.Rent(size);
+            byte[] array = ArrayPool<byte>.Shared.Rent(size);
 
             int offset = Method.WriteTo(array, channelNumber, ref method);
             offset += Header.WriteTo(array.AsSpan(offset), channelNumber, ref header, remainingBodyBytes);
-            var bodySpan = body.Span;
+            ReadOnlySpan<byte> bodySpan = body.Span;
             while (remainingBodyBytes > 0)
             {
                 int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
@@ -189,7 +189,8 @@ namespace RabbitMQ.Client.Impl
             }
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            return new ReadOnlyMemory<byte>(array, 0, size);
+            var mem = new ReadOnlyMemory<byte>(array, 0, size);
+            return new RentedMemory(mem, array);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -231,7 +232,7 @@ namespace RabbitMQ.Client.Impl
                     throw new EndOfStreamException();
                 }
 
-                var bufferSpan = buffer.First.Span;
+                ReadOnlySpan<byte> bufferSpan = buffer.First.Span;
 
                 if (bufferSpan[1] != 'M' || bufferSpan[2] != 'Q' || bufferSpan[3] != 'P')
                 {
@@ -253,9 +254,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize)
+        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize,
+            CancellationToken mainLoopCancellationToken)
         {
-            ReadResult result = await reader.ReadAsync()
+            ReadResult result = await reader.ReadAsync(mainLoopCancellationToken)
                .ConfigureAwait(false);
 
             ReadOnlySequence<byte> buffer = result.Buffer;
@@ -269,7 +271,7 @@ namespace RabbitMQ.Client.Impl
                 reader.AdvanceTo(buffer.Start, buffer.End);
 
                 // Not enough data, read a bit more
-                result = await reader.ReadAsync()
+                result = await reader.ReadAsync(mainLoopCancellationToken)
                    .ConfigureAwait(false);
 
                 MaybeThrowEndOfStream(result, buffer);
@@ -312,6 +314,15 @@ namespace RabbitMQ.Client.Impl
                 return false;
             }
 
+            /*
+             * Note:
+             * The use of buffer.Slice seems to take all segments into account, thus there appears to be no need to check IsSingleSegment
+             * Debug.Assert(buffer.IsSingleSegment);
+             * In addition, the TestBasicRoundtripConcurrentManyMessages asserts that the consumed message bodies are equivalent to
+             * the published bodies, and if there were an issue parsing frames, it would show up there for sure.
+             * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1516#issuecomment-1991943017
+             */
+
             byte firstByte = buffer.First.Span[0];
             if (firstByte == 'A')
             {
@@ -344,13 +355,13 @@ namespace RabbitMQ.Client.Impl
 
                 if (payloadBytes[payloadSize] != Constants.FrameEnd)
                 {
-                    var frameEndMarker = payloadBytes[payloadSize];
+                    byte frameEndMarker = payloadBytes[payloadSize];
                     ArrayPool<byte>.Shared.Return(payloadBytes);
                     throw new MalformedFrameException($"Bad frame end marker: {frameEndMarker}");
                 }
 
                 RabbitMqClientEventSource.Log.DataReceived(payloadSize + Framing.BaseFrameSize);
-                frame = new InboundFrame(type, channel, new Memory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
+                frame = new InboundFrame(type, channel, new ReadOnlyMemory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
                 // Advance the buffer
                 buffer = buffer.Slice(7 + readSize);
                 return true;
@@ -375,7 +386,9 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void MaybeThrowEndOfStream(ReadResult result, ReadOnlySequence<byte> buffer)
         {
-            if (result.IsCompleted || buffer.Length == 0)
+            // https://blog.marcgravell.com/2018/07/pipe-dreams-part-1.html
+            // Uses &&
+            if (result.IsCompleted && buffer.IsEmpty)
             {
                 throw new EndOfStreamException("Pipe is completed.");
             }

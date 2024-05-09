@@ -34,13 +34,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             lock (_consumers)
             {
-                if (_consumers.TryGetValue(tag, out var consumerPair))
+                if (_consumers.TryGetValue(tag, out (IBasicConsumer consumer, string consumerTag) consumerPair))
                 {
                     return consumerPair;
                 }
 
 #if !NETSTANDARD
-                var consumerTag = Encoding.UTF8.GetString(tag.Span);
+                string consumerTag = Encoding.UTF8.GetString(tag.Span);
 #else
                 string consumerTag;
                 unsafe
@@ -75,7 +75,19 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
+        public void Shutdown(ShutdownEventArgs reason)
+        {
+            DoShutdownConsumers(reason);
+            InternalShutdown();
+        }
+
         public Task ShutdownAsync(ShutdownEventArgs reason)
+        {
+            DoShutdownConsumers(reason);
+            return InternalShutdownAsync();
+        }
+
+        private void DoShutdownConsumers(ShutdownEventArgs reason)
         {
             lock (_consumers)
             {
@@ -85,11 +97,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 }
                 _consumers.Clear();
             }
-
-            return InternalShutdownAsync();
         }
 
         protected abstract void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason);
+
+        protected abstract void InternalShutdown();
 
         protected abstract Task InternalShutdownAsync();
 

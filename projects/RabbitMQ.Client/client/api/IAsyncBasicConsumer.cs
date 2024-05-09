@@ -43,7 +43,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// Does nothing with the passed in information.
-        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAck"/>.
+        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAckAsync"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
         Task HandleBasicDeliver(string consumerTag,

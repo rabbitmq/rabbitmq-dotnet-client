@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
+using System.Linq;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -12,7 +11,7 @@ namespace RabbitMQ.Client.Impl
         private string? _context;
         private Action<Exception, string>? _onExceptionAction;
 
-        public bool IsEmpty => _event is null;
+        public readonly bool IsEmpty => _event is null;
 
         public EventingWrapper(string context, Action<Exception, string> onExceptionAction)
         {
@@ -42,7 +41,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Invoke(object sender, T parameter)
         {
-            var handlers = _handlers;
+            Delegate[]? handlers = _handlers;
             if (handlers is null)
             {
                 handlers = _event?.GetInvocationList();
@@ -53,7 +52,8 @@ namespace RabbitMQ.Client.Impl
 
                 _handlers = handlers;
             }
-            foreach (EventHandler<T> action in handlers)
+
+            foreach (EventHandler<T> action in handlers.Cast<EventHandler<T>>())
             {
                 try
                 {
@@ -61,7 +61,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception exception)
                 {
-                    var onException = _onExceptionAction;
+                    Action<Exception, string>? onException = _onExceptionAction;
                     if (onException != null)
                     {
                         onException(exception, _context!);
@@ -80,62 +80,6 @@ namespace RabbitMQ.Client.Impl
             _handlers = other._handlers;
             _context = other._context;
             _onExceptionAction = other._onExceptionAction;
-        }
-    }
-
-    internal struct AsyncEventingWrapper<T>
-    {
-        private event AsyncEventHandler<T>? _event;
-        private Delegate[]? _handlers;
-
-        public bool IsEmpty => _event is null;
-
-        public void AddHandler(AsyncEventHandler<T>? handler)
-        {
-            _event += handler;
-            _handlers = null;
-        }
-
-        public void RemoveHandler(AsyncEventHandler<T>? handler)
-        {
-            _event -= handler;
-            _handlers = null;
-        }
-
-        // Do not make this function async! (This type is a struct that gets copied at the start of an async method => empty _handlers is copied)
-        public Task InvokeAsync(object sender, T parameter)
-        {
-            var handlers = _handlers;
-            if (handlers is null)
-            {
-                handlers = _event?.GetInvocationList();
-                if (handlers is null)
-                {
-                    return Task.CompletedTask;
-                }
-
-                _handlers = handlers;
-            }
-
-            if (handlers.Length == 1)
-            {
-                return ((AsyncEventHandler<T>)handlers[0])(sender, parameter);
-            }
-            return InternalInvoke(handlers, sender, parameter);
-        }
-
-        private static async Task InternalInvoke(Delegate[] handlers, object sender, T parameter)
-        {
-            foreach (AsyncEventHandler<T> action in handlers)
-            {
-                await action(sender, parameter).ConfigureAwait(false);
-            }
-        }
-
-        public void Takeover(in AsyncEventingWrapper<T> other)
-        {
-            _event = other._event;
-            _handlers = other._handlers;
         }
     }
 }

@@ -32,25 +32,26 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
 #nullable enable
     internal sealed partial class Connection
     {
-        public void UpdateSecret(string newSecret, string reason)
+        public Task UpdateSecretAsync(string newSecret, string reason,
+            CancellationToken cancellationToken)
         {
-            _channel0.UpdateSecret(newSecret, reason);
+            return _channel0.UpdateSecretAsync(newSecret, reason, cancellationToken);
         }
 
         internal void NotifyReceivedCloseOk()
         {
-            TerminateMainloop();
+            MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: true);
             _closed = true;
         }
 
@@ -70,25 +71,41 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private async ValueTask OpenAsync()
-        {
-            RabbitMqClientEventSource.Log.ConnectionOpened();
-            await StartAndTuneAsync().ConfigureAwait(false);
-            await _channel0.ConnectionOpenAsync(_config.VirtualHost);
-        }
-
-        private async ValueTask StartAndTuneAsync()
+        private async ValueTask StartAndTuneAsync(CancellationToken cancellationToken)
         {
             var connectionStartCell = new TaskCompletionSource<ConnectionStartDetails>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+#if NET6_0_OR_GREATER
+            using CancellationTokenRegistration ctr = cancellationToken.UnsafeRegister((object? state) =>
+            {
+                if (state != null)
+                {
+                    var csc = (TaskCompletionSource<ConnectionStartDetails>)state;
+                    csc.TrySetCanceled(cancellationToken);
+                }
+            }, connectionStartCell);
+#else
+            using CancellationTokenRegistration ctr = cancellationToken.Register((object state) =>
+            {
+                var csc = (TaskCompletionSource<ConnectionStartDetails>)state;
+                csc.TrySetCanceled(cancellationToken);
+            }, state: connectionStartCell, useSynchronizationContext: false);
+#endif
+
             _channel0.m_connectionStartCell = connectionStartCell;
             _channel0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
-            await _frameHandler.SendHeaderAsync().ConfigureAwait(false);
-            ConnectionStartDetails connectionStart = await connectionStartCell.Task.ConfigureAwait(false);
 
-            if (connectionStart is null)
+            await _frameHandler.SendProtocolHeaderAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            Task<ConnectionStartDetails> csct = connectionStartCell.Task;
+            ConnectionStartDetails connectionStart = await csct.ConfigureAwait(false);
+
+            if (connectionStart is null || csct.IsCanceled)
             {
-                throw new IOException("connection.start was never received, likely due to a network timeout");
+                const string msg = "connection.start was never received, likely due to a network timeout";
+                throw new IOException(msg, _channel0.ConnectionStartException);
             }
 
             ServerProperties = connectionStart.m_serverProperties;
@@ -96,8 +113,13 @@ namespace RabbitMQ.Client.Framing.Impl
             var serverVersion = new AmqpVersion(connectionStart.m_versionMajor, connectionStart.m_versionMinor);
             if (!serverVersion.Equals(Protocol.Version))
             {
-                TerminateMainloop();
-                FinishClose();
+                /*
+                 * Note:
+                 * FinishCloseAsync will cancel the main loop
+                 */
+                MaybeTerminateMainloopAndStopHeartbeatTimers();
+                await FinishCloseAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
             }
 
@@ -117,13 +139,13 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (challenge is null)
                     {
                         res = await _channel0.ConnectionStartOkAsync(ClientProperties,
-                            mechanismFactory.Name,
-                            response,
-                            "en_US").ConfigureAwait(false);
+                            mechanismFactory.Name, response, "en_US", cancellationToken)
+                            .ConfigureAwait(false);
                     }
                     else
                     {
-                        res = await _channel0.ConnectionSecureOkAsync(response).ConfigureAwait(false);
+                        res = await _channel0.ConnectionSecureOkAsync(response, cancellationToken)
+                            .ConfigureAwait(false);
                     }
 
                     if (res.m_challenge is null)
@@ -158,10 +180,33 @@ namespace RabbitMQ.Client.Framing.Impl
             uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
-            _channel0.ConnectionTuneOk(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds);
+            await _channel0.ConnectionTuneOkAsync(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds, cancellationToken)
+                .ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+            MaybeStartCredentialRefresher();
 
             // now we can start heartbeat timers
+            cancellationToken.ThrowIfCancellationRequested();
             MaybeStartHeartbeatTimers();
+        }
+
+        private void MaybeStartCredentialRefresher()
+        {
+            if (_config.CredentialsProvider.ValidUntil != null)
+            {
+                _config.CredentialsRefresher.Register(_config.CredentialsProvider, NotifyCredentialRefreshedAsync);
+            }
+        }
+
+        private async Task NotifyCredentialRefreshedAsync(bool succesfully)
+        {
+            if (succesfully)
+            {
+                using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionCloseTimeout);
+                await UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh", cts.Token)
+                    .ConfigureAwait(false);
+            }
         }
 
         private IAuthMechanismFactory GetAuthMechanismFactory(string supportedMechanismNames)

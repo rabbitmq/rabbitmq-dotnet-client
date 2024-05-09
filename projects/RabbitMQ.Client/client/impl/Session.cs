@@ -29,8 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Diagnostics;
-
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
@@ -45,13 +45,14 @@ namespace RabbitMQ.Client.Impl
             _assembler = new CommandAssembler();
         }
 
-        public override bool HandleFrame(in InboundFrame frame)
+        public override async Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
         {
             bool shallReturnFramePayload = _assembler.HandleFrame(in frame, out IncomingCommand cmd);
 
             if (!cmd.IsEmpty)
             {
-                CommandReceived.Invoke(in cmd);
+                await CommandReceived.Invoke(cmd, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             return shallReturnFramePayload;

@@ -1,0 +1,240 @@
+name: build/test rabbitmq-dotnet-client
+
+on:
+  - workflow_call
+
+jobs:
+  build-win32:
+    runs-on: windows-latest
+    # https://github.com/NuGet/Home/issues/11548
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/AppData/Local/NuGet/v3-cache
+          key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-v1-nuget-
+      - name: Build (Debug)
+        run: dotnet build ${{ github.workspace }}\Build.csproj
+      - name: Verify
+        run: dotnet format ${{ github.workspace }}\RabbitMQDotNetClient.sln --no-restore --verify-no-changes
+      - name: APIApproval Test
+        run: dotnet test "${{ github.workspace }}\projects\Test\Unit\Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed' --filter='FullyQualifiedName=Test.Unit.APIApproval.Approve'
+      - name: Unit Tests
+        run: dotnet test "${{ github.workspace }}\projects\Test\Unit\Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Upload Build (Debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rabbitmq-dotnet-client-build-win32
+          path: |
+            projects/Test/Unit/bin
+            projects/Test/Integration/bin
+            projects/Test/SequentialIntegration/bin
+            projects/RabbitMQ.*/bin
+  integration-win32:
+    needs: build-win32
+    runs-on: windows-latest
+    # https://github.com/NuGet/Home/issues/11548
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Cache installers
+        uses: actions/cache@v4
+        with:
+          # Note: the cache path is relative to the workspace directory
+          # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
+          path: ~/installers
+          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/windows/versions.json') }}
+      - name: Download Build (Debug)
+        uses: actions/download-artifact@v4
+        with:
+          name: rabbitmq-dotnet-client-build-win32
+          path: projects
+      - name: Install and Start RabbitMQ
+        id: install-start-rabbitmq
+        run: ${{ github.workspace }}\.ci\windows\gha-setup.ps1
+      - name: Integration Tests
+        run: |
+          $tx = Start-Job -Verbose -ScriptBlock { & "${{ github.workspace }}\.ci\windows\toxiproxy\toxiproxy-server.exe" }; `
+          Start-Sleep -Seconds 1; `
+          Receive-Job -Job $tx; `
+          & "${{ github.workspace }}\.ci\windows\toxiproxy\toxiproxy-cli.exe" list; `
+          dotnet test `
+            --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' `
+            --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" `
+            --environment 'RABBITMQ_TOXIPROXY_TESTS=true' `
+            --environment 'PASSWORD=grapefruit' `
+            --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" `
+            "${{ github.workspace }}\projects\Test\Integration\Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Check for errors in RabbitMQ logs
+        run: ${{ github.workspace }}\.ci\windows\gha-log-check.ps1
+      - name: Maybe upload RabbitMQ logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rabbitmq-logs-integration-win32
+          path: ~/AppData/Roaming/RabbitMQ/log/
+  sequential-integration-win32:
+    needs: build-win32
+    runs-on: windows-latest
+    # https://github.com/NuGet/Home/issues/11548
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Cache installers
+        uses: actions/cache@v4
+        with:
+          # Note: the cache path is relative to the workspace directory
+          # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
+          path: ~/installers
+          key: ${{ runner.os }}-v0-${{ hashFiles('.ci/windows/versions.json') }}
+      - name: Download Build (Debug)
+        uses: actions/download-artifact@v4
+        with:
+          name: rabbitmq-dotnet-client-build-win32
+          path: projects
+      - name: Install and Start RabbitMQ
+        id: install-start-rabbitmq
+        run: ${{ github.workspace }}\.ci\windows\gha-setup.ps1
+      - name: Sequential Integration Tests
+        run: dotnet test `
+            --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' `
+            --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" `
+            --environment 'PASSWORD=grapefruit' `
+            --environment SSL_CERTS_DIR="${{ github.workspace }}\.ci\certs" `
+            "${{ github.workspace }}\projects\Test\SequentialIntegration\SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Maybe upload RabbitMQ logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rabbitmq-logs-sequential-integration-win32
+          path: ~/AppData/Roaming/RabbitMQ/log/
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/.local/share/NuGet/v3-cache
+          key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-v1-nuget-
+      - name: Build (Debug)
+        run: dotnet build ${{ github.workspace }}/Build.csproj
+      - name: Verify
+        run: dotnet format ${{ github.workspace }}/RabbitMQDotNetClient.sln --no-restore --verify-no-changes
+      - name: APIApproval Test
+        run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed' --filter='FullyQualifiedName=Test.Unit.APIApproval.Approve'
+      - name: Unit Tests
+        run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Upload Build (Debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rabbitmq-dotnet-client-build-ubuntu
+          path: |
+            projects/Test/Unit/bin
+            projects/Test/Integration/bin
+            projects/Test/SequentialIntegration/bin
+            projects/RabbitMQ.*/bin
+  integration-ubuntu:
+    needs: build-ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.x
+      - name: Download Build (Debug)
+        uses: actions/download-artifact@v4
+        with:
+          name: rabbitmq-dotnet-client-build-ubuntu
+          path: projects
+      - name: Start RabbitMQ
+        id: start-rabbitmq
+        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh toxiproxy
+      - name: Integration Tests
+        run: |
+            dotnet test \
+                --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
+                --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
+                --environment 'RABBITMQ_TOXIPROXY_TESTS=true' \
+                --environment 'PASSWORD=grapefruit' \
+                --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
+                "${{ github.workspace }}/projects/Test/Integration/Integration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Check for errors in RabbitMQ logs
+        run: ${{ github.workspace}}/.ci/ubuntu/gha-log-check.sh
+      - name: Maybe collect toxiproxy logs
+        if: failure()
+        run: docker logs rabbitmq-dotnet-client-toxiproxy > ${{ github.workspace }}/.ci/ubuntu/log/toxiproxy.log
+      - name: Maybe upload RabbitMQ logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rabbitmq-logs-integration-ubuntu
+          path: ${{ github.workspace }}/.ci/ubuntu/log/
+  sequential-integration-ubuntu:
+    needs: build-ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.x
+      - name: Download Build (Debug)
+        uses: actions/download-artifact@v4
+        with:
+          name: rabbitmq-dotnet-client-build-ubuntu
+          path: projects
+      - name: Start RabbitMQ
+        id: start-rabbitmq
+        run: ${{ github.workspace }}/.ci/ubuntu/gha-setup.sh
+      - name: Sequential Integration Tests
+        run: |
+            dotnet test \
+                --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' \
+                --environment "RABBITMQ_RABBITMQCTL_PATH=DOCKER:${{ steps.start-rabbitmq.outputs.id }}" \
+                --environment 'PASSWORD=grapefruit' \
+                --environment SSL_CERTS_DIR="${{ github.workspace }}/.ci/certs" \
+                "${{ github.workspace }}/projects/Test/SequentialIntegration/SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
+      - name: Maybe upload RabbitMQ logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rabbitmq-logs-sequential-integration-ubuntu
+          path: ${{ github.workspace }}/.ci/ubuntu/log/

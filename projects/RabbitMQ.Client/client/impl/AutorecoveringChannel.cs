@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Impl
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
-        private List<string> _recordedConsumerTags = new List<string>();
+        private readonly List<string> _recordedConsumerTags = new List<string>();
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -87,12 +87,6 @@ namespace RabbitMQ.Client.Impl
             remove => InnerChannel.BasicNacks -= value;
         }
 
-        public event EventHandler<EventArgs> BasicRecoverOk
-        {
-            add => InnerChannel.BasicRecoverOk += value;
-            remove => InnerChannel.BasicRecoverOk -= value;
-        }
-
         public event EventHandler<BasicReturnEventArgs> BasicReturn
         {
             add => InnerChannel.BasicReturn += value;
@@ -128,98 +122,65 @@ namespace RabbitMQ.Client.Impl
             get
             {
                 ThrowIfDisposed();
-                return _recordedConsumerTags;
+                return _recordedConsumerTags.ToArray();
             }
         }
 
-        public int ChannelNumber
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.ChannelNumber;
-            }
-        }
+        public int ChannelNumber => InnerChannel.ChannelNumber;
 
-        public ShutdownEventArgs CloseReason
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.CloseReason;
-            }
-        }
+        public ShutdownEventArgs CloseReason => InnerChannel.CloseReason;
 
         public IBasicConsumer DefaultConsumer
         {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.DefaultConsumer;
-            }
-
-            set
-            {
-                ThrowIfDisposed();
-                InnerChannel.DefaultConsumer = value;
-            }
+            get => InnerChannel.DefaultConsumer;
+            set => InnerChannel.DefaultConsumer = value;
         }
 
         public bool IsClosed => !IsOpen;
 
-        public bool IsOpen
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _innerChannel != null && _innerChannel.IsOpen;
-            }
-        }
+        public bool IsOpen => _innerChannel != null && _innerChannel.IsOpen;
 
-        public ulong NextPublishSeqNo
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.NextPublishSeqNo;
-            }
-        }
+        public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
 
-        public string CurrentQueue
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return InnerChannel.CurrentQueue;
-            }
-        }
+        public string CurrentQueue => InnerChannel.CurrentQueue;
 
-        internal void AutomaticallyRecover(AutorecoveringConnection conn, bool recoverConsumers)
+        internal async Task AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
+            if (false == recordedEntitiesSemaphoreHeld)
+            {
+                throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
+            }
+
             ThrowIfDisposed();
             _connection = conn;
 
-            var newChannel = conn.CreateNonRecoveringChannel();
+            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(cancellationToken)
+                .ConfigureAwait(false);
             newChannel.TakeOver(_innerChannel);
 
             if (_prefetchCountConsumer != 0)
             {
-                newChannel.BasicQos(0, _prefetchCountConsumer, false);
+                await newChannel.BasicQosAsync(0, _prefetchCountConsumer, false, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             if (_prefetchCountGlobal != 0)
             {
-                newChannel.BasicQos(0, _prefetchCountGlobal, true);
+                await newChannel.BasicQosAsync(0, _prefetchCountGlobal, true, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             if (_usesPublisherConfirms)
             {
-                newChannel.ConfirmSelect();
+                await newChannel.ConfirmSelectAsync(cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             if (_usesTransactions)
             {
-                newChannel.TxSelect();
+                await newChannel.TxSelectAsync(cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             /*
@@ -232,22 +193,35 @@ namespace RabbitMQ.Client.Impl
 
             if (recoverConsumers)
             {
-                _connection.RecoverConsumers(this, newChannel);
+                await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld)
+                    .ConfigureAwait(false);
             }
 
             _innerChannel.RunRecoveryEventHandlers(this);
         }
 
-        public void Close(ushort replyCode, string replyText, bool abort)
+        public Task CloseAsync(ushort replyCode, string replyText, bool abort,
+            CancellationToken cancellationToken)
+        {
+            ThrowIfDisposed();
+            var args = new ShutdownEventArgs(ShutdownInitiator.Library, replyCode, replyText);
+            return CloseAsync(args, abort, cancellationToken);
+        }
+
+        public async Task CloseAsync(ShutdownEventArgs args, bool abort,
+            CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
             try
             {
-                _innerChannel.Close(replyCode, replyText, abort);
+                await _innerChannel.CloseAsync(args, abort, cancellationToken)
+                    .ConfigureAwait(false);
             }
             finally
             {
-                _connection.DeleteRecordedChannel(this);
+                await _connection.DeleteRecordedChannelAsync(this,
+                    channelsSemaphoreHeld: false, recordedEntitiesSemaphoreHeld: false)
+                        .ConfigureAwait(false);
             }
         }
 
@@ -261,74 +235,70 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
-            this.Abort();
+            if (IsOpen)
+            {
+                this.AbortAsync().GetAwaiter().GetResult();
+            }
 
             _recordedConsumerTags.Clear();
-            _recordedConsumerTags = null;
             _connection = null;
             _innerChannel = null;
             _disposed = true;
         }
 
-        public void BasicAck(ulong deliveryTag, bool multiple)
-            => InnerChannel.BasicAck(deliveryTag, multiple);
+        public ValueTask BasicAckAsync(ulong deliveryTag, bool multiple, CancellationToken cancellationToken)
+            => InnerChannel.BasicAckAsync(deliveryTag, multiple, cancellationToken);
 
-        public void BasicCancel(string consumerTag)
+        public ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue, CancellationToken cancellationToken)
+            => InnerChannel.BasicNackAsync(deliveryTag, multiple, requeue, cancellationToken);
+
+        public Task BasicRejectAsync(ulong deliveryTag, bool requeue, CancellationToken cancellationToken)
+            => InnerChannel.BasicRejectAsync(deliveryTag, requeue, cancellationToken);
+
+        public async Task BasicCancelAsync(string consumerTag, bool noWait, CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            _connection.DeleteRecordedConsumer(consumerTag);
-            _innerChannel.BasicCancel(consumerTag);
+            await _connection.DeleteRecordedConsumerAsync(consumerTag, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
+            await _innerChannel.BasicCancelAsync(consumerTag, noWait, cancellationToken)
+                .ConfigureAwait(false);
         }
 
-        public void BasicCancelNoWait(string consumerTag)
+        public async Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+            IDictionary<string, object> arguments, IBasicConsumer consumer,
+            CancellationToken cancellationToken)
         {
-            ThrowIfDisposed();
-            _connection.DeleteRecordedConsumer(consumerTag);
-            _innerChannel.BasicCancelNoWait(consumerTag);
-        }
-
-        public string BasicConsume(
-            string queue,
-            bool autoAck,
-            string consumerTag,
-            bool noLocal,
-            bool exclusive,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer)
-        {
-            string resultConsumerTag = InnerChannel.BasicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal,
+                exclusive, arguments, consumer, cancellationToken)
+                .ConfigureAwait(false);
             var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
-            _connection.RecordConsumer(rc);
+            await _connection.RecordConsumerAsync(rc, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
             _recordedConsumerTags.Add(resultConsumerTag);
             return resultConsumerTag;
         }
 
-        public BasicGetResult BasicGet(string queue, bool autoAck)
-            => InnerChannel.BasicGet(queue, autoAck);
+        public ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck, CancellationToken cancellationToken)
+            => InnerChannel.BasicGetAsync(queue, autoAck, cancellationToken);
 
-        public void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
-            => InnerChannel.BasicNack(deliveryTag, multiple, requeue);
-
-        public void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties,
+            ReadOnlyMemory<byte> body, bool mandatory,
+            CancellationToken cancellationToken)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublish(exchange, routingKey, in basicProperties, body, mandatory);
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory, cancellationToken);
 
-        public void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, TProperties basicProperties,
+            ReadOnlyMemory<byte> body, bool mandatory,
+            CancellationToken cancellationToken)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublish(exchange, routingKey, in basicProperties, body, mandatory);
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory, cancellationToken);
 
-        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory);
-
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, in basicProperties, body, mandatory);
-
-        public void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
+        public Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global,
+            CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
+
             if (global)
             {
                 _prefetchCountGlobal = prefetchCount;
@@ -337,151 +307,147 @@ namespace RabbitMQ.Client.Impl
             {
                 _prefetchCountConsumer = prefetchCount;
             }
-            _innerChannel.BasicQos(prefetchSize, prefetchCount, global);
+
+            return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global, cancellationToken);
         }
 
-        public void BasicRecover(bool requeue)
-            => InnerChannel.BasicRecover(requeue);
-
-        public void BasicRecoverAsync(bool requeue)
-            => InnerChannel.BasicRecoverAsync(requeue);
-
-        public void BasicReject(ulong deliveryTag, bool requeue)
-            => InnerChannel.BasicReject(deliveryTag, requeue);
-
-        public void ConfirmSelect()
+        public async Task ConfirmSelectAsync(CancellationToken cancellationToken)
         {
-            InnerChannel.ConfirmSelect();
+            await InnerChannel.ConfirmSelectAsync(cancellationToken)
+                .ConfigureAwait(false);
             _usesPublisherConfirms = true;
         }
 
-        public void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
+        public async Task ExchangeBindAsync(string destination, string source, string routingKey,
+            IDictionary<string, object> arguments, bool noWait,
+            CancellationToken cancellationToken)
+        {
+            await InnerChannel.ExchangeBindAsync(destination, source, routingKey, arguments, noWait, cancellationToken)
+                .ConfigureAwait(false);
+            var recordedBinding = new RecordedBinding(false, destination, source, routingKey, arguments);
+            await _connection.RecordBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
+        }
+
+        public Task ExchangeDeclarePassiveAsync(string exchange, CancellationToken cancellationToken)
+            => InnerChannel.ExchangeDeclarePassiveAsync(exchange, cancellationToken);
+
+        public async Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete,
+            IDictionary<string, object> arguments, bool passive, bool noWait,
+            CancellationToken cancellationToken)
+        {
+            await InnerChannel.ExchangeDeclareAsync(exchange, type, durable, autoDelete, arguments, passive, noWait, cancellationToken)
+                .ConfigureAwait(false);
+            if (false == passive)
+            {
+                var recordedExchange = new RecordedExchange(exchange, type, durable, autoDelete, arguments);
+                await _connection.RecordExchangeAsync(recordedExchange, recordedEntitiesSemaphoreHeld: false)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        public async Task ExchangeDeleteAsync(string exchange, bool ifUnused, bool noWait,
+            CancellationToken cancellationToken)
+        {
+            await InnerChannel.ExchangeDeleteAsync(exchange, ifUnused, noWait, cancellationToken)
+                .ConfigureAwait(false);
+            await _connection.DeleteRecordedExchangeAsync(exchange, recordedEntitiesSemaphoreHeld: false, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public async Task ExchangeUnbindAsync(string destination, string source, string routingKey,
+            IDictionary<string, object> arguments, bool noWait,
+            CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            _connection.RecordBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
-            _innerChannel.ExchangeBind(destination, source, routingKey, arguments);
+            var recordedBinding = new RecordedBinding(false, destination, source, routingKey, arguments);
+            await _connection.DeleteRecordedBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false, cancellationToken)
+                .ConfigureAwait(false);
+            await InnerChannel.ExchangeUnbindAsync(destination, source, routingKey, arguments, noWait, cancellationToken)
+                .ConfigureAwait(false);
+            await _connection.DeleteAutoDeleteExchangeAsync(source, recordedEntitiesSemaphoreHeld: false, cancellationToken)
+                .ConfigureAwait(false);
         }
 
-        public void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-            => InnerChannel.ExchangeBindNoWait(destination, source, routingKey, arguments);
-
-        public void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        public async Task QueueBindAsync(string queue, string exchange, string routingKey,
+            IDictionary<string, object> arguments, bool noWait,
+            CancellationToken cancellationToken)
         {
-            ThrowIfDisposed();
-            _innerChannel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+            await InnerChannel.QueueBindAsync(queue, exchange, routingKey, arguments, noWait, cancellationToken)
+                .ConfigureAwait(false);
+            var recordedBinding = new RecordedBinding(true, queue, exchange, routingKey, arguments);
+            await _connection.RecordBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false)
+                .ConfigureAwait(false);
         }
 
-        public void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments)
+        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue, CancellationToken cancellationToken)
         {
-            ThrowIfDisposed();
-            _innerChannel.ExchangeDeclareNoWait(exchange, type, durable, autoDelete, arguments);
-            _connection.RecordExchange(new RecordedExchange(exchange, type, durable, autoDelete, arguments));
+            return QueueDeclareAsync(queue: queue, passive: true,
+                durable: false, exclusive: false, autoDelete: false,
+                arguments: null, noWait: false, cancellationToken: cancellationToken);
         }
 
-        public void ExchangeDeclarePassive(string exchange)
-            => InnerChannel.ExchangeDeclarePassive(exchange);
-
-        public void ExchangeDelete(string exchange, bool ifUnused)
+        public async Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete,
+            IDictionary<string, object> arguments, bool passive, bool noWait,
+            CancellationToken cancellationToken)
         {
-            InnerChannel.ExchangeDelete(exchange, ifUnused);
-            _connection.DeleteRecordedExchange(exchange);
-        }
-
-        public void ExchangeDeleteNoWait(string exchange, bool ifUnused)
-        {
-            InnerChannel.ExchangeDeleteNoWait(exchange, ifUnused);
-            _connection.DeleteRecordedExchange(exchange);
-        }
-
-        public void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _connection.DeleteRecordedBinding(new RecordedBinding(false, destination, source, routingKey, arguments));
-            _innerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
-            _connection.DeleteAutoDeleteExchange(source);
-        }
-
-        public void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments)
-            => InnerChannel.ExchangeUnbind(destination, source, routingKey, arguments);
-
-        public void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _connection.RecordBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
-            _innerChannel.QueueBind(queue, exchange, routingKey, arguments);
-        }
-
-        public void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-            => InnerChannel.QueueBind(queue, exchange, routingKey, arguments);
-
-        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            QueueDeclareOk result = _innerChannel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+            QueueDeclareOk result = await InnerChannel.QueueDeclareAsync(queue, durable, exclusive, autoDelete, arguments, passive, noWait, cancellationToken)
+                .ConfigureAwait(false);
+            if (false == passive)
+            {
+                var recordedQueue = new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+                await _connection.RecordQueueAsync(recordedQueue, recordedEntitiesSemaphoreHeld: false, cancellationToken)
+                    .ConfigureAwait(false);
+            }
             return result;
         }
 
-        public void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _innerChannel.QueueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(queue, queue.Length == 0, durable, exclusive, autoDelete, arguments));
-        }
+        public Task<uint> MessageCountAsync(string queue,
+            CancellationToken cancellationToken)
+            => InnerChannel.MessageCountAsync(queue, cancellationToken);
 
-        public async ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments)
+        public Task<uint> ConsumerCountAsync(string queue,
+            CancellationToken cancellationToken)
+            => InnerChannel.ConsumerCountAsync(queue, cancellationToken);
+
+        public async Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty, bool noWait,
+            CancellationToken cancellationToken)
         {
-            ThrowIfDisposed();
-            QueueDeclareOk result = await _innerChannel.QueueDeclareAsync(queue, durable, exclusive, autoDelete, arguments);
-            _connection.RecordQueue(new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments));
+            uint result = await InnerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty, noWait, cancellationToken)
+                .ConfigureAwait(false);
+            await _connection.DeleteRecordedQueueAsync(queue, recordedEntitiesSemaphoreHeld: false, cancellationToken)
+                .ConfigureAwait(false);
             return result;
         }
 
-        public QueueDeclareOk QueueDeclarePassive(string queue)
-            => InnerChannel.QueueDeclarePassive(queue);
+        public Task<uint> QueuePurgeAsync(string queue, CancellationToken cancellationToken)
+            => InnerChannel.QueuePurgeAsync(queue, cancellationToken);
 
-        public uint MessageCount(string queue)
-            => InnerChannel.MessageCount(queue);
-
-        public uint ConsumerCount(string queue)
-            => InnerChannel.ConsumerCount(queue);
-
-        public uint QueueDelete(string queue, bool ifUnused, bool ifEmpty)
+        public async Task QueueUnbindAsync(string queue, string exchange, string routingKey,
+            IDictionary<string, object> arguments,
+            CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            uint result = _innerChannel.QueueDelete(queue, ifUnused, ifEmpty);
-            _connection.DeleteRecordedQueue(queue);
-            return result;
+            var recordedBinding = new RecordedBinding(true, queue, exchange, routingKey, arguments);
+            await _connection.DeleteRecordedBindingAsync(recordedBinding, recordedEntitiesSemaphoreHeld: false, cancellationToken)
+                .ConfigureAwait(false);
+            await _innerChannel.QueueUnbindAsync(queue, exchange, routingKey, arguments, cancellationToken)
+                .ConfigureAwait(false);
+            await _connection.DeleteAutoDeleteExchangeAsync(exchange, recordedEntitiesSemaphoreHeld: false, cancellationToken)
+                .ConfigureAwait(false);
         }
 
-        public void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty)
+        public Task TxCommitAsync(CancellationToken cancellationToken)
+            => InnerChannel.TxCommitAsync(cancellationToken);
+
+
+        public Task TxRollbackAsync(CancellationToken cancellationToken)
+            => InnerChannel.TxRollbackAsync(cancellationToken);
+
+        public Task TxSelectAsync(CancellationToken cancellationToken)
         {
-            InnerChannel.QueueDeleteNoWait(queue, ifUnused, ifEmpty);
-            _connection.DeleteRecordedQueue(queue);
-        }
-
-        public uint QueuePurge(string queue)
-            => InnerChannel.QueuePurge(queue);
-
-        public void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            ThrowIfDisposed();
-            _connection.DeleteRecordedBinding(new RecordedBinding(true, queue, exchange, routingKey, arguments));
-            _innerChannel.QueueUnbind(queue, exchange, routingKey, arguments);
-            _connection.DeleteAutoDeleteExchange(exchange);
-        }
-
-        public void TxCommit()
-            => InnerChannel.TxCommit();
-
-        public void TxRollback()
-            => InnerChannel.TxRollback();
-
-        public void TxSelect()
-        {
-            InnerChannel.TxSelect();
             _usesTransactions = true;
+            return InnerChannel.TxSelectAsync(cancellationToken);
         }
 
         public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)

@@ -31,7 +31,8 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
@@ -74,6 +75,14 @@ namespace RabbitMQ.Client
         string VirtualHost { get; set; }
 
         /// <summary>
+        /// Credentials provider. It is optional. When set, username and password 
+        /// are obtained thru this provider.
+        /// </summary>
+        ICredentialsProvider CredentialsProvider { get; set; }
+
+        ICredentialsRefresher CredentialsRefresher { get; set; }
+
+        /// <summary>
         /// Sets or gets the AMQP Uri to be used for connections.
         /// </summary>
         Uri Uri { get; set; }
@@ -87,15 +96,16 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         /// or null if we have none in common.
         /// </summary>
-        IAuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames);
+        IAuthMechanismFactory AuthMechanismFactory(IEnumerable<string> mechanismNames);
 
         /// <summary>
-        /// Create a connection to the specified endpoint.
+        /// Asynchronously create a connection to the specified endpoint.
         /// </summary>
-        IConnection CreateConnection();
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
+        Task<IConnection> CreateConnectionAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Create a connection to the specified endpoint.
+        /// Asynchronously create a connection to the specified endpoint.
         /// </summary>
         /// <param name="clientProvidedName">
         /// Application-specific connection name, will be displayed in the management UI
@@ -103,18 +113,20 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        IConnection CreateConnection(string clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(string clientProvidedName, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Connects to the first reachable hostname from the list.
+        /// Asynchronously connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        IConnection CreateConnection(IList<string> hostnames);
+        Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Connects to the first reachable hostname from the list.
+        /// Asynchronously connects to the first reachable hostname from the list.
         /// </summary>
         /// <param name="hostnames">List of host names to use</param>
         /// <param name="clientProvidedName">
@@ -123,25 +135,28 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
-        IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Create a connection using a list of endpoints.
+        /// Asynchronously create a connection using a list of endpoints.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
         /// connection and recovery.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints);
+        Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Create a connection using a list of endpoints.
+        /// Asynchronously create a connection using a list of endpoints.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
@@ -154,11 +169,13 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName);
+        Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before

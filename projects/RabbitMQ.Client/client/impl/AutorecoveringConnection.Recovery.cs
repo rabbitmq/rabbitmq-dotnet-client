@@ -44,9 +44,7 @@ namespace RabbitMQ.Client.Framing.Impl
     internal sealed partial class AutorecoveringConnection
     {
         private Task? _recoveryTask;
-        private CancellationTokenSource? _recoveryCancellationTokenSource;
-
-        private CancellationTokenSource RecoveryCancellationTokenSource => _recoveryCancellationTokenSource ??= new CancellationTokenSource();
+        private readonly CancellationTokenSource _recoveryCancellationTokenSource = new CancellationTokenSource();
 
         private void HandleConnectionShutdown(object _, ShutdownEventArgs args)
         {
@@ -59,24 +57,44 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            static bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args) =>
-                args.Initiator == ShutdownInitiator.Peer ||
+            static bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
+            {
+                if (args.Initiator == ShutdownInitiator.Peer)
+                {
+                    if (args.ReplyCode == Constants.AccessRefused)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+
                 // happens when EOF is reached, e.g. due to RabbitMQ node
                 // connectivity loss or abrupt shutdown
-                args.Initiator == ShutdownInitiator.Library;
+                if (args.Initiator == ShutdownInitiator.Library)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private async Task RecoverConnectionAsync()
         {
             try
             {
-                var token = RecoveryCancellationTokenSource.Token;
+                CancellationToken token = _recoveryCancellationTokenSource.Token;
                 bool success;
                 do
                 {
-                    await Task.Delay(_config.NetworkRecoveryInterval, token).ConfigureAwait(false);
-                    success = TryPerformAutomaticRecovery();
-                } while (!success && !token.IsCancellationRequested);
+                    await Task.Delay(_config.NetworkRecoveryInterval, token)
+                        .ConfigureAwait(false);
+                    success = await TryPerformAutomaticRecoveryAsync(token)
+                        .ConfigureAwait(false);
+                } while (false == success && false == token.IsCancellationRequested);
             }
             catch (OperationCanceledException)
             {
@@ -86,28 +104,40 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 ESLog.Error("Main recovery loop threw unexpected exception.", e);
             }
-
-            // clear recovery task
-            _recoveryTask = null;
+            finally
+            {
+                // clear recovery task
+                _recoveryTask = null;
+            }
         }
 
         /// <summary>
-        /// Cancels the main recovery loop and will block until the loop finishes, or the timeout
+        /// Async cancels the main recovery loop and will block until the loop finishes, or the timeout
         /// expires, to prevent Close operations overlapping with recovery operations.
         /// </summary>
-        private void StopRecoveryLoop()
+        private async ValueTask StopRecoveryLoopAsync(CancellationToken cancellationToken)
         {
-            var task = _recoveryTask;
-            if (task is null)
+            Task? task = _recoveryTask;
+            if (task != null)
             {
-                return;
-            }
-            RecoveryCancellationTokenSource.Cancel();
-
-            Task timeout = Task.Delay(_config.RequestedConnectionTimeout);
-            if (Task.WhenAny(task, timeout).Result == timeout)
-            {
-                ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
+                _recoveryCancellationTokenSource.Cancel();
+                using var timeoutTokenSource = new CancellationTokenSource(_config.RequestedConnectionTimeout);
+                using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
+                try
+                {
+                    await task.WaitAsync(lts.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (timeoutTokenSource.Token.IsCancellationRequested)
+                    {
+                        ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
         }
 
@@ -123,16 +153,18 @@ namespace RabbitMQ.Client.Framing.Impl
             ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivity, ignoring it", e);
         }
 
-        private bool TryPerformAutomaticRecovery()
+        private async ValueTask<bool> TryPerformAutomaticRecoveryAsync(CancellationToken cancellationToken)
         {
             ESLog.Info("Performing automatic recovery");
 
             try
             {
                 ThrowIfDisposed();
-                if (TryRecoverConnectionDelegate())
+                if (await TryRecoverConnectionDelegateAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    lock (_recordedEntitiesLock)
+                    await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    try
                     {
                         ThrowIfDisposed();
                         if (_config.TopologyRecoveryEnabled)
@@ -143,15 +175,20 @@ namespace RabbitMQ.Client.Framing.Impl
                             // 2. Recover queues
                             // 3. Recover bindings
                             // 4. Recover consumers
-                            using (var recoveryChannelFactory = new RecoveryChannelFactory(_innerConnection))
-                            {
-                                RecoverExchanges(recoveryChannelFactory);
-                                RecoverQueues(recoveryChannelFactory);
-                                RecoverBindings(recoveryChannelFactory);
-                            }
+                            await RecoverExchangesAsync(_innerConnection, recordedEntitiesSemaphoreHeld: true, cancellationToken)
+                                .ConfigureAwait(false);
+                            await RecoverQueuesAsync(_innerConnection, recordedEntitiesSemaphoreHeld: true, cancellationToken)
+                                .ConfigureAwait(false);
+                            await RecoverBindingsAsync(_innerConnection, recordedEntitiesSemaphoreHeld: true, cancellationToken)
+                                .ConfigureAwait(false);
 
                         }
-                        RecoverChannelsAndItsConsumers();
+                        await RecoverChannelsAndItsConsumersAsync(recordedEntitiesSemaphoreHeld: true, cancellationToken: cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _recordedEntitiesSemaphore.Release();
                     }
 
                     ESLog.Info("Connection recovery completed");
@@ -176,7 +213,8 @@ namespace RabbitMQ.Client.Framing.Impl
                      */
                     if (_innerConnection?.IsOpen == true)
                     {
-                        _innerConnection.Abort(Constants.InternalError, "FailedAutoRecovery", _config.RequestedConnectionTimeout);
+                        await _innerConnection.AbortAsync(Constants.InternalError, "FailedAutoRecovery", _config.RequestedConnectionTimeout)
+                            .ConfigureAwait(false);
                     }
                 }
                 catch (Exception e2)
@@ -188,13 +226,16 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private bool TryRecoverConnectionDelegate()
+        private async ValueTask<bool> TryRecoverConnectionDelegateAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var defunctConnection = _innerConnection;
-                IFrameHandler fh = _endpoints.SelectOne(_config.FrameHandlerFactory);
+                Connection defunctConnection = _innerConnection;
+                IFrameHandler fh = await _endpoints.SelectOneAsync(_config.FrameHandlerFactoryAsync, cancellationToken)
+                    .ConfigureAwait(false);
                 _innerConnection = new Connection(_config, fh);
+                await _innerConnection.OpenAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 _innerConnection.TakeOver(defunctConnection);
                 return true;
             }
@@ -204,6 +245,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 // Trigger recovery error events
                 if (!_connectionRecoveryErrorWrapper.IsEmpty)
                 {
+                    // Note: recordedEntities semaphore is _NOT_ held at this point
                     _connectionRecoveryErrorWrapper.Invoke(this, new ConnectionRecoveryErrorEventArgs(e));
                 }
             }
@@ -211,20 +253,48 @@ namespace RabbitMQ.Client.Framing.Impl
             return false;
         }
 
-        private void RecoverExchanges(RecoveryChannelFactory recoveryChannelFactory)
+        private async ValueTask RecoverExchangesAsync(IConnection connection,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            foreach (var recordedExchange in _recordedExchanges.Values.Where(x => _config.TopologyRecoveryFilter?.ExchangeFilter(x) ?? true))
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (false == recordedEntitiesSemaphoreHeld)
+            {
+                throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
+            }
+
+            foreach (RecordedExchange recordedExchange in _recordedExchanges.Values.Where(x => _config.TopologyRecoveryFilter?.ExchangeFilter(x) ?? true))
             {
                 try
                 {
-                    recordedExchange.Recover(recoveryChannelFactory.RecoveryChannel);
+                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        await recordedExchange.RecoverAsync(ch, cancellationToken)
+                            .ConfigureAwait(false);
+                        await ch.CloseAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    if (_config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler != null
+                    if (_config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition(recordedExchange, ex))
                     {
-                        _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler(recordedExchange, ex, this);
+                        try
+                        {
+                            _recordedEntitiesSemaphore.Release();
+                            // FUTURE (?) cancellation token
+                            await _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync(recordedExchange, ex, this)
+                                .ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                                .ConfigureAwait(false);
+                        }
                     }
                     else
                     {
@@ -234,14 +304,32 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void RecoverQueues(RecoveryChannelFactory recoveryChannelFactory)
+        private async Task RecoverQueuesAsync(IConnection connection,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            foreach (var recordedQueue in _recordedQueues.Values.Where(x => _config.TopologyRecoveryFilter?.QueueFilter(x) ?? true).ToArray())
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (false == recordedEntitiesSemaphoreHeld)
+            {
+                throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
+            }
+
+            foreach (RecordedQueue recordedQueue in _recordedQueues.Values.Where(x => _config.TopologyRecoveryFilter?.QueueFilter(x) ?? true).ToArray())
             {
                 try
                 {
-                    var newName = recordedQueue.Recover(recoveryChannelFactory.RecoveryChannel);
-                    var oldName = recordedQueue.Name;
+                    string newName = string.Empty;
+                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        newName = await recordedQueue.RecoverAsync(ch, cancellationToken)
+                            .ConfigureAwait(false);
+                        await ch.CloseAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    string oldName = recordedQueue.Name;
 
                     if (oldName != newName)
                     {
@@ -255,45 +343,121 @@ namespace RabbitMQ.Client.Framing.Impl
                         // see rabbitmq/rabbitmq-dotnet-client#43
                         if (recordedQueue.IsServerNamed)
                         {
-                            DeleteRecordedQueue(oldName);
+                            await DeleteRecordedQueueAsync(oldName,
+                                recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld, cancellationToken)
+                                .ConfigureAwait(false);
                         }
-                        RecordQueue(new RecordedQueue(newName, recordedQueue));
 
-                        if (!_queueNameChangeAfterRecoveryWrapper.IsEmpty)
+                        await RecordQueueAsync(new RecordedQueue(newName, recordedQueue),
+                            recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld, cancellationToken)
+                            .ConfigureAwait(false);
+
+                        if (!_queueNameChangedAfterRecoveryWrapper.IsEmpty)
                         {
-                            _queueNameChangeAfterRecoveryWrapper.Invoke(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName));
+                            try
+                            {
+                                _recordedEntitiesSemaphore.Release();
+                                _queueNameChangedAfterRecoveryWrapper.Invoke(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName));
+                            }
+                            finally
+                            {
+                                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                                    .ConfigureAwait(false);
+                            }
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    if (_config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler != null
+                    if (_config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition(recordedQueue, ex))
                     {
-                        _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler(recordedQueue, ex, this);
+                        try
+                        {
+                            _recordedEntitiesSemaphore.Release();
+                            // FUTURE (?) cancellation token
+                            await _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync(recordedQueue, ex, this)
+                                .ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await _recordedEntitiesSemaphore.WaitAsync()
+                                .ConfigureAwait(false);
+                        }
                     }
                     else
                     {
                         HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering queue '{recordedQueue}'", ex));
                     }
                 }
+
+                void UpdateBindingsDestination(string oldName, string newName)
+                {
+                    foreach (RecordedBinding b in _recordedBindings.ToArray())
+                    {
+                        if (b.Destination == oldName)
+                        {
+                            _recordedBindings.Remove(b);
+                            _recordedBindings.Add(new RecordedBinding(newName, b));
+                        }
+                    }
+                }
+
+                void UpdateConsumerQueue(string oldName, string newName)
+                {
+                    foreach (RecordedConsumer consumer in _recordedConsumers.Values.ToArray())
+                    {
+                        if (consumer.Queue == oldName)
+                        {
+                            _recordedConsumers[consumer.ConsumerTag] = RecordedConsumer.WithNewQueueName(newName, consumer);
+                        }
+                    }
+                }
             }
         }
 
-        private void RecoverBindings(RecoveryChannelFactory recoveryChannelFactory)
+        private async ValueTask RecoverBindingsAsync(IConnection connection,
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            foreach (var binding in _recordedBindings.Where(x => _config.TopologyRecoveryFilter?.BindingFilter(x) ?? true))
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (false == recordedEntitiesSemaphoreHeld)
+            {
+                throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
+            }
+
+            foreach (RecordedBinding binding in _recordedBindings.Where(x => _config.TopologyRecoveryFilter?.BindingFilter(x) ?? true))
             {
                 try
                 {
-                    binding.Recover(recoveryChannelFactory.RecoveryChannel);
+                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        await binding.RecoverAsync(ch, cancellationToken)
+                            .ConfigureAwait(false);
+                        await ch.CloseAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    if (_config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler != null
+                    if (_config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition(binding, ex))
                     {
-                        _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler(binding, ex, this);
+                        try
+                        {
+                            _recordedEntitiesSemaphore.Release();
+                            // FUTURE (?) cancellation token
+                            await _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync(binding, ex, this)
+                                .ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                                .ConfigureAwait(false);
+                        }
                     }
                     else
                     {
@@ -303,34 +467,74 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal void RecoverConsumers(AutorecoveringChannel channelToRecover, IChannel channelToUse)
+        internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, IChannel channelToUse,
+            bool recordedEntitiesSemaphoreHeld = false)
         {
-            foreach (var consumer in _recordedConsumers.Values.Where(x => _config.TopologyRecoveryFilter?.ConsumerFilter(x) ?? true).ToArray())
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (false == recordedEntitiesSemaphoreHeld)
+            {
+                throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
+            }
+
+            foreach (RecordedConsumer consumer in _recordedConsumers.Values.Where(x => _config.TopologyRecoveryFilter?.ConsumerFilter(x) ?? true).ToArray())
             {
                 if (consumer.Channel != channelToRecover)
                 {
                     continue;
                 }
 
-                _consumerAboutToBeRecovered.Invoke(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments));
-
-                var oldTag = consumer.ConsumerTag;
                 try
                 {
-                    var newTag = consumer.Recover(channelToUse);
-                    UpdateConsumer(oldTag, newTag, RecordedConsumer.WithNewConsumerTag(newTag, consumer));
+                    _recordedEntitiesSemaphore.Release();
+                    _consumerAboutToBeRecovered.Invoke(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments));
+                }
+                finally
+                {
+                    _recordedEntitiesSemaphore.Wait();
+                }
+
+                string oldTag = consumer.ConsumerTag;
+                try
+                {
+                    string newTag = await consumer.RecoverAsync(channelToUse)
+                        .ConfigureAwait(false);
+                    RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
+                    UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
 
                     if (!_consumerTagChangeAfterRecoveryWrapper.IsEmpty)
                     {
-                        _consumerTagChangeAfterRecoveryWrapper.Invoke(this, new ConsumerTagChangedAfterRecoveryEventArgs(oldTag, newTag));
+                        try
+                        {
+                            _recordedEntitiesSemaphore.Release();
+                            _consumerTagChangeAfterRecoveryWrapper.Invoke(this, new ConsumerTagChangedAfterRecoveryEventArgs(oldTag, newTag));
+                        }
+                        finally
+                        {
+                            await _recordedEntitiesSemaphore.WaitAsync()
+                                .ConfigureAwait(false);
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    if (_config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler != null
+                    if (_config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition(consumer, ex))
                     {
-                        _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler(consumer, ex, this);
+                        try
+                        {
+                            _recordedEntitiesSemaphore.Release();
+                            await _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync(consumer, ex, this)
+                                .ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await _recordedEntitiesSemaphore.WaitAsync()
+                                .ConfigureAwait(false);
+                        }
                     }
                     else
                     {
@@ -338,55 +542,28 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
             }
-        }
 
-        private void RecoverChannelsAndItsConsumers()
-        {
-            lock (_channels)
+            void UpdateConsumer(string oldTag, string newTag, in RecordedConsumer consumer)
             {
-                foreach (AutorecoveringChannel m in _channels)
-                {
-                    m.AutomaticallyRecover(this, _config.TopologyRecoveryEnabled);
-                }
+                // make sure server-generated tags are re-added
+                _recordedConsumers.Remove(oldTag);
+                _recordedConsumers.Add(newTag, consumer);
             }
         }
 
-        private sealed class RecoveryChannelFactory : IDisposable
+        private async ValueTask RecoverChannelsAndItsConsumersAsync(bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            private readonly IConnection _connection;
-            private IChannel? _recoveryChannel;
-
-            public RecoveryChannelFactory(IConnection connection)
+            if (false == recordedEntitiesSemaphoreHeld)
             {
-                _connection = connection;
+                throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
             }
 
-            public IChannel RecoveryChannel
+            foreach (AutorecoveringChannel channel in _channels)
             {
-                get
-                {
-                    if (_recoveryChannel == null)
-                    {
-                        _recoveryChannel = _connection.CreateChannel();
-                    }
-
-                    if (_recoveryChannel.IsClosed)
-                    {
-                        _recoveryChannel.Dispose();
-                        _recoveryChannel = _connection.CreateChannel();
-                    }
-
-                    return _recoveryChannel;
-                }
-            }
-
-            public void Dispose()
-            {
-                if (_recoveryChannel != null)
-                {
-                    _recoveryChannel.Close();
-                    _recoveryChannel.Dispose();
-                }
+                await channel.AutomaticallyRecoverAsync(this, _config.TopologyRecoveryEnabled,
+                    recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld,
+                    cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
     }

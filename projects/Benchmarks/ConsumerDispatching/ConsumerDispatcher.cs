@@ -1,5 +1,7 @@
-﻿using System.Text;
+using System;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
 using RabbitMQ.Client.ConsumerDispatching;
@@ -22,6 +24,12 @@ namespace RabbitMQ.Benchmarks
         protected readonly ReadOnlyBasicProperties _properties = new ReadOnlyBasicProperties();
         protected readonly byte[] _method = new byte[512];
         protected readonly byte[] _body = new byte[512];
+
+        public ConsumerDispatcherBase()
+        {
+            var r = new Random();
+            r.NextBytes(_body);
+        }
     }
 
     public class BasicDeliverConsumerDispatching : ConsumerDispatcherBase
@@ -33,39 +41,49 @@ namespace RabbitMQ.Benchmarks
         public int Concurrency { get; set; }
 
         [GlobalSetup(Target = nameof(AsyncConsumerDispatcher))]
-        public void SetUpAsyncConsumer()
+        public async Task SetUpAsyncConsumer()
         {
             _consumer.Count = Count;
             _dispatcher = new AsyncConsumerDispatcher(null, Concurrency);
-            _dispatcher.HandleBasicConsumeOk(_consumer, _consumerTag);
+            await _dispatcher.HandleBasicConsumeOkAsync(_consumer, _consumerTag, CancellationToken.None);
         }
+
         [Benchmark]
-        public void AsyncConsumerDispatcher()
+        public async Task AsyncConsumerDispatcher()
         {
-            for (int i = 0; i < Count; i++)
+            using (RentedMemory body = new RentedMemory(_body))
             {
-                _dispatcher.HandleBasicDeliver(_consumerTagBytes, _deliveryTag, false, _exchange, _routingKey, _properties, _body, _method, _body);
+                for (int i = 0; i < Count; i++)
+                {
+                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, body,
+                        CancellationToken.None);
+                }
+                _autoResetEvent.Wait();
+                _autoResetEvent.Reset();
             }
-            _autoResetEvent.Wait();
-            _autoResetEvent.Reset();
         }
 
         [GlobalSetup(Target = nameof(ConsumerDispatcher))]
-        public void SetUpConsumer()
+        public async Task SetUpConsumer()
         {
             _consumer.Count = Count;
             _dispatcher = new ConsumerDispatcher(null, Concurrency);
-            _dispatcher.HandleBasicConsumeOk(_consumer, _consumerTag);
+            await _dispatcher.HandleBasicConsumeOkAsync(_consumer, _consumerTag, CancellationToken.None);
         }
+
         [Benchmark]
-        public void ConsumerDispatcher()
+        public async Task ConsumerDispatcher()
         {
-            for (int i = 0; i < Count; i++)
+            using (RentedMemory body = new RentedMemory(_body))
             {
-                _dispatcher.HandleBasicDeliver(_consumerTagBytes, _deliveryTag, false, _exchange, _routingKey, _properties, _body, _method, _body);
+                for (int i = 0; i < Count; i++)
+                {
+                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, body,
+                        CancellationToken.None);
+                }
+                _autoResetEvent.Wait();
+                _autoResetEvent.Reset();
             }
-            _autoResetEvent.Wait();
-            _autoResetEvent.Reset();
         }
     }
 }

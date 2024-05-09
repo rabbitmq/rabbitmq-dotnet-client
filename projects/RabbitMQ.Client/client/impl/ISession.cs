@@ -30,12 +30,13 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Framing.Impl;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal delegate void CommandReceivedAction(in IncomingCommand cmd);
+    internal delegate Task CommandReceivedAction(IncomingCommand cmd, CancellationToken cancellationToken);
 
     internal interface ISession
     {
@@ -70,16 +71,16 @@ namespace RabbitMQ.Client.Impl
         event EventHandler<ShutdownEventArgs> SessionShutdown;
 
         void Close(ShutdownEventArgs reason);
-        void Close(ShutdownEventArgs reason, bool notify);
-        bool HandleFrame(in InboundFrame frame);
-        void Notify();
-        void Transmit<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
-        ValueTask TransmitAsync<T>(in T cmd) where T : struct, IOutgoingAmqpMethod;
-        void Transmit<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
-            where TMethod : struct, IOutgoingAmqpMethod
-            where THeader : IAmqpHeader;
 
-        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
+        void Close(ShutdownEventArgs reason, bool notify);
+
+        Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
+
+        void Notify();
+
+        ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod;
+
+        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader;
     }

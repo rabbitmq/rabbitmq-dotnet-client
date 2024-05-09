@@ -31,7 +31,8 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
@@ -45,108 +46,120 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Virtual host to access during this connection.
         /// </summary>
-        public string VirtualHost { get; }
+        public readonly string VirtualHost;
 
         /// <summary>
         /// Username to use when authenticating to the server.
         /// </summary>
-        public string UserName { get; }
+        public readonly string UserName;
 
         /// <summary>
         /// Password to use when authenticating to the server.
         /// </summary>
-        public string Password { get; internal set; }
+        public readonly string Password;
+
+        /// <summary>
+        /// Default CredentialsProvider implementation. If set, this
+        /// overrides UserName / Password
+        /// </summary>
+        public ICredentialsProvider CredentialsProvider;
+        public ICredentialsRefresher CredentialsRefresher;
 
         /// <summary>
         ///  SASL auth mechanisms to use.
         /// </summary>
-        public IList<IAuthMechanismFactory> AuthMechanisms { get; }
+        public readonly IEnumerable<IAuthMechanismFactory> AuthMechanisms;
 
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
-        public IDictionary<string, object?> ClientProperties { get; }
+        public readonly IDictionary<string, object?> ClientProperties;
 
         /// <summary>
         /// Default client provided name to be used for connections.
         /// </summary>
-        public string? ClientProvidedName { get; }
+        public readonly string? ClientProvidedName;
 
         /// <summary>
         /// Maximum channel number to ask for.
         /// </summary>
-        public ushort MaxChannelCount { get; }
+        public readonly ushort MaxChannelCount;
+
         /// <summary>
         /// Frame-max parameter to ask for (in bytes).
         /// </summary>
-        public uint MaxFrameSize { get; }
+        public readonly uint MaxFrameSize;
 
         /// <summary>
         /// Set to false to make automatic connection recovery not recover topology (exchanges, queues, bindings, etc).
         /// </summary>
-        public bool TopologyRecoveryEnabled { get; }
+        public readonly bool TopologyRecoveryEnabled;
 
         /// <summary>
         /// Filter to include/exclude entities from topology recovery.
         /// Default filter includes all entities in topology recovery.
         /// </summary>
-        public TopologyRecoveryFilter TopologyRecoveryFilter { get; }
+        public readonly TopologyRecoveryFilter TopologyRecoveryFilter;
 
         /// <summary>
         /// Custom logic for handling topology recovery exceptions that match the specified filters.
         /// </summary>
-        public TopologyRecoveryExceptionHandler TopologyRecoveryExceptionHandler { get; }
+        public readonly TopologyRecoveryExceptionHandler TopologyRecoveryExceptionHandler;
 
         /// <summary>
         /// Amount of time client will wait for before re-trying  to recover connection.
         /// </summary>
-        public TimeSpan NetworkRecoveryInterval { get; }
+        public readonly TimeSpan NetworkRecoveryInterval;
 
         /// <summary>
         /// Heartbeat timeout to use when negotiating with the server.
         /// </summary>
-        public TimeSpan HeartbeatInterval { get; }
+        public readonly TimeSpan HeartbeatInterval;
 
         /// <summary>
         /// Amount of time protocol operations (e.g. <code>queue.declare</code>) are allowed to take before timing out.
         /// </summary>
-        public TimeSpan ContinuationTimeout { get; }
+        public readonly TimeSpan ContinuationTimeout;
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before timing out.
         /// </summary>
+        public readonly TimeSpan HandshakeContinuationTimeout;
 
-        public TimeSpan HandshakeContinuationTimeout { get; }
         /// <summary>
         /// Timeout setting for connection attempts.
         /// </summary>
-        public TimeSpan RequestedConnectionTimeout { get; }
+        public readonly TimeSpan RequestedConnectionTimeout;
 
         /// <summary>
         /// Set to true will enable an asynchronous consumer dispatcher which is compatible with <see cref="IAsyncBasicConsumer"/>.
         /// </summary>
-        public bool DispatchConsumersAsync { get; }
+        public readonly bool DispatchConsumersAsync;
 
         /// <summary>
         /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IBasicConsumer"/>
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
         /// </summary>
-        public int DispatchConsumerConcurrency { get; }
+        public readonly int DispatchConsumerConcurrency;
 
-        internal Func<AmqpTcpEndpoint, IFrameHandler> FrameHandlerFactory { get; }
+        internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;
 
-        internal ConnectionConfig(string virtualHost, string userName, string password, IList<IAuthMechanismFactory> authMechanisms,
+        internal ConnectionConfig(string virtualHost, string userName, string password,
+            ICredentialsProvider credentialsProvider, ICredentialsRefresher credentialsRefresher,
+            IEnumerable<IAuthMechanismFactory> authMechanisms,
             IDictionary<string, object?> clientProperties, string? clientProvidedName,
             ushort maxChannelCount, uint maxFrameSize, bool topologyRecoveryEnabled,
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
             bool dispatchConsumersAsync, int dispatchConsumerConcurrency,
-            Func<AmqpTcpEndpoint, IFrameHandler> frameHandlerFactory)
+            Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
         {
             VirtualHost = virtualHost;
             UserName = userName;
             Password = password;
+            CredentialsProvider = credentialsProvider ?? new BasicCredentialsProvider(clientProvidedName, userName, password);
+            CredentialsRefresher = credentialsRefresher;
             AuthMechanisms = authMechanisms;
             ClientProperties = clientProperties;
             ClientProvidedName = clientProvidedName;
@@ -162,7 +175,7 @@ namespace RabbitMQ.Client
             RequestedConnectionTimeout = requestedConnectionTimeout;
             DispatchConsumersAsync = dispatchConsumersAsync;
             DispatchConsumerConcurrency = dispatchConsumerConcurrency;
-            FrameHandlerFactory = frameHandlerFactory;
+            FrameHandlerFactoryAsync = frameHandlerFactoryAsync;
         }
     }
 }

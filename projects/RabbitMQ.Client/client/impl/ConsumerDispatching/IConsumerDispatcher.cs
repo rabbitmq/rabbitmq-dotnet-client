@@ -30,12 +30,13 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
 #nullable enable
-    internal interface IConsumerDispatcher
+    internal interface IConsumerDispatcher : IDisposable
     {
         IBasicConsumer? DefaultConsumer { get; set; }
 
@@ -43,26 +44,27 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         IBasicConsumer GetAndRemoveConsumer(string tag);
 
-        void HandleBasicConsumeOk(IBasicConsumer consumer, string consumerTag);
+        ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken);
 
-        void HandleBasicDeliver(ReadOnlyMemory<byte> consumerTag,
+        ValueTask HandleBasicDeliverAsync(ReadOnlyMemory<byte> consumerTag,
                             ulong deliveryTag,
                             bool redelivered,
                             ReadOnlyMemory<byte> exchange,
                             ReadOnlyMemory<byte> routingKey,
                             in ReadOnlyBasicProperties basicProperties,
-                            ReadOnlyMemory<byte> body,
-                            byte[] rentedMethodArray,
-                            byte[] rentedArray);
+                            RentedMemory body,
+                            CancellationToken cancellationToken);
 
-        void HandleBasicCancelOk(string consumerTag);
+        ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken);
 
-        void HandleBasicCancel(string consumerTag);
+        ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken);
 
         void Quiesce();
 
-        Task ShutdownAsync(ShutdownEventArgs reason);
+        void Shutdown(ShutdownEventArgs reason);
+        void WaitForShutdown();
 
+        Task ShutdownAsync(ShutdownEventArgs reason);
         Task WaitForShutdownAsync();
     }
 }

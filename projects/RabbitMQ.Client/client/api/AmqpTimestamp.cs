@@ -33,9 +33,6 @@ using System;
 
 namespace RabbitMQ.Client
 {
-    // time representations in mainstream languages: the horror, the horror
-    // see in particular the difference between .NET 1.x and .NET 2.0's versions of DateTime
-
     /// <summary>
     /// Structure holding an AMQP timestamp, a posix 64-bit time_t.</summary>
     /// <remarks>
@@ -56,16 +53,16 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Construct an <see cref="AmqpTimestamp"/>.
         /// </summary>
-        /// <param name="unixTime">Unix time.</param>
+        /// <param name="unixTime">Unix time in seconds.</param>
         public AmqpTimestamp(long unixTime) : this()
         {
             UnixTime = unixTime;
         }
 
         /// <summary>
-        /// Unix time.
+        /// Unix time in seconds.
         /// </summary>
-        public long UnixTime { get; }
+        public readonly long UnixTime;
 
         public bool Equals(AmqpTimestamp other) => UnixTime == other.UnixTime;
 

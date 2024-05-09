@@ -58,8 +58,9 @@ namespace RabbitMQ.Client
         /// </summary>
         ShutdownEventArgs CloseReason { get; }
 
-        /// <summary>Signalled when an unexpected message is delivered
+        /// <summary>Signalled when an unexpected message is delivered.</summary>
         ///
+        /// <remarks>
         /// Under certain circumstances it is possible for a channel to receive a
         /// message delivery which does not match any consumer which is currently
         /// set up via basicConsume(). This will occur after the following sequence
@@ -79,7 +80,8 @@ namespace RabbitMQ.Client
         /// such deliveries. If no default consumer is registered an
         /// InvalidOperationException will be thrown when such a delivery arrives.
         ///
-        /// Most people will not need to use this.</summary>
+        /// Most people will not need to use this.
+        /// </remarks>
         IBasicConsumer DefaultConsumer { get; set; }
 
         /// <summary>
@@ -89,7 +91,8 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Returns true if the channel is still in a state where it can be used.
-        /// Identical to checking if <see cref="CloseReason"/> equals null.</summary>
+        /// Identical to checking if <see cref="CloseReason"/> equals null.
+        /// </summary>
         bool IsOpen { get; }
 
         /// <summary>
@@ -116,17 +119,6 @@ namespace RabbitMQ.Client
         event EventHandler<BasicNackEventArgs> BasicNacks;
 
         /// <summary>
-        /// All messages received before this fires that haven't been ack'ed will be redelivered.
-        /// All messages received afterwards won't be.
-        /// </summary>
-        /// <remarks>
-        /// Handlers for this event are invoked by the connection thread.
-        /// It is sometimes useful to allow that thread to know that a recover-ok
-        /// has been received, rather than the thread that invoked <see cref="BasicRecover"/>.
-        /// </remarks>
-        event EventHandler<EventArgs> BasicRecoverOk;
-
-        /// <summary>
         /// Signalled when a Basic.Return command arrives from the broker.
         /// </summary>
         event EventHandler<BasicReturnEventArgs> BasicReturn;
@@ -151,86 +143,90 @@ namespace RabbitMQ.Client
         /// </remarks>
         event EventHandler<ShutdownEventArgs> ChannelShutdown;
 
+        /// <summary>Asynchronously acknknowledges one or more messages.</summary>
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">Ack all messages up to the delivery tag if set to <c>true</c>.</param>
+        /// <param name="cancellationToken">Cancellation token for this operation.</param>
+        ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
-        /// Acknowledge one or more delivered message(s).
+        /// Asynchronously nack one or more delivered message(s).
         /// </summary>
-        void BasicAck(ulong deliveryTag, bool multiple);
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="multiple">If set to <c>true</c>, nack all messages up to the current tag.</param>
+        /// <param name="requeue">If set to <c>true</c>, requeue nack'd messages.</param>
+        /// <param name="cancellationToken">Cancellation token for this operation.</param>
+        ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Asynchronously cancel a Basic content-class consumer.</summary>
+        /// <param name="consumerTag">The consumer tag.</param>
+        /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
+        /// <param name="cancellationToken">Cancellation token for this operation.</param>
+        Task BasicCancelAsync(string consumerTag, bool noWait = false,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack messages.</param>
+        /// <param name="consumerTag">The consumer tag.</param>
+        /// <param name="noLocal">If set to <c>true</c>, this consumer will not receive messages published by the same connection.</param>
+        /// <param name="exclusive">If set to <c>true</c>, the consumer is exclusive.</param>
+        /// <param name="arguments">Consumer arguments.</param>
+        /// <param name="consumer">The consumer, an instance of <see cref="IBasicConsumer"/></param>
+        /// <param name="cancellationToken">Cancellation token for this operation.</param>
+        /// <returns></returns>
+        Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+            IDictionary<string, object> arguments, IBasicConsumer consumer,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Delete a Basic content-class consumer.
-        /// </summary>
-        void BasicCancel(string consumerTag);
-
-        /// <summary>
-        /// Same as BasicCancel but sets nowait to true and returns void (as there
-        /// will be no response from the server).
-        /// </summary>
-        void BasicCancelNoWait(string consumerTag);
-
-        /// <summary>Start a Basic content-class consumer.</summary>
-        string BasicConsume(
-            string queue,
-            bool autoAck,
-            string consumerTag,
-            bool noLocal,
-            bool exclusive,
-            IDictionary<string, object> arguments,
-            IBasicConsumer consumer);
-
-        /// <summary>
-        /// Retrieve an individual message, if
+        /// Asynchronously retrieve an individual message, if
         /// one is available; returns null if the server answers that
-        /// no messages are currently available. See also <see cref="IChannel.BasicAck"/>.
+        /// no messages are currently available. See also <see cref="IChannel.BasicAckAsync" />.
         /// </summary>
-        BasicGetResult BasicGet(string queue, bool autoAck);
-
-        /// <summary>Reject one or more delivered message(s).</summary>
-        void BasicNack(ulong deliveryTag, bool multiple, bool requeue);
+        /// <param name="queue">The queue.</param>
+        /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
+        /// <param name="cancellationToken">Cancellation token for this operation.</param>
+        /// <returns><see cref="BasicGetResult"/></returns>
+        ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck,
+            CancellationToken cancellationToken = default);
 
 #nullable enable
 
         /// <summary>
-        /// Publishes a message.
+        /// Asynchronously publishes a message.
         /// </summary>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
+        /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        void BasicPublish<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
-
-        /// <summary>
-        /// Publishes a message.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
-        /// </remarks>
-        void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties,
+            ReadOnlyMemory<byte> body = default, bool mandatory = false,
+            CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
         /// <summary>
         /// Asynchronously publishes a message.
         /// </summary>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
+        /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
-
-        /// <summary>
-        /// Asynchronously publishes a message.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
-        /// </remarks>
-        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, TProperties basicProperties,
+            ReadOnlyMemory<byte> body = default, bool mandatory = false,
+            CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
 #nullable disable
@@ -238,161 +234,192 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Configures QoS parameters of the Basic content-class.
         /// </summary>
-        void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);
-
-        /// <summary>
-        /// Indicates that a consumer has recovered.
-        /// Deprecated. Should not be used.
-        /// </summary>
-        void BasicRecover(bool requeue);
-
-        /// <summary>
-        /// Indicates that a consumer has recovered.
-        /// Deprecated. Should not be used.
-        /// </summary>
-        void BasicRecoverAsync(bool requeue);
+        /// <param name="prefetchSize">Size of the prefetch in bytes.</param>
+        /// <param name="prefetchCount">The prefetch count.</param>
+        /// <param name="global">If set to <c>true</c>, use global prefetch.
+        /// <param name="cancellationToken">Cancellation token for this operation.</param>
+        /// See the <seealso href="https://www.rabbitmq.com/consumer-prefetch.html#overview">Consumer Prefetch documentation</seealso>.</param>
+        Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global,
+            CancellationToken cancellationToken = default);
 
         /// <summary> Reject a delivered message.</summary>
-        void BasicReject(ulong deliveryTag, bool requeue);
+        /// <param name="deliveryTag">The delivery tag.</param>
+        /// <param name="requeue">If set to <c>true</c>, requeue rejected messages.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+            CancellationToken cancellationToken = default);
 
-        /// <summary>Close this session.</summary>
+        /// <summary>
+        /// Asynchronously close this session.
+        /// </summary>
         /// <param name="replyCode">The reply code to send for closing (See under "Reply Codes" in the AMQP specification).</param>
         /// <param name="replyText">The reply text to send for closing.</param>
         /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
-        void Close(ushort replyCode, string replyText, bool abort);
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        Task CloseAsync(ushort replyCode, string replyText, bool abort,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Enable publisher acknowledgements.
+        /// Asynchronously close this session.
         /// </summary>
-        void ConfirmSelect();
+        /// <param name="reason">The <see cref="ShutdownEventArgs"/> instance containing the close data.</param>
+        /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <returns></returns>
+        Task CloseAsync(ShutdownEventArgs reason, bool abort,
+            CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Bind an exchange to an exchange.
-        /// </summary>
+        /// <summary>Asynchronously enable publisher confirmations.</summary>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        Task ConfirmSelectAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Asynchronously declare an exchange.</summary>
+        /// <param name="exchange">The name of the exchange.</param>
+        /// <param name="type">The type of the exchange.</param>
+        /// <param name="durable">Should this exchange survive a broker restart?</param>
+        /// <param name="autoDelete">Should this exchange be auto-deleted?</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="passive">Optional; Set to <code>true</code> to passively declare the exchange (i.e. check for its existence)</param>
+        /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
+        /// The exchange is declared non-internal.
         /// </remarks>
-        void ExchangeBind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+        Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete,
+            IDictionary<string, object> arguments = null, bool passive = false, bool noWait = false,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Like ExchangeBind but sets nowait to true.
+        /// Asynchronously do a passive exchange declaration.
         /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
-        /// </remarks>
-        void ExchangeBindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments);
-
-        /// <summary>Declare an exchange.</summary>
-        /// <remarks>
-        /// The exchange is declared non-passive and non-internal.
-        /// The "nowait" option is not exercised.
-        /// </remarks>
-        void ExchangeDeclare(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
-
-        /// <summary>
-        /// Same as ExchangeDeclare but sets nowait to true and returns void (as there
-        /// will be no response from the server).
-        /// </summary>
-        void ExchangeDeclareNoWait(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments);
-
-        /// <summary>
-        /// Do a passive exchange declaration.
-        /// </summary>
+        /// <param name="exchange">The name of the exchange.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// This method performs a "passive declare" on an exchange,
         /// which checks whether an exchange exists.
         /// It will do nothing if the exchange already exists and result
         /// in a channel-level protocol exception (channel closure) if not.
         /// </remarks>
-        void ExchangeDeclarePassive(string exchange);
+        Task ExchangeDeclarePassiveAsync(string exchange, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Delete an exchange.
+        /// Asynchronously delete an exchange.
         /// </summary>
-        void ExchangeDelete(string exchange, bool ifUnused);
+        /// <param name="exchange">The name of the exchange.</param>
+        /// <param name="ifUnused">Only delete the exchange if it is unused.</param>
+        /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        Task ExchangeDeleteAsync(string exchange, bool ifUnused = false, bool noWait = false,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Like ExchangeDelete but sets nowait to true.
+        /// Asynchronously binds an exchange to an exchange.
         /// </summary>
-        void ExchangeDeleteNoWait(string exchange, bool ifUnused);
-
-        /// <summary>
-        /// Unbind an exchange from an exchange.
-        /// </summary>
+        /// <param name="destination">The name of the destination exchange.</param>
+        /// <param name="source">The name of the source exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The binding arguments.</param>
+        /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        void ExchangeUnbind(string destination, string source, string routingKey, IDictionary<string, object> arguments);
+        Task ExchangeBindAsync(string destination, string source, string routingKey,
+            IDictionary<string, object> arguments = null, bool noWait = false,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Like ExchangeUnbind but sets nowait to true.
+        /// Asynchronously unbind an exchange from an exchange.
         /// </summary>
+        /// <param name="destination">The name of the destination exchange.</param>
+        /// <param name="source">The name of the source exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The binding arguments.</param>
+        /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
+        /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        void ExchangeUnbindNoWait(string destination, string source, string routingKey, IDictionary<string, object> arguments);
-
-        /// <summary>
-        /// Bind a queue to an exchange.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
-        /// </remarks>
-        void QueueBind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
-
-        /// <summary>Same as QueueBind but sets nowait parameter to true.</summary>
-        /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
-        /// </remarks>
-        void QueueBindNoWait(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
-
-        /// <summary>
-        /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
-        /// </summary>
-        /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
-        /// <param name="durable">Should this queue will survive a broker restart?</param>
-        /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
-        /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
-        /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
-        QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
+        Task ExchangeUnbindAsync(string destination, string source, string routingKey,
+            IDictionary<string, object> arguments = null, bool noWait = false,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
         /// </summary>
         /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
-        /// <param name="durable">Should this queue will survive a broker restart?</param>
+        /// <param name="durable">Should this queue survive a broker restart?</param>
         /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
         /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
         /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
-        ValueTask<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
+        /// <param name="passive">Optional; Set to <code>true</code> to passively declare the queue (i.e. check for its existence)</param>
+        /// <param name="noWait">Optional; Set to <c>true</c> to not require a response from the server.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete,
+            IDictionary<string, object> arguments = null, bool passive = false, bool noWait = false,
+            CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Declares a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
-        /// </summary>
+        /// <summary>Asynchronously declare a queue passively.</summary>
         /// <param name="queue">The name of the queue. Pass an empty string to make the server generate a name.</param>
-        /// <param name="durable">Should this queue will survive a broker restart?</param>
-        /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
-        /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
-        /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
-        void QueueDeclareNoWait(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments);
-
-        /// <summary>Declare a queue passively.</summary>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         ///The queue is declared passive, non-durable,
         ///non-exclusive, and non-autodelete, with no arguments.
         ///The queue is declared passively; i.e. only check if it exists.
         /// </remarks>
-        QueueDeclareOk QueueDeclarePassive(string queue);
+        Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously deletes a queue. See the <a href="https://www.rabbitmq.com/queues.html">Queues guide</a> to learn more.
+        /// </summary>
+        /// <param name="queue">The name of the queue.</param>
+        /// <param name="ifUnused">Only delete the queue if it is unused.</param>
+        /// <param name="ifEmpty">Only delete the queue if it is empty.</param>
+        /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        ///Returns the number of messages purged during queue deletion.
+        /// </remarks>
+        Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty, bool noWait = false,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>Asynchronously purge a queue of messages.</summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <returns>Returns the number of messages purged.</returns>
+        Task<uint> QueuePurgeAsync(string queue, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously bind a queue to an exchange.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// </remarks>
+        Task QueueBindAsync(string queue, string exchange, string routingKey,
+            IDictionary<string, object> arguments = null, bool noWait = false,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously unbind a queue from an exchange.
+        /// </summary>
+        /// <param name="queue">The queue.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// </remarks>
+        Task QueueUnbindAsync(string queue, string exchange, string routingKey,
+            IDictionary<string, object> arguments = null,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns the number of messages in a queue ready to be delivered
@@ -400,7 +427,8 @@ namespace RabbitMQ.Client
         /// an exception will be closed with an exception.
         /// </summary>
         /// <param name="queue">The name of the queue</param>
-        uint MessageCount(string queue);
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task<uint> MessageCountAsync(string queue, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns the number of consumers on a queue.
@@ -408,60 +436,26 @@ namespace RabbitMQ.Client
         /// an exception will be closed with an exception.
         /// </summary>
         /// <param name="queue">The name of the queue</param>
-        uint ConsumerCount(string queue);
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task<uint> ConsumerCountAsync(string queue, CancellationToken cancellationToken = default);
+
+        /// <summary>Asynchronously commit this session's active TX transaction.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task TxCommitAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Asynchronously roll back this session's active TX transaction.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task TxRollbackAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Asynchronously enable TX mode for this session.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task TxSelectAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Delete a queue.
-        /// </summary>
-        /// <remarks>
-        ///Returns the number of messages purged during queue deletion.
-        /// </remarks>
-        uint QueueDelete(string queue, bool ifUnused, bool ifEmpty);
-
-        /// <summary>
-        ///Same as QueueDelete but sets nowait parameter to true
-        ///and returns void (as there will be no response from the server)
-        /// </summary>
-        void QueueDeleteNoWait(string queue, bool ifUnused, bool ifEmpty);
-
-        /// <summary>
-        /// Purge a queue of messages.
-        /// </summary>
-        /// <remarks>
-        /// Returns the number of messages purged.
-        /// </remarks>
-        uint QueuePurge(string queue);
-
-        /// <summary>
-        /// Unbind a queue from an exchange.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     Routing key must be shorter than 255 bytes.
-        ///   </para>
-        /// </remarks>
-        void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments);
-
-        /// <summary>
-        /// Commit this session's active TX transaction.
-        /// </summary>
-        void TxCommit();
-
-        /// <summary>
-        /// Roll back this session's active TX transaction.
-        /// </summary>
-        void TxRollback();
-
-        /// <summary>
-        /// Enable TX mode for this session.
-        /// </summary>
-        void TxSelect();
-
-        /// <summary>
-        /// Wait until all published messages on this channel have been confirmed.
+        /// Asynchronously wait until all published messages on this channel have been confirmed.
         /// </summary>
         /// <returns>True if no nacks were received within the timeout, otherwise false.</returns>
-        /// <param name="token">The cancellation token.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <remarks>
         /// Waits until all messages published on this channel since the last call have
         /// been either ack'd or nack'd by the server. Returns whether
@@ -469,19 +463,19 @@ namespace RabbitMQ.Client
         /// Throws an exception when called on a channel
         /// that does not have publisher confirms enabled.
         /// </remarks>
-        Task<bool> WaitForConfirmsAsync(CancellationToken token = default);
+        Task<bool> WaitForConfirmsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Wait until all published messages on this channel have been confirmed.
         /// </summary>
-        /// <param name="token">The cancellation token.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <remarks>
         /// Waits until all messages published on this channel since the last call have
         /// been ack'd by the server. If a nack is received or the timeout
         /// elapses, throws an IOException exception immediately and closes
         /// the channel.
         /// </remarks>
-        Task WaitForConfirmsOrDieAsync(CancellationToken token = default);
+        Task WaitForConfirmsOrDieAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before

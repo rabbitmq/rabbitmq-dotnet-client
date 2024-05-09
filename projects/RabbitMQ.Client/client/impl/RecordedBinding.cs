@@ -31,6 +31,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -66,22 +68,27 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public void Recover(IChannel channel)
+        public Task RecoverAsync(IChannel channel, CancellationToken cancellationToken)
         {
             if (_isQueueBinding)
             {
-                channel.QueueBind(_destination, _source, _routingKey, _arguments);
+                return channel.QueueBindAsync(_destination, _source, _routingKey, _arguments, false,
+                    cancellationToken);
             }
             else
             {
-                channel.ExchangeBind(_destination, _source, _routingKey, _arguments);
+                return channel.ExchangeBindAsync(_destination, _source, _routingKey, _arguments, false,
+                    cancellationToken);
             }
         }
 
         public bool Equals(RecordedBinding other)
         {
-            return _isQueueBinding == other._isQueueBinding && _destination == other._destination && _source == other._source &&
-                   _routingKey == other._routingKey && _arguments == other._arguments;
+            return _isQueueBinding == other._isQueueBinding &&
+                _destination == other._destination &&
+                _source == other._source &&
+               _routingKey == other._routingKey &&
+               _arguments == other._arguments;
         }
 
         public override bool Equals(object? obj)
@@ -91,7 +98,9 @@ namespace RabbitMQ.Client.Impl
 
         public override int GetHashCode()
         {
-#if NETSTANDARD
+#if NET6_0_OR_GREATER
+            return HashCode.Combine(_isQueueBinding, _destination, _source, _routingKey, _arguments);
+#else
             unchecked
             {
                 int hashCode = _isQueueBinding.GetHashCode();
@@ -101,8 +110,6 @@ namespace RabbitMQ.Client.Impl
                 hashCode = (hashCode * 397) ^ (_arguments != null ? _arguments.GetHashCode() : 0);
                 return hashCode;
             }
-#else
-            return HashCode.Combine(_isQueueBinding, _destination, _source, _routingKey, _arguments);
 #endif
         }
 

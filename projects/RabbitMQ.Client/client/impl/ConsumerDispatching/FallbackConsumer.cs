@@ -37,10 +37,12 @@ namespace RabbitMQ.Client.ConsumerDispatching
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicConsumeOk)} for tag {consumerTag}");
         }
 
-        void IBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body)
+        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
+            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicDeliver)} for tag {consumerTag}");
+            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicDeliverAsync)} for tag {consumerTag}");
+            return Task.CompletedTask;
         }
 
         void IBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
@@ -66,11 +68,10 @@ namespace RabbitMQ.Client.ConsumerDispatching
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body)
+        Task IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+            in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            ((IBasicConsumer)this).HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-            return Task.CompletedTask;
+            return ((IBasicConsumer)this).HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
         }
 
         Task IAsyncBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)

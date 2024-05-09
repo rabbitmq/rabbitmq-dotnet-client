@@ -32,7 +32,10 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
@@ -57,22 +60,33 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public AutorecoveringConnection(ConnectionConfig config, IEndpointResolver endpoints)
+        internal AutorecoveringConnection(ConnectionConfig config, IEndpointResolver endpoints)
         {
             _config = config;
             _endpoints = endpoints;
+        }
 
-            IFrameHandler fh = _endpoints.SelectOne(_config.FrameHandlerFactory);
+        internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
+        {
+            IFrameHandler fh = await _endpoints.SelectOneAsync(_config.FrameHandlerFactoryAsync, cancellationToken)
+                .ConfigureAwait(false);
+            CreateInnerConnection(fh);
+            await _innerConnection.OpenAsync(cancellationToken)
+                .ConfigureAwait(false);
+            return this;
+        }
 
-            _innerConnection = new Connection(_config, fh);
+        private void CreateInnerConnection(IFrameHandler frameHandler)
+        {
+            _innerConnection = new Connection(_config, frameHandler);
 
-            Action<Exception, string> onException =
-                (exception, context) =>
+            void onException(Exception exception, string context) =>
                 _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+
             _recoverySucceededWrapper = new EventingWrapper<EventArgs>("OnConnectionRecovery", onException);
             _connectionRecoveryErrorWrapper = new EventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onException);
             _consumerTagChangeAfterRecoveryWrapper = new EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onException);
-            _queueNameChangeAfterRecoveryWrapper = new EventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onException);
+            _queueNameChangedAfterRecoveryWrapper = new EventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onException);
 
             ConnectionShutdown += HandleConnectionShutdown;
         }
@@ -122,12 +136,12 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryWrapper;
 
-        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangeAfterRecovery
+        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecovery
         {
-            add => _queueNameChangeAfterRecoveryWrapper.AddHandler(value);
-            remove => _queueNameChangeAfterRecoveryWrapper.RemoveHandler(value);
+            add => _queueNameChangedAfterRecoveryWrapper.AddHandler(value);
+            remove => _queueNameChangedAfterRecoveryWrapper.RemoveHandler(value);
         }
-        private EventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangeAfterRecoveryWrapper;
+        private EventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangedAfterRecoveryWrapper;
 
         public event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer
         {
@@ -158,51 +172,86 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IDictionary<string, object> ServerProperties => InnerConnection.ServerProperties;
 
-        public IList<ShutdownReportEntry> ShutdownReport => InnerConnection.ShutdownReport;
+        public IEnumerable<ShutdownReportEntry> ShutdownReport => InnerConnection.ShutdownReport;
 
         public IProtocol Protocol => Endpoint.Protocol;
 
-        public RecoveryAwareChannel CreateNonRecoveringChannel()
+        public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(CancellationToken cancellationToken)
         {
             ISession session = InnerConnection.CreateSession();
             var result = new RecoveryAwareChannel(_config, session);
-            result._Private_ChannelOpen();
-            return result;
+            return await result.OpenAsync(cancellationToken)
+                .ConfigureAwait(false) as RecoveryAwareChannel;
         }
 
         public override string ToString()
             => $"AutorecoveringConnection({InnerConnection.Id},{Endpoint},{GetHashCode()})";
 
-        internal IFrameHandler FrameHandler => InnerConnection.FrameHandler;
-
-        internal string Password => _config.Password;
+        internal Task CloseFrameHandlerAsync()
+        {
+            return InnerConnection.FrameHandler.CloseAsync(CancellationToken.None);
+        }
 
         ///<summary>API-side invocation of updating the secret.</summary>
-        public void UpdateSecret(string newSecret, string reason)
+        public Task UpdateSecretAsync(string newSecret, string reason,
+            CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
             EnsureIsOpen();
-            _innerConnection.UpdateSecret(newSecret, reason);
-            _config.Password = newSecret;
+            return _innerConnection.UpdateSecretAsync(newSecret, reason, cancellationToken);
         }
 
-        ///<summary>API-side invocation of connection.close with timeout.</summary>
-        public void Close(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort)
+        ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
+        public async Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,
+            CancellationToken cancellationToken = default)
         {
             ThrowIfDisposed();
-            StopRecoveryLoop();
-            if (_innerConnection.IsOpen)
+
+            Task CloseInnerConnectionAsync()
             {
-                _innerConnection.Close(reasonCode, reasonText, timeout, abort);
+                if (_innerConnection.IsOpen)
+                {
+                    return _innerConnection.CloseAsync(reasonCode, reasonText, timeout, abort, cancellationToken);
+                }
+                else
+                {
+                    return Task.CompletedTask;
+                }
+            }
+
+            try
+            {
+                await StopRecoveryLoopAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                await CloseInnerConnectionAsync()
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    await CloseInnerConnectionAsync()
+                        .ConfigureAwait(false);
+                }
+                catch (Exception innerConnectionException)
+                {
+                    throw new AggregateException(ex, innerConnectionException);
+                }
+
+                throw;
             }
         }
 
-        public IChannel CreateChannel()
+        public async Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
-            AutorecoveringChannel m = new AutorecoveringChannel(this, CreateNonRecoveringChannel());
-            RecordChannel(m);
-            return m;
+            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(cancellationToken)
+                .ConfigureAwait(false);
+            AutorecoveringChannel channel = new AutorecoveringChannel(this, recoveryAwareChannel);
+            await RecordChannelAsync(channel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+            return channel;
         }
 
         public void Dispose()
@@ -214,16 +263,19 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                this.Abort(InternalConstants.DefaultConnectionAbortTimeout);
+                _innerConnection.Dispose();
             }
-            catch (Exception)
+            catch (OperationInterruptedException)
             {
-                // TODO: log
+                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
             }
             finally
             {
                 _channels.Clear();
                 _innerConnection = null;
+                _recordedEntitiesSemaphore.Dispose();
+                _channelsSemaphore.Dispose();
+                _recoveryCancellationTokenSource.Dispose();
                 _disposed = true;
             }
         }

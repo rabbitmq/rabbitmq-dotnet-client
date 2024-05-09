@@ -36,6 +36,8 @@ using System.Net.Security;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
@@ -105,11 +107,15 @@ namespace RabbitMQ.Client
         public const uint DefaultFrameMax = 0;
 
         /// <summary>
-        /// Default value for the maximum allowed message size, in bytes, from RabbitMQ.
-        /// Corresponds to the <code>rabbit.max_message_size</code> setting.
-        /// Note: the default is 0 which means "unlimited".
+        /// Default value for <code>ConnectionFactory</code>'s <code>MaxMessageSize</code>.        
         /// </summary>
         public const uint DefaultMaxMessageSize = 134217728;
+        /// <summary>
+        /// Largest message size, in bytes, allowed in RabbitMQ.        
+        /// Note: <code>rabbit.max_message_size</code> setting (https://www.rabbitmq.com/configure.html)
+        /// configures the largest message size which should be lower than this maximum of 536 Mbs.
+        /// </summary>
+        public const uint MaximumMaxMessageSize = 536870912;
 
         /// <summary>
         /// Default value for desired heartbeat interval. Default is 60 seconds,
@@ -145,12 +151,12 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
-        public static readonly IList<IAuthMechanismFactory> DefaultAuthMechanisms = new List<IAuthMechanismFactory>(1) { new PlainMechanismFactory() };
+        public static readonly IEnumerable<IAuthMechanismFactory> DefaultAuthMechanisms = new[] { new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
         /// </summary>
-        public IList<IAuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
+        public IEnumerable<IAuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
 
         /// <summary>
         /// Address family used by default.
@@ -159,6 +165,8 @@ namespace RabbitMQ.Client
         /// Or use <see cref="System.Net.Sockets.AddressFamily.Unknown" /> to attempt both IPv6 and IPv4.
         /// </summary>
         public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
+
+        public static readonly ICredentialsRefresher DefaultCredentialsRefresher = new NoOpCredentialsRefresher();
 
         /// <summary>
         /// Set to false to disable automatic connection recovery.
@@ -308,9 +316,24 @@ namespace RabbitMQ.Client
         };
 
         /// <summary>
+        /// Username to use when authenticating to the server.
+        /// </summary>
+        public string UserName { get; set; } = DefaultUser;
+
+        /// <summary>
         /// Password to use when authenticating to the server.
         /// </summary>
         public string Password { get; set; } = DefaultPass;
+
+        /// <summary>
+        /// CredentialsProvider used to obtain username and password.
+        /// </summary>
+        public ICredentialsProvider CredentialsProvider { get; set; }
+
+        /// <summary>
+        /// Used to refresh credentials.
+        /// </summary>
+        public ICredentialsRefresher CredentialsRefresher { get; set; } = DefaultCredentialsRefresher;
 
         /// <summary>
         /// Maximum channel number to ask for.
@@ -328,18 +351,13 @@ namespace RabbitMQ.Client
         public TimeSpan RequestedHeartbeat { get; set; } = DefaultHeartbeat;
 
         /// <summary>
-        /// Username to use when authenticating to the server.
-        /// </summary>
-        public string UserName { get; set; } = DefaultUser;
-
-        /// <summary>
         /// Virtual host to access during this connection.
         /// </summary>
         public string VirtualHost { get; set; } = DefaultVHost;
 
         /// <summary>
         /// Maximum allowed message size, in bytes, from RabbitMQ.
-        /// Corresponds to the <code>rabbit.max_message_size</code> setting.
+        /// Corresponds to the <code>ConnectionFactory.DefaultMaxMessageSize</code> setting.
         /// </summary>
         public uint MaxMessageSize { get; set; } = DefaultMaxMessageSize;
 
@@ -361,17 +379,21 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
-        public IAuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames)
+        public IAuthMechanismFactory AuthMechanismFactory(IEnumerable<string> argServerMechanismNames)
         {
+            string[] serverMechanismNames = argServerMechanismNames.ToArray();
+
             // Our list is in order of preference, the server one is not.
-            for (int index = 0; index < AuthMechanisms.Count; index++)
+            IAuthMechanismFactory[] authMechanisms = AuthMechanisms.ToArray();
+
+            for (int index = 0; index < authMechanisms.Length; index++)
             {
-                IAuthMechanismFactory factory = AuthMechanisms[index];
+                IAuthMechanismFactory factory = authMechanisms[index];
                 string factoryName = factory.Name;
 
-                for (int i = 0; i < mechanismNames.Count; i++)
+                for (int i = 0; i < serverMechanismNames.Length; i++)
                 {
-                    if (string.Equals(mechanismNames[i], factoryName, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(serverMechanismNames[i], factoryName, StringComparison.OrdinalIgnoreCase))
                     {
                         return factory;
                     }
@@ -382,20 +404,22 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// Create a connection to one of the endpoints provided by the IEndpointResolver
+        /// Asynchronously create a connection to one of the endpoints provided by the IEndpointResolver
         /// returned by the EndpointResolverFactory. By default the configured
         /// hostname and port are used.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection()
+        public Task<IConnection> CreateConnectionAsync(
+            CancellationToken cancellationToken = default)
         {
-            return CreateConnection(ClientProvidedName);
+            return CreateConnectionAsync(ClientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection to one of the endpoints provided by the IEndpointResolver
+        /// Asynchronously create a connection to one of the endpoints provided by the IEndpointResolver
         /// returned by the EndpointResolverFactory. By default the configured
         /// hostname and port are used.
         /// </summary>
@@ -405,16 +429,18 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection(string clientProvidedName)
+        public Task<IConnection> CreateConnectionAsync(string clientProvidedName,
+            CancellationToken cancellationToken = default)
         {
-            return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
+            return CreateConnectionAsync(EndpointResolverFactory(LocalEndpoints()), clientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection using a list of hostnames using the configured port.
+        /// Asynchronously create a connection using a list of hostnames using the configured port.
         /// By default each hostname is tried in a random order until a successful connection is
         /// found or the list is exhausted using the DefaultEndpointResolver.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
@@ -423,17 +449,19 @@ namespace RabbitMQ.Client
         /// List of hostnames to use for the initial
         /// connection and recovery.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames)
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames,
+            CancellationToken cancellationToken = default)
         {
-            return CreateConnection(hostnames, ClientProvidedName);
+            return CreateConnectionAsync(hostnames, ClientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection using a list of hostnames using the configured port.
+        /// Asynchronously create a connection using a list of hostnames using the configured port.
         /// By default each endpoint is tried in a random order until a successful connection is
         /// found or the list is exhausted.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
@@ -448,18 +476,20 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
+            CancellationToken cancellationToken = default)
         {
-            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl));
-            return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
+            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxMessageSize));
+            return CreateConnectionAsync(EndpointResolverFactory(endpoints), clientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection using a list of endpoints. By default each endpoint will be tried
+        /// Asynchronously create a connection using a list of endpoints. By default each endpoint will be tried
         /// in a random order until a successful connection is found or the list is exhausted.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
@@ -467,17 +497,19 @@ namespace RabbitMQ.Client
         /// List of endpoints to use for the initial
         /// connection and recovery.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints)
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints,
+            CancellationToken cancellationToken = default)
         {
-            return CreateConnection(endpoints, ClientProvidedName);
+            return CreateConnectionAsync(endpoints, ClientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection using a list of endpoints. By default each endpoint will be tried
+        /// Asynchronously create a connection using a list of endpoints. By default each endpoint will be tried
         /// in a random order until a successful connection is found or the list is exhausted.
         /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
@@ -491,17 +523,19 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<AmqpTcpEndpoint> endpoints, string clientProvidedName)
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName,
+            CancellationToken cancellationToken = default)
         {
-            return CreateConnection(EndpointResolverFactory(endpoints), clientProvidedName);
+            return CreateConnectionAsync(EndpointResolverFactory(endpoints), clientProvidedName, cancellationToken);
         }
 
         /// <summary>
-        /// Create a connection using an IEndpointResolver.
+        /// Asynchronously create a connection using an IEndpointResolver.
         /// </summary>
         /// <param name="endpointResolver">
         /// The endpointResolver that returns the endpoints to use for the connection attempt.
@@ -512,25 +546,46 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </param>
+        /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
+        public async Task<IConnection> CreateConnectionAsync(IEndpointResolver endpointResolver, string clientProvidedName,
+            CancellationToken cancellationToken = default)
         {
             ConnectionConfig config = CreateConfig(clientProvidedName);
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
-                    return new AutorecoveringConnection(config, endpointResolver);
+                    var c = new AutorecoveringConnection(config, endpointResolver);
+                    return await c.OpenAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
-
-                return new Connection(config, endpointResolver.SelectOne(CreateFrameHandler));
+                else
+                {
+                    IFrameHandler frameHandler = await endpointResolver.SelectOneAsync(CreateFrameHandlerAsync, cancellationToken)
+                        .ConfigureAwait(false);
+                    var c = new Connection(config, frameHandler);
+                    return await c.OpenAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
             }
-            catch (Exception e)
+            catch (OperationCanceledException ex)
             {
-                throw new BrokerUnreachableException(e);
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                else
+                {
+                    throw new BrokerUnreachableException(ex);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new BrokerUnreachableException(ex);
             }
         }
 
@@ -540,6 +595,8 @@ namespace RabbitMQ.Client
                 VirtualHost,
                 UserName,
                 Password,
+                CredentialsProvider,
+                CredentialsRefresher,
                 AuthMechanisms,
                 ClientProperties,
                 clientProvidedName,
@@ -555,18 +612,22 @@ namespace RabbitMQ.Client
                 RequestedConnectionTimeout,
                 DispatchConsumersAsync,
                 ConsumerDispatchConcurrency,
-                CreateFrameHandler);
+                CreateFrameHandlerAsync);
         }
 
-        internal IFrameHandler CreateFrameHandler(AmqpTcpEndpoint endpoint)
+        internal async Task<IFrameHandler> CreateFrameHandlerAsync(
+            AmqpTcpEndpoint endpoint, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             IFrameHandler fh = new SocketFrameHandler(endpoint, SocketFactory, RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
+            await fh.ConnectAsync(cancellationToken)
+                .ConfigureAwait(false);
             return ConfigureFrameHandler(fh);
         }
 
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
         {
-            // TODO: add user-provided configurator, like in the Java client
+            // FUTURE: add user-provided configurator, like in the Java client
             fh.ReadTimeout = RequestedHeartbeat;
             fh.WriteTimeout = RequestedHeartbeat;
 

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -110,48 +111,41 @@ namespace RabbitMQ.Client.Impl
             {
                 RabbitMqClientEventSource.Log.ChannelClosed();
             }
+
             if (notify)
             {
                 OnSessionShutdown(CloseReason);
             }
         }
 
-        public abstract bool HandleFrame(in InboundFrame frame);
+        public abstract Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
 
         public void Notify()
         {
             // Ensure that we notify only when session is already closed
             // If not, throw exception, since this is a serious bug in the library
-            var reason = CloseReason;
+            ShutdownEventArgs reason = CloseReason;
             if (reason is null)
             {
-                throw new Exception("Internal Error in Session.Close");
+                throw new InvalidOperationException("Internal Error in SessionBase.Notify");
             }
 
             OnSessionShutdown(reason);
         }
 
-        public virtual void Transmit<T>(in T cmd) where T : struct, IOutgoingAmqpMethod
+        public virtual ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod
         {
             if (!IsOpen && cmd.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
             {
                 ThrowAlreadyClosedException();
             }
 
-            Connection.Write(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ChannelNumber));
+            RentedMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ChannelNumber);
+            RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+            return Connection.WriteAsync(bytes, cancellationToken);
         }
 
-        public virtual ValueTask TransmitAsync<T>(in T cmd) where T : struct, IOutgoingAmqpMethod
-        {
-            if (!IsOpen && cmd.ProtocolCommandId != client.framing.ProtocolCommandId.ChannelCloseOk)
-            {
-                ThrowAlreadyClosedException();
-            }
-
-            return Connection.WriteAsync(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ChannelNumber));
-        }
-
-        public void Transmit<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -160,19 +154,9 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-            Connection.Write(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize));
-        }
-
-        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body)
-            where TMethod : struct, IOutgoingAmqpMethod
-            where THeader : IAmqpHeader
-        {
-            if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
-            {
-                ThrowAlreadyClosedException();
-            }
-
-            return Connection.WriteAsync(Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize));
+            RentedMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize);
+            RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+            return Connection.WriteAsync(bytes, cancellationToken);
         }
 
         private void ThrowAlreadyClosedException()

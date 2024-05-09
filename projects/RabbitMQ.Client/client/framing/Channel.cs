@@ -29,7 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
 using RabbitMQ.Client.Impl;
@@ -42,346 +42,114 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override void ConnectionTuneOk(ushort channelMax, uint frameMax, ushort heartbeat)
+        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
+            CancellationToken cancellationToken)
         {
-            ChannelSend(new ConnectionTuneOk(channelMax, frameMax, heartbeat));
+            var method = new BasicAck(deliveryTag, multiple);
+            return ModelSendAsync(method, cancellationToken);
         }
 
-        public override void _Private_BasicCancel(string consumerTag, bool nowait)
+        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
+            CancellationToken cancellationToken)
         {
-            ChannelSend(new BasicCancel(consumerTag, nowait));
+            var method = new BasicNack(deliveryTag, multiple, requeue);
+            return ModelSendAsync(method, cancellationToken);
         }
 
-        public override void _Private_BasicConsume(string queue, string consumerTag, bool noLocal, bool autoAck, bool exclusive, bool nowait, IDictionary<string, object> arguments)
+        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+            CancellationToken cancellationToken)
         {
-            ChannelSend(new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, nowait, arguments));
+            var method = new BasicReject(deliveryTag, requeue);
+            return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
-        public override void _Private_BasicGet(string queue, bool autoAck)
-        {
-            ChannelSend(new BasicGet(queue, autoAck));
-        }
-
-        public override void _Private_BasicRecover(bool requeue)
-        {
-            ChannelSend(new BasicRecover(requeue));
-        }
-
-        public override void _Private_ChannelClose(ushort replyCode, string replyText, ushort classId, ushort methodId)
-        {
-            ChannelSend(new ChannelClose(replyCode, replyText, classId, methodId));
-        }
-
-        public override void _Private_ChannelCloseOk()
-        {
-            ChannelSend(new ChannelCloseOk());
-        }
-
-        public override void _Private_ChannelFlowOk(bool active)
-        {
-            ChannelSend(new ChannelFlowOk(active));
-        }
-
-        public override void _Private_ChannelOpen()
-        {
-            ChannelRpc(new ChannelOpen(), ProtocolCommandId.ChannelOpenOk);
-        }
-
-        public override void _Private_ConfirmSelect(bool nowait)
-        {
-            var method = new ConfirmSelect(nowait);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ConfirmSelectOk);
-            }
-        }
-
-        public override void _Private_ConnectionCloseOk()
-        {
-            ChannelSend(new ConnectionCloseOk());
-        }
-
-        public override void _Private_ConnectionOpen(string virtualHost)
-        {
-            ChannelSend(new ConnectionOpen(virtualHost));
-        }
-
-        public override ValueTask _Private_ConnectionOpenAsync(string virtualHost)
-        {
-            return ModelSendAsync(new ConnectionOpen(virtualHost));
-        }
-
-        public override void _Private_ConnectionSecureOk(byte[] response)
-        {
-            ChannelSend(new ConnectionSecureOk(response));
-        }
-
-        public override void _Private_ConnectionStartOk(IDictionary<string, object> clientProperties, string mechanism, byte[] response, string locale)
-        {
-            ChannelSend(new ConnectionStartOk(clientProperties, mechanism, response, locale));
-        }
-
-        public override void _Private_UpdateSecret(byte[] newSecret, string reason)
-        {
-            ChannelRpc(new ConnectionUpdateSecret(newSecret, reason), ProtocolCommandId.ConnectionUpdateSecretOk);
-        }
-
-        public override void _Private_ExchangeBind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
-        {
-            var method = new ExchangeBind(destination, source, routingKey, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ExchangeBindOk);
-            }
-        }
-
-        public override void _Private_ExchangeDeclare(string exchange, string type, bool passive, bool durable, bool autoDelete, bool @internal, bool nowait, IDictionary<string, object> arguments)
-        {
-            var method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, @internal, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ExchangeDeclareOk);
-            }
-        }
-
-        public override void _Private_ExchangeDelete(string exchange, bool ifUnused, bool nowait)
-        {
-            var method = new ExchangeDelete(exchange, ifUnused, nowait);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ExchangeDeleteOk);
-            }
-        }
-
-        public override void _Private_ExchangeUnbind(string destination, string source, string routingKey, bool nowait, IDictionary<string, object> arguments)
-        {
-            var method = new ExchangeUnbind(destination, source, routingKey, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.ExchangeUnbindOk);
-            }
-        }
-
-        public override void _Private_QueueBind(string queue, string exchange, string routingKey, bool nowait, IDictionary<string, object> arguments)
-        {
-            var method = new QueueBind(queue, exchange, routingKey, nowait, arguments);
-            if (nowait)
-            {
-                ChannelSend(method);
-            }
-            else
-            {
-                ChannelRpc(method, ProtocolCommandId.QueueBindOk);
-            }
-        }
-
-        public override void _Private_QueueDeclare(string queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool nowait, IDictionary<string, object> arguments)
-        {
-            /*
-             * Note:
-             * Even though nowait is a parameter, ChannelSend must be used
-             */
-            var method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, nowait, arguments);
-            ChannelSend(method);
-        }
-
-        public override uint _Private_QueueDelete(string queue, bool ifUnused, bool ifEmpty, bool nowait)
-        {
-            var method = new QueueDelete(queue, ifUnused, ifEmpty, nowait);
-            if (nowait)
-            {
-                ChannelSend(method);
-                return 0xFFFFFFFF;
-            }
-
-            return ChannelRpc(method, ProtocolCommandId.QueueDeleteOk, memory => new QueueDeleteOk(memory.Span)._messageCount);
-        }
-
-        public override uint _Private_QueuePurge(string queue, bool nowait)
-        {
-            var method = new QueuePurge(queue, nowait);
-            if (nowait)
-            {
-                ChannelSend(method);
-                return 0xFFFFFFFF;
-            }
-
-            return ChannelRpc(method, ProtocolCommandId.QueuePurgeOk, memory => new QueuePurgeOk(memory.Span)._messageCount);
-        }
-
-        public override void BasicAck(ulong deliveryTag, bool multiple)
-        {
-            ChannelSend(new BasicAck(deliveryTag, multiple));
-        }
-
-        public override void BasicNack(ulong deliveryTag, bool multiple, bool requeue)
-        {
-            ChannelSend(new BasicNack(deliveryTag, multiple, requeue));
-        }
-
-        public override void BasicQos(uint prefetchSize, ushort prefetchCount, bool global)
-        {
-            ChannelRpc(new BasicQos(prefetchSize, prefetchCount, global), ProtocolCommandId.BasicQosOk);
-        }
-
-        public override void BasicRecoverAsync(bool requeue)
-        {
-            ChannelSend(new BasicRecoverAsync(requeue));
-        }
-
-        public override void BasicReject(ulong deliveryTag, bool requeue)
-        {
-            ChannelSend(new BasicReject(deliveryTag, requeue));
-        }
-
-        public override void QueueUnbind(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
-        {
-            ChannelRpc(new QueueUnbind(queue, exchange, routingKey, arguments), ProtocolCommandId.QueueUnbindOk);
-        }
-
-        public override void TxCommit()
-        {
-            ChannelRpc(new TxCommit(), ProtocolCommandId.TxCommitOk);
-        }
-
-        public override void TxRollback()
-        {
-            ChannelRpc(new TxRollback(), ProtocolCommandId.TxRollbackOk);
-        }
-
-        public override void TxSelect()
-        {
-            ChannelRpc(new TxSelect(), ProtocolCommandId.TxSelectOk);
-        }
-
-        protected override bool DispatchAsynchronous(in IncomingCommand cmd)
+        /// <summary>
+        /// Returning <c>true</c> from this method means that the command was server-originated,
+        /// and handled already.
+        /// Returning <c>false</c> (the default) means that the incoming command is the response to
+        /// a client-initiated RPC call, and must be handled.
+        /// </summary>
+        /// <param name="cmd">The incoming command from the AMQP server</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns></returns>
+        protected override Task<bool> DispatchCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             switch (cmd.CommandId)
             {
+                case ProtocolCommandId.BasicCancel:
+                    {
+                        // Note: always returns true
+                        return HandleBasicCancelAsync(cmd, cancellationToken);
+                    }
                 case ProtocolCommandId.BasicDeliver:
                     {
-                        HandleBasicDeliver(in cmd);
-                        return true;
+                        // Note: always returns true
+                        return HandleBasicDeliverAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.BasicAck:
                     {
                         HandleBasicAck(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicCancel:
-                    {
-                        HandleBasicCancel(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicCancelOk:
-                    {
-                        HandleBasicCancelOk(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicConsumeOk:
-                    {
-                        HandleBasicConsumeOk(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicGetEmpty:
-                    {
-                        cmd.ReturnMethodBuffer();
-                        HandleBasicGetEmpty();
-                        return true;
-                    }
-                case ProtocolCommandId.BasicGetOk:
-                    {
-                        HandleBasicGetOk(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
                         HandleBasicNack(in cmd);
-                        return true;
-                    }
-                case ProtocolCommandId.BasicRecoverOk:
-                    {
-                        cmd.ReturnMethodBuffer();
-                        HandleBasicRecoverOk();
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.BasicReturn:
                     {
                         HandleBasicReturn(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ChannelClose:
                     {
-                        HandleChannelClose(in cmd);
-                        return true;
+                        // Note: always returns true
+                        return HandleChannelCloseAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ChannelCloseOk:
                     {
-                        cmd.ReturnMethodBuffer();
-                        HandleChannelCloseOk();
-                        return true;
+                        // Note: always returns true
+                        return HandleChannelCloseOkAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ChannelFlow:
                     {
-                        HandleChannelFlow(in cmd);
-                        return true;
+                        // Note: always returns true
+                        return HandleChannelFlowAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionBlocked:
                     {
                         HandleConnectionBlocked(in cmd);
-                        return true;
+                        return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ConnectionClose:
                     {
-                        HandleConnectionClose(in cmd);
-                        return true;
+                        // Note: always returns true
+                        return HandleConnectionCloseAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionSecure:
                     {
-                        HandleConnectionSecure(in cmd);
-                        return true;
+                        // Note: always returns true
+                        return HandleConnectionSecureAsync(cmd);
                     }
                 case ProtocolCommandId.ConnectionStart:
                     {
-                        HandleConnectionStart(in cmd);
-                        return true;
+                        // Note: always returns true
+                        return HandleConnectionStartAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionTune:
                     {
-                        HandleConnectionTune(in cmd);
-                        return true;
+                        // Note: always returns true
+                        return HandleConnectionTuneAsync(cmd);
                     }
                 case ProtocolCommandId.ConnectionUnblocked:
                     {
-                        cmd.ReturnMethodBuffer();
-                        HandleConnectionUnblocked();
-                        return true;
+                        HandleConnectionUnblocked(in cmd);
+                        return Task.FromResult(true);
                     }
-                case ProtocolCommandId.QueueDeclareOk:
+                default:
                     {
-                        return HandleQueueDeclareOk(in cmd);
+                        return Task.FromResult(false);
                     }
-                default: return false;
             }
         }
     }

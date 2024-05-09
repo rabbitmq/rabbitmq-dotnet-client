@@ -1,0 +1,32 @@
+name: rabbitmq-dotnet-client-oauth2
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    strategy:
+      matrix:
+        oauth2-provider: [ uaa, keycloak ]
+    name: oauth2-${{ matrix.oauth2-provider }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.x
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/.local/share/NuGet/v3-cache
+          key: ${{ runner.os }}-v0-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-v0-nuget-
+      - run: ${{ github.workspace }}/.ci/oauth2/setup.sh ${{ matrix.oauth2-provider }}
+      - run: ${{ github.workspace }}/.ci/oauth2/test.sh ${{ matrix.oauth2-provider }}

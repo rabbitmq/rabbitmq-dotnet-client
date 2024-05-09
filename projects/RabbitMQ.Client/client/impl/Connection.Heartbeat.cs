@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.Framing.Impl
     internal sealed partial class Connection
     {
         private TimeSpan _heartbeat;
-        private TimeSpan _heartbeatTimeSpan;
+        private TimeSpan _heartbeatWriteTimeSpan;
         private int _missedHeartbeats;
         private bool _heartbeatDetected;
 
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 _heartbeat = value;
                 // timers fire at slightly below half the interval to avoid race
                 // conditions
-                _heartbeatTimeSpan = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds / 4);
+                _heartbeatWriteTimeSpan = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds / 2);
                 _frameHandler.ReadTimeout = TimeSpan.FromMilliseconds(_heartbeat.TotalMilliseconds * 2);
             }
         }
@@ -80,7 +80,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _heartbeatDetected = true;
         }
 
-        private void HeartbeatReadTimerCallback(object? state)
+        private async void HeartbeatReadTimerCallback(object? state)
         {
             if (_heartbeatReadTimer is null)
             {
@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                if (!_closed)
+                if (false == _closed)
                 {
                     if (_heartbeatDetected)
                     {
@@ -103,11 +103,9 @@ namespace RabbitMQ.Client.Framing.Impl
                         _missedHeartbeats++;
                     }
 
-                    // We check against 8 = 2 * 4 because we need to wait for at
-                    // least two complete heartbeat setting intervals before
-                    // complaining, and we've set the socket timeout to a quarter
-                    // of the heartbeat setting in setHeartbeat above.
-                    if (_missedHeartbeats > 2 * 4)
+                    // We need to wait for at least two complete heartbeat setting
+                    // intervals before complaining
+                    if (_missedHeartbeats > 2)
                     {
                         var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
                         LogCloseError(eose.Message, eose);
@@ -118,12 +116,25 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 if (shouldTerminate)
                 {
-                    TerminateMainloop();
-                    FinishClose();
+                    MaybeTerminateMainloopAndStopHeartbeatTimers();
+                    /*
+                     * Note: do NOT use the main loop cancellation token,
+                     * because FininshCloseAsync immediately cancels it
+                     */
+                    using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionAbortTimeout);
+                    await FinishCloseAsync(cts.Token)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
                     _heartbeatReadTimer?.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                if (false == _mainLoopCts.IsCancellationRequested)
+                {
+                    throw;
                 }
             }
             catch (ObjectDisposedException)
@@ -138,7 +149,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void HeartbeatWriteTimerCallback(object? state)
+        private async void HeartbeatWriteTimerCallback(object? state)
         {
             if (_heartbeatWriteTimer is null)
             {
@@ -147,10 +158,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
             try
             {
-                if (!_closed)
+                if (false == _closed)
                 {
-                    Write(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame());
-                    _heartbeatWriteTimer?.Change((int)_heartbeatTimeSpan.TotalMilliseconds, Timeout.Infinite);
+                    await WriteAsync(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame(), _mainLoopCts.Token)
+                        .ConfigureAwait(false);
+                    _heartbeatWriteTimer?.Change((int)_heartbeatWriteTimeSpan.TotalMilliseconds, Timeout.Infinite);
                 }
             }
             catch (ObjectDisposedException)

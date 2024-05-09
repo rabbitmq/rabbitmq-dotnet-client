@@ -29,11 +29,17 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Threading.Tasks;
+
 namespace RabbitMQ.Client.Impl
 {
-    internal interface IRpcContinuation
+    internal interface IRpcContinuation : IDisposable
     {
-        void HandleCommand(in IncomingCommand cmd);
+        // Note:
+        // No CancellationToken because the continuation class itself will create one
+        // to represent a continuation timeout
+        Task HandleCommandAsync(IncomingCommand cmd);
         void HandleChannelShutdown(ShutdownEventArgs reason);
     }
 }

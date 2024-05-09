@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyTitle>RabbitMQ OAuth2 Client Library for .NET</AssemblyTitle>
+    <Authors>VMware</Authors>
+    <Company>VMware, Inc. or its affiliates.</Company>
+    <Copyright>Copyright © 2007-2023 VMware, Inc. or its affiliates.</Copyright>
+    <Description>The RabbitMQ OAuth2 Client Library for .NET enables OAuth2 token refresh for RabbitMQ.Client</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>Apache-2.0 OR MPL-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://www.rabbitmq.com/dotnet.html</PackageProjectUrl>
+    <PackageTags>rabbitmq, amqp, oauth2</PackageTags>
+    <Product>RabbitMQ</Product>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryUrl>https://github.com/rabbitmq/rabbitmq-dotnet-client.git</RepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AssemblyOriginatorKeyFile>../rabbit.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <MinVerTagPrefix>oauth2-</MinVerTagPrefix>
+    <MinVerVerbosity>minimal</MinVerVerbosity>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>../../packages</PackageOutputPath>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(CI)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release' and '$(SourceRoot)' == ''">
+    <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="icon.png" />
+    <Content Include="icon.png" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <InternalsVisibleTo Include="Unit" />
+    <InternalsVisibleTo Include="Benchmarks" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="MinVer" Version="5.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
+    <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
+    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../RabbitMQ.Client/RabbitMQ.Client.csproj" />
+  </ItemGroup>
+
+</Project>

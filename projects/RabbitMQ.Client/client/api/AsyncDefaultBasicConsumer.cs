@@ -29,7 +29,7 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Retrieve the consumer tags this consumer is registered as; to be used when discussing this consumer
-        /// with the server, for instance with <see cref="IChannel.BasicCancel"/>.
+        /// with the server, for instance with <see cref="IChannel.BasicCancelAsync"/>.
         /// </summary>
         public string[] ConsumerTags
         {
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client
         /// Called each time a message is delivered for this consumer.
         /// </summary>
         /// <remarks>
-        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IChannel.BasicAck"/>
+        /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IChannel.BasicAckAsync"/>
         /// if consuming in automatic acknowledgement mode.
         /// Subclasses must copy or fully use delivery body before returning.
         /// Accessing the body at a later point is unsafe as its memory can
@@ -141,7 +141,8 @@ namespace RabbitMQ.Client
             IsRunning = false;
             if (!_consumerCancelledWrapper.IsEmpty)
             {
-                await _consumerCancelledWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags)).ConfigureAwait(false);
+                await _consumerCancelledWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags))
+                    .ConfigureAwait(false);
             }
             foreach (string consumerTag in consumerTags)
             {
@@ -165,7 +166,9 @@ namespace RabbitMQ.Client
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
-        void IBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
+            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }

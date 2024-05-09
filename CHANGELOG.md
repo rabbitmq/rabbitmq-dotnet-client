@@ -1,11 +1,44 @@
 # Changelog
 
-## [v6.5.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.5.0) (2023-03-24)
+## [oauth2-1.0.0-beta.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/oauth2-1.0.0-beta.0) (2023-09-25)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/oauth2-1.0.0...oauth2-1.0.0-beta.0)
+
+## [oauth2-1.0.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/oauth2-1.0.0) (2023-09-25)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0-beta.0...oauth2-1.0.0)
+
+## [v6.6.0-beta.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0-beta.0) (2023-09-25)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0...v6.6.0-beta.0)
+
+## [v6.6.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0) (2023-09-25)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.5.0...v6.6.0)
+
+**Implemented enhancements:**
+
+- Allow update of RoutingKey during Nack [\#1333](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1333)
+- Support credential refresh for OAuth 2/JWT authentication scenarios [\#956](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/956)
+
+**Fixed bugs:**
+
+- Configured `MaxMessageSize` is not honoured  [\#1378](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1378)
+- ConnectionFactory Authmechanisms has incorrect sharing between instances [\#1370](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1370)
+- Unknown reply code 312 [\#1331](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1331)
+
+**Closed issues:**
+
+- Invalid parameter name in IManagementClient.DeleteExchangeBindingAsync [\#1375](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1375)
+- Closing connection in EventingBasicConsumer.Received event handler freezes execution of event handler and connection is never closed [\#1292](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1292)
+
+## [v6.5.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.5.0) (2023-03-25)
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0-rc.1...v6.5.0)
 
 **Implemented enhancements:**
 
+- Investigate the use of TaskCreationOptions.LongRunning [\#1318](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1318)
 - Exception during recovery causes recovery failure [\#658](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/658)
 
 **Closed issues:**
@@ -13,7 +46,6 @@
 - Consumer tags aren't cleaned on channel close causing memory leak. [\#1302](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1302)
 - Impossible to use a ulong as a header value [\#1298](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1298)
 - Recovery does not appear to save consumer arguments [\#1293](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1293)
-- Long delay from publish to consumer event [\#1252](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1252)
 - Timeout when opening a new channel after channel exception [\#1246](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1246)
 - Autorecovery for server-named queues loops indefinitely when consumer listen this queue [\#1238](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1238)
 - IModel.WaitForConfirmsOrDie\* methods don't document that they close [\#1234](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1234)

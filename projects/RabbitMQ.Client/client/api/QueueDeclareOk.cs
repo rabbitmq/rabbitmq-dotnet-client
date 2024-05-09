@@ -52,17 +52,17 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Consumer count.
         /// </summary>
-        public uint ConsumerCount { get; }
+        public readonly uint ConsumerCount;
 
         /// <summary>
         /// Message count.
         /// </summary>
-        public uint MessageCount { get; }
+        public readonly uint MessageCount;
 
         /// <summary>
         /// Queue name.
         /// </summary>
-        public string QueueName { get; }
+        public readonly string QueueName;
 
         public static implicit operator string(QueueDeclareOk declareOk)
         {

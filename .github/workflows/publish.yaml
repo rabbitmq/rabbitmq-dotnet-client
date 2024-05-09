@@ -1,0 +1,15 @@
+name: publish rabbitmq-dotnet-client
+
+on:
+  release:
+    types:
+      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release
+      - published
+
+jobs:
+  call-build-test:
+    uses: ./.github/workflows/build-test.yaml
+  call-publish-nuget:
+    uses: ./.github/workflows/publish-nuget.yaml
+    needs: call-build-test
+    secrets: inherit
