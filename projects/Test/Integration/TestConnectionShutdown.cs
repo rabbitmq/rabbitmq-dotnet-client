@@ -113,7 +113,6 @@ namespace Test.Integration
                 _conn = null;
                 _channel = null;
             }
-
         }
 
         [Fact]
