@@ -55,8 +55,8 @@ namespace RabbitMQ.Benchmarks
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, body,
-                        CancellationToken.None);
+                    await _dispatcher.HandleBasicDeliverAsync(_consumerTagBytes, _deliveryTag,
+                        false, _exchange, _routingKey, _properties, body, CancellationToken.None);
                 }
                 _autoResetEvent.Wait();
                 _autoResetEvent.Reset();
@@ -78,8 +78,8 @@ namespace RabbitMQ.Benchmarks
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, body,
-                        CancellationToken.None);
+                    await _dispatcher.HandleBasicDeliverAsync(_consumerTagBytes, _deliveryTag,
+                        false, _exchange, _routingKey, _properties, body, CancellationToken.None);
                 }
                 _autoResetEvent.Wait();
                 _autoResetEvent.Reset();

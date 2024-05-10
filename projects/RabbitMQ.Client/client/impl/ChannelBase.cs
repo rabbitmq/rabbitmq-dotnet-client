@@ -670,7 +670,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                var method = new Client.Framing.Impl.BasicDeliver(cmd.MethodSpan);
+                var method = new Client.Framing.Impl.BasicDeliver(cmd.MethodMemory);
                 var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
                 await ConsumerDispatcher.HandleBasicDeliverAsync(
                         method._consumerTag,

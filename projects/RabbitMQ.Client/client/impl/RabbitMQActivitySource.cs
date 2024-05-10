@@ -117,18 +117,25 @@ namespace RabbitMQ.Client
                 return null;
             }
 
+            // TODO
+            string routingKey = Encoding.UTF8.GetString(deliverEventArgs.RoutingKey.ToArray());
+            string exchange = Encoding.UTF8.GetString(deliverEventArgs.Exchange.ToArray());
+
             // Extract the PropagationContext of the upstream parent from the message headers.
             DistributedContextPropagator.Current.ExtractTraceIdAndState(deliverEventArgs.BasicProperties.Headers,
                 ExtractTraceIdAndState, out string traceparent, out string traceState);
+
             ActivityContext.TryParse(traceparent, traceState, out ActivityContext parentContext);
+
             Activity activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{deliverEventArgs.RoutingKey} deliver" : "deliver",
+                UseRoutingKeyAsOperationName ? $"{routingKey} deliver" : "deliver",
                 ActivityKind.Consumer, parentContext);
+
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags("deliver",
-                    deliverEventArgs.RoutingKey,
-                    deliverEventArgs.Exchange,
+                    routingKey,
+                    exchange,
                     deliverEventArgs.DeliveryTag,
                     deliverEventArgs.BasicProperties,
                     deliverEventArgs.Body.Length,

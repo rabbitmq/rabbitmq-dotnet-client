@@ -55,6 +55,14 @@ namespace RabbitMQ.Client.Impl
             Body = body;
         }
 
+        public ReadOnlyMemory<byte> MethodMemory
+        {
+            get
+            {
+                return Method.Memory;
+            }
+        }
+
         public ReadOnlySpan<byte> MethodSpan
         {
             get
