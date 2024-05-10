@@ -29,43 +29,56 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
+using System.Threading.Tasks;
+using RabbitMQ.Client;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace RabbitMQ.Client.Logging
+namespace Test.Integration.ConnectionRecovery
 {
-    internal static class ESLog
+    public class TestBasicConnectionRecovery : TestConnectionRecoveryBase
     {
-        public static void Info(string message)
+        public TestBasicConnectionRecovery(ITestOutputHelper output) : base(output)
         {
-            RabbitMqClientEventSource.Log.Info(message);
         }
 
-        public static void Info(string message, params object[] args)
+        [Fact]
+        public async Task TestBasicConnectionRecoveryTest()
         {
-            string msg = string.Format(message, args);
-            Info(msg);
+            Assert.True(_conn.IsOpen);
+            await CloseAndWaitForRecoveryAsync();
+            Assert.True(_conn.IsOpen);
         }
 
-        public static void Warn(string message)
+        [Fact]
+        public async Task TestBasicChannelRecovery()
         {
-            RabbitMqClientEventSource.Log.Warn(message);
+            Assert.True(_channel.IsOpen);
+            await CloseAndWaitForRecoveryAsync();
+            Assert.True(_channel.IsOpen);
         }
 
-        public static void Warn(string message, params object[] args)
+        [Fact]
+        public Task TestClientNamedQueueRecovery()
         {
-            string msg = string.Format(message, args);
-            Warn(msg);
+            string s = "dotnet-client.test.recovery.q1";
+            return WithTemporaryNonExclusiveQueueAsync(_channel, async (m, q) =>
+            {
+                await CloseAndWaitForRecoveryAsync();
+                await AssertQueueRecoveryAsync(m, q, false);
+                await _channel.QueueDeleteAsync(q);
+            }, s);
         }
 
-        public static void Error(string message, Exception ex)
+        [Fact]
+        public Task TestClientNamedQueueRecoveryNoWait()
         {
-            RabbitMqClientEventSource.Log.Error(message, ex);
-        }
-
-        public static void Error(string message, Exception ex, params object[] args)
-        {
-            string msg = string.Format(message, args);
-            Error(msg, ex);
+            string s = "dotnet-client.test.recovery.q1-nowait";
+            return WithTemporaryExclusiveQueueNoWaitAsync(_channel, async (ch, q) =>
+            {
+                await CloseAndWaitForRecoveryAsync();
+                await AssertExclusiveQueueRecoveryAsync(ch, q);
+            }, s);
         }
     }
 }

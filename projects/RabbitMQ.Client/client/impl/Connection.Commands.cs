@@ -43,9 +43,10 @@ namespace RabbitMQ.Client.Framing.Impl
 #nullable enable
     internal sealed partial class Connection
     {
-        public Task UpdateSecretAsync(string newSecret, string reason)
+        public Task UpdateSecretAsync(string newSecret, string reason,
+            CancellationToken cancellationToken)
         {
-            return _channel0.UpdateSecretAsync(newSecret, reason);
+            return _channel0.UpdateSecretAsync(newSecret, reason, cancellationToken);
         }
 
         internal void NotifyReceivedCloseOk()
@@ -117,7 +118,8 @@ namespace RabbitMQ.Client.Framing.Impl
                  * FinishCloseAsync will cancel the main loop
                  */
                 MaybeTerminateMainloopAndStopHeartbeatTimers();
-                await FinishCloseAsync(cancellationToken);
+                await FinishCloseAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 throw new ProtocolVersionMismatchException(Protocol.MajorVersion, Protocol.MinorVersion, serverVersion.Major, serverVersion.Minor);
             }
 
@@ -136,18 +138,13 @@ namespace RabbitMQ.Client.Framing.Impl
                     ConnectionSecureOrTune res;
                     if (challenge is null)
                     {
-                        // TODO cancellationToken
-                        // Note: when token is passed, OperationCanceledException could be raised
                         res = await _channel0.ConnectionStartOkAsync(ClientProperties,
-                            mechanismFactory.Name,
-                            response,
-                            "en_US").ConfigureAwait(false);
+                            mechanismFactory.Name, response, "en_US", cancellationToken)
+                            .ConfigureAwait(false);
                     }
                     else
                     {
-                        // TODO cancellationToken
-                        // Note: when token is passed, OperationCanceledException could be raised
-                        res = await _channel0.ConnectionSecureOkAsync(response)
+                        res = await _channel0.ConnectionSecureOkAsync(response, cancellationToken)
                             .ConfigureAwait(false);
                     }
 
@@ -183,13 +180,14 @@ namespace RabbitMQ.Client.Framing.Impl
             uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
 
-            await _channel0.ConnectionTuneOkAsync(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds, cancellationToken);
+            await _channel0.ConnectionTuneOkAsync(channelMax, frameMax, (ushort)Heartbeat.TotalSeconds, cancellationToken)
+                .ConfigureAwait(false);
 
-            // TODO check for cancellation
+            cancellationToken.ThrowIfCancellationRequested();
             MaybeStartCredentialRefresher();
 
             // now we can start heartbeat timers
-            // TODO check for cancellation
+            cancellationToken.ThrowIfCancellationRequested();
             MaybeStartHeartbeatTimers();
         }
 
@@ -197,19 +195,17 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (_config.CredentialsProvider.ValidUntil != null)
             {
-                _config.CredentialsRefresher.Register(_config.CredentialsProvider, NotifyCredentialRefreshed);
+                _config.CredentialsRefresher.Register(_config.CredentialsProvider, NotifyCredentialRefreshedAsync);
             }
         }
 
-        private Task NotifyCredentialRefreshed(bool succesfully)
+        private async Task NotifyCredentialRefreshedAsync(bool succesfully)
         {
             if (succesfully)
             {
-                return UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh");
-            }
-            else
-            {
-                return Task.CompletedTask;
+                using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionCloseTimeout);
+                await UpdateSecretAsync(_config.CredentialsProvider.Password, "Token refresh", cts.Token)
+                    .ConfigureAwait(false);
             }
         }
 

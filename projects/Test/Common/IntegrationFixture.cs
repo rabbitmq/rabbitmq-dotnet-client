@@ -31,11 +31,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,10 +49,15 @@ namespace Test
 {
     public abstract class IntegrationFixture : IAsyncLifetime
     {
-        private static bool s_isRunningInCI = false;
-        private static bool s_isWindows = false;
-        private static bool s_isVerbose = false;
+        private static readonly bool s_isRunningInCI = false;
+        private static readonly bool s_isVerbose = false;
         private static int _connectionIdx = 0;
+
+        private Exception _connectionCallbackException;
+        private Exception _connectionRecoveryException;
+        private Exception _channelCallbackException;
+
+        private readonly TestOutputWriterEventListener _eventListener = null;
 
         protected readonly RabbitMQCtl _rabbitMQCtl;
 
@@ -79,10 +84,14 @@ namespace Test
 
         static IntegrationFixture()
         {
+
+#if NET6_0_OR_GREATER
+            S_Random = Random.Shared;
+#else
             S_Random = new Random();
-            InitIsRunningInCI();
-            InitIsWindows();
-            InitIsVerbose();
+#endif
+            s_isRunningInCI = InitIsRunningInCI();
+            s_isVerbose = InitIsVerbose();
 
             if (s_isRunningInCI)
             {
@@ -117,7 +126,11 @@ namespace Test
                 .Replace("Integration.", "I.")
                 .Replace("SequentialI.", "SI.");
 
-            // Console.SetOut(new TestOutputWriter(output, _testDisplayName));
+            if (IsVerbose)
+            {
+                Console.SetOut(new TestOutputWriter(output, _testDisplayName));
+                _eventListener = new TestOutputWriterEventListener(output);
+            }
         }
 
         public virtual async Task InitializeAsync()
@@ -144,7 +157,12 @@ namespace Test
                     _channel = await _conn.CreateChannelAsync();
                 }
 
-                AddCallbackHandlers();
+                if (IsVerbose)
+                {
+                    AddCallbackShutdownHandlers();
+                }
+
+                AddCallbackExceptionHandlers();
             }
 
             if (_connFactory.AutomaticRecoveryEnabled)
@@ -161,64 +179,142 @@ namespace Test
         {
             try
             {
-                if (_channel != null)
+                if (_conn != null && _conn.IsOpen)
                 {
-                    await _channel.CloseAsync();
-                }
+                    if (_channel != null && _channel.IsOpen)
+                    {
+                        await _channel.CloseAsync();
+                    }
 
-                if (_conn != null)
-                {
                     await _conn.CloseAsync();
                 }
             }
             finally
             {
+                _eventListener?.Dispose();
                 _channel?.Dispose();
                 _conn?.Dispose();
                 _channel = null;
                 _conn = null;
             }
+
+            DisposeAssertions();
         }
 
-        protected virtual void AddCallbackHandlers()
+        protected virtual void DisposeAssertions()
         {
-            if (IsVerbose)
+            if (_connectionRecoveryException != null)
             {
-                if (_conn != null)
-                {
-                    _conn.CallbackException += (o, ea) =>
-                    {
-                        _output.WriteLine("{0} connection callback exception: {1}",
-                            _testDisplayName, ea.Exception);
-                    };
+                Assert.Fail($"unexpected connection recovery exception: {_connectionRecoveryException}");
+            }
 
-                    _conn.ConnectionShutdown += (o, ea) =>
+            if (_connectionCallbackException != null)
+            {
+                Assert.Fail($"unexpected connection callback exception: {_connectionCallbackException}");
+            }
+
+            if (_channelCallbackException != null)
+            {
+                Assert.Fail($"unexpected channel callback exception: {_channelCallbackException}");
+            }
+        }
+
+        protected void AddCallbackExceptionHandlers()
+        {
+            if (_conn != null)
+            {
+                _conn.ConnectionRecoveryError += (s, ea) =>
+                {
+                    _connectionRecoveryException = ea.Exception;
+
+                    if (IsVerbose)
                     {
-                        HandleConnectionShutdown(_conn, ea, (args) =>
+                        try
+                        {
+                            _output.WriteLine($"{0} connection recovery exception: {1}",
+                                _testDisplayName, _connectionRecoveryException);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    }
+                };
+
+                _conn.CallbackException += (o, ea) =>
+                {
+                    _connectionCallbackException = ea.Exception;
+
+                    if (IsVerbose)
+                    {
+                        try
+                        {
+                            _output.WriteLine("{0} connection callback exception: {1}",
+                                _testDisplayName, _connectionCallbackException);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    }
+                };
+            }
+
+            if (_channel != null)
+            {
+                _channel.CallbackException += (o, ea) =>
+                {
+                    _channelCallbackException = ea.Exception;
+
+                    if (IsVerbose)
+                    {
+                        try
+                        {
+                            _output.WriteLine("{0} channel callback exception: {1}",
+                                _testDisplayName, _channelCallbackException);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    }
+                };
+            }
+        }
+
+        protected void AddCallbackShutdownHandlers()
+        {
+            if (_conn != null)
+            {
+                _conn.ConnectionShutdown += (o, ea) =>
+                {
+                    HandleConnectionShutdown(_conn, ea, (args) =>
+                    {
+                        try
                         {
                             _output.WriteLine("{0} connection shutdown, args: {1}",
                                 _testDisplayName, args);
-                        });
-                    };
-                }
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    });
+                };
+            }
 
-                if (_channel != null)
+            if (_channel != null)
+            {
+                _channel.ChannelShutdown += (o, ea) =>
                 {
-                    _channel.CallbackException += (o, ea) =>
+                    HandleChannelShutdown(_channel, ea, (args) =>
                     {
-                        _output.WriteLine("{0} channel callback exception: {1}",
-                            _testDisplayName, ea.Exception);
-                    };
-
-                    _channel.ChannelShutdown += (o, ea) =>
-                    {
-                        HandleChannelShutdown(_channel, ea, (args) =>
+                        try
                         {
                             _output.WriteLine("{0} channel shutdown, args: {1}",
                                 _testDisplayName, args);
-                        });
-                    };
-                }
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    });
+                };
             }
         }
 
@@ -229,7 +325,7 @@ namespace Test
 
         protected static bool IsWindows
         {
-            get { return s_isWindows; }
+            get { return Util.IsWindows; }
         }
 
         protected static bool IsVerbose
@@ -405,6 +501,11 @@ namespace Test
             return DoAssertRanToCompletion(tasks);
         }
 
+        internal static void AssertRecordedQueues(AutorecoveringConnection c, int n)
+        {
+            Assert.Equal(n, c.RecordedQueuesCount);
+        }
+
         protected static Task WaitAsync(TaskCompletionSource<bool> tcs, string desc)
         {
             return WaitAsync(tcs, WaitSpan, desc);
@@ -427,10 +528,9 @@ namespace Test
 
         protected ConnectionFactory CreateConnectionFactory()
         {
-            string now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
             return new ConnectionFactory
             {
-                ClientProvidedName = $"{_testDisplayName}:{now}:{GetConnectionIdx()}",
+                ClientProvidedName = $"{_testDisplayName}:{Util.Now}:{GetConnectionIdx()}",
                 ContinuationTimeout = WaitSpan,
                 HandshakeContinuationTimeout = WaitSpan,
             };
@@ -472,54 +572,36 @@ namespace Test
             a(args);
         }
 
-        private static void InitIsRunningInCI()
+        private static bool InitIsRunningInCI()
         {
             bool ci;
             if (bool.TryParse(Environment.GetEnvironmentVariable("CI"), out ci))
             {
                 if (ci == true)
                 {
-                    s_isRunningInCI = true;
+                    return true;
                 }
             }
             else if (bool.TryParse(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"), out ci))
             {
                 if (ci == true)
                 {
-                    s_isRunningInCI = true;
+                    return true;
                 }
             }
-            else
-            {
-                s_isRunningInCI = false;
-            }
+
+            return false;
         }
 
-        private static void InitIsWindows()
-        {
-            PlatformID platform = Environment.OSVersion.Platform;
-            if (platform == PlatformID.Win32NT)
-            {
-                s_isWindows = true;
-                return;
-            }
-
-            string os = Environment.GetEnvironmentVariable("OS");
-            if (os != null)
-            {
-                os = os.Trim();
-                s_isWindows = os == "Windows_NT";
-                return;
-            }
-        }
-
-        private static void InitIsVerbose()
+        private static bool InitIsVerbose()
         {
             if (bool.TryParse(
                 Environment.GetEnvironmentVariable("RABBITMQ_CLIENT_TESTS_VERBOSE"), out _))
             {
-                s_isVerbose = true;
+                return true;
             }
+
+            return false;
         }
 
         private static int GetConnectionIdx()
@@ -542,12 +624,8 @@ namespace Test
 
         protected static byte[] GetRandomBody(ushort size = 1024)
         {
-            var body = new byte[size];
-#if NET6_0_OR_GREATER
-            Random.Shared.NextBytes(body);
-#else
+            byte[] body = new byte[size];
             S_Random.NextBytes(body);
-#endif
             return body;
         }
 
@@ -562,11 +640,19 @@ namespace Test
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+            aconn.RecoverySucceeded += (source, ea) => tcs.TrySetResult(true);
 
             return tcs;
         }
 
-        public static string Now => DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
+        protected void LogWarning(string text,
+                        [CallerFilePath] string file = "",
+                        [CallerMemberName] string member = "",
+                        [CallerLineNumber] int line = 0)
+        {
+            // https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-a-warning-message
+            _output.WriteLine("::warning file={0},line={1}::{2} {3}",
+                Path.GetFileName(file), line, member, text);
+        }
     }
 }

@@ -49,6 +49,16 @@ namespace Test.SequentialIntegration
             _queueName = $"{nameof(TestConnectionRecovery)}-{Guid.NewGuid()}";
         }
 
+        protected override void DisposeAssertions()
+        {
+            /*
+             * Note: don't do anything since these tests can cause callback
+             * exceptions during recovery, due to recovery taking longer than
+             * the recovery interval. There may be connection exceptions that happen
+             * that are OK.
+             */
+        }
+
         public override async Task DisposeAsync()
         {
             ConnectionFactory cf = CreateConnectionFactory();
@@ -82,7 +92,7 @@ namespace Test.SequentialIntegration
 
             void _channel_ChannelShutdown(object sender, ShutdownEventArgs e)
             {
-                sawChannelShutdownTcs.SetResult(true);
+                sawChannelShutdownTcs.TrySetResult(true);
             }
 
             _channel.ChannelShutdown += _channel_ChannelShutdown;

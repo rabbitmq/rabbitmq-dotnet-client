@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
@@ -47,7 +48,8 @@ namespace Test.Integration
         {
             ValueTask PublishAsync()
             {
-                return _channel.BasicPublishAsync("", "amq.fanout", _encoding.GetBytes("message"));
+                return _channel.BasicPublishAsync(exchange: "",
+                    routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
             }
 
             await _channel.ConfirmSelectAsync();

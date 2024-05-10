@@ -278,9 +278,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ValueTask<InboundFrame> ReadFrameAsync(CancellationToken cancellationToken)
+        public ValueTask<InboundFrame> ReadFrameAsync(CancellationToken mainLoopCancellationToken)
         {
-            return InboundFrame.ReadFromPipeAsync(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, cancellationToken);
+            return InboundFrame.ReadFromPipeAsync(_pipeReader, _amqpTcpEndpoint.MaxMessageSize, mainLoopCancellationToken);
         }
 
         public bool TryReadFrame(out InboundFrame frame)

@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.impl;
 
@@ -149,12 +150,13 @@ namespace RabbitMQ.Client
         /// method does nothing but wait for the in-progress close
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
-        /// In comparison to normal <see cref="CloseAsync(IChannel)"/> method, <see cref="AbortAsync(IChannel)"/> will not throw
+        /// In comparison to normal <see cref="CloseAsync(IChannel, CancellationToken)"/> method, <see cref="AbortAsync(IChannel, CancellationToken)"/> will not throw
         /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing channel.
         /// </remarks>
-        public static Task AbortAsync(this IChannel channel)
+        public static Task AbortAsync(this IChannel channel, CancellationToken cancellationToken = default)
         {
-            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", true);
+            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", true,
+                cancellationToken);
         }
 
         /// <summary>Asynchronously close this session.</summary>
@@ -164,9 +166,10 @@ namespace RabbitMQ.Client
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
         /// </remarks>
-        public static Task CloseAsync(this IChannel channel)
+        public static Task CloseAsync(this IChannel channel, CancellationToken cancellationToken = default)
         {
-            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", false);
+            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", false,
+                cancellationToken);
         }
 
         /// <summary>
@@ -175,6 +178,7 @@ namespace RabbitMQ.Client
         /// <param name="channel">The channel.</param>
         /// <param name="replyCode">The reply code.</param>
         /// <param name="replyText">The reply text.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <remarks>
         /// The method behaves in the same way as Close(), with the only
         /// difference that the channel is closed with the given channel
@@ -185,9 +189,10 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the channel
         /// </para>
         /// </remarks>
-        public static Task CloseAsync(this IChannel channel, ushort replyCode, string replyText)
+        public static Task CloseAsync(this IChannel channel, ushort replyCode, string replyText,
+            CancellationToken cancellationToken = default)
         {
-            return channel.CloseAsync(replyCode, replyText, false);
+            return channel.CloseAsync(replyCode, replyText, false, cancellationToken);
         }
     }
 }

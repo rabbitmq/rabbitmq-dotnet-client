@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
-        private object _confirmLock;
+        private SemaphoreSlim _confirmSemaphore;
         private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
 
         private bool _onlyAcksReceived = true;
@@ -210,16 +210,18 @@ namespace RabbitMQ.Client.Impl
             _recoveryWrapper.Takeover(other._recoveryWrapper);
         }
 
-        public Task CloseAsync(ushort replyCode, string replyText, bool abort)
+        public Task CloseAsync(ushort replyCode, string replyText, bool abort,
+            CancellationToken cancellationToken)
         {
             var args = new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText);
-            return CloseAsync(args, abort);
+            return CloseAsync(args, abort, cancellationToken);
         }
 
-        public async Task CloseAsync(ShutdownEventArgs args, bool abort)
+        public async Task CloseAsync(ShutdownEventArgs args, bool abort,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -240,7 +242,6 @@ namespace RabbitMQ.Client.Impl
                 bool result = await k;
                 Debug.Assert(result);
 
-                // TODO cancellation token?
                 await ConsumerDispatcher.WaitForShutdownAsync()
                     .ConfigureAwait(false);
             }
@@ -285,10 +286,11 @@ namespace RabbitMQ.Client.Impl
             await ModelSendAsync(m, lts.Token).ConfigureAwait(false);
         }
 
-        internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response)
+        internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -322,11 +324,12 @@ namespace RabbitMQ.Client.Impl
         }
 
         internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(
-            IDictionary<string, object> clientProperties, string mechanism, byte[] response,
-            string locale)
+            IDictionary<string, object> clientProperties,
+            string mechanism, byte[] response, string locale,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -378,19 +381,16 @@ namespace RabbitMQ.Client.Impl
         internal async Task<IChannel> OpenAsync(CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
-            using CancellationTokenSource lts =
-                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, k.CancellationToken);
-
-            await _rpcSemaphore.WaitAsync(lts.Token)
+            await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
             try
             {
                 enqueued = Enqueue(k);
 
                 var method = new ChannelOpen();
-                await ModelSendAsync(method, lts.Token)
+                await ModelSendAsync(method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -418,7 +418,7 @@ namespace RabbitMQ.Client.Impl
             m_connectionStartCell?.TrySetResult(null);
         }
 
-        private bool ConfirmsAreEnabled => _confirmLock != null;
+        private bool ConfirmsAreEnabled => _confirmSemaphore != null;
 
         private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
@@ -482,7 +482,8 @@ namespace RabbitMQ.Client.Impl
 
             if (ConfirmsAreEnabled)
             {
-                lock (_confirmLock)
+                _confirmSemaphore.Wait();
+                try
                 {
                     if (_confirmsTaskCompletionSources?.Count > 0)
                     {
@@ -495,11 +496,23 @@ namespace RabbitMQ.Client.Impl
                         _confirmsTaskCompletionSources.Clear();
                     }
                 }
+                finally
+                {
+                    _confirmSemaphore.Release();
+                }
             }
 
             _flowControlBlock.Set();
         }
 
+        /*
+         * Note:
+         * Attempting to make this method async, with the resulting fallout,
+         * resulted in many flaky test results, especially around disposing
+         * Channels/Connections
+         *
+         * Aborted PR: https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1551
+         */
         private void OnSessionShutdown(object sender, ShutdownEventArgs reason)
         {
             ConsumerDispatcher.Quiesce();
@@ -538,6 +551,7 @@ namespace RabbitMQ.Client.Impl
 
                 ConsumerDispatcher.Dispose();
                 _rpcSemaphore.Dispose();
+                _confirmSemaphore?.Dispose();
             }
         }
 
@@ -592,7 +606,8 @@ namespace RabbitMQ.Client.Impl
             if (ConfirmsAreEnabled)
             {
                 // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
-                lock (_confirmLock)
+                _confirmSemaphore.Wait();
+                try
                 {
                     // No need to do anything if there are no delivery tags in the list
                     if (_pendingDeliveryTags.Count > 0)
@@ -628,6 +643,10 @@ namespace RabbitMQ.Client.Impl
                         _confirmsTaskCompletionSources.Clear();
                         _onlyAcksReceived = true;
                     }
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
                 }
             }
         }
@@ -846,7 +865,8 @@ namespace RabbitMQ.Client.Impl
                     var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
                     await Session.Connection.CloseAsync(reason, false,
                         InternalConstants.DefaultConnectionCloseTimeout,
-                        cancellationToken);
+                        cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -895,19 +915,24 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple);
+        public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
+            CancellationToken cancellationToken);
 
-        public abstract ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue);
+        public abstract ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
+            CancellationToken cancellationToken);
 
-        public abstract Task BasicRejectAsync(ulong deliveryTag, bool requeue);
+        public abstract Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+            CancellationToken cancellationToken);
 
-        public async Task BasicCancelAsync(string consumerTag, bool noWait)
+        public async Task BasicCancelAsync(string consumerTag, bool noWait,
+            CancellationToken cancellationToken)
         {
-            // NOTE:
-            // Maybe don't dispose this instance because the CancellationToken must remain
-            // valid for processing the response.
             bool enqueued = false;
-            var k = new BasicCancelAsyncRpcContinuation(consumerTag, ConsumerDispatcher, ContinuationTimeout);
+            // NOTE:
+            // Maybe don't dispose these instances because the CancellationTokens must remain
+            // valid for processing the response.
+            var k = new BasicCancelAsyncRpcContinuation(consumerTag, ConsumerDispatcher,
+                ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -945,15 +970,14 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
-            IDictionary<string, object> arguments, IBasicConsumer consumer)
+            IDictionary<string, object> arguments, IBasicConsumer consumer,
+            CancellationToken cancellationToken)
         {
-            // TODO: Replace with flag
             if (ConsumerDispatcher is AsyncConsumerDispatcher)
             {
                 if (!(consumer is IAsyncBasicConsumer))
                 {
-                    // TODO: Friendly message
-                    throw new InvalidOperationException("In the async mode you have to use an async consumer");
+                    throw new InvalidOperationException("When using an AsyncConsumerDispatcher, the consumer must implement IAsyncBasicConsumer");
                 }
             }
 
@@ -961,7 +985,7 @@ namespace RabbitMQ.Client.Impl
             // Maybe don't dispose this instance because the CancellationToken must remain
             // valid for processing the response.
             bool enqueued = false;
-            var k = new BasicConsumeAsyncRpcContinuation(consumer, ConsumerDispatcher, ContinuationTimeout);
+            var k = new BasicConsumeAsyncRpcContinuation(consumer, ConsumerDispatcher, ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -985,10 +1009,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck)
+        public async ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new BasicGetAsyncRpcContinuation(AdjustDeliveryTag, ContinuationTimeout);
+
+            var k = new BasicGetAsyncRpcContinuation(AdjustDeliveryTag, ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1022,20 +1048,31 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory,
+            CancellationToken cancellationToken)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (ConfirmsAreEnabled)
             {
-                lock (_confirmLock)
+                await _confirmSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
                 {
                     _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
                 }
             }
 
             try
             {
-                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+                var cmd = new BasicPublishMemory(
+                    Encoding.UTF8.GetBytes(exchange),
+                    Encoding.UTF8.GetBytes(routingKey),
+                    mandatory, default);
                 using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
                     ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length)
                     : default;
@@ -1043,65 +1080,29 @@ namespace RabbitMQ.Client.Impl
                 if (sendActivity != null)
                 {
                     BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             catch
             {
                 if (ConfirmsAreEnabled)
                 {
-                    lock (_confirmLock)
+                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    try
                     {
                         NextPublishSeqNo--;
                         _pendingDeliveryTags.RemoveLast();
                     }
-                }
-
-                throw;
-            }
-        }
-
-        public async void BasicPublish<TProperties>(CachedString exchange, CachedString routingKey,
-            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            if (ConfirmsAreEnabled)
-            {
-                lock (_confirmLock)
-                {
-                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
-                }
-            }
-
-            try
-            {
-                var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length)
-                    : default;
-
-                if (sendActivity != null)
-                {
-                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
-                }
-                else
-                {
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
-                }
-            }
-            catch
-            {
-                if (ConfirmsAreEnabled)
-                {
-                    lock (_confirmLock)
+                    finally
                     {
-                        NextPublishSeqNo--;
-                        _pendingDeliveryTags.RemoveLast();
+                        _confirmSemaphore.Release();
                     }
                 }
 
@@ -1110,14 +1111,21 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory)
+            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory,
+            CancellationToken cancellationToken)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (ConfirmsAreEnabled)
             {
-                lock (_confirmLock)
+                await _confirmSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                try
                 {
                     _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
                 }
             }
 
@@ -1131,21 +1139,29 @@ namespace RabbitMQ.Client.Impl
                 if (sendActivity != null)
                 {
                     BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    await ModelSendAsync(in cmd, in props, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    await ModelSendAsync(in cmd, in basicProperties, body, CancellationToken.None);
+                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             catch
             {
                 if (ConfirmsAreEnabled)
                 {
-                    lock (_confirmLock)
+                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    try
                     {
                         NextPublishSeqNo--;
                         _pendingDeliveryTags.RemoveLast();
+                    }
+                    finally
+                    {
+                        _confirmSemaphore.Release();
                     }
                 }
 
@@ -1153,7 +1169,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task UpdateSecretAsync(string newSecret, string reason)
+        public async Task UpdateSecretAsync(string newSecret, string reason,
+            CancellationToken cancellationToken)
         {
             if (newSecret is null)
             {
@@ -1166,9 +1183,10 @@ namespace RabbitMQ.Client.Impl
             }
 
             bool enqueued = false;
-            var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ConnectionUpdateSecretOk, ContinuationTimeout);
+            var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ConnectionUpdateSecretOk,
+                ContinuationTimeout, cancellationToken);
 
-            await _rpcSemaphore.WaitAsync()
+            await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
             try
             {
@@ -1193,10 +1211,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global)
+        public async Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new BasicQosAsyncRpcContinuation(ContinuationTimeout);
+            var k = new BasicQosAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1222,10 +1241,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task ConfirmSelectAsync()
+        public async Task ConfirmSelectAsync(CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1248,7 +1267,7 @@ namespace RabbitMQ.Client.Impl
 
                 // Note:
                 // Non-null means confirms are enabled
-                _confirmLock = new object();
+                _confirmSemaphore = new SemaphoreSlim(1, 1);
 
                 return;
             }
@@ -1263,10 +1282,11 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async Task ExchangeBindAsync(string destination, string source, string routingKey,
-            IDictionary<string, object> arguments, bool noWait)
+            IDictionary<string, object> arguments, bool noWait,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ExchangeBindAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ExchangeBindAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1302,17 +1322,19 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public Task ExchangeDeclarePassiveAsync(string exchange)
+        public Task ExchangeDeclarePassiveAsync(string exchange, CancellationToken cancellationToken)
         {
             return ExchangeDeclareAsync(exchange: exchange, type: string.Empty, passive: true,
-                durable: false, autoDelete: false, arguments: null, noWait: false);
+                durable: false, autoDelete: false, arguments: null, noWait: false,
+                cancellationToken: cancellationToken);
         }
 
         public async Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete,
-            IDictionary<string, object> arguments, bool passive, bool noWait)
+            IDictionary<string, object> arguments, bool passive, bool noWait,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ExchangeDeclareAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ExchangeDeclareAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1347,10 +1369,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task ExchangeDeleteAsync(string exchange, bool ifUnused, bool noWait)
+        public async Task ExchangeDeleteAsync(string exchange, bool ifUnused, bool noWait,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ExchangeDeleteAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ExchangeDeleteAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1387,10 +1410,11 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async Task ExchangeUnbindAsync(string destination, string source, string routingKey,
-            IDictionary<string, object> arguments, bool noWait)
+            IDictionary<string, object> arguments, bool noWait,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ExchangeUnbindAsyncRpcContinuation(ContinuationTimeout);
+            var k = new ExchangeUnbindAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1426,15 +1450,17 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue)
+        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue,
+            CancellationToken cancellationToken)
         {
             return QueueDeclareAsync(queue: queue, passive: true,
                 durable: false, exclusive: false, autoDelete: false,
-                noWait: false, arguments: null);
+                noWait: false, arguments: null, cancellationToken: cancellationToken);
         }
 
         public async Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete,
-            IDictionary<string, object> arguments, bool passive, bool noWait)
+            IDictionary<string, object> arguments, bool passive, bool noWait,
+            CancellationToken cancellationToken)
         {
             if (true == noWait)
             {
@@ -1450,7 +1476,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             bool enqueued = false;
-            var k = new QueueDeclareAsyncRpcContinuation(ContinuationTimeout);
+            var k = new QueueDeclareAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1498,10 +1524,11 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async Task QueueBindAsync(string queue, string exchange, string routingKey,
-            IDictionary<string, object> arguments, bool noWait)
+            IDictionary<string, object> arguments, bool noWait,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new QueueBindAsyncRpcContinuation(ContinuationTimeout);
+            var k = new QueueBindAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1537,22 +1564,27 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task<uint> MessageCountAsync(string queue)
+        public async Task<uint> MessageCountAsync(string queue,
+            CancellationToken cancellationToken)
         {
-            QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue);
+            QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue, cancellationToken)
+                .ConfigureAwait(false);
             return ok.MessageCount;
         }
 
-        public async Task<uint> ConsumerCountAsync(string queue)
+        public async Task<uint> ConsumerCountAsync(string queue,
+            CancellationToken cancellationToken)
         {
-            QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue);
+            QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue, cancellationToken)
+                .ConfigureAwait(false);
             return ok.ConsumerCount;
         }
 
-        public async Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty, bool noWait)
+        public async Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty, bool noWait,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new QueueDeleteAsyncRpcContinuation(ContinuationTimeout);
+            var k = new QueueDeleteAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1587,10 +1619,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task<uint> QueuePurgeAsync(string queue)
+        public async Task<uint> QueuePurgeAsync(string queue, CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new QueuePurgeAsyncRpcContinuation(ContinuationTimeout);
+
+            var k = new QueuePurgeAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1614,10 +1647,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task QueueUnbindAsync(string queue, string exchange, string routingKey, IDictionary<string, object> arguments)
+        public async Task QueueUnbindAsync(string queue, string exchange, string routingKey,
+            IDictionary<string, object> arguments,
+            CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new QueueUnbindAsyncRpcContinuation(ContinuationTimeout);
+            var k = new QueueUnbindAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1643,10 +1678,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task TxCommitAsync()
+        public async Task TxCommitAsync(CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new TxCommitAsyncRpcContinuation(ContinuationTimeout);
+            var k = new TxCommitAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1672,10 +1707,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task TxRollbackAsync()
+        public async Task TxRollbackAsync(CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new TxRollbackAsyncRpcContinuation(ContinuationTimeout);
+            var k = new TxRollbackAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1701,10 +1736,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task TxSelectAsync()
+        public async Task TxSelectAsync(CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new TxSelectAsyncRpcContinuation(ContinuationTimeout);
+            var k = new TxSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1732,7 +1767,7 @@ namespace RabbitMQ.Client.Impl
 
         private List<TaskCompletionSource<bool>> _confirmsTaskCompletionSources;
 
-        public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
+        public async Task<bool> WaitForConfirmsAsync(CancellationToken cancellationToken = default)
         {
             if (false == ConfirmsAreEnabled)
             {
@@ -1740,55 +1775,42 @@ namespace RabbitMQ.Client.Impl
             }
 
             TaskCompletionSource<bool> tcs;
-            lock (_confirmLock)
+            await _confirmSemaphore.WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+            try
             {
                 if (_pendingDeliveryTags.Count == 0)
                 {
                     if (_onlyAcksReceived == false)
                     {
                         _onlyAcksReceived = true;
-                        return Task.FromResult(false);
+                        return false;
                     }
 
-                    return Task.FromResult(true);
+                    return true;
                 }
 
                 tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _confirmsTaskCompletionSources.Add(tcs);
             }
-
-            if (!token.CanBeCanceled)
-            {
-                return tcs.Task;
-            }
-
-            return WaitForConfirmsWithTokenAsync(tcs, token);
-        }
-
-        private async Task<bool> WaitForConfirmsWithTokenAsync(TaskCompletionSource<bool> tcs, CancellationToken token)
-        {
-            CancellationTokenRegistration tokenRegistration =
-#if NET6_0_OR_GREATER
-                token.UnsafeRegister(
-                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(), tcs);
-#else
-                token.Register(
-                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
-                    state: tcs, useSynchronizationContext: false);
-#endif
-            try
-            {
-                return await tcs.Task.ConfigureAwait(false);
-            }
             finally
             {
-#if NET6_0_OR_GREATER
-                await tokenRegistration.DisposeAsync()
-                    .ConfigureAwait(false);
-#else
-                tokenRegistration.Dispose();
-#endif
+                _confirmSemaphore.Release();
             }
+
+            bool rv;
+
+            if (false == cancellationToken.CanBeCanceled)
+            {
+                rv = await tcs.Task.ConfigureAwait(false);
+            }
+            else
+            {
+                rv = await WaitForConfirmsWithTokenAsync(tcs, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return rv;
         }
 
         public async Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
@@ -1805,7 +1827,7 @@ namespace RabbitMQ.Client.Impl
 
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.ReplySuccess, "Nacks Received", new IOException("nack received"));
 
-                await CloseAsync(ea, false)
+                await CloseAsync(ea, false, token)
                     .ConfigureAwait(false);
             }
             catch (OperationCanceledException ex)
@@ -1813,10 +1835,37 @@ namespace RabbitMQ.Client.Impl
                 const string msg = "timed out waiting for acks";
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.ReplySuccess, msg, ex);
 
-                await CloseAsync(ea, false)
+                await CloseAsync(ea, false, token)
                     .ConfigureAwait(false);
 
                 throw;
+            }
+        }
+
+        private async Task<bool> WaitForConfirmsWithTokenAsync(TaskCompletionSource<bool> tcs,
+            CancellationToken cancellationToken)
+        {
+            CancellationTokenRegistration tokenRegistration =
+#if NET6_0_OR_GREATER
+                cancellationToken.UnsafeRegister(
+                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(), tcs);
+#else
+                cancellationToken.Register(
+                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
+                    state: tcs, useSynchronizationContext: false);
+#endif
+            try
+            {
+                return await tcs.Task.ConfigureAwait(false);
+            }
+            finally
+            {
+#if NET6_0_OR_GREATER
+                await tokenRegistration.DisposeAsync()
+                    .ConfigureAwait(false);
+#else
+                tokenRegistration.Dispose();
+#endif
             }
         }
 

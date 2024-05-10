@@ -32,6 +32,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using System.Threading;
 
 namespace RabbitMQ.Client.Logging
 {
@@ -40,9 +41,65 @@ namespace RabbitMQ.Client.Logging
     {
         public static readonly RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
 
+#if NET6_0_OR_GREATER
+        private readonly PollingCounter _connectionOpenedCounter;
+        private readonly PollingCounter _openConnectionCounter;
+        private readonly PollingCounter _channelOpenedCounter;
+        private readonly PollingCounter _openChannelCounter;
+        private readonly IncrementingPollingCounter _bytesSentCounter;
+        private readonly IncrementingPollingCounter _bytesReceivedCounter;
+        private readonly IncrementingPollingCounter _commandSentCounter;
+        private readonly IncrementingPollingCounter _commandReceivedCounter;
+#endif
+
         public RabbitMqClientEventSource()
             : base("rabbitmq-client")
         {
+#if NET6_0_OR_GREATER
+            _connectionOpenedCounter = new PollingCounter("total-connections-opened", this, () => s_connectionsOpened)
+            {
+                DisplayName = "Total connections opened"
+            };
+            _openConnectionCounter = new PollingCounter("current-open-connections", this, () => s_connectionsOpened - s_connectionsClosed)
+            {
+                DisplayName = "Current open connections count"
+            };
+
+            _channelOpenedCounter = new PollingCounter("total-channels-opened", this, () => s_channelsOpened)
+            {
+                DisplayName = "Total channels opened"
+            };
+            _openChannelCounter = new PollingCounter("current-open-channels", this, () => s_channelsOpened - s_channelsClosed)
+            {
+                DisplayName = "Current open channels count"
+            };
+
+            _bytesSentCounter = new IncrementingPollingCounter("bytes-sent-rate", this, () => Interlocked.Read(ref s_bytesSent))
+            {
+                DisplayName = "Byte sending rate",
+                DisplayUnits = "B",
+                DisplayRateTimeScale = new TimeSpan(0, 0, 1)
+            };
+            _bytesReceivedCounter = new IncrementingPollingCounter("bytes-received-rate", this, () => Interlocked.Read(ref s_bytesReceived))
+            {
+                DisplayName = "Byte receiving rate",
+                DisplayUnits = "B",
+                DisplayRateTimeScale = new TimeSpan(0, 0, 1)
+            };
+
+            _commandSentCounter = new IncrementingPollingCounter("AMQP-method-sent-rate", this, () => Interlocked.Read(ref s_commandsSent))
+            {
+                DisplayName = "AMQP method sending rate",
+                DisplayUnits = "B",
+                DisplayRateTimeScale = new TimeSpan(0, 0, 1)
+            };
+            _commandReceivedCounter = new IncrementingPollingCounter("AMQP-method-received-rate", this, () => Interlocked.Read(ref s_commandsReceived))
+            {
+                DisplayName = "AMQP method receiving rate",
+                DisplayUnits = "B",
+                DisplayRateTimeScale = new TimeSpan(0, 0, 1)
+            };
+#endif
         }
 
         public class Keywords
@@ -50,45 +107,53 @@ namespace RabbitMQ.Client.Logging
             public const EventKeywords Log = (EventKeywords)1;
         }
 
-        [Event(1, Message = "INFO", Keywords = Keywords.Log, Level = EventLevel.Informational)]
+        /*
+         * Note that it appears Message format strings do not work as documented:
+         * https://github.com/dotnet/runtime/issues/99274
+         */
+        [Event(1, Keywords = Keywords.Log, Level = EventLevel.Informational)]
         public void Info(string message)
         {
             if (IsEnabled())
+            {
                 WriteEvent(1, message);
+            }
         }
 
-        [Event(2, Message = "WARN", Keywords = Keywords.Log, Level = EventLevel.Warning)]
+        [Event(2, Keywords = Keywords.Log, Level = EventLevel.Warning)]
         public void Warn(string message)
         {
             if (IsEnabled())
+            {
                 WriteEvent(2, message);
+            }
         }
 
-        [Event(3, Message = "ERROR", Keywords = Keywords.Log, Level = EventLevel.Error)]
+#if NET6_0_OR_GREATER
+        [Event(3, Keywords = Keywords.Log, Level = EventLevel.Error)]
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
         public void Error(string message, RabbitMqExceptionDetail ex)
         {
             if (IsEnabled())
             {
-#if NET6_0_OR_GREATER
-                WriteExceptionEvent(message, ex);
-#else
                 WriteEvent(3, message, ex);
-#endif
             }
         }
+#else
+        [Event(3, Keywords = Keywords.Log, Level = EventLevel.Error)]
+        public void Error(string message, RabbitMqExceptionDetail ex)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(3, message, ex);
+            }
+        }
+#endif
 
         [NonEvent]
         public void Error(string message, Exception ex)
         {
             Error(message, new RabbitMqExceptionDetail(ex));
         }
-
-#if NET6_0_OR_GREATER
-        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
-        private void WriteExceptionEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(string message, T ex)
-        {
-            WriteEvent(3, message, ex);
-        }
-#endif
     }
 }

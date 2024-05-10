@@ -46,7 +46,8 @@ namespace Test
         protected const ushort TotalMessageCount = 16384;
         protected const ushort CloseAtCount = 16;
 
-        public TestConnectionRecoveryBase(ITestOutputHelper output) : base(output)
+        public TestConnectionRecoveryBase(ITestOutputHelper output, bool dispatchConsumersAsync = false)
+            : base(output, dispatchConsumersAsync: dispatchConsumersAsync)
         {
             _messageBody = GetRandomBody(4096);
         }
@@ -107,11 +108,6 @@ namespace Test
             Assert.Equal(n, c.RecordedExchangesCount);
         }
 
-        internal void AssertRecordedQueues(AutorecoveringConnection c, int n)
-        {
-            Assert.Equal(n, c.RecordedQueuesCount);
-        }
-
         internal Task<AutorecoveringConnection> CreateAutorecoveringConnectionAsync()
         {
             return CreateAutorecoveringConnectionAsync(RecoveryInterval);
@@ -170,7 +166,7 @@ namespace Test
 
         protected Task CloseConnectionAsync(IConnection conn)
         {
-            return _rabbitMQCtl.CloseConnectionAsync(conn);
+            return Util.CloseConnectionAsync(conn);
         }
 
         protected Task CloseAndWaitForRecoveryAsync()
@@ -206,6 +202,8 @@ namespace Test
             {
                 using (IChannel publishingChannel = await publishingConn.CreateChannelAsync())
                 {
+                    await publishingChannel.ConfirmSelectAsync();
+
                     for (ushort i = 0; i < TotalMessageCount; i++)
                     {
                         if (i == CloseAtCount)
@@ -214,6 +212,7 @@ namespace Test
                         }
 
                         await publishingChannel.BasicPublishAsync(string.Empty, queueName, _messageBody);
+                        await publishingChannel.WaitForConfirmsOrDieAsync();
                     }
 
                     await publishingChannel.CloseAsync();
@@ -226,7 +225,7 @@ namespace Test
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.ConnectionShutdown += (c, args) => tcs.SetResult(true);
+            aconn.ConnectionShutdown += (c, args) => tcs.TrySetResult(true);
 
             return tcs;
         }

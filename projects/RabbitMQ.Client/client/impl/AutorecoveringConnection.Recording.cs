@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         internal async ValueTask DeleteRecordedExchangeAsync(string exchangeName,
-            bool recordedEntitiesSemaphoreHeld)
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -92,16 +92,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
             if (recordedEntitiesSemaphoreHeld)
             {
-                await DoDeleteRecordedExchangeAsync(exchangeName)
+                await DoDeleteRecordedExchangeAsync(exchangeName, cancellationToken)
                         .ConfigureAwait(false);
             }
             else
             {
-                await _recordedEntitiesSemaphore.WaitAsync()
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
-                    await DoDeleteRecordedExchangeAsync(exchangeName)
+                    await DoDeleteRecordedExchangeAsync(exchangeName, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 finally
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            async Task DoDeleteRecordedExchangeAsync(string exchangeName)
+            async Task DoDeleteRecordedExchangeAsync(string exchangeName, CancellationToken cancellationToken)
             {
                 _recordedExchanges.Remove(exchangeName);
 
@@ -120,10 +120,10 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (binding.Destination == exchangeName)
                     {
                         await DeleteRecordedBindingAsync(binding,
-                            recordedEntitiesSemaphoreHeld: true)
+                            recordedEntitiesSemaphoreHeld: true, cancellationToken)
                                 .ConfigureAwait(false);
                         await DeleteAutoDeleteExchangeAsync(binding.Source,
-                            recordedEntitiesSemaphoreHeld: true)
+                            recordedEntitiesSemaphoreHeld: true, cancellationToken)
                                 .ConfigureAwait(false);
                     }
                 }
@@ -131,7 +131,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         internal async ValueTask DeleteAutoDeleteExchangeAsync(string exchangeName,
-            bool recordedEntitiesSemaphoreHeld)
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -144,7 +144,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                await _recordedEntitiesSemaphore.WaitAsync()
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
@@ -185,7 +185,7 @@ namespace RabbitMQ.Client.Framing.Impl
         internal int RecordedQueuesCount => _recordedQueues.Count;
 
         internal async ValueTask RecordQueueAsync(RecordedQueue queue,
-            bool recordedEntitiesSemaphoreHeld)
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -198,7 +198,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                await _recordedEntitiesSemaphore.WaitAsync()
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
@@ -217,7 +217,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         internal async ValueTask DeleteRecordedQueueAsync(string queueName,
-            bool recordedEntitiesSemaphoreHeld)
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -226,16 +226,16 @@ namespace RabbitMQ.Client.Framing.Impl
 
             if (recordedEntitiesSemaphoreHeld)
             {
-                await DoDeleteRecordedQueueAsync(queueName)
+                await DoDeleteRecordedQueueAsync(queueName, cancellationToken)
                         .ConfigureAwait(false);
             }
             else
             {
-                await _recordedEntitiesSemaphore.WaitAsync()
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
-                    await DoDeleteRecordedQueueAsync(queueName)
+                    await DoDeleteRecordedQueueAsync(queueName, cancellationToken)
                             .ConfigureAwait(false);
                 }
                 finally
@@ -244,7 +244,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            async ValueTask DoDeleteRecordedQueueAsync(string queueName)
+            async ValueTask DoDeleteRecordedQueueAsync(string queueName, CancellationToken cancellationToken)
             {
                 _recordedQueues.Remove(queueName);
 
@@ -254,10 +254,10 @@ namespace RabbitMQ.Client.Framing.Impl
                     if (binding.Destination == queueName)
                     {
                         await DeleteRecordedBindingAsync(binding,
-                            recordedEntitiesSemaphoreHeld: true)
+                            recordedEntitiesSemaphoreHeld: true, cancellationToken)
                                 .ConfigureAwait(false);
                         await DeleteAutoDeleteExchangeAsync(binding.Source,
-                            recordedEntitiesSemaphoreHeld: true)
+                            recordedEntitiesSemaphoreHeld: true, cancellationToken)
                                 .ConfigureAwait(false);
                     }
                 }
@@ -298,7 +298,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         internal async ValueTask DeleteRecordedBindingAsync(RecordedBinding rb,
-            bool recordedEntitiesSemaphoreHeld)
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -311,7 +311,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
             else
             {
-                await _recordedEntitiesSemaphore.WaitAsync()
+                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
                 try
                 {

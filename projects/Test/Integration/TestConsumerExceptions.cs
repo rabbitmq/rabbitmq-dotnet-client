@@ -39,6 +39,14 @@ namespace Test.Integration
 {
     public class TestConsumerExceptions : IntegrationFixture
     {
+        protected override void DisposeAssertions()
+        {
+            /*
+             * Note: don't do anything since these tests expect callback
+             * exceptions
+             */
+        }
+
         private class ConsumerFailingOnDelivery : DefaultBasicConsumer
         {
             public ConsumerFailingOnDelivery(IChannel channel) : base(channel)

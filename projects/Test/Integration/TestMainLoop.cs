@@ -44,6 +44,14 @@ namespace Test.Integration
         {
         }
 
+        protected override void DisposeAssertions()
+        {
+            /*
+             * Note: don't do anything since these tests expect callback
+             * exceptions
+             */
+        }
+
         private sealed class FaultyConsumer : DefaultBasicConsumer
         {
             public FaultyConsumer(IChannel channel) : base(channel) { }

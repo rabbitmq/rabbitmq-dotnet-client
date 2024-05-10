@@ -31,6 +31,13 @@ else
     readonly run_toxiproxy='false'
 fi
 
+if [[ $2 == 'pull' ]]
+then
+    readonly docker_pull_args='--pull always'
+else
+    readonly docker_pull_args=''
+fi
+
 set -o nounset
 
 declare -r rabbitmq_docker_name="$docker_name_prefix-rabbitmq"
@@ -43,13 +50,14 @@ function start_toxiproxy
         # sudo ss -4nlp
         echo "[INFO] starting Toxiproxy server docker container"
         docker rm --force "$toxiproxy_docker_name" 2>/dev/null || echo "[INFO] $toxiproxy_docker_name was not running"
-        docker run --pull always --detach \
+        # shellcheck disable=SC2086
+        docker run --detach $docker_pull_args \
             --name "$toxiproxy_docker_name" \
             --hostname "$toxiproxy_docker_name" \
             --publish 8474:8474 \
-            --publish 55672:55672 \
+            --publish 55670-55680:55670-55680 \
             --network "$docker_network_name" \
-            'ghcr.io/shopify/toxiproxy:2.7.0'
+            'ghcr.io/shopify/toxiproxy:latest'
     fi
 }
 
@@ -58,17 +66,19 @@ function start_rabbitmq
     echo "[INFO] starting RabbitMQ server docker container"
     chmod 0777 "$GITHUB_WORKSPACE/.ci/ubuntu/log"
     docker rm --force "$rabbitmq_docker_name" 2>/dev/null || echo "[INFO] $rabbitmq_docker_name was not running"
-    docker run --pull always --detach \
+    # shellcheck disable=SC2086
+    docker run --detach $docker_pull_args \
         --name "$rabbitmq_docker_name" \
         --hostname "$rabbitmq_docker_name" \
         --publish 5671:5671 \
         --publish 5672:5672 \
+        --publish 15672:15672 \
         --network "$docker_network_name" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/enabled_plugins:/etc/rabbitmq/enabled_plugins" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro" \
         --volume "$GITHUB_WORKSPACE/.ci/certs:/etc/rabbitmq/certs:ro" \
         --volume "$GITHUB_WORKSPACE/.ci/ubuntu/log:/var/log/rabbitmq" \
-        rabbitmq:latest
+        rabbitmq:management
 }
 
 function wait_rabbitmq
@@ -100,7 +110,8 @@ function wait_rabbitmq
 
 function get_rabbitmq_id
 {
-    local rabbitmq_docker_id="$(docker inspect --format='{{.Id}}' "$rabbitmq_docker_name")"
+    local rabbitmq_docker_id
+    rabbitmq_docker_id="$(docker inspect --format='{{.Id}}' "$rabbitmq_docker_name")"
     echo "[INFO] '$rabbitmq_docker_name' docker id is '$rabbitmq_docker_id'"
     if [[ -v GITHUB_OUTPUT ]]
     then

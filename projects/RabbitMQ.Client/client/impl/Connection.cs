@@ -35,6 +35,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -322,7 +323,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 cancellationToken.ThrowIfCancellationRequested();
 
                 OnShutdown(reason);
-                await _session0.SetSessionClosingAsync(false);
+                await _session0.SetSessionClosingAsync(false)
+                    .ConfigureAwait(false);
 
                 try
                 {
@@ -332,6 +334,13 @@ namespace RabbitMQ.Client.Framing.Impl
                         var method = new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                         await _session0.TransmitAsync(method, cancellationToken)
                             .ConfigureAwait(false);
+                    }
+                }
+                catch (ChannelClosedException)
+                {
+                    if (false == abort)
+                    {
+                        throw;
                     }
                 }
                 catch (AlreadyClosedException)

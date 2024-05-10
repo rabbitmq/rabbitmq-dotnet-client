@@ -156,25 +156,40 @@ namespace Test
                 // Process completion = exit AND stdout (if defined) AND stderr (if defined)
                 Task processCompletionTask = Task.WhenAll(processTasks);
 
-                try
+                int attempts = 0;
+                while (attempts < 3)
                 {
-                    // Task to wait for exit OR timeout (if defined)
-                    await processCompletionTask.WaitAsync(TimeSpan.FromSeconds(30));
-
-                    // -> Process exited cleanly
-                    result.ExitCode = process.ExitCode;
-                }
-                catch (OperationCanceledException)
-                {
-                    // -> Timeout, let's kill the process
-                    KillProcess(process);
-                    throw;
-                }
-                catch (TimeoutException)
-                {
-                    // -> Timeout, let's kill the process
-                    KillProcess(process);
-                    throw;
+                    try
+                    {
+                        // Task to wait for exit OR timeout
+                        await processCompletionTask.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                        result.ExitCode = process.ExitCode;
+                        break;
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        KillProcess(process);
+                        if (attempts == 2)
+                        {
+                            throw;
+                        }
+                        else
+                        {
+                            Console.WriteLine("{0} [WARNING] caught exception and re-trying ({1}): {2}", Util.Now, attempts, ex);
+                        }
+                    }
+                    catch (TimeoutException ex)
+                    {
+                        KillProcess(process);
+                        if (attempts == 2)
+                        {
+                            throw;
+                        }
+                        else
+                        {
+                            Console.WriteLine("{0} [WARNING] caught exception and re-trying ({1}): {2}", Util.Now, attempts, ex);
+                        }
+                    }
                 }
 
                 // Read stdout/stderr

@@ -51,6 +51,10 @@ namespace Test.Integration
         {
             var exchangeNames = new ConcurrentBag<string>();
             var tasks = new List<Task>();
+
+            string ex_destination = GenerateExchangeName();
+            await _channel.ExchangeDeclareAsync(exchange: ex_destination, type: "fanout", false, false);
+
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
             {
@@ -61,7 +65,7 @@ namespace Test.Integration
                         await Task.Delay(S_Random.Next(5, 50));
                         string exchangeName = GenerateExchangeName();
                         await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: "fanout", false, false);
-                        await _channel.ExchangeBindAsync(destination: "amq.fanout", source: exchangeName, routingKey: "unused");
+                        await _channel.ExchangeBindAsync(destination: ex_destination, source: exchangeName, routingKey: "unused");
                         exchangeNames.Add(exchangeName);
                     }
                     catch (NotSupportedException e)
@@ -84,7 +88,7 @@ namespace Test.Integration
                     try
                     {
                         await Task.Delay(S_Random.Next(5, 50));
-                        await _channel.ExchangeUnbindAsync(destination: "amq.fanout", source: exchangeName, routingKey: "unused",
+                        await _channel.ExchangeUnbindAsync(destination: ex_destination, source: exchangeName, routingKey: "unused",
                             noWait: false, arguments: null);
                         await _channel.ExchangeDeleteAsync(exchange: exchangeName, ifUnused: false);
                     }
@@ -99,6 +103,7 @@ namespace Test.Integration
 
             await AssertRanToCompletion(tasks);
             Assert.Null(nse);
+            await _channel.ExchangeDeleteAsync(exchange: ex_destination);
         }
 
         [Fact]

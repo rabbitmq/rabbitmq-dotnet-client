@@ -42,25 +42,25 @@ namespace RabbitMQ.Client.Framing.Impl
         {
         }
 
-        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple)
+        public override ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
+            CancellationToken cancellationToken)
         {
             var method = new BasicAck(deliveryTag, multiple);
-            // TODO cancellation token
-            return ModelSendAsync(method, CancellationToken.None);
+            return ModelSendAsync(method, cancellationToken);
         }
 
-        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue)
+        public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
+            CancellationToken cancellationToken)
         {
             var method = new BasicNack(deliveryTag, multiple, requeue);
-            // TODO cancellation token
-            return ModelSendAsync(method, CancellationToken.None);
+            return ModelSendAsync(method, cancellationToken);
         }
 
-        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue)
+        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+            CancellationToken cancellationToken)
         {
             var method = new BasicReject(deliveryTag, requeue);
-            // TODO cancellation token
-            return ModelSendAsync(method, CancellationToken.None).AsTask();
+            return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
         /// <summary>

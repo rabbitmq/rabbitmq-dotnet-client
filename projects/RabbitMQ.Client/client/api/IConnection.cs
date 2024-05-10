@@ -215,7 +215,9 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="newSecret">The new secret.</param>
         /// <param name="reason">The reason for the secret update.</param>
-        Task UpdateSecretAsync(string newSecret, string reason);
+        /// <param name="cancellationToken">Cancellation token</param>
+        Task UpdateSecretAsync(string newSecret, string reason,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously close this connection and all its channels
