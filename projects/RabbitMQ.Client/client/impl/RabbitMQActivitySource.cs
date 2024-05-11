@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
@@ -110,6 +112,23 @@ namespace RabbitMQ.Client
             return activity;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static string GetString(ReadOnlySpan<byte> span)
+        {
+#if NETSTANDARD
+            unsafe
+            {
+                fixed (byte* bytesPtr = span)
+                {
+                    return Encoding.UTF8.GetString(bytesPtr, span.Length);
+                }
+            }
+#else
+            return Encoding.UTF8.GetString(span);
+#endif
+        }
+
+
         internal static Activity Deliver(BasicDeliverEventArgs deliverEventArgs)
         {
             if (!s_subscriberSource.HasListeners())
@@ -123,17 +142,17 @@ namespace RabbitMQ.Client
 
             ActivityContext.TryParse(traceparent, traceState, out ActivityContext parentContext);
 
-            string routingKey = UseRoutingKeyAsOperationName ? Encoding.UTF8.GetString(deliverEventArgs.RoutingKey.Span) : null;
+            string routingKey = UseRoutingKeyAsOperationName ? GetString(deliverEventArgs.RoutingKey.Span) : null;
             Activity activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{routingKey} deliver" : "deliver",
                 ActivityKind.Consumer, parentContext);
 
             if (activity != null && activity.IsAllDataRequested)
             {
-                string exchange = Encoding.UTF8.GetString(deliverEventArgs.Exchange.Span);
+                string exchange = GetString(deliverEventArgs.Exchange.Span);
                 if (routingKey == null)
                 {
-                    routingKey = Encoding.UTF8.GetString(deliverEventArgs.RoutingKey.Span);
+                    routingKey = GetString(deliverEventArgs.RoutingKey.Span);
                 }
 
                 PopulateMessagingTags("deliver",
