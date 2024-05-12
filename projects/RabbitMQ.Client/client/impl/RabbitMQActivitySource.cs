@@ -116,6 +116,11 @@ namespace RabbitMQ.Client
         private static string GetString(ReadOnlySpan<byte> span)
         {
 #if NETSTANDARD
+            if (span.Length == 0)
+            {
+                return string.Empty;
+            }
+
             unsafe
             {
                 fixed (byte* bytesPtr = span)
