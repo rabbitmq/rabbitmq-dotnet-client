@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                throw new InvalidOperationException("[DEBUG] couldn't enter semaphore");
+                throw new InvalidOperationException("couldn't enter semaphore");
             }
         }
 
@@ -129,7 +129,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                throw new InvalidOperationException("[DEBUG] couldn't async enter semaphore");
+                throw new InvalidOperationException("couldn't async enter semaphore");
             }
         }
 
