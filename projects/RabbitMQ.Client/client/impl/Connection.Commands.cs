@@ -212,9 +212,13 @@ namespace RabbitMQ.Client.Framing.Impl
         private IAuthMechanismFactory GetAuthMechanismFactory(string supportedMechanismNames)
         {
             // Our list is in order of preference, the server one is not.
-            foreach (var factory in _config.AuthMechanisms)
+            foreach (IAuthMechanismFactory factory in _config.AuthMechanisms)
             {
+#if NET6_0_OR_GREATER
+                if (supportedMechanismNames.Contains(factory.Name, StringComparison.OrdinalIgnoreCase))
+#else
                 if (supportedMechanismNames.IndexOf(factory.Name, StringComparison.OrdinalIgnoreCase) >= 0)
+#endif
                 {
                     return factory;
                 }
