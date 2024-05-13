@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
             switch ((char)span[0])
             {
                 case 'S':
-                    bytesRead = 1 + ReadLongstr(span.Slice(1), out var bytes);
+                    bytesRead = 1 + ReadLongstr(span.Slice(1), out byte[] bytes);
                     return bytes;
                 case 't':
                     bytesRead = 2;
@@ -96,11 +96,11 @@ namespace RabbitMQ.Client.Impl
             // Moved out of outer switch to have a shorter main method (improves performance)
             static object ReadFieldValueSlow(ReadOnlySpan<byte> span, out int bytesRead)
             {
-                var slice = span.Slice(1);
+                ReadOnlySpan<byte> slice = span.Slice(1);
                 switch ((char)span[0])
                 {
                     case 'F':
-                        bytesRead = 1 + ReadDictionary(slice, out var dictionary);
+                        bytesRead = 1 + ReadDictionary(slice, out Dictionary<string, object> dictionary);
                         return dictionary;
                     case 'A':
                         IList arrayResult = ReadArray(slice, out int arrayBytesRead);
@@ -134,10 +134,10 @@ namespace RabbitMQ.Client.Impl
                         bytesRead = 3;
                         return NetworkOrderDeserializer.ReadUInt16(slice);
                     case 'T':
-                        bytesRead = 1 + ReadTimestamp(slice, out var timestamp);
+                        bytesRead = 1 + ReadTimestamp(slice, out AmqpTimestamp timestamp);
                         return timestamp;
                     case 'x':
-                        bytesRead = 1 + ReadLongstr(slice, out var binaryTableResult);
+                        bytesRead = 1 + ReadLongstr(slice, out byte[] binaryTableResult);
                         return new BinaryTableValue(binaryTableResult);
                     default:
                         bytesRead = 0;

@@ -28,7 +28,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             lock (_consumers)
             {
-                return _consumers.TryGetValue(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
+                return _consumers.TryGetValue(tag, out IBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
             }
         }
 
@@ -36,7 +36,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             lock (_consumers)
             {
-                return _consumers.Remove(tag, out var consumer) ? consumer : GetDefaultOrFallbackConsumer();
+                return _consumers.Remove(tag, out IBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
             }
         }
 

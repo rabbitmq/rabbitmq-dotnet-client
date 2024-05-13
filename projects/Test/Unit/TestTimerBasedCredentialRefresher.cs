@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
@@ -129,60 +130,51 @@ namespace Test.Unit
         [Fact]
         public async Task TestRefreshToken()
         {
-            var cbtcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            bool? callbackArg = null;
-            var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
-            Task cb(bool arg)
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
             {
-                callbackArg = arg;
-                cbtcs.SetResult(true);
-                return Task.CompletedTask;
-            }
+                using (CancellationTokenRegistration ctr = cts.Token.Register(() => tcs.TrySetCanceled()))
+                {
+                    var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
 
-            try
-            {
-                _refresher.Register(credentialsProvider, cb);
+                    Task cb(bool arg)
+                    {
+                        tcs.SetResult(arg);
+                        return Task.CompletedTask;
+                    }
 
-                await cbtcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.True(await cbtcs.Task);
-
-                Assert.True(credentialsProvider.RefreshCalled);
-                Assert.True(callbackArg);
-            }
-            finally
-            {
-                Assert.True(_refresher.Unregister(credentialsProvider));
+                    _refresher.Register(credentialsProvider, cb);
+                    Assert.True(await tcs.Task);
+                    Assert.True(credentialsProvider.RefreshCalled);
+                    Assert.True(_refresher.Unregister(credentialsProvider));
+                }
             }
         }
 
         [Fact]
         public async Task TestRefreshTokenFailed()
         {
-            var cbtcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            bool? callbackArg = null;
-            var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
-            Task cb(bool arg)
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
             {
-                callbackArg = arg;
-                cbtcs.SetResult(true);
-                return Task.CompletedTask;
-            }
+                using (CancellationTokenRegistration ctr = cts.Token.Register(() => tcs.TrySetCanceled()))
+                {
+                    var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
 
-            var ex = new Exception();
-            credentialsProvider.PasswordThrows(ex);
+                    Task cb(bool arg)
+                    {
+                        tcs.SetResult(arg);
+                        return Task.CompletedTask;
+                    }
 
-            try
-            {
-                _refresher.Register(credentialsProvider, cb);
-                await cbtcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.True(await cbtcs.Task);
+                    var ex = new Exception();
+                    credentialsProvider.PasswordThrows(ex);
 
-                Assert.True(credentialsProvider.RefreshCalled);
-                Assert.False(callbackArg);
-            }
-            finally
-            {
-                Assert.True(_refresher.Unregister(credentialsProvider));
+                    _refresher.Register(credentialsProvider, cb);
+                    Assert.False(await tcs.Task);
+                    Assert.True(credentialsProvider.RefreshCalled);
+                    Assert.True(_refresher.Unregister(credentialsProvider));
+                }
             }
         }
     }
