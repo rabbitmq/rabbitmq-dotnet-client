@@ -40,9 +40,10 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly CommandAssembler _assembler;
 
-        public Session(Connection connection, ushort channelNumber) : base(connection, channelNumber)
+        public Session(Connection connection, ushort channelNumber, uint maxBodyLength)
+            : base(connection, channelNumber)
         {
-            _assembler = new CommandAssembler();
+            _assembler = new CommandAssembler(maxBodyLength);
         }
 
         public override async Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)

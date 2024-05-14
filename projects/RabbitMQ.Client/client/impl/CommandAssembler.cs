@@ -55,8 +55,11 @@ namespace RabbitMQ.Client.Impl
         private int _offset;
         private AssemblyState _state;
 
-        public CommandAssembler()
+        private readonly uint _maxBodyLength;
+
+        public CommandAssembler(uint maxBodyLength)
         {
+            _maxBodyLength = maxBodyLength;
             Reset();
         }
 
@@ -152,6 +155,13 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new UnexpectedFrameException(frame.Type);
             }
+
+            if (totalBodyBytes > _maxBodyLength)
+            {
+                string msg = $"Frame body size '{totalBodyBytes}' exceeds maximum of '{_maxBodyLength}' bytes";
+                throw new MalformedFrameException(message: msg, canShutdownCleanly: false);
+            }
+
             _rentedHeaderArray = totalBodyBytes != 0 ? frame.TakeoverPayload() : Array.Empty<byte>();
 
             _headerMemory = frame.Payload.Slice(12);
