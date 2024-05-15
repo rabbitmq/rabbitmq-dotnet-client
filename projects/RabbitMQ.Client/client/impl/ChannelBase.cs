@@ -488,7 +488,7 @@ namespace RabbitMQ.Client.Impl
                     if (_confirmsTaskCompletionSources?.Count > 0)
                     {
                         var exception = new AlreadyClosedException(reason);
-                        foreach (var confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
                         {
                             confirmsTaskCompletionSource.TrySetException(exception);
                         }
@@ -635,7 +635,7 @@ namespace RabbitMQ.Client.Impl
                     if (_pendingDeliveryTags.Count == 0 && _confirmsTaskCompletionSources.Count > 0)
                     {
                         // Done, mark tasks
-                        foreach (var confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
                         {
                             confirmsTaskCompletionSource.TrySetResult(_onlyAcksReceived);
                         }
@@ -754,7 +754,7 @@ namespace RabbitMQ.Client.Impl
                  */
                 FinishClose();
 
-                if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out var k))
+                if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out ChannelCloseAsyncRpcContinuation k))
                 {
                     _continuationQueue.Next();
                     await k.HandleCommandAsync(cmd)
@@ -1905,7 +1905,7 @@ namespace RabbitMQ.Client.Impl
                 props = new BasicProperties();
             }
 
-            var headers = props.Headers ?? new Dictionary<string, object>();
+            IDictionary<string, object> headers = props.Headers ?? new Dictionary<string, object>();
 
             // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
             DistributedContextPropagator.Current.Inject(sendActivity, headers, InjectTraceContextIntoBasicProperties);

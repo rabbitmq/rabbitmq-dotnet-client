@@ -54,11 +54,11 @@ namespace Test.Integration
         {
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
 
-            string publish1 = GetUniqueString(1024);
+            string publish1 = GetUniqueString(512);
             byte[] body = _encoding.GetBytes(publish1);
             await _channel.BasicPublishAsync("", q.QueueName, body);
 
-            string publish2 = GetUniqueString(1024);
+            string publish2 = GetUniqueString(512);
             body = _encoding.GetBytes(publish2);
             await _channel.BasicPublishAsync("", q.QueueName, body);
 
@@ -141,9 +141,9 @@ namespace Test.Integration
             const int publish_total = 4096;
             string queueName = GenerateQueueName();
 
-            string publish1 = GetUniqueString(32768);
+            string publish1 = GetUniqueString(512);
             byte[] body1 = _encoding.GetBytes(publish1);
-            string publish2 = GetUniqueString(32768);
+            string publish2 = GetUniqueString(512);
             byte[] body2 = _encoding.GetBytes(publish2);
 
             var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);

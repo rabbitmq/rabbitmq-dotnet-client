@@ -25,7 +25,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             lock (_consumers)
             {
-                var tagBytes = Encoding.UTF8.GetBytes(tag);
+                byte[] tagBytes = Encoding.UTF8.GetBytes(tag);
                 _consumers[tagBytes] = (consumer, tag);
             }
         }
@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                     return consumerPair;
                 }
 
-#if !NETSTANDARD
+#if NET6_0_OR_GREATER
                 string consumerTag = Encoding.UTF8.GetString(tag.Span);
 #else
                 string consumerTag;
@@ -60,18 +60,29 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             lock (_consumers)
             {
-                var utf8 = Encoding.UTF8;
-                var pool = ArrayPool<byte>.Shared;
-                var buf = pool.Rent(utf8.GetMaxByteCount(tag.Length));
-#if NETSTANDARD
-                int count = utf8.GetBytes(tag, 0, tag.Length, buf, 0);
+                ArrayPool<byte> pool = ArrayPool<byte>.Shared;
+                byte[]? buf = null;
+                try
+                {
+                    buf = pool.Rent(Encoding.UTF8.GetMaxByteCount(tag.Length));
+#if NET6_0_OR_GREATER
+                    int count = Encoding.UTF8.GetBytes(tag, buf);
 #else
-                int count = utf8.GetBytes(tag, buf);
+                    int count = Encoding.UTF8.GetBytes(tag, 0, tag.Length, buf, 0);
 #endif
-                var memory = buf.AsMemory(0, count);
-                var result = _consumers.Remove(memory, out var consumerPair) ? consumerPair.consumer : GetDefaultOrFallbackConsumer();
-                pool.Return(buf);
-                return result;
+                    Memory<byte> memory = buf.AsMemory(0, count);
+                    IBasicConsumer result = _consumers.Remove(memory,
+                        out (IBasicConsumer consumer, string consumerTag) consumerPair) ?
+                            consumerPair.consumer : GetDefaultOrFallbackConsumer();
+                    return result;
+                }
+                finally
+                {
+                    if (buf != null)
+                    {
+                        pool.Return(buf);
+                    }
+                }
             }
         }
 

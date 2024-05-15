@@ -326,7 +326,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteShortstr(ref byte destination, ReadOnlySpan<byte> value)
         {
-            var length = value.Length;
+            int length = value.Length;
             if (length <= byte.MaxValue)
             {
                 destination = (byte)length;
