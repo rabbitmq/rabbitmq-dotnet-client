@@ -8,7 +8,7 @@
     <Authors>VMware</Authors>
     <Company>VMware, Inc. or its affiliates.</Company>
     <Copyright>Copyright © 2007-2023 VMware, Inc. or its affiliates.</Copyright>
-    <Description>The RabbitMQ OAuth2 Client Library for .NET enables OAuth2 token refresh for RabbitMQ.Client</Description>
+    <Description>The RabbitMQ OpenTelemetry Library for .NET adds convenience extension methods for RabbitMQ/OpenTelemetry</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>Apache-2.0 OR MPL-2.0</PackageLicenseExpression>
