@@ -186,10 +186,6 @@ RabbitMQ.Client.BinaryTableValue.BinaryTableValue() -> void
 RabbitMQ.Client.BinaryTableValue.BinaryTableValue(byte[] bytes) -> void
 RabbitMQ.Client.BinaryTableValue.Bytes.get -> byte[]
 RabbitMQ.Client.BinaryTableValue.Bytes.set -> void
-RabbitMQ.Client.CachedString
-RabbitMQ.Client.CachedString.CachedString(string value) -> void
-RabbitMQ.Client.CachedString.CachedString(string value, System.ReadOnlyMemory<byte> bytes) -> void
-RabbitMQ.Client.CachedString.CachedString(System.ReadOnlyMemory<byte> bytes) -> void
 RabbitMQ.Client.ConnectionConfig
 RabbitMQ.Client.ConnectionConfig.CredentialsProvider -> RabbitMQ.Client.ICredentialsProvider
 RabbitMQ.Client.ConnectionConfig.CredentialsRefresher -> RabbitMQ.Client.ICredentialsRefresher
@@ -481,7 +477,7 @@ RabbitMQ.Client.IChannel.BasicAckAsync(ulong deliveryTag, bool multiple, System.
 RabbitMQ.Client.IChannel.BasicAcks -> System.EventHandler<RabbitMQ.Client.Events.BasicAckEventArgs>
 RabbitMQ.Client.IChannel.BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicNacks -> System.EventHandler<RabbitMQ.Client.Events.BasicNackEventArgs>
-RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.ExchangeName! exchange, RabbitMQ.Client.RoutingKey! routingKey, TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(string! exchange, string! routingKey, TProperties basicProperties, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicReturn -> System.EventHandler<RabbitMQ.Client.Events.BasicReturnEventArgs>
 RabbitMQ.Client.IChannel.CallbackException -> System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs>
@@ -780,8 +776,6 @@ readonly RabbitMQ.Client.BasicGetResult.Exchange -> string
 readonly RabbitMQ.Client.BasicGetResult.MessageCount -> uint
 readonly RabbitMQ.Client.BasicGetResult.Redelivered -> bool
 readonly RabbitMQ.Client.BasicGetResult.RoutingKey -> string
-readonly RabbitMQ.Client.CachedString.Bytes -> System.ReadOnlyMemory<byte>
-readonly RabbitMQ.Client.CachedString.Value -> string
 readonly RabbitMQ.Client.ConnectionConfig.AuthMechanisms -> System.Collections.Generic.IEnumerable<RabbitMQ.Client.IAuthMechanismFactory>
 readonly RabbitMQ.Client.ConnectionConfig.ClientProperties -> System.Collections.Generic.IDictionary<string, object>
 readonly RabbitMQ.Client.ConnectionConfig.ClientProvidedName -> string
@@ -847,8 +841,8 @@ static RabbitMQ.Client.EndpointResolverExtensions.SelectOneAsync<T>(this RabbitM
 static RabbitMQ.Client.Events.CallbackExceptionEventArgs.Build(System.Exception e, string context) -> RabbitMQ.Client.Events.CallbackExceptionEventArgs
 static RabbitMQ.Client.Events.CallbackExceptionEventArgs.Build(System.Exception e, string context, object consumer) -> RabbitMQ.Client.Events.CallbackExceptionEventArgs
 static RabbitMQ.Client.ExchangeType.All() -> System.Collections.Generic.ICollection<string>
-static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.CachedString exchange, RabbitMQ.Client.CachedString routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel channel, string exchange, string routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> System.Threading.Tasks.ValueTask
+static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.ExchangeName! exchange, RabbitMQ.Client.RoutingKey! routingKey, System.ReadOnlyMemory<byte> body = default(System.ReadOnlyMemory<byte>), bool mandatory = false) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync<T>(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.PublicationAddress addr, in T basicProperties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.PublicationAddress.Parse(string uriLikeString) -> RabbitMQ.Client.PublicationAddress
 static RabbitMQ.Client.PublicationAddress.TryParse(string uriLikeString, out RabbitMQ.Client.PublicationAddress result) -> bool
@@ -857,7 +851,6 @@ static RabbitMQ.Client.RabbitMQActivitySource.UseRoutingKeyAsOperationName.get -
 static RabbitMQ.Client.RabbitMQActivitySource.UseRoutingKeyAsOperationName.set -> void
 static RabbitMQ.Client.TcpClientAdapter.GetMatchingHost(System.Collections.Generic.IReadOnlyCollection<System.Net.IPAddress> addresses, System.Net.Sockets.AddressFamily addressFamily) -> System.Net.IPAddress
 static RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.Log.get -> RabbitMQ.Client.TimerBasedCredentialRefresherEventSource
-static readonly RabbitMQ.Client.CachedString.Empty -> RabbitMQ.Client.CachedString
 static readonly RabbitMQ.Client.ConnectionFactory.DefaultAuthMechanisms -> System.Collections.Generic.IEnumerable<RabbitMQ.Client.IAuthMechanismFactory>
 static readonly RabbitMQ.Client.ConnectionFactory.DefaultConnectionTimeout -> System.TimeSpan
 static readonly RabbitMQ.Client.ConnectionFactory.DefaultCredentialsRefresher -> RabbitMQ.Client.ICredentialsRefresher
