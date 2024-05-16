@@ -29,19 +29,68 @@
 //  Copyright (c) 2011-2020 VMware, Inc. or its affiliates.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Text;
+using System.Text.RegularExpressions;
+
 namespace RabbitMQ.Client
 {
     public abstract class AmqpString
     {
-        public AmqpString()
+        private readonly string _value;
+        private readonly ReadOnlyMemory<byte> _stringBytes;
+
+        public AmqpString(string value, ushort maxLen, Encoding validEncoding, string validatorRegex)
         {
+            if (value.Length > maxLen)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
+
+            var re = new Regex(validatorRegex);
+            if (false == re.IsMatch(value))
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
+
+            _value = value;
+            _stringBytes = new ReadOnlyMemory<byte>(validEncoding.GetBytes(value));
+        }
+
+        public override string ToString()
+        {
+            return _value;
+        }
+
+        public static implicit operator string(AmqpString amqpString)
+        {
+            return amqpString._value;
+        }
+
+        public static implicit operator ReadOnlyMemory<byte>(AmqpString amqpString)
+        {
+            return amqpString._stringBytes;
         }
     }
 
+    /*
+     * From the spec:
+     *  <domain name="exchange-name" type="shortstr" label="exchange name">
+     *    <doc> The exchange name is a client-selected string that identifies the exchange for publish methods. </doc>
+     *    <assert check="length" value="127"/>
+     *    <assert check="regexp" value="^[a-zA-Z0-9-_.:]*$"/>
+     *  </domain>
+     */
     public class ExchangeName : AmqpString
     {
-        public ExchangeName(string exchangeName) : base()
+        public ExchangeName(string exchangeName)
+            : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
         {
+        }
+
+        public static explicit operator ExchangeName(string value)
+        {
+            return new ExchangeName(value);
         }
     }
 }

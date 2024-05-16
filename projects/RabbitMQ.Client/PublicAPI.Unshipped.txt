@@ -75,7 +75,6 @@ override RabbitMQ.Client.PublicationAddress.ToString() -> string
 override RabbitMQ.Client.ShutdownEventArgs.ToString() -> string
 override RabbitMQ.Client.ShutdownReportEntry.ToString() -> string
 RabbitMQ.Client.AmqpString
-RabbitMQ.Client.AmqpString.AmqpString() -> void
 RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily.get -> System.Net.Sockets.AddressFamily
 RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily.set -> void
@@ -881,8 +880,10 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.get -> System.TimeSpan
 virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~const RabbitMQ.Client.RabbitMQActivitySource.PublisherSourceName = "RabbitMQ.Client.Publisher" -> string
 ~const RabbitMQ.Client.RabbitMQActivitySource.SubscriberSourceName = "RabbitMQ.Client.Subscriber" -> string
+~override RabbitMQ.Client.AmqpString.ToString() -> string
 ~override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
 ~override RabbitMQ.Client.Events.EventingBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
+~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding validEncoding, string validatorRegex) -> void
 ~RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl, uint maxInboundMessageBodySize) -> void
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(RabbitMQ.Client.IEndpointResolver endpointResolver, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
@@ -940,6 +941,9 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync.set -> void
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync.get -> System.Func<RabbitMQ.Client.IRecordedQueue, System.Exception, RabbitMQ.Client.IConnection, System.Threading.Tasks.Task>
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync.set -> void
+~static RabbitMQ.Client.AmqpString.implicit operator string(RabbitMQ.Client.AmqpString amqpString) -> string
+~static RabbitMQ.Client.AmqpString.implicit operator System.ReadOnlyMemory<byte>(RabbitMQ.Client.AmqpString amqpString) -> System.ReadOnlyMemory<byte>
+~static RabbitMQ.Client.ExchangeName.explicit operator RabbitMQ.Client.ExchangeName(string value) -> RabbitMQ.Client.ExchangeName
 ~static RabbitMQ.Client.IChannelExtensions.AbortAsync(this RabbitMQ.Client.IChannel channel, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, RabbitMQ.Client.IBasicConsumer consumer, string queue, bool autoAck = false, string consumerTag = "", bool noLocal = false, bool exclusive = false, System.Collections.Generic.IDictionary<string, object> arguments = null) -> System.Threading.Tasks.Task<string>
 ~static RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(this RabbitMQ.Client.IChannel channel, string queue, bool autoAck, RabbitMQ.Client.IBasicConsumer consumer) -> System.Threading.Tasks.Task<string>

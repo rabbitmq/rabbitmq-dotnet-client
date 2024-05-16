@@ -37,11 +37,23 @@ namespace Test.Unit
 {
     public class TestAmqpString
     {
-        [Fact]
-        public void TestInvalidExchangeNameThrows()
+        [Theory]
+        [InlineData("exchange-ABC:123.abc_456")]
+        [InlineData("6PiY80XbjBKnY39R947i2s03cAg261412IS1FzS4uEoJJ6cWZ50P0SJ3S4yqvzx0n4TN4NsROlWyEwaUG4I5Glrj1mI2N28QGbkf5t8Kyo7EavaqME5TrvhPxtJGY1p")]
+        [InlineData("foo_bar_baz")]
+        public void TestValidExchangeNames(string arg)
         {
-            string e = "exchange-Евгений";
-            Assert.Throws<ArgumentOutOfRangeException>(() => new ExchangeName(e));
+            var e = new ExchangeName(arg);
+            Assert.Equal(e, arg);
+        }
+
+        [Theory]
+        [InlineData("exchange-Евгений")]
+        [InlineData("6PiY80XbjBK9nY39R947i2s03cAg261412IS1FzS4uEoJJ6cWZ50P0SJ3S4yqvzx0n4TN4NsROlWyEwaUG4I5Glrj1mI2N28QGbkf5t8Kyo7EavaqME5TrvhPxtJGY1p")]
+        [InlineData("foo/bar%baz")]
+        public void TestInvalidExchangeNameThrows(string arg)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new ExchangeName(arg));
         }
     }
 }
