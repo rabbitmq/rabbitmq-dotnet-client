@@ -55,5 +55,24 @@ namespace Test.Unit
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new ExchangeName(arg));
         }
+
+        [Theory]
+        [InlineData("queue-ABC:123.abc_456")]
+        [InlineData("6PiY80XbjBKnY39R947i2s03cAg261412IS1FzS4uEoJJ6cWZ50P0SJ3S4yqvzx0n4TN4NsROlWyEwaUG4I5Glrj1mI2N28QGbkf5t8Kyo7EavaqME5TrvhPxtJGY1p")]
+        [InlineData("foo_bar_baz")]
+        public void TestValidQueueNames(string arg)
+        {
+            var e = new QueueName(arg);
+            Assert.Equal(e, arg);
+        }
+
+        [Theory]
+        [InlineData("exchange-Евгений")]
+        [InlineData("6PiY80XbjBK9nY39R947i2s03cAg261412IS1FzS4uEoJJ6cWZ50P0SJ3S4yqvzx0n4TN4NsROlWyEwaUG4I5Glrj1mI2N28QGbkf5t8Kyo7EavaqME5TrvhPxtJGY1p")]
+        [InlineData("foo/bar%baz")]
+        public void TestInvalidQueueNameThrows(string arg)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new QueueName(arg));
+        }
     }
 }

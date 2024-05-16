@@ -93,4 +93,25 @@ namespace RabbitMQ.Client
             return new ExchangeName(value);
         }
     }
+
+    /*
+     * From the spec:
+     *  <domain name="queue-name" type="shortstr" label="queue name">
+     *    <doc> The queue name identifies the queue within the vhost. In methods where the queue name may be blank, and that has no specific significance, this refers to the 'current' queue for the channel, meaning the last queue that the client declared on the channel. If the client did not declare a queue, and the method needs a queue name, this will result in a 502 (syntax error) channel exception. </doc>
+     *    <assert check="length" value="127"/>
+     *    <assert check="regexp" value="^[a-zA-Z0-9-_.:]*$"/>
+     *  </domain>
+     */
+    public class QueueName : AmqpString
+    {
+        public QueueName(string exchangeName)
+            : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
+        {
+        }
+
+        public static explicit operator QueueName(string value)
+        {
+            return new QueueName(value);
+        }
+    }
 }
