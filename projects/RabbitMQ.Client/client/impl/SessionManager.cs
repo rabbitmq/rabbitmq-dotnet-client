@@ -39,14 +39,18 @@ namespace RabbitMQ.Client.Impl
     internal class SessionManager
     {
         public readonly ushort ChannelMax;
+
+        private readonly uint _maxInboundMessageBodySize;
         private readonly IntAllocator _ints;
         private readonly Connection _connection;
         private readonly Dictionary<int, ISession> _sessionMap = new Dictionary<int, ISession>();
 
-        public SessionManager(Connection connection, ushort channelMax)
+        public SessionManager(Connection connection,
+            ushort channelMax, uint maxInboundMessageBodySize)
         {
             _connection = connection;
             ChannelMax = (channelMax == 0) ? ushort.MaxValue : channelMax;
+            _maxInboundMessageBodySize = maxInboundMessageBodySize;
             _ints = new IntAllocator(1, ChannelMax);
         }
 
@@ -71,7 +75,8 @@ namespace RabbitMQ.Client.Impl
                     throw new ChannelAllocationException();
                 }
 
-                ISession session = new Session(_connection, (ushort)channelNumber);
+                ISession session = new Session(_connection,
+                    (ushort)channelNumber, _maxInboundMessageBodySize);
                 session.SessionShutdown += HandleSessionShutdown;
                 _sessionMap[channelNumber] = session;
                 return session;
