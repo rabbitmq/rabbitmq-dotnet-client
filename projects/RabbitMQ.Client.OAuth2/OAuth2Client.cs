@@ -232,9 +232,11 @@ namespace RabbitMQ.Client.OAuth2
 
         private Dictionary<string, string> buildRequestParameters()
         {
-            var dict = new Dictionary<string, string>(_additionalRequestParameters);
-            dict.Add(CLIENT_ID, _clientId);
-            dict.Add(CLIENT_SECRET, _clientSecret);
+            var dict = new Dictionary<string, string>(_additionalRequestParameters)
+            {
+                { CLIENT_ID, _clientId },
+                { CLIENT_SECRET, _clientSecret }
+            };
             if (_scope != null && _scope.Length > 0)
             {
                 dict.Add(SCOPE, _scope);

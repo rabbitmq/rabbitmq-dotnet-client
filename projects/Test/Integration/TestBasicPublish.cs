@@ -174,19 +174,22 @@ namespace Test.Integration
         }
 
         [Fact]
-        public async Task TestMaxMessageSize()
+        public async Task TestMaxInboundMessageBodySize()
         {
-            var re = new ManualResetEventSlim();
-            const ushort maxMsgSize = 1024;
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            using var cts = new CancellationTokenSource(WaitSpan);
+            using CancellationTokenRegistration ctr = cts.Token.Register(() => tcs.SetCanceled());
+
+            const ushort maxMsgSize = 8192;
 
             int count = 0;
             byte[] msg0 = _encoding.GetBytes("hi");
             byte[] msg1 = GetRandomBody(maxMsgSize * 2);
 
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
             cf.TopologyRecoveryEnabled = false;
-            cf.MaxMessageSize = maxMsgSize;
+            cf.MaxInboundMessageBodySize = maxMsgSize;
 
             bool sawConnectionShutdown = false;
             bool sawChannelShutdown = false;
@@ -200,9 +203,9 @@ namespace Test.Integration
                     sawConnectionShutdown = true;
                 };
 
-                Assert.Equal(maxMsgSize, cf.MaxMessageSize);
-                Assert.Equal(maxMsgSize, cf.Endpoint.MaxMessageSize);
-                Assert.Equal(maxMsgSize, c.Endpoint.MaxMessageSize);
+                Assert.Equal(maxMsgSize, cf.MaxInboundMessageBodySize);
+                Assert.Equal(maxMsgSize, cf.Endpoint.MaxInboundMessageBodySize);
+                Assert.Equal(maxMsgSize, c.Endpoint.MaxInboundMessageBodySize);
 
                 using (IChannel channel = await c.CreateChannelAsync())
                 {
@@ -222,7 +225,7 @@ namespace Test.Integration
 
                     consumer.Shutdown += (o, a) =>
                     {
-                        re.Set();
+                        tcs.SetResult(true);
                     };
 
                     consumer.Registered += (o, a) =>
@@ -249,7 +252,7 @@ namespace Test.Integration
 
                     await channel.BasicPublishAsync("", q.QueueName, msg0);
                     await channel.BasicPublishAsync("", q.QueueName, msg1);
-                    Assert.True(re.Wait(TimeSpan.FromSeconds(5)));
+                    Assert.True(await tcs.Task);
 
                     Assert.Equal(1, count);
                     Assert.True(sawConnectionShutdown);

@@ -170,7 +170,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             bool AnyBindingsOnExchange(string exchange)
             {
-                foreach (var recordedBinding in _recordedBindings)
+                foreach (RecordedBinding recordedBinding in _recordedBindings)
                 {
                     if (recordedBinding.Source == exchange)
                     {
@@ -400,7 +400,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void DoDeleteRecordedConsumer(string consumerTag)
         {
-            if (_recordedConsumers.Remove(consumerTag, out var recordedConsumer))
+            if (_recordedConsumers.Remove(consumerTag, out RecordedConsumer recordedConsumer))
             {
                 DeleteAutoDeleteQueue(recordedConsumer.Queue);
             }
@@ -408,7 +408,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void DeleteAutoDeleteQueue(string queue)
         {
-            if (_recordedQueues.TryGetValue(queue, out var recordedQueue) && recordedQueue.AutoDelete)
+            if (_recordedQueues.TryGetValue(queue, out RecordedQueue recordedQueue) && recordedQueue.AutoDelete)
             {
                 // last consumer on this connection is gone, remove recorded queue if it is auto-deleted.
                 if (!AnyConsumersOnQueue(queue))
@@ -420,7 +420,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private bool AnyConsumersOnQueue(string queue)
         {
-            foreach (var pair in _recordedConsumers)
+            foreach (KeyValuePair<string, RecordedConsumer> pair in _recordedConsumers)
             {
                 if (pair.Value.Queue == queue)
                 {

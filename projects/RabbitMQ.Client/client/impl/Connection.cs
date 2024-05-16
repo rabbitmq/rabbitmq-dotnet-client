@@ -71,8 +71,8 @@ namespace RabbitMQ.Client.Framing.Impl
             _connectionUnblockedWrapper = new EventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
             _connectionShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
 
-            _sessionManager = new SessionManager(this, 0);
-            _session0 = new MainSession(this);
+            _sessionManager = new SessionManager(this, 0, config.MaxInboundMessageBodySize);
+            _session0 = new MainSession(this, config.MaxInboundMessageBodySize);
             _channel0 = new Channel(_config, _session0); ;
 
             ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)

@@ -3,11 +3,10 @@ const RabbitMQ.Client.AmqpTcpEndpoint.DefaultAmqpSslPort = 5671 -> int
 const RabbitMQ.Client.AmqpTcpEndpoint.UseDefaultPort = -1 -> int
 const RabbitMQ.Client.ConnectionFactory.DefaultChannelMax = 2047 -> ushort
 const RabbitMQ.Client.ConnectionFactory.DefaultFrameMax = 0 -> uint
-const RabbitMQ.Client.ConnectionFactory.DefaultMaxMessageSize = 134217728 -> uint
+const RabbitMQ.Client.ConnectionFactory.DefaultMaxInboundMessageBodySize = 67108864 -> uint
 const RabbitMQ.Client.ConnectionFactory.DefaultPass = "guest" -> string
 const RabbitMQ.Client.ConnectionFactory.DefaultUser = "guest" -> string
 const RabbitMQ.Client.ConnectionFactory.DefaultVHost = "/" -> string
-const RabbitMQ.Client.ConnectionFactory.MaximumMaxMessageSize = 536870912 -> uint
 const RabbitMQ.Client.Constants.AccessRefused = 403 -> int
 const RabbitMQ.Client.Constants.ChannelError = 504 -> int
 const RabbitMQ.Client.Constants.CommandInvalid = 503 -> int
@@ -82,14 +81,13 @@ RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily.set -> void
 RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint() -> void
 RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint(string hostName, int portOrMinusOne = -1) -> void
 RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl) -> void
-RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl, uint maxMessageSize) -> void
 RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint(System.Uri uri) -> void
 RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint(System.Uri uri, RabbitMQ.Client.SslOption ssl) -> void
 RabbitMQ.Client.AmqpTcpEndpoint.Clone() -> object
 RabbitMQ.Client.AmqpTcpEndpoint.CloneWithHostname(string hostname) -> RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.AmqpTcpEndpoint.HostName.get -> string
 RabbitMQ.Client.AmqpTcpEndpoint.HostName.set -> void
-RabbitMQ.Client.AmqpTcpEndpoint.MaxMessageSize.get -> uint
+RabbitMQ.Client.AmqpTcpEndpoint.MaxInboundMessageBodySize.get -> uint
 RabbitMQ.Client.AmqpTcpEndpoint.Port.get -> int
 RabbitMQ.Client.AmqpTcpEndpoint.Port.set -> void
 RabbitMQ.Client.AmqpTcpEndpoint.Protocol.get -> RabbitMQ.Client.IProtocol
@@ -225,8 +223,8 @@ RabbitMQ.Client.ConnectionFactory.HandshakeContinuationTimeout.get -> System.Tim
 RabbitMQ.Client.ConnectionFactory.HandshakeContinuationTimeout.set -> void
 RabbitMQ.Client.ConnectionFactory.HostName.get -> string
 RabbitMQ.Client.ConnectionFactory.HostName.set -> void
-RabbitMQ.Client.ConnectionFactory.MaxMessageSize.get -> uint
-RabbitMQ.Client.ConnectionFactory.MaxMessageSize.set -> void
+RabbitMQ.Client.ConnectionFactory.MaxInboundMessageBodySize.get -> uint
+RabbitMQ.Client.ConnectionFactory.MaxInboundMessageBodySize.set -> void
 RabbitMQ.Client.ConnectionFactory.NetworkRecoveryInterval.get -> System.TimeSpan
 RabbitMQ.Client.ConnectionFactory.NetworkRecoveryInterval.set -> void
 RabbitMQ.Client.ConnectionFactory.Password.get -> string
@@ -787,6 +785,7 @@ readonly RabbitMQ.Client.ConnectionConfig.HandshakeContinuationTimeout -> System
 readonly RabbitMQ.Client.ConnectionConfig.HeartbeatInterval -> System.TimeSpan
 readonly RabbitMQ.Client.ConnectionConfig.MaxChannelCount -> ushort
 readonly RabbitMQ.Client.ConnectionConfig.MaxFrameSize -> uint
+readonly RabbitMQ.Client.ConnectionConfig.MaxInboundMessageBodySize -> uint
 readonly RabbitMQ.Client.ConnectionConfig.NetworkRecoveryInterval -> System.TimeSpan
 readonly RabbitMQ.Client.ConnectionConfig.Password -> string
 readonly RabbitMQ.Client.ConnectionConfig.RequestedConnectionTimeout -> System.TimeSpan
@@ -884,6 +883,7 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~const RabbitMQ.Client.RabbitMQActivitySource.PublisherSourceName = "RabbitMQ.Client.Publisher" -> string
 ~const RabbitMQ.Client.RabbitMQActivitySource.SubscriberSourceName = "RabbitMQ.Client.Subscriber" -> string
 ~override RabbitMQ.Client.Events.EventingBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
+~RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl, uint maxInboundMessageBodySize) -> void
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(RabbitMQ.Client.IEndpointResolver endpointResolver, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>

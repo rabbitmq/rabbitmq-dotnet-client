@@ -254,7 +254,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader, uint maxMessageSize,
+        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader,
+            uint maxInboundMessageBodySize,
             CancellationToken mainLoopCancellationToken)
         {
             ReadResult result = await reader.ReadAsync(mainLoopCancellationToken)
@@ -266,7 +267,7 @@ namespace RabbitMQ.Client.Impl
 
             InboundFrame frame;
             // Loop until we have enough data to read an entire frame, or until the pipe is completed.
-            while (!TryReadFrame(ref buffer, maxMessageSize, out frame))
+            while (!TryReadFrame(ref buffer, maxInboundMessageBodySize, out frame))
             {
                 reader.AdvanceTo(buffer.Start, buffer.End);
 
@@ -283,7 +284,8 @@ namespace RabbitMQ.Client.Impl
             return frame;
         }
 
-        internal static bool TryReadFrameFromPipe(PipeReader reader, uint maxMessageSize, out InboundFrame frame)
+        internal static bool TryReadFrameFromPipe(PipeReader reader,
+            uint maxInboundMessageBodySize, out InboundFrame frame)
         {
             if (reader.TryRead(out ReadResult result))
             {
@@ -291,7 +293,7 @@ namespace RabbitMQ.Client.Impl
 
                 MaybeThrowEndOfStream(result, buffer);
 
-                if (TryReadFrame(ref buffer, maxMessageSize, out frame))
+                if (TryReadFrame(ref buffer, maxInboundMessageBodySize, out frame))
                 {
                     reader.AdvanceTo(buffer.Start);
                     return true;
@@ -306,7 +308,8 @@ namespace RabbitMQ.Client.Impl
             return false;
         }
 
-        internal static bool TryReadFrame(ref ReadOnlySequence<byte> buffer, uint maxMessageSize, out InboundFrame frame)
+        internal static bool TryReadFrame(ref ReadOnlySequence<byte> buffer,
+            uint maxInboundMessageBodySize, out InboundFrame frame)
         {
             if (buffer.Length < 7)
             {
@@ -332,9 +335,9 @@ namespace RabbitMQ.Client.Impl
             FrameType type = (FrameType)firstByte;
             int channel = NetworkOrderDeserializer.ReadUInt16(buffer.Slice(1));
             int payloadSize = NetworkOrderDeserializer.ReadInt32(buffer.Slice(3));
-            if ((maxMessageSize > 0) && (payloadSize > maxMessageSize))
+            if ((maxInboundMessageBodySize > 0) && (payloadSize > maxInboundMessageBodySize))
             {
-                string msg = $"Frame payload size '{payloadSize}' exceeds maximum of '{maxMessageSize}' bytes";
+                string msg = $"Frame payload size '{payloadSize}' exceeds maximum of '{maxInboundMessageBodySize}' bytes";
                 throw new MalformedFrameException(message: msg, canShutdownCleanly: false);
             }
 
