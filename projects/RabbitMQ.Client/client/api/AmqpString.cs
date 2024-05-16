@@ -40,6 +40,12 @@ namespace RabbitMQ.Client
         private readonly string _value;
         private readonly ReadOnlyMemory<byte> _stringBytes;
 
+        public AmqpString()
+        {
+            _value = string.Empty;
+            _stringBytes = ReadOnlyMemory<byte>.Empty;
+        }
+
         public AmqpString(string value, ushort maxLen, Encoding validEncoding, string validatorRegex)
         {
             if (value.Length > maxLen)
@@ -83,6 +89,12 @@ namespace RabbitMQ.Client
      */
     public class ExchangeName : AmqpString
     {
+        public static readonly ExchangeName Empty = new ExchangeName();
+
+        public ExchangeName() : base()
+        {
+        }
+
         public ExchangeName(string exchangeName)
             : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
         {
@@ -104,6 +116,12 @@ namespace RabbitMQ.Client
      */
     public class QueueName : AmqpString
     {
+        public static readonly QueueName Empty = new QueueName();
+
+        public QueueName() : base()
+        {
+        }
+
         public QueueName(string exchangeName)
             : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
         {

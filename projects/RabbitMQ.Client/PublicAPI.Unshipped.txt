@@ -75,6 +75,7 @@ override RabbitMQ.Client.PublicationAddress.ToString() -> string
 override RabbitMQ.Client.ShutdownEventArgs.ToString() -> string
 override RabbitMQ.Client.ShutdownReportEntry.ToString() -> string
 RabbitMQ.Client.AmqpString
+RabbitMQ.Client.AmqpString.AmqpString() -> void
 RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily.get -> System.Net.Sockets.AddressFamily
 RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily.set -> void
@@ -394,6 +395,7 @@ RabbitMQ.Client.Exceptions.WireFormattingException.Offender.get -> object
 RabbitMQ.Client.Exceptions.WireFormattingException.WireFormattingException(string message) -> void
 RabbitMQ.Client.Exceptions.WireFormattingException.WireFormattingException(string message, object offender) -> void
 RabbitMQ.Client.ExchangeName
+RabbitMQ.Client.ExchangeName.ExchangeName() -> void
 RabbitMQ.Client.ExchangeType
 RabbitMQ.Client.ExternalMechanism
 RabbitMQ.Client.ExternalMechanism.ExternalMechanism() -> void
@@ -655,6 +657,7 @@ RabbitMQ.Client.PublicationAddress.PublicationAddress(string exchangeType, strin
 RabbitMQ.Client.QueueDeclareOk
 RabbitMQ.Client.QueueDeclareOk.QueueDeclareOk(string queueName, uint messageCount, uint consumerCount) -> void
 RabbitMQ.Client.QueueName
+RabbitMQ.Client.QueueName.QueueName() -> void
 RabbitMQ.Client.RabbitMQActivitySource
 RabbitMQ.Client.ReadOnlyBasicProperties
 RabbitMQ.Client.ReadOnlyBasicProperties.AppId.get -> string
@@ -966,5 +969,7 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~static RabbitMQ.Client.IConnectionExtensions.CloseAsync(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.IConnectionExtensions.CloseAsync(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.QueueName.explicit operator RabbitMQ.Client.QueueName(string value) -> RabbitMQ.Client.QueueName
+~static readonly RabbitMQ.Client.ExchangeName.Empty -> RabbitMQ.Client.ExchangeName
+~static readonly RabbitMQ.Client.QueueName.Empty -> RabbitMQ.Client.QueueName
 ~virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
 ~virtual RabbitMQ.Client.DefaultBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
