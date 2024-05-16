@@ -171,7 +171,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
 
             ushort channelMax = (ushort)NegotiatedMaxValue(_config.MaxChannelCount, connectionTune.m_channelMax);
-            _sessionManager = new SessionManager(this, channelMax);
+            _sessionManager = new SessionManager(this, channelMax, _config.MaxInboundMessageBodySize);
 
             uint frameMax = NegotiatedMaxValue(_config.MaxFrameSize, connectionTune.m_frameMax);
             FrameMax = frameMax;

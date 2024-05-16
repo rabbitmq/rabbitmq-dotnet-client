@@ -65,7 +65,7 @@ namespace Test.Integration
             string v = "vhost";
             string h = "192.168.0.1";
             int p = 5674;
-            uint mms = 512 * 1024 * 1024;
+            uint mms = 64 * 1024 * 1024;
 
             var cf = new ConnectionFactory
             {
@@ -74,19 +74,19 @@ namespace Test.Integration
                 VirtualHost = v,
                 HostName = h,
                 Port = p,
-                MaxMessageSize = mms
+                MaxInboundMessageBodySize = mms
             };
 
-            Assert.Equal(cf.UserName, u);
-            Assert.Equal(cf.Password, pw);
-            Assert.Equal(cf.VirtualHost, v);
-            Assert.Equal(cf.HostName, h);
-            Assert.Equal(cf.Port, p);
-            Assert.Equal(cf.MaxMessageSize, mms);
+            Assert.Equal(u, cf.UserName);
+            Assert.Equal(pw, cf.Password);
+            Assert.Equal(v, cf.VirtualHost);
+            Assert.Equal(h, cf.HostName);
+            Assert.Equal(p, cf.Port);
+            Assert.Equal(mms, cf.MaxInboundMessageBodySize);
 
-            Assert.Equal(cf.Endpoint.HostName, h);
-            Assert.Equal(cf.Endpoint.Port, p);
-            Assert.Equal(cf.Endpoint.MaxMessageSize, mms);
+            Assert.Equal(h, cf.Endpoint.HostName);
+            Assert.Equal(p, cf.Endpoint.Port);
+            Assert.Equal(mms, cf.Endpoint.MaxInboundMessageBodySize);
         }
 
         [Fact]
@@ -234,12 +234,12 @@ namespace Test.Integration
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
 
-            Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, cf.MaxMessageSize);
-            Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, cf.Endpoint.MaxMessageSize);
+            Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, cf.MaxInboundMessageBodySize);
+            Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, cf.Endpoint.MaxInboundMessageBodySize);
 
             using (IConnection conn = await cf.CreateConnectionAsync())
             {
-                Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, conn.Endpoint.MaxMessageSize);
+                Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
                 await conn.CloseAsync();
             }
         }
@@ -339,17 +339,19 @@ namespace Test.Integration
         [Fact]
         public void TestCreateAmqpTCPEndPointOverridesMaxMessageSizeWhenGreaterThanMaximumAllowed()
         {
-            _ = new AmqpTcpEndpoint("localhost", -1, new SslOption(), ConnectionFactory.MaximumMaxMessageSize);
+            var ep = new AmqpTcpEndpoint("localhost", -1, new SslOption(),
+                2 * InternalConstants.DefaultRabbitMqMaxInboundMessageBodySize);
+            Assert.Equal(InternalConstants.DefaultRabbitMqMaxInboundMessageBodySize, ep.MaxInboundMessageBodySize);
         }
 
         [Fact]
         public async Task TestCreateConnectionUsesConfiguredMaxMessageSize()
         {
             ConnectionFactory cf = CreateConnectionFactory();
-            cf.MaxMessageSize = 1500;
+            cf.MaxInboundMessageBodySize = 1500;
             using (IConnection conn = await cf.CreateConnectionAsync())
             {
-                Assert.Equal(cf.MaxMessageSize, conn.Endpoint.MaxMessageSize);
+                Assert.Equal(cf.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
                 await conn.CloseAsync();
             }
         }
@@ -357,12 +359,12 @@ namespace Test.Integration
         public async Task TestCreateConnectionWithAmqpEndpointListUsesAmqpTcpEndpointMaxMessageSize()
         {
             ConnectionFactory cf = CreateConnectionFactory();
-            cf.MaxMessageSize = 1500;
+            cf.MaxInboundMessageBodySize = 1500;
             var ep = new AmqpTcpEndpoint("localhost");
-            Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, ep.MaxMessageSize);
+            Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, ep.MaxInboundMessageBodySize);
             using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
             {
-                Assert.Equal(ConnectionFactory.DefaultMaxMessageSize, conn.Endpoint.MaxMessageSize);
+                Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
                 await conn.CloseAsync();
             }
         }
@@ -371,11 +373,11 @@ namespace Test.Integration
         public async Task TestCreateConnectionWithAmqpEndpointResolverUsesAmqpTcpEndpointMaxMessageSize()
         {
             ConnectionFactory cf = CreateConnectionFactory();
-            cf.MaxMessageSize = 1500;
+            cf.MaxInboundMessageBodySize = 1500;
             var ep = new AmqpTcpEndpoint("localhost", -1, new SslOption(), 1200);
             using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
             {
-                Assert.Equal(ep.MaxMessageSize, conn.Endpoint.MaxMessageSize);
+                Assert.Equal(ep.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
                 await conn.CloseAsync();
             }
         }
@@ -384,10 +386,10 @@ namespace Test.Integration
         public async Task TestCreateConnectionWithHostnameListUsesConnectionFactoryMaxMessageSize()
         {
             ConnectionFactory cf = CreateConnectionFactory();
-            cf.MaxMessageSize = 1500;
+            cf.MaxInboundMessageBodySize = 1500;
             using (IConnection conn = await cf.CreateConnectionAsync(new List<string> { "localhost" }))
             {
-                Assert.Equal(cf.MaxMessageSize, conn.Endpoint.MaxMessageSize);
+                Assert.Equal(cf.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
                 await conn.CloseAsync();
             }
         }

@@ -49,7 +49,8 @@ namespace RabbitMQ.Client.Impl
         private volatile bool _closing;
         private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
 
-        public MainSession(Connection connection) : base(connection, 0)
+        public MainSession(Connection connection, uint maxBodyLength)
+            : base(connection, 0, maxBodyLength)
         {
         }
 

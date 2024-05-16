@@ -91,6 +91,11 @@ namespace RabbitMQ.Client
         public readonly uint MaxFrameSize;
 
         /// <summary>
+        /// Maximum body size of a message (in bytes).
+        /// </summary>
+        public readonly uint MaxInboundMessageBodySize;
+
+        /// <summary>
         /// Set to false to make automatic connection recovery not recover topology (exchanges, queues, bindings, etc).
         /// </summary>
         public readonly bool TopologyRecoveryEnabled;
@@ -149,7 +154,7 @@ namespace RabbitMQ.Client
             ICredentialsProvider credentialsProvider, ICredentialsRefresher credentialsRefresher,
             IEnumerable<IAuthMechanismFactory> authMechanisms,
             IDictionary<string, object?> clientProperties, string? clientProvidedName,
-            ushort maxChannelCount, uint maxFrameSize, bool topologyRecoveryEnabled,
+            ushort maxChannelCount, uint maxFrameSize, uint maxInboundMessageBodySize, bool topologyRecoveryEnabled,
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
             bool dispatchConsumersAsync, int dispatchConsumerConcurrency,
@@ -165,6 +170,7 @@ namespace RabbitMQ.Client
             ClientProvidedName = clientProvidedName;
             MaxChannelCount = maxChannelCount;
             MaxFrameSize = maxFrameSize;
+            MaxInboundMessageBodySize = maxInboundMessageBodySize;
             TopologyRecoveryEnabled = topologyRecoveryEnabled;
             TopologyRecoveryFilter = topologyRecoveryFilter;
             TopologyRecoveryExceptionHandler = topologyRecoveryExceptionHandler;

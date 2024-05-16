@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
     ///     factory.VirtualHost = ConnectionFactory.DefaultVHost;
     ///     factory.HostName = hostName;
     ///     factory.Port     = AmqpTcpEndpoint.UseDefaultPort;
-    ///     factory.MaxMessageSize = 512 * 1024 * 1024;
+    ///     factory.MaxInboundMessageBodySize = 512 * 1024 * 1024;
     ///     //
     ///     IConnection conn = factory.CreateConnection();
     ///     //
@@ -107,15 +107,9 @@ namespace RabbitMQ.Client
         public const uint DefaultFrameMax = 0;
 
         /// <summary>
-        /// Default value for <code>ConnectionFactory</code>'s <code>MaxMessageSize</code>.        
+        /// Default value for <code>ConnectionFactory</code>'s <code>MaxInboundMessageBodySize</code>.        
         /// </summary>
-        public const uint DefaultMaxMessageSize = 134217728;
-        /// <summary>
-        /// Largest message size, in bytes, allowed in RabbitMQ.        
-        /// Note: <code>rabbit.max_message_size</code> setting (https://www.rabbitmq.com/configure.html)
-        /// configures the largest message size which should be lower than this maximum of 536 Mbs.
-        /// </summary>
-        public const uint MaximumMaxMessageSize = 536870912;
+        public const uint DefaultMaxInboundMessageBodySize = 1_048_576 * 64;
 
         /// <summary>
         /// Default value for desired heartbeat interval. Default is 60 seconds,
@@ -291,13 +285,13 @@ namespace RabbitMQ.Client
         /// </summary>
         public AmqpTcpEndpoint Endpoint
         {
-            get { return new AmqpTcpEndpoint(HostName, Port, Ssl, MaxMessageSize); }
+            get { return new AmqpTcpEndpoint(HostName, Port, Ssl, MaxInboundMessageBodySize); }
             set
             {
                 Port = value.Port;
                 HostName = value.HostName;
                 Ssl = value.Ssl;
-                MaxMessageSize = value.MaxMessageSize;
+                MaxInboundMessageBodySize = value.MaxInboundMessageBodySize;
             }
         }
 
@@ -359,7 +353,7 @@ namespace RabbitMQ.Client
         /// Maximum allowed message size, in bytes, from RabbitMQ.
         /// Corresponds to the <code>ConnectionFactory.DefaultMaxMessageSize</code> setting.
         /// </summary>
-        public uint MaxMessageSize { get; set; } = DefaultMaxMessageSize;
+        public uint MaxInboundMessageBodySize { get; set; } = DefaultMaxInboundMessageBodySize;
 
         /// <summary>
         /// The uri to use for the connection.
@@ -484,7 +478,7 @@ namespace RabbitMQ.Client
         public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
             CancellationToken cancellationToken = default)
         {
-            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxMessageSize));
+            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxInboundMessageBodySize));
             return CreateConnectionAsync(EndpointResolverFactory(endpoints), clientProvidedName, cancellationToken);
         }
 
@@ -602,6 +596,7 @@ namespace RabbitMQ.Client
                 clientProvidedName,
                 RequestedChannelMax,
                 RequestedFrameMax,
+                MaxInboundMessageBodySize,
                 TopologyRecoveryEnabled,
                 TopologyRecoveryFilter,
                 TopologyRecoveryExceptionHandler,
