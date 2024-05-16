@@ -40,7 +40,7 @@ namespace RabbitMQ.Client
         private readonly string _value;
         private readonly ReadOnlyMemory<byte> _stringBytes;
 
-        public AmqpString()
+        protected AmqpString()
         {
             _value = string.Empty;
             _stringBytes = ReadOnlyMemory<byte>.Empty;
@@ -112,7 +112,7 @@ namespace RabbitMQ.Client
     {
         public static readonly ExchangeName Empty = new ExchangeName();
 
-        public ExchangeName() : base()
+        private ExchangeName() : base()
         {
         }
 
@@ -139,7 +139,7 @@ namespace RabbitMQ.Client
     {
         public static readonly QueueName Empty = new QueueName();
 
-        public QueueName() : base()
+        private QueueName() : base()
         {
         }
 
@@ -165,7 +165,7 @@ namespace RabbitMQ.Client
     {
         public static readonly RoutingKey Empty = new RoutingKey();
 
-        public RoutingKey() : base()
+        private RoutingKey() : base()
         {
         }
 
@@ -177,6 +177,31 @@ namespace RabbitMQ.Client
         public static explicit operator RoutingKey(string value)
         {
             return new RoutingKey(value);
+        }
+    }
+
+    /*
+     * From the spec:
+     *  <domain name="consumer-tag" type="shortstr" label="consumer tag">
+     *    <doc> Identifier for the consumer, valid within the current channel. </doc>
+     *  </domain>
+     */
+    public class ConsumerTag : AmqpString
+    {
+        public static readonly ConsumerTag Empty = new ConsumerTag();
+
+        private ConsumerTag() : base()
+        {
+        }
+
+        public ConsumerTag(string exchangeName)
+            : base(exchangeName, 256, Encoding.ASCII)
+        {
+        }
+
+        public static explicit operator ConsumerTag(string value)
+        {
+            return new ConsumerTag(value);
         }
     }
 }
