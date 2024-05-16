@@ -46,21 +46,37 @@ namespace RabbitMQ.Client
             _stringBytes = ReadOnlyMemory<byte>.Empty;
         }
 
-        public AmqpString(string value, ushort maxLen, Encoding validEncoding, string validatorRegex)
+        public AmqpString(string value, ushort maxLen, Encoding encoding)
+            : this(value, maxLen, encoding, null)
+        {
+        }
+
+        public AmqpString(string value, ushort maxLen, Encoding encoding, string validatorRegex)
         {
             if (value.Length > maxLen)
             {
                 throw new ArgumentOutOfRangeException(nameof(value));
             }
 
-            var re = new Regex(validatorRegex);
-            if (false == re.IsMatch(value))
+            if (false == string.IsNullOrWhiteSpace(validatorRegex))
             {
-                throw new ArgumentOutOfRangeException(nameof(value));
+                var re = new Regex(validatorRegex);
+                if (false == re.IsMatch(value))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+            }
+
+            if (encoding == Encoding.ASCII)
+            {
+                if (false == isAscii(value))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
             }
 
             _value = value;
-            _stringBytes = new ReadOnlyMemory<byte>(validEncoding.GetBytes(value));
+            _stringBytes = new ReadOnlyMemory<byte>(encoding.GetBytes(value));
         }
 
         public override string ToString()
@@ -76,6 +92,11 @@ namespace RabbitMQ.Client
         public static implicit operator ReadOnlyMemory<byte>(AmqpString amqpString)
         {
             return amqpString._stringBytes;
+        }
+
+        private bool isAscii(string value)
+        {
+            return Encoding.UTF8.GetByteCount(value) == value.Length;
         }
     }
 
@@ -130,6 +151,32 @@ namespace RabbitMQ.Client
         public static explicit operator QueueName(string value)
         {
             return new QueueName(value);
+        }
+    }
+
+    /*
+     * From the spec:
+     *  <field name="routing-key" domain="shortstr" label="Message routing key">
+     *    <doc> Specifies the routing key for the message. The routing key is used for routing messages depending on the exchange configuration. </doc>
+     *  </field>
+     *  <domain name = "shortstr" type="shortstr" label="short string (max. 256 characters)"/>
+     */
+    public class RoutingKey : AmqpString
+    {
+        public static readonly RoutingKey Empty = new RoutingKey();
+
+        public RoutingKey() : base()
+        {
+        }
+
+        public RoutingKey(string exchangeName)
+            : base(exchangeName, 256, Encoding.ASCII)
+        {
+        }
+
+        public static explicit operator RoutingKey(string value)
+        {
+            return new RoutingKey(value);
         }
     }
 }
