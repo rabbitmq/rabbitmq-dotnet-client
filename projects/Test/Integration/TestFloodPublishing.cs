@@ -102,7 +102,7 @@ namespace Test.Integration
                         }
                     }
 
-                    await _channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body);
+                    await _channel.BasicPublishAsync(ExchangeName.Empty, RoutingKey.Empty, _body);
                 }
             }
             finally

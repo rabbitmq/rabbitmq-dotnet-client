@@ -40,8 +40,8 @@ namespace Test.Integration
     public class TestPublishSharedChannelAsync : IntegrationFixture
     {
         private const string QueueName = "TestPublishSharedChannel_Queue";
-        private static readonly CachedString ExchangeName = new CachedString("TestPublishSharedChannel_Ex");
-        private static readonly CachedString PublishKey = new CachedString("TestPublishSharedChannel_RoutePub");
+        private static readonly ExchangeName s_exchangeName = new ExchangeName("TestPublishSharedChannel_Ex");
+        private static readonly RoutingKey s_publishKey = new RoutingKey("TestPublishSharedChannel_RoutePub");
         private const int Loops = 20;
         private const int Repeats = 1000;
 
@@ -85,16 +85,16 @@ namespace Test.Integration
                         try
                         {
                             channel.ChannelShutdown += HandleChannelShutdown;
-                            await channel.ExchangeDeclareAsync(ExchangeName.Value, ExchangeType.Topic, passive: false, durable: false, autoDelete: true,
+                            await channel.ExchangeDeclareAsync(s_exchangeName, ExchangeType.Topic, passive: false, durable: false, autoDelete: true,
                                 noWait: false, arguments: null);
                             await channel.QueueDeclareAsync(QueueName, exclusive: false, autoDelete: true);
-                            await channel.QueueBindAsync(QueueName, ExchangeName.Value, PublishKey.Value);
+                            await channel.QueueBindAsync(QueueName, s_exchangeName, s_publishKey);
 
                             for (int i = 0; i < Loops; i++)
                             {
                                 for (int j = 0; j < Repeats; j++)
                                 {
-                                    await channel.BasicPublishAsync(ExchangeName, PublishKey, _body, false);
+                                    await channel.BasicPublishAsync(s_exchangeName, s_publishKey, _body, false);
                                 }
                             }
                         }

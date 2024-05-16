@@ -90,8 +90,8 @@ namespace Test.Integration
             _conn = await _connFactory.CreateConnectionAsync();
             _channel = await _conn.CreateChannelAsync();
 
-            CachedString exchangeName = new CachedString(string.Empty);
-            CachedString queueName = new CachedString((await _channel.QueueDeclareAsync()).QueueName);
+            var exchangeName = new ExchangeName(string.Empty);
+            var queueName = new QueueName((await _channel.QueueDeclareAsync()).QueueName);
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
             var consumer = new EventingBasicConsumer(_channel);
@@ -102,7 +102,7 @@ namespace Test.Integration
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(queueName.Value, true, consumer);
+                string tag = await _channel.BasicConsumeAsync(queueName, true, consumer);
 
                 await _channel.BasicPublishAsync(exchangeName, queueName, sendBody);
                 bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));

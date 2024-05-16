@@ -93,10 +93,12 @@ namespace RabbitMQ.Client
             return channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties, body);
         }
 
-        public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey,
+            ReadOnlyMemory<byte> body = default, bool mandatory = false)
             => channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
 
-        public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
+        public static ValueTask BasicPublishAsync(this IChannel channel, ExchangeName exchange, RoutingKey routingKey,
+            ReadOnlyMemory<byte> body = default, bool mandatory = false)
             => channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
 
 #nullable disable

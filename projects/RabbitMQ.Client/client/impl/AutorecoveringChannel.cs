@@ -288,7 +288,7 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory, cancellationToken);
 
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, TProperties basicProperties,
+        public ValueTask BasicPublishAsync<TProperties>(ExchangeName exchange, RoutingKey routingKey, TProperties basicProperties,
             ReadOnlyMemory<byte> body, bool mandatory,
             CancellationToken cancellationToken)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader

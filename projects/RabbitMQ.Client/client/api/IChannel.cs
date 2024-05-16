@@ -224,7 +224,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, TProperties basicProperties,
+        ValueTask BasicPublishAsync<TProperties>(ExchangeName exchange, RoutingKey routingKey, TProperties basicProperties,
             ReadOnlyMemory<byte> body = default, bool mandatory = false,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;

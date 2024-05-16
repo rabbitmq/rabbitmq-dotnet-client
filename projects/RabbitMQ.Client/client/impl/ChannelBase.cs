@@ -1122,7 +1122,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+        public async ValueTask BasicPublishAsync<TProperties>(ExchangeName exchange, RoutingKey routingKey,
             TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory,
             CancellationToken cancellationToken)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -1143,11 +1143,11 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+                var cmd = new BasicPublishMemory(exchange, routingKey, mandatory, default);
 
                 RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
                 using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length, existingContext)
+                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length, existingContext)
                     : default;
 
                 if (sendActivity != null)
