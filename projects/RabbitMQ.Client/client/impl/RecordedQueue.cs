@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Impl
         public async Task<QueueName> RecoverAsync(IChannel channel, CancellationToken cancellationToken)
         {
             QueueName queueName = _name;
-            if (_name.IsEmpty)
+            if (_isServerNamed || _name.IsEmpty)
             {
                 queueName = QueueName.Empty;
             }
