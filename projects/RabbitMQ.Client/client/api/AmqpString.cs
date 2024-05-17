@@ -262,8 +262,8 @@ namespace RabbitMQ.Client
         {
         }
 
-        public RoutingKey(string exchangeName)
-            : base(exchangeName, 256, Encoding.ASCII)
+        public RoutingKey(string routingKey)
+            : base(routingKey, 256, Encoding.ASCII)
         {
         }
 
@@ -288,8 +288,8 @@ namespace RabbitMQ.Client
         {
         }
 
-        public ConsumerTag(string exchangeName)
-            : base(exchangeName, 256, Encoding.ASCII)
+        public ConsumerTag(string consumerTag)
+            : base(consumerTag, 256, Encoding.ASCII)
         {
         }
 

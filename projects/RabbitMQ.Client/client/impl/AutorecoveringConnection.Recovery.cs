@@ -498,12 +498,12 @@ namespace RabbitMQ.Client.Framing.Impl
                     _recordedEntitiesSemaphore.Wait();
                 }
 
-                string oldTag = consumer.ConsumerTag;
+                ConsumerTag oldTag = consumer.ConsumerTag;
                 try
                 {
-                    string newTag = await consumer.RecoverAsync(channelToUse)
+                    ConsumerTag newTag = await consumer.RecoverAsync(channelToUse)
                         .ConfigureAwait(false);
-                    RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag((ConsumerTag)newTag, consumer);
+                    RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
                     UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
 
                     if (!_consumerTagChangeAfterRecoveryWrapper.IsEmpty)
@@ -544,7 +544,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            void UpdateConsumer(string oldTag, string newTag, in RecordedConsumer consumer)
+            void UpdateConsumer(ConsumerTag oldTag, ConsumerTag newTag, in RecordedConsumer consumer)
             {
                 // make sure server-generated tags are re-added
                 _recordedConsumers.Remove(oldTag);
