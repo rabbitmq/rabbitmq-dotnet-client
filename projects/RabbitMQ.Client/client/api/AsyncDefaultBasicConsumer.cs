@@ -9,7 +9,7 @@ namespace RabbitMQ.Client
 {
     public class AsyncDefaultBasicConsumer : IBasicConsumer, IAsyncBasicConsumer
     {
-        private readonly HashSet<string> _consumerTags = new HashSet<string>();
+        private readonly HashSet<ConsumerTag> _consumerTags = new HashSet<ConsumerTag>();
 
         /// <summary>
         /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.
@@ -31,7 +31,7 @@ namespace RabbitMQ.Client
         /// Retrieve the consumer tags this consumer is registered as; to be used when discussing this consumer
         /// with the server, for instance with <see cref="IChannel.BasicCancelAsync"/>.
         /// </summary>
-        public string[] ConsumerTags
+        public ConsumerTag[] ConsumerTags
         {
             get
             {
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicCancel(string consumerTag)
+        public virtual Task HandleBasicCancel(ConsumerTag consumerTag)
         {
             return OnCancel(consumerTag);
         }
@@ -81,7 +81,7 @@ namespace RabbitMQ.Client
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicCancelOk(string consumerTag)
+        public virtual Task HandleBasicCancelOk(ConsumerTag consumerTag)
         {
             return OnCancel(consumerTag);
         }
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicConsumeOk(string consumerTag)
+        public virtual Task HandleBasicConsumeOk(ConsumerTag consumerTag)
         {
             _consumerTags.Add(consumerTag);
             IsRunning = true;
@@ -107,11 +107,11 @@ namespace RabbitMQ.Client
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.
         /// </remarks>
-        public virtual Task HandleBasicDeliver(string consumerTag,
+        public virtual Task HandleBasicDeliver(ConsumerTag consumerTag,
             ulong deliveryTag,
             bool redelivered,
-            ReadOnlyMemory<byte> exchange,
-            ReadOnlyMemory<byte> routingKey,
+            ExchangeName exchange,
+            RoutingKey routingKey,
             in ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
@@ -136,7 +136,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This default implementation simply sets the <see cref="IsRunning"/> property to false, and takes no further action.
         /// </remarks>
-        public virtual async Task OnCancel(params string[] consumerTags)
+        public virtual async Task OnCancel(params ConsumerTag[] consumerTags)
         {
             IsRunning = false;
             if (!_consumerCancelledWrapper.IsEmpty)
@@ -144,7 +144,7 @@ namespace RabbitMQ.Client
                 await _consumerCancelledWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags))
                     .ConfigureAwait(false);
             }
-            foreach (string consumerTag in consumerTags)
+            foreach (ConsumerTag consumerTag in consumerTags)
             {
                 _consumerTags.Remove(consumerTag);
             }
@@ -156,18 +156,18 @@ namespace RabbitMQ.Client
             remove { throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'."); }
         }
 
-        void IBasicConsumer.HandleBasicCancelOk(string consumerTag)
+        void IBasicConsumer.HandleBasicCancelOk(ConsumerTag consumerTag)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
-        void IBasicConsumer.HandleBasicConsumeOk(string consumerTag)
+        void IBasicConsumer.HandleBasicConsumeOk(ConsumerTag consumerTag)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
-        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
-            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+        Task IBasicConsumer.HandleBasicDeliverAsync(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+            ExchangeName exchange, RoutingKey routingKey,
             ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
@@ -178,7 +178,7 @@ namespace RabbitMQ.Client
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
-        void IBasicConsumer.HandleBasicCancel(string consumerTag)
+        void IBasicConsumer.HandleBasicCancel(ConsumerTag consumerTag)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }

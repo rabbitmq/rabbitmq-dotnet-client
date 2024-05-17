@@ -48,6 +48,12 @@ namespace RabbitMQ.Client
             _stringBytes = ReadOnlyMemory<byte>.Empty;
         }
 
+        public AmqpString(ReadOnlyMemory<byte> stringBytes)
+        {
+            _stringBytes = stringBytes;
+            _byteCount = _stringBytes.Length;
+        }
+
         public AmqpString(string value, ushort maxLen, Encoding encoding,
             bool strictValidation = false)
             : this(value, maxLen, encoding, null, strictValidation)
@@ -87,7 +93,7 @@ namespace RabbitMQ.Client
                 }
             }
 
-            _value = value;
+            _value = FixUp(value);
             _stringBytes = new ReadOnlyMemory<byte>(encoding.GetBytes(value));
             _byteCount = _stringBytes.Length;
         }
@@ -98,13 +104,28 @@ namespace RabbitMQ.Client
         {
             get
             {
-                return _value == string.Empty;
+                if (_value is null)
+                {
+                    return _stringBytes.Length == 0;
+                }
+                else
+                {
+                    return _value == string.Empty;
+                }
             }
         }
 
         public bool Contains(string value)
         {
-            return _value.Contains(value);
+            if (_value is null)
+            {
+                // TODO
+                return false;
+            }
+            else
+            {
+                return _value.Contains(value);
+            }
         }
 
         public override string ToString()
@@ -125,11 +146,6 @@ namespace RabbitMQ.Client
         public static implicit operator ReadOnlySpan<byte>(AmqpString amqpString)
         {
             return amqpString._stringBytes.Span;
-        }
-
-        private bool isAscii(string value)
-        {
-            return Encoding.UTF8.GetByteCount(value) == value.Length;
         }
 
         public override bool Equals(object obj)
@@ -194,6 +210,16 @@ namespace RabbitMQ.Client
 
             return false == amqpString1.Equals(amqpString2);
         }
+
+        protected virtual string FixUp(string value)
+        {
+            return value;
+        }
+
+        private static bool isAscii(string value)
+        {
+            return Encoding.UTF8.GetByteCount(value) == value.Length;
+        }
     }
 
     /*
@@ -213,6 +239,11 @@ namespace RabbitMQ.Client
         {
         }
 
+        public ExchangeName(ReadOnlyMemory<byte> exchangeNameBytes)
+            : base(exchangeNameBytes)
+        {
+        }
+
         public ExchangeName(string exchangeName)
             : this(exchangeName, false)
         {
@@ -227,12 +258,24 @@ namespace RabbitMQ.Client
         {
             return new ExchangeName(value);
         }
+
+        protected override string FixUp(string value)
+        {
+            // Note: this is the only modification RabbitMQ makes
+            return value.Replace("\r", string.Empty).Replace("\n", string.Empty);
+        }
     }
 
     /*
      * From the spec:
      *  <domain name="queue-name" type="shortstr" label="queue name">
-     *    <doc> The queue name identifies the queue within the vhost. In methods where the queue name may be blank, and that has no specific significance, this refers to the 'current' queue for the channel, meaning the last queue that the client declared on the channel. If the client did not declare a queue, and the method needs a queue name, this will result in a 502 (syntax error) channel exception. </doc>
+     *    <doc> The queue name identifies the queue within the vhost.
+     *    In methods where the queue name may be blank, and that has no
+     *    specific significance, this refers to the 'current' queue for
+     *    the channel, meaning the last queue that the client declared
+     *    on the channel. If the client did not declare a queue, and the
+     *    method needs a queue name, this will result in a 502
+     *    (syntax error) channel exception.</doc>
      *    <assert check="length" value="127"/>
      *    <assert check="regexp" value="^[a-zA-Z0-9-_.:]*$"/>
      *  </domain>
@@ -242,6 +285,11 @@ namespace RabbitMQ.Client
         public static readonly QueueName Empty = new QueueName();
 
         private QueueName() : base()
+        {
+        }
+
+        public QueueName(ReadOnlyMemory<byte> queueNameBytes)
+            : base(queueNameBytes)
         {
         }
 
@@ -263,7 +311,13 @@ namespace RabbitMQ.Client
 
         public static explicit operator RoutingKey(QueueName value)
         {
-            return new RoutingKey(value);
+            return new RoutingKey((string)value);
+        }
+
+        protected override string FixUp(string value)
+        {
+            // Note: this is the only modification RabbitMQ makes
+            return value.Replace("\r", string.Empty).Replace("\n", string.Empty);
         }
     }
 
@@ -279,6 +333,11 @@ namespace RabbitMQ.Client
         public static readonly RoutingKey Empty = new RoutingKey();
 
         private RoutingKey() : base()
+        {
+        }
+
+        public RoutingKey(ReadOnlyMemory<byte> routingKeyBytes)
+            : base(routingKeyBytes)
         {
         }
 
@@ -313,18 +372,22 @@ namespace RabbitMQ.Client
         {
         }
 
+        public ConsumerTag(ReadOnlyMemory<byte> consumerTagBytes)
+            : base(consumerTagBytes)
+        {
+        }
+
         public ConsumerTag(string consumerTag)
             : this(consumerTag, false)
         {
         }
 
         public ConsumerTag(string consumerTag, bool strictValidation)
-            : base(consumerTag, 256, Encoding.ASCII, strictValidation)
+            : base(consumerTag, 256, Encoding.UTF8, strictValidation)
         {
         }
 
-        // TODO explicit
-        public static implicit operator ConsumerTag(string value)
+        public static explicit operator ConsumerTag(string value)
         {
             return new ConsumerTag(value);
         }

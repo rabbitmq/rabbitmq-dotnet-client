@@ -100,7 +100,7 @@ namespace Test.SequentialIntegration
                     consumerReceivedTcs.SetResult(true);
                 };
 
-                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                ConsumerTag consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
                 await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, sendBody, mandatory: true);
                 await _channel.WaitForConfirmsOrDieAsync();
 
@@ -139,7 +139,7 @@ namespace Test.SequentialIntegration
                     consumerReceivedTcs.SetResult(true);
                 };
 
-                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                ConsumerTag consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
                 await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, sendBody, mandatory: true);
                 await _channel.WaitForConfirmsOrDieAsync();
 

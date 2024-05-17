@@ -62,7 +62,7 @@ namespace Test.Integration
                 {
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
                 // ensure we get a delivery
                 bool waitRes = await consumerReceivedSemaphore.WaitAsync(waitSpan);
                 Assert.True(waitRes);
@@ -86,7 +86,7 @@ namespace Test.Integration
                 {
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
                 // ensure we get a delivery
                 bool waitRes0 = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
                 Assert.True(waitRes0);

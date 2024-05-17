@@ -113,7 +113,7 @@ namespace Test.Integration
                 }
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override void HandleBasicCancel(ConsumerTag consumerTag)
             {
                 if (!_eventMode)
                 {

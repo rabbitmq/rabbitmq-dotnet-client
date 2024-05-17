@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Impl
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
-        private readonly List<string> _recordedConsumerTags = new List<string>();
+        private readonly List<ConsumerTag> _recordedConsumerTags = new List<ConsumerTag>();
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -117,7 +117,7 @@ namespace RabbitMQ.Client.Impl
             remove { InnerChannel.Recovery -= value; }
         }
 
-        public IEnumerable<string> ConsumerTags
+        public IEnumerable<ConsumerTag> ConsumerTags
         {
             get
             {
@@ -264,14 +264,14 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public async Task<string> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
+        public async Task<ConsumerTag> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer,
             CancellationToken cancellationToken)
         {
-            string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal,
+            ConsumerTag resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal,
                 exclusive, arguments, consumer, cancellationToken)
                 .ConfigureAwait(false);
-            var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: (ConsumerTag)resultConsumerTag,
+            var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
             await _connection.RecordConsumerAsync(rc, recordedEntitiesSemaphoreHeld: false)
                 .ConfigureAwait(false);

@@ -22,23 +22,23 @@ namespace RabbitMQ.Client.ConsumerDispatching
             remove { }
         }
 
-        void IBasicConsumer.HandleBasicCancel(string consumerTag)
+        void IBasicConsumer.HandleBasicCancel(ConsumerTag consumerTag)
         {
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicCancel)} for tag {consumerTag}");
         }
 
-        void IBasicConsumer.HandleBasicCancelOk(string consumerTag)
+        void IBasicConsumer.HandleBasicCancelOk(ConsumerTag consumerTag)
         {
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicCancelOk)} for tag {consumerTag}");
         }
 
-        void IBasicConsumer.HandleBasicConsumeOk(string consumerTag)
+        void IBasicConsumer.HandleBasicConsumeOk(ConsumerTag consumerTag)
         {
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicConsumeOk)} for tag {consumerTag}");
         }
 
-        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
-            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+        Task IBasicConsumer.HandleBasicDeliverAsync(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+            ExchangeName exchange, RoutingKey routingKey,
             ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicDeliverAsync)} for tag {consumerTag}");
@@ -50,25 +50,26 @@ namespace RabbitMQ.Client.ConsumerDispatching
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleChannelShutdown)}");
         }
 
-        Task IAsyncBasicConsumer.HandleBasicCancel(string consumerTag)
+        Task IAsyncBasicConsumer.HandleBasicCancel(ConsumerTag consumerTag)
         {
             ((IBasicConsumer)this).HandleBasicCancel(consumerTag);
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleBasicCancelOk(string consumerTag)
+        Task IAsyncBasicConsumer.HandleBasicCancelOk(ConsumerTag consumerTag)
         {
             ((IBasicConsumer)this).HandleBasicCancelOk(consumerTag);
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleBasicConsumeOk(string consumerTag)
+        Task IAsyncBasicConsumer.HandleBasicConsumeOk(ConsumerTag consumerTag)
         {
             ((IBasicConsumer)this).HandleBasicConsumeOk(consumerTag);
             return Task.CompletedTask;
         }
 
-        Task IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+        Task IAsyncBasicConsumer.HandleBasicDeliver(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+            ExchangeName exchange, RoutingKey routingKey,
             in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             return ((IBasicConsumer)this).HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);

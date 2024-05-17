@@ -655,7 +655,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                string consumerTag = BasicCancel.GetConsumerTag(cmd.MethodSpan);
+                ConsumerTag consumerTag = BasicCancel.GetConsumerTag(cmd.MethodSpan);
                 await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
                     .ConfigureAwait(false);
                 return true;
@@ -670,14 +670,21 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                var method = new Client.Framing.Impl.BasicDeliver(cmd.MethodMemory);
+                var method = new BasicDeliver(cmd.MethodMemory);
                 var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
+
+                // TODO
+                // take advantage of lazy init in AmqpString
+                var ct = new ConsumerTag(method._consumerTag);
+                var ex = new ExchangeName(method._exchange);
+                var rk = new RoutingKey(method._routingKey);
+
                 await ConsumerDispatcher.HandleBasicDeliverAsync(
-                        method._consumerTag,
+                        ct,
                         AdjustDeliveryTag(method._deliveryTag),
                         method._redelivered,
-                        method._exchange,
-                        method._routingKey,
+                        ex,
+                        rk,
                         header,
                         cmd.Body,
                         cancellationToken).ConfigureAwait(false);
@@ -969,7 +976,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task<string> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
+        public async Task<ConsumerTag> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer,
             CancellationToken cancellationToken)
         {

@@ -124,7 +124,7 @@ namespace Test.Integration.ConnectionRecovery
                 QueueName q = GenerateQueueName();
                 await _channel.QueueDeclareAsync(q, false, false, true);
                 var dummy = new EventingBasicConsumer(_channel);
-                string tag = await _channel.BasicConsumeAsync(q, true, dummy);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, dummy);
                 await _channel.BasicCancelAsync(tag);
             }
             AssertRecordedQueues((AutorecoveringConnection)_conn, 0);

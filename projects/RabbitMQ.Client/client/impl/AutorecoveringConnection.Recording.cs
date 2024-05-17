@@ -507,7 +507,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private async Task DoDeleteRecordedConsumersAsync(AutorecoveringChannel channel)
         {
-            foreach (string ct in channel.ConsumerTags)
+            foreach (ConsumerTag ct in channel.ConsumerTags)
             {
                 await DeleteRecordedConsumerAsync(ct, recordedEntitiesSemaphoreHeld: true)
                     .ConfigureAwait(false);

@@ -67,7 +67,7 @@ namespace Test.Integration
                 unregisteredTcs.SetResult(true);
             };
 
-            string tag = await _channel.BasicConsumeAsync(q, false, ec);
+            ConsumerTag tag = await _channel.BasicConsumeAsync(q, false, ec);
             await WaitAsync(registeredTcs, "consumer registered");
 
             Assert.NotNull(registeredSender);

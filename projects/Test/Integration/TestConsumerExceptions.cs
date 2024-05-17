@@ -53,11 +53,11 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicDeliverAsync(string consumerTag,
+            public override Task HandleBasicDeliverAsync(ConsumerTag consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
-                ReadOnlyMemory<byte> exchange,
-                ReadOnlyMemory<byte> routingKey,
+                ExchangeName exchange,
+                RoutingKey routingKey,
                 ReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
@@ -71,7 +71,7 @@ namespace Test.Integration
             {
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override void HandleBasicCancel(ConsumerTag consumerTag)
             {
                 throw new Exception("oops");
             }
@@ -95,7 +95,7 @@ namespace Test.Integration
             {
             }
 
-            public override void HandleBasicConsumeOk(string consumerTag)
+            public override void HandleBasicConsumeOk(ConsumerTag consumerTag)
             {
                 throw new Exception("oops");
             }
@@ -107,18 +107,18 @@ namespace Test.Integration
             {
             }
 
-            public override void HandleBasicCancelOk(string consumerTag)
+            public override void HandleBasicCancelOk(ConsumerTag consumerTag)
             {
                 throw new Exception("oops");
             }
         }
 
         protected async Task TestExceptionHandlingWithAsync(IBasicConsumer consumer,
-            Func<IChannel, string, IBasicConsumer, string, Task> action)
+            Func<IChannel, QueueName, IBasicConsumer, ConsumerTag, Task> action)
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool notified = false;
-            string q = await _channel.QueueDeclareAsync();
+            QueueName q = await _channel.QueueDeclareAsync();
 
             _channel.CallbackException += (m, evt) =>
             {
@@ -126,7 +126,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
             };
 
-            string tag = await _channel.BasicConsumeAsync(q, true, consumer);
+            ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, consumer);
             await action(_channel, q, consumer, tag);
             await WaitAsync(tcs, "callback exception");
 
@@ -173,7 +173,7 @@ namespace Test.Integration
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
             return TestExceptionHandlingWithAsync(consumer, (ch, q, c, ct) =>
-                ch.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes("msg")).AsTask());
+                ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)q, _encoding.GetBytes("msg")).AsTask());
         }
     }
 }

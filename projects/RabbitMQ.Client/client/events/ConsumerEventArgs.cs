@@ -39,13 +39,13 @@ namespace RabbitMQ.Client.Events
     {
         ///<summary>Construct an event containing the consumer-tags of
         ///the consumer the event relates to.</summary>
-        public ConsumerEventArgs(string[] consumerTags)
+        public ConsumerEventArgs(ConsumerTag[] consumerTags)
         {
             ConsumerTags = consumerTags;
         }
 
         ///<summary>Access the consumer-tags of the consumer the event
         ///relates to.</summary>
-        public readonly string[] ConsumerTags;
+        public readonly ConsumerTag[] ConsumerTags;
     }
 }

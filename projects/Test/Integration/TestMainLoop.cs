@@ -56,11 +56,11 @@ namespace Test.Integration
         {
             public FaultyConsumer(IChannel channel) : base(channel) { }
 
-            public override Task HandleBasicDeliverAsync(string consumerTag,
+            public override Task HandleBasicDeliverAsync(ConsumerTag consumerTag,
                                                ulong deliveryTag,
                                                bool redelivered,
-                                               ReadOnlyMemory<byte> exchange,
-                                               ReadOnlyMemory<byte> routingKey,
+                                               ExchangeName exchange,
+                                               RoutingKey routingKey,
                                                ReadOnlyBasicProperties properties,
                                                ReadOnlyMemory<byte> body)
             {

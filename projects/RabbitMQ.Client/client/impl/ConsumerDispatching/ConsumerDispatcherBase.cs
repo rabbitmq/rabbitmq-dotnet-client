@@ -12,16 +12,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
     internal abstract class ConsumerDispatcherBase
     {
         private static readonly FallbackConsumer fallbackConsumer = new FallbackConsumer();
-        private readonly Dictionary<ReadOnlyMemory<byte>, (IBasicConsumer consumer, string consumerTag)> _consumers;
+        private readonly Dictionary<ReadOnlyMemory<byte>, (IBasicConsumer consumer, ConsumerTag consumerTag)> _consumers;
 
         public IBasicConsumer? DefaultConsumer { get; set; }
 
         protected ConsumerDispatcherBase()
         {
-            _consumers = new Dictionary<ReadOnlyMemory<byte>, (IBasicConsumer, string)>(MemoryOfByteEqualityComparer.Instance);
+            _consumers = new Dictionary<ReadOnlyMemory<byte>, (IBasicConsumer, ConsumerTag)>(MemoryOfByteEqualityComparer.Instance);
         }
 
-        protected void AddConsumer(IBasicConsumer consumer, string tag)
+        protected void AddConsumer(IBasicConsumer consumer, ConsumerTag tag)
         {
             lock (_consumers)
             {
@@ -30,15 +30,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        protected (IBasicConsumer consumer, string consumerTag) GetConsumerOrDefault(ReadOnlyMemory<byte> tag)
+        protected (IBasicConsumer consumer, ConsumerTag consumerTag) GetConsumerOrDefault(ReadOnlyMemory<byte> tag)
         {
             lock (_consumers)
             {
-                if (_consumers.TryGetValue(tag, out (IBasicConsumer consumer, string consumerTag) consumerPair))
+                if (_consumers.TryGetValue(tag, out (IBasicConsumer consumer, ConsumerTag consumerTag) consumerPair))
                 {
                     return consumerPair;
                 }
 
+#if TODO
 #if NET6_0_OR_GREATER
                 string consumerTag = Encoding.UTF8.GetString(tag.Span);
 #else
@@ -51,12 +52,12 @@ namespace RabbitMQ.Client.ConsumerDispatching
                     }
                 }
 #endif
-
-                return (GetDefaultOrFallbackConsumer(), consumerTag);
+#endif
+                return (GetDefaultOrFallbackConsumer(), new ConsumerTag(tag));
             }
         }
 
-        public IBasicConsumer GetAndRemoveConsumer(string tag)
+        public IBasicConsumer GetAndRemoveConsumer(ConsumerTag tag)
         {
             lock (_consumers)
             {
@@ -64,15 +65,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 byte[]? buf = null;
                 try
                 {
-                    buf = pool.Rent(Encoding.UTF8.GetMaxByteCount(tag.Length));
+                    string tagStr = (string)tag;
+                    buf = pool.Rent(tag.ByteCount);
 #if NET6_0_OR_GREATER
-                    int count = Encoding.UTF8.GetBytes(tag, buf);
+                    int count = Encoding.UTF8.GetBytes(tagStr, buf);
 #else
-                    int count = Encoding.UTF8.GetBytes(tag, 0, tag.Length, buf, 0);
+                    int count = Encoding.UTF8.GetBytes(tagStr, 0, tagStr.Length, buf, 0);
 #endif
                     Memory<byte> memory = buf.AsMemory(0, count);
                     IBasicConsumer result = _consumers.Remove(memory,
-                        out (IBasicConsumer consumer, string consumerTag) consumerPair) ?
+                        out (IBasicConsumer consumer, ConsumerTag consumerTag) consumerPair) ?
                             consumerPair.consumer : GetDefaultOrFallbackConsumer();
                     return result;
                 }
@@ -102,7 +104,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             lock (_consumers)
             {
-                foreach (KeyValuePair<ReadOnlyMemory<byte>, (IBasicConsumer consumer, string consumerTag)> pair in _consumers)
+                foreach (KeyValuePair<ReadOnlyMemory<byte>, (IBasicConsumer consumer, ConsumerTag consumerTag)> pair in _consumers)
                 {
                     ShutdownConsumer(pair.Value.consumer, reason);
                 }

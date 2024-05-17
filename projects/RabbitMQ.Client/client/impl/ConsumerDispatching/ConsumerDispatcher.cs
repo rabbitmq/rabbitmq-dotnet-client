@@ -27,7 +27,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             try
                             {
                                 IBasicConsumer consumer = work.Consumer;
-                                string? consumerTag = work.ConsumerTag;
+                                ConsumerTag? consumerTag = work.ConsumerTag;
                                 switch (work.WorkType)
                                 {
                                     case WorkType.Deliver:

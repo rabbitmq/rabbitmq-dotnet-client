@@ -222,7 +222,7 @@ namespace OAuth2Test
         {
             var asyncListener = new AsyncEventingBasicConsumer(subscriber);
             asyncListener.Received += AsyncListener_Received;
-            string consumerTag = await subscriber.BasicConsumeAsync("testqueue", true, "testconsumer", asyncListener);
+            ConsumerTag consumerTag = await subscriber.BasicConsumeAsync("testqueue", true, (ConsumerTag)"testconsumer", asyncListener);
             await _doneEvent.WaitAsync(TimeSpan.FromMilliseconds(500));
             _testOutputHelper.WriteLine("Received message");
             await subscriber.BasicCancelAsync(consumerTag);

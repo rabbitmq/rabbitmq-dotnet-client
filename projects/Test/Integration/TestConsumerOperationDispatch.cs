@@ -85,8 +85,9 @@ namespace Test.Integration
                 DeliveryTags = new List<ulong>();
             }
 
-            public override Task HandleBasicDeliverAsync(string consumerTag,
-                ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+            public override Task HandleBasicDeliverAsync(ConsumerTag consumerTag,
+                ulong deliveryTag, bool redelivered,
+                ExchangeName exchange, RoutingKey routingKey,
                 ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
             {
                 // we test concurrent dispatch from the moment basic.delivery is returned.

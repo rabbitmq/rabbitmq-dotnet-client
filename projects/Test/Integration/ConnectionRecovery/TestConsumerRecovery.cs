@@ -75,7 +75,7 @@ namespace Test.Integration.ConnectionRecovery
             for (int i = 0; i < n; i++)
             {
                 var cons = new AsyncEventingBasicConsumer(_channel);
-                string tag = await _channel.BasicConsumeAsync(q, true, cons);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, cons);
                 await _channel.BasicCancelAsync(tag);
             }
             await CloseAndWaitForRecoveryAsync();

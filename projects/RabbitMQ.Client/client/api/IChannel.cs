@@ -177,7 +177,7 @@ namespace RabbitMQ.Client
         /// <param name="consumer">The consumer, an instance of <see cref="IBasicConsumer"/></param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns></returns>
-        Task<string> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
+        Task<ConsumerTag> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer,
             CancellationToken cancellationToken = default);
 

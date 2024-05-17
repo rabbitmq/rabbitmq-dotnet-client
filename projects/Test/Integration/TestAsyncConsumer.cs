@@ -117,7 +117,7 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                await _channel.BasicConsumeAsync(q.QueueName, true, string.Empty, false, false, null, consumer);
+                await _channel.BasicConsumeAsync(q.QueueName, true, ConsumerTag.Empty, false, false, null, consumer);
 
                 // ensure we get a delivery
                 await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
@@ -284,7 +284,7 @@ namespace Test.Integration
                                         return Task.CompletedTask;
                                     };
 
-                                    await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
+                                    await consumeChannel.BasicConsumeAsync(queueName, true, ConsumerTag.Empty, false, false, null, consumer);
                                     await consumerSyncSource.Task;
 
                                     await consumeChannel.CloseAsync();
@@ -373,7 +373,7 @@ namespace Test.Integration
                 await _channel.BasicPublishAsync(ExchangeName.Empty, queueName, _body);
 
                 await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
-                    consumerTag: string.Empty, noLocal: false, exclusive: false,
+                    consumerTag: ConsumerTag.Empty, noLocal: false, exclusive: false,
                     arguments: null, consumer);
 
                 Assert.True(await publishSyncSource.Task);
@@ -464,7 +464,7 @@ namespace Test.Integration
 
             await _channel.BasicQosAsync(0, 1, false);
             await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
-                consumerTag: string.Empty, noLocal: false, exclusive: false,
+                consumerTag: ConsumerTag.Empty, noLocal: false, exclusive: false,
                 arguments: null, consumer);
 
             Task<bool> publishTask = Task.Run(async () =>
@@ -530,7 +530,7 @@ namespace Test.Integration
             await _channel.BasicPublishAsync(ExchangeName.Empty, queueName, _body);
 
             await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
-                consumerTag: string.Empty, noLocal: false, exclusive: false,
+                consumerTag: ConsumerTag.Empty, noLocal: false, exclusive: false,
                 arguments: null, consumer);
 
             Assert.True(await publishSyncSource.Task);
@@ -574,7 +574,7 @@ namespace Test.Integration
             var consumer = new EventingBasicConsumer(_channel);
             try
             {
-                string consumerTag = await _channel.BasicConsumeAsync(q.QueueName, false, string.Empty, false, false, null, consumer);
+                ConsumerTag consumerTag = await _channel.BasicConsumeAsync(q.QueueName, false, ConsumerTag.Empty, false, false, null, consumer);
             }
             catch (InvalidOperationException)
             {
@@ -595,7 +595,7 @@ namespace Test.Integration
                     string q = GenerateQueueName();
                     await _channel.QueueDeclareAsync(q, false, false, true);
                     var dummy = new AsyncEventingBasicConsumer(_channel);
-                    string tag = await _channel.BasicConsumeAsync(q, true, dummy);
+                    ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, dummy);
                     await _channel.BasicCancelAsync(tag);
                 }));
             }

@@ -73,7 +73,7 @@ namespace Test.Integration
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
                 await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, bp, sendBody);
                 bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
@@ -102,7 +102,7 @@ namespace Test.Integration
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(queueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(queueName, true, consumer);
 
                 await _channel.BasicPublishAsync(exchangeName, (RoutingKey)queueName, sendBody);
                 bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
@@ -130,7 +130,7 @@ namespace Test.Integration
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
                 await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, new ReadOnlyMemory<byte>(sendBody));
                 bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
@@ -161,7 +161,7 @@ namespace Test.Integration
                     }
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
                 await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, sendBody);
                 sendBody.AsSpan().Fill(1);
@@ -292,7 +292,7 @@ namespace Test.Integration
                     consumerReceivedSemaphore.Release();
                 };
 
-                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
                 await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, bp, sendBody);
                 bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
                 await _channel.BasicCancelAsync(tag);

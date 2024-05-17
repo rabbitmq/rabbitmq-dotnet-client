@@ -49,7 +49,7 @@ namespace RabbitMQ.Client
     /// </remarks>
     public class DefaultBasicConsumer : IBasicConsumer
     {
-        private readonly HashSet<string> _consumerTags = new HashSet<string>();
+        private readonly HashSet<ConsumerTag> _consumerTags = new HashSet<ConsumerTag>();
 
         /// <summary>
         /// Creates a new instance of an <see cref="DefaultBasicConsumer"/>.
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client
         /// This value is an array because a single consumer instance can be reused to consume on
         /// multiple channels.
         /// </summary>
-        public string[] ConsumerTags
+        public ConsumerTag[] ConsumerTags
         {
             get
             {
@@ -114,7 +114,7 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual void HandleBasicCancel(string consumerTag)
+        public virtual void HandleBasicCancel(ConsumerTag consumerTag)
         {
             OnCancel(consumerTag);
         }
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual void HandleBasicCancelOk(string consumerTag)
+        public virtual void HandleBasicCancelOk(ConsumerTag consumerTag)
         {
             OnCancel(consumerTag);
         }
@@ -132,7 +132,7 @@ namespace RabbitMQ.Client
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual void HandleBasicConsumeOk(string consumerTag)
+        public virtual void HandleBasicConsumeOk(ConsumerTag consumerTag)
         {
             _consumerTags.Add(consumerTag);
             IsRunning = true;
@@ -148,11 +148,11 @@ namespace RabbitMQ.Client
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.
         /// </remarks>
-        public virtual Task HandleBasicDeliverAsync(string consumerTag,
+        public virtual Task HandleBasicDeliverAsync(ConsumerTag consumerTag,
             ulong deliveryTag,
             bool redelivered,
-            ReadOnlyMemory<byte> exchange,
-            ReadOnlyMemory<byte> routingKey,
+            ExchangeName exchange,
+            RoutingKey routingKey,
             ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
@@ -178,7 +178,7 @@ namespace RabbitMQ.Client
         /// This default implementation simply sets the <see cref="IsRunning"/> 
         /// property to false, and takes no further action.
         /// </remarks>
-        public virtual void OnCancel(params string[] consumerTags)
+        public virtual void OnCancel(params ConsumerTag[] consumerTags)
         {
             IsRunning = false;
             if (!_consumerCancelledWrapper.IsEmpty)
@@ -186,7 +186,7 @@ namespace RabbitMQ.Client
                 _consumerCancelledWrapper.Invoke(this, new ConsumerEventArgs(consumerTags));
             }
 
-            foreach (string consumerTag in consumerTags)
+            foreach (ConsumerTag consumerTag in consumerTags)
             {
                 _consumerTags.Remove(consumerTag);
             }

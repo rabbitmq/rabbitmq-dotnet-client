@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
+        public ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, ConsumerTag consumerTag, CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
@@ -72,13 +72,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public ValueTask HandleBasicDeliverAsync(ReadOnlyMemory<byte> consumerTag, ulong deliveryTag, bool redelivered,
-            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body,
+        public ValueTask HandleBasicDeliverAsync(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+            ExchangeName exchange, RoutingKey routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body,
             CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
-                (IBasicConsumer consumer, string consumerTag) consumerPair = GetConsumerOrDefault(consumerTag);
+                (IBasicConsumer consumer, ConsumerTag consumerTag) consumerPair = GetConsumerOrDefault(consumerTag);
                 var work = new WorkStruct(consumerPair.consumer, consumerPair.consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
                 return _writer.WriteAsync(work, cancellationToken);
             }
@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
+        public ValueTask HandleBasicCancelOkAsync(ConsumerTag consumerTag, CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
@@ -100,7 +100,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
+        public ValueTask HandleBasicCancelAsync(ConsumerTag consumerTag, CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
@@ -249,17 +249,17 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             public readonly IBasicConsumer Consumer;
             public IAsyncBasicConsumer AsyncConsumer => (IAsyncBasicConsumer)Consumer;
-            public readonly string? ConsumerTag;
+            public readonly ConsumerTag? ConsumerTag;
             public readonly ulong DeliveryTag;
             public readonly bool Redelivered;
-            public readonly ReadOnlyMemory<byte> Exchange;
-            public readonly ReadOnlyMemory<byte> RoutingKey;
+            public readonly ExchangeName? Exchange;
+            public readonly RoutingKey? RoutingKey;
             public readonly ReadOnlyBasicProperties BasicProperties;
             public readonly RentedMemory Body;
             public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
 
-            public WorkStruct(WorkType type, IBasicConsumer consumer, string consumerTag)
+            public WorkStruct(WorkType type, IBasicConsumer consumer, ConsumerTag consumerTag)
                 : this()
             {
                 WorkType = type;
@@ -275,8 +275,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 Reason = reason;
             }
 
-            public WorkStruct(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
-                ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body)
+            public WorkStruct(IBasicConsumer consumer, ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+                ExchangeName exchange, RoutingKey routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body)
             {
                 WorkType = WorkType.Deliver;
                 Consumer = consumer;

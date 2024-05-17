@@ -62,10 +62,10 @@ namespace RabbitMQ.Client.Framing.Impl
             return bufferSize;
         }
 
-        public static string GetConsumerTag(ReadOnlySpan<byte> span)
+        public static ConsumerTag GetConsumerTag(ReadOnlySpan<byte> span)
         {
-            _ = WireFormatting.ReadShortstr(span, out string consumerTag);
-            return consumerTag;
+            _ = WireFormatting.ReadShortstr(span, out string consumerTagStr);
+            return new ConsumerTag(consumerTagStr);
         }
     }
 }

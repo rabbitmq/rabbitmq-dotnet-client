@@ -209,10 +209,10 @@ namespace RabbitMQ.Client.Impl
 
     internal class BasicCancelAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
-        private readonly string _consumerTag;
+        private readonly ConsumerTag _consumerTag;
         private readonly IConsumerDispatcher _consumerDispatcher;
 
-        public BasicCancelAsyncRpcContinuation(string consumerTag, IConsumerDispatcher consumerDispatcher,
+        public BasicCancelAsyncRpcContinuation(ConsumerTag consumerTag, IConsumerDispatcher consumerDispatcher,
             TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.BasicCancelOk, continuationTimeout, cancellationToken)
         {
@@ -226,7 +226,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (cmd.CommandId == ProtocolCommandId.BasicCancelOk)
                 {
-                    var method = new Client.Framing.Impl.BasicCancelOk(cmd.MethodSpan);
+                    var method = new BasicCancelOk(cmd.MethodSpan);
                     _tcs.TrySetResult(true);
                     Debug.Assert(_consumerTag == method._consumerTag);
                     await _consumerDispatcher.HandleBasicCancelOkAsync(_consumerTag, CancellationToken)
@@ -244,7 +244,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class BasicConsumeAsyncRpcContinuation : AsyncRpcContinuation<string>
+    internal class BasicConsumeAsyncRpcContinuation : AsyncRpcContinuation<ConsumerTag>
     {
         private readonly IBasicConsumer _consumer;
         private readonly IConsumerDispatcher _consumerDispatcher;
@@ -263,9 +263,10 @@ namespace RabbitMQ.Client.Impl
             {
                 if (cmd.CommandId == ProtocolCommandId.BasicConsumeOk)
                 {
-                    var method = new Client.Framing.Impl.BasicConsumeOk(cmd.MethodSpan);
-                    _tcs.TrySetResult(method._consumerTag);
-                    await _consumerDispatcher.HandleBasicConsumeOkAsync(_consumer, method._consumerTag, CancellationToken)
+                    var method = new BasicConsumeOk(cmd.MethodSpan);
+                    var ct = new ConsumerTag(method._consumerTag);
+                    _tcs.TrySetResult(ct);
+                    await _consumerDispatcher.HandleBasicConsumeOkAsync(_consumer, ct, CancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
