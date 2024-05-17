@@ -48,32 +48,42 @@ namespace RabbitMQ.Client
             _stringBytes = ReadOnlyMemory<byte>.Empty;
         }
 
-        public AmqpString(string value, ushort maxLen, Encoding encoding)
-            : this(value, maxLen, encoding, null)
+        public AmqpString(string value, ushort maxLen, Encoding encoding,
+            bool strictValidation = false)
+            : this(value, maxLen, encoding, null, strictValidation)
         {
         }
 
-        public AmqpString(string value, ushort maxLen, Encoding encoding, string validatorRegex)
+        public AmqpString(string value, ushort maxLen, Encoding encoding, string validatorRegex,
+            bool strictValidation = false)
         {
-            if (value.Length > maxLen)
+            /*
+             * Note:
+             * RabbitMQ does hardly any validation for names, only stripping off CR/LF
+             * characters if present. There are no other checks.
+             */
+            if (strictValidation)
             {
-                throw new ArgumentOutOfRangeException(nameof(value));
-            }
-
-            if (false == string.IsNullOrWhiteSpace(validatorRegex))
-            {
-                var re = new Regex(validatorRegex);
-                if (false == re.IsMatch(value))
+                if (value.Length > maxLen)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
-            }
 
-            if (encoding == Encoding.ASCII)
-            {
-                if (false == isAscii(value))
+                if (false == string.IsNullOrWhiteSpace(validatorRegex))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    var re = new Regex(validatorRegex);
+                    if (false == re.IsMatch(value))
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(value));
+                    }
+                }
+
+                if (encoding == Encoding.ASCII)
+                {
+                    if (false == isAscii(value))
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(value));
+                    }
                 }
             }
 
@@ -204,7 +214,12 @@ namespace RabbitMQ.Client
         }
 
         public ExchangeName(string exchangeName)
-            : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
+            : this(exchangeName, false)
+        {
+        }
+
+        public ExchangeName(string exchangeName, bool strictValidation)
+            : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$", strictValidation)
         {
         }
 
@@ -231,7 +246,12 @@ namespace RabbitMQ.Client
         }
 
         public QueueName(string queueName)
-            : base(queueName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
+            : this(queueName, false)
+        {
+        }
+
+        public QueueName(string queueName, bool strictValidation)
+            : base(queueName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$", strictValidation)
         {
         }
 
@@ -263,7 +283,12 @@ namespace RabbitMQ.Client
         }
 
         public RoutingKey(string routingKey)
-            : base(routingKey, 256, Encoding.ASCII)
+            : this(routingKey, false)
+        {
+        }
+
+        public RoutingKey(string routingKey, bool strictValidation)
+            : base(routingKey, 256, Encoding.ASCII, strictValidation)
         {
         }
 
@@ -289,7 +314,12 @@ namespace RabbitMQ.Client
         }
 
         public ConsumerTag(string consumerTag)
-            : base(consumerTag, 256, Encoding.ASCII)
+            : this(consumerTag, false)
+        {
+        }
+
+        public ConsumerTag(string consumerTag, bool strictValidation)
+            : base(consumerTag, 256, Encoding.ASCII, strictValidation)
         {
         }
 

@@ -873,8 +873,8 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~override RabbitMQ.Client.Events.EventingBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
 ~override RabbitMQ.Client.ExchangeType.Equals(object obj) -> bool
 ~override RabbitMQ.Client.ExchangeType.ToString() -> string
-~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding encoding) -> void
-~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding encoding, string validatorRegex) -> void
+~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding encoding, bool strictValidation = false) -> void
+~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding encoding, string validatorRegex, bool strictValidation = false) -> void
 ~RabbitMQ.Client.AmqpString.CompareTo(RabbitMQ.Client.AmqpString other) -> int
 ~RabbitMQ.Client.AmqpString.Contains(string value) -> bool
 ~RabbitMQ.Client.AmqpString.Equals(RabbitMQ.Client.AmqpString other) -> bool
@@ -887,9 +887,11 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConsumerTag.ConsumerTag(string consumerTag) -> void
+~RabbitMQ.Client.ConsumerTag.ConsumerTag(string consumerTag, bool strictValidation) -> void
 ~RabbitMQ.Client.Events.BasicDeliverEventArgs.BasicDeliverEventArgs(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> void
 ~RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.QueueNameChangedAfterRecoveryEventArgs(RabbitMQ.Client.QueueName nameBefore, RabbitMQ.Client.QueueName nameAfter) -> void
 ~RabbitMQ.Client.ExchangeName.ExchangeName(string exchangeName) -> void
+~RabbitMQ.Client.ExchangeName.ExchangeName(string exchangeName, bool strictValidation) -> void
 ~RabbitMQ.Client.ExchangeType.Equals(RabbitMQ.Client.ExchangeType other) -> bool
 ~RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
@@ -932,7 +934,9 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.ICredentialsRefresher.Register(RabbitMQ.Client.ICredentialsProvider provider, RabbitMQ.Client.ICredentialsRefresher.NotifyCredentialRefreshedAsync callback) -> RabbitMQ.Client.ICredentialsProvider
 ~RabbitMQ.Client.PublicationAddress.PublicationAddress(RabbitMQ.Client.ExchangeType exchangeType, RabbitMQ.Client.ExchangeName exchangeName, RabbitMQ.Client.RoutingKey routingKey) -> void
 ~RabbitMQ.Client.QueueName.QueueName(string queueName) -> void
+~RabbitMQ.Client.QueueName.QueueName(string queueName, bool strictValidation) -> void
 ~RabbitMQ.Client.RoutingKey.RoutingKey(string routingKey) -> void
+~RabbitMQ.Client.RoutingKey.RoutingKey(string routingKey, bool strictValidation) -> void
 ~RabbitMQ.Client.TimerBasedCredentialRefresher.Register(RabbitMQ.Client.ICredentialsProvider provider, RabbitMQ.Client.ICredentialsRefresher.NotifyCredentialRefreshedAsync callback) -> RabbitMQ.Client.ICredentialsProvider
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync.get -> System.Func<RabbitMQ.Client.IRecordedBinding, System.Exception, RabbitMQ.Client.IConnection, System.Threading.Tasks.Task>
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync.set -> void
