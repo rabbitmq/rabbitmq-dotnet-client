@@ -100,7 +100,7 @@ namespace Test.Integration
             };
 
             await _channel.BasicConsumeAsync(q, true, ec);
-            await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes("msg"));
 
             await WaitAsync(tcs0, "received event");
             var tcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);

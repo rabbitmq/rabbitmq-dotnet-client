@@ -66,7 +66,7 @@ namespace Test.Integration
 
         private ValueTask Publish()
         {
-            return _channel.BasicPublishAsync(exchange: "",
+            return _channel.BasicPublishAsync(exchange: ExchangeName.Empty,
                 routingKey: Guid.NewGuid().ToString(), _message);
         }
     }

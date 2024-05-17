@@ -42,6 +42,8 @@ namespace Test.Integration
 {
     public class TestConsumerOperationDispatch : IntegrationFixture
     {
+        private static readonly ExchangeName _x = new ExchangeName("dotnet.tests.consumer-operation-dispatch.fanout");
+
         // number of channels (and consumers)
         private const int Y = 100;
         // number of messages to be published
@@ -49,9 +51,8 @@ namespace Test.Integration
 
         private static readonly CountdownEvent s_counter = new CountdownEvent(Y);
 
-        private const string _x = "dotnet.tests.consumer-operation-dispatch.fanout";
         private readonly List<IChannel> _channels = new List<IChannel>();
-        private readonly List<string> _queues = new List<string>();
+        private readonly List<QueueName> _queues = new List<QueueName>();
         private readonly List<CollectingConsumer> _consumers = new List<CollectingConsumer>();
 
 
@@ -107,7 +108,7 @@ namespace Test.Integration
         {
             Skip.If(IntegrationFixture.IsRunningInCI && IntegrationFixture.IsWindows, "TODO - test is slow in CI on Windows");
 
-            await _channel.ExchangeDeclareAsync(_x, "fanout", durable: false);
+            await _channel.ExchangeDeclareAsync(_x, ExchangeType.Fanout, durable: false);
 
             for (int i = 0; i < Y; i++)
             {
@@ -156,7 +157,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestChannelShutdownDoesNotShutDownDispatcher()
         {
-            await _channel.ExchangeDeclareAsync(_x, "fanout", durable: false);
+            await _channel.ExchangeDeclareAsync(_x, ExchangeType.Fanout, durable: false);
 
             IChannel ch1 = await _conn.CreateChannelAsync();
             IChannel ch2 = await _conn.CreateChannelAsync();

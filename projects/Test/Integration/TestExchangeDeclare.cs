@@ -33,6 +33,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -49,11 +50,11 @@ namespace Test.Integration
         [Fact]
         public async Task TestConcurrentExchangeDeclareAndBind()
         {
-            var exchangeNames = new ConcurrentBag<string>();
+            var exchangeNames = new ConcurrentBag<ExchangeName>();
             var tasks = new List<Task>();
 
-            string ex_destination = GenerateExchangeName();
-            await _channel.ExchangeDeclareAsync(exchange: ex_destination, type: "fanout", false, false);
+            ExchangeName ex_destination = GenerateExchangeName();
+            await _channel.ExchangeDeclareAsync(exchange: ex_destination, type: ExchangeType.Fanout, false, false);
 
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
@@ -63,8 +64,8 @@ namespace Test.Integration
                     try
                     {
                         await Task.Delay(S_Random.Next(5, 50));
-                        string exchangeName = GenerateExchangeName();
-                        await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: "fanout", false, false);
+                        ExchangeName exchangeName = GenerateExchangeName();
+                        await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: ExchangeType.Fanout, false, false);
                         await _channel.ExchangeBindAsync(destination: ex_destination, source: exchangeName, routingKey: "unused");
                         exchangeNames.Add(exchangeName);
                     }
@@ -81,7 +82,7 @@ namespace Test.Integration
             Assert.Null(nse);
             tasks.Clear();
 
-            foreach (string exchangeName in exchangeNames)
+            foreach (ExchangeName exchangeName in exchangeNames)
             {
                 async Task f()
                 {
@@ -109,7 +110,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestConcurrentExchangeDeclareAndDelete()
         {
-            var exchangeNames = new ConcurrentBag<string>();
+            var exchangeNames = new ConcurrentBag<ExchangeName>();
             var tasks = new List<Task>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
@@ -121,8 +122,8 @@ namespace Test.Integration
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
                                 await Task.Delay(_rnd.Next(5, 500));
-                                string exchangeName = GenerateExchangeName();
-                                await _channel.ExchangeDeclareAsync(exchange: exchangeName, "fanout", false, false);
+                                ExchangeName exchangeName = GenerateExchangeName();
+                                await _channel.ExchangeDeclareAsync(exchange: exchangeName, ExchangeType.Fanout, false, false);
                                 exchangeNames.Add(exchangeName);
                             }
                             catch (NotSupportedException e)
@@ -138,9 +139,9 @@ namespace Test.Integration
             Assert.Null(nse);
             tasks.Clear();
 
-            foreach (string exchangeName in exchangeNames)
+            foreach (ExchangeName exchangeName in exchangeNames)
             {
-                string ex = exchangeName;
+                ExchangeName ex = exchangeName;
                 var t = Task.Run(async () =>
                         {
                             try

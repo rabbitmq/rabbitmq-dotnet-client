@@ -59,7 +59,7 @@ namespace Test.Integration
                 byte[] body = GetRandomBody(512);
                 for (int i = 0; i < messageCount; i++)
                 {
-                    await _channel.BasicPublishAsync(string.Empty, rk, body);
+                    await _channel.BasicPublishAsync(ExchangeName.Empty, rk, body);
                 }
                 await _channel.WaitForConfirmsOrDieAsync();
                 publishSyncSource.SetResult(true);

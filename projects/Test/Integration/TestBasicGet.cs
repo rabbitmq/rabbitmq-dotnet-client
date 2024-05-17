@@ -50,17 +50,18 @@ namespace Test.Integration
             const string msg = "for async basic.get";
 
             QueueDeclareOk queueResult = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
-            string queueName = queueResult.QueueName;
+            var qn = new QueueName(queueResult.QueueName);
+            var rk = new RoutingKey(queueResult.QueueName);
 
-            await _channel.BasicPublishAsync(string.Empty, queueName, _encoding.GetBytes(msg), true);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, rk, _encoding.GetBytes(msg), true);
 
-            BasicGetResult getResult = await _channel.BasicGetAsync(queueName, true);
+            BasicGetResult getResult = await _channel.BasicGetAsync(qn, true);
             Assert.Equal(msg, _encoding.GetString(getResult.Body.ToArray()));
 
-            QueueDeclareOk queueResultPassive = await _channel.QueueDeclarePassiveAsync(queue: queueName);
+            QueueDeclareOk queueResultPassive = await _channel.QueueDeclarePassiveAsync(queue: qn);
             Assert.Equal((uint)0, queueResultPassive.MessageCount);
 
-            Assert.Null(await _channel.BasicGetAsync(queueName, true));
+            Assert.Null(await _channel.BasicGetAsync(qn, true));
         }
 
         [Fact]
@@ -104,7 +105,7 @@ namespace Test.Integration
         {
             return WithTemporaryChannelAsync(ch =>
             {
-                return ch.BasicPublishAsync("", q, _encoding.GetBytes(body)).AsTask();
+                return ch.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes(body)).AsTask();
             });
         }
 

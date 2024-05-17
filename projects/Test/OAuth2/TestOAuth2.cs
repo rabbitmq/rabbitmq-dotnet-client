@@ -96,7 +96,7 @@ namespace OAuth2Test
 
     public class TestOAuth2 : IAsyncLifetime
     {
-        private const string Exchange = "test_direct";
+        private static readonly ExchangeName s_exchange = new ExchangeName("test_direct");
 
         private readonly SemaphoreSlim _doneEvent = new SemaphoreSlim(0, 1);
         private readonly ITestOutputHelper _testOutputHelper;
@@ -189,7 +189,7 @@ namespace OAuth2Test
         {
             IChannel publisher = await _connection.CreateChannelAsync();
             await publisher.ConfirmSelectAsync();
-            await publisher.ExchangeDeclareAsync("test_direct", ExchangeType.Direct, true, false);
+            await publisher.ExchangeDeclareAsync((ExchangeName)"test_direct", ExchangeType.Direct, true, false);
             return publisher;
         }
 
@@ -203,7 +203,7 @@ namespace OAuth2Test
                 AppId = "oauth2",
             };
 
-            await publisher.BasicPublishAsync(exchange: Exchange, routingKey: "hello", basicProperties: properties, body: body);
+            await publisher.BasicPublishAsync(exchange: s_exchange, routingKey: "hello", basicProperties: properties, body: body);
             _testOutputHelper.WriteLine("Sent message");
 
             await publisher.WaitForConfirmsOrDieAsync();
@@ -214,7 +214,7 @@ namespace OAuth2Test
         {
             IChannel subscriber = await _connection.CreateChannelAsync();
             await subscriber.QueueDeclareAsync(queue: "testqueue", true, false, false);
-            await subscriber.QueueBindAsync("testqueue", Exchange, "hello");
+            await subscriber.QueueBindAsync("testqueue", s_exchange, "hello");
             return subscriber;
         }
 

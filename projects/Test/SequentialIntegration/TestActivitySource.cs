@@ -101,7 +101,7 @@ namespace Test.SequentialIntegration
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, sendBody, mandatory: true);
                 await _channel.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -140,7 +140,7 @@ namespace Test.SequentialIntegration
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, sendBody, mandatory: true);
                 await _channel.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -169,7 +169,7 @@ namespace Test.SequentialIntegration
                 try
                 {
                     await _channel.QueueDeclareAsync(queue, false, false, false, null);
-                    await _channel.BasicPublishAsync("", queue, Encoding.UTF8.GetBytes(msg), mandatory: true);
+                    await _channel.BasicPublishAsync(ExchangeName.Empty, queue, Encoding.UTF8.GetBytes(msg), mandatory: true);
                     await _channel.WaitForConfirmsOrDieAsync();
                     QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                     Assert.Equal(1u, ok.MessageCount);

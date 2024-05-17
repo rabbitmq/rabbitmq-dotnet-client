@@ -28,7 +28,7 @@ namespace Benchmarks.Networking
 
                 for (int i = 0; i < messageCount; i++)
                 {
-                    await channel.BasicPublishAsync("", queue.QueueName, body);
+                    await channel.BasicPublishAsync(ExchangeName.Empty, queue.QueueName, body);
                 }
 
                 await tcs.Task;

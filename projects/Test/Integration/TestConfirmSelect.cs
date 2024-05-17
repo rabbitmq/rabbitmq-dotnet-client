@@ -48,7 +48,7 @@ namespace Test.Integration
         {
             ValueTask PublishAsync()
             {
-                return _channel.BasicPublishAsync(exchange: "",
+                return _channel.BasicPublishAsync(exchange: ExchangeName.Empty,
                     routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
             }
 
@@ -75,13 +75,13 @@ namespace Test.Integration
         {
             byte[] body = GetRandomBody(16);
 
-            await _channel.ExchangeDeclareAsync("sample", "fanout", autoDelete: true);
+            await _channel.ExchangeDeclareAsync((ExchangeName)"sample", ExchangeType.Fanout, autoDelete: true);
             // _channel.BasicAcks += (s, e) => _output.WriteLine("Acked {0}", e.DeliveryTag);
             await _channel.ConfirmSelectAsync();
 
             var properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
-            await _channel.BasicPublishAsync(exchange: "sample", routingKey: string.Empty, properties, body);
+            await _channel.BasicPublishAsync(exchange: (ExchangeName)"sample", routingKey: RoutingKey.Empty, properties, body);
             await _channel.WaitForConfirmsOrDieAsync();
 
             try
@@ -91,7 +91,7 @@ namespace Test.Integration
                     CorrelationId = new string('o', correlationIdLength)
                 };
                 // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
-                await _channel.BasicPublishAsync("sample", string.Empty, properties, body);
+                await _channel.BasicPublishAsync((ExchangeName)"sample", RoutingKey.Empty, properties, body);
                 await _channel.WaitForConfirmsOrDieAsync();
             }
             catch
@@ -101,7 +101,7 @@ namespace Test.Integration
 
             properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", _channel.NextPublishSeqNo);
-            await _channel.BasicPublishAsync("sample", string.Empty, properties, body);
+            await _channel.BasicPublishAsync((ExchangeName)"sample", RoutingKey.Empty, properties, body);
             await _channel.WaitForConfirmsOrDieAsync();
             // _output.WriteLine("I'm done...");
         }

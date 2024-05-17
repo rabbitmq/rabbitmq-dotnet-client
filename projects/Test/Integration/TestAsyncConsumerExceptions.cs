@@ -91,7 +91,7 @@ namespace Test.Integration
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
             return TestExceptionHandlingWith(consumer, (ch, q, c, ct) =>
-                ch.BasicPublishAsync("", q, _encoding.GetBytes("msg")).AsTask());
+                ch.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes("msg")).AsTask());
         }
 
         protected async Task TestExceptionHandlingWith(IBasicConsumer consumer,

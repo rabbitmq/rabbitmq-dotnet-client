@@ -139,7 +139,7 @@ namespace Test.Integration.ConnectionRecovery
             string q = GenerateQueueName();
             await _channel.QueueDeclareAsync(q, false, false, false);
             // create an offset
-            await _channel.BasicPublishAsync("", q, _messageBody);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q, _messageBody);
             await Task.Delay(50);
             BasicGetResult g = await _channel.BasicGetAsync(q, false);
             await CloseAndWaitForRecoveryAsync();
@@ -165,7 +165,7 @@ namespace Test.Integration.ConnectionRecovery
 
             await WithTemporaryNonExclusiveQueueAsync(_channel, (ch, q) =>
             {
-                return ch.BasicPublishAsync("", (RoutingKey)q, _messageBody).AsTask();
+                return ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)q, _messageBody).AsTask();
             });
 
             await WaitAsync(tcs, "basic acks/nacks");

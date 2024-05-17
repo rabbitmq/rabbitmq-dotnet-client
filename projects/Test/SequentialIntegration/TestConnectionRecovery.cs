@@ -99,7 +99,7 @@ namespace Test.SequentialIntegration
 
             Assert.True(_channel.IsOpen);
 
-            string queueName = GenerateQueueName();
+            QueueName queueName = GenerateQueueName();
             RabbitMQ.Client.QueueDeclareOk queueDeclareOk = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, autoDelete: false);
             Assert.Equal(queueName, queueDeclareOk.QueueName);
 
@@ -113,7 +113,7 @@ namespace Test.SequentialIntegration
                 {
                     try
                     {
-                        await _channel.BasicPublishAsync(exchange: "", routingKey: queueName, body: body, mandatory: true);
+                        await _channel.BasicPublishAsync(exchange: ExchangeName.Empty, routingKey: (RoutingKey)queueName, body: body, mandatory: true);
                         await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                     catch (Exception ex)
@@ -174,14 +174,14 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestClientNamedTransientAutoDeleteQueueAndBindingRecovery()
         {
-            string queueName = GenerateQueueName();
-            string exchangeName = GenerateExchangeName();
+            QueueName queueName = GenerateQueueName();
+            ExchangeName exchangeName = GenerateExchangeName();
             try
             {
                 await _channel.QueueDeleteAsync(queueName);
                 await _channel.ExchangeDeleteAsync(exchangeName);
 
-                await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: "fanout");
+                await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: ExchangeType.Fanout);
                 await _channel.QueueDeclareAsync(queue: queueName, durable: false, exclusive: false, autoDelete: true, arguments: null);
                 await _channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: "");
 
@@ -211,9 +211,9 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()
         {
-            string x = "tmp-fanout";
+            ExchangeName x = new ExchangeName("tmp-fanout");
             await _channel.ExchangeDeleteAsync(x);
-            await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout");
+            await _channel.ExchangeDeclareAsync(exchange: x, type: ExchangeType.Fanout);
             string q = (await _channel.QueueDeclareAsync(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null)).QueueName;
             string nameBefore = q;
             string nameAfter = null;
@@ -234,7 +234,7 @@ namespace Test.SequentialIntegration
             Assert.NotEqual(nameBefore, nameAfter);
 
             await _channel.ConfirmSelectAsync();
-            await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout");
+            await _channel.ExchangeDeclareAsync(exchange: x, type: ExchangeType.Fanout);
             await _channel.BasicPublishAsync(exchange: x, routingKey: "", body: _encoding.GetBytes("msg"));
             await WaitForConfirmsWithCancellationAsync(_channel);
 

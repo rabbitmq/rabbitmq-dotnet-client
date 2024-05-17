@@ -87,7 +87,7 @@ namespace Test.Integration
             var tasks = new List<Task>();
             var queueNames = new ConcurrentDictionary<string, bool>();
 
-            string exchangeName = GenerateExchangeName();
+            ExchangeName exchangeName = GenerateExchangeName();
             await _channel.ExchangeDeclareAsync(exchange: exchangeName, ExchangeType.Fanout,
                 durable: false, autoDelete: true);
 
@@ -101,12 +101,12 @@ namespace Test.Integration
                         // sleep for a random amount of time to increase the chances
                         // of thread interleaving. MK.
                         await Task.Delay(S_Random.Next(5, 50));
-                        string queueName = GenerateQueueName();
+                        QueueName queueName = GenerateQueueName();
                         QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: queueName,
                             durable: false, exclusive: true, autoDelete: false);
                         Assert.Equal(queueName, r.QueueName);
                         await _channel.QueueBindAsync(queue: queueName,
-                            exchange: exchangeName, routingKey: queueName);
+                            exchange: exchangeName, routingKey: (RoutingKey)queueName);
                         if (false == queueNames.TryAdd(queueName, true))
                         {
                             throw new InvalidOperationException($"queue with name {queueName} already added!");

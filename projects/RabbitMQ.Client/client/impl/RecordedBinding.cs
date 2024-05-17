@@ -45,9 +45,9 @@ namespace RabbitMQ.Client.Impl
         private readonly RoutingKey _routingKey;
         private readonly IDictionary<string, object>? _arguments;
 
-        public string Destination => _destination;
-        public string Source => _source;
-        public string RoutingKey => _routingKey;
+        public AmqpString Destination => _destination;
+        public AmqpString Source => _source;
+        public RoutingKey RoutingKey => _routingKey;
         public IDictionary<string, object>? Arguments => _arguments;
 
         public RecordedBinding(bool isQueueBinding, AmqpString destination, AmqpString source, RoutingKey routingKey,

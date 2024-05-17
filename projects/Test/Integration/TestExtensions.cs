@@ -49,7 +49,7 @@ namespace Test.Integration
             await _channel.ConfirmSelectAsync();
             for (int i = 0; i < 10; i++)
             {
-                await _channel.BasicPublishAsync(string.Empty, string.Empty);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, string.Empty);
             }
             Assert.True(await _channel.WaitForConfirmsAsync());
         }
@@ -65,25 +65,25 @@ namespace Test.Integration
         {
             await _channel.ConfirmSelectAsync();
 
-            await _channel.ExchangeDeclareAsync("src", ExchangeType.Direct, false, false);
-            await _channel.ExchangeDeclareAsync("dest", ExchangeType.Direct, false, false);
-            string queue = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            await _channel.ExchangeDeclareAsync((ExchangeName)"src", ExchangeType.Direct, false, false);
+            await _channel.ExchangeDeclareAsync((ExchangeName)"dest", ExchangeType.Direct, false, false);
+            QueueName queue = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
 
-            await _channel.ExchangeBindAsync("dest", "src", string.Empty);
-            await _channel.QueueBindAsync(queue, "dest", string.Empty);
+            await _channel.ExchangeBindAsync((ExchangeName)"dest", (ExchangeName)"src", RoutingKey.Empty);
+            await _channel.QueueBindAsync(queue, (ExchangeName)"dest", RoutingKey.Empty);
 
-            await _channel.BasicPublishAsync("src", string.Empty);
+            await _channel.BasicPublishAsync((ExchangeName)"src", RoutingKey.Empty);
             await _channel.WaitForConfirmsAsync();
             Assert.NotNull(await _channel.BasicGetAsync(queue, true));
 
-            await _channel.ExchangeUnbindAsync("dest", "src", string.Empty);
-            await _channel.BasicPublishAsync("src", string.Empty);
+            await _channel.ExchangeUnbindAsync((ExchangeName)"dest", (ExchangeName)"src", RoutingKey.Empty);
+            await _channel.BasicPublishAsync((ExchangeName)"src", RoutingKey.Empty);
             await _channel.WaitForConfirmsAsync();
 
             Assert.Null(await _channel.BasicGetAsync(queue, true));
 
-            await _channel.ExchangeDeleteAsync("src", false);
-            await _channel.ExchangeDeleteAsync("dest", false);
+            await _channel.ExchangeDeleteAsync((ExchangeName)"src", false);
+            await _channel.ExchangeDeleteAsync((ExchangeName)"dest", false);
         }
     }
 }

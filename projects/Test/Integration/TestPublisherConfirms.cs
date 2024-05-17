@@ -140,7 +140,7 @@ namespace Test.Integration
                 {
                     for (int i = 0; i < n; i++)
                     {
-                        await ch.BasicPublishAsync("", queueName, _encoding.GetBytes("msg"));
+                        await ch.BasicPublishAsync(ExchangeName.Empty, queueName, _encoding.GetBytes("msg"));
                     }
 
                     await ch.WaitForConfirmsAsync();
@@ -161,7 +161,7 @@ namespace Test.Integration
 
         private async Task TestWaitForConfirmsAsync(int numberOfMessagesToPublish, Func<IChannel, Task> fn)
         {
-            string queueName = GenerateQueueName();
+            QueueName queueName = GenerateQueueName();
             using (IChannel ch = await _conn.CreateChannelAsync())
             {
                 var props = new BasicProperties { Persistent = true };
@@ -171,7 +171,8 @@ namespace Test.Integration
 
                 for (int i = 0; i < numberOfMessagesToPublish; i++)
                 {
-                    await ch.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: _messageBody, mandatory: true, basicProperties: props);
+                    await ch.BasicPublishAsync(exchange: ExchangeName.Empty, routingKey: (RoutingKey)queueName,
+                        body: _messageBody, mandatory: true, basicProperties: props);
                 }
 
                 try

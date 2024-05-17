@@ -84,7 +84,7 @@ namespace Test.Integration
             };
 
             await _channel.BasicConsumeAsync(q, true, new FaultyConsumer(_channel));
-            await _channel.BasicPublishAsync(string.Empty, rk, _encoding.GetBytes("message"));
+            await _channel.BasicPublishAsync(ExchangeName.Empty, rk, _encoding.GetBytes("message"));
 
             await WaitAsync(tcs, "CallbackException");
 

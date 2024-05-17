@@ -598,9 +598,9 @@ RabbitMQ.Client.IReadOnlyBasicProperties.Type.get -> string
 RabbitMQ.Client.IReadOnlyBasicProperties.UserId.get -> string
 RabbitMQ.Client.IRecordedBinding
 RabbitMQ.Client.IRecordedBinding.Arguments.get -> System.Collections.Generic.IDictionary<string, object>
-RabbitMQ.Client.IRecordedBinding.Destination.get -> string
-RabbitMQ.Client.IRecordedBinding.RoutingKey.get -> string
-RabbitMQ.Client.IRecordedBinding.Source.get -> string
+RabbitMQ.Client.IRecordedBinding.Destination.get -> RabbitMQ.Client.AmqpString!
+RabbitMQ.Client.IRecordedBinding.RoutingKey.get -> RabbitMQ.Client.RoutingKey!
+RabbitMQ.Client.IRecordedBinding.Source.get -> RabbitMQ.Client.AmqpString!
 RabbitMQ.Client.IRecordedConsumer
 RabbitMQ.Client.IRecordedConsumer.Arguments.get -> System.Collections.Generic.IDictionary<string, object>
 RabbitMQ.Client.IRecordedConsumer.AutoAck.get -> bool
@@ -953,7 +953,7 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~static RabbitMQ.Client.AmqpString.operator !=(RabbitMQ.Client.AmqpString amqpString1, RabbitMQ.Client.AmqpString amqpString2) -> bool
 ~static RabbitMQ.Client.AmqpString.operator ==(RabbitMQ.Client.AmqpString amqpString1, RabbitMQ.Client.AmqpString amqpString2) -> bool
 ~static RabbitMQ.Client.ConsumerTag.implicit operator RabbitMQ.Client.ConsumerTag(string value) -> RabbitMQ.Client.ConsumerTag
-~static RabbitMQ.Client.ExchangeName.implicit operator RabbitMQ.Client.ExchangeName(string value) -> RabbitMQ.Client.ExchangeName
+~static RabbitMQ.Client.ExchangeName.explicit operator RabbitMQ.Client.ExchangeName(string value) -> RabbitMQ.Client.ExchangeName
 ~static RabbitMQ.Client.ExchangeType.implicit operator RabbitMQ.Client.ExchangeType(string value) -> RabbitMQ.Client.ExchangeType
 ~static RabbitMQ.Client.ExchangeType.implicit operator string(RabbitMQ.Client.ExchangeType exchangeType) -> string
 ~static RabbitMQ.Client.ExchangeType.operator !=(RabbitMQ.Client.ExchangeType exchangeType1, RabbitMQ.Client.ExchangeType exchangeType2) -> bool
@@ -983,6 +983,7 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~static RabbitMQ.Client.QueueName.implicit operator RabbitMQ.Client.QueueName(string value) -> RabbitMQ.Client.QueueName
 ~static RabbitMQ.Client.RoutingKey.implicit operator RabbitMQ.Client.RoutingKey(string value) -> RabbitMQ.Client.RoutingKey
 ~static readonly RabbitMQ.Client.ConsumerTag.Empty -> RabbitMQ.Client.ConsumerTag
+~static readonly RabbitMQ.Client.ExchangeName.AmqDirect -> RabbitMQ.Client.ExchangeName
 ~static readonly RabbitMQ.Client.ExchangeName.Empty -> RabbitMQ.Client.ExchangeName
 ~static readonly RabbitMQ.Client.ExchangeType.Direct -> RabbitMQ.Client.ExchangeType
 ~static readonly RabbitMQ.Client.ExchangeType.Fanout -> RabbitMQ.Client.ExchangeType

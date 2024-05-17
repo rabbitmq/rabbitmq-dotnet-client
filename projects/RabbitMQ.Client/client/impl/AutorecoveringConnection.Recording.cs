@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _recordedExchanges[exchange.Name] = exchange;
         }
 
-        internal async ValueTask DeleteRecordedExchangeAsync(string exchangeName,
+        internal async ValueTask DeleteRecordedExchangeAsync(ExchangeName exchangeName,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            async Task DoDeleteRecordedExchangeAsync(string exchangeName, CancellationToken cancellationToken)
+            async Task DoDeleteRecordedExchangeAsync(ExchangeName exchangeName, CancellationToken cancellationToken)
             {
                 _recordedExchanges.Remove(exchangeName);
 
@@ -122,7 +122,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         await DeleteRecordedBindingAsync(binding,
                             recordedEntitiesSemaphoreHeld: true, cancellationToken)
                                 .ConfigureAwait(false);
-                        await DeleteAutoDeleteExchangeAsync(binding.Source,
+                        await DeleteAutoDeleteExchangeAsync((ExchangeName)binding.Source,
                             recordedEntitiesSemaphoreHeld: true, cancellationToken)
                                 .ConfigureAwait(false);
                     }
@@ -130,7 +130,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal async ValueTask DeleteAutoDeleteExchangeAsync(string exchangeName,
+        internal async ValueTask DeleteAutoDeleteExchangeAsync(ExchangeName exchangeName,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -157,9 +157,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void DoDeleteAutoDeleteExchange(string exchangeName)
+        private void DoDeleteAutoDeleteExchange(ExchangeName exchangeName)
         {
-            if (_recordedExchanges.TryGetValue(exchangeName, out var recordedExchange) && recordedExchange.AutoDelete)
+            if (_recordedExchanges.TryGetValue(exchangeName, out RecordedExchange recordedExchange) && recordedExchange.AutoDelete)
             {
                 if (!AnyBindingsOnExchange(exchangeName))
                 {
@@ -256,7 +256,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         await DeleteRecordedBindingAsync(binding,
                             recordedEntitiesSemaphoreHeld: true, cancellationToken)
                                 .ConfigureAwait(false);
-                        await DeleteAutoDeleteExchangeAsync(binding.Source,
+                        await DeleteAutoDeleteExchangeAsync((ExchangeName)binding.Source,
                             recordedEntitiesSemaphoreHeld: true, cancellationToken)
                                 .ConfigureAwait(false);
                     }

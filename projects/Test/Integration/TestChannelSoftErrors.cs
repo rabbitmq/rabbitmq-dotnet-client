@@ -47,7 +47,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestBindOnNonExistingQueue()
         {
-            OperationInterruptedException exception = await Assert.ThrowsAsync<OperationInterruptedException>(() => _channel.QueueBindAsync("NonExistingQueue", "", string.Empty));
+            OperationInterruptedException exception =
+                await Assert.ThrowsAsync<OperationInterruptedException>(() =>
+                    _channel.QueueBindAsync("NonExistingQueue", ExchangeName.Empty, string.Empty));
             Assert.True(exception.Message.Contains("403"), $"Message doesn't contain the expected 403 part: {exception.Message}");
             Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");
@@ -56,7 +58,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestBindOnNonExistingExchange()
         {
-            OperationInterruptedException exception = await Assert.ThrowsAsync<OperationInterruptedException>(() => _channel.ExchangeBindAsync("NonExistingQueue", "", string.Empty));
+            OperationInterruptedException exception =
+                await Assert.ThrowsAsync<OperationInterruptedException>(() =>
+                    _channel.ExchangeBindAsync((ExchangeName)"NonExistingQueue", ExchangeName.Empty, string.Empty));
             Assert.True(exception.Message.Contains("403"), $"Message doesn't contain the expected 403 part: {exception.Message}");
             Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");

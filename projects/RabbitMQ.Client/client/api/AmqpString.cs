@@ -197,6 +197,7 @@ namespace RabbitMQ.Client
     public class ExchangeName : AmqpString
     {
         public static readonly ExchangeName Empty = new ExchangeName();
+        public static readonly ExchangeName AmqDirect = new ExchangeName("amq.direct");
 
         private ExchangeName() : base()
         {
@@ -207,8 +208,7 @@ namespace RabbitMQ.Client
         {
         }
 
-        // TODO explicit
-        public static implicit operator ExchangeName(string value)
+        public static explicit operator ExchangeName(string value)
         {
             return new ExchangeName(value);
         }

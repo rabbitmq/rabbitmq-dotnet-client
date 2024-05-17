@@ -181,7 +181,7 @@ namespace Test.Integration
 
                     for (int i = 0; i < publishCount && false == stop; i++)
                     {
-                        await pubCh.BasicPublishAsync(string.Empty, queueName, sendBody, true);
+                        await pubCh.BasicPublishAsync(ExchangeName.Empty, queueName, sendBody, true);
                     }
 
                     await pubCh.WaitForConfirmsOrDieAsync();

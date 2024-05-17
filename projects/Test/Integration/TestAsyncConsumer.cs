@@ -56,11 +56,11 @@ namespace Test.Integration
 
             string publish1 = GetUniqueString(512);
             byte[] body = _encoding.GetBytes(publish1);
-            await _channel.BasicPublishAsync("", q.QueueName, body);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, body);
 
             string publish2 = GetUniqueString(512);
             body = _encoding.GetBytes(publish2);
-            await _channel.BasicPublishAsync("", q.QueueName, body);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, body);
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
@@ -215,8 +215,8 @@ namespace Test.Integration
 
                                     for (int i = 0; i < publish_total; i++)
                                     {
-                                        await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
-                                        await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
+                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, queueName, body1);
+                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, queueName, body2);
                                         await publishChannel.WaitForConfirmsOrDieAsync();
                                     }
 
@@ -370,7 +370,7 @@ namespace Test.Integration
 
                 const string publish1 = "sync-hi-1";
                 byte[] _body = _encoding.GetBytes(publish1);
-                await _channel.BasicPublishAsync(string.Empty, queueName, _body);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, queueName, _body);
 
                 await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
                     consumerTag: string.Empty, noLocal: false, exclusive: false,
@@ -472,7 +472,7 @@ namespace Test.Integration
                 for (int i = 0; i < messageCount; i++)
                 {
                     byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
-                    await _channel.BasicPublishAsync(string.Empty, queueName, _body);
+                    await _channel.BasicPublishAsync(ExchangeName.Empty, queueName, _body);
                     await _channel.WaitForConfirmsOrDieAsync();
                 }
 
@@ -527,7 +527,7 @@ namespace Test.Integration
             string queueName = q.QueueName;
             const string publish1 = "sync-hi-1";
             byte[] _body = _encoding.GetBytes(publish1);
-            await _channel.BasicPublishAsync(string.Empty, queueName, _body);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, queueName, _body);
 
             await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
                 consumerTag: string.Empty, noLocal: false, exclusive: false,
@@ -570,7 +570,7 @@ namespace Test.Integration
         {
             bool sawException = false;
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
-            await _channel.BasicPublishAsync(string.Empty, q.QueueName, GetRandomBody(1024));
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, GetRandomBody(1024));
             var consumer = new EventingBasicConsumer(_channel);
             try
             {
