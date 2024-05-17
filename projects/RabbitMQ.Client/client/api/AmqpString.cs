@@ -35,21 +35,25 @@ using System.Text.RegularExpressions;
 
 namespace RabbitMQ.Client
 {
-    // TODO lazy string value
     public abstract class AmqpString : IEquatable<AmqpString>, IComparable<AmqpString>
     {
-        private readonly string _value;
+        private string _value;
+        private readonly Encoding _encoding;
         private readonly ReadOnlyMemory<byte> _stringBytes;
         private readonly int _byteCount;
 
         protected AmqpString()
         {
             _value = string.Empty;
+            _encoding = Encoding.UTF8;
             _stringBytes = ReadOnlyMemory<byte>.Empty;
+            _byteCount = 0;
         }
 
         public AmqpString(ReadOnlyMemory<byte> stringBytes)
         {
+            _value = null;
+            _encoding = Encoding.UTF8;
             _stringBytes = stringBytes;
             _byteCount = _stringBytes.Length;
         }
@@ -63,6 +67,8 @@ namespace RabbitMQ.Client
         public AmqpString(string value, ushort maxLen, Encoding encoding, string validatorRegex,
             bool strictValidation = false)
         {
+            _encoding = encoding;
+
             /*
              * Note:
              * RabbitMQ does hardly any validation for names, only stripping off CR/LF
@@ -100,6 +106,8 @@ namespace RabbitMQ.Client
 
         public int ByteCount => _byteCount;
 
+        internal bool HasString => _value != null;
+
         public bool IsEmpty
         {
             get
@@ -117,25 +125,17 @@ namespace RabbitMQ.Client
 
         public bool Contains(string value)
         {
-            if (_value is null)
-            {
-                // TODO
-                return false;
-            }
-            else
-            {
-                return _value.Contains(value);
-            }
+            return Value.Contains(value);
         }
 
         public override string ToString()
         {
-            return _value;
+            return Value;
         }
 
         public static implicit operator string(AmqpString amqpString)
         {
-            return amqpString._value;
+            return amqpString.ToString();
         }
 
         public static implicit operator ReadOnlyMemory<byte>(AmqpString amqpString)
@@ -171,24 +171,31 @@ namespace RabbitMQ.Client
 
         public bool Equals(AmqpString other)
         {
-            return _value == other._value;
+            if (_value == null)
+            {
+                throw new InvalidOperationException("TODO");
+            }
+            else
+            {
+                return _value == other._value;
+            }
         }
 
         public override int GetHashCode()
         {
-            return _value.GetHashCode();
+            if (_value == null)
+            {
+                throw new InvalidOperationException("TODO");
+            }
+            else
+            {
+                return _value.GetHashCode();
+            }
         }
 
         public int CompareTo(AmqpString other)
         {
-            if (_value is null)
-            {
-                throw new InvalidOperationException("[CRITICAL] should not see this");
-            }
-            else
-            {
-                return _value.CompareTo(other._value);
-            }
+            return Value.CompareTo(other.Value);
         }
 
         public static bool operator ==(AmqpString amqpString1, AmqpString amqpString2)
@@ -216,9 +223,22 @@ namespace RabbitMQ.Client
             return value;
         }
 
+        // TODO remove
         private static bool isAscii(string value)
         {
             return Encoding.UTF8.GetByteCount(value) == value.Length;
+        }
+
+        private string Value
+        {
+            get
+            {
+                if (_value == null)
+                {
+                    _value = _encoding.GetString(_stringBytes.ToArray());
+                }
+                return _value;
+            }
         }
     }
 

@@ -163,13 +163,13 @@ namespace Test.SequentialIntegration
             using (ActivityListener activityListener = StartActivityListener(activities))
             {
                 await Task.Delay(500);
-                string queue = $"queue-{Guid.NewGuid()}";
+                QueueName queue = new QueueName($"queue-{Guid.NewGuid()}");
                 const string msg = "for basic.get";
 
                 try
                 {
                     await _channel.QueueDeclareAsync(queue, false, false, false, null);
-                    await _channel.BasicPublishAsync(ExchangeName.Empty, queue, Encoding.UTF8.GetBytes(msg), mandatory: true);
+                    await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queue, Encoding.UTF8.GetBytes(msg), mandatory: true);
                     await _channel.WaitForConfirmsOrDieAsync();
                     QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                     Assert.Equal(1u, ok.MessageCount);
@@ -201,7 +201,7 @@ namespace Test.SequentialIntegration
             return activityListener;
         }
 
-        private void AssertActivityData(bool useRoutingKeyAsOperationName, string queueName,
+        private void AssertActivityData(bool useRoutingKeyAsOperationName, QueueName queueName,
             List<Activity> activityList, bool isDeliver = false)
         {
             string childName = isDeliver ? "deliver" : "receive";

@@ -155,7 +155,7 @@ namespace RabbitMQ.Client
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags("deliver",
-                    routingKey,
+                    deliverEventArgs.RoutingKey,
                     deliverEventArgs.Exchange,
                     deliverEventArgs.DeliveryTag,
                     deliverEventArgs.BasicProperties,

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Text;
 using RabbitMQ.Client;
 using Xunit;
 
@@ -107,6 +108,21 @@ namespace Test.Unit
         public void TestInvalidConsumerTagThrows(string arg)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new ConsumerTag(arg, strictValidation: true));
+        }
+
+        [Theory]
+        [InlineData("exchange-ABC:123.abc_456")]
+        [InlineData("6PiY80XbjBKnY39R947i2s03cAg261412IS1FzS4uEoJJ6cWZ50P0SJ3S4yqvzx0n4TN4NsROlWyEwaUG4I5Glrj1mI2N28QGbkf5t8Kyo7EavaqME5TrvhPxtJGY1p")]
+        [InlineData("foo_bar_baz")]
+        [InlineData("exchangename-Евгений")]
+        public void TestExchangeName_InitializeFromMemoryIsLazy(string arg)
+        {
+            byte[] mem = Encoding.UTF8.GetBytes(arg);
+            var e = new ExchangeName(mem);
+            Assert.False(e.HasString);
+            string estr = (string)e;
+            Assert.True(e.HasString);
+            Assert.Equal(arg, estr);
         }
     }
 }
