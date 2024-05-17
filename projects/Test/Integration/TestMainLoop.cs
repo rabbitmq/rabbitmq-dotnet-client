@@ -73,6 +73,7 @@ namespace Test.Integration
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
+            var rk = new RoutingKey(q.QueueName);
 
             CallbackExceptionEventArgs ea = null;
             _channel.CallbackException += async (_, evt) =>
@@ -83,7 +84,7 @@ namespace Test.Integration
             };
 
             await _channel.BasicConsumeAsync(q, true, new FaultyConsumer(_channel));
-            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("message"));
+            await _channel.BasicPublishAsync(string.Empty, rk, _encoding.GetBytes("message"));
 
             await WaitAsync(tcs, "CallbackException");
 

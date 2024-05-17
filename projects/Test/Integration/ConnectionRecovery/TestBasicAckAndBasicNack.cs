@@ -165,7 +165,7 @@ namespace Test.Integration.ConnectionRecovery
 
             await WithTemporaryNonExclusiveQueueAsync(_channel, (ch, q) =>
             {
-                return ch.BasicPublishAsync("", q, _messageBody).AsTask();
+                return ch.BasicPublishAsync("", (RoutingKey)q, _messageBody).AsTask();
             });
 
             await WaitAsync(tcs, "basic acks/nacks");

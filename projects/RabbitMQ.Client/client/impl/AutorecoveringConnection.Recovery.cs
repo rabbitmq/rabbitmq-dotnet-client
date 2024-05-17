@@ -321,15 +321,16 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    string newName = string.Empty;
+                    string newNameStr = string.Empty;
                     using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        newName = await recordedQueue.RecoverAsync(ch, cancellationToken)
+                        newNameStr = await recordedQueue.RecoverAsync(ch, cancellationToken)
                             .ConfigureAwait(false);
                         await ch.CloseAsync(cancellationToken)
                             .ConfigureAwait(false);
                     }
-                    string oldName = recordedQueue.Name;
+                    QueueName oldName = recordedQueue.Name;
+                    QueueName newName = (QueueName)newNameStr;
 
                     if (oldName != newName)
                     {
@@ -357,7 +358,7 @@ namespace RabbitMQ.Client.Framing.Impl
                             try
                             {
                                 _recordedEntitiesSemaphore.Release();
-                                _queueNameChangedAfterRecoveryWrapper.Invoke(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName));
+                                _queueNameChangedAfterRecoveryWrapper.Invoke(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newNameStr));
                             }
                             finally
                             {
@@ -391,7 +392,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
 
-                void UpdateBindingsDestination(string oldName, string newName)
+                void UpdateBindingsDestination(AmqpString oldName, AmqpString newName)
                 {
                     foreach (RecordedBinding b in _recordedBindings.ToArray())
                     {
@@ -403,7 +404,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
 
-                void UpdateConsumerQueue(string oldName, string newName)
+                void UpdateConsumerQueue(QueueName oldName, QueueName newName)
                 {
                     foreach (RecordedConsumer consumer in _recordedConsumers.Values.ToArray())
                     {
@@ -502,7 +503,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 {
                     string newTag = await consumer.RecoverAsync(channelToUse)
                         .ConfigureAwait(false);
-                    RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
+                    RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag((ConsumerTag)newTag, consumer);
                     UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
 
                     if (!_consumerTagChangeAfterRecoveryWrapper.IsEmpty)

@@ -69,7 +69,7 @@ namespace RabbitMQ.Client
         /// <param name="exchangeType">Exchange type.</param>
         /// <param name="exchangeName">Exchange name.</param>
         /// <param name="routingKey">Routing key.</param>
-        public PublicationAddress(string exchangeType, string exchangeName, string routingKey)
+        public PublicationAddress(ExchangeType exchangeType, ExchangeName exchangeName, RoutingKey routingKey)
         {
             ExchangeType = exchangeType;
             ExchangeName = exchangeName;
@@ -79,17 +79,17 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve the exchange name.
         /// </summary>
-        public readonly string ExchangeName;
+        public readonly ExchangeName ExchangeName;
 
         /// <summary>
         /// Retrieve the exchange type string.
         /// </summary>
-        public readonly string ExchangeType;
+        public readonly ExchangeType ExchangeType;
 
         /// <summary>
         ///Retrieve the routing key.
         /// </summary>
-        public readonly string RoutingKey;
+        public readonly RoutingKey RoutingKey;
 
         /// <summary>
         /// Parse a <see cref="PublicationAddress"/> out of the given string,
@@ -100,9 +100,10 @@ namespace RabbitMQ.Client
             Match match = PSEUDO_URI_PARSER.Match(uriLikeString);
             if (match.Success)
             {
-                return new PublicationAddress(match.Groups[1].Value,
-                    match.Groups[2].Value,
-                    match.Groups[3].Value);
+                var exchangeType = new ExchangeType(match.Groups[1].Value);
+                var exchangeName = new ExchangeName(match.Groups[2].Value);
+                var routingKey = new RoutingKey(match.Groups[3].Value);
+                return new PublicationAddress(exchangeType, exchangeName, routingKey);
             }
             return null;
         }

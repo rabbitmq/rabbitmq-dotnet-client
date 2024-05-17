@@ -68,5 +68,10 @@ namespace RabbitMQ.Client
         {
             return declareOk.QueueName;
         }
+
+        public static implicit operator QueueName(QueueDeclareOk declareOk)
+        {
+            return new QueueName(declareOk.QueueName);
+        }
     }
 }

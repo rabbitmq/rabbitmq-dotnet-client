@@ -113,12 +113,13 @@ namespace Test.Integration
             {
                 IChannel ch = await _conn.CreateChannelAsync();
                 QueueDeclareOk q = await ch.QueueDeclareAsync("", durable: false, exclusive: true, autoDelete: true, arguments: null);
-                await ch.QueueBindAsync(queue: q, exchange: _x, routingKey: "");
+                var qname = new QueueName(q.QueueName);
+                await ch.QueueBindAsync(queue: qname, exchange: _x, routingKey: "");
                 _channels.Add(ch);
                 _queues.Add(q);
                 var cons = new CollectingConsumer(ch);
                 _consumers.Add(cons);
-                await ch.BasicConsumeAsync(queue: q, autoAck: false, consumer: cons);
+                await ch.BasicConsumeAsync(queue: qname, autoAck: false, consumer: cons);
             }
 
             for (int i = 0; i < N; i++)

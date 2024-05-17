@@ -283,7 +283,7 @@ namespace Test.Integration
                     string binding1 = "recovered.binding.1";
                     string binding2 = "recovered.binding.2";
 
-                    await ch.ExchangeDeclareAsync(exchange, "direct");
+                    await ch.ExchangeDeclareAsync(exchange, ExchangeType.Direct);
                     await ch.QueueDeclareAsync(queueWithRecoveredConsumer, false, false, false);
                     await ch.QueueDeclareAsync(queueWithIgnoredConsumer, false, false, false);
                     await ch.QueueBindAsync(queueWithRecoveredConsumer, exchange, binding1);

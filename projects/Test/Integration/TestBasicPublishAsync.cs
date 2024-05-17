@@ -52,13 +52,14 @@ namespace Test.Integration
             await _channel.ConfirmSelectAsync();
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            var rk = new RoutingKey(q.QueueName);
 
             var publishTask = Task.Run(async () =>
             {
                 byte[] body = GetRandomBody(512);
                 for (int i = 0; i < messageCount; i++)
                 {
-                    await _channel.BasicPublishAsync(string.Empty, q, body);
+                    await _channel.BasicPublishAsync(string.Empty, rk, body);
                 }
                 await _channel.WaitForConfirmsOrDieAsync();
                 publishSyncSource.SetResult(true);

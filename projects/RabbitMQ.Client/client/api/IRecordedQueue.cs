@@ -5,7 +5,7 @@ namespace RabbitMQ.Client
 #nullable enable
     public interface IRecordedQueue
     {
-        string Name { get; }
+        QueueName Name { get; }
 
         bool Durable { get; }
 

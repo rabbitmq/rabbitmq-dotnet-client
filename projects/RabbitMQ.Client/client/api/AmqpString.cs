@@ -35,10 +35,12 @@ using System.Text.RegularExpressions;
 
 namespace RabbitMQ.Client
 {
-    public abstract class AmqpString
+    // TODO lazy string value
+    public abstract class AmqpString : IEquatable<AmqpString>
     {
         private readonly string _value;
         private readonly ReadOnlyMemory<byte> _stringBytes;
+        private readonly int _byteCount;
 
         protected AmqpString()
         {
@@ -77,6 +79,22 @@ namespace RabbitMQ.Client
 
             _value = value;
             _stringBytes = new ReadOnlyMemory<byte>(encoding.GetBytes(value));
+            _byteCount = _stringBytes.Length;
+        }
+
+        public int ByteCount => _byteCount;
+
+        public bool IsEmpty
+        {
+            get
+            {
+                return _value == string.Empty;
+            }
+        }
+
+        public bool Contains(string value)
+        {
+            return _value.Contains(value);
         }
 
         public override string ToString()
@@ -94,9 +112,65 @@ namespace RabbitMQ.Client
             return amqpString._stringBytes;
         }
 
+        public static implicit operator ReadOnlySpan<byte>(AmqpString amqpString)
+        {
+            return amqpString._stringBytes.Span;
+        }
+
         private bool isAscii(string value)
         {
             return Encoding.UTF8.GetByteCount(value) == value.Length;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (Object.ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            AmqpString amqpStringObj = obj as AmqpString;
+            if (amqpStringObj is null)
+            {
+                return false;
+            }
+
+            return Equals(amqpStringObj);
+        }
+
+        public bool Equals(AmqpString other)
+        {
+            return _value == other._value;
+        }
+
+        public override int GetHashCode()
+        {
+            return _value.GetHashCode();
+        }
+
+        public static bool operator ==(AmqpString exchangeType1, AmqpString exchangeType2)
+        {
+            if (exchangeType1 is null || exchangeType2 is null)
+            {
+                return Object.Equals(exchangeType1, exchangeType2);
+            }
+
+            return exchangeType1.Equals(exchangeType2);
+        }
+
+        public static bool operator !=(AmqpString exchangeType1, AmqpString exchangeType2)
+        {
+            if (exchangeType1 is null || exchangeType2 is null)
+            {
+                return false == Object.Equals(exchangeType1, exchangeType2);
+            }
+
+            return false == exchangeType1.Equals(exchangeType2);
         }
     }
 
@@ -121,7 +195,8 @@ namespace RabbitMQ.Client
         {
         }
 
-        public static explicit operator ExchangeName(string value)
+        // TODO explicit
+        public static implicit operator ExchangeName(string value)
         {
             return new ExchangeName(value);
         }
@@ -143,14 +218,20 @@ namespace RabbitMQ.Client
         {
         }
 
-        public QueueName(string exchangeName)
-            : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
+        public QueueName(string queueName)
+            : base(queueName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
         {
         }
 
-        public static explicit operator QueueName(string value)
+        // TODO explicit
+        public static implicit operator QueueName(string value)
         {
             return new QueueName(value);
+        }
+
+        public static explicit operator RoutingKey(QueueName value)
+        {
+            return new RoutingKey(value);
         }
     }
 
@@ -174,7 +255,8 @@ namespace RabbitMQ.Client
         {
         }
 
-        public static explicit operator RoutingKey(string value)
+        // TODO explicit
+        public static implicit operator RoutingKey(string value)
         {
             return new RoutingKey(value);
         }
@@ -199,7 +281,8 @@ namespace RabbitMQ.Client
         {
         }
 
-        public static explicit operator ConsumerTag(string value)
+        // TODO explicit
+        public static implicit operator ConsumerTag(string value)
         {
             return new ConsumerTag(value);
         }

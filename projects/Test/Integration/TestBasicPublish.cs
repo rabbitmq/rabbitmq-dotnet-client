@@ -104,7 +104,7 @@ namespace Test.Integration
                 };
                 string tag = await _channel.BasicConsumeAsync(queueName, true, consumer);
 
-                await _channel.BasicPublishAsync(exchangeName, queueName, sendBody);
+                await _channel.BasicPublishAsync(exchangeName, (RoutingKey)queueName, sendBody);
                 bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
                 await _channel.BasicCancelAsync(tag);
 

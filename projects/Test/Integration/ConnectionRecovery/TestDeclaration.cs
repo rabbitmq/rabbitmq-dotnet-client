@@ -90,8 +90,9 @@ namespace Test.Integration.ConnectionRecovery
                 string x = Guid.NewGuid().ToString();
                 await _channel.ExchangeDeclareAsync(x, "fanout", false, true);
                 QueueDeclareOk q = await _channel.QueueDeclareAsync();
-                await _channel.QueueBindAsync(q, x, "");
-                await _channel.QueueDeleteAsync(q);
+                var qname = new QueueName(q.QueueName);
+                await _channel.QueueBindAsync(qname, x, "");
+                await _channel.QueueDeleteAsync(qname);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }
@@ -102,11 +103,12 @@ namespace Test.Integration.ConnectionRecovery
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
-                string x = Guid.NewGuid().ToString();
-                await _channel.ExchangeDeclareAsync(x, "fanout", false, true);
+                ExchangeName exchangeName = GenerateExchangeName();
+                await _channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Fanout, false, true);
                 QueueDeclareOk q = await _channel.QueueDeclareAsync();
-                await _channel.QueueBindAsync(q, x, "");
-                await _channel.QueueUnbindAsync(q, x, "", null);
+                var qname = new QueueName(q.QueueName);
+                await _channel.QueueBindAsync(qname, exchangeName, "");
+                await _channel.QueueUnbindAsync(qname, exchangeName, "", null);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }

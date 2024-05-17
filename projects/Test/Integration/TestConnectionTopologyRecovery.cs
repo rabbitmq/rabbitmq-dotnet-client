@@ -51,13 +51,13 @@ namespace Test.Integration
         [Fact]
         public async Task TestRecoverTopologyOnDisposedChannel()
         {
-            string x = GenerateExchangeName();
-            string q = GenerateQueueName();
-            const string rk = "routing-key";
+            ExchangeName x = GenerateExchangeName();
+            QueueName q = GenerateQueueName();
+            var rk = new RoutingKey("routing-key");
 
             using (IChannel ch = await _conn.CreateChannelAsync())
             {
-                await ch.ExchangeDeclareAsync(exchange: x, type: "fanout");
+                await ch.ExchangeDeclareAsync(exchange: x, type: ExchangeType.Fanout);
                 await ch.QueueDeclareAsync(q, false, false, false);
                 await ch.QueueBindAsync(q, x, rk);
                 await ch.CloseAsync();
@@ -73,7 +73,7 @@ namespace Test.Integration
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             cons.Received += (s, args) => tcs.SetResult(true);
 
-            await _channel.BasicPublishAsync("", q, _messageBody);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)q, _messageBody);
             await WaitAsync(tcs, "received event");
 
             await _channel.QueueUnbindAsync(q, x, rk);
@@ -95,8 +95,8 @@ namespace Test.Integration
             conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
             IChannel ch = await conn.CreateChannelAsync();
 
-            string queueToRecover = "recovered.queue";
-            string queueToIgnore = "filtered.queue";
+            var queueToRecover = new QueueName("recovered.queue");
+            var queueToIgnore = new QueueName("filtered.queue");
             await ch.QueueDeclareAsync(queueToRecover, false, false, false);
             await ch.QueueDeclareAsync(queueToIgnore, false, false, false);
 
@@ -142,10 +142,10 @@ namespace Test.Integration
             IChannel ch = await conn.CreateChannelAsync();
             try
             {
-                string exchangeToRecover = "recovered.exchange";
-                string exchangeToIgnore = "filtered.exchange";
-                await ch.ExchangeDeclareAsync(exchangeToRecover, "topic", false, true);
-                await ch.ExchangeDeclareAsync(exchangeToIgnore, "direct", false, true);
+                var exchangeToRecover = new ExchangeName("recovered.exchange");
+                var exchangeToIgnore = new ExchangeName("filtered.exchange");
+                await ch.ExchangeDeclareAsync(exchangeToRecover, ExchangeType.Topic, false, true);
+                await ch.ExchangeDeclareAsync(exchangeToIgnore, ExchangeType.Direct, false, true);
 
                 await _channel.ExchangeDeleteAsync(exchangeToRecover);
                 await _channel.ExchangeDeleteAsync(exchangeToIgnore);
@@ -186,13 +186,13 @@ namespace Test.Integration
             IChannel ch = await conn.CreateChannelAsync();
             try
             {
-                string exchange = "topology.recovery.exchange";
-                string queueWithRecoveredBinding = "topology.recovery.queue.1";
-                string queueWithIgnoredBinding = "topology.recovery.queue.2";
-                string bindingToRecover = "recovered.binding";
-                string bindingToIgnore = "filtered.binding";
+                var exchange = new ExchangeName("topology.recovery.exchange");
+                var queueWithRecoveredBinding = new QueueName("topology.recovery.queue.1");
+                var queueWithIgnoredBinding = new QueueName("topology.recovery.queue.2");
+                var bindingToRecover = new RoutingKey("recovered.binding");
+                var bindingToIgnore = new RoutingKey("filtered.binding");
 
-                await ch.ExchangeDeclareAsync(exchange, "direct");
+                await ch.ExchangeDeclareAsync(exchange, ExchangeType.Direct);
                 await ch.QueueDeclareAsync(queueWithRecoveredBinding, false, false, false);
                 await ch.QueueDeclareAsync(queueWithIgnoredBinding, false, false, false);
                 await ch.QueueBindAsync(queueWithRecoveredBinding, exchange, bindingToRecover);
@@ -231,13 +231,13 @@ namespace Test.Integration
             {
                 await ch.ConfirmSelectAsync();
 
-                string exchange = "topology.recovery.exchange";
-                string queue1 = "topology.recovery.queue.1";
-                string queue2 = "topology.recovery.queue.2";
-                string binding1 = "recovered.binding";
-                string binding2 = "filtered.binding";
+                var exchange = new ExchangeName("topology.recovery.exchange");
+                var queue1 = new QueueName("topology.recovery.queue.1");
+                var queue2 = new QueueName("topology.recovery.queue.2");
+                var binding1 = new RoutingKey("recovered.binding");
+                var binding2 = new RoutingKey("filtered.binding");
 
-                await ch.ExchangeDeclareAsync(exchange, "direct");
+                await ch.ExchangeDeclareAsync(exchange, ExchangeType.Direct);
                 await ch.QueueDeclareAsync(queue1, false, false, false);
                 await ch.QueueDeclareAsync(queue2, false, false, false);
                 await ch.QueueBindAsync(queue1, exchange, binding1);
@@ -248,12 +248,12 @@ namespace Test.Integration
                 var consumerReceivedTcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var consumer1 = new EventingBasicConsumer(ch);
                 consumer1.Received += (source, ea) => consumerReceivedTcs1.SetResult(true);
-                await ch.BasicConsumeAsync(queue1, true, "recovered.consumer", consumer1);
+                await ch.BasicConsumeAsync(queue1, true, (ConsumerTag)"recovered.consumer", consumer1);
 
                 var consumerReceivedTcs2 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var consumer2 = new EventingBasicConsumer(ch);
                 consumer2.Received += (source, ea) => consumerReceivedTcs2.SetResult(true);
-                await ch.BasicConsumeAsync(queue2, true, "filtered.consumer", consumer2);
+                await ch.BasicConsumeAsync(queue2, true, (ConsumerTag)"filtered.consumer", consumer2);
 
                 await _channel.ExchangeDeleteAsync(exchange);
                 await _channel.QueueDeleteAsync(queue1);
@@ -301,7 +301,7 @@ namespace Test.Integration
             {
                 QueueRecoveryExceptionCondition = (rq, ex) =>
                 {
-                    return rq.Name.Contains("exception")
+                    return ((string)rq.Name).Contains("exception")
                         && ex is OperationInterruptedException operationInterruptedException
                         && operationInterruptedException.ShutdownReason.ReplyCode == Constants.PreconditionFailed;
                 },
@@ -320,8 +320,8 @@ namespace Test.Integration
             conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
             IChannel ch = await conn.CreateChannelAsync();
 
-            string queueToRecoverWithException = "recovery.exception.queue";
-            string queueToRecoverSuccessfully = "successfully.recovered.queue";
+            var queueToRecoverWithException = new QueueName("recovery.exception.queue");
+            var queueToRecoverSuccessfully = new QueueName("successfully.recovered.queue");
             await ch.QueueDeclareAsync(queueToRecoverWithException, false, false, false);
             await ch.QueueDeclareAsync(queueToRecoverSuccessfully, false, false, false);
 
@@ -366,7 +366,7 @@ namespace Test.Integration
                 {
                     using (IChannel channel = await connection.CreateChannelAsync())
                     {
-                        await channel.ExchangeDeclareAsync(re.Name, "topic", false, false);
+                        await channel.ExchangeDeclareAsync(re.Name, ExchangeType.Topic, false, false);
                         await channel.CloseAsync();
                     }
                 }
@@ -375,15 +375,15 @@ namespace Test.Integration
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
             conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
 
-            string exchangeToRecoverWithException = "recovery.exception.exchange";
-            string exchangeToRecoverSuccessfully = "successfully.recovered.exchange";
+            var exchangeToRecoverWithException = new ExchangeName("recovery.exception.exchange");
+            var exchangeToRecoverSuccessfully = new ExchangeName("successfully.recovered.exchange");
             IChannel ch = await conn.CreateChannelAsync();
-            await ch.ExchangeDeclareAsync(exchangeToRecoverWithException, "direct", false, false);
-            await ch.ExchangeDeclareAsync(exchangeToRecoverSuccessfully, "direct", false, false);
+            await ch.ExchangeDeclareAsync(exchangeToRecoverWithException, ExchangeType.Direct, false, false);
+            await ch.ExchangeDeclareAsync(exchangeToRecoverSuccessfully, ExchangeType.Direct, false, false);
 
             await _channel.ExchangeDeleteAsync(exchangeToRecoverSuccessfully);
             await _channel.ExchangeDeleteAsync(exchangeToRecoverWithException);
-            await _channel.ExchangeDeclareAsync(exchangeToRecoverWithException, "topic", false, false);
+            await _channel.ExchangeDeclareAsync(exchangeToRecoverWithException, ExchangeType.Topic, false, false);
 
             try
             {
@@ -410,9 +410,9 @@ namespace Test.Integration
         {
             var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            const string exchange = "topology.recovery.exchange";
-            const string queueWithExceptionBinding = "recovery.exception.queue";
-            const string bindingToRecoverWithException = "recovery.exception.binding";
+            var exchange = new ExchangeName("topology.recovery.exchange");
+            var queueWithExceptionBinding = new QueueName("recovery.exception.queue");
+            var bindingToRecoverWithException = new RoutingKey("recovery.exception.binding");
 
             var exceptionHandler = new TopologyRecoveryExceptionHandler
             {
@@ -437,12 +437,12 @@ namespace Test.Integration
             conn.RecoverySucceeded += (source, ea) => connectionRecoveryTcs.SetResult(true);
             IChannel ch = await conn.CreateChannelAsync();
 
-            const string queueWithRecoveredBinding = "successfully.recovered.queue";
-            const string bindingToRecoverSuccessfully = "successfully.recovered.binding";
+            var queueWithRecoveredBinding = new QueueName("successfully.recovered.queue");
+            var bindingToRecoverSuccessfully = new RoutingKey("successfully.recovered.binding");
 
             await _channel.QueueDeclareAsync(queueWithExceptionBinding, false, false, false);
 
-            await ch.ExchangeDeclareAsync(exchange, "direct");
+            await ch.ExchangeDeclareAsync(exchange, ExchangeType.Direct);
             await ch.QueueDeclareAsync(queueWithRecoveredBinding, false, false, false);
             await ch.QueueBindAsync(queueWithRecoveredBinding, exchange, bindingToRecoverSuccessfully);
             await ch.QueueBindAsync(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
@@ -471,7 +471,7 @@ namespace Test.Integration
         {
             var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            string queueWithExceptionConsumer = "recovery.exception.queue";
+            var queueWithExceptionConsumer = new QueueName("recovery.exception.queue");
 
             var exceptionHandler = new TopologyRecoveryExceptionHandler
             {
@@ -507,8 +507,10 @@ namespace Test.Integration
 
                 var recoveredConsumerReceivedTcs = new ManualResetEventSlim(false);
                 var consumerToRecover = new EventingBasicConsumer(ch);
+                var consumerTag = new ConsumerTag("exception.consumer");
+
                 consumerToRecover.Received += (source, ea) => recoveredConsumerReceivedTcs.Set();
-                await ch.BasicConsumeAsync(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover);
+                await ch.BasicConsumeAsync(queueWithExceptionConsumer, true, consumerTag, consumerToRecover);
 
                 await _channel.QueueDeleteAsync(queueWithExceptionConsumer);
 
@@ -517,11 +519,11 @@ namespace Test.Integration
 
                 Assert.True(ch.IsOpen);
 
-                await ch.BasicPublishAsync("", queueWithExceptionConsumer, _encoding.GetBytes("test message"));
+                await ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueWithExceptionConsumer, _encoding.GetBytes("test message"));
 
                 Assert.True(recoveredConsumerReceivedTcs.Wait(TimeSpan.FromSeconds(5)));
 
-                await ch.BasicConsumeAsync(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover);
+                await ch.BasicConsumeAsync(queueWithExceptionConsumer, true, consumerTag, consumerToRecover);
                 Assert.Fail("Expected an exception");
             }
             catch (OperationInterruptedException e)

@@ -161,7 +161,7 @@ namespace Test.Integration
 
         private async Task TestWaitForConfirmsAsync(int numberOfMessagesToPublish, Func<IChannel, Task> fn)
         {
-            string queueName = string.Format("{0}:{1}", _testDisplayName, Guid.NewGuid());
+            string queueName = GenerateQueueName();
             using (IChannel ch = await _conn.CreateChannelAsync())
             {
                 var props = new BasicProperties { Persistent = true };

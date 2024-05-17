@@ -38,19 +38,17 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal readonly struct QueueDelete : IOutgoingAmqpMethod
     {
-        // deprecated
-        // ushort _reserved1
-        public readonly string _queue;
+        public readonly QueueName _queue;
         public readonly bool _ifUnused;
         public readonly bool _ifEmpty;
-        public readonly bool _nowait;
+        public readonly bool _noWait;
 
-        public QueueDelete(string Queue, bool IfUnused, bool IfEmpty, bool Nowait)
+        public QueueDelete(QueueName queue, bool ifUnused, bool ifEmpty, bool noWait)
         {
-            _queue = Queue;
-            _ifUnused = IfUnused;
-            _ifEmpty = IfEmpty;
-            _nowait = Nowait;
+            _queue = queue;
+            _ifUnused = ifUnused;
+            _ifEmpty = ifEmpty;
+            _noWait = noWait;
         }
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDelete;
@@ -58,14 +56,14 @@ namespace RabbitMQ.Client.Framing.Impl
         public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
-            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _ifUnused, _ifEmpty, _nowait);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), (ReadOnlySpan<byte>)_queue);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _ifUnused, _ifEmpty, _noWait);
         }
 
         public int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _queue, bit fields
-            bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
+            bufferSize += _queue.ByteCount; // _queue in bytes
             return bufferSize;
         }
     }

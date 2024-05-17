@@ -5,9 +5,9 @@ namespace RabbitMQ.Client
 #nullable enable
     public interface IRecordedConsumer
     {
-        string ConsumerTag { get; }
+        ConsumerTag ConsumerTag { get; }
 
-        string Queue { get; }
+        QueueName Queue { get; }
 
         bool AutoAck { get; }
 

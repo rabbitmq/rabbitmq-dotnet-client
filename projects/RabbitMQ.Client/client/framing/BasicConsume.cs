@@ -39,25 +39,24 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal readonly struct BasicConsume : IOutgoingAmqpMethod
     {
-        // deprecated
-        // ushort _reserved1
-        public readonly string _queue;
-        public readonly string _consumerTag;
+        public readonly QueueName _queue;
+        public readonly ConsumerTag _consumerTag;
         public readonly bool _noLocal;
         public readonly bool _noAck;
         public readonly bool _exclusive;
-        public readonly bool _nowait;
+        public readonly bool _noWait;
         public readonly IDictionary<string, object> _arguments;
 
-        public BasicConsume(string Queue, string ConsumerTag, bool NoLocal, bool NoAck, bool Exclusive, bool Nowait, IDictionary<string, object> Arguments)
+        public BasicConsume(QueueName queue, ConsumerTag consumerTag, bool noLocal, bool noAck, bool exclusive, bool noWait,
+            IDictionary<string, object> arguments)
         {
-            _queue = Queue;
-            _consumerTag = ConsumerTag;
-            _noLocal = NoLocal;
-            _noAck = NoAck;
-            _exclusive = Exclusive;
-            _nowait = Nowait;
-            _arguments = Arguments;
+            _queue = queue;
+            _consumerTag = consumerTag;
+            _noLocal = noLocal;
+            _noAck = noAck;
+            _exclusive = exclusive;
+            _noWait = noWait;
+            _arguments = arguments;
         }
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicConsume;
@@ -65,17 +64,17 @@ namespace RabbitMQ.Client.Framing.Impl
         public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _consumerTag);
-            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _noLocal, _noAck, _exclusive, _nowait);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), (ReadOnlySpan<byte>)_queue);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), (ReadOnlySpan<byte>)_consumerTag);
+            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _noLocal, _noAck, _exclusive, _noWait);
             return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
         }
 
         public int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1 + 1; // bytes for _reserved1, length of _queue, length of _consumerTag, bit fields
-            bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
-            bufferSize += WireFormatting.GetByteCount(_consumerTag); // _consumerTag in bytes
+            bufferSize += _queue.ByteCount; // _queue in bytes
+            bufferSize += _consumerTag.ByteCount; // _consumerTag in bytes
             bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
             return bufferSize;
         }

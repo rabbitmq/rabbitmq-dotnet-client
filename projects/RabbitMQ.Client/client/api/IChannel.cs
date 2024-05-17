@@ -106,7 +106,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// https://www.rabbitmq.com/amqp-0-9-1-reference.html#domain.queue-name
         /// </remarks>
-        string CurrentQueue { get; }
+        QueueName CurrentQueue { get; }
 
         /// <summary>
         /// Signalled when a Basic.Ack command arrives from the broker.
@@ -164,7 +164,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">The consumer tag.</param>
         /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
-        Task BasicCancelAsync(string consumerTag, bool noWait = false,
+        Task BasicCancelAsync(ConsumerTag consumerTag, bool noWait = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client
         /// <param name="consumer">The consumer, an instance of <see cref="IBasicConsumer"/></param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns></returns>
-        Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+        Task<string> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer,
             CancellationToken cancellationToken = default);
 
@@ -190,27 +190,10 @@ namespace RabbitMQ.Client
         /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns><see cref="BasicGetResult"/></returns>
-        ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck,
+        ValueTask<BasicGetResult> BasicGetAsync(QueueName queue, bool autoAck,
             CancellationToken cancellationToken = default);
 
 #nullable enable
-
-        /// <summary>
-        /// Asynchronously publishes a message.
-        /// </summary>
-        /// <param name="exchange">The exchange.</param>
-        /// <param name="routingKey">The routing key.</param>
-        /// <param name="basicProperties">The message properties.</param>
-        /// <param name="body">The message body.</param>
-        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
-        /// <param name="cancellationToken">CancellationToken for this operation.</param>
-        /// <remarks>
-        /// Routing key must be shorter than 255 bytes.
-        /// </remarks>
-        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties,
-            ReadOnlyMemory<byte> body = default, bool mandatory = false,
-            CancellationToken cancellationToken = default)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
         /// <summary>
         /// Asynchronously publishes a message.
@@ -285,7 +268,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The exchange is declared non-internal.
         /// </remarks>
-        Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete,
+        Task ExchangeDeclareAsync(ExchangeName exchange, ExchangeType type, bool durable, bool autoDelete,
             IDictionary<string, object> arguments = null, bool passive = false, bool noWait = false,
             CancellationToken cancellationToken = default);
 
@@ -300,7 +283,7 @@ namespace RabbitMQ.Client
         /// It will do nothing if the exchange already exists and result
         /// in a channel-level protocol exception (channel closure) if not.
         /// </remarks>
-        Task ExchangeDeclarePassiveAsync(string exchange, CancellationToken cancellationToken = default);
+        Task ExchangeDeclarePassiveAsync(ExchangeName exchange, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously delete an exchange.
@@ -309,7 +292,7 @@ namespace RabbitMQ.Client
         /// <param name="ifUnused">Only delete the exchange if it is unused.</param>
         /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
-        Task ExchangeDeleteAsync(string exchange, bool ifUnused = false, bool noWait = false,
+        Task ExchangeDeleteAsync(ExchangeName exchange, bool ifUnused = false, bool noWait = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -324,7 +307,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        Task ExchangeBindAsync(string destination, string source, string routingKey,
+        Task ExchangeBindAsync(ExchangeName destination, ExchangeName source, RoutingKey routingKey,
             IDictionary<string, object> arguments = null, bool noWait = false,
             CancellationToken cancellationToken = default);
 
@@ -340,7 +323,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        Task ExchangeUnbindAsync(string destination, string source, string routingKey,
+        Task ExchangeUnbindAsync(ExchangeName destination, ExchangeName source, RoutingKey routingKey,
             IDictionary<string, object> arguments = null, bool noWait = false,
             CancellationToken cancellationToken = default);
 
@@ -355,7 +338,7 @@ namespace RabbitMQ.Client
         /// <param name="passive">Optional; Set to <code>true</code> to passively declare the queue (i.e. check for its existence)</param>
         /// <param name="noWait">Optional; Set to <c>true</c> to not require a response from the server.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
-        Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete,
+        Task<QueueDeclareOk> QueueDeclareAsync(QueueName queue, bool durable, bool exclusive, bool autoDelete,
             IDictionary<string, object> arguments = null, bool passive = false, bool noWait = false,
             CancellationToken cancellationToken = default);
 
@@ -367,7 +350,7 @@ namespace RabbitMQ.Client
         ///non-exclusive, and non-autodelete, with no arguments.
         ///The queue is declared passively; i.e. only check if it exists.
         /// </remarks>
-        Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue,
+        Task<QueueDeclareOk> QueueDeclarePassiveAsync(QueueName queue,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -381,14 +364,14 @@ namespace RabbitMQ.Client
         /// <remarks>
         ///Returns the number of messages purged during queue deletion.
         /// </remarks>
-        Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty, bool noWait = false,
+        Task<uint> QueueDeleteAsync(QueueName queue, bool ifUnused, bool ifEmpty, bool noWait = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>Asynchronously purge a queue of messages.</summary>
         /// <param name="queue">The queue.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <returns>Returns the number of messages purged.</returns>
-        Task<uint> QueuePurgeAsync(string queue, CancellationToken cancellationToken = default);
+        Task<uint> QueuePurgeAsync(QueueName queue, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously bind a queue to an exchange.
@@ -402,7 +385,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        Task QueueBindAsync(string queue, string exchange, string routingKey,
+        Task QueueBindAsync(QueueName queue, ExchangeName exchange, RoutingKey routingKey,
             IDictionary<string, object> arguments = null, bool noWait = false,
             CancellationToken cancellationToken = default);
 
@@ -417,7 +400,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        Task QueueUnbindAsync(string queue, string exchange, string routingKey,
+        Task QueueUnbindAsync(QueueName queue, ExchangeName exchange, RoutingKey routingKey,
             IDictionary<string, object> arguments = null,
             CancellationToken cancellationToken = default);
 
@@ -428,7 +411,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="queue">The name of the queue</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        Task<uint> MessageCountAsync(string queue, CancellationToken cancellationToken = default);
+        Task<uint> MessageCountAsync(QueueName queue, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns the number of consumers on a queue.
@@ -437,7 +420,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="queue">The name of the queue</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        Task<uint> ConsumerCountAsync(string queue, CancellationToken cancellationToken = default);
+        Task<uint> ConsumerCountAsync(QueueName queue, CancellationToken cancellationToken = default);
 
         /// <summary>Asynchronously commit this session's active TX transaction.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>

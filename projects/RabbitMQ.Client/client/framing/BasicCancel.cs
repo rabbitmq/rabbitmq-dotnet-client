@@ -38,34 +38,34 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal readonly struct BasicCancel : IOutgoingAmqpMethod
     {
-        public readonly string _consumerTag;
-        public readonly bool _nowait;
+        public readonly ConsumerTag _consumerTag;
+        public readonly bool _noWait;
 
-        public BasicCancel(string ConsumerTag, bool Nowait)
+        public BasicCancel(ConsumerTag consumerTag, bool noWait)
         {
-            _consumerTag = ConsumerTag;
-            _nowait = Nowait;
-        }
-
-        public BasicCancel(ReadOnlySpan<byte> span)
-        {
-            int offset = WireFormatting.ReadShortstr(span, out _consumerTag);
-            WireFormatting.ReadBits(span.Slice(offset), out _nowait);
+            _consumerTag = consumerTag;
+            _noWait = noWait;
         }
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancel;
 
         public int WriteTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag);
-            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
+            int offset = WireFormatting.WriteShortstr(ref span.GetStart(), (ReadOnlySpan<byte>)_consumerTag);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _noWait);
         }
 
         public int GetRequiredBufferSize()
         {
             int bufferSize = 1 + 1; // bytes for length of _consumerTag, bit fields
-            bufferSize += WireFormatting.GetByteCount(_consumerTag); // _consumerTag in bytes
+            bufferSize += _consumerTag.ByteCount; // _consumerTag in bytes
             return bufferSize;
+        }
+
+        public static string GetConsumerTag(ReadOnlySpan<byte> span)
+        {
+            _ = WireFormatting.ReadShortstr(span, out string consumerTag);
+            return consumerTag;
         }
     }
 }

@@ -42,10 +42,10 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         private readonly SemaphoreSlim _recordedEntitiesSemaphore = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _channelsSemaphore = new SemaphoreSlim(1, 1);
-        private readonly Dictionary<string, RecordedExchange> _recordedExchanges = new Dictionary<string, RecordedExchange>();
-        private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
+        private readonly Dictionary<ExchangeName, RecordedExchange> _recordedExchanges = new Dictionary<ExchangeName, RecordedExchange>();
+        private readonly Dictionary<QueueName, RecordedQueue> _recordedQueues = new Dictionary<QueueName, RecordedQueue>();
         private readonly HashSet<RecordedBinding> _recordedBindings = new HashSet<RecordedBinding>();
-        private readonly Dictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
+        private readonly Dictionary<ConsumerTag, RecordedConsumer> _recordedConsumers = new Dictionary<ConsumerTag, RecordedConsumer>();
         private readonly List<AutorecoveringChannel> _channels = new List<AutorecoveringChannel>();
 
         internal int RecordedExchangesCount => _recordedExchanges.Count;
@@ -398,7 +398,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void DoDeleteRecordedConsumer(string consumerTag)
+        private void DoDeleteRecordedConsumer(ConsumerTag consumerTag)
         {
             if (_recordedConsumers.Remove(consumerTag, out RecordedConsumer recordedConsumer))
             {
@@ -406,7 +406,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private void DeleteAutoDeleteQueue(string queue)
+        private void DeleteAutoDeleteQueue(QueueName queue)
         {
             if (_recordedQueues.TryGetValue(queue, out RecordedQueue recordedQueue) && recordedQueue.AutoDelete)
             {
@@ -418,9 +418,9 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        private bool AnyConsumersOnQueue(string queue)
+        private bool AnyConsumersOnQueue(QueueName queue)
         {
-            foreach (KeyValuePair<string, RecordedConsumer> pair in _recordedConsumers)
+            foreach (KeyValuePair<ConsumerTag, RecordedConsumer> pair in _recordedConsumers)
             {
                 if (pair.Value.Queue == queue)
                 {
