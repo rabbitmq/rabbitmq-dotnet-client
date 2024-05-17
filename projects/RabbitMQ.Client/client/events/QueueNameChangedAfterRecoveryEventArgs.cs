@@ -40,7 +40,7 @@ namespace RabbitMQ.Client.Events
         /// </summary>
         /// <param name="nameBefore">The name before.</param>
         /// <param name="nameAfter">The name after.</param>
-        public QueueNameChangedAfterRecoveryEventArgs(string nameBefore, string nameAfter)
+        public QueueNameChangedAfterRecoveryEventArgs(QueueName nameBefore, QueueName nameAfter)
         {
             NameBefore = nameBefore;
             NameAfter = nameAfter;
@@ -49,11 +49,11 @@ namespace RabbitMQ.Client.Events
         /// <summary>
         /// Gets the name before.
         /// </summary>
-        public readonly string NameBefore;
+        public readonly QueueName NameBefore;
 
         /// <summary>
         /// Gets the name after.
         /// </summary>
-        public readonly string NameAfter;
+        public readonly QueueName NameAfter;
     }
 }

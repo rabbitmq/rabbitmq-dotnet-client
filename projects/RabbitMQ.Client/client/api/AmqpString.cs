@@ -36,7 +36,7 @@ using System.Text.RegularExpressions;
 namespace RabbitMQ.Client
 {
     // TODO lazy string value
-    public abstract class AmqpString : IEquatable<AmqpString>
+    public abstract class AmqpString : IEquatable<AmqpString>, IComparable<AmqpString>
     {
         private readonly string _value;
         private readonly ReadOnlyMemory<byte> _stringBytes;
@@ -153,24 +153,36 @@ namespace RabbitMQ.Client
             return _value.GetHashCode();
         }
 
-        public static bool operator ==(AmqpString exchangeType1, AmqpString exchangeType2)
+        public int CompareTo(AmqpString other)
         {
-            if (exchangeType1 is null || exchangeType2 is null)
+            if (_value is null)
             {
-                return Object.Equals(exchangeType1, exchangeType2);
+                throw new InvalidOperationException("[CRITICAL] should not see this");
             }
-
-            return exchangeType1.Equals(exchangeType2);
+            else
+            {
+                return _value.CompareTo(other._value);
+            }
         }
 
-        public static bool operator !=(AmqpString exchangeType1, AmqpString exchangeType2)
+        public static bool operator ==(AmqpString amqpString1, AmqpString amqpString2)
         {
-            if (exchangeType1 is null || exchangeType2 is null)
+            if (amqpString1 is null || amqpString2 is null)
             {
-                return false == Object.Equals(exchangeType1, exchangeType2);
+                return Object.Equals(amqpString1, amqpString2);
             }
 
-            return false == exchangeType1.Equals(exchangeType2);
+            return amqpString1.Equals(amqpString2);
+        }
+
+        public static bool operator !=(AmqpString amqpString1, AmqpString amqpString2)
+        {
+            if (amqpString1 is null || amqpString2 is null)
+            {
+                return false == Object.Equals(amqpString1, amqpString2);
+            }
+
+            return false == amqpString1.Equals(amqpString2);
         }
     }
 

@@ -314,7 +314,6 @@ RabbitMQ.Client.Events.EventingBasicConsumer.Unregistered -> System.EventHandler
 RabbitMQ.Client.Events.FlowControlEventArgs
 RabbitMQ.Client.Events.FlowControlEventArgs.FlowControlEventArgs(bool active) -> void
 RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs
-RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.QueueNameChangedAfterRecoveryEventArgs(string nameBefore, string nameAfter) -> void
 RabbitMQ.Client.Events.RecoveringConsumerEventArgs
 RabbitMQ.Client.Events.RecoveringConsumerEventArgs.ConsumerArguments.get -> System.Collections.Generic.IDictionary<string, object>
 RabbitMQ.Client.Events.RecoveringConsumerEventArgs.ConsumerTag.get -> string
@@ -814,8 +813,6 @@ readonly RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTags -> string[]
 readonly RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs.TagAfter -> string
 readonly RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs.TagBefore -> string
 readonly RabbitMQ.Client.Events.FlowControlEventArgs.Active -> bool
-readonly RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.NameAfter -> string
-readonly RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.NameBefore -> string
 readonly RabbitMQ.Client.Exceptions.HardProtocolException._canShutdownCleanly -> bool
 readonly RabbitMQ.Client.QueueDeclareOk.ConsumerCount -> uint
 readonly RabbitMQ.Client.QueueDeclareOk.MessageCount -> uint
@@ -878,6 +875,7 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~override RabbitMQ.Client.ExchangeType.ToString() -> string
 ~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding encoding) -> void
 ~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding encoding, string validatorRegex) -> void
+~RabbitMQ.Client.AmqpString.CompareTo(RabbitMQ.Client.AmqpString other) -> int
 ~RabbitMQ.Client.AmqpString.Contains(string value) -> bool
 ~RabbitMQ.Client.AmqpString.Equals(RabbitMQ.Client.AmqpString other) -> bool
 ~RabbitMQ.Client.AmqpTcpEndpoint.AmqpTcpEndpoint(string hostName, int portOrMinusOne, RabbitMQ.Client.SslOption ssl, uint maxInboundMessageBodySize) -> void
@@ -890,6 +888,7 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.ConnectionFactory.CreateConnectionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.ConsumerTag.ConsumerTag(string exchangeName) -> void
 ~RabbitMQ.Client.Events.BasicDeliverEventArgs.BasicDeliverEventArgs(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> void
+~RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.QueueNameChangedAfterRecoveryEventArgs(RabbitMQ.Client.QueueName nameBefore, RabbitMQ.Client.QueueName nameAfter) -> void
 ~RabbitMQ.Client.ExchangeName.ExchangeName(string exchangeName) -> void
 ~RabbitMQ.Client.ExchangeType.Equals(RabbitMQ.Client.ExchangeType other) -> bool
 ~RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, System.ReadOnlyMemory<byte> exchange, System.ReadOnlyMemory<byte> routingKey, in RabbitMQ.Client.ReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
@@ -943,14 +942,16 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync.set -> void
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync.get -> System.Func<RabbitMQ.Client.IRecordedQueue, System.Exception, RabbitMQ.Client.IConnection, System.Threading.Tasks.Task>
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync.set -> void
+~readonly RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.NameAfter -> RabbitMQ.Client.QueueName
+~readonly RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs.NameBefore -> RabbitMQ.Client.QueueName
 ~readonly RabbitMQ.Client.PublicationAddress.ExchangeName -> RabbitMQ.Client.ExchangeName
 ~readonly RabbitMQ.Client.PublicationAddress.ExchangeType -> RabbitMQ.Client.ExchangeType
 ~readonly RabbitMQ.Client.PublicationAddress.RoutingKey -> RabbitMQ.Client.RoutingKey
 ~static RabbitMQ.Client.AmqpString.implicit operator string(RabbitMQ.Client.AmqpString amqpString) -> string
 ~static RabbitMQ.Client.AmqpString.implicit operator System.ReadOnlyMemory<byte>(RabbitMQ.Client.AmqpString amqpString) -> System.ReadOnlyMemory<byte>
 ~static RabbitMQ.Client.AmqpString.implicit operator System.ReadOnlySpan<byte>(RabbitMQ.Client.AmqpString amqpString) -> System.ReadOnlySpan<byte>
-~static RabbitMQ.Client.AmqpString.operator !=(RabbitMQ.Client.AmqpString exchangeType1, RabbitMQ.Client.AmqpString exchangeType2) -> bool
-~static RabbitMQ.Client.AmqpString.operator ==(RabbitMQ.Client.AmqpString exchangeType1, RabbitMQ.Client.AmqpString exchangeType2) -> bool
+~static RabbitMQ.Client.AmqpString.operator !=(RabbitMQ.Client.AmqpString amqpString1, RabbitMQ.Client.AmqpString amqpString2) -> bool
+~static RabbitMQ.Client.AmqpString.operator ==(RabbitMQ.Client.AmqpString amqpString1, RabbitMQ.Client.AmqpString amqpString2) -> bool
 ~static RabbitMQ.Client.ConsumerTag.implicit operator RabbitMQ.Client.ConsumerTag(string value) -> RabbitMQ.Client.ConsumerTag
 ~static RabbitMQ.Client.ExchangeName.implicit operator RabbitMQ.Client.ExchangeName(string value) -> RabbitMQ.Client.ExchangeName
 ~static RabbitMQ.Client.ExchangeType.implicit operator RabbitMQ.Client.ExchangeType(string value) -> RabbitMQ.Client.ExchangeType

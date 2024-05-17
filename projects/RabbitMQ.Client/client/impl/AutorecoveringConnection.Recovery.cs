@@ -317,20 +317,20 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
             }
 
-            foreach (RecordedQueue recordedQueue in _recordedQueues.Values.Where(x => _config.TopologyRecoveryFilter?.QueueFilter(x) ?? true).ToArray())
+            foreach (RecordedQueue recordedQueue in _recordedQueues.Values.Where(x =>
+                _config.TopologyRecoveryFilter?.QueueFilter(x) ?? true).ToArray())
             {
                 try
                 {
-                    string newNameStr = string.Empty;
+                    QueueName newName;
                     using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        newNameStr = await recordedQueue.RecoverAsync(ch, cancellationToken)
+                        newName = await recordedQueue.RecoverAsync(ch, cancellationToken)
                             .ConfigureAwait(false);
                         await ch.CloseAsync(cancellationToken)
                             .ConfigureAwait(false);
                     }
                     QueueName oldName = recordedQueue.Name;
-                    QueueName newName = (QueueName)newNameStr;
 
                     if (oldName != newName)
                     {
@@ -358,7 +358,7 @@ namespace RabbitMQ.Client.Framing.Impl
                             try
                             {
                                 _recordedEntitiesSemaphore.Release();
-                                _queueNameChangedAfterRecoveryWrapper.Invoke(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newNameStr));
+                                _queueNameChangedAfterRecoveryWrapper.Invoke(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName));
                             }
                             finally
                             {

@@ -389,7 +389,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             if (false == passive)
             {
-                var recordedQueue = new RecordedQueue((QueueName)result.QueueName, queue.IsEmpty, durable, exclusive, autoDelete, arguments);
+                var recordedQueue = new RecordedQueue((QueueName)result, queue.IsEmpty, durable, exclusive, autoDelete, arguments);
                 await _connection.RecordQueueAsync(recordedQueue, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                     .ConfigureAwait(false);
             }

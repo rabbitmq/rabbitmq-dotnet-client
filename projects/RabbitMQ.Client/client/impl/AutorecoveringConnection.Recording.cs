@@ -244,7 +244,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            async ValueTask DoDeleteRecordedQueueAsync(string queueName, CancellationToken cancellationToken)
+            async ValueTask DoDeleteRecordedQueueAsync(QueueName queueName, CancellationToken cancellationToken)
             {
                 _recordedQueues.Remove(queueName);
 
@@ -366,7 +366,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _recordedConsumers[consumer.ConsumerTag] = consumer;
         }
 
-        internal async ValueTask DeleteRecordedConsumerAsync(string consumerTag,
+        internal async ValueTask DeleteRecordedConsumerAsync(ConsumerTag consumerTag,
             bool recordedEntitiesSemaphoreHeld)
         {
             if (_disposed)

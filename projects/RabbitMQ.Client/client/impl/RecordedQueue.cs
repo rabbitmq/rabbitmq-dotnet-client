@@ -73,16 +73,20 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public Task<QueueDeclareOk> RecoverAsync(IChannel channel, CancellationToken cancellationToken)
+        public async Task<QueueName> RecoverAsync(IChannel channel, CancellationToken cancellationToken)
         {
             QueueName queueName = _name;
             if (_name.IsEmpty)
             {
                 queueName = QueueName.Empty;
             }
-            return channel.QueueDeclareAsync(queue: queueName, passive: false,
+
+            QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync(queue: queueName, passive: false,
                 durable: _durable, exclusive: _exclusive, autoDelete: AutoDelete, arguments: _arguments,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+
+            return new QueueName(queueDeclareResult.QueueName);
         }
 
         public override string ToString()
