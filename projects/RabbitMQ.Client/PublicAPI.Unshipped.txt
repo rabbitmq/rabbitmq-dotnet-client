@@ -71,8 +71,8 @@ override RabbitMQ.Client.ShutdownReportEntry.ToString() -> string
 RabbitMQ.Client.AmqpString
 RabbitMQ.Client.AmqpString.AmqpString() -> void
 RabbitMQ.Client.AmqpString.AmqpString(System.ReadOnlyMemory<byte> stringBytes) -> void
-RabbitMQ.Client.AmqpString.ByteCount.get -> int
 RabbitMQ.Client.AmqpString.IsEmpty.get -> bool
+RabbitMQ.Client.AmqpString.Length.get -> int
 RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily.get -> System.Net.Sockets.AddressFamily
 RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily.set -> void
@@ -859,8 +859,8 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~override RabbitMQ.Client.ExchangeType.Equals(object obj) -> bool
 ~override RabbitMQ.Client.ExchangeType.ToString() -> string
 ~override RabbitMQ.Client.QueueName.FixUp(string value) -> string
-~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding encoding, bool strictValidation = false) -> void
-~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, System.Text.Encoding encoding, string validatorRegex, bool strictValidation = false) -> void
+~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, bool strictValidation = false) -> void
+~RabbitMQ.Client.AmqpString.AmqpString(string value, ushort maxLen, string validatorRegex, bool strictValidation = false) -> void
 ~RabbitMQ.Client.AmqpString.CompareTo(RabbitMQ.Client.AmqpString other) -> int
 ~RabbitMQ.Client.AmqpString.Contains(string value) -> bool
 ~RabbitMQ.Client.AmqpString.Equals(RabbitMQ.Client.AmqpString other) -> bool

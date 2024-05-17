@@ -655,7 +655,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                ConsumerTag consumerTag = BasicCancel.GetConsumerTag(cmd.MethodSpan);
+                ConsumerTag consumerTag = new ConsumerTag(cmd.MethodMemory);
                 await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
                     .ConfigureAwait(false);
                 return true;
@@ -673,18 +673,16 @@ namespace RabbitMQ.Client.Impl
                 var method = new BasicDeliver(cmd.MethodMemory);
                 var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
 
-                // TODO
-                // take advantage of lazy init in AmqpString
-                var ct = new ConsumerTag(method._consumerTag);
-                var ex = new ExchangeName(method._exchange);
-                var rk = new RoutingKey(method._routingKey);
+                var consumerTag = new ConsumerTag(method._consumerTag);
+                var exchangeName = new ExchangeName(method._exchange);
+                var routingKey = new RoutingKey(method._routingKey);
 
                 await ConsumerDispatcher.HandleBasicDeliverAsync(
-                        ct,
+                        consumerTag,
                         AdjustDeliveryTag(method._deliveryTag),
                         method._redelivered,
-                        ex,
-                        rk,
+                        exchangeName,
+                        routingKey,
                         header,
                         cmd.Body,
                         cancellationToken).ConfigureAwait(false);

@@ -37,38 +37,31 @@ namespace RabbitMQ.Client
 {
     public abstract class AmqpString : IEquatable<AmqpString>, IComparable<AmqpString>
     {
+        private static readonly Encoding s_encoding = Encoding.UTF8;
         private string _value;
-        private readonly Encoding _encoding;
         private readonly ReadOnlyMemory<byte> _stringBytes;
-        private readonly int _byteCount;
 
         protected AmqpString()
         {
             _value = string.Empty;
-            _encoding = Encoding.UTF8;
             _stringBytes = ReadOnlyMemory<byte>.Empty;
-            _byteCount = 0;
         }
 
         public AmqpString(ReadOnlyMemory<byte> stringBytes)
         {
             _value = null;
-            _encoding = Encoding.UTF8;
             _stringBytes = stringBytes;
-            _byteCount = _stringBytes.Length;
         }
 
-        public AmqpString(string value, ushort maxLen, Encoding encoding,
+        public AmqpString(string value, ushort maxLen,
             bool strictValidation = false)
-            : this(value, maxLen, encoding, null, strictValidation)
+            : this(value, maxLen, null, strictValidation)
         {
         }
 
-        public AmqpString(string value, ushort maxLen, Encoding encoding, string validatorRegex,
+        public AmqpString(string value, ushort maxLen, string validatorRegex,
             bool strictValidation = false)
         {
-            _encoding = encoding;
-
             /*
              * Note:
              * RabbitMQ does hardly any validation for names, only stripping off CR/LF
@@ -89,22 +82,13 @@ namespace RabbitMQ.Client
                         throw new ArgumentOutOfRangeException(nameof(value));
                     }
                 }
-
-                if (encoding == Encoding.ASCII)
-                {
-                    if (false == isAscii(value))
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(value));
-                    }
-                }
             }
 
             _value = FixUp(value);
-            _stringBytes = new ReadOnlyMemory<byte>(encoding.GetBytes(value));
-            _byteCount = _stringBytes.Length;
+            _stringBytes = new ReadOnlyMemory<byte>(s_encoding.GetBytes(value));
         }
 
-        public int ByteCount => _byteCount;
+        public int Length => _stringBytes.Length;
 
         internal bool HasString => _value != null;
 
@@ -223,19 +207,13 @@ namespace RabbitMQ.Client
             return value;
         }
 
-        // TODO remove
-        private static bool isAscii(string value)
-        {
-            return Encoding.UTF8.GetByteCount(value) == value.Length;
-        }
-
         private string Value
         {
             get
             {
                 if (_value == null)
                 {
-                    _value = _encoding.GetString(_stringBytes.ToArray());
+                    _value = s_encoding.GetString(_stringBytes.ToArray());
                 }
                 return _value;
             }
@@ -270,7 +248,7 @@ namespace RabbitMQ.Client
         }
 
         public ExchangeName(string exchangeName, bool strictValidation)
-            : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$", strictValidation)
+            : base(exchangeName, 127, "^[a-zA-Z0-9-_.:]*$", strictValidation)
         {
         }
 
@@ -319,7 +297,7 @@ namespace RabbitMQ.Client
         }
 
         public QueueName(string queueName, bool strictValidation)
-            : base(queueName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$", strictValidation)
+            : base(queueName, 127, "^[a-zA-Z0-9-_.:]*$", strictValidation)
         {
         }
 
@@ -367,7 +345,7 @@ namespace RabbitMQ.Client
         }
 
         public RoutingKey(string routingKey, bool strictValidation)
-            : base(routingKey, 256, Encoding.ASCII, strictValidation)
+            : base(routingKey, 256, strictValidation)
         {
         }
 
@@ -403,7 +381,7 @@ namespace RabbitMQ.Client
         }
 
         public ConsumerTag(string consumerTag, bool strictValidation)
-            : base(consumerTag, 256, Encoding.UTF8, strictValidation)
+            : base(consumerTag, 256, strictValidation)
         {
         }
 

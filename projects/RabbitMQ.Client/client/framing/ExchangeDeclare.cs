@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1 + 1; // bytes for _reserved1, length of _exchange, length of _type, bit fields
-            bufferSize += _exchange.ByteCount; // _exchange in bytes
+            bufferSize += _exchange.Length; // _exchange in bytes
             bufferSize += _type.ByteCount; // _type in bytes
             bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
             return bufferSize;

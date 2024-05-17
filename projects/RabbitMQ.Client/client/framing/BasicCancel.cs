@@ -58,14 +58,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public int GetRequiredBufferSize()
         {
             int bufferSize = 1 + 1; // bytes for length of _consumerTag, bit fields
-            bufferSize += _consumerTag.ByteCount; // _consumerTag in bytes
+            bufferSize += _consumerTag.Length; // _consumerTag in bytes
             return bufferSize;
-        }
-
-        public static ConsumerTag GetConsumerTag(ReadOnlySpan<byte> span)
-        {
-            _ = WireFormatting.ReadShortstr(span, out string consumerTagStr);
-            return new ConsumerTag(consumerTagStr);
         }
     }
 }

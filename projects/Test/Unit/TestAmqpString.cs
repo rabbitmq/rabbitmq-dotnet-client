@@ -68,7 +68,7 @@ namespace Test.Unit
         }
 
         [Theory]
-        [InlineData("exchange-Евгений")]
+        [InlineData("queue-Евгений")]
         [InlineData("6PiY80XbjBK9nY39R947i2s03cAg261412IS1FzS4uEoJJ6cWZ50P0SJ3S4yqvzx0n4TN4NsROlWyEwaUG4I5Glrj1mI2N28QGbkf5t8Kyo7EavaqME5TrvhPxtJGY1p")]
         [InlineData("foo/bar%baz")]
         public void TestInvalidQueueNameThrows(string arg)
@@ -79,6 +79,7 @@ namespace Test.Unit
         [Theory]
         [InlineData("$key-ABC:123.abc_456*blargh///~~~?")]
         [InlineData("")]
+        [InlineData("key-Евгений")]
         public void TestValidRoutingKeys(string arg)
         {
             var e = new RoutingKey(arg);
@@ -86,7 +87,6 @@ namespace Test.Unit
         }
 
         [Theory]
-        [InlineData("key-Евгений")]
         [InlineData("O0s5Vu04DVyVSMp8twUjsxa0gjcQ9ixV43U10VDVS6wPTQr14mC2x8cK6fl1G0INoJlCs4v7291iOMlBLj171F09a3VBx4sFc7SKaF683YeG9nn5IQAhQZxDE6grPr20EmHPZpMy3TO3R5aW976WTNVPDzZC5vprruJgaBOh8P9ZKRwc77v2nXUnDcz1t2rX84V8l5deX6V3l0Fv4S0bQzSbGdpD5jiPSZ44yBsZVXtv61saCgu0FNGoFSuV9207s6PiY80XbjBK9nY39R947i2s03cAg261412IS1FzS4uEoJJ6cWZ50P0SJ3S4yqvzx0n4TN4NsROlWyEwaUG4I5Glrj1mI2N28QGbkf5t8Kyo7EavaqME5TrvhPxtJGY1p")]
         public void TestInvalidRoutingKeyThrows(string arg)
         {
