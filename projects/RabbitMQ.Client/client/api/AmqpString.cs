@@ -157,11 +157,11 @@ namespace RabbitMQ.Client
         {
             if (_value == null)
             {
-                throw new InvalidOperationException("TODO");
+                return _stringBytes.Equals(other._stringBytes);
             }
             else
             {
-                return _value == other._value;
+                return _value.Equals(other._value);
             }
         }
 
@@ -169,7 +169,7 @@ namespace RabbitMQ.Client
         {
             if (_value == null)
             {
-                throw new InvalidOperationException("TODO");
+                return _stringBytes.GetHashCode();
             }
             else
             {

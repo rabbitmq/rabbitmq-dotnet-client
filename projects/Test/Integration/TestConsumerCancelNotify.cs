@@ -50,7 +50,7 @@ namespace Test.Integration
         [Fact]
         public Task TestConsumerCancelNotification()
         {
-            return TestConsumerCancelAsync("queue_consumer_cancel_notify", false);
+            return TestConsumerCancelAsync(GenerateQueueName(), false);
         }
 
         [Fact]
@@ -86,11 +86,11 @@ namespace Test.Integration
             await _channel.QueueDeleteAsync(q2);
         }
 
-        private async Task TestConsumerCancelAsync(string queue, bool eventMode)
+        private async Task TestConsumerCancelAsync(QueueName queue, bool eventMode)
         {
             await _channel.QueueDeclareAsync(queue, false, true, false);
             IBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, eventMode);
-            string actualConsumerTag = await _channel.BasicConsumeAsync(queue, false, consumer);
+            ConsumerTag actualConsumerTag = await _channel.BasicConsumeAsync(queue, false, consumer);
 
             await _channel.QueueDeleteAsync(queue);
             await WaitAsync(_tcs, "HandleBasicCancel / Cancelled event");

@@ -45,10 +45,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             lock (_consumers)
             {
-                IBasicConsumer result = _consumers.Remove((ReadOnlyMemory<byte>)tag,
-                    out (IBasicConsumer consumer, ConsumerTag consumerTag) consumerPair) ?
-                        consumerPair.consumer : GetDefaultOrFallbackConsumer();
-                return result;
+                var tagMem = (ReadOnlyMemory<byte>)tag;
+                if (_consumers.Remove(tagMem, out (IBasicConsumer consumer, ConsumerTag consumerTag) consumerPair))
+                {
+                    return consumerPair.consumer;
+                }
+                else
+                {
+                    return GetDefaultOrFallbackConsumer();
+                }
             }
         }
 

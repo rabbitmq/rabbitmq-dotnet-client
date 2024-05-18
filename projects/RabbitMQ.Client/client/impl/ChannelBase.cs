@@ -655,7 +655,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                ConsumerTag consumerTag = new ConsumerTag(cmd.MethodMemory);
+                ConsumerTag consumerTag = BasicCancel.GetConsumerTag(cmd.MethodMemory);
                 await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
                     .ConfigureAwait(false);
                 return true;

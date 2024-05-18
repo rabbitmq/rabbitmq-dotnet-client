@@ -61,5 +61,11 @@ namespace RabbitMQ.Client.Framing.Impl
             bufferSize += _consumerTag.Length; // _consumerTag in bytes
             return bufferSize;
         }
+
+        public static ConsumerTag GetConsumerTag(ReadOnlyMemory<byte> data)
+        {
+            WireFormatting.ReadShortMemory(data, out ReadOnlyMemory<byte> consumerTagMemory);
+            return new ConsumerTag(consumerTagMemory);
+        }
     }
 }
