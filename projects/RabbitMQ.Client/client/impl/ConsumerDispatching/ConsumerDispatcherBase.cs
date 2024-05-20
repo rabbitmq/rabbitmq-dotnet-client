@@ -16,7 +16,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected ConsumerDispatcherBase()
         {
-            _consumers = new Dictionary<ReadOnlyMemory<byte>, (IBasicConsumer, ConsumerTag)>(MemoryOfByteEqualityComparer.Instance);
+            IEqualityComparer<ReadOnlyMemory<byte>> comparer = new ReadOnlyMemoryOfByteEqualityComparer();
+            _consumers = new Dictionary<ReadOnlyMemory<byte>, (IBasicConsumer, ConsumerTag)>(comparer);
         }
 
         protected void AddConsumer(IBasicConsumer consumer, ConsumerTag consumerTag)

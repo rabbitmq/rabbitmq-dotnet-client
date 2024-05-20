@@ -35,10 +35,8 @@ using System.Runtime.InteropServices;
 
 namespace RabbitMQ.Util
 {
-    internal sealed class MemoryOfByteEqualityComparer : IEqualityComparer<ReadOnlyMemory<byte>>
+    internal sealed class ReadOnlyMemoryOfByteEqualityComparer : IEqualityComparer<ReadOnlyMemory<byte>>
     {
-        public static MemoryOfByteEqualityComparer Instance { get; } = new MemoryOfByteEqualityComparer();
-
         public bool Equals(ReadOnlyMemory<byte> left, ReadOnlyMemory<byte> right)
         {
             return left.Span.SequenceEqual(right.Span);
@@ -46,23 +44,28 @@ namespace RabbitMQ.Util
 
         public int GetHashCode(ReadOnlyMemory<byte> value)
         {
+            return CalculateHashCode(value);
+        }
+
+        public static int CalculateHashCode(ReadOnlyMemory<byte> value)
+        {
 #if NETSTANDARD
-                unchecked
+            unchecked
+            {
+                int hashCode = 0;
+                ReadOnlySpan<long> longPart = MemoryMarshal.Cast<byte, long>(value.Span);
+                foreach (long item in longPart)
                 {
-                    int hashCode = 0;
-                    var longPart = MemoryMarshal.Cast<byte, long>(value.Span);
-                    foreach (long item in longPart)
-                    {
-                        hashCode = (hashCode * 397) ^ item.GetHashCode();
-                    }
-
-                    foreach (int item in value.Span.Slice(longPart.Length * 8))
-                    {
-                        hashCode = (hashCode * 397) ^ item.GetHashCode();
-                    }
-
-                    return hashCode;
+                    hashCode = (hashCode * 397) ^ item.GetHashCode();
                 }
+
+                foreach (int item in value.Span.Slice(longPart.Length * 8))
+                {
+                    hashCode = (hashCode * 397) ^ item.GetHashCode();
+                }
+
+                return hashCode;
+            }
 #else
             HashCode result = default;
             result.AddBytes(value.Span);

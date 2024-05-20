@@ -86,7 +86,7 @@ namespace RabbitMQ.Client.Impl
                 cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
-            return new QueueName(queueDeclareResult.QueueName);
+            return (QueueName)queueDeclareResult;
         }
 
         public override string ToString()

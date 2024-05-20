@@ -32,6 +32,7 @@
 using System;
 using System.Text;
 using RabbitMQ.Client;
+using RabbitMQ.Util;
 using Xunit;
 
 namespace Test.Unit
@@ -123,6 +124,21 @@ namespace Test.Unit
             string estr = (string)e;
             Assert.True(e.HasString);
             Assert.Equal(arg, estr);
+        }
+
+        [Fact]
+        public void TestEqualityWhenUsingReadOnlyMemoryOfByte()
+        {
+            ReadOnlyMemory<byte> b1 = new byte[] { (byte)'f', (byte)'o', (byte)'o' };
+            ReadOnlyMemory<byte> b2 = new byte[] { (byte)'f', (byte)'o', (byte)'o' };
+
+            Assert.NotEqual(b1.GetHashCode(), b2.GetHashCode());
+            Assert.Equal(ReadOnlyMemoryOfByteEqualityComparer.CalculateHashCode(b1),
+                ReadOnlyMemoryOfByteEqualityComparer.CalculateHashCode(b2));
+
+            var ex1 = new ExchangeName(b1);
+            var ex2 = new ExchangeName(b2);
+            Assert.Equal(ex1, ex2);
         }
     }
 }

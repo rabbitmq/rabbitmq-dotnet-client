@@ -32,6 +32,7 @@
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client
 {
@@ -169,7 +170,7 @@ namespace RabbitMQ.Client
         {
             if (_value == null)
             {
-                return _stringBytes.GetHashCode();
+                return ReadOnlyMemoryOfByteEqualityComparer.CalculateHashCode(_stringBytes);
             }
             else
             {
@@ -179,7 +180,14 @@ namespace RabbitMQ.Client
 
         public int CompareTo(AmqpString other)
         {
-            return Value.CompareTo(other.Value);
+            if (_value == null)
+            {
+                return GetHashCode().CompareTo(other.GetHashCode());
+            }
+            else
+            {
+                return Value.CompareTo(other.Value);
+            }
         }
 
         public static bool operator ==(AmqpString amqpString1, AmqpString amqpString2)

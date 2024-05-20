@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
@@ -111,28 +109,6 @@ namespace RabbitMQ.Client
 
             return activity;
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static string GetString(ReadOnlySpan<byte> span)
-        {
-#if NETSTANDARD
-            if (span.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            unsafe
-            {
-                fixed (byte* bytesPtr = span)
-                {
-                    return Encoding.UTF8.GetString(bytesPtr, span.Length);
-                }
-            }
-#else
-            return Encoding.UTF8.GetString(span);
-#endif
-        }
-
 
         internal static Activity Deliver(BasicDeliverEventArgs deliverEventArgs)
         {
