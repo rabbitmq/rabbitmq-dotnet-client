@@ -35,50 +35,21 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.Integration.ConnectionRecovery
+namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
 {
-    public class TestEventHandlerRecovery : TestConnectionRecoveryBase
+    public class TestRecoveringConsumerEventHandlers : TestConnectionRecoveryBase
     {
-        public TestEventHandlerRecovery(ITestOutputHelper output) : base(output)
+        public TestRecoveringConsumerEventHandlers(ITestOutputHelper output) : base(output)
         {
-        }
-
-        [Fact]
-        public async Task TestRecoveryEventHandlersOnConnection()
-        {
-            int counter = 0;
-            ((AutorecoveringConnection)_conn).RecoverySucceeded += (source, ea) => Interlocked.Increment(ref counter);
-
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            Assert.True(_conn.IsOpen);
-            Assert.True(counter >= 3);
-        }
-
-        [Fact]
-        public async Task TestRecoveryEventHandlersOnChannel()
-        {
-            int counter = 0;
-            ((AutorecoveringChannel)_channel).Recovery += (source, ea) => Interlocked.Increment(ref counter);
-
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            Assert.True(_channel.IsOpen);
-            Assert.True(counter >= 3);
         }
 
         [Theory]
         [InlineData(1)]
         [InlineData(3)]
-        public async Task TestRecoveringConsumerHandlerOnConnection(int iterations)
+        public async Task TestRecoveringConsumerEventHandlers_Called(int iterations)
         {
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
             var cons = new EventingBasicConsumer(_channel);
@@ -96,7 +67,7 @@ namespace Test.Integration.ConnectionRecovery
         }
 
         [Fact]
-        public async Task TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown()
+        public async Task TestRecoveringConsumerEventHandler_EventArgumentsArePassedDown()
         {
             var myArgs = new Dictionary<string, object> { { "first-argument", "some-value" } };
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
@@ -120,38 +91,6 @@ namespace Test.Integration.ConnectionRecovery
             Assert.True(consumerArgumentMatches, "expected consumer arguments to match");
             string actualVal = (string)Assert.Contains("first-argument", myArgs as IDictionary<string, object>);
             Assert.Equal("event-handler-set-this-value", actualVal);
-        }
-
-        [Fact]
-        public async Task TestShutdownEventHandlersRecoveryOnConnection()
-        {
-            int counter = 0;
-            _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
-
-            Assert.True(_conn.IsOpen);
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            Assert.True(_conn.IsOpen);
-
-            Assert.True(counter >= 3);
-        }
-
-        [Fact]
-        public async Task TestShutdownEventHandlersRecoveryOnChannel()
-        {
-            int counter = 0;
-            _channel.ChannelShutdown += (c, args) => Interlocked.Increment(ref counter);
-
-            Assert.True(_channel.IsOpen);
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            Assert.True(_channel.IsOpen);
-
-            Assert.True(counter >= 3);
         }
     }
 }
