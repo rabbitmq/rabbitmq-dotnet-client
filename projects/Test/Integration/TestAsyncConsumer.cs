@@ -99,7 +99,7 @@ namespace Test.Integration
                     });
                 };
 
-                consumer.Received += (o, a) =>
+                consumer.Received += async (o, a) =>
                 {
                     string decoded = _encoding.GetString(a.Body.ToArray());
                     if (decoded == publish1)
@@ -115,10 +115,13 @@ namespace Test.Integration
                         var ex = new InvalidOperationException("incorrect message - should never happen!");
                         SetException(ex, publish1SyncSource, publish2SyncSource);
                     }
-                    return Task.CompletedTask;
+
+                    AsyncEventingBasicConsumer cons = (AsyncEventingBasicConsumer)o;
+                    await cons.Channel.BasicAckAsync(a.DeliveryTag, false);
                 };
 
-                await _channel.BasicConsumeAsync(qname, true, ConsumerTag.Empty, false, false, null, consumer);
+                await _channel.BasicQosAsync(0, 1, false);
+                await _channel.BasicConsumeAsync(qname, autoAck: false, ConsumerTag.Empty, false, false, null, consumer);
 
                 // ensure we get a delivery
                 await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
@@ -216,8 +219,8 @@ namespace Test.Integration
 
                                     for (int i = 0; i < publish_total; i++)
                                     {
-                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, body1);
-                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, body2);
+                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, body1, mandatory: true);
+                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, body2, mandatory: true);
                                         await publishChannel.WaitForConfirmsOrDieAsync();
                                     }
 
@@ -260,7 +263,7 @@ namespace Test.Integration
                                     int publish1_count = 0;
                                     int publish2_count = 0;
 
-                                    consumer.Received += (o, a) =>
+                                    consumer.Received += async (o, a) =>
                                     {
                                         string decoded = _encoding.GetString(a.Body.ToArray());
                                         if (decoded == publish1)
@@ -282,10 +285,13 @@ namespace Test.Integration
                                             var ex = new InvalidOperationException("incorrect message - should never happen!");
                                             SetException(ex, publish1SyncSource, publish2SyncSource);
                                         }
-                                        return Task.CompletedTask;
+
+                                        AsyncEventingBasicConsumer cons = (AsyncEventingBasicConsumer)o;
+                                        await cons.Channel.BasicAckAsync(a.DeliveryTag, false);
                                     };
 
-                                    await consumeChannel.BasicConsumeAsync(queueName, true, ConsumerTag.Empty, false, false, null, consumer);
+                                    await consumeChannel.BasicQosAsync(0, 1, false);
+                                    await consumeChannel.BasicConsumeAsync(queueName, autoAck: false, ConsumerTag.Empty, false, false, null, consumer);
                                     await consumerSyncSource.Task;
 
                                     await consumeChannel.CloseAsync();
