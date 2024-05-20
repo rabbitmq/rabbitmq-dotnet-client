@@ -48,13 +48,14 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestConsumerRecoveryWithManyConsumers()
         {
-            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
+            RabbitMQ.Client.QueueDeclareOk q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false));
+            QueueName qname = (QueueName)q;
             int n = 1024;
 
             for (int i = 0; i < n; i++)
             {
                 var cons = new AsyncEventingBasicConsumer(_channel);
-                await _channel.BasicConsumeAsync(q, true, cons);
+                await _channel.BasicConsumeAsync(qname, true, cons);
             }
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -63,24 +64,25 @@ namespace Test.Integration.ConnectionRecovery
             await CloseAndWaitForRecoveryAsync();
             await WaitAsync(tcs, "consumer tag change after recovery");
             Assert.True(_channel.IsOpen);
-            await AssertConsumerCountAsync(q, n);
+            await AssertConsumerCountAsync(qname, n);
         }
 
         [Fact]
         public async Task TestThatCancelledConsumerDoesNotReappearOnRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
+            RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
+            QueueName qname = (QueueName)q;
             int n = 1024;
 
             for (int i = 0; i < n; i++)
             {
                 var cons = new AsyncEventingBasicConsumer(_channel);
-                ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, cons);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(qname, true, cons);
                 await _channel.BasicCancelAsync(tag);
             }
             await CloseAndWaitForRecoveryAsync();
             Assert.True(_channel.IsOpen);
-            await AssertConsumerCountAsync(q, 0);
+            await AssertConsumerCountAsync(qname, 0);
         }
     }
 }

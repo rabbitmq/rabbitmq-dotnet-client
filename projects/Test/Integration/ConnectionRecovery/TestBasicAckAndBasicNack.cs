@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
@@ -41,11 +40,11 @@ namespace Test.Integration.ConnectionRecovery
 {
     public class TestBasicAckAndBasicNack : TestConnectionRecoveryBase
     {
-        private readonly string _queueName;
+        private readonly QueueName _queueName;
 
         public TestBasicAckAndBasicNack(ITestOutputHelper output) : base(output)
         {
-            _queueName = $"{nameof(TestBasicAckAndBasicNack)}-{Guid.NewGuid()}";
+            _queueName = GenerateQueueName();
         }
 
         public override async Task DisposeAsync()
@@ -72,8 +71,8 @@ namespace Test.Integration.ConnectionRecovery
             var cons = new AckingBasicConsumer(_channel, TotalMessageCount, allMessagesSeenTcs);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, false, false, false);
-            string queueName = q.QueueName;
-            Assert.Equal(queueName, _queueName);
+            QueueName queueName = (QueueName)q;
+            Assert.Equal(_queueName, queueName);
 
             await _channel.BasicQosAsync(0, 1, false);
             await _channel.BasicConsumeAsync(queueName, false, cons);
@@ -95,16 +94,16 @@ namespace Test.Integration.ConnectionRecovery
             var cons = new NackingBasicConsumer(_channel, TotalMessageCount, allMessagesSeenTcs);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, false, false, false);
-            string queueName = q.QueueName;
-            Assert.Equal(queueName, _queueName);
+            QueueName qname = (QueueName)q;
+            Assert.Equal(_queueName, qname);
 
             await _channel.BasicQosAsync(0, 1, false);
-            await _channel.BasicConsumeAsync(queueName, false, cons);
+            await _channel.BasicConsumeAsync(qname, false, cons);
 
             TaskCompletionSource<bool> sl = PrepareForShutdown(_conn);
             TaskCompletionSource<bool> rl = PrepareForRecovery(_conn);
 
-            await PublishMessagesWhileClosingConnAsync(queueName);
+            await PublishMessagesWhileClosingConnAsync(qname);
 
             await WaitAsync(sl, "connection shutdown");
             await WaitAsync(rl, "connection recovery");
@@ -117,16 +116,17 @@ namespace Test.Integration.ConnectionRecovery
             var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cons = new RejectingBasicConsumer(_channel, TotalMessageCount, allMessagesSeenTcs);
 
-            string queueName = (await _channel.QueueDeclareAsync(_queueName, false, false, false)).QueueName;
-            Assert.Equal(queueName, _queueName);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, false, false, false);
+            QueueName qname = (QueueName)q;
+            Assert.Equal(_queueName, qname);
 
             await _channel.BasicQosAsync(0, 1, false);
-            await _channel.BasicConsumeAsync(queueName, false, cons);
+            await _channel.BasicConsumeAsync(qname, false, cons);
 
             TaskCompletionSource<bool> sl = PrepareForShutdown(_conn);
             TaskCompletionSource<bool> rl = PrepareForRecovery(_conn);
 
-            await PublishMessagesWhileClosingConnAsync(queueName);
+            await PublishMessagesWhileClosingConnAsync(qname);
 
             await WaitAsync(sl, "connection shutdown");
             await WaitAsync(rl, "connection recovery");
@@ -136,10 +136,10 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestBasicAckAfterBasicGetAndChannelRecovery()
         {
-            string q = GenerateQueueName();
+            QueueName q = GenerateQueueName();
             await _channel.QueueDeclareAsync(q, false, false, false);
             // create an offset
-            await _channel.BasicPublishAsync(ExchangeName.Empty, q, _messageBody);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)q, _messageBody);
             await Task.Delay(50);
             BasicGetResult g = await _channel.BasicGetAsync(q, false);
             await CloseAndWaitForRecoveryAsync();

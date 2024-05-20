@@ -50,7 +50,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestBindingRecovery_GH1035()
         {
-            const string routingKey = "unused";
+            RoutingKey routingKey = new RoutingKey("unused");
             byte[] body = GetRandomBody();
 
             var receivedMessageSemaphore = new SemaphoreSlim(0, 1);
@@ -63,7 +63,7 @@ namespace Test.Integration.ConnectionRecovery
 
             var guid = Guid.NewGuid();
             ExchangeName exchangeName = new ExchangeName($"ex-gh-1035-{guid}");
-            string queueName = $"q-gh-1035-{guid}";
+            QueueName queueName = new QueueName($"q-gh-1035-{guid}");
 
             await _channel.ExchangeDeclareAsync(exchange: exchangeName,
                 type: "fanout", durable: false, autoDelete: true,
