@@ -106,8 +106,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
             if (false == _disposed && false == _quiesce)
             {
                 (IBasicConsumer consumer, _) = GetConsumerOrDefault(BasicDeliver.GetConsumerTag(method.Memory));
-                var work = WorkStruct.CreateDeliver(consumer, deliveryTag, redelivered, basicProperties, method, body);
-                return _writer.WriteAsync(work, cancellationToken);
+                WorkStruct basicDeliverWork = WorkStruct.CreateDeliver(consumer, deliveryTag, redelivered, basicProperties, method, body);
+                return _writer.WriteAsync(basicDeliverWork, cancellationToken);
             }
             else
             {

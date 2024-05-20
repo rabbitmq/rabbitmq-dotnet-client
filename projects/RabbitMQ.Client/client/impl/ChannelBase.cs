@@ -1402,7 +1402,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (true == noWait)
             {
-                if (queue == QueueName.Empty)
+                if (queue.IsEmpty)
                 {
                     throw new InvalidOperationException("noWait must not be used with a server-named queue.");
                 }

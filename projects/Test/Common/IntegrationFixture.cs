@@ -450,14 +450,16 @@ namespace Test
         {
             string name = $"{_testDisplayName}-{infix}-{Guid.NewGuid()}";
 
+            /*
+             * Note: only necessary if doing strict name validation
             if (name.Length > 127)
             {
                 name = name.Substring(0, 127);
             }
-
             name = name.Replace('(', '_');
             name = name.Replace(')', '_');
             name = name.Replace(' ', '_');
+            */
 
             return name;
         }
