@@ -49,7 +49,7 @@ namespace Test.Integration
             await _channel.ConfirmSelectAsync();
             for (int i = 0; i < 10; i++)
             {
-                await _channel.BasicPublishAsync(ExchangeName.Empty, string.Empty);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, RoutingKey.Empty);
             }
             Assert.True(await _channel.WaitForConfirmsAsync());
         }
@@ -67,7 +67,7 @@ namespace Test.Integration
 
             await _channel.ExchangeDeclareAsync((ExchangeName)"src", ExchangeType.Direct, false, false);
             await _channel.ExchangeDeclareAsync((ExchangeName)"dest", ExchangeType.Direct, false, false);
-            QueueName queue = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            QueueName queue = await _channel.QueueDeclareAsync(QueueName.Empty, false, false, true);
 
             await _channel.ExchangeBindAsync((ExchangeName)"dest", (ExchangeName)"src", RoutingKey.Empty);
             await _channel.QueueBindAsync(queue, (ExchangeName)"dest", RoutingKey.Empty);

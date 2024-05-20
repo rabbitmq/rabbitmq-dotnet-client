@@ -127,9 +127,10 @@ namespace Test.Integration
                             {
                                 await ch.ConfirmSelectAsync();
                                 QueueDeclareOk q = await ch.QueueDeclareAsync();
+                                QueueName qname = (QueueName)q;
                                 while (conn.IsOpen)
                                 {
-                                    await ch.BasicPublishAsync(ExchangeName.Empty, q.QueueName, GetRandomBody());
+                                    await ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, GetRandomBody());
                                     messagePublishedTcs.TrySetResult(true);
                                     /*
                                      * Note:
@@ -214,9 +215,10 @@ namespace Test.Integration
                         {
                             await ch.ConfirmSelectAsync();
                             QueueDeclareOk q = await ch.QueueDeclareAsync();
+                            QueueName qname = (QueueName)q;
                             while (conn.IsOpen)
                             {
-                                await ch.BasicPublishAsync(ExchangeName.Empty, q.QueueName, GetRandomBody());
+                                await ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, GetRandomBody());
                                 await ch.WaitForConfirmsAsync();
                                 await Task.Delay(TimeSpan.FromSeconds(1));
                                 tcs.TrySetResult(true);

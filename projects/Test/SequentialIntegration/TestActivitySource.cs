@@ -87,7 +87,7 @@ namespace Test.SequentialIntegration
             using (ActivityListener activityListener = StartActivityListener(_activities))
             {
                 await Task.Delay(500);
-                string queueName = $"{Guid.NewGuid()}";
+                QueueName queueName = new QueueName($"{Guid.NewGuid()}");
                 QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
                 byte[] sendBody = Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
@@ -101,7 +101,7 @@ namespace Test.SequentialIntegration
                 };
 
                 ConsumerTag consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, sendBody, mandatory: true);
                 await _channel.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -126,7 +126,7 @@ namespace Test.SequentialIntegration
             {
                 await Task.Delay(500);
 
-                string queueName = $"{Guid.NewGuid()}";
+                QueueName queueName = new QueueName($"{Guid.NewGuid()}");
                 QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
                 byte[] sendBody = Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
@@ -140,7 +140,7 @@ namespace Test.SequentialIntegration
                 };
 
                 ConsumerTag consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, sendBody, mandatory: true);
                 await _channel.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));

@@ -62,8 +62,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestCorrectConsumerTag()
         {
-            string q1 = GenerateQueueName();
-            string q2 = GenerateQueueName();
+            QueueName q1 = GenerateQueueName();
+            QueueName q2 = GenerateQueueName();
 
             await _channel.QueueDeclareAsync(q1, false, false, false);
             await _channel.QueueDeclareAsync(q2, false, false, false);

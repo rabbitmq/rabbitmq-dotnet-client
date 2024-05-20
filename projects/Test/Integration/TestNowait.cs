@@ -47,7 +47,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestQueueDeclareNoWait()
         {
-            string q = GenerateQueueName();
+            QueueName q = GenerateQueueName();
             await _channel.QueueDeclareAsync(q, false, true, false, noWait: true, arguments: null);
             await _channel.QueueDeclarePassiveAsync(q);
         }
@@ -57,7 +57,7 @@ namespace Test.Integration
         {
             return Assert.ThrowsAsync<InvalidOperationException>(() =>
             {
-                return _channel.QueueDeclareAsync("", false, true, false, noWait: true);
+                return _channel.QueueDeclareAsync(QueueName.Empty, false, true, false, noWait: true);
             });
         }
 
@@ -66,13 +66,13 @@ namespace Test.Integration
         {
             QueueName q = GenerateQueueName();
             await _channel.QueueDeclareAsync(q, false, true, false, noWait: true);
-            await _channel.QueueBindAsync(q, (ExchangeName)(ExchangeName)"amq.fanout", "", noWait: true);
+            await _channel.QueueBindAsync(q, ExchangeName.AmqFanout, RoutingKey.Empty, noWait: true);
         }
 
         [Fact]
         public async Task TestQueueDeleteNoWait()
         {
-            string q = GenerateQueueName();
+            QueueName q = GenerateQueueName();
             await _channel.QueueDeclareAsync(q, false, true, false, noWait: true);
             await _channel.QueueDeleteAsync(q, false, false, noWait: true);
             await Assert.ThrowsAsync<OperationInterruptedException>(() =>
@@ -103,7 +103,7 @@ namespace Test.Integration
             try
             {
                 await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout, false, true, noWait: true);
-                await _channel.ExchangeBindAsync(x, (ExchangeName)"amq.fanout", "", noWait: true);
+                await _channel.ExchangeBindAsync(x, ExchangeName.AmqFanout, RoutingKey.Empty, noWait: true);
             }
             finally
             {
@@ -118,8 +118,8 @@ namespace Test.Integration
             try
             {
                 await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout, false, true);
-                await _channel.ExchangeBindAsync(x, (ExchangeName)"amq.fanout", "", noWait: true);
-                await _channel.ExchangeUnbindAsync(x, (ExchangeName)"amq.fanout", "", noWait: true);
+                await _channel.ExchangeBindAsync(x, ExchangeName.AmqFanout, RoutingKey.Empty, noWait: true);
+                await _channel.ExchangeUnbindAsync(x, ExchangeName.AmqFanout, RoutingKey.Empty, noWait: true);
             }
             finally
             {

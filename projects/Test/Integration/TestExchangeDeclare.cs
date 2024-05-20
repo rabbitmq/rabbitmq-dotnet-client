@@ -66,7 +66,8 @@ namespace Test.Integration
                         await Task.Delay(S_Random.Next(5, 50));
                         ExchangeName exchangeName = GenerateExchangeName();
                         await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: ExchangeType.Fanout, false, false);
-                        await _channel.ExchangeBindAsync(destination: ex_destination, source: exchangeName, routingKey: "unused");
+                        await _channel.ExchangeBindAsync(destination: ex_destination, source: exchangeName,
+                            routingKey: new RoutingKey("unused"));
                         exchangeNames.Add(exchangeName);
                     }
                     catch (NotSupportedException e)
@@ -89,7 +90,7 @@ namespace Test.Integration
                     try
                     {
                         await Task.Delay(S_Random.Next(5, 50));
-                        await _channel.ExchangeUnbindAsync(destination: ex_destination, source: exchangeName, routingKey: "unused",
+                        await _channel.ExchangeUnbindAsync(destination: ex_destination, source: exchangeName, routingKey: (RoutingKey)"unused",
                             noWait: false, arguments: null);
                         await _channel.ExchangeDeleteAsync(exchange: exchangeName, ifUnused: false);
                     }

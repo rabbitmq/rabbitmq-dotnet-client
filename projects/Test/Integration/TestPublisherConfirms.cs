@@ -121,7 +121,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestWaitForConfirmsWithEventsAsync()
         {
-            string queueName = string.Format("{0}:{1}", _testDisplayName, Guid.NewGuid());
+            QueueName queueName = GenerateQueueName();
             using (IChannel ch = await _conn.CreateChannelAsync())
             {
                 await ch.ConfirmSelectAsync();
@@ -140,7 +140,7 @@ namespace Test.Integration
                 {
                     for (int i = 0; i < n; i++)
                     {
-                        await ch.BasicPublishAsync(ExchangeName.Empty, queueName, _encoding.GetBytes("msg"));
+                        await ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, _encoding.GetBytes("msg"));
                     }
 
                     await ch.WaitForConfirmsAsync();

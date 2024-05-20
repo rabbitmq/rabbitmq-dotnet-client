@@ -988,6 +988,8 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~static readonly RabbitMQ.Client.ConsumerTag.Empty -> RabbitMQ.Client.ConsumerTag
 ~static readonly RabbitMQ.Client.ExchangeName.AmqDirect -> RabbitMQ.Client.ExchangeName
 ~static readonly RabbitMQ.Client.ExchangeName.AmqFanout -> RabbitMQ.Client.ExchangeName
+~static readonly RabbitMQ.Client.ExchangeName.AmqHeaders -> RabbitMQ.Client.ExchangeName
+~static readonly RabbitMQ.Client.ExchangeName.AmqTopic -> RabbitMQ.Client.ExchangeName
 ~static readonly RabbitMQ.Client.ExchangeName.Empty -> RabbitMQ.Client.ExchangeName
 ~static readonly RabbitMQ.Client.ExchangeType.Direct -> RabbitMQ.Client.ExchangeType
 ~static readonly RabbitMQ.Client.ExchangeType.Fanout -> RabbitMQ.Client.ExchangeType

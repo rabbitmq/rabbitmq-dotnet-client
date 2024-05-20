@@ -114,9 +114,9 @@ namespace Test.Integration
             for (int i = 0; i < Y; i++)
             {
                 IChannel ch = await _conn.CreateChannelAsync();
-                QueueDeclareOk q = await ch.QueueDeclareAsync("", durable: false, exclusive: true, autoDelete: true, arguments: null);
+                QueueDeclareOk q = await ch.QueueDeclareAsync(QueueName.Empty, durable: false, exclusive: true, autoDelete: true, arguments: null);
                 var qname = new QueueName(q.QueueName);
-                await ch.QueueBindAsync(queue: qname, exchange: _x, routingKey: "");
+                await ch.QueueBindAsync(queue: qname, exchange: _x, routingKey: RoutingKey.Empty);
                 _channels.Add(ch);
                 _queues.Add(q);
                 var cons = new CollectingConsumer(ch);
@@ -126,7 +126,7 @@ namespace Test.Integration
 
             for (int i = 0; i < N; i++)
             {
-                await _channel.BasicPublishAsync(_x, "", _encoding.GetBytes("msg"));
+                await _channel.BasicPublishAsync(_x, RoutingKey.Empty, _encoding.GetBytes("msg"));
             }
 
             if (IntegrationFixture.IsRunningInCI)
@@ -163,9 +163,9 @@ namespace Test.Integration
             IChannel ch1 = await _conn.CreateChannelAsync();
             IChannel ch2 = await _conn.CreateChannelAsync();
 
-            string q1 = (await ch1.QueueDeclareAsync()).QueueName;
-            string q2 = (await ch2.QueueDeclareAsync()).QueueName;
-            await ch2.QueueBindAsync(queue: q2, exchange: _x, routingKey: "");
+            QueueDeclareOk q1 = await ch1.QueueDeclareAsync();
+            QueueDeclareOk q2 = await ch2.QueueDeclareAsync();
+            await ch2.QueueBindAsync(queue: q2, exchange: _x, routingKey: RoutingKey.Empty);
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             await ch1.BasicConsumeAsync(q1, true, new EventingBasicConsumer(ch1));
@@ -178,7 +178,7 @@ namespace Test.Integration
             // closing this channel must not affect ch2
             await ch1.CloseAsync();
 
-            await ch2.BasicPublishAsync(_x, "", _encoding.GetBytes("msg"));
+            await ch2.BasicPublishAsync(_x, RoutingKey.Empty, _encoding.GetBytes("msg"));
             await WaitAsync(tcs, "received event");
         }
 
@@ -210,7 +210,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestChannelShutdownHandler()
         {
-            string q = await _channel.QueueDeclareAsync();
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
             var c = new ShutdownLatchConsumer();
 
             await _channel.BasicConsumeAsync(queue: q, autoAck: true, consumer: c);

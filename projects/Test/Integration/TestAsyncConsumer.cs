@@ -118,7 +118,7 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                await _channel.BasicConsumeAsync(q.QueueName, true, ConsumerTag.Empty, false, false, null, consumer);
+                await _channel.BasicConsumeAsync(qname, true, ConsumerTag.Empty, false, false, null, consumer);
 
                 // ensure we get a delivery
                 await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);

@@ -39,7 +39,7 @@ namespace Test.Integration
 {
     public class TestPublishSharedChannelAsync : IntegrationFixture
     {
-        private const string QueueName = "TestPublishSharedChannel_Queue";
+        private static readonly QueueName s_queueName = new QueueName("TestPublishSharedChannel_Queue");
         private static readonly ExchangeName s_exchangeName = new ExchangeName("TestPublishSharedChannel_Ex");
         private static readonly RoutingKey s_publishKey = new RoutingKey("TestPublishSharedChannel_RoutePub");
         private const int Loops = 20;
@@ -70,7 +70,7 @@ namespace Test.Integration
         [Fact]
         public async Task MultiThreadPublishOnSharedChannel()
         {
-            var cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
 
             using (IConnection conn = await cf.CreateConnectionAsync())
@@ -87,8 +87,8 @@ namespace Test.Integration
                             channel.ChannelShutdown += HandleChannelShutdown;
                             await channel.ExchangeDeclareAsync(s_exchangeName, ExchangeType.Topic, passive: false, durable: false, autoDelete: true,
                                 noWait: false, arguments: null);
-                            await channel.QueueDeclareAsync(QueueName, exclusive: false, autoDelete: true);
-                            await channel.QueueBindAsync(QueueName, s_exchangeName, s_publishKey);
+                            await channel.QueueDeclareAsync(s_queueName, exclusive: false, autoDelete: true);
+                            await channel.QueueBindAsync(s_queueName, s_exchangeName, s_publishKey);
 
                             for (int i = 0; i < Loops; i++)
                             {
