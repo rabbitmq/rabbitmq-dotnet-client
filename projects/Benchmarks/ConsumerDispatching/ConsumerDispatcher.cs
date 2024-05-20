@@ -51,12 +51,15 @@ namespace RabbitMQ.Benchmarks
         [Benchmark]
         public async Task AsyncConsumerDispatcher()
         {
+            var m = new MethodBasicDeliver();
+            m.SetUp();
+            using (RentedMemory method = new RentedMemory(m.Buffer.ToArray()))
             using (RentedMemory body = new RentedMemory(_body))
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag,
-                        false, _exchange, _routingKey, _properties, body, CancellationToken.None);
+                    await _dispatcher.HandleBasicDeliverAsync(_deliveryTag,
+                        false, _properties, method, body, CancellationToken.None);
                 }
                 _autoResetEvent.Wait();
                 _autoResetEvent.Reset();
@@ -74,12 +77,15 @@ namespace RabbitMQ.Benchmarks
         [Benchmark]
         public async Task ConsumerDispatcher()
         {
+            var m = new MethodBasicDeliver();
+            m.SetUp();
+            using (RentedMemory method = new RentedMemory(m.Buffer.ToArray()))
             using (RentedMemory body = new RentedMemory(_body))
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag,
-                        false, _exchange, _routingKey, _properties, body, CancellationToken.None);
+                    await _dispatcher.HandleBasicDeliverAsync(_deliveryTag,
+                        false, _properties, method, body, CancellationToken.None);
                 }
                 _autoResetEvent.Wait();
                 _autoResetEvent.Reset();

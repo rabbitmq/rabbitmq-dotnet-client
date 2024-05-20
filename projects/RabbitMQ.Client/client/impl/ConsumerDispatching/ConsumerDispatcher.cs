@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.ConsumerDispatching
@@ -26,28 +27,54 @@ namespace RabbitMQ.Client.ConsumerDispatching
                         {
                             try
                             {
-                                IBasicConsumer consumer = work.Consumer;
-                                ConsumerTag? consumerTag = work.ConsumerTag;
                                 switch (work.WorkType)
                                 {
                                     case WorkType.Deliver:
-                                        await consumer.HandleBasicDeliverAsync(
-                                            consumerTag, work.DeliveryTag, work.Redelivered,
-                                            work.Exchange, work.RoutingKey, work.BasicProperties, work.Body.Memory)
-                                            .ConfigureAwait(false);
+                                        {
+                                            IBasicConsumer? deliverConsumer = work.Consumer ??
+                                                throw new InvalidOperationException("[CRITICAL] should never see this");
+                                            ConsumerTag? deliverConsumerTag = work.ConsumerTag;
+                                            var method = new BasicDeliver(work.Method.Memory);
+                                            var exchangeName = new ExchangeName(method._exchange);
+                                            var routingKey = new RoutingKey(method._routingKey);
+                                            await deliverConsumer.HandleBasicDeliverAsync(
+                                                deliverConsumerTag, work.DeliveryTag, work.Redelivered,
+                                                exchangeName, routingKey, work.BasicProperties, work.Body.Memory)
+                                                .ConfigureAwait(false);
+                                        }
                                         break;
                                     case WorkType.Cancel:
-                                        consumer.HandleBasicCancel(consumerTag);
+                                        {
+                                            RentedMemory cancelMethodMemory = work.Method;
+                                            ConsumerTag cancelConsumerTag = BasicCancel.GetConsumerTag(cancelMethodMemory.Memory);
+                                            IBasicConsumer cancelConsumer = GetAndRemoveConsumer(cancelConsumerTag);
+                                            cancelConsumer.HandleBasicCancel(cancelConsumerTag);
+                                        }
                                         break;
                                     case WorkType.CancelOk:
-                                        consumer.HandleBasicCancelOk(consumerTag);
+                                        {
+                                            RentedMemory cancelOkMethodMemory = work.Method;
+                                            ConsumerTag cancelOkConsumerTag = BasicCancelOk.GetConsumerTag(cancelOkMethodMemory.Memory);
+                                            IBasicConsumer cancelOkConsumer = GetAndRemoveConsumer(cancelOkConsumerTag);
+                                            cancelOkConsumer.HandleBasicCancelOk(cancelOkConsumerTag);
+                                        }
                                         break;
                                     case WorkType.ConsumeOk:
-                                        consumer.HandleBasicConsumeOk(consumerTag);
+                                        {
+                                            IBasicConsumer? consumeOkConsumer = work.Consumer ??
+                                                throw new InvalidOperationException("[CRITICAL] should never see this");
+                                            consumeOkConsumer.HandleBasicConsumeOk(work.ConsumerTag);
+                                        }
                                         break;
                                     case WorkType.Shutdown:
-                                        consumer.HandleChannelShutdown(_channel, work.Reason);
+                                        {
+                                            IBasicConsumer? shutdownConsumer = work.Consumer ??
+                                                throw new InvalidOperationException("[CRITICAL] should never see this");
+                                            shutdownConsumer.HandleChannelShutdown(_channel, work.Reason);
+                                        }
                                         break;
+                                    default:
+                                        throw new InvalidOperationException();
                                 }
                             }
                             catch (Exception e)

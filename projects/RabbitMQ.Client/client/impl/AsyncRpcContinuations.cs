@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -226,10 +225,8 @@ namespace RabbitMQ.Client.Impl
             {
                 if (cmd.CommandId == ProtocolCommandId.BasicCancelOk)
                 {
-                    var method = new BasicCancelOk(cmd.MethodSpan);
                     _tcs.TrySetResult(true);
-                    Debug.Assert(_consumerTag == method._consumerTag);
-                    await _consumerDispatcher.HandleBasicCancelOkAsync(_consumerTag, CancellationToken)
+                    await _consumerDispatcher.HandleBasicCancelOkAsync(cmd.Method, CancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
@@ -239,7 +236,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                cmd.ReturnBuffers();
+                cmd.ReturnHeaderAndBodyBuffers();
             }
         }
     }
@@ -276,6 +273,10 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
+                /*
+                 * Note:
+                 * OK to return buffers here as we copy the string value for the consumer tag above
+                 */
                 cmd.ReturnBuffers();
             }
         }

@@ -46,5 +46,11 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancelOk;
+
+        public static ConsumerTag GetConsumerTag(ReadOnlyMemory<byte> data)
+        {
+            WireFormatting.ReadShortMemory(data, out ReadOnlyMemory<byte> consumerTagMemory);
+            return new ConsumerTag(consumerTagMemory);
+        }
     }
 }

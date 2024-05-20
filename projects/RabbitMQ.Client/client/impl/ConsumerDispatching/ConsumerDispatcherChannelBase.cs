@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-
+using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Logging;
 
@@ -25,7 +25,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             _consumerDispatcherToken = _consumerDispatcherCts.Token;
             _channel = channel;
-            var workChannel = Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
+            var workChannel = System.Threading.Channels.Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
             {
                 SingleReader = concurrency == 1,
                 SingleWriter = false,
@@ -59,12 +59,39 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
+        public ValueTask HandleBasicCancelAsync(RentedMemory method, CancellationToken cancellationToken)
+        {
+            if (false == _disposed && false == _quiesce)
+            {
+                WorkStruct cancelWork = WorkStruct.CreateCancel(method);
+                return _writer.WriteAsync(cancelWork, cancellationToken);
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        public ValueTask HandleBasicCancelOkAsync(RentedMemory method, CancellationToken cancellationToken)
+        {
+            if (false == _disposed && false == _quiesce)
+            {
+                WorkStruct cancelOkWork = WorkStruct.CreateCancelOk(method);
+                return _writer.WriteAsync(cancelOkWork, cancellationToken);
+            }
+            else
+            {
+                return default;
+            }
+        }
+
         public ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, ConsumerTag consumerTag, CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
                 AddConsumer(consumer, consumerTag);
-                return _writer.WriteAsync(new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag), cancellationToken);
+                WorkStruct consumeOkWork = WorkStruct.CreateConsumeOk(consumer, consumerTag);
+                return _writer.WriteAsync(consumeOkWork, cancellationToken);
             }
             else
             {
@@ -72,39 +99,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public ValueTask HandleBasicDeliverAsync(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
-            ExchangeName exchange, RoutingKey routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body,
+        public ValueTask HandleBasicDeliverAsync(ulong deliveryTag, bool redelivered,
+            in ReadOnlyBasicProperties basicProperties, RentedMemory method, RentedMemory body,
             CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
-                (IBasicConsumer consumer, ConsumerTag consumerTag) consumerPair = GetConsumerOrDefault(consumerTag);
-                var work = new WorkStruct(consumerPair.consumer, consumerPair.consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
+                (IBasicConsumer consumer, _) = GetConsumerOrDefault(BasicDeliver.GetConsumerTag(method.Memory));
+                var work = WorkStruct.CreateDeliver(consumer, deliveryTag, redelivered, basicProperties, method, body);
                 return _writer.WriteAsync(work, cancellationToken);
-            }
-            else
-            {
-                return default;
-            }
-        }
-
-        public ValueTask HandleBasicCancelOkAsync(ConsumerTag consumerTag, CancellationToken cancellationToken)
-        {
-            if (false == _disposed && false == _quiesce)
-            {
-                return _writer.WriteAsync(new WorkStruct(WorkType.CancelOk, GetAndRemoveConsumer(consumerTag), consumerTag), cancellationToken);
-            }
-            else
-            {
-                return default;
-            }
-        }
-
-        public ValueTask HandleBasicCancelAsync(ConsumerTag consumerTag, CancellationToken cancellationToken)
-        {
-            if (false == _disposed && false == _quiesce)
-            {
-                return _writer.WriteAsync(new WorkStruct(WorkType.Cancel, GetAndRemoveConsumer(consumerTag), consumerTag), cancellationToken);
             }
             else
             {
@@ -227,7 +230,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected sealed override void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
-            _writer.TryWrite(new WorkStruct(consumer, reason));
+            _writer.TryWrite(WorkStruct.CreateShutdown(consumer, reason));
         }
 
         protected override void InternalShutdown()
@@ -247,27 +250,31 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected readonly struct WorkStruct : IDisposable
         {
-            public readonly IBasicConsumer Consumer;
-            public IAsyncBasicConsumer AsyncConsumer => (IAsyncBasicConsumer)Consumer;
+            public readonly IBasicConsumer? Consumer;
             public readonly ConsumerTag? ConsumerTag;
             public readonly ulong DeliveryTag;
             public readonly bool Redelivered;
-            public readonly ExchangeName? Exchange;
-            public readonly RoutingKey? RoutingKey;
             public readonly ReadOnlyBasicProperties BasicProperties;
+            public readonly RentedMemory Method;
             public readonly RentedMemory Body;
             public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
 
-            public WorkStruct(WorkType type, IBasicConsumer consumer, ConsumerTag consumerTag)
-                : this()
+            private WorkStruct(IBasicConsumer consumer, ulong deliveryTag, bool redelivered,
+                in ReadOnlyBasicProperties basicProperties, RentedMemory method, RentedMemory body)
             {
-                WorkType = type;
+                WorkType = WorkType.Deliver;
+                ConsumerTag = null;
                 Consumer = consumer;
-                ConsumerTag = consumerTag;
+                DeliveryTag = deliveryTag;
+                Redelivered = redelivered;
+                BasicProperties = basicProperties;
+                Method = method;
+                Body = body;
+                Reason = default;
             }
 
-            public WorkStruct(IBasicConsumer consumer, ShutdownEventArgs reason)
+            private WorkStruct(IBasicConsumer consumer, ShutdownEventArgs reason)
                 : this()
             {
                 WorkType = WorkType.Shutdown;
@@ -275,22 +282,61 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 Reason = reason;
             }
 
-            public WorkStruct(IBasicConsumer consumer, ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
-                ExchangeName exchange, RoutingKey routingKey, in ReadOnlyBasicProperties basicProperties, RentedMemory body)
+            private WorkStruct(WorkType workType, RentedMemory method)
+                : this()
             {
-                WorkType = WorkType.Deliver;
-                Consumer = consumer;
-                ConsumerTag = consumerTag;
-                DeliveryTag = deliveryTag;
-                Redelivered = redelivered;
-                Exchange = exchange;
-                RoutingKey = routingKey;
-                BasicProperties = basicProperties;
-                Body = body;
-                Reason = default;
+                WorkType = workType;
+                Method = method;
             }
 
-            public void Dispose() => Body.Dispose();
+            private WorkStruct(WorkType type, IBasicConsumer consumer, ConsumerTag consumerTag)
+                : this()
+            {
+                WorkType = type;
+                Consumer = consumer;
+                ConsumerTag = consumerTag;
+            }
+
+            public static WorkStruct CreateCancel(RentedMemory method)
+            {
+                return new WorkStruct(WorkType.Cancel, method);
+            }
+
+            public static WorkStruct CreateCancelOk(RentedMemory method)
+            {
+                return new WorkStruct(WorkType.CancelOk, method);
+            }
+
+            public static WorkStruct CreateConsumeOk(IBasicConsumer consumer, ConsumerTag consumerTag)
+            {
+                return new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag);
+            }
+
+            public static WorkStruct CreateDeliver(IBasicConsumer consumer, ulong deliveryTag, bool redelivered,
+                in ReadOnlyBasicProperties basicProperties, RentedMemory method, RentedMemory body)
+            {
+                return new WorkStruct(consumer, deliveryTag, redelivered,
+                    basicProperties, method, body);
+            }
+
+            public static WorkStruct CreateShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
+            {
+                return new WorkStruct(consumer, reason);
+            }
+
+            public IAsyncBasicConsumer? AsyncConsumer
+            {
+                get
+                {
+                    return Consumer as IAsyncBasicConsumer;
+                }
+            }
+
+            public void Dispose()
+            {
+                Method.Dispose();
+                Body.Dispose();
+            }
         }
 
         protected enum WorkType : byte

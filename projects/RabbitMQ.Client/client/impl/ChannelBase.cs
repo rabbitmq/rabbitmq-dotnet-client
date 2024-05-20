@@ -655,14 +655,13 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                ConsumerTag consumerTag = BasicCancel.GetConsumerTag(cmd.MethodMemory);
-                await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
+                await ConsumerDispatcher.HandleBasicCancelAsync(cmd.Method, cancellationToken)
                     .ConfigureAwait(false);
                 return true;
             }
             finally
             {
-                cmd.ReturnBuffers();
+                cmd.ReturnHeaderAndBodyBuffers();
             }
         }
 
@@ -672,18 +671,11 @@ namespace RabbitMQ.Client.Impl
             {
                 var method = new BasicDeliver(cmd.MethodMemory);
                 var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
-
-                var consumerTag = new ConsumerTag(method._consumerTag);
-                var exchangeName = new ExchangeName(method._exchange);
-                var routingKey = new RoutingKey(method._routingKey);
-
                 await ConsumerDispatcher.HandleBasicDeliverAsync(
-                        consumerTag,
                         AdjustDeliveryTag(method._deliveryTag),
                         method._redelivered,
-                        exchangeName,
-                        routingKey,
                         header,
+                        cmd.Method,
                         cmd.Body,
                         cancellationToken).ConfigureAwait(false);
                 return true;
@@ -691,10 +683,11 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 /*
-                 * Note: do not return the Body as it is necessary for handling
+                 * Note: do not return the Method or Body buffers as they
+                 * are necessary for handling
                  * the Basic.Deliver method by client code
                  */
-                cmd.ReturnMethodAndHeaderBuffers();
+                cmd.ReturnHeaderBuffers();
             }
         }
 
