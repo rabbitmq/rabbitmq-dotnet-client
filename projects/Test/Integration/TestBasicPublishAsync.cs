@@ -51,7 +51,8 @@ namespace Test.Integration
 
             await _channel.ConfirmSelectAsync();
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(QueueName.Empty, false, false, true);
+            QueueName qname = (QueueName)q;
             var rk = new RoutingKey(q.QueueName);
 
             var publishTask = Task.Run(async () =>
@@ -66,7 +67,7 @@ namespace Test.Integration
             });
 
             Assert.True(await publishSyncSource.Task);
-            Assert.Equal((uint)messageCount, await _channel.QueuePurgeAsync(q));
+            Assert.Equal((uint)messageCount, await _channel.QueuePurgeAsync(qname));
         }
     }
 }

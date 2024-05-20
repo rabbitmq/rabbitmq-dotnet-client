@@ -108,7 +108,7 @@ namespace Test.Integration.ConnectionRecovery
 
             using (IChannel pubCh = await _conn.CreateChannelAsync())
             {
-                await pubCh.BasicPublishAsync(exchange: exchangeName, routingKey: "unused", body: body);
+                await pubCh.BasicPublishAsync(exchange: exchangeName, routingKey: (RoutingKey)"unused", body: body);
                 await pubCh.CloseAsync();
             }
 

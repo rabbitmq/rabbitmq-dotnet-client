@@ -53,14 +53,15 @@ namespace Test.Integration
         public async Task TestBasicRoundtripConcurrent()
         {
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            QueueName qname = (QueueName)q;
 
             string publish1 = GetUniqueString(512);
             byte[] body = _encoding.GetBytes(publish1);
-            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, body);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, body);
 
             string publish2 = GetUniqueString(512);
             body = _encoding.GetBytes(publish2);
-            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, body);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, body);
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
@@ -139,7 +140,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripConcurrentManyMessages()
         {
             const int publish_total = 4096;
-            string queueName = GenerateQueueName();
+            QueueName queueName = GenerateQueueName();
 
             string publish1 = GetUniqueString(512);
             byte[] body1 = _encoding.GetBytes(publish1);
@@ -215,8 +216,8 @@ namespace Test.Integration
 
                                     for (int i = 0; i < publish_total; i++)
                                     {
-                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, queueName, body1);
-                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, queueName, body2);
+                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, body1);
+                                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, body2);
                                         await publishChannel.WaitForConfirmsOrDieAsync();
                                     }
 
@@ -315,7 +316,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRejectAsync()
         {
-            string queueName = GenerateQueueName();
+            QueueName queueName = GenerateQueueName();
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cancellationTokenSource = new CancellationTokenSource(TestTimeout);
@@ -370,7 +371,7 @@ namespace Test.Integration
 
                 const string publish1 = "sync-hi-1";
                 byte[] _body = _encoding.GetBytes(publish1);
-                await _channel.BasicPublishAsync(ExchangeName.Empty, queueName, _body);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, _body);
 
                 await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
                     consumerTag: ConsumerTag.Empty, noLocal: false, exclusive: false,
@@ -416,7 +417,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicAckAsync()
         {
-            string queueName = GenerateQueueName();
+            QueueName queueName = GenerateQueueName();
 
             const int messageCount = 1024;
             int messagesReceived = 0;
@@ -472,7 +473,7 @@ namespace Test.Integration
                 for (int i = 0; i < messageCount; i++)
                 {
                     byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
-                    await _channel.BasicPublishAsync(ExchangeName.Empty, queueName, _body);
+                    await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, _body);
                     await _channel.WaitForConfirmsOrDieAsync();
                 }
 
@@ -523,11 +524,11 @@ namespace Test.Integration
                 publishSyncSource.SetResult(true);
             };
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
-            string queueName = q.QueueName;
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(QueueName.Empty, false, false, false);
+            QueueName queueName = (QueueName)q;
             const string publish1 = "sync-hi-1";
             byte[] _body = _encoding.GetBytes(publish1);
-            await _channel.BasicPublishAsync(ExchangeName.Empty, queueName, _body);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, _body);
 
             await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
                 consumerTag: ConsumerTag.Empty, noLocal: false, exclusive: false,
@@ -569,12 +570,13 @@ namespace Test.Integration
         public async Task NonAsyncConsumerShouldThrowInvalidOperationException()
         {
             bool sawException = false;
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
-            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, GetRandomBody(1024));
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(QueueName.Empty, false, false, false);
+            QueueName queueName = (QueueName)q;
+            await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, GetRandomBody(1024));
             var consumer = new EventingBasicConsumer(_channel);
             try
             {
-                ConsumerTag consumerTag = await _channel.BasicConsumeAsync(q.QueueName, false, ConsumerTag.Empty, false, false, null, consumer);
+                ConsumerTag consumerTag = await _channel.BasicConsumeAsync(queueName, false, ConsumerTag.Empty, false, false, null, consumer);
             }
             catch (InvalidOperationException)
             {
@@ -592,7 +594,7 @@ namespace Test.Integration
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    string q = GenerateQueueName();
+                    QueueName q = GenerateQueueName();
                     await _channel.QueueDeclareAsync(q, false, false, true);
                     var dummy = new AsyncEventingBasicConsumer(_channel);
                     ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, dummy);

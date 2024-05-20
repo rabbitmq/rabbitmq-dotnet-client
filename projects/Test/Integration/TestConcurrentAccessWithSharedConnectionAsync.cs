@@ -127,10 +127,12 @@ namespace Test.Integration
                             _output.WriteLine($"channel #{ch.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
                         };
 
-                        QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
+                        QueueDeclareOk q = await ch.QueueDeclareAsync(queue: QueueName.Empty,
+                            passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
+                        QueueName qname = (QueueName)q;
                         for (ushort j = 0; j < _messageCount; j++)
                         {
-                            await ch.BasicPublishAsync(ExchangeName.Empty, q.QueueName, body, mandatory: true);
+                            await ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, body, mandatory: true);
                         }
 
                         Assert.True(await tcs.Task);

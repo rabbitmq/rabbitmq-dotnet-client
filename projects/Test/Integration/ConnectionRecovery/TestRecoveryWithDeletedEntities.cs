@@ -100,7 +100,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestThatDeletedQueueBindingsDontReappearOnRecovery()
         {
-            QueueName q = (await _channel.QueueDeclareAsync(QueueName.Empty, false, false, false)).QueueName;
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(QueueName.Empty, false, false, false);
 
             ExchangeName ex_source = GenerateExchangeName();
             ExchangeName ex_destination = GenerateExchangeName();
@@ -108,15 +108,15 @@ namespace Test.Integration.ConnectionRecovery
             await _channel.ExchangeDeclareAsync(ex_source, ExchangeType.Fanout);
             await _channel.ExchangeDeclareAsync(ex_destination, ExchangeType.Fanout);
 
-            await _channel.ExchangeBindAsync(destination: ex_destination, source: ex_source, routingKey: "");
-            await _channel.QueueBindAsync(q, ex_destination, "");
-            await _channel.QueueUnbindAsync(q, ex_destination, "");
+            await _channel.ExchangeBindAsync(destination: ex_destination, source: ex_source, routingKey: RoutingKey.Empty);
+            await _channel.QueueBindAsync(q, ex_destination, RoutingKey.Empty);
+            await _channel.QueueUnbindAsync(q, ex_destination, RoutingKey.Empty);
 
             try
             {
                 await CloseAndWaitForRecoveryAsync();
                 Assert.True(_channel.IsOpen);
-                await _channel.BasicPublishAsync(ex_source, "", _encoding.GetBytes("msg"));
+                await _channel.BasicPublishAsync(ex_source, RoutingKey.Empty, _encoding.GetBytes("msg"));
                 await AssertMessageCountAsync(q, 0);
             }
             finally

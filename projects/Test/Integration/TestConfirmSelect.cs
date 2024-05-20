@@ -49,7 +49,7 @@ namespace Test.Integration
             ValueTask PublishAsync()
             {
                 return _channel.BasicPublishAsync(exchange: ExchangeName.Empty,
-                    routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
+                    routingKey: new RoutingKey(Guid.NewGuid().ToString()), _encoding.GetBytes("message"));
             }
 
             await _channel.ConfirmSelectAsync();

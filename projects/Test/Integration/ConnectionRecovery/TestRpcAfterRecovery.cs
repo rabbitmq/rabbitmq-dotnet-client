@@ -49,10 +49,10 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestPublishRpcRightAfterReconnect()
         {
-            string testQueueName = $"dotnet-client.test.{nameof(TestPublishRpcRightAfterReconnect)}";
+            QueueName testQueueName = new QueueName($"dotnet-client.test.{nameof(TestPublishRpcRightAfterReconnect)}");
             await _channel.QueueDeclareAsync(testQueueName, false, false, false);
             var replyConsumer = new AsyncEventingBasicConsumer(_channel);
-            await _channel.BasicConsumeAsync("amq.rabbitmq.reply-to", true, replyConsumer);
+            await _channel.BasicConsumeAsync((QueueName)"amq.rabbitmq.reply-to", true, replyConsumer);
             var properties = new BasicProperties();
             properties.ReplyTo = "amq.rabbitmq.reply-to";
 
@@ -77,7 +77,7 @@ namespace Test.Integration.ConnectionRecovery
 
                 try
                 {
-                    await _channel.BasicPublishAsync(ExchangeName.Empty, testQueueName, properties, _messageBody);
+                    await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)testQueueName, properties, _messageBody);
                 }
                 catch (Exception e)
                 {

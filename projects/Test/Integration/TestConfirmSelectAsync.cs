@@ -66,8 +66,9 @@ namespace Test.Integration
 
         private ValueTask Publish()
         {
+            var rk = new RoutingKey(Guid.NewGuid().ToString());
             return _channel.BasicPublishAsync(exchange: ExchangeName.Empty,
-                routingKey: Guid.NewGuid().ToString(), _message);
+                routingKey: rk, _message);
         }
     }
 }
