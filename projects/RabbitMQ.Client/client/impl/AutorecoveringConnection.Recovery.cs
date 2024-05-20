@@ -317,11 +317,12 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
             }
 
-            foreach (RecordedQueue recordedQueue in _recordedQueues.Values.Where(x => _config.TopologyRecoveryFilter?.QueueFilter(x) ?? true).ToArray())
+            foreach (RecordedQueue recordedQueue in _recordedQueues.Values.Where(x =>
+                _config.TopologyRecoveryFilter?.QueueFilter(x) ?? true).ToArray())
             {
                 try
                 {
-                    string newName = string.Empty;
+                    QueueName newName;
                     using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
                     {
                         newName = await recordedQueue.RecoverAsync(ch, cancellationToken)
@@ -329,7 +330,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         await ch.CloseAsync(cancellationToken)
                             .ConfigureAwait(false);
                     }
-                    string oldName = recordedQueue.Name;
+                    QueueName oldName = recordedQueue.Name;
 
                     if (oldName != newName)
                     {
@@ -391,7 +392,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
 
-                void UpdateBindingsDestination(string oldName, string newName)
+                void UpdateBindingsDestination(AmqpString oldName, AmqpString newName)
                 {
                     foreach (RecordedBinding b in _recordedBindings.ToArray())
                     {
@@ -403,7 +404,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
 
-                void UpdateConsumerQueue(string oldName, string newName)
+                void UpdateConsumerQueue(QueueName oldName, QueueName newName)
                 {
                     foreach (RecordedConsumer consumer in _recordedConsumers.Values.ToArray())
                     {
@@ -497,10 +498,10 @@ namespace RabbitMQ.Client.Framing.Impl
                     _recordedEntitiesSemaphore.Wait();
                 }
 
-                string oldTag = consumer.ConsumerTag;
+                ConsumerTag oldTag = consumer.ConsumerTag;
                 try
                 {
-                    string newTag = await consumer.RecoverAsync(channelToUse)
+                    ConsumerTag newTag = await consumer.RecoverAsync(channelToUse)
                         .ConfigureAwait(false);
                     RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
                     UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
@@ -543,7 +544,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
             }
 
-            void UpdateConsumer(string oldTag, string newTag, in RecordedConsumer consumer)
+            void UpdateConsumer(ConsumerTag oldTag, ConsumerTag newTag, in RecordedConsumer consumer)
             {
                 // make sure server-generated tags are re-added
                 _recordedConsumers.Remove(oldTag);

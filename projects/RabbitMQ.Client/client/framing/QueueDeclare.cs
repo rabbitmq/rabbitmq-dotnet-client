@@ -39,25 +39,24 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal readonly struct QueueDeclare : IOutgoingAmqpMethod
     {
-        // deprecated
-        // ushort _reserved1
-        public readonly string _queue;
+        public readonly QueueName _queue;
         public readonly bool _passive;
         public readonly bool _durable;
         public readonly bool _exclusive;
         public readonly bool _autoDelete;
-        public readonly bool _nowait;
+        public readonly bool _noWait;
         public readonly IDictionary<string, object> _arguments;
 
-        public QueueDeclare(string Queue, bool Passive, bool Durable, bool Exclusive, bool AutoDelete, bool Nowait, IDictionary<string, object> Arguments)
+        public QueueDeclare(QueueName queue, bool passive, bool durable, bool exclusive, bool autoDelete, bool noWait,
+            IDictionary<string, object> arguments)
         {
-            _queue = Queue;
-            _passive = Passive;
-            _durable = Durable;
-            _exclusive = Exclusive;
-            _autoDelete = AutoDelete;
-            _nowait = Nowait;
-            _arguments = Arguments;
+            _queue = queue;
+            _passive = passive;
+            _durable = durable;
+            _exclusive = exclusive;
+            _autoDelete = autoDelete;
+            _noWait = noWait;
+            _arguments = arguments;
         }
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueueDeclare;
@@ -65,15 +64,15 @@ namespace RabbitMQ.Client.Framing.Impl
         public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
-            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _passive, _durable, _exclusive, _autoDelete, _nowait);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), (ReadOnlySpan<byte>)_queue);
+            offset += WireFormatting.WriteBits(ref span.GetOffset(offset), _passive, _durable, _exclusive, _autoDelete, _noWait);
             return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
         }
 
         public int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _queue, bit fields
-            bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
+            bufferSize += _queue.Length; // _queue in bytes
             bufferSize += WireFormatting.GetTableByteCount(_arguments); // _arguments in bytes
             return bufferSize;
         }

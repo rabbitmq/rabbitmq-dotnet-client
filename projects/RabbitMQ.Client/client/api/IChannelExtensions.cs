@@ -40,39 +40,40 @@ namespace RabbitMQ.Client
     public static class IChannelExtensions
     {
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
-        public static Task<string> BasicConsumeAsync(this IChannel channel,
+        public static Task<ConsumerTag> BasicConsumeAsync(this IChannel channel,
             IBasicConsumer consumer,
-            string queue,
+            QueueName queue,
             bool autoAck = false,
             string consumerTag = "",
             bool noLocal = false,
             bool exclusive = false,
             IDictionary<string, object> arguments = null)
         {
-            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            var ct = new ConsumerTag(consumerTag);
+            return channel.BasicConsumeAsync(queue, autoAck, ct, noLocal, exclusive, arguments, consumer);
         }
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
-        public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
+        public static Task<ConsumerTag> BasicConsumeAsync(this IChannel channel, QueueName queue,
             bool autoAck,
             IBasicConsumer consumer)
         {
-            return channel.BasicConsumeAsync(queue, autoAck, string.Empty, false, false, null, consumer);
+            return channel.BasicConsumeAsync(queue, autoAck, ConsumerTag.Empty, false, false, null, consumer);
         }
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
-        public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
+        public static Task<ConsumerTag> BasicConsumeAsync(this IChannel channel, QueueName queue,
             bool autoAck,
-            string consumerTag,
+            ConsumerTag consumerTag,
             IBasicConsumer consumer)
         {
             return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, null, consumer);
         }
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
-        public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
+        public static Task<ConsumerTag> BasicConsumeAsync(this IChannel channel, QueueName queue,
             bool autoAck,
-            string consumerTag,
+            ConsumerTag consumerTag,
             IDictionary<string, object> arguments,
             IBasicConsumer consumer)
         {
@@ -93,10 +94,6 @@ namespace RabbitMQ.Client
             return channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties, body);
         }
 
-        public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey,
-            ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
-
         public static ValueTask BasicPublishAsync(this IChannel channel, ExchangeName exchange, RoutingKey routingKey,
             ReadOnlyMemory<byte> body = default, bool mandatory = false)
             => channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
@@ -106,8 +103,17 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously declare a queue.
         /// </summary>
-        public static Task<QueueDeclareOk> QueueDeclareAsync(this IChannel channel, string queue = "", bool durable = false, bool exclusive = true,
-            bool autoDelete = true, IDictionary<string, object> arguments = null, bool noWait = false)
+        public static Task<QueueDeclareOk> QueueDeclareAsync(this IChannel channel)
+        {
+            return channel.QueueDeclareAsync(queue: QueueName.Empty);
+        }
+
+        /// <summary>
+        /// Asynchronously declare a queue.
+        /// </summary>
+        public static Task<QueueDeclareOk> QueueDeclareAsync(this IChannel channel, QueueName queue,
+            bool durable = false, bool exclusive = true, bool autoDelete = true,
+            IDictionary<string, object> arguments = null, bool noWait = false)
         {
             return channel.QueueDeclareAsync(queue: queue, passive: false,
                 durable: durable, exclusive: exclusive, autoDelete: autoDelete,
@@ -117,7 +123,8 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously declare an exchange.
         /// </summary>
-        public static Task ExchangeDeclareAsync(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
+        public static Task ExchangeDeclareAsync(this IChannel channel, ExchangeName exchange, ExchangeType type,
+            bool durable = false, bool autoDelete = false,
             IDictionary<string, object> arguments = null, bool noWait = false)
         {
             return channel.ExchangeDeclareAsync(exchange, type, durable, autoDelete,
@@ -127,7 +134,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously deletes a queue.
         /// </summary>
-        public static Task<uint> QueueDeleteAsync(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false)
+        public static Task<uint> QueueDeleteAsync(this IChannel channel, QueueName queue, bool ifUnused = false, bool ifEmpty = false)
         {
             return channel.QueueDeleteAsync(queue, ifUnused, ifEmpty);
         }
@@ -135,7 +142,8 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously unbinds a queue.
         /// </summary>
-        public static Task QueueUnbindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        public static Task QueueUnbindAsync(this IChannel channel, QueueName queue, ExchangeName exchange, RoutingKey routingKey,
+            IDictionary<string, object> arguments = null)
         {
             return channel.QueueUnbindAsync(queue, exchange, routingKey, arguments);
         }

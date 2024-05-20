@@ -68,7 +68,7 @@ namespace Test.Integration.ConnectionRecovery
         public async Task TestServerNamedQueueRecovery()
         {
             string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
-            string x = "amq.fanout";
+            var x = new ExchangeName("amq.fanout"); // TODO static instance for well-known?
             await _channel.QueueBindAsync(q, x, "");
 
             string nameBefore = q;

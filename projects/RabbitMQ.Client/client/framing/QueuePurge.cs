@@ -38,15 +38,13 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal readonly struct QueuePurge : IOutgoingAmqpMethod
     {
-        // deprecated
-        // ushort _reserved1
-        public readonly string _queue;
-        public readonly bool _nowait;
+        public readonly QueueName _queue;
+        public readonly bool _noWait;
 
-        public QueuePurge(string Queue, bool Nowait)
+        public QueuePurge(QueueName queue, bool noWait)
         {
-            _queue = Queue;
-            _nowait = Nowait;
+            _queue = queue;
+            _noWait = noWait;
         }
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.QueuePurge;
@@ -54,14 +52,14 @@ namespace RabbitMQ.Client.Framing.Impl
         public int WriteTo(Span<byte> span)
         {
             int offset = WireFormatting.WriteShort(ref span.GetStart(), default);
-            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
-            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _nowait);
+            offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), (ReadOnlySpan<byte>)_queue);
+            return offset + WireFormatting.WriteBits(ref span.GetOffset(offset), _noWait);
         }
 
         public int GetRequiredBufferSize()
         {
             int bufferSize = 2 + 1 + 1; // bytes for _reserved1, length of _queue, bit fields
-            bufferSize += WireFormatting.GetByteCount(_queue); // _queue in bytes
+            bufferSize += _queue.Length; // _queue in bytes
             return bufferSize;
         }
     }

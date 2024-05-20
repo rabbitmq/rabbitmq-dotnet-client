@@ -14,10 +14,10 @@ namespace MassPublish
         const string RmqHost = "localhost";
 
         const string AppId = "MassPublish";
-        const string ExchangeName = "MassPublish-ex";
-        const string QueueName = "MassPublish-queue";
-        const string RoutingKey = "MassPublish-queue";
-        const string ConsumerTag = "MassPublish-consumer";
+        static readonly ExchangeName ExchangeName = new("MassPublish-ex");
+        static readonly QueueName QueueName = new("MassPublish-queue");
+        static readonly RoutingKey RoutingKey = new("MassPublish-queue");
+        static readonly ConsumerTag ConsumerTag = new("MassPublish-consumer");
         static readonly int ConnectionCount = Environment.ProcessorCount;
 
         const int BatchesToSend = 64;

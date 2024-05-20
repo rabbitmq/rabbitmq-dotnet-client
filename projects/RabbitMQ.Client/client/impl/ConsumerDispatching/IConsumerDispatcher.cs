@@ -42,22 +42,21 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         bool IsShutdown { get; }
 
-        IBasicConsumer GetAndRemoveConsumer(string tag);
+        IBasicConsumer GetAndRemoveConsumer(ConsumerTag tag);
 
-        ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken);
+        ValueTask HandleBasicCancelAsync(RentedMemory method, CancellationToken cancellationToken);
 
-        ValueTask HandleBasicDeliverAsync(ReadOnlyMemory<byte> consumerTag,
-                            ulong deliveryTag,
-                            bool redelivered,
-                            ReadOnlyMemory<byte> exchange,
-                            ReadOnlyMemory<byte> routingKey,
-                            in ReadOnlyBasicProperties basicProperties,
-                            RentedMemory body,
-                            CancellationToken cancellationToken);
+        ValueTask HandleBasicCancelOkAsync(RentedMemory method, CancellationToken cancellationToken);
 
-        ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken);
+        ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, ConsumerTag consumerTag, CancellationToken cancellationToken);
 
-        ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken);
+        ValueTask HandleBasicDeliverAsync(
+            ulong deliveryTag,
+            bool redelivered,
+            in ReadOnlyBasicProperties basicProperties,
+            RentedMemory method,
+            RentedMemory body,
+            CancellationToken cancellationToken);
 
         void Quiesce();
 

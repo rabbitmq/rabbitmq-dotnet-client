@@ -24,19 +24,19 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOk"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicCancel(string consumerTag);
+        Task HandleBasicCancel(ConsumerTag consumerTag);
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicCancelOk(string consumerTag);
+        Task HandleBasicCancelOk(ConsumerTag consumerTag);
 
         /// <summary>
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicConsumeOk(string consumerTag);
+        Task HandleBasicConsumeOk(ConsumerTag consumerTag);
 
         /// <summary>
         /// Called each time a message arrives for this consumer.
@@ -46,11 +46,11 @@ namespace RabbitMQ.Client
         /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAckAsync"/>.
         /// The implementation of this method in this class does NOT acknowledge such messages.
         /// </remarks>
-        Task HandleBasicDeliver(string consumerTag,
+        Task HandleBasicDeliver(ConsumerTag consumerTag,
             ulong deliveryTag,
             bool redelivered,
-            ReadOnlyMemory<byte> exchange,
-            ReadOnlyMemory<byte> routingKey,
+            ExchangeName exchange,
+            RoutingKey routingKey,
             in ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body);
 

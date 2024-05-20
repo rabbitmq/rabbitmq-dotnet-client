@@ -42,6 +42,8 @@ namespace Test.Integration
 {
     public class TestConsumerOperationDispatch : IntegrationFixture
     {
+        private static readonly ExchangeName _x = new ExchangeName("dotnet.tests.consumer-operation-dispatch.fanout");
+
         // number of channels (and consumers)
         private const int Y = 100;
         // number of messages to be published
@@ -49,9 +51,8 @@ namespace Test.Integration
 
         private static readonly CountdownEvent s_counter = new CountdownEvent(Y);
 
-        private const string _x = "dotnet.tests.consumer-operation-dispatch.fanout";
         private readonly List<IChannel> _channels = new List<IChannel>();
-        private readonly List<string> _queues = new List<string>();
+        private readonly List<QueueName> _queues = new List<QueueName>();
         private readonly List<CollectingConsumer> _consumers = new List<CollectingConsumer>();
 
 
@@ -84,8 +85,9 @@ namespace Test.Integration
                 DeliveryTags = new List<ulong>();
             }
 
-            public override Task HandleBasicDeliverAsync(string consumerTag,
-                ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+            public override Task HandleBasicDeliverAsync(ConsumerTag consumerTag,
+                ulong deliveryTag, bool redelivered,
+                ExchangeName exchange, RoutingKey routingKey,
                 ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
             {
                 // we test concurrent dispatch from the moment basic.delivery is returned.
@@ -107,18 +109,19 @@ namespace Test.Integration
         {
             Skip.If(IntegrationFixture.IsRunningInCI && IntegrationFixture.IsWindows, "TODO - test is slow in CI on Windows");
 
-            await _channel.ExchangeDeclareAsync(_x, "fanout", durable: false);
+            await _channel.ExchangeDeclareAsync(_x, ExchangeType.Fanout, durable: false);
 
             for (int i = 0; i < Y; i++)
             {
                 IChannel ch = await _conn.CreateChannelAsync();
                 QueueDeclareOk q = await ch.QueueDeclareAsync("", durable: false, exclusive: true, autoDelete: true, arguments: null);
-                await ch.QueueBindAsync(queue: q, exchange: _x, routingKey: "");
+                var qname = new QueueName(q.QueueName);
+                await ch.QueueBindAsync(queue: qname, exchange: _x, routingKey: "");
                 _channels.Add(ch);
                 _queues.Add(q);
                 var cons = new CollectingConsumer(ch);
                 _consumers.Add(cons);
-                await ch.BasicConsumeAsync(queue: q, autoAck: false, consumer: cons);
+                await ch.BasicConsumeAsync(queue: qname, autoAck: false, consumer: cons);
             }
 
             for (int i = 0; i < N; i++)
@@ -155,7 +158,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestChannelShutdownDoesNotShutDownDispatcher()
         {
-            await _channel.ExchangeDeclareAsync(_x, "fanout", durable: false);
+            await _channel.ExchangeDeclareAsync(_x, ExchangeType.Fanout, durable: false);
 
             IChannel ch1 = await _conn.CreateChannelAsync();
             IChannel ch2 = await _conn.CreateChannelAsync();

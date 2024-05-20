@@ -5,9 +5,9 @@ namespace RabbitMQ.Client
 #nullable enable
     public interface IRecordedExchange
     {
-        string Name { get; }
+        ExchangeName Name { get; }
 
-        string Type { get; }
+        ExchangeType Type { get; }
 
         bool Durable { get; }
 

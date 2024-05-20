@@ -54,7 +54,7 @@ namespace Test.Integration
         {
             TimeSpan waitSpan = TimeSpan.FromSeconds(2);
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
-            await _channel.BasicPublishAsync("", q.QueueName, _body);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, _body);
             var consumer = new EventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
@@ -62,13 +62,13 @@ namespace Test.Integration
                 {
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
                 // ensure we get a delivery
                 bool waitRes = await consumerReceivedSemaphore.WaitAsync(waitSpan);
                 Assert.True(waitRes);
                 // unsubscribe and ensure no further deliveries
                 await _channel.BasicCancelAsync(tag);
-                await _channel.BasicPublishAsync("", q.QueueName, _body);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, _body);
                 bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(waitSpan);
                 Assert.False(waitResFalse);
             }
@@ -78,7 +78,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripNoWait()
         {
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
-            await _channel.BasicPublishAsync("", q.QueueName, _body);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, _body);
             var consumer = new EventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
@@ -86,13 +86,13 @@ namespace Test.Integration
                 {
                     consumerReceivedSemaphore.Release();
                 };
-                string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
                 // ensure we get a delivery
                 bool waitRes0 = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
                 Assert.True(waitRes0);
                 // unsubscribe and ensure no further deliveries
                 await _channel.BasicCancelAsync(tag, noWait: true);
-                await _channel.BasicPublishAsync("", q.QueueName, _body);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, _body);
                 bool waitRes1 = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
                 Assert.False(waitRes1);
             }
@@ -140,7 +140,7 @@ namespace Test.Integration
             };
 
             // Send message
-            await _channel.BasicPublishAsync("", q.QueueName, ReadOnlyMemory<byte>.Empty);
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, ReadOnlyMemory<byte>.Empty);
 
             await lastConsumerReceivedTcs.Task.WaitAsync(TimingFixture.TestTimeout);
             Assert.True(await lastConsumerReceivedTcs.Task);

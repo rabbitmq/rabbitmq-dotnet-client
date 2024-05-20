@@ -62,7 +62,7 @@ namespace Test.Integration.ConnectionRecovery
             }
 
             var guid = Guid.NewGuid();
-            string exchangeName = $"ex-gh-1035-{guid}";
+            ExchangeName exchangeName = new ExchangeName($"ex-gh-1035-{guid}");
             string queueName = $"q-gh-1035-{guid}";
 
             await _channel.ExchangeDeclareAsync(exchange: exchangeName,

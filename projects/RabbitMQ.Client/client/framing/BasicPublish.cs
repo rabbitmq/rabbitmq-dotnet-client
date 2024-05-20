@@ -74,19 +74,18 @@ namespace RabbitMQ.Client.Framing.Impl
 
     internal readonly struct BasicPublishMemory : IOutgoingAmqpMethod
     {
-        // deprecated
-        // ushort _reserved1
         public readonly ReadOnlyMemory<byte> _exchange;
         public readonly ReadOnlyMemory<byte> _routingKey;
         public readonly bool _mandatory;
         public readonly bool _immediate;
 
-        public BasicPublishMemory(ReadOnlyMemory<byte> Exchange, ReadOnlyMemory<byte> RoutingKey, bool Mandatory, bool Immediate)
+        public BasicPublishMemory(ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+            bool mandatory, bool immediate)
         {
-            _exchange = Exchange;
-            _routingKey = RoutingKey;
-            _mandatory = Mandatory;
-            _immediate = Immediate;
+            _exchange = exchange;
+            _routingKey = routingKey;
+            _mandatory = mandatory;
+            _immediate = immediate;
         }
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicPublish;

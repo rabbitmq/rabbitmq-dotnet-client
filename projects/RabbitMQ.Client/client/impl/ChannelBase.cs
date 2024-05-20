@@ -185,7 +185,7 @@ namespace RabbitMQ.Client.Impl
 
         public ulong NextPublishSeqNo { get; private set; }
 
-        public string CurrentQueue { get; private set; }
+        public QueueName CurrentQueue { get; private set; }
 
         public ISession Session { get; private set; }
 
@@ -655,14 +655,13 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                string consumerTag = new Client.Framing.Impl.BasicCancel(cmd.MethodSpan)._consumerTag;
-                await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
+                await ConsumerDispatcher.HandleBasicCancelAsync(cmd.Method, cancellationToken)
                     .ConfigureAwait(false);
                 return true;
             }
             finally
             {
-                cmd.ReturnBuffers();
+                cmd.ReturnHeaderAndBodyBuffers();
             }
         }
 
@@ -670,15 +669,13 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                var method = new Client.Framing.Impl.BasicDeliver(cmd.MethodMemory);
+                var method = new BasicDeliver(cmd.MethodMemory);
                 var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
                 await ConsumerDispatcher.HandleBasicDeliverAsync(
-                        method._consumerTag,
                         AdjustDeliveryTag(method._deliveryTag),
                         method._redelivered,
-                        method._exchange,
-                        method._routingKey,
                         header,
+                        cmd.Method,
                         cmd.Body,
                         cancellationToken).ConfigureAwait(false);
                 return true;
@@ -686,10 +683,11 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 /*
-                 * Note: do not return the Body as it is necessary for handling
+                 * Note: do not return the Method or Body buffers as they
+                 * are necessary for handling
                  * the Basic.Deliver method by client code
                  */
-                cmd.ReturnMethodAndHeaderBuffers();
+                cmd.ReturnHeaderBuffers();
             }
         }
 
@@ -924,7 +922,7 @@ namespace RabbitMQ.Client.Impl
         public abstract Task BasicRejectAsync(ulong deliveryTag, bool requeue,
             CancellationToken cancellationToken);
 
-        public async Task BasicCancelAsync(string consumerTag, bool noWait,
+        public async Task BasicCancelAsync(ConsumerTag consumerTag, bool noWait,
             CancellationToken cancellationToken)
         {
             bool enqueued = false;
@@ -969,7 +967,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+        public async Task<ConsumerTag> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer,
             CancellationToken cancellationToken)
         {
@@ -993,7 +991,7 @@ namespace RabbitMQ.Client.Impl
             {
                 enqueued = Enqueue(k);
 
-                var method = new Client.Framing.Impl.BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
+                var method = new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
                 await ModelSendAsync(method, k.CancellationToken)
                     .ConfigureAwait(false);
 
@@ -1009,7 +1007,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck,
+        public async ValueTask<BasicGetResult> BasicGetAsync(QueueName queue, bool autoAck,
             CancellationToken cancellationToken)
         {
             bool enqueued = false;
@@ -1045,80 +1043,6 @@ namespace RabbitMQ.Client.Impl
                     k.Dispose();
                 }
                 _rpcSemaphore.Release();
-            }
-        }
-
-        private static void InjectTraceContextIntoBasicProperties(object propsObj, string key, string value)
-        {
-            if (!(propsObj is Dictionary<string, object> headers))
-            {
-                return;
-            }
-
-            // Only propagate headers if they haven't already been set
-            if (!headers.ContainsKey(key))
-            {
-                headers[key] = value;
-            }
-        }
-
-        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory,
-            CancellationToken cancellationToken)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            if (ConfirmsAreEnabled)
-            {
-                await _confirmSemaphore.WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
-                try
-                {
-                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
-                }
-                finally
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
-
-            try
-            {
-                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
-                using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length, existingContext)
-                    : default;
-
-                if (sendActivity != null)
-                {
-                    BasicProperties props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            catch
-            {
-                if (ConfirmsAreEnabled)
-                {
-                    await _confirmSemaphore.WaitAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                    try
-                    {
-                        NextPublishSeqNo--;
-                        _pendingDeliveryTags.RemoveLast();
-                    }
-                    finally
-                    {
-                        _confirmSemaphore.Release();
-                    }
-                }
-
-                throw;
             }
         }
 
@@ -1295,7 +1219,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task ExchangeBindAsync(string destination, string source, string routingKey,
+        public async Task ExchangeBindAsync(ExchangeName destination, ExchangeName source, RoutingKey routingKey,
             IDictionary<string, object> arguments, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -1336,14 +1260,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public Task ExchangeDeclarePassiveAsync(string exchange, CancellationToken cancellationToken)
+        public Task ExchangeDeclarePassiveAsync(ExchangeName exchange, CancellationToken cancellationToken)
         {
-            return ExchangeDeclareAsync(exchange: exchange, type: string.Empty, passive: true,
+            return ExchangeDeclareAsync(exchange: exchange, ExchangeType.s_empty, passive: true,
                 durable: false, autoDelete: false, arguments: null, noWait: false,
                 cancellationToken: cancellationToken);
         }
 
-        public async Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete,
+        public async Task ExchangeDeclareAsync(ExchangeName exchange, ExchangeType type, bool durable, bool autoDelete,
             IDictionary<string, object> arguments, bool passive, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -1383,7 +1307,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task ExchangeDeleteAsync(string exchange, bool ifUnused, bool noWait,
+        public async Task ExchangeDeleteAsync(ExchangeName exchange, bool ifUnused, bool noWait,
             CancellationToken cancellationToken)
         {
             bool enqueued = false;
@@ -1393,7 +1317,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             try
             {
-                var method = new ExchangeDelete(exchange, ifUnused, Nowait: noWait);
+                var method = new ExchangeDelete(exchange, ifUnused, noWait: noWait);
 
                 if (noWait)
                 {
@@ -1423,7 +1347,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task ExchangeUnbindAsync(string destination, string source, string routingKey,
+        public async Task ExchangeUnbindAsync(ExchangeName destination, ExchangeName source, RoutingKey routingKey,
             IDictionary<string, object> arguments, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -1464,7 +1388,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue,
+        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(QueueName queue,
             CancellationToken cancellationToken)
         {
             return QueueDeclareAsync(queue: queue, passive: true,
@@ -1472,13 +1396,13 @@ namespace RabbitMQ.Client.Impl
                 noWait: false, arguments: null, cancellationToken: cancellationToken);
         }
 
-        public async Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete,
+        public async Task<QueueDeclareOk> QueueDeclareAsync(QueueName queue, bool durable, bool exclusive, bool autoDelete,
             IDictionary<string, object> arguments, bool passive, bool noWait,
             CancellationToken cancellationToken)
         {
             if (true == noWait)
             {
-                if (queue == string.Empty)
+                if (queue == QueueName.Empty)
                 {
                     throw new InvalidOperationException("noWait must not be used with a server-named queue.");
                 }
@@ -1521,7 +1445,7 @@ namespace RabbitMQ.Client.Impl
                     QueueDeclareOk result = await k;
                     if (false == passive)
                     {
-                        CurrentQueue = result.QueueName;
+                        CurrentQueue = new QueueName(result.QueueName);
                     }
 
                     return result;
@@ -1537,7 +1461,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task QueueBindAsync(string queue, string exchange, string routingKey,
+        public async Task QueueBindAsync(QueueName queue, ExchangeName exchange, RoutingKey routingKey,
             IDictionary<string, object> arguments, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -1578,7 +1502,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task<uint> MessageCountAsync(string queue,
+        public async Task<uint> MessageCountAsync(QueueName queue,
             CancellationToken cancellationToken)
         {
             QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue, cancellationToken)
@@ -1586,7 +1510,7 @@ namespace RabbitMQ.Client.Impl
             return ok.MessageCount;
         }
 
-        public async Task<uint> ConsumerCountAsync(string queue,
+        public async Task<uint> ConsumerCountAsync(QueueName queue,
             CancellationToken cancellationToken)
         {
             QueueDeclareOk ok = await QueueDeclarePassiveAsync(queue, cancellationToken)
@@ -1594,7 +1518,7 @@ namespace RabbitMQ.Client.Impl
             return ok.ConsumerCount;
         }
 
-        public async Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty, bool noWait,
+        public async Task<uint> QueueDeleteAsync(QueueName queue, bool ifUnused, bool ifEmpty, bool noWait,
             CancellationToken cancellationToken)
         {
             bool enqueued = false;
@@ -1633,7 +1557,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task<uint> QueuePurgeAsync(string queue, CancellationToken cancellationToken)
+        public async Task<uint> QueuePurgeAsync(QueueName queue, CancellationToken cancellationToken)
         {
             bool enqueued = false;
 
@@ -1661,7 +1585,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task QueueUnbindAsync(string queue, string exchange, string routingKey,
+        public async Task QueueUnbindAsync(QueueName queue, ExchangeName exchange, RoutingKey routingKey,
             IDictionary<string, object> arguments,
             CancellationToken cancellationToken)
         {
@@ -1911,6 +1835,20 @@ namespace RabbitMQ.Client.Impl
             DistributedContextPropagator.Current.Inject(sendActivity, headers, InjectTraceContextIntoBasicProperties);
             props.Headers = headers;
             return props;
+        }
+
+        private static void InjectTraceContextIntoBasicProperties(object propsObj, string key, string value)
+        {
+            if (!(propsObj is Dictionary<string, object> headers))
+            {
+                return;
+            }
+
+            // Only propagate headers if they haven't already been set
+            if (!headers.ContainsKey(key))
+            {
+                headers[key] = value;
+            }
         }
     }
 }

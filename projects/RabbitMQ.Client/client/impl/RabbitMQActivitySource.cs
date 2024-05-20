@@ -147,22 +147,16 @@ namespace RabbitMQ.Client
 
             ActivityContext.TryParse(traceparent, traceState, out ActivityContext parentContext);
 
-            string routingKey = UseRoutingKeyAsOperationName ? GetString(deliverEventArgs.RoutingKey.Span) : null;
+            RoutingKey routingKey = UseRoutingKeyAsOperationName ? deliverEventArgs.RoutingKey : null;
             Activity activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{routingKey} deliver" : "deliver",
                 ActivityKind.Consumer, parentContext);
 
             if (activity != null && activity.IsAllDataRequested)
             {
-                string exchange = GetString(deliverEventArgs.Exchange.Span);
-                if (routingKey == null)
-                {
-                    routingKey = GetString(deliverEventArgs.RoutingKey.Span);
-                }
-
                 PopulateMessagingTags("deliver",
-                    routingKey,
-                    exchange,
+                    deliverEventArgs.RoutingKey,
+                    deliverEventArgs.Exchange,
                     deliverEventArgs.DeliveryTag,
                     deliverEventArgs.BasicProperties,
                     deliverEventArgs.Body.Length,

@@ -38,23 +38,24 @@ namespace RabbitMQ.Client.Impl
 #nullable enable
     internal readonly struct RecordedQueue : IRecordedQueue
     {
-        private readonly string _name;
+        private readonly QueueName _name;
         private readonly IDictionary<string, object>? _arguments;
         private readonly bool _durable;
         private readonly bool _exclusive;
         private readonly bool _autoDelete;
         private readonly bool _isServerNamed;
 
-        public string Name => _name;
+        public QueueName Name => _name;
         public bool AutoDelete => _autoDelete;
         public bool IsServerNamed => _isServerNamed;
         public bool Durable => _durable;
         public bool Exclusive => _exclusive;
         public IDictionary<string, object>? Arguments => _arguments;
 
-        public RecordedQueue(string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
+        public RecordedQueue(QueueName queueName, bool isServerNamed, bool durable, bool exclusive, bool autoDelete,
+            IDictionary<string, object>? arguments)
         {
-            _name = name;
+            _name = queueName;
             _isServerNamed = isServerNamed;
             _durable = durable;
             _exclusive = exclusive;
@@ -62,7 +63,7 @@ namespace RabbitMQ.Client.Impl
             _arguments = arguments;
         }
 
-        public RecordedQueue(string newName, in RecordedQueue old)
+        public RecordedQueue(QueueName newName, in RecordedQueue old)
         {
             _name = newName;
             _isServerNamed = old._isServerNamed;
@@ -72,12 +73,20 @@ namespace RabbitMQ.Client.Impl
             _arguments = old._arguments;
         }
 
-        public Task<QueueDeclareOk> RecoverAsync(IChannel channel, CancellationToken cancellationToken)
+        public async Task<QueueName> RecoverAsync(IChannel channel, CancellationToken cancellationToken)
         {
-            string queueName = IsServerNamed ? string.Empty : Name;
-            return channel.QueueDeclareAsync(queue: queueName, passive: false,
+            QueueName queueName = _name;
+            if (_isServerNamed || _name.IsEmpty)
+            {
+                queueName = QueueName.Empty;
+            }
+
+            QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync(queue: queueName, passive: false,
                 durable: _durable, exclusive: _exclusive, autoDelete: AutoDelete, arguments: _arguments,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+
+            return new QueueName(queueDeclareResult.QueueName);
         }
 
         public override string ToString()

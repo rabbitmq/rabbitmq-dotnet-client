@@ -5,11 +5,11 @@ namespace RabbitMQ.Client
 #nullable enable
     public interface IRecordedBinding
     {
-        string Source { get; }
+        AmqpString Source { get; }
 
-        string Destination { get; }
+        AmqpString Destination { get; }
 
-        string RoutingKey { get; }
+        RoutingKey RoutingKey { get; }
 
         IDictionary<string, object>? Arguments { get; }
     }

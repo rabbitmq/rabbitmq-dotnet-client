@@ -46,11 +46,11 @@ namespace Test.Integration
         [Fact]
         public async Task TestConsumerCountMethod()
         {
-            string q = GenerateQueueName();
+            QueueName q = GenerateQueueName();
             await _channel.QueueDeclareAsync(queue: q, durable: false, exclusive: true, autoDelete: false, arguments: null);
             Assert.Equal(0u, await _channel.ConsumerCountAsync(q));
 
-            string tag = await _channel.BasicConsumeAsync(q, true, new EventingBasicConsumer(_channel));
+            ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, new EventingBasicConsumer(_channel));
             Assert.Equal(1u, await _channel.ConsumerCountAsync(q));
 
             await _channel.BasicCancelAsync(tag);

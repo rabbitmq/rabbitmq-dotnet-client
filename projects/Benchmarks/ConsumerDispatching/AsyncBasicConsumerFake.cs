@@ -18,7 +18,8 @@ namespace RabbitMQ.Benchmarks
             _autoResetEvent = autoResetEvent;
         }
 
-        public Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+        public Task HandleBasicDeliver(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+            ExchangeName exchange, RoutingKey routingKey,
             in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (Interlocked.Increment(ref _current) == Count)
@@ -29,7 +30,8 @@ namespace RabbitMQ.Benchmarks
             return Task.CompletedTask;
         }
 
-        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+        Task IBasicConsumer.HandleBasicDeliverAsync(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+            ExchangeName exchange, RoutingKey routingKey,
             ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (Interlocked.Increment(ref _current) == Count)
@@ -40,11 +42,11 @@ namespace RabbitMQ.Benchmarks
             return Task.CompletedTask;
         }
 
-        public Task HandleBasicCancel(string consumerTag) => Task.CompletedTask;
+        public Task HandleBasicCancel(ConsumerTag consumerTag) => Task.CompletedTask;
 
-        public Task HandleBasicCancelOk(string consumerTag) => Task.CompletedTask;
+        public Task HandleBasicCancelOk(ConsumerTag consumerTag) => Task.CompletedTask;
 
-        public Task HandleBasicConsumeOk(string consumerTag) => Task.CompletedTask;
+        public Task HandleBasicConsumeOk(ConsumerTag consumerTag) => Task.CompletedTask;
 
         public Task HandleChannelShutdown(object channel, ShutdownEventArgs reason) => Task.CompletedTask;
 
@@ -62,11 +64,11 @@ namespace RabbitMQ.Benchmarks
             remove { }
         }
 
-        void IBasicConsumer.HandleBasicCancelOk(string consumerTag)
+        void IBasicConsumer.HandleBasicCancelOk(ConsumerTag consumerTag)
         {
         }
 
-        void IBasicConsumer.HandleBasicConsumeOk(string consumerTag)
+        void IBasicConsumer.HandleBasicConsumeOk(ConsumerTag consumerTag)
         {
         }
 
@@ -74,7 +76,7 @@ namespace RabbitMQ.Benchmarks
         {
         }
 
-        void IBasicConsumer.HandleBasicCancel(string consumerTag)
+        void IBasicConsumer.HandleBasicCancel(ConsumerTag consumerTag)
         {
         }
     }

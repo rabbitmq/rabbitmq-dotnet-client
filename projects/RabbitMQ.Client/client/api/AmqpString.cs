@@ -35,58 +35,91 @@ using System.Text.RegularExpressions;
 
 namespace RabbitMQ.Client
 {
-    public abstract class AmqpString
+    public abstract class AmqpString : IEquatable<AmqpString>, IComparable<AmqpString>
     {
-        private readonly string _value;
+        private static readonly Encoding s_encoding = Encoding.UTF8;
+        private string _value;
         private readonly ReadOnlyMemory<byte> _stringBytes;
 
-        public AmqpString()
+        protected AmqpString()
         {
             _value = string.Empty;
             _stringBytes = ReadOnlyMemory<byte>.Empty;
         }
 
-        public AmqpString(string value, ushort maxLen, Encoding encoding)
-            : this(value, maxLen, encoding, null)
+        public AmqpString(ReadOnlyMemory<byte> stringBytes)
+        {
+            _value = null;
+            _stringBytes = stringBytes;
+        }
+
+        public AmqpString(string value, ushort maxLen,
+            bool strictValidation = false)
+            : this(value, maxLen, null, strictValidation)
         {
         }
 
-        public AmqpString(string value, ushort maxLen, Encoding encoding, string validatorRegex)
+        public AmqpString(string value, ushort maxLen, string validatorRegex,
+            bool strictValidation = false)
         {
-            if (value.Length > maxLen)
+            /*
+             * Note:
+             * RabbitMQ does hardly any validation for names, only stripping off CR/LF
+             * characters if present. There are no other checks.
+             */
+            if (strictValidation)
             {
-                throw new ArgumentOutOfRangeException(nameof(value));
-            }
-
-            if (false == string.IsNullOrWhiteSpace(validatorRegex))
-            {
-                var re = new Regex(validatorRegex);
-                if (false == re.IsMatch(value))
+                if (value.Length > maxLen)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
-            }
 
-            if (encoding == Encoding.ASCII)
-            {
-                if (false == isAscii(value))
+                if (false == string.IsNullOrWhiteSpace(validatorRegex))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    var re = new Regex(validatorRegex);
+                    if (false == re.IsMatch(value))
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(value));
+                    }
                 }
             }
 
-            _value = value;
-            _stringBytes = new ReadOnlyMemory<byte>(encoding.GetBytes(value));
+            _value = FixUp(value);
+            _stringBytes = new ReadOnlyMemory<byte>(s_encoding.GetBytes(value));
+        }
+
+        public int Length => _stringBytes.Length;
+
+        internal bool HasString => _value != null;
+
+        public bool IsEmpty
+        {
+            get
+            {
+                if (_value is null)
+                {
+                    return _stringBytes.Length == 0;
+                }
+                else
+                {
+                    return _value == string.Empty;
+                }
+            }
+        }
+
+        public bool Contains(string value)
+        {
+            return Value.Contains(value);
         }
 
         public override string ToString()
         {
-            return _value;
+            return Value;
         }
 
         public static implicit operator string(AmqpString amqpString)
         {
-            return amqpString._value;
+            return amqpString.ToString();
         }
 
         public static implicit operator ReadOnlyMemory<byte>(AmqpString amqpString)
@@ -94,9 +127,96 @@ namespace RabbitMQ.Client
             return amqpString._stringBytes;
         }
 
-        private bool isAscii(string value)
+        public static implicit operator ReadOnlySpan<byte>(AmqpString amqpString)
         {
-            return Encoding.UTF8.GetByteCount(value) == value.Length;
+            return amqpString._stringBytes.Span;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (Object.ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            AmqpString amqpStringObj = obj as AmqpString;
+            if (amqpStringObj is null)
+            {
+                return false;
+            }
+
+            return Equals(amqpStringObj);
+        }
+
+        public bool Equals(AmqpString other)
+        {
+            if (_value == null)
+            {
+                return _stringBytes.Equals(other._stringBytes);
+            }
+            else
+            {
+                return _value.Equals(other._value);
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            if (_value == null)
+            {
+                return _stringBytes.GetHashCode();
+            }
+            else
+            {
+                return _value.GetHashCode();
+            }
+        }
+
+        public int CompareTo(AmqpString other)
+        {
+            return Value.CompareTo(other.Value);
+        }
+
+        public static bool operator ==(AmqpString amqpString1, AmqpString amqpString2)
+        {
+            if (amqpString1 is null || amqpString2 is null)
+            {
+                return Object.Equals(amqpString1, amqpString2);
+            }
+
+            return amqpString1.Equals(amqpString2);
+        }
+
+        public static bool operator !=(AmqpString amqpString1, AmqpString amqpString2)
+        {
+            if (amqpString1 is null || amqpString2 is null)
+            {
+                return false == Object.Equals(amqpString1, amqpString2);
+            }
+
+            return false == amqpString1.Equals(amqpString2);
+        }
+
+        protected virtual string FixUp(string value)
+        {
+            return value;
+        }
+
+        private string Value
+        {
+            get
+            {
+                if (_value == null)
+                {
+                    _value = s_encoding.GetString(_stringBytes.ToArray());
+                }
+                return _value;
+            }
         }
     }
 
@@ -111,13 +231,24 @@ namespace RabbitMQ.Client
     public class ExchangeName : AmqpString
     {
         public static readonly ExchangeName Empty = new ExchangeName();
+        public static readonly ExchangeName AmqDirect = new ExchangeName("amq.direct");
 
-        public ExchangeName() : base()
+        private ExchangeName() : base()
+        {
+        }
+
+        public ExchangeName(ReadOnlyMemory<byte> exchangeNameBytes)
+            : base(exchangeNameBytes)
         {
         }
 
         public ExchangeName(string exchangeName)
-            : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
+            : this(exchangeName, false)
+        {
+        }
+
+        public ExchangeName(string exchangeName, bool strictValidation)
+            : base(exchangeName, 127, "^[a-zA-Z0-9-_.:]*$", strictValidation)
         {
         }
 
@@ -125,12 +256,24 @@ namespace RabbitMQ.Client
         {
             return new ExchangeName(value);
         }
+
+        protected override string FixUp(string value)
+        {
+            // Note: this is the only modification RabbitMQ makes
+            return value.Replace("\r", string.Empty).Replace("\n", string.Empty);
+        }
     }
 
     /*
      * From the spec:
      *  <domain name="queue-name" type="shortstr" label="queue name">
-     *    <doc> The queue name identifies the queue within the vhost. In methods where the queue name may be blank, and that has no specific significance, this refers to the 'current' queue for the channel, meaning the last queue that the client declared on the channel. If the client did not declare a queue, and the method needs a queue name, this will result in a 502 (syntax error) channel exception. </doc>
+     *    <doc> The queue name identifies the queue within the vhost.
+     *    In methods where the queue name may be blank, and that has no
+     *    specific significance, this refers to the 'current' queue for
+     *    the channel, meaning the last queue that the client declared
+     *    on the channel. If the client did not declare a queue, and the
+     *    method needs a queue name, this will result in a 502
+     *    (syntax error) channel exception.</doc>
      *    <assert check="length" value="127"/>
      *    <assert check="regexp" value="^[a-zA-Z0-9-_.:]*$"/>
      *  </domain>
@@ -139,18 +282,40 @@ namespace RabbitMQ.Client
     {
         public static readonly QueueName Empty = new QueueName();
 
-        public QueueName() : base()
+        private QueueName() : base()
         {
         }
 
-        public QueueName(string exchangeName)
-            : base(exchangeName, 127, Encoding.ASCII, "^[a-zA-Z0-9-_.:]*$")
+        public QueueName(ReadOnlyMemory<byte> queueNameBytes)
+            : base(queueNameBytes)
         {
         }
 
-        public static explicit operator QueueName(string value)
+        public QueueName(string queueName)
+            : this(queueName, false)
+        {
+        }
+
+        public QueueName(string queueName, bool strictValidation)
+            : base(queueName, 127, "^[a-zA-Z0-9-_.:]*$", strictValidation)
+        {
+        }
+
+        // TODO explicit
+        public static implicit operator QueueName(string value)
         {
             return new QueueName(value);
+        }
+
+        public static explicit operator RoutingKey(QueueName value)
+        {
+            return new RoutingKey((string)value);
+        }
+
+        protected override string FixUp(string value)
+        {
+            // Note: this is the only modification RabbitMQ makes
+            return value.Replace("\r", string.Empty).Replace("\n", string.Empty);
         }
     }
 
@@ -165,18 +330,64 @@ namespace RabbitMQ.Client
     {
         public static readonly RoutingKey Empty = new RoutingKey();
 
-        public RoutingKey() : base()
+        private RoutingKey() : base()
         {
         }
 
-        public RoutingKey(string exchangeName)
-            : base(exchangeName, 256, Encoding.ASCII)
+        public RoutingKey(ReadOnlyMemory<byte> routingKeyBytes)
+            : base(routingKeyBytes)
         {
         }
 
-        public static explicit operator RoutingKey(string value)
+        public RoutingKey(string routingKey)
+            : this(routingKey, false)
+        {
+        }
+
+        public RoutingKey(string routingKey, bool strictValidation)
+            : base(routingKey, 256, strictValidation)
+        {
+        }
+
+        // TODO explicit
+        public static implicit operator RoutingKey(string value)
         {
             return new RoutingKey(value);
+        }
+    }
+
+    /*
+     * From the spec:
+     *  <domain name="consumer-tag" type="shortstr" label="consumer tag">
+     *    <doc> Identifier for the consumer, valid within the current channel. </doc>
+     *  </domain>
+     */
+    public class ConsumerTag : AmqpString
+    {
+        public static readonly ConsumerTag Empty = new ConsumerTag();
+
+        private ConsumerTag() : base()
+        {
+        }
+
+        public ConsumerTag(ReadOnlyMemory<byte> consumerTagBytes)
+            : base(consumerTagBytes)
+        {
+        }
+
+        public ConsumerTag(string consumerTag)
+            : this(consumerTag, false)
+        {
+        }
+
+        public ConsumerTag(string consumerTag, bool strictValidation)
+            : base(consumerTag, 256, strictValidation)
+        {
+        }
+
+        public static explicit operator ConsumerTag(string value)
+        {
+            return new ConsumerTag(value);
         }
     }
 }

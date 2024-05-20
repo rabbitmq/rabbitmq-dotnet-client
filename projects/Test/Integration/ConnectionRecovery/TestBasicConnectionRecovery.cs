@@ -61,24 +61,24 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public Task TestClientNamedQueueRecovery()
         {
-            string s = "dotnet-client.test.recovery.q1";
+            var qn = new QueueName("dotnet-client.test.recovery.q1");
             return WithTemporaryNonExclusiveQueueAsync(_channel, async (m, q) =>
             {
                 await CloseAndWaitForRecoveryAsync();
                 await AssertQueueRecoveryAsync(m, q, false);
                 await _channel.QueueDeleteAsync(q);
-            }, s);
+            }, qn);
         }
 
         [Fact]
         public Task TestClientNamedQueueRecoveryNoWait()
         {
-            string s = "dotnet-client.test.recovery.q1-nowait";
+            var qn = new QueueName("dotnet-client.test.recovery.q1-nowait");
             return WithTemporaryExclusiveQueueNoWaitAsync(_channel, async (ch, q) =>
             {
                 await CloseAndWaitForRecoveryAsync();
                 await AssertExclusiveQueueRecoveryAsync(ch, q);
-            }, s);
+            }, qn);
         }
     }
 }

@@ -135,7 +135,7 @@ namespace Test.Integration
                     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     cons.Received += (s, args) => tcs.SetResult(true);
 
-                    await ch.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
+                    await ch.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes("msg"));
                     await WaitAsync(tcs, "received event");
 
                     await ch.QueueDeleteAsync(q);
@@ -183,7 +183,7 @@ namespace Test.Integration
                     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     cons.Received += (s, args) => tcs.SetResult(true);
 
-                    await ch.BasicPublishAsync("", q1, _encoding.GetBytes("msg"));
+                    await ch.BasicPublishAsync(ExchangeName.Empty, q1, _encoding.GetBytes("msg"));
                     await WaitAsync(tcs, "received event");
 
                     await ch.QueueDeleteAsync(q1);
@@ -277,13 +277,13 @@ namespace Test.Integration
                 {
                     await ch.ConfirmSelectAsync();
 
-                    string exchange = "topology.recovery.exchange";
-                    string queueWithRecoveredConsumer = "topology.recovery.queue.1";
-                    string queueWithIgnoredConsumer = "topology.recovery.queue.2";
-                    string binding1 = "recovered.binding.1";
-                    string binding2 = "recovered.binding.2";
+                    ExchangeName exchange = new ExchangeName("topology.recovery.exchange");
+                    QueueName queueWithRecoveredConsumer = new QueueName("topology.recovery.queue.1");
+                    QueueName queueWithIgnoredConsumer = new QueueName("topology.recovery.queue.2");
+                    RoutingKey binding1 = new RoutingKey("recovered.binding.1");
+                    RoutingKey binding2 = new RoutingKey("recovered.binding.2");
 
-                    await ch.ExchangeDeclareAsync(exchange, "direct");
+                    await ch.ExchangeDeclareAsync(exchange, ExchangeType.Direct);
                     await ch.QueueDeclareAsync(queueWithRecoveredConsumer, false, false, false);
                     await ch.QueueDeclareAsync(queueWithIgnoredConsumer, false, false, false);
                     await ch.QueueBindAsync(queueWithRecoveredConsumer, exchange, binding1);
@@ -294,12 +294,12 @@ namespace Test.Integration
                     var consumerRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     var consumerToRecover = new EventingBasicConsumer(ch);
                     consumerToRecover.Received += (source, ea) => consumerRecoveryTcs.SetResult(true);
-                    await ch.BasicConsumeAsync(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover);
+                    await ch.BasicConsumeAsync(queueWithRecoveredConsumer, true, (ConsumerTag)"recovered.consumer", consumerToRecover);
 
                     var ignoredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     var consumerToIgnore = new EventingBasicConsumer(ch);
                     consumerToIgnore.Received += (source, ea) => ignoredTcs.SetResult(true);
-                    await ch.BasicConsumeAsync(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
+                    await ch.BasicConsumeAsync(queueWithIgnoredConsumer, true, (ConsumerTag)"filtered.consumer", consumerToIgnore);
 
                     try
                     {
@@ -324,11 +324,11 @@ namespace Test.Integration
                         }
                         Assert.True(sawTimeout);
 
-                        await ch.BasicConsumeAsync(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
+                        await ch.BasicConsumeAsync(queueWithIgnoredConsumer, true, (ConsumerTag)"filtered.consumer", consumerToIgnore);
 
                         try
                         {
-                            await ch.BasicConsumeAsync(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover);
+                            await ch.BasicConsumeAsync(queueWithRecoveredConsumer, true, (ConsumerTag)"recovered.consumer", consumerToRecover);
                             Assert.Fail("Expected an exception");
                         }
                         catch (OperationInterruptedException e)
@@ -355,7 +355,7 @@ namespace Test.Integration
                 {
                     try
                     {
-                        string s = "dotnet-client.test.recovery.q2";
+                        QueueName s = new QueueName("dotnet-client.test.recovery.q2");
                         await ch.QueueDeleteAsync(s);
                         await ch.QueueDeclareAsync(queue: s, durable: false, exclusive: true, autoDelete: false, arguments: null);
                         await ch.QueueDeclareAsync(queue: s, passive: true, durable: false, exclusive: true, autoDelete: false, arguments: null);

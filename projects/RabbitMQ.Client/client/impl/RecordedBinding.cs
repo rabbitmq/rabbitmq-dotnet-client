@@ -40,17 +40,18 @@ namespace RabbitMQ.Client.Impl
     internal readonly struct RecordedBinding : IEquatable<RecordedBinding>, IRecordedBinding
     {
         private readonly bool _isQueueBinding;
-        private readonly string _destination;
-        private readonly string _source;
-        private readonly string _routingKey;
+        private readonly AmqpString _destination;
+        private readonly AmqpString _source;
+        private readonly RoutingKey _routingKey;
         private readonly IDictionary<string, object>? _arguments;
 
-        public string Destination => _destination;
-        public string Source => _source;
-        public string RoutingKey => _routingKey;
+        public AmqpString Destination => _destination;
+        public AmqpString Source => _source;
+        public RoutingKey RoutingKey => _routingKey;
         public IDictionary<string, object>? Arguments => _arguments;
 
-        public RecordedBinding(bool isQueueBinding, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+        public RecordedBinding(bool isQueueBinding, AmqpString destination, AmqpString source, RoutingKey routingKey,
+            IDictionary<string, object>? arguments)
         {
             _isQueueBinding = isQueueBinding;
             _destination = destination;
@@ -59,7 +60,7 @@ namespace RabbitMQ.Client.Impl
             _arguments = arguments;
         }
 
-        public RecordedBinding(string destination, in RecordedBinding old)
+        public RecordedBinding(AmqpString destination, in RecordedBinding old)
         {
             _isQueueBinding = old._isQueueBinding;
             _destination = destination;
@@ -72,12 +73,12 @@ namespace RabbitMQ.Client.Impl
         {
             if (_isQueueBinding)
             {
-                return channel.QueueBindAsync(_destination, _source, _routingKey, _arguments, false,
+                return channel.QueueBindAsync((QueueName)_destination, (ExchangeName)_source, _routingKey, _arguments, false,
                     cancellationToken);
             }
             else
             {
-                return channel.ExchangeBindAsync(_destination, _source, _routingKey, _arguments, false,
+                return channel.ExchangeBindAsync((ExchangeName)_destination, (ExchangeName)_source, _routingKey, _arguments, false,
                     cancellationToken);
             }
         }

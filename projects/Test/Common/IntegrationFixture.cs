@@ -436,27 +436,43 @@ namespace Test
             }
         }
 
-        protected string GenerateExchangeName()
+        protected ExchangeName GenerateExchangeName()
         {
-            return $"{_testDisplayName}-exchange-{Guid.NewGuid()}";
+            return new ExchangeName(GenerateValidQueueOrExchangeName("exchange"));
         }
 
-        protected string GenerateQueueName()
+        protected QueueName GenerateQueueName()
         {
-            return $"{_testDisplayName}-queue-{Guid.NewGuid()}";
+            return new QueueName(GenerateValidQueueOrExchangeName("queue"));
         }
 
-        protected Task WithTemporaryNonExclusiveQueueAsync(Func<IChannel, string, Task> action)
+        private string GenerateValidQueueOrExchangeName(string infix)
+        {
+            string name = $"{_testDisplayName}-{infix}-{Guid.NewGuid()}";
+
+            if (name.Length > 127)
+            {
+                name = name.Substring(0, 127);
+            }
+
+            name = name.Replace('(', '_');
+            name = name.Replace(')', '_');
+            name = name.Replace(' ', '_');
+
+            return name;
+        }
+
+        protected Task WithTemporaryNonExclusiveQueueAsync(Func<IChannel, QueueName, Task> action)
         {
             return WithTemporaryNonExclusiveQueueAsync(_channel, action);
         }
 
-        protected Task WithTemporaryNonExclusiveQueueAsync(IChannel channel, Func<IChannel, string, Task> action)
+        protected Task WithTemporaryNonExclusiveQueueAsync(IChannel channel, Func<IChannel, QueueName, Task> action)
         {
             return WithTemporaryNonExclusiveQueueAsync(channel, action, GenerateQueueName());
         }
 
-        protected async Task WithTemporaryNonExclusiveQueueAsync(IChannel channel, Func<IChannel, string, Task> action, string queue)
+        protected async Task WithTemporaryNonExclusiveQueueAsync(IChannel channel, Func<IChannel, QueueName, Task> action, QueueName queue)
         {
             try
             {
@@ -472,7 +488,7 @@ namespace Test
             }
         }
 
-        protected Task AssertMessageCountAsync(string q, uint count)
+        protected Task AssertMessageCountAsync(QueueName q, uint count)
         {
             return WithTemporaryChannelAsync(async ch =>
             {

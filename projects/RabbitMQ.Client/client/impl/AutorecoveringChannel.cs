@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Impl
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
-        private readonly List<string> _recordedConsumerTags = new List<string>();
+        private readonly List<ConsumerTag> _recordedConsumerTags = new List<ConsumerTag>();
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -117,7 +117,7 @@ namespace RabbitMQ.Client.Impl
             remove { InnerChannel.Recovery -= value; }
         }
 
-        public IEnumerable<string> ConsumerTags
+        public IEnumerable<ConsumerTag> ConsumerTags
         {
             get
             {
@@ -142,7 +142,7 @@ namespace RabbitMQ.Client.Impl
 
         public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
 
-        public string CurrentQueue => InnerChannel.CurrentQueue;
+        public QueueName CurrentQueue => InnerChannel.CurrentQueue;
 
         internal async Task AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
@@ -255,7 +255,7 @@ namespace RabbitMQ.Client.Impl
         public Task BasicRejectAsync(ulong deliveryTag, bool requeue, CancellationToken cancellationToken)
             => InnerChannel.BasicRejectAsync(deliveryTag, requeue, cancellationToken);
 
-        public async Task BasicCancelAsync(string consumerTag, bool noWait, CancellationToken cancellationToken)
+        public async Task BasicCancelAsync(ConsumerTag consumerTag, bool noWait, CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
             await _connection.DeleteRecordedConsumerAsync(consumerTag, recordedEntitiesSemaphoreHeld: false)
@@ -264,11 +264,11 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public async Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
+        public async Task<ConsumerTag> BasicConsumeAsync(QueueName queue, bool autoAck, ConsumerTag consumerTag, bool noLocal, bool exclusive,
             IDictionary<string, object> arguments, IBasicConsumer consumer,
             CancellationToken cancellationToken)
         {
-            string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal,
+            ConsumerTag resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal,
                 exclusive, arguments, consumer, cancellationToken)
                 .ConfigureAwait(false);
             var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
@@ -279,14 +279,8 @@ namespace RabbitMQ.Client.Impl
             return resultConsumerTag;
         }
 
-        public ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck, CancellationToken cancellationToken)
+        public ValueTask<BasicGetResult> BasicGetAsync(QueueName queue, bool autoAck, CancellationToken cancellationToken)
             => InnerChannel.BasicGetAsync(queue, autoAck, cancellationToken);
-
-        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties,
-            ReadOnlyMemory<byte> body, bool mandatory,
-            CancellationToken cancellationToken)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory, cancellationToken);
 
         public ValueTask BasicPublishAsync<TProperties>(ExchangeName exchange, RoutingKey routingKey, TProperties basicProperties,
             ReadOnlyMemory<byte> body, bool mandatory,
@@ -318,7 +312,7 @@ namespace RabbitMQ.Client.Impl
             _usesPublisherConfirms = true;
         }
 
-        public async Task ExchangeBindAsync(string destination, string source, string routingKey,
+        public async Task ExchangeBindAsync(ExchangeName destination, ExchangeName source, RoutingKey routingKey,
             IDictionary<string, object> arguments, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -329,10 +323,10 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public Task ExchangeDeclarePassiveAsync(string exchange, CancellationToken cancellationToken)
+        public Task ExchangeDeclarePassiveAsync(ExchangeName exchange, CancellationToken cancellationToken)
             => InnerChannel.ExchangeDeclarePassiveAsync(exchange, cancellationToken);
 
-        public async Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete,
+        public async Task ExchangeDeclareAsync(ExchangeName exchange, ExchangeType type, bool durable, bool autoDelete,
             IDictionary<string, object> arguments, bool passive, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -346,7 +340,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task ExchangeDeleteAsync(string exchange, bool ifUnused, bool noWait,
+        public async Task ExchangeDeleteAsync(ExchangeName exchange, bool ifUnused, bool noWait,
             CancellationToken cancellationToken)
         {
             await InnerChannel.ExchangeDeleteAsync(exchange, ifUnused, noWait, cancellationToken)
@@ -355,7 +349,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public async Task ExchangeUnbindAsync(string destination, string source, string routingKey,
+        public async Task ExchangeUnbindAsync(ExchangeName destination, ExchangeName source, RoutingKey routingKey,
             IDictionary<string, object> arguments, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -369,7 +363,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public async Task QueueBindAsync(string queue, string exchange, string routingKey,
+        public async Task QueueBindAsync(QueueName queue, ExchangeName exchange, RoutingKey routingKey,
             IDictionary<string, object> arguments, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -380,14 +374,14 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(string queue, CancellationToken cancellationToken)
+        public Task<QueueDeclareOk> QueueDeclarePassiveAsync(QueueName queue, CancellationToken cancellationToken)
         {
             return QueueDeclareAsync(queue: queue, passive: true,
                 durable: false, exclusive: false, autoDelete: false,
                 arguments: null, noWait: false, cancellationToken: cancellationToken);
         }
 
-        public async Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete,
+        public async Task<QueueDeclareOk> QueueDeclareAsync(QueueName queue, bool durable, bool exclusive, bool autoDelete,
             IDictionary<string, object> arguments, bool passive, bool noWait,
             CancellationToken cancellationToken)
         {
@@ -395,22 +389,22 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             if (false == passive)
             {
-                var recordedQueue = new RecordedQueue(result.QueueName, queue.Length == 0, durable, exclusive, autoDelete, arguments);
+                var recordedQueue = new RecordedQueue((QueueName)result, queue.IsEmpty, durable, exclusive, autoDelete, arguments);
                 await _connection.RecordQueueAsync(recordedQueue, recordedEntitiesSemaphoreHeld: false, cancellationToken)
                     .ConfigureAwait(false);
             }
             return result;
         }
 
-        public Task<uint> MessageCountAsync(string queue,
+        public Task<uint> MessageCountAsync(QueueName queue,
             CancellationToken cancellationToken)
             => InnerChannel.MessageCountAsync(queue, cancellationToken);
 
-        public Task<uint> ConsumerCountAsync(string queue,
+        public Task<uint> ConsumerCountAsync(QueueName queue,
             CancellationToken cancellationToken)
             => InnerChannel.ConsumerCountAsync(queue, cancellationToken);
 
-        public async Task<uint> QueueDeleteAsync(string queue, bool ifUnused, bool ifEmpty, bool noWait,
+        public async Task<uint> QueueDeleteAsync(QueueName queue, bool ifUnused, bool ifEmpty, bool noWait,
             CancellationToken cancellationToken)
         {
             uint result = await InnerChannel.QueueDeleteAsync(queue, ifUnused, ifEmpty, noWait, cancellationToken)
@@ -420,10 +414,10 @@ namespace RabbitMQ.Client.Impl
             return result;
         }
 
-        public Task<uint> QueuePurgeAsync(string queue, CancellationToken cancellationToken)
+        public Task<uint> QueuePurgeAsync(QueueName queue, CancellationToken cancellationToken)
             => InnerChannel.QueuePurgeAsync(queue, cancellationToken);
 
-        public async Task QueueUnbindAsync(string queue, string exchange, string routingKey,
+        public async Task QueueUnbindAsync(QueueName queue, ExchangeName exchange, RoutingKey routingKey,
             IDictionary<string, object> arguments,
             CancellationToken cancellationToken)
         {

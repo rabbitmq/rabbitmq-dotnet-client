@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Events
         private AsyncEventingWrapper<ConsumerEventArgs> _unregisteredWrapper;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public override async Task HandleBasicCancelOk(string consumerTag)
+        public override async Task HandleBasicCancelOk(ConsumerTag consumerTag)
         {
             await base.HandleBasicCancelOk(consumerTag)
                 .ConfigureAwait(false);
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public override async Task HandleBasicConsumeOk(string consumerTag)
+        public override async Task HandleBasicConsumeOk(ConsumerTag consumerTag)
         {
             await base.HandleBasicConsumeOk(consumerTag)
                 .ConfigureAwait(false);
@@ -76,8 +76,8 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+        public override Task HandleBasicDeliver(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+            ExchangeName exchange, RoutingKey routingKey,
             in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);

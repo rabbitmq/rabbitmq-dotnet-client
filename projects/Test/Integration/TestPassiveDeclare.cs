@@ -29,8 +29,8 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
@@ -46,18 +46,20 @@ namespace Test.Integration
         [Fact]
         public Task TestPassiveExchangeDeclareWhenExchangeDoesNotExist()
         {
+            ExchangeName ex = GenerateExchangeName();
             return Assert.ThrowsAsync<OperationInterruptedException>(() =>
             {
-                return _channel.ExchangeDeclarePassiveAsync(Guid.NewGuid().ToString());
+                return _channel.ExchangeDeclarePassiveAsync(ex);
             });
         }
 
         [Fact]
         public Task TestPassiveQueueDeclareWhenQueueDoesNotExist()
         {
+            QueueName q = GenerateQueueName();
             return Assert.ThrowsAsync<OperationInterruptedException>(() =>
             {
-                return _channel.QueueDeclarePassiveAsync(Guid.NewGuid().ToString());
+                return _channel.QueueDeclarePassiveAsync(q);
             });
         }
     }

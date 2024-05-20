@@ -56,11 +56,11 @@ namespace Test.Integration
         {
             public FaultyConsumer(IChannel channel) : base(channel) { }
 
-            public override Task HandleBasicDeliverAsync(string consumerTag,
+            public override Task HandleBasicDeliverAsync(ConsumerTag consumerTag,
                                                ulong deliveryTag,
                                                bool redelivered,
-                                               ReadOnlyMemory<byte> exchange,
-                                               ReadOnlyMemory<byte> routingKey,
+                                               ExchangeName exchange,
+                                               RoutingKey routingKey,
                                                ReadOnlyBasicProperties properties,
                                                ReadOnlyMemory<byte> body)
             {
@@ -73,6 +73,7 @@ namespace Test.Integration
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
+            var rk = new RoutingKey(q.QueueName);
 
             CallbackExceptionEventArgs ea = null;
             _channel.CallbackException += async (_, evt) =>
@@ -83,7 +84,7 @@ namespace Test.Integration
             };
 
             await _channel.BasicConsumeAsync(q, true, new FaultyConsumer(_channel));
-            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("message"));
+            await _channel.BasicPublishAsync(ExchangeName.Empty, rk, _encoding.GetBytes("message"));
 
             await WaitAsync(tcs, "CallbackException");
 

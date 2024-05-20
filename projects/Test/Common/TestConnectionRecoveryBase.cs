@@ -67,7 +67,7 @@ namespace Test
             Assert.Equal(count, ok.ConsumerCount);
         }
 
-        protected async Task AssertExchangeRecoveryAsync(IChannel m, string x)
+        protected async Task AssertExchangeRecoveryAsync(IChannel m, ExchangeName x)
         {
             await m.ConfirmSelectAsync();
             await WithTemporaryNonExclusiveQueueAsync(m, async (_, q) =>
@@ -95,7 +95,7 @@ namespace Test
                 durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
             Assert.Equal(0u, ok1.MessageCount);
 
-            await ch.BasicPublishAsync("", q, _messageBody);
+            await ch.BasicPublishAsync(ExchangeName.Empty, q, _messageBody);
             Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
 
             RabbitMQ.Client.QueueDeclareOk ok2 = await ch.QueueDeclareAsync(queue: q, passive: false,
@@ -190,13 +190,13 @@ namespace Test
             await WaitAsync(sl, "connection shutdown");
         }
 
-        protected static async Task<string> DeclareNonDurableExchangeAsync(IChannel ch, string exchangeName)
+        protected static async Task<string> DeclareNonDurableExchangeAsync(IChannel ch, ExchangeName exchangeName)
         {
-            await ch.ExchangeDeclareAsync(exchangeName, "fanout", false);
+            await ch.ExchangeDeclareAsync(exchangeName, ExchangeType.Fanout, false);
             return exchangeName;
         }
 
-        protected async Task PublishMessagesWhileClosingConnAsync(string queueName)
+        protected async Task PublishMessagesWhileClosingConnAsync(QueueName queueName)
         {
             using (AutorecoveringConnection publishingConn = await CreateAutorecoveringConnectionAsync())
             {
@@ -211,7 +211,7 @@ namespace Test
                             await CloseConnectionAsync(_conn);
                         }
 
-                        await publishingChannel.BasicPublishAsync(string.Empty, queueName, _messageBody);
+                        await publishingChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, _messageBody);
                         await publishingChannel.WaitForConfirmsOrDieAsync();
                     }
 
@@ -315,11 +315,11 @@ namespace Test
                 _allMessagesSeenTcs = allMessagesSeenTcs;
             }
 
-            public override Task HandleBasicDeliverAsync(string consumerTag,
+            public override Task HandleBasicDeliverAsync(ConsumerTag consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
-                ReadOnlyMemory<byte> exchange,
-                ReadOnlyMemory<byte> routingKey,
+                ExchangeName exchange,
+                RoutingKey routingKey,
                 ReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
@@ -343,7 +343,8 @@ namespace Test
             }
         }
 
-        protected static async Task<bool> SendAndConsumeMessageAsync(IConnection conn, string queue, string exchange, string routingKey)
+        protected static async Task<bool> SendAndConsumeMessageAsync(IConnection conn,
+            QueueName queue, ExchangeName exchange, RoutingKey routingKey)
         {
             using (IChannel ch = await conn.CreateChannelAsync())
             {

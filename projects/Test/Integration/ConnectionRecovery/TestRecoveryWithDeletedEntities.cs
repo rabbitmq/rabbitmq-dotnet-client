@@ -46,10 +46,10 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestThatDeletedExchangeBindingsDontReappearOnRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
+            QueueName q = (await _channel.QueueDeclareAsync(QueueName.Empty, false, false, false)).QueueName;
 
-            string ex_source = GenerateExchangeName();
-            string ex_destination = GenerateExchangeName();
+            ExchangeName ex_source = GenerateExchangeName();
+            ExchangeName ex_destination = GenerateExchangeName();
 
             await _channel.ExchangeDeclareAsync(ex_source, ExchangeType.Fanout);
             await _channel.ExchangeDeclareAsync(ex_destination, ExchangeType.Fanout);
@@ -79,8 +79,8 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestThatDeletedExchangesDontReappearOnRecovery()
         {
-            string x = GenerateExchangeName();
-            await _channel.ExchangeDeclareAsync(x, "fanout");
+            ExchangeName x = GenerateExchangeName();
+            await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout);
             await _channel.ExchangeDeleteAsync(x);
 
             try
@@ -100,10 +100,10 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestThatDeletedQueueBindingsDontReappearOnRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
+            QueueName q = (await _channel.QueueDeclareAsync(QueueName.Empty, false, false, false)).QueueName;
 
-            string ex_source = GenerateExchangeName();
-            string ex_destination = GenerateExchangeName();
+            ExchangeName ex_source = GenerateExchangeName();
+            ExchangeName ex_destination = GenerateExchangeName();
 
             await _channel.ExchangeDeclareAsync(ex_source, ExchangeType.Fanout);
             await _channel.ExchangeDeclareAsync(ex_destination, ExchangeType.Fanout);
@@ -133,7 +133,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestThatDeletedQueuesDontReappearOnRecovery()
         {
-            string q = "dotnet-client.recovery.q1";
+            QueueName q = GenerateQueueName();
             await _channel.QueueDeclareAsync(q, false, false, false);
             await _channel.QueueDeleteAsync(q);
 

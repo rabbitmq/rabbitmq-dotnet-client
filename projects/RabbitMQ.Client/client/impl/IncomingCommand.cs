@@ -87,15 +87,21 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void ReturnMethodAndHeaderBuffers()
+        public void ReturnHeaderAndBodyBuffers()
         {
-            Method.Dispose();
+            Header.Dispose();
+            Body.Dispose();
+        }
+
+        public void ReturnHeaderBuffers()
+        {
             Header.Dispose();
         }
 
         public void ReturnBuffers()
         {
-            ReturnMethodAndHeaderBuffers();
+            Method.Dispose();
+            Header.Dispose();
             Body.Dispose();
         }
     }

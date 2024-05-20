@@ -39,11 +39,11 @@ namespace RabbitMQ.Client.Events
     {
         ///<summary>Constructor that fills the event's properties from
         ///its arguments.</summary>
-        public BasicDeliverEventArgs(string consumerTag,
+        public BasicDeliverEventArgs(ConsumerTag consumerTag,
             ulong deliveryTag,
             bool redelivered,
-            ReadOnlyMemory<byte> exchange,
-            ReadOnlyMemory<byte> routingKey,
+            ExchangeName exchange,
+            RoutingKey routingKey,
             in ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body) : base()
         {
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Events
 
         ///<summary>The consumer tag of the consumer that the message
         ///was delivered to.</summary>
-        public readonly string ConsumerTag;
+        public readonly ConsumerTag ConsumerTag;
 
         ///<summary>The delivery tag for this delivery. See
         ///IChannel.BasicAck.</summary>
@@ -72,13 +72,13 @@ namespace RabbitMQ.Client.Events
 
         ///<summary>The exchange the message was originally published
         ///to.</summary>
-        public ReadOnlyMemory<byte> Exchange;
+        public readonly ExchangeName Exchange;
 
         ///<summary>The AMQP "redelivered" flag.</summary>
         public readonly bool Redelivered;
 
         ///<summary>The routing key used when the message was
         ///originally published.</summary>
-        public ReadOnlyMemory<byte> RoutingKey;
+        public readonly RoutingKey RoutingKey;
     }
 }

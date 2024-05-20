@@ -65,14 +65,14 @@ namespace RabbitMQ.Client.Events
         public event EventHandler<ConsumerEventArgs> Unregistered;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public override void HandleBasicCancelOk(string consumerTag)
+        public override void HandleBasicCancelOk(ConsumerTag consumerTag)
         {
             base.HandleBasicCancelOk(consumerTag);
             Unregistered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag }));
         }
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public override void HandleBasicConsumeOk(string consumerTag)
+        public override void HandleBasicConsumeOk(ConsumerTag consumerTag)
         {
             base.HandleBasicConsumeOk(consumerTag);
             Registered?.Invoke(this, new ConsumerEventArgs(new[] { consumerTag }));
@@ -86,8 +86,8 @@ namespace RabbitMQ.Client.Events
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.
         /// </remarks>
-        public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
-            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
+        public override async Task HandleBasicDeliverAsync(ConsumerTag consumerTag, ulong deliveryTag, bool redelivered,
+            ExchangeName exchange, RoutingKey routingKey,
             ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             BasicDeliverEventArgs eventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);

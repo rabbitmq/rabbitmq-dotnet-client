@@ -31,6 +31,7 @@
 
 using System;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
@@ -63,9 +64,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestQueueBindNoWait()
         {
-            string q = GenerateQueueName();
+            QueueName q = GenerateQueueName();
             await _channel.QueueDeclareAsync(q, false, true, false, noWait: true);
-            await _channel.QueueBindAsync(q, "amq.fanout", "", noWait: true);
+            await _channel.QueueBindAsync(q, (ExchangeName)(ExchangeName)"amq.fanout", "", noWait: true);
         }
 
         [Fact]
@@ -83,10 +84,10 @@ namespace Test.Integration
         [Fact]
         public async Task TestExchangeDeclareNoWaitAsync()
         {
-            string x = GenerateExchangeName();
+            ExchangeName x = GenerateExchangeName();
             try
             {
-                await _channel.ExchangeDeclareAsync(x, "fanout", false, true);
+                await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout, false, true);
                 await _channel.ExchangeDeclarePassiveAsync(x);
             }
             finally
@@ -98,11 +99,11 @@ namespace Test.Integration
         [Fact]
         public async Task TestExchangeBindNoWait()
         {
-            string x = GenerateExchangeName();
+            ExchangeName x = GenerateExchangeName();
             try
             {
-                await _channel.ExchangeDeclareAsync(x, "fanout", false, true, noWait: true);
-                await _channel.ExchangeBindAsync(x, "amq.fanout", "", noWait: true);
+                await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout, false, true, noWait: true);
+                await _channel.ExchangeBindAsync(x, (ExchangeName)"amq.fanout", "", noWait: true);
             }
             finally
             {
@@ -113,12 +114,12 @@ namespace Test.Integration
         [Fact]
         public async Task TestExchangeUnbindNoWait()
         {
-            string x = GenerateExchangeName();
+            ExchangeName x = GenerateExchangeName();
             try
             {
-                await _channel.ExchangeDeclareAsync(x, "fanout", false, true);
-                await _channel.ExchangeBindAsync(x, "amq.fanout", "", noWait: true);
-                await _channel.ExchangeUnbindAsync(x, "amq.fanout", "", noWait: true);
+                await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout, false, true);
+                await _channel.ExchangeBindAsync(x, (ExchangeName)"amq.fanout", "", noWait: true);
+                await _channel.ExchangeUnbindAsync(x, (ExchangeName)"amq.fanout", "", noWait: true);
             }
             finally
             {
@@ -129,8 +130,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestExchangeDeleteNoWait()
         {
-            string x = GenerateExchangeName();
-            await _channel.ExchangeDeclareAsync(x, "fanout", false, true,
+            ExchangeName x = GenerateExchangeName();
+            await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout, false, true,
                 noWait: true, arguments: null);
             await _channel.ExchangeDeleteAsync(x, false, noWait: true);
         }

@@ -50,7 +50,7 @@ namespace Test.Integration
             await _channel.QueueDeclareAsync(queue: q, passive: false, durable: false, exclusive: true, autoDelete: false, arguments: null);
             Assert.Equal(0u, await _channel.MessageCountAsync(q));
 
-            await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes("msg"));
             await _channel.WaitForConfirmsAsync();
             Assert.Equal(1u, await _channel.MessageCountAsync(q));
         }

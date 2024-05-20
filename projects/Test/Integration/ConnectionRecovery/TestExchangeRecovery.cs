@@ -45,7 +45,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestExchangeRecoveryTest()
         {
-            string x = "dotnet-client.test.recovery.x1";
+            ExchangeName x = GenerateExchangeName();
             await DeclareNonDurableExchangeAsync(_channel, x);
             await CloseAndWaitForRecoveryAsync();
             await AssertExchangeRecoveryAsync(_channel, x);
@@ -55,22 +55,22 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestExchangeToExchangeBindingRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
+            QueueName q = (await _channel.QueueDeclareAsync(QueueName.Empty, false, false, false)).QueueName;
 
-            string ex_source = GenerateExchangeName();
-            string ex_destination = GenerateExchangeName();
+            ExchangeName ex_source = GenerateExchangeName();
+            ExchangeName ex_destination = GenerateExchangeName();
 
             await _channel.ExchangeDeclareAsync(ex_source, ExchangeType.Fanout);
             await _channel.ExchangeDeclareAsync(ex_destination, ExchangeType.Fanout);
 
-            await _channel.ExchangeBindAsync(destination: ex_destination, source: ex_source, "");
-            await _channel.QueueBindAsync(q, ex_destination, "");
+            await _channel.ExchangeBindAsync(destination: ex_destination, source: ex_source, RoutingKey.Empty);
+            await _channel.QueueBindAsync(q, ex_destination, RoutingKey.Empty);
 
             try
             {
                 await CloseAndWaitForRecoveryAsync();
                 Assert.True(_channel.IsOpen);
-                await _channel.BasicPublishAsync(ex_source, "", _encoding.GetBytes("msg"));
+                await _channel.BasicPublishAsync(ex_source, RoutingKey.Empty, _encoding.GetBytes("msg"));
                 await AssertMessageCountAsync(q, 1);
             }
             finally

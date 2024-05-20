@@ -129,14 +129,17 @@ namespace Test.Integration
             {
                 using (IChannel ch = await conn.CreateChannelAsync())
                 {
-                    await ch.ExchangeDeclareAsync("Exchange_TestSslEndPoint", ExchangeType.Direct);
+                    var ex = new ExchangeName("Exchange_TestSslEndPoint");
+                    var rk = new RoutingKey("Key_TestSslEndpoint");
 
-                    string qName = await ch.QueueDeclareAsync();
-                    await ch.QueueBindAsync(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint");
+                    await ch.ExchangeDeclareAsync(ex, ExchangeType.Direct);
+
+                    QueueName qName = await ch.QueueDeclareAsync();
+                    await ch.QueueBindAsync(qName, ex, rk);
 
                     string message = "Hello C# SSL Client World";
                     byte[] msgBytes = _encoding.GetBytes(message);
-                    await ch.BasicPublishAsync("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", msgBytes);
+                    await ch.BasicPublishAsync(ex, rk, msgBytes);
 
                     bool autoAck = false;
                     BasicGetResult result = await ch.BasicGetAsync(qName, autoAck);

@@ -40,13 +40,14 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly AutorecoveringChannel _channel;
         private readonly IBasicConsumer _consumer;
-        private readonly string _queue;
+        private readonly QueueName _queue;
         private readonly bool _autoAck;
-        private readonly string _consumerTag;
+        private readonly ConsumerTag _consumerTag;
         private readonly bool _exclusive;
         private readonly IDictionary<string, object>? _arguments;
 
-        public RecordedConsumer(AutorecoveringChannel channel, IBasicConsumer consumer, string consumerTag, string queue, bool autoAck, bool exclusive, IDictionary<string, object>? arguments)
+        public RecordedConsumer(AutorecoveringChannel channel, IBasicConsumer consumer,
+            ConsumerTag consumerTag, QueueName queue, bool autoAck, bool exclusive, IDictionary<string, object>? arguments)
         {
             if (channel == null)
             {
@@ -66,7 +67,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                if (queue == string.Empty)
+                if (queue.IsEmpty)
                 {
                     _queue = _channel.CurrentQueue;
                 }
@@ -89,25 +90,27 @@ namespace RabbitMQ.Client.Impl
 
         public AutorecoveringChannel Channel => _channel;
         public IBasicConsumer Consumer => _consumer;
-        public string Queue => _queue;
+        public QueueName Queue => _queue;
         public bool AutoAck => _autoAck;
-        public string ConsumerTag => _consumerTag;
+        public ConsumerTag ConsumerTag => _consumerTag;
         public bool Exclusive => _exclusive;
         public IDictionary<string, object>? Arguments => _arguments;
 
-        public static RecordedConsumer WithNewConsumerTag(string newTag, in RecordedConsumer old)
+        public static RecordedConsumer WithNewConsumerTag(ConsumerTag newTag, in RecordedConsumer old)
         {
             return new RecordedConsumer(old.Channel, old.Consumer, newTag, old.Queue, old.AutoAck, old.Exclusive, old.Arguments);
         }
 
-        public static RecordedConsumer WithNewQueueName(string newQueueName, in RecordedConsumer old)
+        public static RecordedConsumer WithNewQueueName(QueueName newQueueName, in RecordedConsumer old)
         {
             return new RecordedConsumer(old.Channel, old.Consumer, old.ConsumerTag, newQueueName, old.AutoAck, old.Exclusive, old.Arguments);
         }
 
-        public Task<string> RecoverAsync(IChannel channel)
+        public async Task<ConsumerTag> RecoverAsync(IChannel channel)
         {
-            return channel.BasicConsumeAsync(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer);
+            string ct = await channel.BasicConsumeAsync(Queue, AutoAck, ConsumerTag, false, Exclusive, Arguments, Consumer)
+                .ConfigureAwait(false);
+            return new ConsumerTag(ct);
         }
     }
 }

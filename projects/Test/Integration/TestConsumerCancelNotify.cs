@@ -41,7 +41,7 @@ namespace Test.Integration
     public class TestConsumerCancelNotify : IntegrationFixture
     {
         private readonly TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        private string _consumerTag;
+        private string _cancellationConsumerTag;
 
         public TestConsumerCancelNotify(ITestOutputHelper output) : base(output)
         {
@@ -50,13 +50,13 @@ namespace Test.Integration
         [Fact]
         public Task TestConsumerCancelNotification()
         {
-            return TestConsumerCancelAsync("queue_consumer_cancel_notify", false);
+            return TestConsumerCancelAsync(GenerateQueueName(), false);
         }
 
         [Fact]
         public Task TestConsumerCancelEvent()
         {
-            return TestConsumerCancelAsync("queue_consumer_cancel_event", true);
+            return TestConsumerCancelAsync(GenerateQueueName(), true);
         }
 
         [Fact]
@@ -86,15 +86,15 @@ namespace Test.Integration
             await _channel.QueueDeleteAsync(q2);
         }
 
-        private async Task TestConsumerCancelAsync(string queue, bool eventMode)
+        private async Task TestConsumerCancelAsync(QueueName queue, bool eventMode)
         {
             await _channel.QueueDeclareAsync(queue, false, true, false);
             IBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, eventMode);
-            string actualConsumerTag = await _channel.BasicConsumeAsync(queue, false, consumer);
+            ConsumerTag expectedConsumerTag = await _channel.BasicConsumeAsync(queue, false, consumer);
 
             await _channel.QueueDeleteAsync(queue);
             await WaitAsync(_tcs, "HandleBasicCancel / Cancelled event");
-            Assert.Equal(actualConsumerTag, _consumerTag);
+            Assert.Equal(expectedConsumerTag, _cancellationConsumerTag);
         }
 
         private class CancelNotificationConsumer : DefaultBasicConsumer
@@ -113,11 +113,11 @@ namespace Test.Integration
                 }
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override void HandleBasicCancel(ConsumerTag consumerTag)
             {
                 if (!_eventMode)
                 {
-                    _testClass._consumerTag = consumerTag;
+                    _testClass._cancellationConsumerTag = consumerTag;
                     _testClass._tcs.SetResult(true);
                 }
 
@@ -126,7 +126,7 @@ namespace Test.Integration
 
             private void Cancelled(object sender, ConsumerEventArgs arg)
             {
-                _testClass._consumerTag = arg.ConsumerTags[0];
+                _testClass._cancellationConsumerTag = arg.ConsumerTags[0];
                 _testClass._tcs.SetResult(true);
             }
         }

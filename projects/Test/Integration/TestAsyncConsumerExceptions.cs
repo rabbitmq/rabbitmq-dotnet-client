@@ -91,11 +91,11 @@ namespace Test.Integration
         {
             IBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
             return TestExceptionHandlingWith(consumer, (ch, q, c, ct) =>
-                ch.BasicPublishAsync("", q, _encoding.GetBytes("msg")).AsTask());
+                ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)q, _encoding.GetBytes("msg")).AsTask());
         }
 
         protected async Task TestExceptionHandlingWith(IBasicConsumer consumer,
-            Func<IChannel, string, IBasicConsumer, string, Task> action)
+            Func<IChannel, QueueName, IBasicConsumer, ConsumerTag, Task> action)
         {
             var waitSpan = TimeSpan.FromSeconds(5);
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -103,7 +103,7 @@ namespace Test.Integration
             CancellationTokenRegistration ctsr = cts.Token.Register(() => tcs.TrySetResult(false));
             try
             {
-                string q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
+                QueueName q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
                 _channel.CallbackException += (ch, evt) =>
                 {
                     // _output.WriteLine($"[INFO] _channel.CallbackException: {evt.Exception}");
@@ -113,7 +113,7 @@ namespace Test.Integration
                     }
                 };
 
-                string tag = await _channel.BasicConsumeAsync(q, true, string.Empty, false, false, null, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, ConsumerTag.Empty, false, false, null, consumer);
                 await action(_channel, q, consumer, tag);
                 Assert.True(await tcs.Task);
             }
@@ -130,11 +130,11 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliver(ConsumerTag consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
-                ReadOnlyMemory<byte> exchange,
-                ReadOnlyMemory<byte> routingKey,
+                ExchangeName exchange,
+                RoutingKey routingKey,
                 in ReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
@@ -148,7 +148,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancel(ConsumerTag consumerTag)
             {
                 return Task.FromException(TestException);
             }
@@ -172,7 +172,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicConsumeOk(string consumerTag)
+            public override Task HandleBasicConsumeOk(ConsumerTag consumerTag)
             {
                 return Task.FromException(TestException);
             }
@@ -184,7 +184,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicCancelOk(string consumerTag)
+            public override Task HandleBasicCancelOk(ConsumerTag consumerTag)
             {
                 return Task.FromException(TestException);
             }

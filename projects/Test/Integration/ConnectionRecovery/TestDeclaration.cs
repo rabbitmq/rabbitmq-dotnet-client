@@ -52,11 +52,11 @@ namespace Test.Integration.ConnectionRecovery
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 3; i++)
             {
-                string x1 = $"source-{Guid.NewGuid()}";
-                await _channel.ExchangeDeclareAsync(x1, "fanout", false, true);
+                var x1 = new ExchangeName($"source-{Guid.NewGuid()}");
+                await _channel.ExchangeDeclareAsync(x1, ExchangeType.Fanout, false, true);
 
-                string x2 = $"destination-{Guid.NewGuid()}";
-                await _channel.ExchangeDeclareAsync(x2, "fanout", false, false);
+                var x2 = new ExchangeName($"destination-{Guid.NewGuid()}");
+                await _channel.ExchangeDeclareAsync(x2, ExchangeType.Fanout, false, false);
 
                 await _channel.ExchangeBindAsync(x2, x1, "");
                 await _channel.ExchangeDeleteAsync(x2);
@@ -70,10 +70,12 @@ namespace Test.Integration.ConnectionRecovery
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
-                string x1 = $"source-{Guid.NewGuid()}";
-                await _channel.ExchangeDeclareAsync(x1, "fanout", false, true);
-                string x2 = $"destination-{Guid.NewGuid()}";
-                await _channel.ExchangeDeclareAsync(x2, "fanout", false, false);
+                var x1 = new ExchangeName($"source-{Guid.NewGuid()}");
+                await _channel.ExchangeDeclareAsync(x1, ExchangeType.Fanout, false, true);
+
+                var x2 = new ExchangeName($"destination-{Guid.NewGuid()}");
+                await _channel.ExchangeDeclareAsync(x2, ExchangeType.Fanout, false, false);
+
                 await _channel.ExchangeBindAsync(x2, x1, "");
                 await _channel.ExchangeUnbindAsync(x2, x1, "");
                 await _channel.ExchangeDeleteAsync(x2);
@@ -87,11 +89,12 @@ namespace Test.Integration.ConnectionRecovery
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
-                string x = Guid.NewGuid().ToString();
-                await _channel.ExchangeDeclareAsync(x, "fanout", false, true);
+                ExchangeName x = GenerateExchangeName();
+                await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout, false, true);
                 QueueDeclareOk q = await _channel.QueueDeclareAsync();
-                await _channel.QueueBindAsync(q, x, "");
-                await _channel.QueueDeleteAsync(q);
+                var qname = new QueueName(q.QueueName);
+                await _channel.QueueBindAsync(qname, x, "");
+                await _channel.QueueDeleteAsync(qname);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }
@@ -102,11 +105,12 @@ namespace Test.Integration.ConnectionRecovery
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
-                string x = Guid.NewGuid().ToString();
-                await _channel.ExchangeDeclareAsync(x, "fanout", false, true);
+                ExchangeName exchangeName = GenerateExchangeName();
+                await _channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Fanout, false, true);
                 QueueDeclareOk q = await _channel.QueueDeclareAsync();
-                await _channel.QueueBindAsync(q, x, "");
-                await _channel.QueueUnbindAsync(q, x, "", null);
+                var qname = new QueueName(q.QueueName);
+                await _channel.QueueBindAsync(qname, exchangeName, "");
+                await _channel.QueueUnbindAsync(qname, exchangeName, "", null);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }
@@ -117,10 +121,10 @@ namespace Test.Integration.ConnectionRecovery
             AssertRecordedQueues((AutorecoveringConnection)_conn, 0);
             for (int i = 0; i < 1000; i++)
             {
-                string q = Guid.NewGuid().ToString();
+                QueueName q = GenerateQueueName();
                 await _channel.QueueDeclareAsync(q, false, false, true);
                 var dummy = new EventingBasicConsumer(_channel);
-                string tag = await _channel.BasicConsumeAsync(q, true, dummy);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, dummy);
                 await _channel.BasicCancelAsync(tag);
             }
             AssertRecordedQueues((AutorecoveringConnection)_conn, 0);

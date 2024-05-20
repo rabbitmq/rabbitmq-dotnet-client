@@ -29,12 +29,14 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Convenience class providing compile-time names for standard exchange types.
+    /// Convenience struct providing compile-time names for standard exchange types.
     /// </summary>
     /// <remarks>
     /// Use the static members of this class as values for the
@@ -42,29 +44,71 @@ namespace RabbitMQ.Client
     /// ExchangeDeclare. The broker may be extended with additional
     /// exchange types that do not appear in this class.
     /// </remarks>
-    public static class ExchangeType
+    public class ExchangeType : IEquatable<ExchangeType>
     {
+        private const string EmptyStr = "";
+        private const string FanoutStr = "fanout";
+        private const string DirectStr = "direct";
+        private const string TopicStr = "topic";
+        private const string HeadersStr = "headers";
+
+        private static readonly string[] s_all = { EmptyStr, FanoutStr, DirectStr, TopicStr, HeadersStr };
+
+        private readonly string _value;
+
+        internal static readonly ExchangeType s_empty = new ExchangeType(string.Empty);
+
         /// <summary>
         /// Exchange type used for AMQP direct exchanges.
         /// </summary>
-        public const string Direct = "direct";
+        public static readonly ExchangeType Direct = new ExchangeType(DirectStr);
 
         /// <summary>
         /// Exchange type used for AMQP fanout exchanges.
         /// </summary>
-        public const string Fanout = "fanout";
+        public static readonly ExchangeType Fanout = new ExchangeType(FanoutStr);
 
         /// <summary>
         /// Exchange type used for AMQP headers exchanges.
         /// </summary>
-        public const string Headers = "headers";
+        public static readonly ExchangeType Headers = new ExchangeType(HeadersStr);
 
         /// <summary>
         /// Exchange type used for AMQP topic exchanges.
         /// </summary>
-        public const string Topic = "topic";
+        public static readonly ExchangeType Topic = new ExchangeType(TopicStr);
 
-        private static readonly string[] s_all = { Fanout, Direct, Topic, Headers };
+        internal ExchangeType(string value)
+        {
+            if (false == s_all.Contains(value))
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
+            _value = value;
+        }
+
+        public override string ToString()
+        {
+            return _value;
+        }
+
+        public static implicit operator ExchangeType(string value)
+        {
+            return new ExchangeType(value);
+        }
+
+        public static implicit operator string(ExchangeType exchangeType)
+        {
+            return exchangeType._value;
+        }
+
+        internal int ByteCount
+        {
+            get
+            {
+                return _value.Length;
+            }
+        }
 
         /// <summary>
         /// Retrieve a collection containing all standard exchange types.
@@ -72,6 +116,57 @@ namespace RabbitMQ.Client
         public static ICollection<string> All()
         {
             return s_all;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (Object.ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            ExchangeType exchangeTypeObj = obj as ExchangeType;
+            if (exchangeTypeObj is null)
+            {
+                return false;
+            }
+
+            return Equals(exchangeTypeObj);
+        }
+
+        public bool Equals(ExchangeType other)
+        {
+            return _value == other._value;
+        }
+
+        public override int GetHashCode()
+        {
+            return _value.GetHashCode();
+        }
+
+        public static bool operator ==(ExchangeType exchangeType1, ExchangeType exchangeType2)
+        {
+            if (exchangeType1 is null || exchangeType2 is null)
+            {
+                return Object.Equals(exchangeType1, exchangeType2);
+            }
+
+            return exchangeType1.Equals(exchangeType2);
+        }
+
+        public static bool operator !=(ExchangeType exchangeType1, ExchangeType exchangeType2)
+        {
+            if (exchangeType1 is null || exchangeType2 is null)
+            {
+                return false == Object.Equals(exchangeType1, exchangeType2);
+            }
+
+            return false == exchangeType1.Equals(exchangeType2);
         }
     }
 }

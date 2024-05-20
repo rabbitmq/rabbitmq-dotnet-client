@@ -67,7 +67,7 @@ namespace Test.Integration
                 unregisteredTcs.SetResult(true);
             };
 
-            string tag = await _channel.BasicConsumeAsync(q, false, ec);
+            ConsumerTag tag = await _channel.BasicConsumeAsync(q, false, ec);
             await WaitAsync(registeredTcs, "consumer registered");
 
             Assert.NotNull(registeredSender);
@@ -100,7 +100,7 @@ namespace Test.Integration
             };
 
             await _channel.BasicConsumeAsync(q, true, ec);
-            await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
+            await _channel.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes("msg"));
 
             await WaitAsync(tcs0, "received event");
             var tcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
