@@ -156,9 +156,9 @@ namespace RabbitMQ.Client
 
         public bool Equals(AmqpString other)
         {
-            if (_value == null)
+            if (_value is null || other._value is null)
             {
-                return _stringBytes.Equals(other._stringBytes);
+                return GetHashCode().Equals(other.GetHashCode());
             }
             else
             {
@@ -168,19 +168,12 @@ namespace RabbitMQ.Client
 
         public override int GetHashCode()
         {
-            if (_value == null)
-            {
-                return ReadOnlyMemoryOfByteEqualityComparer.CalculateHashCode(_stringBytes);
-            }
-            else
-            {
-                return _value.GetHashCode();
-            }
+            return ReadOnlyMemoryOfByteEqualityComparer.CalculateHashCode(_stringBytes);
         }
 
         public int CompareTo(AmqpString other)
         {
-            if (_value == null)
+            if (_value is null || other._value is null)
             {
                 return GetHashCode().CompareTo(other.GetHashCode());
             }

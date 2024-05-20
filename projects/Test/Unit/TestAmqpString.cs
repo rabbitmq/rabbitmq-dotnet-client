@@ -140,5 +140,19 @@ namespace Test.Unit
             var ex2 = new ExchangeName(b2);
             Assert.Equal(ex1, ex2);
         }
+
+        [Fact]
+        public void TestEqualityWhenUsingMixOfReadOnlyMemoryOfByteAndString()
+        {
+            ReadOnlyMemory<byte> b1 = new byte[] { (byte)'f', (byte)'o', (byte)'o' };
+            var ex1 = new ExchangeName(b1);
+
+            string b2str = "foo";
+            var ex2 = new ExchangeName(b2str);
+
+            Assert.Equal(ex1, ex2);
+            Assert.Equal(ex1, b2str);
+            Assert.Equal(ex2, b2str);
+        }
     }
 }

@@ -36,7 +36,7 @@ using System.Linq;
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Convenience struct providing compile-time names for standard exchange types.
+    /// Convenience class providing compile-time names for standard exchange types.
     /// </summary>
     /// <remarks>
     /// Use the static members of this class as values for the
