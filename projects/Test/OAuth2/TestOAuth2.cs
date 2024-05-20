@@ -203,7 +203,7 @@ namespace OAuth2Test
                 AppId = "oauth2",
             };
 
-            await publisher.BasicPublishAsync(exchange: s_exchange, routingKey: "hello", basicProperties: properties, body: body);
+            await publisher.BasicPublishAsync(exchange: s_exchange, routingKey: (RoutingKey)"hello", basicProperties: properties, body: body);
             _testOutputHelper.WriteLine("Sent message");
 
             await publisher.WaitForConfirmsOrDieAsync();
@@ -212,20 +212,24 @@ namespace OAuth2Test
 
         private async ValueTask<IChannel> DeclareConsumerAsync()
         {
+            var queueName = new QueueName("testqueue");
+            var routingKey = new RoutingKey("hello");
             IChannel subscriber = await _connection.CreateChannelAsync();
-            await subscriber.QueueDeclareAsync(queue: "testqueue", true, false, false);
-            await subscriber.QueueBindAsync("testqueue", s_exchange, "hello");
+            await subscriber.QueueDeclareAsync(queue: queueName, true, false, false);
+            await subscriber.QueueBindAsync(queueName, s_exchange, routingKey);
             return subscriber;
         }
 
         private async Task ConsumeAsync(IChannel subscriber)
         {
+            var queueName = new QueueName("testqueue");
+            var consumerTag = new ConsumerTag("testconsumer");
             var asyncListener = new AsyncEventingBasicConsumer(subscriber);
             asyncListener.Received += AsyncListener_Received;
-            ConsumerTag consumerTag = await subscriber.BasicConsumeAsync("testqueue", true, (ConsumerTag)"testconsumer", asyncListener);
+            ConsumerTag consumerTag1 = await subscriber.BasicConsumeAsync(queueName, true, consumerTag, asyncListener);
             await _doneEvent.WaitAsync(TimeSpan.FromMilliseconds(500));
             _testOutputHelper.WriteLine("Received message");
-            await subscriber.BasicCancelAsync(consumerTag);
+            await subscriber.BasicCancelAsync(consumerTag1);
         }
 
         private OAuth2ClientCredentialsProvider GetCredentialsProvider(OAuth2Options opts)

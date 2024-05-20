@@ -62,6 +62,7 @@ namespace Test.Integration
             _channel = await _conn.CreateChannelAsync();
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            QueueName qname = (QueueName)q;
             var bp = new BasicProperties();
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
@@ -73,9 +74,9 @@ namespace Test.Integration
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
                 };
-                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(qname, true, consumer);
 
-                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, bp, sendBody);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, bp, sendBody);
                 bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
                 await _channel.BasicCancelAsync(tag);
 
@@ -120,6 +121,7 @@ namespace Test.Integration
             _channel = await _conn.CreateChannelAsync();
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            QueueName qname = (QueueName)q;
             byte[] sendBody = _encoding.GetBytes("hi");
             byte[] consumeBody = null;
             var consumer = new EventingBasicConsumer(_channel);
@@ -130,9 +132,9 @@ namespace Test.Integration
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
                 };
-                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(qname, true, consumer);
 
-                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, new ReadOnlyMemory<byte>(sendBody));
+                await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, new ReadOnlyMemory<byte>(sendBody));
                 bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
                 await _channel.BasicCancelAsync(tag);
 
@@ -148,6 +150,7 @@ namespace Test.Integration
             _channel = await _conn.CreateChannelAsync();
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            QueueName qname = (QueueName)q;
             byte[] sendBody = new byte[1000];
             var consumer = new EventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
@@ -161,9 +164,9 @@ namespace Test.Integration
                     }
                     consumerReceivedSemaphore.Release();
                 };
-                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(qname, true, consumer);
 
-                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, sendBody);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, sendBody);
                 sendBody.AsSpan().Fill(1);
 
                 Assert.True(await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5)));
@@ -220,6 +223,7 @@ namespace Test.Integration
                     };
 
                     QueueDeclareOk q = await channel.QueueDeclareAsync();
+                    QueueName qname = (QueueName)q;
 
                     var consumer = new EventingBasicConsumer(channel);
 
@@ -248,10 +252,10 @@ namespace Test.Integration
                         Interlocked.Increment(ref count);
                     };
 
-                    string tag = await channel.BasicConsumeAsync(q.QueueName, true, consumer);
+                    string tag = await channel.BasicConsumeAsync(qname, true, consumer);
 
-                    await channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, msg0);
-                    await channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, msg1);
+                    await channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, msg0);
+                    await channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, msg1);
                     Assert.True(await tcs.Task);
 
                     Assert.Equal(1, count);
@@ -277,6 +281,7 @@ namespace Test.Integration
             };
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            QueueName qname = (QueueName)q;
             var bp = new BasicProperties() { Headers = new Dictionary<string, object>() };
             bp.Headers["Hello"] = "World";
             byte[] sendBody = _encoding.GetBytes("hi");
@@ -292,8 +297,8 @@ namespace Test.Integration
                     consumerReceivedSemaphore.Release();
                 };
 
-                ConsumerTag tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
-                await _channel.BasicPublishAsync(ExchangeName.Empty, q.QueueName, bp, sendBody);
+                ConsumerTag tag = await _channel.BasicConsumeAsync(qname, true, consumer);
+                await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, bp, sendBody);
                 bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
                 await _channel.BasicCancelAsync(tag);
                 Assert.True(waitResFalse);

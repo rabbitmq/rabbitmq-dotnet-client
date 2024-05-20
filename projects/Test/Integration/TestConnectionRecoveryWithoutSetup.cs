@@ -123,8 +123,9 @@ namespace Test.Integration
             {
                 using (IChannel ch = await c.CreateChannelAsync())
                 {
-                    string q = (await ch.QueueDeclareAsync("dotnet-client.recovery.consumer_work_pool1",
-                        false, false, false)).QueueName;
+                    var qname = new QueueName("dotnet-client.recovery.consumer_work_pool1");
+                    RabbitMQ.Client.QueueDeclareOk q = await ch.QueueDeclareAsync(qname, false, false, false);
+                    Assert.Equal(qname, q);
                     var cons = new EventingBasicConsumer(ch);
                     await ch.BasicConsumeAsync(q, true, cons);
                     await AssertConsumerCountAsync(ch, q, 1);
@@ -135,7 +136,7 @@ namespace Test.Integration
                     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     cons.Received += (s, args) => tcs.SetResult(true);
 
-                    await ch.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes("msg"));
+                    await ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, _encoding.GetBytes("msg"));
                     await WaitAsync(tcs, "received event");
 
                     await ch.QueueDeleteAsync(q);
@@ -149,44 +150,45 @@ namespace Test.Integration
         [Fact]
         public async Task TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
-            const string q0 = "dotnet-client.recovery.queue1";
+            QueueName q0 = new QueueName("dotnet-client.recovery.queue1");
             // connection #1
             using (AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync())
             {
                 using (IChannel ch = await c.CreateChannelAsync())
                 {
-                    string q1 = (await ch.QueueDeclareAsync(q0, false, false, false)).QueueName;
-                    Assert.Equal(q0, q1);
+                    RabbitMQ.Client.QueueDeclareOk q1ok = await ch.QueueDeclareAsync(q0, false, false, false);
+                    QueueName q1name = (QueueName)q1ok;
+                    Assert.Equal(q0, q1name);
 
                     var cons = new EventingBasicConsumer(ch);
-                    await ch.BasicConsumeAsync(q1, true, cons);
-                    await AssertConsumerCountAsync(ch, q1, 1);
+                    await ch.BasicConsumeAsync(q1name, true, cons);
+                    await AssertConsumerCountAsync(ch, q1name, 1);
 
                     bool queueNameChangeAfterRecoveryCalled = false;
                     c.QueueNameChangedAfterRecovery += (source, ea) => { queueNameChangeAfterRecoveryCalled = true; };
 
                     // connection #2
                     await CloseAndWaitForRecoveryAsync(c);
-                    await AssertConsumerCountAsync(ch, q1, 1);
+                    await AssertConsumerCountAsync(ch, q1name, 1);
                     Assert.False(queueNameChangeAfterRecoveryCalled);
 
                     // connection #3
                     await CloseAndWaitForRecoveryAsync(c);
-                    await AssertConsumerCountAsync(ch, q1, 1);
+                    await AssertConsumerCountAsync(ch, q1name, 1);
                     Assert.False(queueNameChangeAfterRecoveryCalled);
 
                     // connection #4
                     await CloseAndWaitForRecoveryAsync(c);
-                    await AssertConsumerCountAsync(ch, q1, 1);
+                    await AssertConsumerCountAsync(ch, q1name, 1);
                     Assert.False(queueNameChangeAfterRecoveryCalled);
 
                     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     cons.Received += (s, args) => tcs.SetResult(true);
 
-                    await ch.BasicPublishAsync(ExchangeName.Empty, q1, _encoding.GetBytes("msg"));
+                    await ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)q1name, _encoding.GetBytes("msg"));
                     await WaitAsync(tcs, "received event");
 
-                    await ch.QueueDeleteAsync(q1);
+                    await ch.QueueDeleteAsync(q1ok);
                     await ch.CloseAsync();
                 }
 
@@ -203,17 +205,17 @@ namespace Test.Integration
                 using (IChannel ch = await c.CreateChannelAsync())
                 {
                     RabbitMQ.Client.QueueDeclareOk queueDeclareResult =
-                        await ch.QueueDeclareAsync(queue: string.Empty, durable: false, exclusive: true, autoDelete: true, arguments: null);
-                    string qname = queueDeclareResult.QueueName;
-                    Assert.False(string.IsNullOrEmpty(qname));
+                        await ch.QueueDeclareAsync(queue: QueueName.Empty, durable: false, exclusive: true, autoDelete: true, arguments: null);
+                    QueueName qname = (QueueName)queueDeclareResult;
+                    Assert.False(string.IsNullOrEmpty((string)qname));
 
                     var cons = new EventingBasicConsumer(ch);
-                    await ch.BasicConsumeAsync(string.Empty, true, cons);
+                    await ch.BasicConsumeAsync(QueueName.Empty, true, cons);
                     await AssertConsumerCountAsync(ch, qname, 1);
 
                     bool queueNameBeforeIsEqual = false;
                     bool queueNameChangeAfterRecoveryCalled = false;
-                    string qnameAfterRecovery = null;
+                    QueueName qnameAfterRecovery = null;
                     c.QueueNameChangedAfterRecovery += (source, ea) =>
                     {
                         queueNameChangeAfterRecoveryCalled = true;

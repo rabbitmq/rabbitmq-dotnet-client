@@ -232,6 +232,9 @@ namespace RabbitMQ.Client
     {
         public static readonly ExchangeName Empty = new ExchangeName();
         public static readonly ExchangeName AmqDirect = new ExchangeName("amq.direct");
+        public static readonly ExchangeName AmqFanout = new ExchangeName("amq.fanout");
+        public static readonly ExchangeName AmqTopic = new ExchangeName("amq.topic");
+        public static readonly ExchangeName AmqHeaders = new ExchangeName("amq.headers");
 
         private ExchangeName() : base()
         {
@@ -301,8 +304,7 @@ namespace RabbitMQ.Client
         {
         }
 
-        // TODO explicit
-        public static implicit operator QueueName(string value)
+        public static explicit operator QueueName(string value)
         {
             return new QueueName(value);
         }
@@ -349,8 +351,7 @@ namespace RabbitMQ.Client
         {
         }
 
-        // TODO explicit
-        public static implicit operator RoutingKey(string value)
+        public static explicit operator RoutingKey(string value)
         {
             return new RoutingKey(value);
         }

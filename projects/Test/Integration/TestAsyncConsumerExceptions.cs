@@ -103,7 +103,7 @@ namespace Test.Integration
             CancellationTokenRegistration ctsr = cts.Token.Register(() => tcs.TrySetResult(false));
             try
             {
-                QueueName q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
+                QueueName q = await _channel.QueueDeclareAsync(QueueName.Empty, false, true, false);
                 _channel.CallbackException += (ch, evt) =>
                 {
                     // _output.WriteLine($"[INFO] _channel.CallbackException: {evt.Exception}");

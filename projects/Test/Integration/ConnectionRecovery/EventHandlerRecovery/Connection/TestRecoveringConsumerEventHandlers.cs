@@ -51,7 +51,7 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
         [InlineData(3)]
         public async Task TestRecoveringConsumerEventHandlers_Called(int iterations)
         {
-            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
+            RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
             var cons = new EventingBasicConsumer(_channel);
             await _channel.BasicConsumeAsync(q, true, cons);
 
@@ -70,7 +70,7 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
         public async Task TestRecoveringConsumerEventHandler_EventArgumentsArePassedDown()
         {
             var myArgs = new Dictionary<string, object> { { "first-argument", "some-value" } };
-            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
+            RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
             var cons = new EventingBasicConsumer(_channel);
             string expectedCTag = await _channel.BasicConsumeAsync(cons, q, arguments: myArgs);
 

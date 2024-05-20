@@ -31,6 +31,7 @@
 
 using System;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
@@ -46,7 +47,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestAlreadyClosedExceptionMessage()
         {
-            string uuid = Guid.NewGuid().ToString();
+            QueueName uuid = new QueueName(Guid.NewGuid().ToString());
             try
             {
                 await _channel.QueueDeclarePassiveAsync(uuid);

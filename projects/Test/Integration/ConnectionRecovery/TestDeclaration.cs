@@ -58,7 +58,7 @@ namespace Test.Integration.ConnectionRecovery
                 var x2 = new ExchangeName($"destination-{Guid.NewGuid()}");
                 await _channel.ExchangeDeclareAsync(x2, ExchangeType.Fanout, false, false);
 
-                await _channel.ExchangeBindAsync(x2, x1, "");
+                await _channel.ExchangeBindAsync(x2, x1, RoutingKey.Empty);
                 await _channel.ExchangeDeleteAsync(x2);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
@@ -76,8 +76,8 @@ namespace Test.Integration.ConnectionRecovery
                 var x2 = new ExchangeName($"destination-{Guid.NewGuid()}");
                 await _channel.ExchangeDeclareAsync(x2, ExchangeType.Fanout, false, false);
 
-                await _channel.ExchangeBindAsync(x2, x1, "");
-                await _channel.ExchangeUnbindAsync(x2, x1, "");
+                await _channel.ExchangeBindAsync(x2, x1, RoutingKey.Empty);
+                await _channel.ExchangeUnbindAsync(x2, x1, RoutingKey.Empty);
                 await _channel.ExchangeDeleteAsync(x2);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
@@ -93,7 +93,7 @@ namespace Test.Integration.ConnectionRecovery
                 await _channel.ExchangeDeclareAsync(x, ExchangeType.Fanout, false, true);
                 QueueDeclareOk q = await _channel.QueueDeclareAsync();
                 var qname = new QueueName(q.QueueName);
-                await _channel.QueueBindAsync(qname, x, "");
+                await _channel.QueueBindAsync(qname, x, RoutingKey.Empty);
                 await _channel.QueueDeleteAsync(qname);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
@@ -109,8 +109,8 @@ namespace Test.Integration.ConnectionRecovery
                 await _channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Fanout, false, true);
                 QueueDeclareOk q = await _channel.QueueDeclareAsync();
                 var qname = new QueueName(q.QueueName);
-                await _channel.QueueBindAsync(qname, exchangeName, "");
-                await _channel.QueueUnbindAsync(qname, exchangeName, "", null);
+                await _channel.QueueBindAsync(qname, exchangeName, RoutingKey.Empty);
+                await _channel.QueueUnbindAsync(qname, exchangeName, RoutingKey.Empty, null);
             }
             AssertRecordedExchanges((AutorecoveringConnection)_conn, 0);
         }

@@ -42,11 +42,11 @@ namespace Test.SequentialIntegration
 {
     public class TestConnectionRecovery : SequentialIntegrationFixture
     {
-        private readonly string _queueName;
+        private readonly QueueName _queueName;
 
         public TestConnectionRecovery(ITestOutputHelper output) : base(output)
         {
-            _queueName = $"{nameof(TestConnectionRecovery)}-{Guid.NewGuid()}";
+            _queueName = GenerateQueueName();
         }
 
         protected override void DisposeAssertions()
@@ -161,13 +161,13 @@ namespace Test.SequentialIntegration
         [Fact]
         public Task TestClientNamedQueueRecoveryOnServerRestart()
         {
-            string s = "dotnet-client.test.recovery.q1";
+            QueueName qname = new QueueName("dotnet-client.test.recovery.q1");
             return WithTemporaryNonExclusiveQueueAsync(_channel, async (m, q) =>
             {
                 await RestartServerAndWaitForRecoveryAsync();
                 await AssertQueueRecoveryAsync(m, q, false);
                 await _channel.QueueDeleteAsync(q);
-            }, s);
+            }, qname);
         }
 
         // rabbitmq/rabbitmq-dotnet-client#43
@@ -183,7 +183,7 @@ namespace Test.SequentialIntegration
 
                 await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: ExchangeType.Fanout);
                 await _channel.QueueDeclareAsync(queue: queueName, durable: false, exclusive: false, autoDelete: true, arguments: null);
-                await _channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: "");
+                await _channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: RoutingKey.Empty);
 
                 await RestartServerAndWaitForRecoveryAsync();
                 Assert.True(_channel.IsOpen);
@@ -193,7 +193,7 @@ namespace Test.SequentialIntegration
                 Assert.Equal(queueName, ok0.QueueName);
                 await _channel.QueuePurgeAsync(queueName);
                 await _channel.ExchangeDeclarePassiveAsync(exchange: exchangeName);
-                await _channel.BasicPublishAsync(exchange: exchangeName, routingKey: "", body: _encoding.GetBytes("msg"));
+                await _channel.BasicPublishAsync(exchange: exchangeName, routingKey: RoutingKey.Empty, body: _encoding.GetBytes("msg"));
 
                 await WaitForConfirmsWithCancellationAsync(_channel);
 
@@ -214,9 +214,9 @@ namespace Test.SequentialIntegration
             ExchangeName x = new ExchangeName("tmp-fanout");
             await _channel.ExchangeDeleteAsync(x);
             await _channel.ExchangeDeclareAsync(exchange: x, type: ExchangeType.Fanout);
-            string q = (await _channel.QueueDeclareAsync(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null)).QueueName;
-            string nameBefore = q;
-            string nameAfter = null;
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: QueueName.Empty, durable: false, exclusive: false, autoDelete: true, arguments: null);
+            QueueName nameBefore = (QueueName)q;
+            QueueName nameAfter = null;
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             ((AutorecoveringConnection)_conn).QueueNameChangedAfterRecovery += (source, ea) =>
@@ -226,7 +226,7 @@ namespace Test.SequentialIntegration
                 tcs.SetResult(true);
             };
 
-            await _channel.QueueBindAsync(queue: nameBefore, exchange: x, routingKey: "");
+            await _channel.QueueBindAsync(queue: nameBefore, exchange: x, routingKey: RoutingKey.Empty);
             await RestartServerAndWaitForRecoveryAsync();
 
             await WaitAsync(tcs, "queue name change after recovery");
@@ -235,7 +235,7 @@ namespace Test.SequentialIntegration
 
             await _channel.ConfirmSelectAsync();
             await _channel.ExchangeDeclareAsync(exchange: x, type: ExchangeType.Fanout);
-            await _channel.BasicPublishAsync(exchange: x, routingKey: "", body: _encoding.GetBytes("msg"));
+            await _channel.BasicPublishAsync(exchange: x, routingKey: RoutingKey.Empty, body: _encoding.GetBytes("msg"));
             await WaitForConfirmsWithCancellationAsync(_channel);
 
             QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(nameAfter);

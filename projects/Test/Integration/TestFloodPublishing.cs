@@ -156,9 +156,9 @@ namespace Test.Integration
                 });
             };
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: string.Empty,
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: QueueName.Empty,
                     passive: false, durable: false, exclusive: true, autoDelete: false, arguments: null);
-            string queueName = q.QueueName;
+            QueueName qname = (QueueName)q;
 
             Task pub = Task.Run(async () =>
             {
@@ -181,7 +181,7 @@ namespace Test.Integration
 
                     for (int i = 0; i < publishCount && false == stop; i++)
                     {
-                        await pubCh.BasicPublishAsync(ExchangeName.Empty, queueName, sendBody, true);
+                        await pubCh.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, sendBody, true);
                     }
 
                     await pubCh.WaitForConfirmsOrDieAsync();
@@ -222,8 +222,8 @@ namespace Test.Integration
                         await Task.Yield();
                     };
 
-                    await consumeCh.BasicConsumeAsync(queue: queueName, autoAck: true,
-                        consumerTag: string.Empty, noLocal: false, exclusive: false,
+                    await consumeCh.BasicConsumeAsync(queue: qname, autoAck: true,
+                        consumerTag: ConsumerTag.Empty, noLocal: false, exclusive: false,
                         arguments: null, consumer: consumer);
 
                     Assert.True(await tcs.Task);

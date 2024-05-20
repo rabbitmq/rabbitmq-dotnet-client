@@ -49,7 +49,7 @@ namespace Test.Integration
         {
             const string msg = "for async basic.get";
 
-            QueueDeclareOk queueResult = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
+            QueueDeclareOk queueResult = await _channel.QueueDeclareAsync(QueueName.Empty, false, true, true);
             var qn = new QueueName(queueResult.QueueName);
             var rk = new RoutingKey(queueResult.QueueName);
 
@@ -101,11 +101,11 @@ namespace Test.Integration
             }, msg);
         }
 
-        private Task EnsureNotEmptyAsync(string q, string body)
+        private Task EnsureNotEmptyAsync(QueueName q, string body)
         {
             return WithTemporaryChannelAsync(ch =>
             {
-                return ch.BasicPublishAsync(ExchangeName.Empty, q, _encoding.GetBytes(body)).AsTask();
+                return ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)q, _encoding.GetBytes(body)).AsTask();
             });
         }
 
@@ -116,12 +116,12 @@ namespace Test.Integration
             await action(channel);
         }
 
-        private Task WithNonEmptyQueueAsync(Func<IChannel, string, Task> action)
+        private Task WithNonEmptyQueueAsync(Func<IChannel, QueueName, Task> action)
         {
             return WithNonEmptyQueueAsync(action, "msg");
         }
 
-        private Task WithNonEmptyQueueAsync(Func<IChannel, string, Task> action, string msg)
+        private Task WithNonEmptyQueueAsync(Func<IChannel, QueueName, Task> action, string msg)
         {
             return WithTemporaryNonExclusiveQueueAsync(async (ch, q) =>
             {
@@ -130,7 +130,7 @@ namespace Test.Integration
             });
         }
 
-        private Task WithEmptyQueueAsync(Func<IChannel, string, Task> action)
+        private Task WithEmptyQueueAsync(Func<IChannel, QueueName, Task> action)
         {
             return WithTemporaryNonExclusiveQueueAsync(async (channel, queue) =>
             {

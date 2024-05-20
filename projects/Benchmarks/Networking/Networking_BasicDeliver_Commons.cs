@@ -15,6 +15,7 @@ namespace Benchmarks.Networking
             using (IChannel channel = await connection.CreateChannelAsync())
             {
                 QueueDeclareOk queue = await channel.QueueDeclareAsync();
+                QueueName qname = (QueueName)queue;
                 int consumed = 0;
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (s, args) =>
@@ -24,11 +25,11 @@ namespace Benchmarks.Networking
                         tcs.SetResult(true);
                     }
                 };
-                await channel.BasicConsumeAsync(queue.QueueName, true, consumer);
+                await channel.BasicConsumeAsync(qname, true, consumer);
 
                 for (int i = 0; i < messageCount; i++)
                 {
-                    await channel.BasicPublishAsync(ExchangeName.Empty, queue.QueueName, body);
+                    await channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)qname, body);
                 }
 
                 await tcs.Task;

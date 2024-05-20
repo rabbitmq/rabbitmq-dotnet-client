@@ -48,16 +48,16 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestQueueRecoveryWithManyQueues()
         {
-            var qs = new List<string>();
+            var qs = new List<QueueName>();
             int n = 1024;
             for (int i = 0; i < n; i++)
             {
                 QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
-                qs.Add(q.QueueName);
+                qs.Add((QueueName)q.QueueName);
             }
             await CloseAndWaitForRecoveryAsync();
             Assert.True(_channel.IsOpen);
-            foreach (string q in qs)
+            foreach (QueueName q in qs)
             {
                 await AssertQueueRecoveryAsync(_channel, q, false);
                 await _channel.QueueDeleteAsync(q);
@@ -67,9 +67,9 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestServerNamedQueueRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
-            var x = new ExchangeName("amq.fanout"); // TODO static instance for well-known?
-            await _channel.QueueBindAsync(q, x, "");
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(QueueName.Empty, false, false, false);
+            ExchangeName ex = ExchangeName.AmqFanout;
+            await _channel.QueueBindAsync(q, ex, RoutingKey.Empty);
 
             string nameBefore = q;
             string nameAfter = null;
@@ -87,7 +87,7 @@ namespace Test.Integration.ConnectionRecovery
             Assert.StartsWith("amq.", nameAfter);
             Assert.NotEqual(nameBefore, nameAfter);
 
-            await _channel.QueueDeclarePassiveAsync(nameAfter);
+            await _channel.QueueDeclarePassiveAsync((QueueName)nameAfter);
         }
     }
 }

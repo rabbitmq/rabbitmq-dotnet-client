@@ -982,11 +982,14 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~static RabbitMQ.Client.IConnectionExtensions.CloseAsync(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.IConnectionExtensions.CloseAsync(this RabbitMQ.Client.IConnection connection, ushort reasonCode, string reasonText, System.TimeSpan timeout) -> System.Threading.Tasks.Task
 ~static RabbitMQ.Client.QueueDeclareOk.implicit operator RabbitMQ.Client.QueueName(RabbitMQ.Client.QueueDeclareOk declareOk) -> RabbitMQ.Client.QueueName
+~static RabbitMQ.Client.QueueName.explicit operator RabbitMQ.Client.QueueName(string value) -> RabbitMQ.Client.QueueName
 ~static RabbitMQ.Client.QueueName.explicit operator RabbitMQ.Client.RoutingKey(RabbitMQ.Client.QueueName value) -> RabbitMQ.Client.RoutingKey
-~static RabbitMQ.Client.QueueName.implicit operator RabbitMQ.Client.QueueName(string value) -> RabbitMQ.Client.QueueName
-~static RabbitMQ.Client.RoutingKey.implicit operator RabbitMQ.Client.RoutingKey(string value) -> RabbitMQ.Client.RoutingKey
+~static RabbitMQ.Client.RoutingKey.explicit operator RabbitMQ.Client.RoutingKey(string value) -> RabbitMQ.Client.RoutingKey
 ~static readonly RabbitMQ.Client.ConsumerTag.Empty -> RabbitMQ.Client.ConsumerTag
 ~static readonly RabbitMQ.Client.ExchangeName.AmqDirect -> RabbitMQ.Client.ExchangeName
+~static readonly RabbitMQ.Client.ExchangeName.AmqFanout -> RabbitMQ.Client.ExchangeName
+~static readonly RabbitMQ.Client.ExchangeName.AmqHeaders -> RabbitMQ.Client.ExchangeName
+~static readonly RabbitMQ.Client.ExchangeName.AmqTopic -> RabbitMQ.Client.ExchangeName
 ~static readonly RabbitMQ.Client.ExchangeName.Empty -> RabbitMQ.Client.ExchangeName
 ~static readonly RabbitMQ.Client.ExchangeType.Direct -> RabbitMQ.Client.ExchangeType
 ~static readonly RabbitMQ.Client.ExchangeType.Fanout -> RabbitMQ.Client.ExchangeType

@@ -49,7 +49,7 @@ namespace Test.Integration
         {
             OperationInterruptedException exception =
                 await Assert.ThrowsAsync<OperationInterruptedException>(() =>
-                    _channel.QueueBindAsync("NonExistingQueue", ExchangeName.Empty, string.Empty));
+                    _channel.QueueBindAsync((QueueName)"NonExistingQueue", ExchangeName.Empty, RoutingKey.Empty));
             Assert.True(exception.Message.Contains("403"), $"Message doesn't contain the expected 403 part: {exception.Message}");
             Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");
@@ -60,7 +60,7 @@ namespace Test.Integration
         {
             OperationInterruptedException exception =
                 await Assert.ThrowsAsync<OperationInterruptedException>(() =>
-                    _channel.ExchangeBindAsync((ExchangeName)"NonExistingQueue", ExchangeName.Empty, string.Empty));
+                    _channel.ExchangeBindAsync((ExchangeName)"NonExistingQueue", ExchangeName.Empty, RoutingKey.Empty));
             Assert.True(exception.Message.Contains("403"), $"Message doesn't contain the expected 403 part: {exception.Message}");
             Assert.False(_channel.IsOpen, "Channel should be closed due to the soft error");
             Assert.True(_conn.IsOpen, "Connection should still be open due to the soft error only closing the channel");
@@ -72,7 +72,7 @@ namespace Test.Integration
             OperationInterruptedException exception = await Assert.ThrowsAsync<OperationInterruptedException>(() =>
             {
                 var consumer = new EventingBasicConsumer(_channel);
-                return _channel.BasicConsumeAsync("NonExistingQueue", true, consumer);
+                return _channel.BasicConsumeAsync((QueueName)"NonExistingQueue", true, consumer);
             });
 
             Assert.True(exception.Message.Contains("404"), $"Message doesn't contain the expected 404 part: {exception.Message}");

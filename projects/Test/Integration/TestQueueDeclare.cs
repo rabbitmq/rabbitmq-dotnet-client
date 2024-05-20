@@ -48,7 +48,7 @@ namespace Test.Integration
         [Fact]
         public async void TestQueueDeclareAsync()
         {
-            string q = GenerateQueueName();
+            QueueName q = GenerateQueueName();
 
             QueueDeclareOk declareResult = await _channel.QueueDeclareAsync(q, false, false, false);
             Assert.Equal(q, declareResult.QueueName);
@@ -85,7 +85,7 @@ namespace Test.Integration
             };
 
             var tasks = new List<Task>();
-            var queueNames = new ConcurrentDictionary<string, bool>();
+            var queueNames = new ConcurrentDictionary<QueueName, bool>();
 
             ExchangeName exchangeName = GenerateExchangeName();
             await _channel.ExchangeDeclareAsync(exchange: exchangeName, ExchangeType.Fanout,
@@ -126,11 +126,11 @@ namespace Test.Integration
             tasks.Clear();
 
             nse = null;
-            foreach (string q in queueNames.Keys)
+            foreach (QueueName q in queueNames.Keys)
             {
                 async Task f()
                 {
-                    string qname = q;
+                    QueueName qname = q;
                     try
                     {
                         await Task.Delay(S_Random.Next(5, 50));
@@ -140,7 +140,7 @@ namespace Test.Integration
                         Assert.Equal((uint)0, r.MessageCount);
 
                         await _channel.QueueUnbindAsync(queue: qname,
-                            exchange: exchangeName, routingKey: qname, null);
+                            exchange: exchangeName, routingKey: (RoutingKey)qname, null);
 
                         uint deletedMessageCount = await _channel.QueueDeleteAsync(qname, false, false);
                         Assert.Equal((uint)0, deletedMessageCount);
@@ -162,7 +162,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestConcurrentQueueDeclare()
         {
-            var queueNames = new ConcurrentBag<string>();
+            var queueNames = new ConcurrentBag<QueueName>();
             var tasks = new List<Task>();
             NotSupportedException nse = null;
             for (int i = 0; i < 256; i++)
@@ -174,7 +174,7 @@ namespace Test.Integration
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
                                 await Task.Delay(S_Random.Next(5, 50));
-                                string q = GenerateQueueName();
+                                QueueName q = GenerateQueueName();
                                 await _channel.QueueDeclareAsync(q, false, false, false);
                                 queueNames.Add(q);
                             }
@@ -191,9 +191,9 @@ namespace Test.Integration
             Assert.Null(nse);
             tasks.Clear();
 
-            foreach (string queueName in queueNames)
+            foreach (QueueName queueName in queueNames)
             {
-                string q = queueName;
+                QueueName q = queueName;
                 var t = Task.Run(async () =>
                         {
                             try

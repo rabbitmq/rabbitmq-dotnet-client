@@ -44,11 +44,12 @@ namespace Test.SequentialIntegration
 
         public async Task BlockAsync(IChannel channel)
         {
+            var rk = new RoutingKey(Guid.NewGuid().ToString());
             await _rabbitMQCtl.ExecRabbitMQCtlAsync("set_vm_memory_high_watermark 0.000000001");
             // give rabbitmqctl some time to do its job
             await Task.Delay(TimeSpan.FromSeconds(5));
             await channel.BasicPublishAsync(exchange: ExchangeName.AmqDirect,
-                routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
+                routingKey: rk, _encoding.GetBytes("message"));
         }
 
         public Task UnblockAsync()

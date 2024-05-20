@@ -216,7 +216,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _recordedQueues[queue.Name] = queue;
         }
 
-        internal async ValueTask DeleteRecordedQueueAsync(string queueName,
+        internal async ValueTask DeleteRecordedQueueAsync(QueueName queueName,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)

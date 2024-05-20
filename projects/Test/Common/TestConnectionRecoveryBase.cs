@@ -52,7 +52,7 @@ namespace Test
             _messageBody = GetRandomBody(4096);
         }
 
-        protected Task AssertConsumerCountAsync(string q, int count)
+        protected Task AssertConsumerCountAsync(QueueName q, int count)
         {
             return WithTemporaryChannelAsync(async ch =>
             {
@@ -61,7 +61,7 @@ namespace Test
             });
         }
 
-        protected async Task AssertConsumerCountAsync(IChannel ch, string q, uint count)
+        protected async Task AssertConsumerCountAsync(IChannel ch, QueueName q, uint count)
         {
             RabbitMQ.Client.QueueDeclareOk ok = await ch.QueueDeclarePassiveAsync(q);
             Assert.Equal(count, ok.ConsumerCount);
@@ -72,7 +72,7 @@ namespace Test
             await m.ConfirmSelectAsync();
             await WithTemporaryNonExclusiveQueueAsync(m, async (_, q) =>
             {
-                string rk = "routing-key";
+                RoutingKey rk = new RoutingKey("routing-key");
                 await m.QueueBindAsync(q, x, rk);
                 await m.BasicPublishAsync(x, rk, _messageBody);
 
@@ -81,12 +81,12 @@ namespace Test
             });
         }
 
-        protected Task AssertExclusiveQueueRecoveryAsync(IChannel m, string q)
+        protected Task AssertExclusiveQueueRecoveryAsync(IChannel m, QueueName q)
         {
             return AssertQueueRecoveryAsync(m, q, true);
         }
 
-        protected async Task AssertQueueRecoveryAsync(IChannel ch, string q, bool exclusive, IDictionary<string, object> arguments = null)
+        protected async Task AssertQueueRecoveryAsync(IChannel ch, QueueName q, bool exclusive, IDictionary<string, object> arguments = null)
         {
             await ch.ConfirmSelectAsync();
             await ch.QueueDeclareAsync(queue: q, passive: true, durable: false, exclusive: false, autoDelete: false, arguments: null);
@@ -95,7 +95,7 @@ namespace Test
                 durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
             Assert.Equal(0u, ok1.MessageCount);
 
-            await ch.BasicPublishAsync(ExchangeName.Empty, q, _messageBody);
+            await ch.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)q, _messageBody);
             Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
 
             RabbitMQ.Client.QueueDeclareOk ok2 = await ch.QueueDeclareAsync(queue: q, passive: false,
@@ -250,7 +250,7 @@ namespace Test
             return WaitAsync(tcs, "connection shutdown");
         }
 
-        protected async Task WithTemporaryExclusiveQueueNoWaitAsync(IChannel channel, Func<IChannel, string, Task> action, string queue)
+        protected async Task WithTemporaryExclusiveQueueNoWaitAsync(IChannel channel, Func<IChannel, QueueName, Task> action, QueueName queue)
         {
             try
             {
