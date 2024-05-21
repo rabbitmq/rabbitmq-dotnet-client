@@ -150,6 +150,8 @@ namespace Test.Integration
 
                     await ch.CloseAsync();
                 }
+
+                await conn.CloseAsync();
             }
         }
     }
