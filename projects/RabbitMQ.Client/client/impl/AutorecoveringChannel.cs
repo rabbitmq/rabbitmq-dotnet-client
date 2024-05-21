@@ -204,8 +204,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            var args = new ShutdownEventArgs(ShutdownInitiator.Library, replyCode, replyText);
-            return CloseAsync(args, abort, cancellationToken);
+            return _innerChannel.CloseAsync(replyCode, replyText, abort, cancellationToken);
         }
 
         public async Task CloseAsync(ShutdownEventArgs args, bool abort,
