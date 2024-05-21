@@ -164,7 +164,7 @@ namespace Test
             return (AutorecoveringConnection)conn;
         }
 
-        protected Task CloseConnectionAsync(IConnection conn)
+        protected static Task CloseConnectionAsync(IConnection conn)
         {
             return Util.CloseConnectionAsync(conn);
         }
@@ -178,7 +178,7 @@ namespace Test
         {
             TaskCompletionSource<bool> sl = PrepareForShutdown(conn);
             TaskCompletionSource<bool> rl = PrepareForRecovery(conn);
-            await CloseConnectionAsync(conn);
+            await TestConnectionRecoveryBase.CloseConnectionAsync(conn);
             await WaitAsync(sl, "connection shutdown");
             await WaitAsync(rl, "connection recovery");
         }
@@ -186,7 +186,7 @@ namespace Test
         internal async Task CloseAndWaitForShutdownAsync(AutorecoveringConnection conn)
         {
             TaskCompletionSource<bool> sl = PrepareForShutdown(conn);
-            await CloseConnectionAsync(conn);
+            await TestConnectionRecoveryBase.CloseConnectionAsync(conn);
             await WaitAsync(sl, "connection shutdown");
         }
 
@@ -208,7 +208,7 @@ namespace Test
                     {
                         if (i == CloseAtCount)
                         {
-                            await CloseConnectionAsync(_conn);
+                            await TestConnectionRecoveryBase.CloseConnectionAsync(_conn);
                         }
 
                         await publishingChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, _messageBody);
@@ -217,6 +217,8 @@ namespace Test
 
                     await publishingChannel.CloseAsync();
                 }
+
+                await publishingConn.CloseAsync();
             }
         }
 

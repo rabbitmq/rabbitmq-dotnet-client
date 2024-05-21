@@ -88,6 +88,14 @@ namespace Test.Integration
                 Assert.Equal(i, ChannelNumber(channel));
             }
 
+            var closeTasks = new List<Task>();
+            foreach (IChannel channel in channels)
+            {
+                closeTasks.Add(channel.CloseAsync());
+            }
+
+            await Task.WhenAll(closeTasks);
+
             foreach (IChannel channel in channels)
             {
                 channel.Dispose();

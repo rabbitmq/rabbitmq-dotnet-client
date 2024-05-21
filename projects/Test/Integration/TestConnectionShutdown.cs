@@ -104,6 +104,7 @@ namespace Test.Integration
 
             try
             {
+                await _conn.CloseAsync();
                 _conn.Dispose();
                 await WaitAsync(tcs, WaitSpan, "channel shutdown");
                 await frameHandlerCloseTask.WaitAsync(WaitSpan);
@@ -140,6 +141,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
             };
 
+            await _conn.CloseAsync();
             _conn.Dispose();
             _conn = null;
 

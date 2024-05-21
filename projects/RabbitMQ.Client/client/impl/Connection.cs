@@ -484,7 +484,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (IsOpen)
                 {
-                    this.AbortAsync().GetAwaiter().GetResult();
+                    throw new InvalidOperationException("CloseAsync/AbortAsync must be called prior to Dispose");
                 }
 
                 _session0.Dispose();

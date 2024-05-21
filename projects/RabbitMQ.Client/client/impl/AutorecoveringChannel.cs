@@ -237,7 +237,7 @@ namespace RabbitMQ.Client.Impl
 
             if (IsOpen)
             {
-                this.AbortAsync().GetAwaiter().GetResult();
+                throw new InvalidOperationException("CloseAsync/AbortAsync must be called prior to Dispose");
             }
 
             _recordedConsumerTags.Clear();
