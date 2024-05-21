@@ -485,6 +485,7 @@ namespace Test.Integration
                         await publishChannel.WaitForConfirmsOrDieAsync();
                     }
 
+                    await publishChannel.CloseAsync();
                     return true;
                 }
             });
@@ -610,6 +611,7 @@ namespace Test.Integration
                         var dummy = new AsyncEventingBasicConsumer(ch);
                         ConsumerTag tag = await ch.BasicConsumeAsync(q, true, dummy);
                         await ch.BasicCancelAsync(tag);
+                        await ch.CloseAsync();
                     }
                 }));
             }

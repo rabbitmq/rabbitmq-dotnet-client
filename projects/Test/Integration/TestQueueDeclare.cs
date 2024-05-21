@@ -118,6 +118,10 @@ namespace Test.Integration
                         {
                             nse = e;
                         }
+                        finally
+                        {
+                            await ch.CloseAsync();
+                        }
                     }
                 }
                 var t = Task.Run(f);
@@ -153,6 +157,10 @@ namespace Test.Integration
                         catch (NotSupportedException e)
                         {
                             nse = e;
+                        }
+                        finally
+                        {
+                            await ch.CloseAsync();
                         }
                     }
                 }
@@ -190,6 +198,10 @@ namespace Test.Integration
                                 {
                                     nse = e;
                                 }
+                                finally
+                                {
+                                    await ch.CloseAsync();
+                                }
                             }
                         });
                 tasks.Add(t);
@@ -215,6 +227,10 @@ namespace Test.Integration
                                 catch (NotSupportedException e)
                                 {
                                     nse = e;
+                                }
+                                finally
+                                {
+                                    await ch.CloseAsync();
                                 }
                             }
                         });
