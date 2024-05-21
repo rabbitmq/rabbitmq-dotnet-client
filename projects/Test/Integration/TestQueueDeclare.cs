@@ -57,8 +57,10 @@ namespace Test.Integration
             Assert.Equal(q, passiveDeclareResult.QueueName);
         }
 
-        [Fact]
-        public async void TestConcurrentQueueDeclareAndBindAsync()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async void TestConcurrentQueueDeclareAndBindAsync(bool useDedicatedChannelPerTask)
         {
             bool sawShutdown = false;
 
@@ -96,31 +98,38 @@ namespace Test.Integration
             {
                 async Task f()
                 {
-                    using (IChannel ch = await _conn.CreateChannelAsync())
+                    IChannel ch = _channel;
+                    if (useDedicatedChannelPerTask)
                     {
-                        try
+                        ch = await _conn.CreateChannelAsync();
+                    }
+
+                    try
+                    {
+                        // sleep for a random amount of time to increase the chances
+                        // of thread interleaving. MK.
+                        await Task.Delay(S_Random.Next(5, 50));
+                        QueueName queueName = GenerateQueueName();
+                        QueueDeclareOk r = await ch.QueueDeclareAsync(queue: queueName,
+                            durable: false, exclusive: true, autoDelete: false);
+                        Assert.Equal(queueName, r.QueueName);
+                        await ch.QueueBindAsync(queue: queueName,
+                            exchange: exchangeName, routingKey: (RoutingKey)queueName);
+                        if (false == queueNames.TryAdd(queueName, true))
                         {
-                            // sleep for a random amount of time to increase the chances
-                            // of thread interleaving. MK.
-                            await Task.Delay(S_Random.Next(5, 50));
-                            QueueName queueName = GenerateQueueName();
-                            QueueDeclareOk r = await ch.QueueDeclareAsync(queue: queueName,
-                                durable: false, exclusive: true, autoDelete: false);
-                            Assert.Equal(queueName, r.QueueName);
-                            await ch.QueueBindAsync(queue: queueName,
-                                exchange: exchangeName, routingKey: (RoutingKey)queueName);
-                            if (false == queueNames.TryAdd(queueName, true))
-                            {
-                                throw new InvalidOperationException($"queue with name {queueName} already added!");
-                            }
+                            throw new InvalidOperationException($"queue with name {queueName} already added!");
                         }
-                        catch (NotSupportedException e)
-                        {
-                            nse = e;
-                        }
-                        finally
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                    finally
+                    {
+                        if (useDedicatedChannelPerTask)
                         {
                             await ch.CloseAsync();
+                            ch.Dispose();
                         }
                     }
                 }
@@ -138,29 +147,36 @@ namespace Test.Integration
                 async Task f()
                 {
                     QueueName qname = q;
-                    using (IChannel ch = await _conn.CreateChannelAsync())
+                    IChannel ch = _channel;
+                    if (useDedicatedChannelPerTask)
                     {
-                        try
-                        {
-                            await Task.Delay(S_Random.Next(5, 50));
+                        ch = await _conn.CreateChannelAsync();
+                    }
 
-                            QueueDeclareOk r = await ch.QueueDeclarePassiveAsync(qname);
-                            Assert.Equal(qname, r.QueueName);
-                            Assert.Equal((uint)0, r.MessageCount);
+                    try
+                    {
+                        await Task.Delay(S_Random.Next(5, 50));
 
-                            await ch.QueueUnbindAsync(queue: qname,
-                                exchange: exchangeName, routingKey: (RoutingKey)qname, null);
+                        QueueDeclareOk r = await ch.QueueDeclarePassiveAsync(qname);
+                        Assert.Equal(qname, r.QueueName);
+                        Assert.Equal((uint)0, r.MessageCount);
 
-                            uint deletedMessageCount = await ch.QueueDeleteAsync(qname, false, false);
-                            Assert.Equal((uint)0, deletedMessageCount);
-                        }
-                        catch (NotSupportedException e)
-                        {
-                            nse = e;
-                        }
-                        finally
+                        await ch.QueueUnbindAsync(queue: qname,
+                            exchange: exchangeName, routingKey: (RoutingKey)qname, null);
+
+                        uint deletedMessageCount = await ch.QueueDeleteAsync(qname, false, false);
+                        Assert.Equal((uint)0, deletedMessageCount);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                    finally
+                    {
+                        if (useDedicatedChannelPerTask)
                         {
                             await ch.CloseAsync();
+                            ch.Dispose();
                         }
                     }
                 }
@@ -173,8 +189,10 @@ namespace Test.Integration
             Assert.False(sawShutdown);
         }
 
-        [Fact]
-        public async Task TestConcurrentQueueDeclare()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestConcurrentQueueDeclare(bool useDedicatedChannelPerTask)
         {
             var queueNames = new ConcurrentBag<QueueName>();
             var tasks = new List<Task>();
@@ -183,24 +201,31 @@ namespace Test.Integration
             {
                 var t = Task.Run(async () =>
                         {
-                            using (IChannel ch = await _conn.CreateChannelAsync())
+                            IChannel ch = _channel;
+                            if (useDedicatedChannelPerTask)
                             {
-                                try
-                                {
-                                    // sleep for a random amount of time to increase the chances
-                                    // of thread interleaving. MK.
-                                    await Task.Delay(S_Random.Next(5, 50));
-                                    QueueName q = GenerateQueueName();
-                                    await ch.QueueDeclareAsync(q, false, false, false);
-                                    queueNames.Add(q);
-                                }
-                                catch (NotSupportedException e)
-                                {
-                                    nse = e;
-                                }
-                                finally
+                                ch = await _conn.CreateChannelAsync();
+                            }
+
+                            try
+                            {
+                                // sleep for a random amount of time to increase the chances
+                                // of thread interleaving. MK.
+                                await Task.Delay(S_Random.Next(5, 50));
+                                QueueName q = GenerateQueueName();
+                                await ch.QueueDeclareAsync(q, false, false, false);
+                                queueNames.Add(q);
+                            }
+                            catch (NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                            finally
+                            {
+                                if (useDedicatedChannelPerTask)
                                 {
                                     await ch.CloseAsync();
+                                    ch.Dispose();
                                 }
                             }
                         });
@@ -217,20 +242,27 @@ namespace Test.Integration
                 QueueName q = queueName;
                 var t = Task.Run(async () =>
                         {
-                            using (IChannel ch = await _conn.CreateChannelAsync())
+                            IChannel ch = _channel;
+                            if (useDedicatedChannelPerTask)
                             {
-                                try
-                                {
-                                    await Task.Delay(S_Random.Next(5, 50));
-                                    await ch.QueueDeleteAsync(queueName);
-                                }
-                                catch (NotSupportedException e)
-                                {
-                                    nse = e;
-                                }
-                                finally
+                                ch = await _conn.CreateChannelAsync();
+                            }
+
+                            try
+                            {
+                                await Task.Delay(S_Random.Next(5, 50));
+                                await ch.QueueDeleteAsync(queueName);
+                            }
+                            catch (NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                            finally
+                            {
+                                if (useDedicatedChannelPerTask)
                                 {
                                     await ch.CloseAsync();
+                                    ch.Dispose();
                                 }
                             }
                         });

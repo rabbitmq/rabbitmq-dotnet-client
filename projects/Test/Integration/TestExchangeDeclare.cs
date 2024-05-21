@@ -47,8 +47,10 @@ namespace Test.Integration
         {
         }
 
-        [Fact]
-        public async Task TestConcurrentExchangeDeclareAndBind()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestConcurrentExchangeDeclareAndBind(bool useDedicatedChannelPerTask)
         {
             var exchangeNames = new ConcurrentBag<ExchangeName>();
             var tasks = new List<Task>();
@@ -61,27 +63,35 @@ namespace Test.Integration
             {
                 async Task f()
                 {
-                    using (IChannel ch = await _conn.CreateChannelAsync())
+                    IChannel ch = _channel;
+                    if (useDedicatedChannelPerTask)
                     {
-                        try
-                        {
-                            await Task.Delay(S_Random.Next(5, 50));
-                            ExchangeName exchangeName = GenerateExchangeName();
-                            await ch.ExchangeDeclareAsync(exchange: exchangeName, type: ExchangeType.Fanout, false, false);
-                            await ch.ExchangeBindAsync(destination: ex_destination, source: exchangeName,
-                                routingKey: new RoutingKey("unused"));
-                            exchangeNames.Add(exchangeName);
-                        }
-                        catch (NotSupportedException e)
-                        {
-                            nse = e;
-                        }
-                        finally
+                        ch = await _conn.CreateChannelAsync();
+                    }
+
+                    try
+                    {
+                        await Task.Delay(S_Random.Next(5, 50));
+                        ExchangeName exchangeName = GenerateExchangeName();
+                        await ch.ExchangeDeclareAsync(exchange: exchangeName, type: ExchangeType.Fanout, false, false);
+                        await ch.ExchangeBindAsync(destination: ex_destination, source: exchangeName,
+                            routingKey: new RoutingKey("unused"));
+                        exchangeNames.Add(exchangeName);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                    finally
+                    {
+                        if (useDedicatedChannelPerTask)
                         {
                             await ch.CloseAsync();
+                            ch.Dispose();
                         }
                     }
                 }
+
                 var t = Task.Run(f);
                 tasks.Add(t);
             }
@@ -94,22 +104,29 @@ namespace Test.Integration
             {
                 async Task f()
                 {
-                    using (IChannel ch = await _conn.CreateChannelAsync())
+                    IChannel ch = _channel;
+                    if (useDedicatedChannelPerTask)
                     {
-                        try
-                        {
-                            await Task.Delay(S_Random.Next(5, 50));
-                            await _channel.ExchangeUnbindAsync(destination: ex_destination, source: exchangeName, routingKey: (RoutingKey)"unused",
-                                noWait: false, arguments: null);
-                            await _channel.ExchangeDeleteAsync(exchange: exchangeName, ifUnused: false);
-                        }
-                        catch (NotSupportedException e)
-                        {
-                            nse = e;
-                        }
-                        finally
+                        ch = await _conn.CreateChannelAsync();
+                    }
+
+                    try
+                    {
+                        await Task.Delay(S_Random.Next(5, 50));
+                        await _channel.ExchangeUnbindAsync(destination: ex_destination, source: exchangeName, routingKey: (RoutingKey)"unused",
+                            noWait: false, arguments: null);
+                        await _channel.ExchangeDeleteAsync(exchange: exchangeName, ifUnused: false);
+                    }
+                    catch (NotSupportedException e)
+                    {
+                        nse = e;
+                    }
+                    finally
+                    {
+                        if (useDedicatedChannelPerTask)
                         {
                             await ch.CloseAsync();
+                            ch.Dispose();
                         }
                     }
                 }
@@ -122,8 +139,10 @@ namespace Test.Integration
             await _channel.ExchangeDeleteAsync(exchange: ex_destination);
         }
 
-        [Fact]
-        public async Task TestConcurrentExchangeDeclareAndDelete()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestConcurrentExchangeDeclareAndDelete(bool useDedicatedChannelPerTask)
         {
             var exchangeNames = new ConcurrentBag<ExchangeName>();
             var tasks = new List<Task>();
@@ -132,24 +151,31 @@ namespace Test.Integration
             {
                 var t = Task.Run(async () =>
                         {
-                            using (IChannel ch = await _conn.CreateChannelAsync())
+                            IChannel ch = _channel;
+                            if (useDedicatedChannelPerTask)
                             {
-                                try
-                                {
-                                    // sleep for a random amount of time to increase the chances
-                                    // of thread interleaving. MK.
-                                    await Task.Delay(_rnd.Next(5, 500));
-                                    ExchangeName exchangeName = GenerateExchangeName();
-                                    await ch.ExchangeDeclareAsync(exchange: exchangeName, ExchangeType.Fanout, false, false);
-                                    exchangeNames.Add(exchangeName);
-                                }
-                                catch (NotSupportedException e)
-                                {
-                                    nse = e;
-                                }
-                                finally
+                                ch = await _conn.CreateChannelAsync();
+                            }
+
+                            try
+                            {
+                                // sleep for a random amount of time to increase the chances
+                                // of thread interleaving. MK.
+                                await Task.Delay(_rnd.Next(5, 500));
+                                ExchangeName exchangeName = GenerateExchangeName();
+                                await ch.ExchangeDeclareAsync(exchange: exchangeName, ExchangeType.Fanout, false, false);
+                                exchangeNames.Add(exchangeName);
+                            }
+                            catch (NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                            finally
+                            {
+                                if (useDedicatedChannelPerTask)
                                 {
                                     await ch.CloseAsync();
+                                    ch.Dispose();
                                 }
                             }
                         });
@@ -166,22 +192,29 @@ namespace Test.Integration
                 ExchangeName ex = exchangeName;
                 var t = Task.Run(async () =>
                         {
-                            using (IChannel ch = await _conn.CreateChannelAsync())
+                            IChannel ch = _channel;
+                            if (useDedicatedChannelPerTask)
                             {
-                                try
-                                {
-                                    // sleep for a random amount of time to increase the chances
-                                    // of thread interleaving. MK.
-                                    await Task.Delay(_rnd.Next(5, 500));
-                                    await ch.ExchangeDeleteAsync(ex);
-                                }
-                                catch (NotSupportedException e)
-                                {
-                                    nse = e;
-                                }
-                                finally
+                                ch = await _conn.CreateChannelAsync();
+                            }
+
+                            try
+                            {
+                                // sleep for a random amount of time to increase the chances
+                                // of thread interleaving. MK.
+                                await Task.Delay(_rnd.Next(5, 500));
+                                await ch.ExchangeDeleteAsync(ex);
+                            }
+                            catch (NotSupportedException e)
+                            {
+                                nse = e;
+                            }
+                            finally
+                            {
+                                if (useDedicatedChannelPerTask)
                                 {
                                     await ch.CloseAsync();
+                                    ch.Dispose();
                                 }
                             }
                         });
