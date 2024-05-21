@@ -70,7 +70,9 @@ namespace Test.Integration.ConnectionRecovery
             {
                 await CloseAndWaitForRecoveryAsync();
                 Assert.True(_channel.IsOpen);
-                await _channel.BasicPublishAsync(ex_source, RoutingKey.Empty, _encoding.GetBytes("msg"));
+                await _channel.ConfirmSelectAsync();
+                await _channel.BasicPublishAsync(ex_source, RoutingKey.Empty, _encoding.GetBytes("msg"), mandatory: true);
+                await _channel.WaitForConfirmsOrDieAsync();
                 await AssertMessageCountAsync(q, 1);
             }
             finally
