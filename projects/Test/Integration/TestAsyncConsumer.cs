@@ -600,11 +600,14 @@ namespace Test.Integration
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    QueueName q = GenerateQueueName();
-                    await _channel.QueueDeclareAsync(q, false, false, true);
-                    var dummy = new AsyncEventingBasicConsumer(_channel);
-                    ConsumerTag tag = await _channel.BasicConsumeAsync(q, true, dummy);
-                    await _channel.BasicCancelAsync(tag);
+                    using (IChannel ch = await _conn.CreateChannelAsync())
+                    {
+                        QueueName q = GenerateQueueName();
+                        await ch.QueueDeclareAsync(q, false, false, true);
+                        var dummy = new AsyncEventingBasicConsumer(_channel);
+                        ConsumerTag tag = await ch.BasicConsumeAsync(q, true, dummy);
+                        await ch.BasicCancelAsync(tag);
+                    }
                 }));
             }
             await Task.WhenAll(tasks);
