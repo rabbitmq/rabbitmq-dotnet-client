@@ -452,8 +452,6 @@ namespace Test.Integration
                 });
             };
 
-            await _channel.ConfirmSelectAsync();
-
             var consumer = new AsyncEventingBasicConsumer(_channel);
             consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
             {
@@ -478,6 +476,8 @@ namespace Test.Integration
             {
                 using (IChannel publishChannel = await _conn.CreateChannelAsync())
                 {
+                    await publishChannel.ConfirmSelectAsync();
+
                     for (int i = 0; i < messageCount; i++)
                     {
                         byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
