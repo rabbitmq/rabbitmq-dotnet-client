@@ -31,6 +31,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -108,6 +109,10 @@ namespace Test.Integration
                 _conn.Dispose();
                 await WaitAsync(tcs, WaitSpan, "channel shutdown");
                 await frameHandlerCloseTask.WaitAsync(WaitSpan);
+            }
+            catch (ChannelClosedException)
+            {
+                _output.WriteLine("[INFO] saw ChannelClosedException");
             }
             finally
             {
