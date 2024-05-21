@@ -182,6 +182,7 @@ namespace OAuth2Test
         {
             // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429
             IConnection secondConnection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
+            await secondConnection.CloseAsync();
             secondConnection.Dispose();
         }
 
