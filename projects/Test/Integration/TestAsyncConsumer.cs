@@ -476,14 +476,17 @@ namespace Test.Integration
 
             Task<bool> publishTask = Task.Run(async () =>
             {
-                for (int i = 0; i < messageCount; i++)
+                using (IChannel publishChannel = await _conn.CreateChannelAsync())
                 {
-                    byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
-                    await _channel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, _body);
-                    await _channel.WaitForConfirmsOrDieAsync();
-                }
+                    for (int i = 0; i < messageCount; i++)
+                    {
+                        byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
+                        await publishChannel.BasicPublishAsync(ExchangeName.Empty, (RoutingKey)queueName, _body);
+                        await publishChannel.WaitForConfirmsOrDieAsync();
+                    }
 
-                return true;
+                    return true;
+                }
             });
 
             Assert.True(await publishTask);

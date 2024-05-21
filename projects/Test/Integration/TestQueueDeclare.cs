@@ -96,25 +96,28 @@ namespace Test.Integration
             {
                 async Task f()
                 {
-                    try
+                    using (IChannel ch = await _conn.CreateChannelAsync())
                     {
-                        // sleep for a random amount of time to increase the chances
-                        // of thread interleaving. MK.
-                        await Task.Delay(S_Random.Next(5, 50));
-                        QueueName queueName = GenerateQueueName();
-                        QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: queueName,
-                            durable: false, exclusive: true, autoDelete: false);
-                        Assert.Equal(queueName, r.QueueName);
-                        await _channel.QueueBindAsync(queue: queueName,
-                            exchange: exchangeName, routingKey: (RoutingKey)queueName);
-                        if (false == queueNames.TryAdd(queueName, true))
+                        try
                         {
-                            throw new InvalidOperationException($"queue with name {queueName} already added!");
+                            // sleep for a random amount of time to increase the chances
+                            // of thread interleaving. MK.
+                            await Task.Delay(S_Random.Next(5, 50));
+                            QueueName queueName = GenerateQueueName();
+                            QueueDeclareOk r = await ch.QueueDeclareAsync(queue: queueName,
+                                durable: false, exclusive: true, autoDelete: false);
+                            Assert.Equal(queueName, r.QueueName);
+                            await ch.QueueBindAsync(queue: queueName,
+                                exchange: exchangeName, routingKey: (RoutingKey)queueName);
+                            if (false == queueNames.TryAdd(queueName, true))
+                            {
+                                throw new InvalidOperationException($"queue with name {queueName} already added!");
+                            }
                         }
-                    }
-                    catch (NotSupportedException e)
-                    {
-                        nse = e;
+                        catch (NotSupportedException e)
+                        {
+                            nse = e;
+                        }
                     }
                 }
                 var t = Task.Run(f);
@@ -131,23 +134,26 @@ namespace Test.Integration
                 async Task f()
                 {
                     QueueName qname = q;
-                    try
+                    using (IChannel ch = await _conn.CreateChannelAsync())
                     {
-                        await Task.Delay(S_Random.Next(5, 50));
+                        try
+                        {
+                            await Task.Delay(S_Random.Next(5, 50));
 
-                        QueueDeclareOk r = await _channel.QueueDeclarePassiveAsync(qname);
-                        Assert.Equal(qname, r.QueueName);
-                        Assert.Equal((uint)0, r.MessageCount);
+                            QueueDeclareOk r = await ch.QueueDeclarePassiveAsync(qname);
+                            Assert.Equal(qname, r.QueueName);
+                            Assert.Equal((uint)0, r.MessageCount);
 
-                        await _channel.QueueUnbindAsync(queue: qname,
-                            exchange: exchangeName, routingKey: (RoutingKey)qname, null);
+                            await ch.QueueUnbindAsync(queue: qname,
+                                exchange: exchangeName, routingKey: (RoutingKey)qname, null);
 
-                        uint deletedMessageCount = await _channel.QueueDeleteAsync(qname, false, false);
-                        Assert.Equal((uint)0, deletedMessageCount);
-                    }
-                    catch (NotSupportedException e)
-                    {
-                        nse = e;
+                            uint deletedMessageCount = await ch.QueueDeleteAsync(qname, false, false);
+                            Assert.Equal((uint)0, deletedMessageCount);
+                        }
+                        catch (NotSupportedException e)
+                        {
+                            nse = e;
+                        }
                     }
                 }
                 var t = Task.Run(f);
@@ -169,18 +175,21 @@ namespace Test.Integration
             {
                 var t = Task.Run(async () =>
                         {
-                            try
+                            using (IChannel ch = await _conn.CreateChannelAsync())
                             {
-                                // sleep for a random amount of time to increase the chances
-                                // of thread interleaving. MK.
-                                await Task.Delay(S_Random.Next(5, 50));
-                                QueueName q = GenerateQueueName();
-                                await _channel.QueueDeclareAsync(q, false, false, false);
-                                queueNames.Add(q);
-                            }
-                            catch (NotSupportedException e)
-                            {
-                                nse = e;
+                                try
+                                {
+                                    // sleep for a random amount of time to increase the chances
+                                    // of thread interleaving. MK.
+                                    await Task.Delay(S_Random.Next(5, 50));
+                                    QueueName q = GenerateQueueName();
+                                    await ch.QueueDeclareAsync(q, false, false, false);
+                                    queueNames.Add(q);
+                                }
+                                catch (NotSupportedException e)
+                                {
+                                    nse = e;
+                                }
                             }
                         });
                 tasks.Add(t);
@@ -196,14 +205,17 @@ namespace Test.Integration
                 QueueName q = queueName;
                 var t = Task.Run(async () =>
                         {
-                            try
+                            using (IChannel ch = await _conn.CreateChannelAsync())
                             {
-                                await Task.Delay(S_Random.Next(5, 50));
-                                await _channel.QueueDeleteAsync(queueName);
-                            }
-                            catch (NotSupportedException e)
-                            {
-                                nse = e;
+                                try
+                                {
+                                    await Task.Delay(S_Random.Next(5, 50));
+                                    await ch.QueueDeleteAsync(queueName);
+                                }
+                                catch (NotSupportedException e)
+                                {
+                                    nse = e;
+                                }
                             }
                         });
                 tasks.Add(t);
