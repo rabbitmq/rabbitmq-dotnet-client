@@ -156,6 +156,7 @@ namespace MassPublish
             }
 
             await consumeChannel.CloseAsync();
+            await consumeConnection.CloseAsync();
         }
 
         private static void PublishChannel_BasicNacks(object sender, BasicNackEventArgs e)
