@@ -133,50 +133,55 @@ namespace RabbitMQ.Client.Framing.Impl
         private async Task ProcessFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
         {
             bool shallReturnPayload = true;
-            if (frame.Channel == 0)
+            try
             {
-                if (frame.Type == FrameType.FrameHeartbeat)
+                if (frame.Channel == 0)
                 {
-                    // Ignore it: we've already recently reset the heartbeat
+                    if (frame.Type == FrameType.FrameHeartbeat)
+                    {
+                        // Ignore it: we've already recently reset the heartbeat
+                    }
+                    else
+                    {
+                        // In theory, we could get non-connection.close-ok
+                        // frames here while we're quiescing (m_closeReason !=
+                        // null). In practice, there's a limited number of
+                        // things the server can ask of us on channel 0 -
+                        // essentially, just connection.close. That, combined
+                        // with the restrictions on pipelining, mean that
+                        // we're OK here to handle channel 0 traffic in a
+                        // quiescing situation, even though technically we
+                        // should be ignoring everything except
+                        // connection.close-ok.
+                        shallReturnPayload = await _session0.HandleFrameAsync(frame, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
                 else
                 {
-                    // In theory, we could get non-connection.close-ok
-                    // frames here while we're quiescing (m_closeReason !=
-                    // null). In practice, there's a limited number of
-                    // things the server can ask of us on channel 0 -
-                    // essentially, just connection.close. That, combined
-                    // with the restrictions on pipelining, mean that
-                    // we're OK here to handle channel 0 traffic in a
-                    // quiescing situation, even though technically we
-                    // should be ignoring everything except
-                    // connection.close-ok.
-                    shallReturnPayload = await _session0.HandleFrameAsync(frame, cancellationToken)
-                        .ConfigureAwait(false);
+                    // If we're still m_running, but have a m_closeReason,
+                    // then we must be quiescing, which means any inbound
+                    // frames for non-zero channels (and any inbound
+                    // commands on channel zero that aren't
+                    // Connection.CloseOk) must be discarded.
+                    if (_closeReason is null)
+                    {
+                        // No close reason, not quiescing the
+                        // connection. Handle the frame. (Of course, the
+                        // Session itself may be quiescing this particular
+                        // channel, but that's none of our concern.)
+                        ISession session = _sessionManager.Lookup(frame.Channel);
+                        shallReturnPayload = await session.HandleFrameAsync(frame, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
-            else
+            finally
             {
-                // If we're still m_running, but have a m_closeReason,
-                // then we must be quiescing, which means any inbound
-                // frames for non-zero channels (and any inbound
-                // commands on channel zero that aren't
-                // Connection.CloseOk) must be discarded.
-                if (_closeReason is null)
+                if (shallReturnPayload)
                 {
-                    // No close reason, not quiescing the
-                    // connection. Handle the frame. (Of course, the
-                    // Session itself may be quiescing this particular
-                    // channel, but that's none of our concern.)
-                    ISession session = _sessionManager.Lookup(frame.Channel);
-                    shallReturnPayload = await session.HandleFrameAsync(frame, cancellationToken)
-                        .ConfigureAwait(false);
+                    frame.ReturnPayload();
                 }
-            }
-
-            if (shallReturnPayload)
-            {
-                frame.ReturnPayload();
             }
         }
 
