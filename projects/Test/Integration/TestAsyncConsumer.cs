@@ -607,7 +607,7 @@ namespace Test.Integration
                     {
                         QueueName q = GenerateQueueName();
                         await ch.QueueDeclareAsync(q, false, false, true);
-                        var dummy = new AsyncEventingBasicConsumer(_channel);
+                        var dummy = new AsyncEventingBasicConsumer(ch);
                         ConsumerTag tag = await ch.BasicConsumeAsync(q, true, dummy);
                         await ch.BasicCancelAsync(tag);
                     }
