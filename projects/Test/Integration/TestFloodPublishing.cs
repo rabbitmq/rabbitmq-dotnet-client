@@ -70,7 +70,7 @@ namespace Test.Integration
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
+                    if (args.Initiator != ShutdownInitiator.Application)
                     {
                         sawUnexpectedShutdown = true;
                     }
@@ -81,7 +81,7 @@ namespace Test.Integration
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
+                    if (args.Initiator != ShutdownInitiator.Application)
                     {
                         sawUnexpectedShutdown = true;
                     }
@@ -130,16 +130,16 @@ namespace Test.Integration
             int publishCount = 4096;
             int receivedCount = 0;
 
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _conn.ConnectionShutdown += (o, ea) =>
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
+                    if (args.Initiator != ShutdownInitiator.Application)
                     {
                         receivedCount = -1;
-                        tcs.SetResult(false);
+                        allMessagesSeenTcs.TrySetException(args.Exception);
                     }
                 });
             };
@@ -148,86 +148,120 @@ namespace Test.Integration
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
+                    if (args.Initiator != ShutdownInitiator.Application)
                     {
                         receivedCount = -1;
-                        tcs.SetResult(false);
+                        allMessagesSeenTcs.TrySetException(args.Exception);
                     }
                 });
             };
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: string.Empty,
-                    passive: false, durable: false, exclusive: true, autoDelete: false, arguments: null);
+                    passive: false, durable: false, exclusive: false, autoDelete: true, arguments: null);
             string queueName = q.QueueName;
 
             Task pub = Task.Run(async () =>
             {
                 bool stop = false;
-                using (IChannel pubCh = await _conn.CreateChannelAsync())
+                using (IConnection publishConnection = await _connFactory.CreateConnectionAsync())
                 {
-                    await pubCh.ConfirmSelectAsync();
-
-                    pubCh.ChannelShutdown += (o, ea) =>
+                    publishConnection.ConnectionShutdown += (o, ea) =>
                     {
-                        HandleChannelShutdown(pubCh, ea, (args) =>
+                        HandleConnectionShutdown(_conn, ea, (args) =>
                         {
-                            if (args.Initiator == ShutdownInitiator.Peer)
+                            if (args.Initiator != ShutdownInitiator.Application)
                             {
-                                stop = true;
-                                tcs.TrySetResult(false);
+                                receivedCount = -1;
+                                allMessagesSeenTcs.TrySetException(args.Exception);
                             }
                         });
                     };
 
-                    for (int i = 0; i < publishCount && false == stop; i++)
+                    using (IChannel publishChannel = await publishConnection.CreateChannelAsync())
                     {
-                        await pubCh.BasicPublishAsync(string.Empty, queueName, sendBody, true);
+                        await publishChannel.ConfirmSelectAsync();
+
+                        publishChannel.ChannelShutdown += (o, ea) =>
+                        {
+                            HandleChannelShutdown(publishChannel, ea, (args) =>
+                            {
+                                if (args.Initiator != ShutdownInitiator.Application)
+                                {
+                                    stop = true;
+                                    allMessagesSeenTcs.TrySetException(args.Exception);
+                                }
+                            });
+                        };
+
+                        for (int i = 0; i < publishCount && false == stop; i++)
+                        {
+                            await publishChannel.BasicPublishAsync(string.Empty, queueName, sendBody, true);
+                        }
+
+                        await publishChannel.WaitForConfirmsOrDieAsync();
+                        await publishChannel.CloseAsync();
                     }
 
-                    await pubCh.WaitForConfirmsOrDieAsync();
-                    await pubCh.CloseAsync();
+                    await publishConnection.CloseAsync();
                 }
             });
 
             var cts = new CancellationTokenSource(WaitSpan);
             CancellationTokenRegistration ctsr = cts.Token.Register(() =>
             {
-                tcs.TrySetResult(false);
+                allMessagesSeenTcs.TrySetCanceled();
             });
 
             try
             {
-                using (IChannel consumeCh = await _conn.CreateChannelAsync())
+                using (IConnection consumeConnection = await _connFactory.CreateConnectionAsync())
                 {
-                    consumeCh.ChannelShutdown += (o, ea) =>
+                    consumeConnection.ConnectionShutdown += (o, ea) =>
                     {
-                        HandleChannelShutdown(consumeCh, ea, (args) =>
+                        HandleConnectionShutdown(_conn, ea, (args) =>
                         {
-                            if (args.Initiator == ShutdownInitiator.Peer)
+                            if (args.Initiator != ShutdownInitiator.Application)
                             {
-                                tcs.TrySetResult(false);
+                                receivedCount = -1;
+                                allMessagesSeenTcs.TrySetException(args.Exception);
                             }
                         });
                     };
 
-                    var consumer = new AsyncEventingBasicConsumer(consumeCh);
-                    consumer.Received += async (o, a) =>
+                    using (IChannel consumeChannel = await consumeConnection.CreateChannelAsync())
                     {
-                        string receivedMessage = _encoding.GetString(a.Body.ToArray());
-                        Assert.Equal(message, receivedMessage);
-                        if (Interlocked.Increment(ref receivedCount) == publishCount)
+                        consumeChannel.ChannelShutdown += (o, ea) =>
                         {
-                            tcs.SetResult(true);
-                        }
-                        await Task.Yield();
-                    };
+                            HandleChannelShutdown(consumeChannel, ea, (args) =>
+                            {
+                                if (args.Initiator != ShutdownInitiator.Application)
+                                {
+                                    allMessagesSeenTcs.TrySetException(args.Exception);
+                                }
+                            });
+                        };
 
-                    await consumeCh.BasicConsumeAsync(queue: queueName, autoAck: true,
-                        consumerTag: string.Empty, noLocal: false, exclusive: false,
-                        arguments: null, consumer: consumer);
+                        var consumer = new AsyncEventingBasicConsumer(consumeChannel);
+                        consumer.Received += async (o, a) =>
+                        {
+                            string receivedMessage = _encoding.GetString(a.Body.ToArray());
+                            Assert.Equal(message, receivedMessage);
+                            if (Interlocked.Increment(ref receivedCount) == publishCount)
+                            {
+                                allMessagesSeenTcs.SetResult(true);
+                            }
+                            await Task.Yield();
+                        };
 
-                    Assert.True(await tcs.Task);
-                    await consumeCh.CloseAsync();
+                        await consumeChannel.BasicConsumeAsync(queue: queueName, autoAck: true,
+                            consumerTag: string.Empty, noLocal: false, exclusive: false,
+                            arguments: null, consumer: consumer);
+
+                        Assert.True(await allMessagesSeenTcs.Task);
+                        await consumeChannel.CloseAsync();
+                    }
+
+                    await consumeConnection.CloseAsync();
                 }
 
                 await pub;

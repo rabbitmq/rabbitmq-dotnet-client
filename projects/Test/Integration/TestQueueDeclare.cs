@@ -66,7 +66,7 @@ namespace Test.Integration
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
-                    if (ea.Initiator == ShutdownInitiator.Peer)
+                    if (args.Initiator != ShutdownInitiator.Application)
                     {
                         sawShutdown = true;
                     }
@@ -77,7 +77,7 @@ namespace Test.Integration
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
+                    if (args.Initiator != ShutdownInitiator.Application)
                     {
                         sawShutdown = true;
                     }

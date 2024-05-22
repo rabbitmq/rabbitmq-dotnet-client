@@ -80,10 +80,7 @@ namespace Test.Integration
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
                     {
-                        if (args.Initiator == ShutdownInitiator.Peer)
-                        {
-                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                        }
+                        MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                     });
                 };
 
@@ -91,10 +88,7 @@ namespace Test.Integration
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
-                        if (args.Initiator == ShutdownInitiator.Peer)
-                        {
-                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                        }
+                        MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                     });
                 };
 
@@ -164,10 +158,7 @@ namespace Test.Integration
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
                     {
-                        if (args.Initiator == ShutdownInitiator.Peer)
-                        {
-                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                        }
+                        MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                     });
                 };
 
@@ -175,10 +166,7 @@ namespace Test.Integration
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
-                        if (args.Initiator == ShutdownInitiator.Peer)
-                        {
-                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                        }
+                        MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                     });
                 };
 
@@ -193,10 +181,7 @@ namespace Test.Integration
                                 {
                                     HandleConnectionShutdown(publishConn, ea, (args) =>
                                     {
-                                        if (args.Initiator == ShutdownInitiator.Peer)
-                                        {
-                                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                                        }
+                                        MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                                     });
                                 };
                                 using (IChannel publishChannel = await publishConn.CreateChannelAsync())
@@ -205,10 +190,7 @@ namespace Test.Integration
                                     {
                                         HandleChannelShutdown(publishChannel, ea, (args) =>
                                         {
-                                            if (args.Initiator == ShutdownInitiator.Peer)
-                                            {
-                                                MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                                            }
+                                            MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                                         });
                                     };
                                     await publishChannel.ConfirmSelectAsync();
@@ -235,10 +217,7 @@ namespace Test.Integration
                                 {
                                     HandleConnectionShutdown(consumeConn, ea, (args) =>
                                     {
-                                        if (args.Initiator == ShutdownInitiator.Peer)
-                                        {
-                                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                                        }
+                                        MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                                     });
                                 };
                                 using (IChannel consumeChannel = await consumeConn.CreateChannelAsync())
@@ -247,10 +226,7 @@ namespace Test.Integration
                                     {
                                         HandleChannelShutdown(consumeChannel, ea, (args) =>
                                         {
-                                            if (args.Initiator == ShutdownInitiator.Peer)
-                                            {
-                                                MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                                            }
+                                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                                         });
                                     };
 
@@ -330,10 +306,7 @@ namespace Test.Integration
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
                     {
-                        if (args.Initiator == ShutdownInitiator.Peer)
-                        {
-                            MaybeSetException(ea, publishSyncSource);
-                        }
+                        MaybeSetException(args, publishSyncSource);
                     });
                 };
 
@@ -341,7 +314,7 @@ namespace Test.Integration
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
-                        MaybeSetException(ea, publishSyncSource);
+                        MaybeSetException(args, publishSyncSource);
                     });
                 };
 
@@ -427,10 +400,7 @@ namespace Test.Integration
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        MaybeSetException(ea, publishSyncSource);
-                    }
+                    MaybeSetException(args, publishSyncSource);
                 });
             };
 
@@ -438,10 +408,7 @@ namespace Test.Integration
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        MaybeSetException(ea, publishSyncSource);
-                    }
+                    MaybeSetException(args, publishSyncSource);
                 });
             };
 
@@ -495,10 +462,7 @@ namespace Test.Integration
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        MaybeSetException(ea, publishSyncSource);
-                    }
+                    MaybeSetException(ea, publishSyncSource);
                 });
             };
 
@@ -506,10 +470,7 @@ namespace Test.Integration
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
-                    if (args.Initiator == ShutdownInitiator.Peer)
-                    {
-                        MaybeSetException(ea, publishSyncSource);
-                    }
+                    MaybeSetException(ea, publishSyncSource);
                 });
             };
 
@@ -611,19 +572,22 @@ namespace Test.Integration
             }
         }
 
-        private static void MaybeSetException(ShutdownEventArgs ea, params TaskCompletionSource<bool>[] tcsAry)
+        private static void MaybeSetException(ShutdownEventArgs args, params TaskCompletionSource<bool>[] tcsAry)
         {
-            foreach (TaskCompletionSource<bool> tcs in tcsAry)
+            if (args.Initiator != ShutdownInitiator.Application)
             {
-                MaybeSetException(ea, tcs);
+                foreach (TaskCompletionSource<bool> tcs in tcsAry)
+                {
+                    MaybeSetException(args, tcs);
+                }
             }
         }
 
-        private static void MaybeSetException(ShutdownEventArgs ea, TaskCompletionSource<bool> tcs)
+        private static void MaybeSetException(ShutdownEventArgs args, TaskCompletionSource<bool> tcs)
         {
-            if (ea.Initiator == ShutdownInitiator.Peer)
+            if (args.Initiator != ShutdownInitiator.Application)
             {
-                Exception ex = ea.Exception ?? new Exception(ea.ReplyText);
+                Exception ex = args.Exception ?? new Exception(args.ReplyText);
                 tcs.TrySetException(ex);
             }
         }
