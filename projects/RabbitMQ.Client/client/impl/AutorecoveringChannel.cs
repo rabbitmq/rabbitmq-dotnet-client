@@ -200,12 +200,21 @@ namespace RabbitMQ.Client.Impl
             _innerChannel.RunRecoveryEventHandlers(this);
         }
 
-        public Task CloseAsync(ushort replyCode, string replyText, bool abort,
+        public async Task CloseAsync(ushort replyCode, string replyText, bool abort,
             CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            var args = new ShutdownEventArgs(ShutdownInitiator.Library, replyCode, replyText);
-            return CloseAsync(args, abort, cancellationToken);
+            try
+            {
+                await _innerChannel.CloseAsync(replyCode, replyText, abort, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                await _connection.DeleteRecordedChannelAsync(this,
+                    channelsSemaphoreHeld: false, recordedEntitiesSemaphoreHeld: false)
+                        .ConfigureAwait(false);
+            }
         }
 
         public async Task CloseAsync(ShutdownEventArgs args, bool abort,
