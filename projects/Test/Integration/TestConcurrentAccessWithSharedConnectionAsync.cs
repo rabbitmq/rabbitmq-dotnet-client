@@ -104,9 +104,9 @@ namespace Test.Integration
                         {
                             HandleChannelShutdown(ch, ea, (args) =>
                             {
-                                if (args.Initiator == ShutdownInitiator.Peer)
+                                if (args.Initiator != ShutdownInitiator.Application)
                                 {
-                                    tcs.TrySetResult(false);
+                                    tcs.TrySetException(args.Exception);
                                 }
                             });
                         };
