@@ -538,7 +538,7 @@ namespace Test
 
         protected void HandleConnectionShutdown(object sender, ShutdownEventArgs args)
         {
-            if (args.Initiator == ShutdownInitiator.Peer)
+            if (args.Initiator != ShutdownInitiator.Application)
             {
                 IConnection conn = (IConnection)sender;
                 _output.WriteLine($"{_testDisplayName} connection {conn.ClientProvidedName} shut down: {args}");
@@ -547,7 +547,7 @@ namespace Test
 
         protected void HandleConnectionShutdown(IConnection conn, ShutdownEventArgs args, Action<ShutdownEventArgs> a)
         {
-            if (args.Initiator == ShutdownInitiator.Peer)
+            if (args.Initiator != ShutdownInitiator.Application)
             {
                 _output.WriteLine($"{_testDisplayName} connection {conn.ClientProvidedName} shut down: {args}");
             }
@@ -556,7 +556,7 @@ namespace Test
 
         protected void HandleChannelShutdown(object sender, ShutdownEventArgs args)
         {
-            if (args.Initiator == ShutdownInitiator.Peer)
+            if (args.Initiator != ShutdownInitiator.Application)
             {
                 IChannel ch = (IChannel)sender;
                 _output.WriteLine($"{_testDisplayName} channel {ch.ChannelNumber} shut down: {args}");
@@ -565,7 +565,7 @@ namespace Test
 
         protected void HandleChannelShutdown(IChannel ch, ShutdownEventArgs args, Action<ShutdownEventArgs> a)
         {
-            if (args.Initiator == ShutdownInitiator.Peer)
+            if (args.Initiator != ShutdownInitiator.Application)
             {
                 _output.WriteLine($"{_testDisplayName} channel {ch.ChannelNumber} shut down: {args}");
             }
