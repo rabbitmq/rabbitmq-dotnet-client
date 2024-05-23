@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -400,6 +401,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private void DoDeleteRecordedConsumer(string consumerTag)
         {
+            if (consumerTag is null)
+            {
+                throw new ArgumentNullException(nameof(consumerTag));
+            }
+
             if (_recordedConsumers.Remove(consumerTag, out RecordedConsumer recordedConsumer))
             {
                 DeleteAutoDeleteQueue(recordedConsumer.Queue);

@@ -67,29 +67,32 @@ namespace Test
                     connectionToClose = connections.Where(c0 =>
                         string.Equals((string)c0.ClientProperties["connection_name"], conn.ClientProvidedName,
                         StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
-
-                    if (connectionToClose == null)
-                    {
-                        tries++;
-                    }
-                    else
-                    {
-                        break;
-                    }
                 }
                 catch (ArgumentNullException)
                 {
                     // Sometimes we see this in GitHub CI
                     tries++;
+                    continue;
                 }
-            } while (tries <= 30);
+
+                if (connectionToClose != null)
+                {
+                    try
+                    {
+                        await s_managementClient.CloseConnectionAsync(connectionToClose);
+                        return;
+                    }
+                    catch (UnexpectedHttpStatusCodeException)
+                    {
+                        tries++;
+                    }
+                }
+            } while (tries <= 10);
 
             if (connectionToClose == null)
             {
                 throw new InvalidOperationException($"Could not delete connection: '{conn.ClientProvidedName}'");
             }
-
-            await s_managementClient.CloseConnectionAsync(connectionToClose);
         }
     }
 }

@@ -52,15 +52,16 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
+            AddCallbackExceptionHandlers();
+            _channel.DefaultConsumer = new DefaultAsyncConsumer("_channel,", _output);
+
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
 
-            string publish1 = GetUniqueString(512);
-            byte[] body = _encoding.GetBytes(publish1);
-            await _channel.BasicPublishAsync("", q.QueueName, body);
+            const int length = 4096;
+            (byte[] body1, byte[] body2) = GenerateTwoBodies(length);
 
-            string publish2 = GetUniqueString(512);
-            body = _encoding.GetBytes(publish2);
-            await _channel.BasicPublishAsync("", q.QueueName, body);
+            await _channel.BasicPublishAsync("", q.QueueName, body1);
+            await _channel.BasicPublishAsync("", q.QueueName, body2);
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
@@ -70,10 +71,14 @@ namespace Test.Integration
             var tokenSource = new CancellationTokenSource(WaitSpan);
             CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
             {
+                _output.WriteLine("publish1SyncSource.Task Status: {0}", publish1SyncSource.Task.Status);
+                _output.WriteLine("publish2SyncSource.Task Status: {0}", publish2SyncSource.Task.Status);
                 publish1SyncSource.TrySetCanceled();
                 publish2SyncSource.TrySetCanceled();
             });
 
+            bool body1Received = false;
+            bool body2Received = false;
             try
             {
                 _conn.ConnectionShutdown += (o, ea) =>
@@ -94,13 +99,14 @@ namespace Test.Integration
 
                 consumer.Received += (o, a) =>
                 {
-                    string decoded = _encoding.GetString(a.Body.ToArray());
-                    if (decoded == publish1)
+                    if (ByteArraysEqual(a.Body.ToArray(), body1))
                     {
+                        body1Received = true;
                         publish1SyncSource.TrySetResult(true);
                     }
-                    else if (decoded == publish2)
+                    else if (ByteArraysEqual(a.Body.ToArray(), body2))
                     {
+                        body2Received = true;
                         publish2SyncSource.TrySetResult(true);
                     }
                     else
@@ -113,14 +119,21 @@ namespace Test.Integration
 
                 await _channel.BasicConsumeAsync(q.QueueName, true, string.Empty, false, false, null, consumer);
 
-                // ensure we get a delivery
-                await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
-
-                bool result1 = await publish1SyncSource.Task;
-                Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {WaitSpan}");
-
-                bool result2 = await publish2SyncSource.Task;
-                Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {WaitSpan}");
+                try
+                {
+                    bool result1 = await publish1SyncSource.Task;
+                    Assert.True(result1, $"1 - Non concurrent dispatch lead to deadlock after {WaitSpan}");
+                    bool result2 = await publish2SyncSource.Task;
+                    Assert.True(result2, $"2 - Non concurrent dispatch lead to deadlock after {WaitSpan}");
+                }
+                catch (Exception ex)
+                {
+                    _output.WriteLine("EXCEPTION: {0}", ex);
+                    _output.WriteLine("body1Received: {0}, body2Received: {1}", body1Received, body2Received);
+                    _output.WriteLine("publish1SyncSource.Task Status: {0}", publish1SyncSource.Task.Status);
+                    _output.WriteLine("publish2SyncSource.Task Status: {0}", publish2SyncSource.Task.Status);
+                    throw;
+                }
             }
             finally
             {
@@ -132,13 +145,14 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRoundtripConcurrentManyMessages()
         {
+            AddCallbackExceptionHandlers();
+            _channel.DefaultConsumer = new DefaultAsyncConsumer("_channel,", _output);
+
             const int publish_total = 4096;
+            const int length = 512;
             string queueName = GenerateQueueName();
 
-            string publish1 = GetUniqueString(512);
-            byte[] body1 = _encoding.GetBytes(publish1);
-            string publish2 = GetUniqueString(512);
-            byte[] body2 = _encoding.GetBytes(publish2);
+            (byte[] body1, byte[] body2) = GenerateTwoBodies(length);
 
             var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -147,6 +161,9 @@ namespace Test.Integration
             var tokenSource = new CancellationTokenSource(WaitSpan);
             CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
             {
+                _output.WriteLine("publish1SyncSource.Task Status: {0}", publish1SyncSource.Task.Status);
+                _output.WriteLine("publish2SyncSource.Task Status: {0}", publish2SyncSource.Task.Status);
+                _output.WriteLine("consumerSyncSource.Task Status: {0}", consumerSyncSource.Task.Status);
                 publish1SyncSource.TrySetCanceled();
                 publish2SyncSource.TrySetCanceled();
                 consumerSyncSource.TrySetCanceled();
@@ -186,6 +203,8 @@ namespace Test.Integration
                                 };
                                 using (IChannel publishChannel = await publishConn.CreateChannelAsync())
                                 {
+                                    AddCallbackExceptionHandlers(publishConn, publishChannel);
+                                    publishChannel.DefaultConsumer = new DefaultAsyncConsumer("publishChannel,", _output);
                                     publishChannel.ChannelShutdown += (o, ea) =>
                                     {
                                         HandleChannelShutdown(publishChannel, ea, (args) =>
@@ -209,6 +228,10 @@ namespace Test.Integration
                             }
                         });
 
+
+                int publish1_count = 0;
+                int publish2_count = 0;
+
                 Task consumeTask = Task.Run(async () =>
                         {
                             using (IConnection consumeConn = await _connFactory.CreateConnectionAsync())
@@ -222,6 +245,8 @@ namespace Test.Integration
                                 };
                                 using (IChannel consumeChannel = await consumeConn.CreateChannelAsync())
                                 {
+                                    AddCallbackExceptionHandlers(consumeConn, consumeChannel);
+                                    consumeChannel.DefaultConsumer = new DefaultAsyncConsumer("consumeChannel,", _output);
                                     consumeChannel.ChannelShutdown += (o, ea) =>
                                     {
                                         HandleChannelShutdown(consumeChannel, ea, (args) =>
@@ -231,21 +256,16 @@ namespace Test.Integration
                                     };
 
                                     var consumer = new AsyncEventingBasicConsumer(consumeChannel);
-
-                                    int publish1_count = 0;
-                                    int publish2_count = 0;
-
                                     consumer.Received += (o, a) =>
                                     {
-                                        string decoded = _encoding.GetString(a.Body.ToArray());
-                                        if (decoded == publish1)
+                                        if (ByteArraysEqual(a.Body.ToArray(), body1))
                                         {
                                             if (Interlocked.Increment(ref publish1_count) >= publish_total)
                                             {
                                                 publish1SyncSource.TrySetResult(true);
                                             }
                                         }
-                                        else if (decoded == publish2)
+                                        else if (ByteArraysEqual(a.Body.ToArray(), body2))
                                         {
                                             if (Interlocked.Increment(ref publish2_count) >= publish_total)
                                             {
@@ -270,19 +290,28 @@ namespace Test.Integration
                             }
                         });
 
-                await AssertRanToCompletion(publishTask);
-
-                await AssertRanToCompletion(publish1SyncSource.Task, publish2SyncSource.Task);
-                consumerSyncSource.TrySetResult(true);
-
-                bool result1 = await publish1SyncSource.Task;
-                Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {WaitSpan}");
-
-                bool result2 = await publish2SyncSource.Task;
-                Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {WaitSpan}");
+                try
+                {
+                    await publishTask;
+                    bool result1 = await publish1SyncSource.Task;
+                    Assert.True(result1, $"Non concurrent dispatch lead to deadlock after {WaitSpan}");
+                    bool result2 = await publish2SyncSource.Task;
+                    Assert.True(result2, $"Non concurrent dispatch lead to deadlock after {WaitSpan}");
+                }
+                catch (Exception ex)
+                {
+                    _output.WriteLine("EXCEPTION: {0}", ex);
+                    _output.WriteLine("publish1_count: {0}, publish2_count: {1}", publish1_count, publish2_count);
+                    _output.WriteLine("publishTask Status: {0}", publishTask.Status);
+                    _output.WriteLine("publish1SyncSource.Task Status: {0}", publish1SyncSource.Task.Status);
+                    _output.WriteLine("publish2SyncSource.Task Status: {0}", publish2SyncSource.Task.Status);
+                    _output.WriteLine("consumerSyncSource.Task Status: {0}", consumerSyncSource.Task.Status);
+                    throw;
+                }
             }
             finally
             {
+                consumerSyncSource.TrySetResult(true);
                 ctsr.Dispose();
                 tokenSource.Dispose();
             }
@@ -656,6 +685,67 @@ namespace Test.Integration
             {
                 Exception ex = args.Exception ?? new Exception(args.ReplyText);
                 tcs.TrySetException(ex);
+            }
+        }
+
+        private static bool ByteArraysEqual(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2)
+        {
+            return a1.SequenceEqual(a2);
+        }
+
+        private static (byte[] body1, byte[] body2) GenerateTwoBodies(ushort length)
+        {
+            byte[] body1 = _encoding.GetBytes(new string('x', length));
+            byte[] body2 = _encoding.GetBytes(new string('y', length));
+            return (body1, body2);
+        }
+
+        private class DefaultAsyncConsumer : AsyncDefaultBasicConsumer
+        {
+            private readonly string _logPrefix;
+            private readonly ITestOutputHelper _output;
+
+            public DefaultAsyncConsumer(string logPrefix, ITestOutputHelper output)
+            {
+                _logPrefix = logPrefix;
+                _output = output;
+            }
+
+            public override Task HandleBasicCancel(string consumerTag)
+            {
+                _output.WriteLine("[ERROR] {0} HandleBasicCancel {1}", _logPrefix, consumerTag);
+                return base.HandleBasicCancel(consumerTag);
+            }
+
+            public override Task HandleBasicCancelOk(string consumerTag)
+            {
+                _output.WriteLine("[ERROR] {0} HandleBasicCancelOk {1}", _logPrefix, consumerTag);
+                return base.HandleBasicCancelOk(consumerTag);
+            }
+
+            public override Task HandleBasicConsumeOk(string consumerTag)
+            {
+                _output.WriteLine("[ERROR] {0} HandleBasicConsumeOk {1}", _logPrefix, consumerTag);
+                return base.HandleBasicConsumeOk(consumerTag);
+            }
+
+            public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
+                string exchange, string routingKey, in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            {
+                _output.WriteLine("[ERROR] {0} HandleBasicDeliver {1}", _logPrefix, consumerTag);
+                return base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+            }
+
+            public override Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+            {
+                _output.WriteLine("[ERROR] {0} HandleChannelShutdown", _logPrefix);
+                return base.HandleChannelShutdown(channel, reason);
+            }
+
+            public override Task OnCancel(params string[] consumerTags)
+            {
+                _output.WriteLine("[ERROR] {0} OnCancel {1}", _logPrefix, consumerTags[0]);
+                return base.OnCancel(consumerTags);
             }
         }
     }

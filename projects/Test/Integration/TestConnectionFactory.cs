@@ -442,11 +442,12 @@ namespace Test.Integration
         }
 
         [Theory]
-        [InlineData(3650)]
-        [InlineData(3651)]
-        [InlineData(3652)]
-        [InlineData(3653)]
-        [InlineData(3654)]
+        [InlineData(2998)]
+        [InlineData(2999)]
+        [InlineData(3000)]
+        [InlineData(3001)]
+        [InlineData(3002)]
+        [InlineData(3003)]
         public async Task TestCreateConnectionAsync_TruncatesWhenClientNameIsLong_GH980(ushort count)
         {
             string cpn = GetUniqueString(count);
