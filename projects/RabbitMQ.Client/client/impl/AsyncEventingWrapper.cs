@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
@@ -55,7 +54,7 @@ namespace RabbitMQ.Client.Impl
 
         private readonly async Task InternalInvoke(Delegate[] handlers, object sender, T parameter)
         {
-            foreach (AsyncEventHandler<T> action in handlers.Cast<AsyncEventHandler<T>>())
+            foreach (AsyncEventHandler<T> action in handlers)
             {
                 try
                 {
