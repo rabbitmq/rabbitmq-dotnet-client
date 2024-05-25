@@ -436,7 +436,37 @@ namespace Test.Integration
                 var ep = new AmqpTcpEndpoint("localhost");
                 using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep }, cts.Token))
                 {
-                    await conn.CloseAsync();
+                    await conn.CloseAsync(cts.Token);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(2998)]
+        [InlineData(2999)]
+        [InlineData(3000)]
+        [InlineData(3001)]
+        [InlineData(3002)]
+        [InlineData(3003)]
+        public async Task TestCreateConnectionAsync_TruncatesWhenClientNameIsLong_GH980(ushort count)
+        {
+            string cpn = GetUniqueString(count);
+            using (var cts = new CancellationTokenSource(WaitSpan))
+            {
+                ConnectionFactory cf0 = new ConnectionFactory { ClientProvidedName = cpn };
+                using (IConnection conn = await cf0.CreateConnectionAsync(cts.Token))
+                {
+                    await conn.CloseAsync(cts.Token);
+                    Assert.True(cf0.ClientProvidedName.Length <= InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
+                    Assert.Contains(cf0.ClientProvidedName, cpn);
+                }
+
+                ConnectionFactory cf1 = new ConnectionFactory();
+                using (IConnection conn = await cf1.CreateConnectionAsync(cpn, cts.Token))
+                {
+                    await conn.CloseAsync(cts.Token);
+                    Assert.True(conn.ClientProvidedName.Length <= InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
+                    Assert.Contains(conn.ClientProvidedName, cpn);
                 }
             }
         }

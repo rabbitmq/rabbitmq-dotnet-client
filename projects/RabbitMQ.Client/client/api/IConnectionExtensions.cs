@@ -18,17 +18,17 @@ namespace RabbitMQ.Client
         /// (or closing), then this method will do nothing.
         /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
         /// </remarks>
-        public static Task CloseAsync(this IConnection connection)
+        public static Task CloseAsync(this IConnection connection, CancellationToken cancellationToken = default)
         {
             return connection.CloseAsync(Constants.ReplySuccess, "Goodbye", InternalConstants.DefaultConnectionCloseTimeout, false,
-                CancellationToken.None);
+                cancellationToken);
         }
 
         /// <summary>
         /// Asynchronously close this connection and all its channels.
         /// </summary>
         /// <remarks>
-        /// The method behaves in the same way as <see cref="CloseAsync(IConnection)"/>, with the only
+        /// The method behaves in the same way as <see cref="CloseAsync(IConnection, CancellationToken)"/>, with the only
         /// difference that the connection is closed with the given connection close code and message.
         /// <para>
         /// The close code (See under "Reply Codes" in the AMQP specification).
@@ -37,10 +37,11 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the connection.
         /// </para>
         /// </remarks>
-        public static Task CloseAsync(this IConnection connection, ushort reasonCode, string reasonText)
+        public static Task CloseAsync(this IConnection connection, ushort reasonCode, string reasonText,
+            CancellationToken cancellationToken = default)
         {
             return connection.CloseAsync(reasonCode, reasonText, InternalConstants.DefaultConnectionCloseTimeout, false,
-                CancellationToken.None);
+                cancellationToken);
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// Note that all active channels and sessions will be closed if this method is called.
-        /// In comparison to normal <see cref="CloseAsync(IConnection)"/> method, <see cref="AbortAsync(IConnection)"/> will not throw
+        /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
         ///This method waits infinitely for the in-progress close operation to complete.
         /// </remarks>

@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -29,18 +29,43 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
-namespace RabbitMQ
+namespace RabbitMQ.Util
 {
-#nullable enable
-#if NETSTANDARD
-    internal static class DictionaryExtension
+    internal sealed class ReadOnlyMemoryOfByteEqualityComparer : IEqualityComparer<ReadOnlyMemory<byte>>
     {
-        public static bool Remove<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, out TValue value)
+        public bool Equals(ReadOnlyMemory<byte> left, ReadOnlyMemory<byte> right)
         {
-            return dictionary.TryGetValue(key, out value) && dictionary.Remove(key);
+            return left.Span.SequenceEqual(right.Span);
+        }
+
+        public int GetHashCode(ReadOnlyMemory<byte> value)
+        {
+#if NETSTANDARD
+                unchecked
+                {
+                    int hashCode = 0;
+                    var longPart = MemoryMarshal.Cast<byte, long>(value.Span);
+                    foreach (long item in longPart)
+                    {
+                        hashCode = (hashCode * 397) ^ item.GetHashCode();
+                    }
+
+                    foreach (int item in value.Span.Slice(longPart.Length * 8))
+                    {
+                        hashCode = (hashCode * 397) ^ item.GetHashCode();
+                    }
+
+                    return hashCode;
+                }
+#else
+            HashCode result = default;
+            result.AddBytes(value.Span);
+            return result.ToHashCode();
+#endif
         }
     }
-#endif
 }

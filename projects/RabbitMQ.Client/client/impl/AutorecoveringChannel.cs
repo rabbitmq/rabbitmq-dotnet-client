@@ -279,7 +279,7 @@ namespace RabbitMQ.Client.Impl
         {
             string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal,
                 exclusive, arguments, consumer, cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(false) ?? throw new InvalidOperationException("basic.consume returned null consumer tag");
             var rc = new RecordedConsumer(channel: this, consumer: consumer, consumerTag: resultConsumerTag,
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
             await _connection.RecordConsumerAsync(rc, recordedEntitiesSemaphoreHeld: false)

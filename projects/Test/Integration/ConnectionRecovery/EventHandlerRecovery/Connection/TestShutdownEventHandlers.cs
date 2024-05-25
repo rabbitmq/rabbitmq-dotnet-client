@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -29,18 +29,33 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace RabbitMQ
+namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
 {
-#nullable enable
-#if NETSTANDARD
-    internal static class DictionaryExtension
+    public class TestShutdownEventHandlers : TestConnectionRecoveryBase
     {
-        public static bool Remove<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, out TValue value)
+        public TestShutdownEventHandlers(ITestOutputHelper output) : base(output)
         {
-            return dictionary.TryGetValue(key, out value) && dictionary.Remove(key);
+        }
+
+        [Fact]
+        public async Task TestShutdownEventHandlers_Called()
+        {
+            int counter = 0;
+            _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+
+            Assert.True(_conn.IsOpen);
+            await CloseAndWaitForRecoveryAsync();
+            await CloseAndWaitForRecoveryAsync();
+            await CloseAndWaitForRecoveryAsync();
+            await CloseAndWaitForRecoveryAsync();
+            Assert.True(_conn.IsOpen);
+
+            Assert.True(counter >= 3);
         }
     }
-#endif
 }

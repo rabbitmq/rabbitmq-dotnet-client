@@ -29,45 +29,33 @@
 //  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace RabbitMQ.Util
+namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Channel
 {
-    internal sealed class MemoryOfByteEqualityComparer : IEqualityComparer<ReadOnlyMemory<byte>>
+    public class TestShutdownEventHandlers : TestConnectionRecoveryBase
     {
-        public static MemoryOfByteEqualityComparer Instance { get; } = new MemoryOfByteEqualityComparer();
-
-        public bool Equals(ReadOnlyMemory<byte> left, ReadOnlyMemory<byte> right)
+        public TestShutdownEventHandlers(ITestOutputHelper output) : base(output)
         {
-            return left.Span.SequenceEqual(right.Span);
         }
 
-        public int GetHashCode(ReadOnlyMemory<byte> value)
+        [Fact]
+        public async Task TestShutdownEventHandlersOnChannel_Called()
         {
-#if NETSTANDARD
-                unchecked
-                {
-                    int hashCode = 0;
-                    var longPart = MemoryMarshal.Cast<byte, long>(value.Span);
-                    foreach (long item in longPart)
-                    {
-                        hashCode = (hashCode * 397) ^ item.GetHashCode();
-                    }
+            int counter = 0;
+            _channel.ChannelShutdown += (c, args) => Interlocked.Increment(ref counter);
 
-                    foreach (int item in value.Span.Slice(longPart.Length * 8))
-                    {
-                        hashCode = (hashCode * 397) ^ item.GetHashCode();
-                    }
+            Assert.True(_channel.IsOpen);
+            await CloseAndWaitForRecoveryAsync();
+            await CloseAndWaitForRecoveryAsync();
+            await CloseAndWaitForRecoveryAsync();
+            await CloseAndWaitForRecoveryAsync();
+            Assert.True(_channel.IsOpen);
 
-                    return hashCode;
-                }
-#else
-            HashCode result = default;
-            result.AddBytes(value.Span);
-            return result.ToHashCode();
-#endif
+            Assert.True(counter >= 3);
         }
     }
 }

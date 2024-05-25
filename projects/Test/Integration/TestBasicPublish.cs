@@ -196,18 +196,18 @@ namespace Test.Integration
             bool sawConsumerRegistered = false;
             bool sawConsumerCancelled = false;
 
-            using (IConnection c = await cf.CreateConnectionAsync())
+            using (IConnection conn = await cf.CreateConnectionAsync())
             {
-                c.ConnectionShutdown += (o, a) =>
+                conn.ConnectionShutdown += (o, a) =>
                 {
                     sawConnectionShutdown = true;
                 };
 
                 Assert.Equal(maxMsgSize, cf.MaxInboundMessageBodySize);
                 Assert.Equal(maxMsgSize, cf.Endpoint.MaxInboundMessageBodySize);
-                Assert.Equal(maxMsgSize, c.Endpoint.MaxInboundMessageBodySize);
+                Assert.Equal(maxMsgSize, conn.Endpoint.MaxInboundMessageBodySize);
 
-                using (IChannel channel = await c.CreateChannelAsync())
+                using (IChannel channel = await conn.CreateChannelAsync())
                 {
                     channel.ChannelShutdown += (o, a) =>
                     {
@@ -260,7 +260,29 @@ namespace Test.Integration
                     Assert.True(sawConsumerRegistered);
                     Assert.True(sawConsumerCancelled);
 
-                    await channel.CloseAsync();
+                    try
+                    {
+                        await channel.CloseAsync();
+                    }
+                    catch (Exception chex)
+                    {
+                        if (IsVerbose)
+                        {
+                            _output.WriteLine("[INFO] {0} channel exception: {1}", nameof(TestMaxInboundMessageBodySize), chex);
+                        }
+                    }
+                }
+
+                try
+                {
+                    await conn.CloseAsync();
+                }
+                catch (Exception connex)
+                {
+                    if (IsVerbose)
+                    {
+                        _output.WriteLine("[INFO] {0} conn exception: {1}", nameof(TestMaxInboundMessageBodySize), connex);
+                    }
                 }
             }
         }

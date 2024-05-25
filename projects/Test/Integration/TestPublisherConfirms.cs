@@ -111,7 +111,7 @@ namespace Test.Integration
                     .GetMethod("HandleAckNack", BindingFlags.Instance | BindingFlags.NonPublic)
                     .Invoke(actualChannel, new object[] { 10UL, false, true });
 
-                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
+                using (var cts = new CancellationTokenSource(ShortSpan))
                 {
                     Assert.False(await ch.WaitForConfirmsAsync(cts.Token));
                 }
@@ -121,11 +121,12 @@ namespace Test.Integration
         [Fact]
         public async Task TestWaitForConfirmsWithEventsAsync()
         {
-            string queueName = string.Format("{0}:{1}", _testDisplayName, Guid.NewGuid());
+            string queueName = GenerateQueueName();
             using (IChannel ch = await _conn.CreateChannelAsync())
             {
                 await ch.ConfirmSelectAsync();
-                await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
+                    exclusive: true, autoDelete: false, arguments: null);
 
                 int n = 200;
                 // number of event handler invocations
@@ -161,17 +162,19 @@ namespace Test.Integration
 
         private async Task TestWaitForConfirmsAsync(int numberOfMessagesToPublish, Func<IChannel, Task> fn)
         {
-            string queueName = string.Format("{0}:{1}", _testDisplayName, Guid.NewGuid());
+            string queueName = GenerateQueueName();
             using (IChannel ch = await _conn.CreateChannelAsync())
             {
                 var props = new BasicProperties { Persistent = true };
 
                 await ch.ConfirmSelectAsync();
-                await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
+                    exclusive: true, autoDelete: false, arguments: null);
 
                 for (int i = 0; i < numberOfMessagesToPublish; i++)
                 {
-                    await ch.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: _messageBody, mandatory: true, basicProperties: props);
+                    await ch.BasicPublishAsync(exchange: string.Empty, routingKey: queueName,
+                        body: _messageBody, mandatory: true, basicProperties: props);
                 }
 
                 try
