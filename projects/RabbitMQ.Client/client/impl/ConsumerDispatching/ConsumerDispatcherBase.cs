@@ -10,7 +10,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
     internal abstract class ConsumerDispatcherBase
     {
         private static readonly FallbackConsumer s_fallbackConsumer = new FallbackConsumer();
-        private readonly IDictionary<string, IBasicConsumer> _consumers = new ConcurrentDictionary<string, IBasicConsumer>();
+        private readonly ConcurrentDictionary<string, IBasicConsumer> _consumers = new ConcurrentDictionary<string, IBasicConsumer>();
 
         public IBasicConsumer? DefaultConsumer { get; set; }
 

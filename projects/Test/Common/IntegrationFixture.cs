@@ -75,6 +75,7 @@ namespace Test
         protected readonly ushort _consumerDispatchConcurrency = 1;
         protected readonly bool _openChannel = true;
 
+        public static readonly TimeSpan ShortSpan;
         public static readonly TimeSpan WaitSpan;
         public static readonly TimeSpan LongWaitSpan;
         public static readonly TimeSpan RecoveryInterval = TimeSpan.FromSeconds(2);
@@ -95,12 +96,14 @@ namespace Test
 
             if (s_isRunningInCI)
             {
+                ShortSpan = TimeSpan.FromSeconds(20);
                 WaitSpan = TimeSpan.FromSeconds(60);
                 LongWaitSpan = TimeSpan.FromSeconds(120);
                 RequestedConnectionTimeout = TimeSpan.FromSeconds(4);
             }
             else
             {
+                ShortSpan = TimeSpan.FromSeconds(10);
                 WaitSpan = TimeSpan.FromSeconds(30);
                 LongWaitSpan = TimeSpan.FromSeconds(60);
             }
@@ -160,9 +163,8 @@ namespace Test
                 if (IsVerbose)
                 {
                     AddCallbackShutdownHandlers();
+                    AddCallbackExceptionHandlers();
                 }
-
-                AddCallbackExceptionHandlers();
             }
 
             if (_connFactory.AutomaticRecoveryEnabled)
@@ -221,59 +223,55 @@ namespace Test
 
         protected void AddCallbackExceptionHandlers()
         {
-            if (_conn != null)
+            AddCallbackExceptionHandlers(_conn, _channel);
+        }
+
+        protected void AddCallbackExceptionHandlers(IConnection conn, IChannel channel)
+        {
+            if (conn != null)
             {
-                _conn.ConnectionRecoveryError += (s, ea) =>
+                conn.ConnectionRecoveryError += (s, ea) =>
                 {
                     _connectionRecoveryException = ea.Exception;
 
-                    if (IsVerbose)
+                    try
                     {
-                        try
-                        {
-                            _output.WriteLine($"{0} connection recovery exception: {1}",
-                                _testDisplayName, _connectionRecoveryException);
-                        }
-                        catch (InvalidOperationException)
-                        {
-                        }
+                        _output.WriteLine($"{0} connection recovery exception: {1}",
+                            _testDisplayName, _connectionRecoveryException);
+                    }
+                    catch (InvalidOperationException)
+                    {
                     }
                 };
 
-                _conn.CallbackException += (o, ea) =>
+                conn.CallbackException += (o, ea) =>
                 {
                     _connectionCallbackException = ea.Exception;
 
-                    if (IsVerbose)
+                    try
                     {
-                        try
-                        {
-                            _output.WriteLine("{0} connection callback exception: {1}",
-                                _testDisplayName, _connectionCallbackException);
-                        }
-                        catch (InvalidOperationException)
-                        {
-                        }
+                        _output.WriteLine("{0} connection callback exception: {1}",
+                            _testDisplayName, _connectionCallbackException);
+                    }
+                    catch (InvalidOperationException)
+                    {
                     }
                 };
             }
 
-            if (_channel != null)
+            if (channel != null)
             {
-                _channel.CallbackException += (o, ea) =>
+                channel.CallbackException += (o, ea) =>
                 {
                     _channelCallbackException = ea.Exception;
 
-                    if (IsVerbose)
+                    try
                     {
-                        try
-                        {
-                            _output.WriteLine("{0} channel callback exception: {1}",
-                                _testDisplayName, _channelCallbackException);
-                        }
-                        catch (InvalidOperationException)
-                        {
-                        }
+                        _output.WriteLine("{0} channel callback exception: {1}",
+                            _testDisplayName, _channelCallbackException);
+                    }
+                    catch (InvalidOperationException)
+                    {
                     }
                 };
             }
@@ -489,11 +487,6 @@ namespace Test
         protected static void AssertPreconditionFailed(ShutdownEventArgs args)
         {
             AssertShutdownError(args, Constants.PreconditionFailed);
-        }
-
-        protected static Task AssertRanToCompletion(params Task[] tasks)
-        {
-            return DoAssertRanToCompletion(tasks);
         }
 
         protected static Task AssertRanToCompletion(IEnumerable<Task> tasks)

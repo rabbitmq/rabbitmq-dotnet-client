@@ -50,6 +50,6 @@ namespace RabbitMQ.Client
         /// This is not configurable, but was discovered while working on this issue:
         /// https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/980
         /// </summary>
-        internal const int DefaultRabbitMqMaxClientProvideNameLength = 3652;
+        internal const int DefaultRabbitMqMaxClientProvideNameLength = 3000;
     }
 }
