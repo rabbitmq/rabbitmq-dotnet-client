@@ -53,6 +53,19 @@ namespace RabbitMQ.Client.Framing.Impl
                 await ReceiveLoopAsync(mainLoopToken)
                     .ConfigureAwait(false);
             }
+#if NETSTANDARD
+            catch (ThreadAbortException taex)
+            {
+                /*
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/826
+                 */
+                var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                    Constants.InternalError,
+                    "Thread aborted (AppDomain unloaded?)",
+                    exception: taex);
+                HandleMainLoopException(ea);
+            }
+#endif
             catch (EndOfStreamException eose)
             {
                 // Possible heartbeat exception
