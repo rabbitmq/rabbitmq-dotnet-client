@@ -723,14 +723,15 @@ namespace RabbitMQ.Client
 
         private static string EnsureClientProvidedNameLength(string clientProvidedName)
         {
-            if (clientProvidedName.Length > InternalConstants.DefaultRabbitMqMaxClientProvideNameLength)
+            if (clientProvidedName != null)
             {
-                return clientProvidedName.Substring(0, InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
+                if (clientProvidedName.Length > InternalConstants.DefaultRabbitMqMaxClientProvideNameLength)
+                {
+                    return clientProvidedName.Substring(0, InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
+                }
             }
-            else
-            {
-                return clientProvidedName;
-            }
+
+            return clientProvidedName;
         }
     }
 }
