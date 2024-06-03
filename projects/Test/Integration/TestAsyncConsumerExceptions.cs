@@ -97,10 +97,9 @@ namespace Test.Integration
         protected async Task TestExceptionHandlingWith(IBasicConsumer consumer,
             Func<IChannel, string, IBasicConsumer, string, Task> action)
         {
-            var waitSpan = TimeSpan.FromSeconds(5);
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var cts = new CancellationTokenSource(waitSpan);
-            CancellationTokenRegistration ctsr = cts.Token.Register(() => tcs.TrySetResult(false));
+            var cts = new CancellationTokenSource(ShortSpan);
+            CancellationTokenRegistration ctsr = cts.Token.Register(() => tcs.TrySetCanceled());
             try
             {
                 string q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);

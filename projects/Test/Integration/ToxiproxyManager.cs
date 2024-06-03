@@ -116,8 +116,14 @@ namespace Integration
             {
                 if (disposing)
                 {
-                    _proxyClient.DeleteAsync(_proxy).GetAwaiter().GetResult();
-                    _proxyConnection.Dispose();
+                    try
+                    {
+                        _proxyClient.DeleteAsync(_proxy).GetAwaiter().GetResult();
+                        _proxyConnection.Dispose();
+                    }
+                    catch
+                    {
+                    }
                 }
 
                 _disposedValue = true;

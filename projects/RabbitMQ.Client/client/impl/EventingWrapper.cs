@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -53,7 +52,7 @@ namespace RabbitMQ.Client.Impl
                 _handlers = handlers;
             }
 
-            foreach (EventHandler<T> action in handlers.Cast<EventHandler<T>>())
+            foreach (EventHandler<T> action in handlers)
             {
                 try
                 {

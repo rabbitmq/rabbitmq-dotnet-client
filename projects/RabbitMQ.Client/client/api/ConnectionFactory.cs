@@ -197,6 +197,7 @@ namespace RabbitMQ.Client
 
         // just here to hold the value that was set through the setter
         private Uri _uri;
+        private string _clientProvidedName;
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before
@@ -367,7 +368,14 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Default client provided name to be used for connections.
         /// </summary>
-        public string ClientProvidedName { get; set; }
+        public string ClientProvidedName
+        {
+            get => _clientProvidedName;
+            set
+            {
+                _clientProvidedName = EnsureClientProvidedNameLength(value);
+            }
+        }
 
         /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
@@ -593,7 +601,7 @@ namespace RabbitMQ.Client
                 CredentialsRefresher,
                 AuthMechanisms,
                 ClientProperties,
-                clientProvidedName,
+                EnsureClientProvidedNameLength(clientProvidedName),
                 RequestedChannelMax,
                 RequestedFrameMax,
                 MaxInboundMessageBodySize,
@@ -711,6 +719,19 @@ namespace RabbitMQ.Client
         private List<AmqpTcpEndpoint> LocalEndpoints()
         {
             return new List<AmqpTcpEndpoint> { Endpoint };
+        }
+
+        private static string EnsureClientProvidedNameLength(string clientProvidedName)
+        {
+            if (clientProvidedName != null)
+            {
+                if (clientProvidedName.Length > InternalConstants.DefaultRabbitMqMaxClientProvideNameLength)
+                {
+                    return clientProvidedName.Substring(0, InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
+                }
+            }
+
+            return clientProvidedName;
         }
     }
 }

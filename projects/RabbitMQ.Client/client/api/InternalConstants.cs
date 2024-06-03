@@ -44,5 +44,12 @@ namespace RabbitMQ.Client
         /// configures the largest message size which should be lower than this maximum of 128MiB.
         /// </summary>
         internal const uint DefaultRabbitMqMaxInboundMessageBodySize = 1_048_576 * 128;
+
+        /// <summary>
+        /// Largest client provide name, in characters, allowed in RabbitMQ.
+        /// This is not configurable, but was discovered while working on this issue:
+        /// https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/980
+        /// </summary>
+        internal const int DefaultRabbitMqMaxClientProvideNameLength = 3000;
     }
 }

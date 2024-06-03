@@ -71,11 +71,23 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 }
 
-                // happens when EOF is reached, e.g. due to RabbitMQ node
-                // connectivity loss or abrupt shutdown
                 if (args.Initiator == ShutdownInitiator.Library)
                 {
-                    return true;
+                    /*
+                     * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/826
+                     * Happens when an AppDomain is unloaded
+                     */
+                    if (args.Exception is ThreadAbortException &&
+                        args.ReplyCode == Constants.InternalError)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        // happens when EOF is reached, e.g. due to RabbitMQ node
+                        // connectivity loss or abrupt shutdown
+                        return true;
+                    }
                 }
 
                 return false;
