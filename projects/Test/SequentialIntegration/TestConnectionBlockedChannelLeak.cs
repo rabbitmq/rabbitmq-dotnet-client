@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -49,14 +48,6 @@ namespace Test.SequentialIntegration
         public override async Task InitializeAsync()
         {
             await UnblockAsync();
-            _connFactory = new ConnectionFactory
-            {
-                AutomaticRecoveryEnabled = true,
-                ClientProvidedName = _testDisplayName,
-                ContinuationTimeout = TimeSpan.FromSeconds(2)
-            };
-            _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
         }
 
         public override async Task DisposeAsync()
@@ -68,48 +59,54 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestConnectionBlockedChannelLeak_GH1573()
         {
-            string exchangeName = GenerateExchangeName();
+            await BlockAsync();
 
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var connectionBlockedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var connectionUnblockedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             using var cts = new CancellationTokenSource(WaitSpan);
             using CancellationTokenRegistration ctr = cts.Token.Register(() =>
             {
-                tcs.TrySetCanceled();
+                connectionBlockedTcs.TrySetCanceled();
+                connectionUnblockedTcs.TrySetCanceled();
             });
+
+            _connFactory = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                ClientProvidedName = _testDisplayName,
+                ContinuationTimeout = TimeSpan.FromSeconds(2)
+            };
+            _conn = await _connFactory.CreateConnectionAsync();
+            _channel = await _conn.CreateChannelAsync();
+
+            string exchangeName = GenerateExchangeName();
 
             _conn.ConnectionBlocked += (object sender, ConnectionBlockedEventArgs args) =>
             {
-                UnblockAsync();
+                connectionBlockedTcs.SetResult(true);
             };
 
             _conn.ConnectionUnblocked += (object sender, EventArgs ea) =>
             {
-                tcs.SetResult(true);
+                connectionUnblockedTcs.SetResult(true);
             };
 
-            await BlockAsync(_channel);
-
-            using (IChannel publishChannel = await _conn.CreateChannelAsync())
+            async Task ExchangeDeclareAndPublish()
             {
-                await publishChannel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
-                await publishChannel.BasicPublishAsync(exchangeName, exchangeName, GetRandomBody(), mandatory: true);
-                await publishChannel.CloseAsync();
+                using (IChannel publishChannel = await _conn.CreateChannelAsync())
+                {
+                    await publishChannel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
+                    await publishChannel.BasicPublishAsync(exchangeName, exchangeName, GetRandomBody(), mandatory: true);
+                    await publishChannel.CloseAsync();
+                }
             }
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(ExchangeDeclareAndPublish);
 
-            var channels = new List<IChannel>();
             for (int i = 1; i <= 5; i++)
             {
-                IChannel c = await _conn.CreateChannelAsync();
-                channels.Add(c);
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => _conn.CreateChannelAsync());
             }
-
-            /*
-             * Note:
-             * This wait probably isn't necessary, if the above CreateChannelAsync
-             * calls were to timeout, we'd get exceptions on the await
-             */
-            await Task.Delay(TimeSpan.FromSeconds(5));
 
             // Note: debugging
             // var rmq = new RabbitMQCtl(_output);
@@ -121,7 +118,8 @@ namespace Test.SequentialIntegration
             // output = await rmq.ExecRabbitMQCtlAsync("list_channels");
             // _output.WriteLine("CHANNELS 1: {0}", output);
 
-            Assert.True(await tcs.Task, "Unblock notification not received.");
+            Assert.True(await connectionBlockedTcs.Task, "Blocked notification not received.");
+            Assert.True(await connectionUnblockedTcs.Task, "Unblocked notification not received.");
         }
     }
 }

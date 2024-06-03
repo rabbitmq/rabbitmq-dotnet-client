@@ -42,11 +42,15 @@ namespace Test.SequentialIntegration
         {
         }
 
+        public async Task BlockAsync()
+        {
+            await _rabbitMQCtl.ExecRabbitMQCtlAsync("set_vm_memory_high_watermark absolute 10");
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
         public async Task BlockAsync(IChannel channel)
         {
-            await _rabbitMQCtl.ExecRabbitMQCtlAsync("set_vm_memory_high_watermark 0.000000001");
-            // give rabbitmqctl some time to do its job
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            await BlockAsync();
             await channel.BasicPublishAsync(exchange: "amq.direct",
                 routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
         }
