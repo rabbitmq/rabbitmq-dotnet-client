@@ -7,7 +7,7 @@
     <AssemblyTitle>RabbitMQ OpenTelemetry Integration Package for .NET</AssemblyTitle>
     <Authors>VMware</Authors>
     <Company>VMware, Inc. or its affiliates.</Company>
-    <Copyright>Copyright © 2007-2023 VMware, Inc. or its affiliates.</Copyright>
+    <Copyright>Copyright (c) 2007-2024 Broadcom. All Rights Reserved. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</Copyright>
     <Description>The RabbitMQ OpenTelemetry Library for .NET adds convenience extension methods for RabbitMQ/OpenTelemetry</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
@@ -41,6 +41,10 @@
 
   <ItemGroup>
     <None Remove="icon.png" />
+    <None Remove="PublicAPI.Shipped.txt" />
+    <None Remove="PublicAPI.Unshipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
     <Content Include="icon.png" PackagePath="" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <InternalsVisibleTo Include="Unit" />
