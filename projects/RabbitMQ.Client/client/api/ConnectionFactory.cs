@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
+//  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -306,7 +306,7 @@ namespace RabbitMQ.Client
             ["product"] = Encoding.UTF8.GetBytes("RabbitMQ"),
             ["version"] = Encoding.UTF8.GetBytes(typeof(ConnectionFactory).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion),
             ["platform"] = Encoding.UTF8.GetBytes(".NET"),
-            ["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2020 VMware, Inc."),
+            ["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2023 Broadcom."),
             ["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL. See https://www.rabbitmq.com/")
         };
 
