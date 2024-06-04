@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
@@ -110,6 +112,28 @@ namespace RabbitMQ.Client
             return activity;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static string GetString(ReadOnlySpan<byte> span)
+        {
+#if NETSTANDARD
+            if (span.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            unsafe
+            {
+                fixed (byte* bytesPtr = span)
+                {
+                    return Encoding.UTF8.GetString(bytesPtr, span.Length);
+                }
+            }
+#else
+            return Encoding.UTF8.GetString(span);
+#endif
+        }
+
+
         internal static Activity Deliver(BasicDeliverEventArgs deliverEventArgs)
         {
             if (!s_subscriberSource.HasListeners())
@@ -120,14 +144,28 @@ namespace RabbitMQ.Client
             // Extract the PropagationContext of the upstream parent from the message headers.
             DistributedContextPropagator.Current.ExtractTraceIdAndState(deliverEventArgs.BasicProperties.Headers,
                 ExtractTraceIdAndState, out string traceparent, out string traceState);
+
             ActivityContext.TryParse(traceparent, traceState, out ActivityContext parentContext);
+
+            string routingKey = UseRoutingKeyAsOperationName ? GetString(deliverEventArgs.RoutingKey.Span) : null;
             Activity activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{deliverEventArgs.RoutingKey} deliver" : "deliver",
+                UseRoutingKeyAsOperationName ? $"{routingKey} deliver" : "deliver",
                 ActivityKind.Consumer, parentContext);
+
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags("deliver", deliverEventArgs.RoutingKey, deliverEventArgs.Exchange,
-                    deliverEventArgs.DeliveryTag, deliverEventArgs.BasicProperties, deliverEventArgs.Body.Length,
+                string exchange = GetString(deliverEventArgs.Exchange.Span);
+                if (routingKey == null)
+                {
+                    routingKey = GetString(deliverEventArgs.RoutingKey.Span);
+                }
+
+                PopulateMessagingTags("deliver",
+                    routingKey,
+                    exchange,
+                    deliverEventArgs.DeliveryTag,
+                    deliverEventArgs.BasicProperties,
+                    deliverEventArgs.Body.Length,
                     activity);
             }
 

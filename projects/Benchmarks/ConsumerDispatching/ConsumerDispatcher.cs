@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -16,10 +17,12 @@ namespace RabbitMQ.Benchmarks
         private protected IConsumerDispatcher _dispatcher;
         private protected readonly AsyncBasicConsumerFake _consumer = new AsyncBasicConsumerFake(_autoResetEvent);
         protected readonly string _consumerTag = "ConsumerTag";
+        protected static readonly byte[] _consumerTagBytes = Encoding.UTF8.GetBytes("ConsumerTag");
         protected readonly ulong _deliveryTag = 500UL;
-        protected readonly string _exchange = "Exchange";
-        protected readonly string _routingKey = "RoutingKey";
+        protected static readonly byte[] _exchange = Encoding.UTF8.GetBytes("Exchange");
+        protected static readonly byte[] _routingKey = Encoding.UTF8.GetBytes("RoutingKey");
         protected readonly ReadOnlyBasicProperties _properties = new ReadOnlyBasicProperties();
+        protected readonly byte[] _method = new byte[512];
         protected readonly byte[] _body = new byte[512];
 
         public ConsumerDispatcherBase()
@@ -52,8 +55,8 @@ namespace RabbitMQ.Benchmarks
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, body,
-                        CancellationToken.None);
+                    await _dispatcher.HandleBasicDeliverAsync(_consumerTagBytes, _deliveryTag,
+                        false, _exchange, _routingKey, _properties, body, CancellationToken.None);
                 }
                 _autoResetEvent.Wait();
                 _autoResetEvent.Reset();
@@ -75,8 +78,8 @@ namespace RabbitMQ.Benchmarks
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, body,
-                        CancellationToken.None);
+                    await _dispatcher.HandleBasicDeliverAsync(_consumerTagBytes, _deliveryTag,
+                        false, _exchange, _routingKey, _properties, body, CancellationToken.None);
                 }
                 _autoResetEvent.Wait();
                 _autoResetEvent.Reset();

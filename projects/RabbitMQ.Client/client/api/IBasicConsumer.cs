@@ -92,8 +92,8 @@ namespace RabbitMQ.Client
         Task HandleBasicDeliverAsync(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
-            string exchange,
-            string routingKey,
+            ReadOnlyMemory<byte> exchange,
+            ReadOnlyMemory<byte> routingKey,
             ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body);
 

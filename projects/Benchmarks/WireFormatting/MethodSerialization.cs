@@ -45,7 +45,7 @@ namespace RabbitMQ.Benchmarks
         }
 
         [Benchmark]
-        public object BasicDeliverRead() => new BasicDeliver(_buffer.Span)._consumerTag; // return one property to not box when returning an object instead
+        public object BasicDeliverRead() => new BasicDeliver(_buffer)._consumerTag; // return one property to not box when returning an object instead
 
         [Benchmark]
         public int BasicPublishWrite() => _basicPublish.WriteTo(_buffer.Span);

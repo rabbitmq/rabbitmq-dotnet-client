@@ -110,8 +110,8 @@ namespace RabbitMQ.Client
         public virtual Task HandleBasicDeliver(string consumerTag,
             ulong deliveryTag,
             bool redelivered,
-            string exchange,
-            string routingKey,
+            ReadOnlyMemory<byte> exchange,
+            ReadOnlyMemory<byte> routingKey,
             in ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
@@ -166,7 +166,8 @@ namespace RabbitMQ.Client
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
-        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
+            ReadOnlyMemory<byte> exchange, ReadOnlyMemory<byte> routingKey,
             ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");

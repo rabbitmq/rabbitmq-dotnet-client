@@ -30,29 +30,42 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
-using RabbitMQ.Client.client.framing;
-using RabbitMQ.Client.Impl;
-
-namespace RabbitMQ.Client.Framing.Impl
+namespace RabbitMQ.Util
 {
-    internal readonly struct BasicDeliver : IAmqpMethod
+    internal sealed class ReadOnlyMemoryOfByteEqualityComparer : IEqualityComparer<ReadOnlyMemory<byte>>
     {
-        public readonly ReadOnlyMemory<byte> _consumerTag;
-        public readonly ulong _deliveryTag;
-        public readonly bool _redelivered;
-        public readonly ReadOnlyMemory<byte> _exchange;
-        public readonly ReadOnlyMemory<byte> _routingKey;
-
-        public BasicDeliver(ReadOnlyMemory<byte> data)
+        public bool Equals(ReadOnlyMemory<byte> left, ReadOnlyMemory<byte> right)
         {
-            int offset = WireFormatting.ReadShortMemory(data, out _consumerTag);
-            offset += WireFormatting.ReadLonglong(data.Span.Slice(offset), out _deliveryTag);
-            offset += WireFormatting.ReadBits(data.Span.Slice(offset), out _redelivered);
-            offset += WireFormatting.ReadShortMemory(data.Slice(offset), out _exchange);
-            WireFormatting.ReadShortMemory(data.Slice(offset), out _routingKey);
+            return left.Span.SequenceEqual(right.Span);
         }
 
-        public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicDeliver;
+        public int GetHashCode(ReadOnlyMemory<byte> value)
+        {
+#if NETSTANDARD
+                unchecked
+                {
+                    int hashCode = 0;
+                    var longPart = MemoryMarshal.Cast<byte, long>(value.Span);
+                    foreach (long item in longPart)
+                    {
+                        hashCode = (hashCode * 397) ^ item.GetHashCode();
+                    }
+
+                    foreach (int item in value.Span.Slice(longPart.Length * 8))
+                    {
+                        hashCode = (hashCode * 397) ^ item.GetHashCode();
+                    }
+
+                    return hashCode;
+                }
+#else
+            HashCode result = default;
+            result.AddBytes(value.Span);
+            return result.ToHashCode();
+#endif
+        }
     }
 }

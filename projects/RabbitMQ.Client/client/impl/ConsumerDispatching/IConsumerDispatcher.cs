@@ -46,11 +46,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken);
 
-        ValueTask HandleBasicDeliverAsync(string consumerTag,
+        ValueTask HandleBasicDeliverAsync(ReadOnlyMemory<byte> consumerTag,
                             ulong deliveryTag,
                             bool redelivered,
-                            string exchange,
-                            string routingKey,
+                            ReadOnlyMemory<byte> exchange,
+                            ReadOnlyMemory<byte> routingKey,
                             in ReadOnlyBasicProperties basicProperties,
                             RentedMemory body,
                             CancellationToken cancellationToken);
