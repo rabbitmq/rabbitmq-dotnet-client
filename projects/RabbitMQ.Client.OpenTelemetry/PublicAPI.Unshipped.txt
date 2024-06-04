@@ -1,2 +1,0 @@
-OpenTelemetry.Trace.OpenTelemetryExtensions
-static OpenTelemetry.Trace.OpenTelemetryExtensions.AddRabbitMQInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder
