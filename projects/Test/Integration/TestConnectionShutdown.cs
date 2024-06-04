@@ -161,5 +161,12 @@ namespace Test.Integration
             await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
             Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
         }
+
+        [Fact]
+        public async Task TestDisposeAfterAbort_GH825()
+        {
+            await _channel.AbortAsync();
+            _channel.Dispose();
+        }
     }
 }
