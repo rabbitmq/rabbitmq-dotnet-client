@@ -4,7 +4,7 @@
 // The APL v2.0:
 //
 //---------------------------------------------------------------------------
-//   Copyright (c) 2007-2020 VMware, Inc.
+//   Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-//  Copyright (c) 2007-2020 VMware, Inc.  All rights reserved.
+//  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
 using System;
@@ -623,9 +623,9 @@ namespace Test.Integration
                 });
             };
 
-            //                   queue1 -> produce click to queue2
+            // queue1 -> produce click to queue2
             // click -> exchange
-            //                   queue2 -> consume click from queue1
+            // queue2 -> consume click from queue1
             await _channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
             await _channel.QueueDeclareAsync(queue1Name);
             await _channel.QueueBindAsync(queue1Name, exchangeName, queue1Name);
@@ -656,6 +656,38 @@ namespace Test.Integration
             await _channel.ConfirmSelectAsync();
             await _channel.BasicPublishAsync(exchangeName, queue1Name, body: GetRandomBody(1024));
             await _channel.WaitForConfirmsOrDieAsync();
+
+            Assert.True(await tcs.Task);
+        }
+
+        [Fact]
+        public async Task TestCloseWithinEventHandler_GH1567()
+        {
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            string queueName = q.QueueName;
+
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            consumer.Received += async (_, eventArgs) =>
+            {
+                await _channel.BasicCancelAsync(eventArgs.ConsumerTag);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                _channel.CloseAsync().ContinueWith((_) =>
+                {
+                    _channel.Dispose();
+                    _channel = null;
+                });
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                tcs.TrySetResult(true);
+            };
+
+            await _channel.BasicConsumeAsync(consumer, queueName, true);
+
+            var bp = new BasicProperties();
+
+            await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName,
+                basicProperties: bp, mandatory: true, body: GetRandomBody(64));
 
             Assert.True(await tcs.Task);
         }
