@@ -6,8 +6,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <AssemblyTitle>RabbitMQ Client Library for .NET</AssemblyTitle>
-    <Authors>VMware</Authors>
-    <Company>VMware, Inc. or its affiliates.</Company>
+    <Authors>Broadcom</Authors>
+    <Company>Broadcom, Inc. or its subsidiaries.</Company>
     <Copyright>Copyright (c) 2007-2024 Broadcom. All Rights Reserved. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</Copyright>
     <Description>The RabbitMQ .NET client is the official client library for C# (and, implicitly, other .NET languages)</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

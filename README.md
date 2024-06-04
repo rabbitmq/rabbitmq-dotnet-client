@@ -5,7 +5,7 @@
 ![CodeQL](https://github.com/rabbitmq/rabbitmq-dotnet-client/workflows/CodeQL/badge.svg)
 
 This repository contains source code of the [RabbitMQ .NET client](https://www.rabbitmq.com/dotnet.html).
-The client is maintained by the [RabbitMQ team at VMware](https://github.com/rabbitmq/).
+The client is maintained by the [RabbitMQ team at Broadcom](https://github.com/rabbitmq/).
 
 
 ## Dependency (NuGet Artifact)

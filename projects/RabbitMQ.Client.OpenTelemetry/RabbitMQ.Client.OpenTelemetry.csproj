@@ -5,15 +5,15 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyTitle>RabbitMQ OpenTelemetry Integration Package for .NET</AssemblyTitle>
-    <Authors>VMware</Authors>
-    <Company>VMware, Inc. or its affiliates.</Company>
+    <Authors>Broadcom</Authors>
+    <Company>Broadcom, Inc. and/or its subsidiaries.</Company>
     <Copyright>Copyright (c) 2007-2024 Broadcom. All Rights Reserved. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</Copyright>
     <Description>The RabbitMQ OpenTelemetry Library for .NET adds convenience extension methods for RabbitMQ/OpenTelemetry</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>Apache-2.0 OR MPL-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://www.rabbitmq.com/dotnet.html</PackageProjectUrl>
-    <PackageTags>rabbitmq, amqp, oauth2</PackageTags>
+    <PackageTags>rabbitmq, amqp, opentelemetry</PackageTags>
     <Product>RabbitMQ</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/rabbitmq/rabbitmq-dotnet-client.git</RepositoryUrl>
@@ -41,10 +41,6 @@
 
   <ItemGroup>
     <None Remove="icon.png" />
-    <None Remove="PublicAPI.Shipped.txt" />
-    <None Remove="PublicAPI.Unshipped.txt" />
-    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
     <Content Include="icon.png" PackagePath="" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <InternalsVisibleTo Include="Unit" />
