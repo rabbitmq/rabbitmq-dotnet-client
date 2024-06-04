@@ -9,6 +9,7 @@
     <ProjectReference Include="projects/Benchmarks/Benchmarks.csproj" />
     <ProjectReference Include="projects/RabbitMQ.Client/RabbitMQ.Client.csproj" />
     <ProjectReference Include="projects/RabbitMQ.Client.OAuth2/RabbitMQ.Client.OAuth2.csproj" />
+    <ProjectReference Include="projects/RabbitMQ.Client.OpenTelemetry/RabbitMQ.Client.OpenTelemetry.csproj" />
     <ProjectReference Include="projects/toxiproxy-netcore/src/ToxiproxyNetCore/ToxiproxyNetCore.csproj" />
     <ProjectReference Include="projects/Test/Common/Common.csproj" />
     <ProjectReference Include="projects/Test/Applications/CreateChannel/CreateChannel.csproj" />
