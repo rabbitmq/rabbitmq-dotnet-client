@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.impl;
@@ -87,17 +88,20 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
-        public static ValueTask BasicPublishAsync<T>(this IChannel channel, PublicationAddress addr, in T basicProperties, ReadOnlyMemory<byte> body)
+        public static ValueTask BasicPublishAsync<T>(this IChannel channel, PublicationAddress addr, in T basicProperties,
+            ReadOnlyMemory<byte> body)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
             return channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties, body);
         }
 
-        public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
+        public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey,
+            ReadOnlyMemory<byte> body = default, bool mandatory = false) =>
+            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
 
-        public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-            => channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
+        public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange,
+            CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false) =>
+            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
 
 #nullable disable
 

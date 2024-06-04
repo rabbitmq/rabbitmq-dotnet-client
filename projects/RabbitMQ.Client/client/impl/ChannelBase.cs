@@ -1048,20 +1048,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private static void InjectTraceContextIntoBasicProperties(object propsObj, string key, string value)
-        {
-            if (!(propsObj is Dictionary<string, object> headers))
-            {
-                return;
-            }
-
-            // Only propagate headers if they haven't already been set
-            if (!headers.ContainsKey(key))
-            {
-                headers[key] = value;
-            }
-        }
-
         public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory,
             CancellationToken cancellationToken)
@@ -1083,10 +1069,12 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
+                var cmd = new BasicPublishMemory(
+                    Encoding.UTF8.GetBytes(exchange),
+                    Encoding.UTF8.GetBytes(routingKey),
+                    mandatory, default);
                 using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length, existingContext)
+                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length)
                     : default;
 
                 if (sendActivity != null)
@@ -1144,10 +1132,8 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-
-                RabbitMQActivitySource.TryGetExistingContext(basicProperties, out ActivityContext existingContext);
                 using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length, existingContext)
+                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length)
                     : default;
 
                 if (sendActivity != null)
@@ -1908,7 +1894,7 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object> headers = props.Headers ?? new Dictionary<string, object>();
 
             // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-            DistributedContextPropagator.Current.Inject(sendActivity, headers, InjectTraceContextIntoBasicProperties);
+            RabbitMQActivitySource.ContextInjector(sendActivity, headers);
             props.Headers = headers;
             return props;
         }

@@ -37,6 +37,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client;
+using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
@@ -116,6 +117,85 @@ namespace Test.SequentialIntegration
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        public async Task TestPublisherWithCachedStringsAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
+        {
+            await _channel.ConfirmSelectAsync();
+
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            var _activities = new List<Activity>();
+            using (ActivityListener activityListener = StartActivityListener(_activities))
+            {
+                await Task.Delay(500);
+                string queueName = $"{Guid.NewGuid()}";
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+                byte[] consumeBody = null;
+                var consumer = new EventingBasicConsumer(_channel);
+                var consumerReceivedTcs =
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    consumerReceivedTcs.SetResult(true);
+                };
+
+                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                CachedString exchange = new CachedString("");
+                CachedString routingKey = new CachedString(q.QueueName);
+                await _channel.BasicPublishAsync(exchange, routingKey, sendBody, mandatory: true);
+                await _channel.WaitForConfirmsOrDieAsync();
+
+                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(await consumerReceivedTcs.Task);
+
+                await _channel.BasicCancelAsync(consumerTag);
+                await Task.Delay(500);
+                AssertActivityData(useRoutingKeyAsOperationName, queueName, _activities, true);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestPublisherWithPublicationAddressAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
+        {
+            await _channel.ConfirmSelectAsync();
+
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            var _activities = new List<Activity>();
+            using (ActivityListener activityListener = StartActivityListener(_activities))
+            {
+                await Task.Delay(500);
+                string queueName = $"{Guid.NewGuid()}";
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+                byte[] consumeBody = null;
+                var consumer = new EventingBasicConsumer(_channel);
+                var consumerReceivedTcs =
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    consumerReceivedTcs.SetResult(true);
+                };
+
+                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                PublicationAddress publicationAddress = new PublicationAddress(ExchangeType.Direct, "", q.QueueName);
+                await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
+                await _channel.WaitForConfirmsOrDieAsync();
+
+                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(await consumerReceivedTcs.Task);
+
+                await _channel.BasicCancelAsync(consumerTag);
+                await Task.Delay(500);
+                AssertActivityData(useRoutingKeyAsOperationName, queueName, _activities, true);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
             await _channel.ConfirmSelectAsync();
@@ -155,6 +235,87 @@ namespace Test.SequentialIntegration
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
+        {
+            await _channel.ConfirmSelectAsync();
+
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            var activities = new List<Activity>();
+            using (ActivityListener activityListener = StartActivityListener(activities))
+            {
+                await Task.Delay(500);
+
+                string queueName = $"{Guid.NewGuid()}";
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+                byte[] consumeBody = null;
+                var consumer = new EventingBasicConsumer(_channel);
+                var consumerReceivedTcs =
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    consumerReceivedTcs.SetResult(true);
+                };
+
+                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                CachedString exchange = new CachedString("");
+                CachedString routingKey = new CachedString(q.QueueName);
+                await _channel.BasicPublishAsync(exchange, routingKey, sendBody, mandatory: true);
+                await _channel.WaitForConfirmsOrDieAsync();
+
+                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(await consumerReceivedTcs.Task);
+
+                await _channel.BasicCancelAsync(consumerTag);
+                await Task.Delay(500);
+                AssertActivityData(useRoutingKeyAsOperationName, queueName, activities, true);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
+        {
+            await _channel.ConfirmSelectAsync();
+
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            var activities = new List<Activity>();
+            using (ActivityListener activityListener = StartActivityListener(activities))
+            {
+                await Task.Delay(500);
+
+                string queueName = $"{Guid.NewGuid()}";
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+                byte[] consumeBody = null;
+                var consumer = new EventingBasicConsumer(_channel);
+                var consumerReceivedTcs =
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.Received += (o, a) =>
+                {
+                    consumeBody = a.Body.ToArray();
+                    consumerReceivedTcs.SetResult(true);
+                };
+
+                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", q.QueueName);
+                await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
+                await _channel.WaitForConfirmsOrDieAsync();
+
+                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(await consumerReceivedTcs.Task);
+
+                await _channel.BasicCancelAsync(consumerTag);
+                await Task.Delay(500);
+                AssertActivityData(useRoutingKeyAsOperationName, queueName, activities, true);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
             await _channel.ConfirmSelectAsync();
@@ -170,6 +331,80 @@ namespace Test.SequentialIntegration
                 {
                     await _channel.QueueDeclareAsync(queue, false, false, false, null);
                     await _channel.BasicPublishAsync("", queue, Encoding.UTF8.GetBytes(msg), mandatory: true);
+                    await _channel.WaitForConfirmsOrDieAsync();
+                    QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
+                    Assert.Equal(1u, ok.MessageCount);
+                    BasicGetResult res = await _channel.BasicGetAsync(queue, true);
+                    Assert.Equal(msg, Encoding.UTF8.GetString(res.Body.ToArray()));
+                    ok = await _channel.QueueDeclarePassiveAsync(queue);
+                    Assert.Equal(0u, ok.MessageCount);
+                    await Task.Delay(500);
+                    AssertActivityData(useRoutingKeyAsOperationName, queue, activities, false);
+                }
+                finally
+                {
+                    await _channel.QueueDeleteAsync(queue);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestPublisherWithCachedStringsAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
+        {
+            await _channel.ConfirmSelectAsync();
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            var activities = new List<Activity>();
+            using (ActivityListener activityListener = StartActivityListener(activities))
+            {
+                await Task.Delay(500);
+                string queue = $"queue-{Guid.NewGuid()}";
+                const string msg = "for basic.get";
+
+                try
+                {
+                    CachedString exchange = new CachedString("");
+                    CachedString routingKey = new CachedString(queue);
+                    await _channel.QueueDeclareAsync(queue, false, false, false, null);
+                    await _channel.BasicPublishAsync(exchange, routingKey, Encoding.UTF8.GetBytes(msg), mandatory: true);
+                    await _channel.WaitForConfirmsOrDieAsync();
+                    QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
+                    Assert.Equal(1u, ok.MessageCount);
+                    BasicGetResult res = await _channel.BasicGetAsync(queue, true);
+                    Assert.Equal(msg, Encoding.UTF8.GetString(res.Body.ToArray()));
+                    ok = await _channel.QueueDeclarePassiveAsync(queue);
+                    Assert.Equal(0u, ok.MessageCount);
+                    await Task.Delay(500);
+                    AssertActivityData(useRoutingKeyAsOperationName, queue, activities, false);
+                }
+                finally
+                {
+                    await _channel.QueueDeleteAsync(queue);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestPublisherWithPublicationAddressAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
+        {
+            await _channel.ConfirmSelectAsync();
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            var activities = new List<Activity>();
+            using (ActivityListener activityListener = StartActivityListener(activities))
+            {
+                await Task.Delay(500);
+                string queue = $"queue-{Guid.NewGuid()}";
+                const string msg = "for basic.get";
+
+                try
+                {
+                    var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", queue);
+                    await _channel.QueueDeclareAsync(queue, false, false, false, null);
+                    await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(),
+                        Encoding.UTF8.GetBytes(msg));
                     await _channel.WaitForConfirmsOrDieAsync();
                     QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                     Assert.Equal(1u, ok.MessageCount);
