@@ -7,7 +7,7 @@
     <AssemblyTitle>RabbitMQ OAuth2 Client Library for .NET</AssemblyTitle>
     <Authors>VMware</Authors>
     <Company>VMware, Inc. or its affiliates.</Company>
-    <Copyright>Copyright © 2007-2023 VMware, Inc. or its affiliates.</Copyright>
+    <Copyright>Copyright (c) 2007-2024 Broadcom. All Rights Reserved. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</Copyright>
     <Description>The RabbitMQ OAuth2 Client Library for .NET enables OAuth2 token refresh for RabbitMQ.Client</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
