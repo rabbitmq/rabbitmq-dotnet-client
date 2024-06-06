@@ -64,12 +64,25 @@
     "globalMetadataFiles": [],
     "fileMetadataFiles": [],
     "template": [
-      "default"
+      "default",
+      "modern",
+      "template"
     ],
     "postProcessors": [],
     "noLangKeyword": false,
     "keepFileLink": false,
     "cleanupCacheHistory": false,
-    "disableGitFeatures": false
+    "disableGitFeatures": false,
+    "globalMetadata": {
+      "_enableSearch": "true",
+      "_appLogoPath": "projects/RabbitMQ.Client/icon.png",
+      "_disableContribution": false,
+      "_gitContribute": {
+        "repo": "https://github.com/rabbitmq/rabbitmq-dotnet-client.git",
+        "branch": "gh-pages",
+        "apiSpecFolder": "api"
+      },
+      "_gitUrlPattern": "github"
+    }
   }
 }
