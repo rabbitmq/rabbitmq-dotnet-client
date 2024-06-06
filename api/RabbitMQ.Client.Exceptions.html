@@ -1,216 +1,268 @@
 ﻿<!DOCTYPE html>
-<!--[if IE]><![endif]-->
 <html>
-
   <head>
     <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <title>Namespace RabbitMQ.Client.Exceptions
- </title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="title" content="Namespace RabbitMQ.Client.Exceptions
- ">
-    
-      <link rel="shortcut icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
-      <link rel="stylesheet" href="../styles/docfx.css">
-      <link rel="stylesheet" href="../styles/main.css">
-      <meta property="docfx:navrel" content="../toc.html">
-      <meta property="docfx:tocrel" content="toc.html">
-    
-    
-    
+      <title>Namespace RabbitMQ.Client.Exceptions </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace RabbitMQ.Client.Exceptions ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
   </head>
-  <body data-spy="scroll" data-target="#affix" data-offset="120">
-    <div id="wrapper">
-      <header>
 
-        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
-              </a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar">
-              <form class="navbar-form navbar-right" role="search" id="search">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
-                </div>
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
               </form>
             </div>
           </div>
-        </nav>
-
-        <div class="subnav navbar navbar-default">
-          <div class="container hide-when-search" id="breadcrumb">
-            <ul class="breadcrumb">
-              <li></li>
-            </ul>
-          </div>
         </div>
-      </header>
-      <div role="main" class="container body-content hide-when-search">
+      </nav>
+    </header>
 
-        <div class="sidenav hide-when-search">
-          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
-          <div class="sidetoggle collapse" id="sidetoggle">
-            <div id="sidetoc"></div>
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
           </div>
-        </div>
-        <div class="article row grid-right">
-          <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Exceptions">
-
-  <h1 id="RabbitMQ_Client_Exceptions" data-uid="RabbitMQ.Client.Exceptions" class="text-break">Namespace RabbitMQ.Client.Exceptions
-</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
-    <h3 id="classes">
-Classes
-</h3>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html">AlreadyClosedException</a></h4>
-      <section><p>Thrown when the application tries to make use of a
-session or connection that has already been shut
-down.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.AuthenticationFailureException.html">AuthenticationFailureException</a></h4>
-      <section><p>Thrown when the cause is  an
-authentication failure.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html">BrokerUnreachableException</a></h4>
-      <section><p>Thrown when no connection could be opened during a
-ConnectionFactory.CreateConnection attempt.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ChannelAllocationException.html">ChannelAllocationException</a></h4>
-      <section><p>Thrown when a SessionManager cannot allocate a new
-channel number, or the requested channel number is already in
-use.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ChannelErrorException.html">ChannelErrorException</a></h4>
-      <section><p>Thrown when the server sends a frame along a channel
-that we do not currently have a Session entry in our
-SessionManager for.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ConnectFailureException.html">ConnectFailureException</a></h4>
-      <section><p>Thrown when a connection to the broker fails</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.HardProtocolException.html">HardProtocolException</a></h4>
-      <section><p>Subclass of ProtocolException representing problems
-requiring a connection.close.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.MalformedFrameException.html">MalformedFrameException</a></h4>
-      <section><p>Thrown when frame parsing code detects an error in the
-wire-protocol encoding of a frame.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.OperationInterruptedException.html">OperationInterruptedException</a></h4>
-      <section><p>Thrown when a session is destroyed during an RPC call to a
-broker. For example, if a TCP connection dropping causes the
-destruction of a session in the middle of a QueueDeclare
-operation, an OperationInterruptedException will be thrown to
-the caller of IModel.QueueDeclare.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.html">PacketNotRecognizedException</a></h4>
-      <section><p>Thrown to indicate that the peer didn't understand
-the packet received from the client. Peer sent default message
-describing protocol version it is using and transport parameters.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.PossibleAuthenticationFailureException.html">PossibleAuthenticationFailureException</a></h4>
-      <section><p>Thrown when the likely cause is  an
-authentication failure.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ProtocolException.html">ProtocolException</a></h4>
-      <section><p>Instances of subclasses of subclasses
-HardProtocolException and SoftProtocolException are thrown in
-situations when we detect a problem with the connection-,
-channel- or wire-level parts of the AMQP protocol.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ProtocolVersionMismatchException.html">ProtocolVersionMismatchException</a></h4>
-      <section><p>Thrown to indicate that the peer does not support the
-wire protocol version we requested immediately after opening
-the TCP socket.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.ProtocolViolationException.html">ProtocolViolationException</a></h4>
-      <section></section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.RabbitMQClientException.html">RabbitMQClientException</a></h4>
-      <section></section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.SoftProtocolException.html">SoftProtocolException</a></h4>
-      <section><p>Subclass of ProtocolException representing problems
-requiring a channel.close.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.SyntaxErrorException.html">SyntaxErrorException</a></h4>
-      <section><p>Thrown when our peer sends a frame that contains
-illegal values for one or more fields.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.TopologyRecoveryException.html">TopologyRecoveryException</a></h4>
-      <section></section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.UnexpectedFrameException.html">UnexpectedFrameException</a></h4>
-      <section><p>Thrown when the connection receives a frame that it wasn't expecting.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.UnexpectedMethodException.html">UnexpectedMethodException</a></h4>
-      <section><p>Thrown when the model receives an RPC reply that it wasn't expecting.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.UnknownClassOrMethodException.html">UnknownClassOrMethodException</a></h4>
-      <section><p>Thrown when the protocol handlers detect an unknown class
-number or method number.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.UnsupportedMethodException.html">UnsupportedMethodException</a></h4>
-      <section><p>Thrown when the model receives an RPC request it cannot satisfy.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.UnsupportedMethodFieldException.html">UnsupportedMethodFieldException</a></h4>
-      <section><p>Thrown when the model cannot transmit a method field
-because the version of the protocol the model is implementing
-does not contain a definition for the field in
-question.</p>
-</section>
-      <h4><a class="xref" href="RabbitMQ.Client.Exceptions.WireFormattingException.html">WireFormattingException</a></h4>
-      <section><p>Thrown when the wire-formatting code cannot encode a
-particular .NET value to AMQP protocol format.</p>
-</section>
-
-
-</article>
-          </div>
-
-          <div class="hidden-sm col-md-2" role="complementary">
-            <div class="sideaffix">
-              <div class="contribution">
-                <ul class="nav">
-                </ul>
-              </div>
-              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In this article</h5>
-                <div></div>
-              </nav>
-            </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
           </div>
         </div>
       </div>
 
-      <footer>
-        <div class="grad-bottom"></div>
-        <div class="footer">
-          <div class="container">
-            <span class="pull-right">
-              <a href="#top">Back to top</a>
-            </span>
-      
-      <span>Generated by <strong>DocFX</strong></span>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
 
-    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="RabbitMQ.Client.Exceptions">
+
+  <h1 id="RabbitMQ_Client_Exceptions" data-uid="RabbitMQ.Client.Exceptions" class="text-break">Namespace RabbitMQ.Client.Exceptions</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html">AlreadyClosedException</a></dt>
+      <dd><p>Thrown when the application tries to make use of a
+session or connection that has already been shut
+down.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.AuthenticationFailureException.html">AuthenticationFailureException</a></dt>
+      <dd><p>Thrown when the cause is  an
+authentication failure.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html">BrokerUnreachableException</a></dt>
+      <dd><p>Thrown when no connection could be opened during a
+ConnectionFactory.CreateConnection attempt.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.ChannelAllocationException.html">ChannelAllocationException</a></dt>
+      <dd><p>Thrown when a SessionManager cannot allocate a new
+channel number, or the requested channel number is already in
+use.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.ChannelErrorException.html">ChannelErrorException</a></dt>
+      <dd><p>Thrown when the server sends a frame along a channel
+that we do not currently have a Session entry in our
+SessionManager for.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.ConnectFailureException.html">ConnectFailureException</a></dt>
+      <dd><p>Thrown when a connection to the broker fails</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.HardProtocolException.html">HardProtocolException</a></dt>
+      <dd><p>Subclass of ProtocolException representing problems
+requiring a connection.close.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.MalformedFrameException.html">MalformedFrameException</a></dt>
+      <dd><p>Thrown when frame parsing code detects an error in the
+wire-protocol encoding of a frame.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.OperationInterruptedException.html">OperationInterruptedException</a></dt>
+      <dd><p>Thrown when a session is destroyed during an RPC call to a
+broker. For example, if a TCP connection dropping causes the
+destruction of a session in the middle of a QueueDeclare
+operation, an OperationInterruptedException will be thrown to
+the caller of IModel.QueueDeclare.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.html">PacketNotRecognizedException</a></dt>
+      <dd><p>Thrown to indicate that the peer didn't understand
+the packet received from the client. Peer sent default message
+describing protocol version it is using and transport parameters.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.PossibleAuthenticationFailureException.html">PossibleAuthenticationFailureException</a></dt>
+      <dd><p>Thrown when the likely cause is  an
+authentication failure.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.ProtocolException.html">ProtocolException</a></dt>
+      <dd><p>Instances of subclasses of subclasses
+HardProtocolException and SoftProtocolException are thrown in
+situations when we detect a problem with the connection-,
+channel- or wire-level parts of the AMQP protocol.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.ProtocolVersionMismatchException.html">ProtocolVersionMismatchException</a></dt>
+      <dd><p>Thrown to indicate that the peer does not support the
+wire protocol version we requested immediately after opening
+the TCP socket.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.ProtocolViolationException.html">ProtocolViolationException</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.RabbitMQClientException.html">RabbitMQClientException</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.SoftProtocolException.html">SoftProtocolException</a></dt>
+      <dd><p>Subclass of ProtocolException representing problems
+requiring a channel.close.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.SyntaxErrorException.html">SyntaxErrorException</a></dt>
+      <dd><p>Thrown when our peer sends a frame that contains
+illegal values for one or more fields.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.TopologyRecoveryException.html">TopologyRecoveryException</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.UnexpectedFrameException.html">UnexpectedFrameException</a></dt>
+      <dd><p>Thrown when the connection receives a frame that it wasn't expecting.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.UnexpectedMethodException.html">UnexpectedMethodException</a></dt>
+      <dd><p>Thrown when the model receives an RPC reply that it wasn't expecting.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.UnknownClassOrMethodException.html">UnknownClassOrMethodException</a></dt>
+      <dd><p>Thrown when the protocol handlers detect an unknown class
+number or method number.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.UnsupportedMethodException.html">UnsupportedMethodException</a></dt>
+      <dd><p>Thrown when the model receives an RPC request it cannot satisfy.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.UnsupportedMethodFieldException.html">UnsupportedMethodFieldException</a></dt>
+      <dd><p>Thrown when the model cannot transmit a method field
+because the version of the protocol the model is implementing
+does not contain a definition for the field in
+question.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Exceptions.WireFormattingException.html">WireFormattingException</a></dt>
+      <dd><p>Thrown when the wire-formatting code cannot encode a
+particular .NET value to AMQP protocol format.</p>
+</dd>
+    </dl>
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

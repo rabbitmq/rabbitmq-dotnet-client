@@ -1,87 +1,125 @@
 ﻿<!DOCTYPE html>
-<!--[if IE]><![endif]-->
 <html>
-
   <head>
     <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <title>Class IModelExensions
- </title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="title" content="Class IModelExensions
- ">
-    
-      <link rel="shortcut icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
-      <link rel="stylesheet" href="../styles/docfx.css">
-      <link rel="stylesheet" href="../styles/main.css">
-      <meta property="docfx:navrel" content="../toc.html">
-      <meta property="docfx:tocrel" content="toc.html">
-    
-    
-    
+      <title>Class IModelExensions </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class IModelExensions ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/gh-pages/api/new?filename=RabbitMQ_Client_IModelExensions.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
   </head>
-  <body data-spy="scroll" data-target="#affix" data-offset="120">
-    <div id="wrapper">
-      <header>
 
-        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
-              </a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar">
-              <form class="navbar-form navbar-right" role="search" id="search">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
-                </div>
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
               </form>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
+    </header>
 
-        <div class="subnav navbar navbar-default">
-          <div class="container hide-when-search" id="breadcrumb">
-            <ul class="breadcrumb">
-              <li></li>
-            </ul>
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
           </div>
         </div>
-      </header>
-      <div role="main" class="container body-content hide-when-search">
+      </div>
 
-        <div class="sidenav hide-when-search">
-          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
-          <div class="sidetoggle collapse" id="sidetoggle">
-            <div id="sidetoc"></div>
-          </div>
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
         </div>
-        <div class="article row grid-right">
-          <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.IModelExensions">
+
+        <article data-uid="RabbitMQ.Client.IModelExensions">
 
 
 
-  <h1 id="RabbitMQ_Client_IModelExensions" data-uid="RabbitMQ.Client.IModelExensions" class="text-break">Class IModelExensions
-</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="inheritance">
-    <h5>Inheritance</h5>
-    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-    <div class="level1"><span class="xref">IModelExensions</span></div>
+  <h1 id="RabbitMQ_Client_IModelExensions" data-uid="RabbitMQ.Client.IModelExensions" class="text-break">
+Class IModelExensions  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L37"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
-  <div class="inheritedMembers">
-    <h5>Inherited Members</h5>
+
+  <div class="markdown summary"></div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class IModelExensions</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">IModelExensions</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
@@ -103,1159 +141,836 @@
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
-  </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a></h6>
-  <h6><strong>Assembly</strong>: RabbitMQ.Client.dll</h6>
-  <h5 id="RabbitMQ_Client_IModelExensions_syntax">Syntax</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class IModelExensions</code></pre>
-  </div>
-  <h3 id="methods">Methods
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_RabbitMQ_Client_IBasicConsumer_System_String_System_Boolean_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel%2CRabbitMQ.Client.IBasicConsumer%2CSystem.String%2CSystem.Boolean%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L40">View Source</a>
-  </span>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
   <a id="RabbitMQ_Client_IModelExensions_BasicConsume_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_RabbitMQ_Client_IBasicConsumer_System_String_System_Boolean_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel,RabbitMQ.Client.IBasicConsumer,System.String,System.Boolean,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">BasicConsume(IModel, IBasicConsumer, string, bool, string, bool, bool, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_RabbitMQ_Client_IBasicConsumer_System_String_System_Boolean_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel,RabbitMQ.Client.IBasicConsumer,System.String,System.Boolean,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  BasicConsume(IModel, IBasicConsumer, string, bool, string, bool, bool, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Start a Basic content-class consumer.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static string BasicConsume(this IModel model, IBasicConsumer consumer, string queue, bool autoAck = false, string consumerTag = &quot;&quot;, bool noLocal = false, bool exclusive = false, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></td>
-        <td><span class="parametername">consumer</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">autoAck</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">consumerTag</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">noLocal</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">exclusive</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_RabbitMQ_Client_IBasicConsumer_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean%2CRabbitMQ.Client.IBasicConsumer)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L53">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>consumer</code> <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>autoAck</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>consumerTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>noLocal</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>exclusive</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_BasicConsume_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_RabbitMQ_Client_IBasicConsumer_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel,System.String,System.Boolean,RabbitMQ.Client.IBasicConsumer)">BasicConsume(IModel, string, bool, IBasicConsumer)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_RabbitMQ_Client_IBasicConsumer_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel,System.String,System.Boolean,RabbitMQ.Client.IBasicConsumer)">
+  BasicConsume(IModel, string, bool, IBasicConsumer)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L53"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Start a Basic content-class consumer.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static string BasicConsume(this IModel model, string queue, bool autoAck, IBasicConsumer consumer)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">autoAck</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></td>
-        <td><span class="parametername">consumer</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_RabbitMQ_Client_IBasicConsumer_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean%2CSystem.String%2CRabbitMQ.Client.IBasicConsumer)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L59">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>autoAck</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>consumer</code> <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_BasicConsume_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_RabbitMQ_Client_IBasicConsumer_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel,System.String,System.Boolean,System.String,RabbitMQ.Client.IBasicConsumer)">BasicConsume(IModel, string, bool, string, IBasicConsumer)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_RabbitMQ_Client_IBasicConsumer_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel,System.String,System.Boolean,System.String,RabbitMQ.Client.IBasicConsumer)">
+  BasicConsume(IModel, string, bool, string, IBasicConsumer)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L59"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Start a Basic content-class consumer.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static string BasicConsume(this IModel model, string queue, bool autoAck, string consumerTag, IBasicConsumer consumer)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">autoAck</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">consumerTag</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></td>
-        <td><span class="parametername">consumer</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__RabbitMQ_Client_IBasicConsumer_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D%2CRabbitMQ.Client.IBasicConsumer)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L68">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>autoAck</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>consumerTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>consumer</code> <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_BasicConsume_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__RabbitMQ_Client_IBasicConsumer_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel,System.String,System.Boolean,System.String,System.Collections.Generic.IDictionary{System.String,System.Object},RabbitMQ.Client.IBasicConsumer)">BasicConsume(IModel, string, bool, string, IDictionary&lt;string, object&gt;, IBasicConsumer)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_BasicConsume_RabbitMQ_Client_IModel_System_String_System_Boolean_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__RabbitMQ_Client_IBasicConsumer_" data-uid="RabbitMQ.Client.IModelExensions.BasicConsume(RabbitMQ.Client.IModel,System.String,System.Boolean,System.String,System.Collections.Generic.IDictionary{System.String,System.Object},RabbitMQ.Client.IBasicConsumer)">
+  BasicConsume(IModel, string, bool, string, IDictionary&lt;string, object&gt;, IBasicConsumer)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L68"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Start a Basic content-class consumer.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static string BasicConsume(this IModel model, string queue, bool autoAck, string consumerTag, IDictionary&lt;string, object&gt; arguments, IBasicConsumer consumer)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">autoAck</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">consumerTag</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></td>
-        <td><span class="parametername">consumer</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_RabbitMQ_Client_PublicationAddress_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel%2CRabbitMQ.Client.PublicationAddress%2CRabbitMQ.Client.IBasicProperties%2CSystem.ReadOnlyMemory%7BSystem.Byte%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L83">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>autoAck</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>consumerTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>consumer</code> <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_BasicPublish_" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_RabbitMQ_Client_PublicationAddress_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel,RabbitMQ.Client.PublicationAddress,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})">BasicPublish(IModel, PublicationAddress, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_RabbitMQ_Client_PublicationAddress_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel,RabbitMQ.Client.PublicationAddress,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})">
+  BasicPublish(IModel, PublicationAddress, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L83"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Extension method) Convenience overload of BasicPublish.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void BasicPublish(this IModel model, PublicationAddress addr, IBasicProperties basicProperties, ReadOnlyMemory&lt;byte&gt; body)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a></td>
-        <td><span class="parametername">addr</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
-        <td><span class="parametername">basicProperties</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</td>
-        <td><span class="parametername">body</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_RabbitMQ_Client_PublicationAddress_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte___remarks">Remarks</h5>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>addr</code> <a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a></dt>
+    <dd></dd>
+    <dt><code>basicProperties</code> <a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_RabbitMQ_Client_PublicationAddress_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte___remarks">Remarks</h4>
   <div class="markdown level1 remarks"><p>The publication occurs with mandatory=false and immediate=false.</p>
 </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CRabbitMQ.Client.IBasicProperties%2CSystem.ReadOnlyMemory%7BSystem.Byte%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L94">View Source</a>
-  </span>
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_BasicPublish_" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})">BasicPublish(IModel, string, string, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})">
+  BasicPublish(IModel, string, string, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L94"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Extension method) Convenience overload of BasicPublish.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void BasicPublish(this IModel model, string exchange, string routingKey, IBasicProperties basicProperties, ReadOnlyMemory&lt;byte&gt; body)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">exchange</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">routingKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
-        <td><span class="parametername">basicProperties</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</td>
-        <td><span class="parametername">body</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte___remarks">Remarks</h5>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>basicProperties</code> <a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte___remarks">Remarks</h4>
   <div class="markdown level1 remarks"><p>The publication occurs with mandatory=false</p>
 </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.Boolean%2CRabbitMQ.Client.IBasicProperties%2CSystem.ReadOnlyMemory%7BSystem.Byte%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L102">View Source</a>
-  </span>
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_BasicPublish_" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel,System.String,System.String,System.Boolean,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})">BasicPublish(IModel, string, string, bool, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_BasicPublish_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__" data-uid="RabbitMQ.Client.IModelExensions.BasicPublish(RabbitMQ.Client.IModel,System.String,System.String,System.Boolean,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})">
+  BasicPublish(IModel, string, string, bool, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L102"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Spec method) Convenience overload of BasicPublish.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void BasicPublish(this IModel model, string exchange, string routingKey, bool mandatory = false, IBasicProperties basicProperties = null, ReadOnlyMemory&lt;byte&gt; body = default)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">exchange</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">routingKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">mandatory</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></td>
-        <td><span class="parametername">basicProperties</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</td>
-        <td><span class="parametername">body</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_ExchangeBind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.ExchangeBind(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L119">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>mandatory</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>basicProperties</code> <a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_ExchangeBind_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeBind*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_ExchangeBind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeBind(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeBind(IModel, string, string, string, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_ExchangeBind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeBind(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  ExchangeBind(IModel, string, string, string, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L119"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Extension method) Bind an exchange to an exchange.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void ExchangeBind(this IModel model, string destination, string source, string routingKey, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">destination</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">source</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">routingKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_ExchangeBindNoWait_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.ExchangeBindNoWait(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L127">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>destination</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_ExchangeBindNoWait_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeBindNoWait*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_ExchangeBindNoWait_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeBindNoWait(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeBindNoWait(IModel, string, string, string, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_ExchangeBindNoWait_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeBindNoWait(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  ExchangeBindNoWait(IModel, string, string, string, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L127"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Extension method) Like exchange bind but sets nowait to true.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void ExchangeBindNoWait(this IModel model, string destination, string source, string routingKey, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">destination</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">source</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">routingKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_ExchangeDeclare_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.ExchangeDeclare(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L135">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>destination</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_ExchangeDeclare_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeclare*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_ExchangeDeclare_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeclare(RabbitMQ.Client.IModel,System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeDeclare(IModel, string, string, bool, bool, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_ExchangeDeclare_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeclare(RabbitMQ.Client.IModel,System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  ExchangeDeclare(IModel, string, string, bool, bool, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L135"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Spec method) Declare an exchange.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void ExchangeDeclare(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">exchange</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">type</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">durable</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">autoDelete</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_ExchangeDeclareNoWait_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.ExchangeDeclareNoWait(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L144">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>type</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>durable</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>autoDelete</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_ExchangeDeclareNoWait_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeclareNoWait*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_ExchangeDeclareNoWait_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeclareNoWait(RabbitMQ.Client.IModel,System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeDeclareNoWait(IModel, string, string, bool, bool, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_ExchangeDeclareNoWait_RabbitMQ_Client_IModel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeclareNoWait(RabbitMQ.Client.IModel,System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  ExchangeDeclareNoWait(IModel, string, string, bool, bool, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L144"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Extension method) Like ExchangeDeclare but sets nowait to true.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void ExchangeDeclareNoWait(this IModel model, string exchange, string type, bool durable = false, bool autoDelete = false, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">exchange</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">type</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">durable</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">autoDelete</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_ExchangeDelete_RabbitMQ_Client_IModel_System_String_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.ExchangeDelete(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L164">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>type</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>durable</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>autoDelete</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_ExchangeDelete_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDelete*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_ExchangeDelete_RabbitMQ_Client_IModel_System_String_System_Boolean_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDelete(RabbitMQ.Client.IModel,System.String,System.Boolean)">ExchangeDelete(IModel, string, bool)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_ExchangeDelete_RabbitMQ_Client_IModel_System_String_System_Boolean_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDelete(RabbitMQ.Client.IModel,System.String,System.Boolean)">
+  ExchangeDelete(IModel, string, bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L164"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Spec method) Deletes an exchange.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void ExchangeDelete(this IModel model, string exchange, bool ifUnused = false)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">exchange</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">ifUnused</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_ExchangeDeleteNoWait_RabbitMQ_Client_IModel_System_String_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.ExchangeDeleteNoWait(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L172">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>ifUnused</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_ExchangeDeleteNoWait_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeleteNoWait*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_ExchangeDeleteNoWait_RabbitMQ_Client_IModel_System_String_System_Boolean_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeleteNoWait(RabbitMQ.Client.IModel,System.String,System.Boolean)">ExchangeDeleteNoWait(IModel, string, bool)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_ExchangeDeleteNoWait_RabbitMQ_Client_IModel_System_String_System_Boolean_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeDeleteNoWait(RabbitMQ.Client.IModel,System.String,System.Boolean)">
+  ExchangeDeleteNoWait(IModel, string, bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L172"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Extension method) Like ExchangeDelete but sets nowait to true.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void ExchangeDeleteNoWait(this IModel model, string exchange, bool ifUnused = false)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">exchange</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">ifUnused</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_ExchangeUnbind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.ExchangeUnbind(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L153">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>ifUnused</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_ExchangeUnbind_" data-uid="RabbitMQ.Client.IModelExensions.ExchangeUnbind*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_ExchangeUnbind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeUnbind(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">ExchangeUnbind(IModel, string, string, string, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_ExchangeUnbind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.ExchangeUnbind(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  ExchangeUnbind(IModel, string, string, string, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L153"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Spec method) Unbinds an exchange.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void ExchangeUnbind(this IModel model, string destination, string source, string routingKey, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">destination</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">source</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">routingKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_QueueBind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.QueueBind(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L180">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>destination</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_QueueBind_" data-uid="RabbitMQ.Client.IModelExensions.QueueBind*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_QueueBind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.QueueBind(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">QueueBind(IModel, string, string, string, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_QueueBind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.QueueBind(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  QueueBind(IModel, string, string, string, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L180"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Spec method) Binds a queue.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void QueueBind(this IModel model, string queue, string exchange, string routingKey, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">exchange</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">routingKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_QueueDeclare_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.QueueDeclare(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Boolean%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L110">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_QueueDeclare_" data-uid="RabbitMQ.Client.IModelExensions.QueueDeclare*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_QueueDeclare_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.QueueDeclare(RabbitMQ.Client.IModel,System.String,System.Boolean,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">QueueDeclare(IModel, string, bool, bool, bool, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_QueueDeclare_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.QueueDeclare(RabbitMQ.Client.IModel,System.String,System.Boolean,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  QueueDeclare(IModel, string, bool, bool, bool, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L110"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Spec method) Declare a queue.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static QueueDeclareOk QueueDeclare(this IModel model, string queue = &quot;&quot;, bool durable = false, bool exclusive = true, bool autoDelete = true, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">durable</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">exclusive</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">autoDelete</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.QueueDeclareOk.html">QueueDeclareOk</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_QueueDelete_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.QueueDelete(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L188">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>durable</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>exclusive</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>autoDelete</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.QueueDeclareOk.html">QueueDeclareOk</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_QueueDelete_" data-uid="RabbitMQ.Client.IModelExensions.QueueDelete*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_QueueDelete_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.IModelExensions.QueueDelete(RabbitMQ.Client.IModel,System.String,System.Boolean,System.Boolean)">QueueDelete(IModel, string, bool, bool)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_QueueDelete_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.IModelExensions.QueueDelete(RabbitMQ.Client.IModel,System.String,System.Boolean,System.Boolean)">
+  QueueDelete(IModel, string, bool, bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L188"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Spec method) Deletes a queue.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static uint QueueDelete(this IModel model, string queue, bool ifUnused = false, bool ifEmpty = false)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">ifUnused</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">ifEmpty</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_QueueDeleteNoWait_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.QueueDeleteNoWait(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L196">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>ifUnused</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>ifEmpty</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_QueueDeleteNoWait_" data-uid="RabbitMQ.Client.IModelExensions.QueueDeleteNoWait*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_QueueDeleteNoWait_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.IModelExensions.QueueDeleteNoWait(RabbitMQ.Client.IModel,System.String,System.Boolean,System.Boolean)">QueueDeleteNoWait(IModel, string, bool, bool)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_QueueDeleteNoWait_RabbitMQ_Client_IModel_System_String_System_Boolean_System_Boolean_" data-uid="RabbitMQ.Client.IModelExensions.QueueDeleteNoWait(RabbitMQ.Client.IModel,System.String,System.Boolean,System.Boolean)">
+  QueueDeleteNoWait(IModel, string, bool, bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L196"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Extension method) Like QueueDelete but sets nowait to true.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void QueueDeleteNoWait(this IModel model, string queue, bool ifUnused = false, bool ifEmpty = false)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">ifUnused</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td><span class="parametername">ifEmpty</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions_QueueUnbind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions.QueueUnbind(RabbitMQ.Client.IModel%2CSystem.String%2CSystem.String%2CSystem.String%2CSystem.Collections.Generic.IDictionary%7BSystem.String%2CSystem.Object%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L204">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>ifUnused</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>ifEmpty</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_IModelExensions_QueueUnbind_" data-uid="RabbitMQ.Client.IModelExensions.QueueUnbind*"></a>
-  <h4 id="RabbitMQ_Client_IModelExensions_QueueUnbind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.QueueUnbind(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">QueueUnbind(IModel, string, string, string, IDictionary&lt;string, object&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_IModelExensions_QueueUnbind_RabbitMQ_Client_IModel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.IModelExensions.QueueUnbind(RabbitMQ.Client.IModel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+  QueueUnbind(IModel, string, string, string, IDictionary&lt;string, object&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L204"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>(Spec method) Unbinds a queue.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void QueueUnbind(this IModel model, string queue, string exchange, string routingKey, IDictionary&lt;string, object&gt; arguments = null)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></td>
-        <td><span class="parametername">model</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">queue</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">exchange</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">routingKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</td>
-        <td><span class="parametername">arguments</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
 
 </article>
-          </div>
 
-          <div class="hidden-sm col-md-2" role="complementary">
-            <div class="sideaffix">
-              <div class="contribution">
-                <ul class="nav">
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_IModelExensions.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IModelExensions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L37" class="contribution-link">View Source</a>
-                  </li>
-                </ul>
-              </div>
-              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In this article</h5>
-                <div></div>
-              </nav>
-            </div>
-          </div>
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IModelExtensions.cs/#L37" class="edit-link">Edit this page</a>
         </div>
+
+
       </div>
 
-      <footer>
-        <div class="grad-bottom"></div>
-        <div class="footer">
-          <div class="container">
-            <span class="pull-right">
-              <a href="#top">Back to top</a>
-            </span>
-      
-      <span>Generated by <strong>DocFX</strong></span>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
 
-    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

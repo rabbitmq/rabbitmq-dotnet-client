@@ -1,116 +1,159 @@
 ﻿<!DOCTYPE html>
-<!--[if IE]><![endif]-->
 <html>
-
   <head>
     <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <title>Class IntegrationFixture
- </title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="title" content="Class IntegrationFixture
- ">
-    
-      <link rel="shortcut icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
-      <link rel="stylesheet" href="../styles/docfx.css">
-      <link rel="stylesheet" href="../styles/main.css">
-      <meta property="docfx:navrel" content="../toc.html">
-      <meta property="docfx:tocrel" content="toc.html">
-    
-    
-    
+      <title>Class IntegrationFixture </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class IntegrationFixture ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/gh-pages/api/new?filename=RabbitMQ_Client_Unit_IntegrationFixture.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
   </head>
-  <body data-spy="scroll" data-target="#affix" data-offset="120">
-    <div id="wrapper">
-      <header>
 
-        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
-              </a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar">
-              <form class="navbar-form navbar-right" role="search" id="search">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
-                </div>
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
               </form>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
+    </header>
 
-        <div class="subnav navbar navbar-default">
-          <div class="container hide-when-search" id="breadcrumb">
-            <ul class="breadcrumb">
-              <li></li>
-            </ul>
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
           </div>
         </div>
-      </header>
-      <div role="main" class="container body-content hide-when-search">
+      </div>
 
-        <div class="sidenav hide-when-search">
-          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
-          <div class="sidetoggle collapse" id="sidetoggle">
-            <div id="sidetoc"></div>
-          </div>
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
         </div>
-        <div class="article row grid-right">
-          <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Unit.IntegrationFixture">
+
+        <article data-uid="RabbitMQ.Client.Unit.IntegrationFixture">
 
 
 
-  <h1 id="RabbitMQ_Client_Unit_IntegrationFixture" data-uid="RabbitMQ.Client.Unit.IntegrationFixture" class="text-break">Class IntegrationFixture
-</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="inheritance">
-    <h5>Inheritance</h5>
-    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-    <div class="level1"><span class="xref">IntegrationFixture</span></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html">TestAsyncConsumerExceptions</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestBasicGet.html">TestBasicGet</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestBasicPublishBatch.html">TestBasicPublishBatch</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.html">TestConcurrentAccessWithSharedConnection</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConfirmSelect.html">TestConfirmSelect</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConnectionBlocked.html">TestConnectionBlocked</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConnectionFactoryContinuationTimeout.html">TestConnectionFactoryContinuationTimeout</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConnectionRecovery.html">TestConnectionRecovery</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConnectionShutdown.html">TestConnectionShutdown</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConsumerCancelNotify.html">TestConsumerCancelNotify</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConsumerCount.html">TestConsumerCount</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConsumerExceptions.html">TestConsumerExceptions</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestConsumerOperationDispatch.html">TestConsumerOperationDispatch</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestEventingConsumer.html">TestEventingConsumer</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestExceptionMessages.html">TestExceptionMessages</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestExchangeDeclare.html">TestExchangeDeclare</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestExtensions.html">TestExtensions</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestHeartbeats.html">TestHeartbeats</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestInitialConnection.html">TestInitialConnection</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestInvalidAck.html">TestInvalidAck</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestMainLoop.html">TestMainLoop</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestMessageCount.html">TestMessageCount</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestModelShutdown.html">TestModelShutdown</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestNoWait.html">TestNoWait</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestPassiveDeclare.html">TestPassiveDeclare</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestPublishValidation.html">TestPublishValidation</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestPublisherConfirms.html">TestPublisherConfirms</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestQueueDeclare.html">TestQueueDeclare</a></div>
-      <div class="level2"><a class="xref" href="RabbitMQ.Client.Unit.TestUpdateSecret.html">TestUpdateSecret</a></div>
+  <h1 id="RabbitMQ_Client_Unit_IntegrationFixture" data-uid="RabbitMQ.Client.Unit.IntegrationFixture" class="text-break">
+Class IntegrationFixture  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Unit.html">Unit</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Unit.dll</dd></dl>
   </div>
-  <div class="inheritedMembers">
-    <h5>Inherited Members</h5>
+
+  <div class="markdown summary"></div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class IntegrationFixture</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">IntegrationFixture</span></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist derived">
+    <dt>Derived</dt>
+    <dd>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.html">TestAsyncConsumerExceptions</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestBasicGet.html">TestBasicGet</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestBasicPublishBatch.html">TestBasicPublishBatch</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConcurrentAccessWithSharedConnection.html">TestConcurrentAccessWithSharedConnection</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConfirmSelect.html">TestConfirmSelect</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConnectionBlocked.html">TestConnectionBlocked</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConnectionFactoryContinuationTimeout.html">TestConnectionFactoryContinuationTimeout</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConnectionRecovery.html">TestConnectionRecovery</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConnectionShutdown.html">TestConnectionShutdown</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConsumerCancelNotify.html">TestConsumerCancelNotify</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConsumerCount.html">TestConsumerCount</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConsumerExceptions.html">TestConsumerExceptions</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestConsumerOperationDispatch.html">TestConsumerOperationDispatch</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestEventingConsumer.html">TestEventingConsumer</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestExceptionMessages.html">TestExceptionMessages</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestExchangeDeclare.html">TestExchangeDeclare</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestExtensions.html">TestExtensions</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestHeartbeats.html">TestHeartbeats</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestInitialConnection.html">TestInitialConnection</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestInvalidAck.html">TestInvalidAck</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestMainLoop.html">TestMainLoop</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestMessageCount.html">TestMessageCount</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestModelShutdown.html">TestModelShutdown</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestNoWait.html">TestNoWait</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestPassiveDeclare.html">TestPassiveDeclare</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestPublishValidation.html">TestPublishValidation</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestPublisherConfirms.html">TestPublisherConfirms</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestQueueDeclare.html">TestQueueDeclare</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.TestUpdateSecret.html">TestUpdateSecret</a></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
@@ -132,277 +175,309 @@
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
-  </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Unit.html">Unit</a></h6>
-  <h6><strong>Assembly</strong>: Unit.dll</h6>
-  <h5 id="RabbitMQ_Client_Unit_IntegrationFixture_syntax">Syntax</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class IntegrationFixture</code></pre>
-  </div>
-  <h3 id="constructors">Constructors
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture__ctor.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.%23ctor%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L59">View Source</a>
-  </span>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
   <a id="RabbitMQ_Client_Unit_IntegrationFixture__ctor_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture__ctor" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.#ctor">IntegrationFixture()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture__ctor" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.#ctor">
+  IntegrationFixture()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L59"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public IntegrationFixture()</code></pre>
   </div>
-  <h3 id="fields">Fields
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_RECOVERY_INTERVAL.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.RECOVERY_INTERVAL%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L56">View Source</a>
-  </span>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_RECOVERY_INTERVAL" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.RECOVERY_INTERVAL">RECOVERY_INTERVAL</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture_RECOVERY_INTERVAL" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.RECOVERY_INTERVAL">
+  RECOVERY_INTERVAL
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L56"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static TimeSpan RECOVERY_INTERVAL</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture__testDisplayName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture._testDisplayName%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L57">View Source</a>
-  </span>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture__testDisplayName" data-uid="RabbitMQ.Client.Unit.IntegrationFixture._testDisplayName">_testDisplayName</h4>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture__testDisplayName" data-uid="RabbitMQ.Client.Unit.IntegrationFixture._testDisplayName">
+  _testDisplayName
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L57"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">protected readonly string _testDisplayName</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h3 id="methods">Methods
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_CertificatesDirectory.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.CertificatesDirectory%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L748">View Source</a>
-  </span>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_CertificatesDirectory_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.CertificatesDirectory*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_CertificatesDirectory" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.CertificatesDirectory">CertificatesDirectory()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture_CertificatesDirectory" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.CertificatesDirectory">
+  CertificatesDirectory()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L748"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static string CertificatesDirectory()</code></pre>
   </div>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_Dispose.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.Dispose%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L72">View Source</a>
-  </span>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_Dispose_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.Dispose*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_Dispose" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.Dispose">Dispose()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture_Dispose" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.Dispose">
+  Dispose()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L72"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[TearDown]
 public void Dispose()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_IgnoreOnVersionsEarlierThan_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.IgnoreOnVersionsEarlierThan(System.Int32%2CSystem.Int32)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L754">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_IgnoreOnVersionsEarlierThan_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.IgnoreOnVersionsEarlierThan*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_IgnoreOnVersionsEarlierThan_System_Int32_System_Int32_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.IgnoreOnVersionsEarlierThan(System.Int32,System.Int32)">IgnoreOnVersionsEarlierThan(int, int)</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture_IgnoreOnVersionsEarlierThan_System_Int32_System_Int32_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.IgnoreOnVersionsEarlierThan(System.Int32,System.Int32)">
+  IgnoreOnVersionsEarlierThan(int, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L754"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public void IgnoreOnVersionsEarlierThan(int major, int minor)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td><span class="parametername">major</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td><span class="parametername">minor</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_Init.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.Init%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L64">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>major</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>minor</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_Init_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.Init*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_Init" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.Init">Init()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture_Init" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.Init">
+  Init()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L64"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[SetUp]
 public virtual void Init()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_IsRunningOnMonoOrDotNetCore.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.IsRunningOnMonoOrDotNetCore%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L582">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_IsRunningOnMonoOrDotNetCore_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.IsRunningOnMonoOrDotNetCore*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_IsRunningOnMonoOrDotNetCore" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.IsRunningOnMonoOrDotNetCore">IsRunningOnMonoOrDotNetCore()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture_IsRunningOnMonoOrDotNetCore" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.IsRunningOnMonoOrDotNetCore">
+  IsRunningOnMonoOrDotNetCore()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L582"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static bool IsRunningOnMonoOrDotNetCore()</code></pre>
   </div>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture_ReleaseResources.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture.ReleaseResources%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L88">View Source</a>
-  </span>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_IntegrationFixture_ReleaseResources_" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ReleaseResources*"></a>
-  <h4 id="RabbitMQ_Client_Unit_IntegrationFixture_ReleaseResources" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ReleaseResources">ReleaseResources()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_IntegrationFixture_ReleaseResources" data-uid="RabbitMQ.Client.Unit.IntegrationFixture.ReleaseResources">
+  ReleaseResources()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L88"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">protected virtual void ReleaseResources()</code></pre>
   </div>
 
-</article>
-          </div>
 
-          <div class="hidden-sm col-md-2" role="complementary">
-            <div class="sideaffix">
-              <div class="contribution">
-                <ul class="nav">
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_IntegrationFixture.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.IntegrationFixture%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L49" class="contribution-link">View Source</a>
-                  </li>
-                </ul>
-              </div>
-              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In this article</h5>
-                <div></div>
-              </nav>
-            </div>
-          </div>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/Fixtures.cs/#L49" class="edit-link">Edit this page</a>
         </div>
+
+
       </div>
 
-      <footer>
-        <div class="grad-bottom"></div>
-        <div class="footer">
-          <div class="container">
-            <span class="pull-right">
-              <a href="#top">Back to top</a>
-            </span>
-      
-      <span>Generated by <strong>DocFX</strong></span>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
 
-    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

@@ -1,87 +1,126 @@
 ﻿<!DOCTYPE html>
-<!--[if IE]><![endif]-->
 <html>
-
   <head>
     <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <title>Class TestAmqpTcpEndpointParsing
- </title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="title" content="Class TestAmqpTcpEndpointParsing
- ">
-    
-      <link rel="shortcut icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
-      <link rel="stylesheet" href="../styles/docfx.css">
-      <link rel="stylesheet" href="../styles/main.css">
-      <meta property="docfx:navrel" content="../toc.html">
-      <meta property="docfx:tocrel" content="toc.html">
-    
-    
-    
+      <title>Class TestAmqpTcpEndpointParsing </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TestAmqpTcpEndpointParsing ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/gh-pages/api/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
   </head>
-  <body data-spy="scroll" data-target="#affix" data-offset="120">
-    <div id="wrapper">
-      <header>
 
-        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
-              </a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar">
-              <form class="navbar-form navbar-right" role="search" id="search">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
-                </div>
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
               </form>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
+    </header>
 
-        <div class="subnav navbar navbar-default">
-          <div class="container hide-when-search" id="breadcrumb">
-            <ul class="breadcrumb">
-              <li></li>
-            </ul>
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
           </div>
         </div>
-      </header>
-      <div role="main" class="container body-content hide-when-search">
+      </div>
 
-        <div class="sidenav hide-when-search">
-          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
-          <div class="sidetoggle collapse" id="sidetoggle">
-            <div id="sidetoc"></div>
-          </div>
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
         </div>
-        <div class="article row grid-right">
-          <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing">
+
+        <article data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing">
 
 
 
-  <h1 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing" class="text-break">Class TestAmqpTcpEndpointParsing
-</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="inheritance">
-    <h5>Inheritance</h5>
-    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-    <div class="level1"><span class="xref">TestAmqpTcpEndpointParsing</span></div>
+  <h1 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing" class="text-break">
+Class TestAmqpTcpEndpointParsing  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L38"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Unit.html">Unit</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Unit.dll</dd></dl>
   </div>
-  <div class="inheritedMembers">
-    <h5>Inherited Members</h5>
+
+  <div class="markdown summary"></div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[TestFixture]
+public class TestAmqpTcpEndpointParsing</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">TestAmqpTcpEndpointParsing</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
@@ -103,249 +142,364 @@
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
-  </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Unit.html">Unit</a></h6>
-  <h6><strong>Assembly</strong>: Unit.dll</h6>
-  <h5 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_syntax">Syntax</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[TestFixture]
-public class TestAmqpTcpEndpointParsing</code></pre>
-  </div>
-  <h3 id="methods">Methods
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestCompletelyEmptyString.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestCompletelyEmptyString%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L77">View Source</a>
-  </span>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestCompletelyEmptyString_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestCompletelyEmptyString*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestCompletelyEmptyString" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestCompletelyEmptyString">TestCompletelyEmptyString()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestCompletelyEmptyString" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestCompletelyEmptyString">
+  TestCompletelyEmptyString()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L77"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestCompletelyEmptyString()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestEmptyHostWithPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestEmptyHostWithPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L59">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestEmptyHostWithPort_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestEmptyHostWithPort*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestEmptyHostWithPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestEmptyHostWithPort">TestEmptyHostWithPort()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestEmptyHostWithPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestEmptyHostWithPort">
+  TestEmptyHostWithPort()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L59"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestEmptyHostWithPort()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestEmptyHostWithoutPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestEmptyHostWithoutPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L68">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestEmptyHostWithoutPort_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestEmptyHostWithoutPort*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestEmptyHostWithoutPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestEmptyHostWithoutPort">TestEmptyHostWithoutPort()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestEmptyHostWithoutPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestEmptyHostWithoutPort">
+  TestEmptyHostWithoutPort()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L68"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestEmptyHostWithoutPort()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestHostWithPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestHostWithPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L41">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestHostWithPort_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestHostWithPort*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestHostWithPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestHostWithPort">TestHostWithPort()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestHostWithPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestHostWithPort">
+  TestHostWithPort()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L41"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestHostWithPort()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestHostWithoutPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestHostWithoutPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L50">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestHostWithoutPort_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestHostWithoutPort*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestHostWithoutPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestHostWithoutPort">TestHostWithoutPort()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestHostWithoutPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestHostWithoutPort">
+  TestHostWithoutPort()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L50"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestHostWithoutPort()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestInvalidPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestInvalidPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L86">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestInvalidPort_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestInvalidPort*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestInvalidPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestInvalidPort">TestInvalidPort()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestInvalidPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestInvalidPort">
+  TestInvalidPort()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L86"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestInvalidPort()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestIpv6WithPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestIpv6WithPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L138">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestIpv6WithPort_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestIpv6WithPort*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestIpv6WithPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestIpv6WithPort">TestIpv6WithPort()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestIpv6WithPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestIpv6WithPort">
+  TestIpv6WithPort()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L138"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestIpv6WithPort()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestIpv6WithoutPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestIpv6WithoutPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L147">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestIpv6WithoutPort_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestIpv6WithoutPort*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestIpv6WithoutPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestIpv6WithoutPort">TestIpv6WithoutPort()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestIpv6WithoutPort" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestIpv6WithoutPort">
+  TestIpv6WithoutPort()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L147"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestIpv6WithoutPort()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleNone.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleNone%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L100">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleNone_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleNone*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleNone" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleNone">TestMultipleNone()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleNone" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleNone">
+  TestMultipleNone()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L100"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestMultipleNone()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleOne.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleOne%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L107">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleOne_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleOne*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleOne" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleOne">TestMultipleOne()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleOne" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleOne">
+  TestMultipleOne()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L107"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestMultipleOne()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleTwo.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleTwo%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L116">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleTwo_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleTwo*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleTwo" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleTwo">TestMultipleTwo()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleTwo" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleTwo">
+  TestMultipleTwo()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L116"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestMultipleTwo()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleTwoMultipleCommas.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleTwoMultipleCommas%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L127">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleTwoMultipleCommas_" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleTwoMultipleCommas*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleTwoMultipleCommas" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleTwoMultipleCommas">TestMultipleTwoMultipleCommas()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing_TestMultipleTwoMultipleCommas" data-uid="RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing.TestMultipleTwoMultipleCommas">
+  TestMultipleTwoMultipleCommas()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L127"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestMultipleTwoMultipleCommas()</code></pre>
   </div>
 
-</article>
-          </div>
 
-          <div class="hidden-sm col-md-2" role="complementary">
-            <div class="sideaffix">
-              <div class="contribution">
-                <ul class="nav">
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAmqpTcpEndpointParsing.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAmqpTcpEndpointParsing%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L38" class="contribution-link">View Source</a>
-                  </li>
-                </ul>
-              </div>
-              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In this article</h5>
-                <div></div>
-              </nav>
-            </div>
-          </div>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAmqpTcpEndpointParsing.cs/#L38" class="edit-link">Edit this page</a>
         </div>
+
+
       </div>
 
-      <footer>
-        <div class="grad-bottom"></div>
-        <div class="footer">
-          <div class="container">
-            <span class="pull-right">
-              <a href="#top">Back to top</a>
-            </span>
-      
-      <span>Generated by <strong>DocFX</strong></span>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
 
-    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

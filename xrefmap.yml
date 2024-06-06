@@ -9910,6 +9910,15 @@ references:
   commentId: T:RabbitMQ.Client.ShutdownEventArgs
   fullName: RabbitMQ.Client.ShutdownEventArgs
   nameWithType: ShutdownEventArgs
+- uid: RabbitMQ.Client.ShutdownEventArgs.#ctor(RabbitMQ.Client.ShutdownInitiator,System.UInt16,System.String,System.Exception)
+  name: ShutdownEventArgs(ShutdownInitiator, ushort, string, Exception)
+  href: api/RabbitMQ.Client.ShutdownEventArgs.html#RabbitMQ_Client_ShutdownEventArgs__ctor_RabbitMQ_Client_ShutdownInitiator_System_UInt16_System_String_System_Exception_
+  commentId: M:RabbitMQ.Client.ShutdownEventArgs.#ctor(RabbitMQ.Client.ShutdownInitiator,System.UInt16,System.String,System.Exception)
+  name.vb: New(ShutdownInitiator, UShort, String, Exception)
+  fullName: RabbitMQ.Client.ShutdownEventArgs.ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator, ushort, string, System.Exception)
+  fullName.vb: RabbitMQ.Client.ShutdownEventArgs.New(RabbitMQ.Client.ShutdownInitiator, UShort, String, System.Exception)
+  nameWithType: ShutdownEventArgs.ShutdownEventArgs(ShutdownInitiator, ushort, string, Exception)
+  nameWithType.vb: ShutdownEventArgs.New(ShutdownInitiator, UShort, String, Exception)
 - uid: RabbitMQ.Client.ShutdownEventArgs.#ctor(RabbitMQ.Client.ShutdownInitiator,System.UInt16,System.String,System.Object)
   name: ShutdownEventArgs(ShutdownInitiator, ushort, string, object)
   href: api/RabbitMQ.Client.ShutdownEventArgs.html#RabbitMQ_Client_ShutdownEventArgs__ctor_RabbitMQ_Client_ShutdownInitiator_System_UInt16_System_String_System_Object_
@@ -9964,6 +9973,19 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.ShutdownEventArgs.ClassId
   nameWithType: ShutdownEventArgs.ClassId
+- uid: RabbitMQ.Client.ShutdownEventArgs.Exception
+  name: Exception
+  href: api/RabbitMQ.Client.ShutdownEventArgs.html#RabbitMQ_Client_ShutdownEventArgs_Exception
+  commentId: P:RabbitMQ.Client.ShutdownEventArgs.Exception
+  fullName: RabbitMQ.Client.ShutdownEventArgs.Exception
+  nameWithType: ShutdownEventArgs.Exception
+- uid: RabbitMQ.Client.ShutdownEventArgs.Exception*
+  name: Exception
+  href: api/RabbitMQ.Client.ShutdownEventArgs.html#RabbitMQ_Client_ShutdownEventArgs_Exception_
+  commentId: Overload:RabbitMQ.Client.ShutdownEventArgs.Exception
+  isSpec: "True"
+  fullName: RabbitMQ.Client.ShutdownEventArgs.Exception
+  nameWithType: ShutdownEventArgs.Exception
 - uid: RabbitMQ.Client.ShutdownEventArgs.Initiator
   name: Initiator
   href: api/RabbitMQ.Client.ShutdownEventArgs.html#RabbitMQ_Client_ShutdownEventArgs_Initiator
@@ -10281,6 +10303,150 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.SslOption.Version
   nameWithType: SslOption.Version
+- uid: RabbitMQ.Client.TcpClientAdapter
+  name: TcpClientAdapter
+  href: api/RabbitMQ.Client.TcpClientAdapter.html
+  commentId: T:RabbitMQ.Client.TcpClientAdapter
+  fullName: RabbitMQ.Client.TcpClientAdapter
+  nameWithType: TcpClientAdapter
+- uid: RabbitMQ.Client.TcpClientAdapter.#ctor(System.Net.Sockets.Socket)
+  name: TcpClientAdapter(Socket)
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter__ctor_System_Net_Sockets_Socket_
+  commentId: M:RabbitMQ.Client.TcpClientAdapter.#ctor(System.Net.Sockets.Socket)
+  name.vb: New(Socket)
+  fullName: RabbitMQ.Client.TcpClientAdapter.TcpClientAdapter(System.Net.Sockets.Socket)
+  fullName.vb: RabbitMQ.Client.TcpClientAdapter.New(System.Net.Sockets.Socket)
+  nameWithType: TcpClientAdapter.TcpClientAdapter(Socket)
+  nameWithType.vb: TcpClientAdapter.New(Socket)
+- uid: RabbitMQ.Client.TcpClientAdapter.#ctor*
+  name: TcpClientAdapter
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter__ctor_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: RabbitMQ.Client.TcpClientAdapter.TcpClientAdapter
+  fullName.vb: RabbitMQ.Client.TcpClientAdapter.New
+  nameWithType: TcpClientAdapter.TcpClientAdapter
+  nameWithType.vb: TcpClientAdapter.New
+- uid: RabbitMQ.Client.TcpClientAdapter.Client
+  name: Client
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Client
+  commentId: P:RabbitMQ.Client.TcpClientAdapter.Client
+  fullName: RabbitMQ.Client.TcpClientAdapter.Client
+  nameWithType: TcpClientAdapter.Client
+- uid: RabbitMQ.Client.TcpClientAdapter.Client*
+  name: Client
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Client_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.Client
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TcpClientAdapter.Client
+  nameWithType: TcpClientAdapter.Client
+- uid: RabbitMQ.Client.TcpClientAdapter.Close
+  name: Close()
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Close
+  commentId: M:RabbitMQ.Client.TcpClientAdapter.Close
+  fullName: RabbitMQ.Client.TcpClientAdapter.Close()
+  nameWithType: TcpClientAdapter.Close()
+- uid: RabbitMQ.Client.TcpClientAdapter.Close*
+  name: Close
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Close_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.Close
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TcpClientAdapter.Close
+  nameWithType: TcpClientAdapter.Close
+- uid: RabbitMQ.Client.TcpClientAdapter.ConnectAsync(System.String,System.Int32)
+  name: ConnectAsync(string, int)
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_ConnectAsync_System_String_System_Int32_
+  commentId: M:RabbitMQ.Client.TcpClientAdapter.ConnectAsync(System.String,System.Int32)
+  name.vb: ConnectAsync(String, Integer)
+  fullName: RabbitMQ.Client.TcpClientAdapter.ConnectAsync(string, int)
+  fullName.vb: RabbitMQ.Client.TcpClientAdapter.ConnectAsync(String, Integer)
+  nameWithType: TcpClientAdapter.ConnectAsync(string, int)
+  nameWithType.vb: TcpClientAdapter.ConnectAsync(String, Integer)
+- uid: RabbitMQ.Client.TcpClientAdapter.ConnectAsync*
+  name: ConnectAsync
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_ConnectAsync_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.ConnectAsync
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TcpClientAdapter.ConnectAsync
+  nameWithType: TcpClientAdapter.ConnectAsync
+- uid: RabbitMQ.Client.TcpClientAdapter.Connected
+  name: Connected
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Connected
+  commentId: P:RabbitMQ.Client.TcpClientAdapter.Connected
+  fullName: RabbitMQ.Client.TcpClientAdapter.Connected
+  nameWithType: TcpClientAdapter.Connected
+- uid: RabbitMQ.Client.TcpClientAdapter.Connected*
+  name: Connected
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Connected_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.Connected
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TcpClientAdapter.Connected
+  nameWithType: TcpClientAdapter.Connected
+- uid: RabbitMQ.Client.TcpClientAdapter.Dispose
+  name: Dispose()
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Dispose
+  commentId: M:RabbitMQ.Client.TcpClientAdapter.Dispose
+  fullName: RabbitMQ.Client.TcpClientAdapter.Dispose()
+  nameWithType: TcpClientAdapter.Dispose()
+- uid: RabbitMQ.Client.TcpClientAdapter.Dispose(System.Boolean)
+  name: Dispose(bool)
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Dispose_System_Boolean_
+  commentId: M:RabbitMQ.Client.TcpClientAdapter.Dispose(System.Boolean)
+  name.vb: Dispose(Boolean)
+  fullName: RabbitMQ.Client.TcpClientAdapter.Dispose(bool)
+  fullName.vb: RabbitMQ.Client.TcpClientAdapter.Dispose(Boolean)
+  nameWithType: TcpClientAdapter.Dispose(bool)
+  nameWithType.vb: TcpClientAdapter.Dispose(Boolean)
+- uid: RabbitMQ.Client.TcpClientAdapter.Dispose*
+  name: Dispose
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_Dispose_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.Dispose
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TcpClientAdapter.Dispose
+  nameWithType: TcpClientAdapter.Dispose
+- uid: RabbitMQ.Client.TcpClientAdapter.GetMatchingHost(System.Collections.Generic.IReadOnlyCollection{System.Net.IPAddress},System.Net.Sockets.AddressFamily)
+  name: GetMatchingHost(IReadOnlyCollection<IPAddress>, AddressFamily)
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_GetMatchingHost_System_Collections_Generic_IReadOnlyCollection_System_Net_IPAddress__System_Net_Sockets_AddressFamily_
+  commentId: M:RabbitMQ.Client.TcpClientAdapter.GetMatchingHost(System.Collections.Generic.IReadOnlyCollection{System.Net.IPAddress},System.Net.Sockets.AddressFamily)
+  name.vb: GetMatchingHost(IReadOnlyCollection(Of IPAddress), AddressFamily)
+  fullName: RabbitMQ.Client.TcpClientAdapter.GetMatchingHost(System.Collections.Generic.IReadOnlyCollection<System.Net.IPAddress>, System.Net.Sockets.AddressFamily)
+  fullName.vb: RabbitMQ.Client.TcpClientAdapter.GetMatchingHost(System.Collections.Generic.IReadOnlyCollection(Of System.Net.IPAddress), System.Net.Sockets.AddressFamily)
+  nameWithType: TcpClientAdapter.GetMatchingHost(IReadOnlyCollection<IPAddress>, AddressFamily)
+  nameWithType.vb: TcpClientAdapter.GetMatchingHost(IReadOnlyCollection(Of IPAddress), AddressFamily)
+- uid: RabbitMQ.Client.TcpClientAdapter.GetMatchingHost*
+  name: GetMatchingHost
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_GetMatchingHost_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.GetMatchingHost
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TcpClientAdapter.GetMatchingHost
+  nameWithType: TcpClientAdapter.GetMatchingHost
+- uid: RabbitMQ.Client.TcpClientAdapter.GetStream
+  name: GetStream()
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_GetStream
+  commentId: M:RabbitMQ.Client.TcpClientAdapter.GetStream
+  fullName: RabbitMQ.Client.TcpClientAdapter.GetStream()
+  nameWithType: TcpClientAdapter.GetStream()
+- uid: RabbitMQ.Client.TcpClientAdapter.GetStream*
+  name: GetStream
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_GetStream_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.GetStream
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TcpClientAdapter.GetStream
+  nameWithType: TcpClientAdapter.GetStream
+- uid: RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout
+  name: ReceiveTimeout
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_ReceiveTimeout
+  commentId: P:RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout
+  fullName: RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout
+  nameWithType: TcpClientAdapter.ReceiveTimeout
+- uid: RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout*
+  name: ReceiveTimeout
+  href: api/RabbitMQ.Client.TcpClientAdapter.html#RabbitMQ_Client_TcpClientAdapter_ReceiveTimeout_
+  commentId: Overload:RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout
+  nameWithType: TcpClientAdapter.ReceiveTimeout
 - uid: RabbitMQ.Client.TimerBasedCredentialRefresher
   name: TimerBasedCredentialRefresher
   href: api/RabbitMQ.Client.TimerBasedCredentialRefresher.html
@@ -10319,6 +10485,22 @@ references:
   commentId: T:RabbitMQ.Client.TimerBasedCredentialRefresherEventSource
   fullName: RabbitMQ.Client.TimerBasedCredentialRefresherEventSource
   nameWithType: TimerBasedCredentialRefresherEventSource
+- uid: RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.AlreadyRegistered(System.String)
+  name: AlreadyRegistered(string)
+  href: api/RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.html#RabbitMQ_Client_TimerBasedCredentialRefresherEventSource_AlreadyRegistered_System_String_
+  commentId: M:RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.AlreadyRegistered(System.String)
+  name.vb: AlreadyRegistered(String)
+  fullName: RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.AlreadyRegistered(string)
+  fullName.vb: RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.AlreadyRegistered(String)
+  nameWithType: TimerBasedCredentialRefresherEventSource.AlreadyRegistered(string)
+  nameWithType.vb: TimerBasedCredentialRefresherEventSource.AlreadyRegistered(String)
+- uid: RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.AlreadyRegistered*
+  name: AlreadyRegistered
+  href: api/RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.html#RabbitMQ_Client_TimerBasedCredentialRefresherEventSource_AlreadyRegistered_
+  commentId: Overload:RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.AlreadyRegistered
+  isSpec: "True"
+  fullName: RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.AlreadyRegistered
+  nameWithType: TimerBasedCredentialRefresherEventSource.AlreadyRegistered
 - uid: RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.Log
   name: Log
   href: api/RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.html#RabbitMQ_Client_TimerBasedCredentialRefresherEventSource_Log
@@ -11669,6 +11851,22 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestConfirmSelect.TestConfirmSelectIdempotency
   nameWithType: TestConfirmSelect.TestConfirmSelectIdempotency
+- uid: RabbitMQ.Client.Unit.TestConfirmSelect.TestDeliveryTagDiverged_GH1043(System.Int32)
+  name: TestDeliveryTagDiverged_GH1043(int)
+  href: api/RabbitMQ.Client.Unit.TestConfirmSelect.html#RabbitMQ_Client_Unit_TestConfirmSelect_TestDeliveryTagDiverged_GH1043_System_Int32_
+  commentId: M:RabbitMQ.Client.Unit.TestConfirmSelect.TestDeliveryTagDiverged_GH1043(System.Int32)
+  name.vb: TestDeliveryTagDiverged_GH1043(Integer)
+  fullName: RabbitMQ.Client.Unit.TestConfirmSelect.TestDeliveryTagDiverged_GH1043(int)
+  fullName.vb: RabbitMQ.Client.Unit.TestConfirmSelect.TestDeliveryTagDiverged_GH1043(Integer)
+  nameWithType: TestConfirmSelect.TestDeliveryTagDiverged_GH1043(int)
+  nameWithType.vb: TestConfirmSelect.TestDeliveryTagDiverged_GH1043(Integer)
+- uid: RabbitMQ.Client.Unit.TestConfirmSelect.TestDeliveryTagDiverged_GH1043*
+  name: TestDeliveryTagDiverged_GH1043
+  href: api/RabbitMQ.Client.Unit.TestConfirmSelect.html#RabbitMQ_Client_Unit_TestConfirmSelect_TestDeliveryTagDiverged_GH1043_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConfirmSelect.TestDeliveryTagDiverged_GH1043
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestConfirmSelect.TestDeliveryTagDiverged_GH1043
+  nameWithType: TestConfirmSelect.TestDeliveryTagDiverged_GH1043
 - uid: RabbitMQ.Client.Unit.TestConnectionBlocked
   name: TestConnectionBlocked
   href: api/RabbitMQ.Client.Unit.TestConnectionBlocked.html
@@ -11758,6 +11956,19 @@ references:
   commentId: T:RabbitMQ.Client.Unit.TestConnectionFactory
   fullName: RabbitMQ.Client.Unit.TestConnectionFactory
   nameWithType: TestConnectionFactory
+- uid: RabbitMQ.Client.Unit.TestConnectionFactory.TestConnectionFactoryWithCustomSocketFactory
+  name: TestConnectionFactoryWithCustomSocketFactory()
+  href: api/RabbitMQ.Client.Unit.TestConnectionFactory.html#RabbitMQ_Client_Unit_TestConnectionFactory_TestConnectionFactoryWithCustomSocketFactory
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionFactory.TestConnectionFactoryWithCustomSocketFactory
+  fullName: RabbitMQ.Client.Unit.TestConnectionFactory.TestConnectionFactoryWithCustomSocketFactory()
+  nameWithType: TestConnectionFactory.TestConnectionFactoryWithCustomSocketFactory()
+- uid: RabbitMQ.Client.Unit.TestConnectionFactory.TestConnectionFactoryWithCustomSocketFactory*
+  name: TestConnectionFactoryWithCustomSocketFactory
+  href: api/RabbitMQ.Client.Unit.TestConnectionFactory.html#RabbitMQ_Client_Unit_TestConnectionFactory_TestConnectionFactoryWithCustomSocketFactory_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionFactory.TestConnectionFactoryWithCustomSocketFactory
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestConnectionFactory.TestConnectionFactoryWithCustomSocketFactory
+  nameWithType: TestConnectionFactory.TestConnectionFactoryWithCustomSocketFactory
 - uid: RabbitMQ.Client.Unit.TestConnectionFactory.TestCreateConnectioUsesValidEndpointWhenMultipleSupplied
   name: TestCreateConnectioUsesValidEndpointWhenMultipleSupplied()
   href: api/RabbitMQ.Client.Unit.TestConnectionFactory.html#RabbitMQ_Client_Unit_TestConnectionFactory_TestCreateConnectioUsesValidEndpointWhenMultipleSupplied
@@ -12456,6 +12667,19 @@ references:
   isSpec: "True"
   fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicRejectAfterChannelRecovery
   nameWithType: TestConnectionRecovery.TestBasicRejectAfterChannelRecovery
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBindingRecovery_GH1035
+  name: TestBindingRecovery_GH1035()
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBindingRecovery_GH1035
+  commentId: M:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBindingRecovery_GH1035
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBindingRecovery_GH1035()
+  nameWithType: TestConnectionRecovery.TestBindingRecovery_GH1035()
+- uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBindingRecovery_GH1035*
+  name: TestBindingRecovery_GH1035
+  href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBindingRecovery_GH1035_
+  commentId: Overload:RabbitMQ.Client.Unit.TestConnectionRecovery.TestBindingRecovery_GH1035
+  isSpec: "True"
+  fullName: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBindingRecovery_GH1035
+  nameWithType: TestConnectionRecovery.TestBindingRecovery_GH1035
 - uid: RabbitMQ.Client.Unit.TestConnectionRecovery.TestBlockedListenersRecovery
   name: TestBlockedListenersRecovery()
   href: api/RabbitMQ.Client.Unit.TestConnectionRecovery.html#RabbitMQ_Client_Unit_TestConnectionRecovery_TestBlockedListenersRecovery

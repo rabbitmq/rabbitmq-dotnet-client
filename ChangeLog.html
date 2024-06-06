@@ -1,89 +1,86 @@
 ﻿<!DOCTYPE html>
-<!--[if IE]><![endif]-->
 <html>
-
   <head>
     <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <title>Changelog </title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="title" content="Changelog ">
-    
-      <link rel="shortcut icon" href="favicon.ico">
-      <link rel="stylesheet" href="styles/docfx.vendor.min.css">
-      <link rel="stylesheet" href="styles/docfx.css">
-      <link rel="stylesheet" href="styles/main.css">
-      <meta property="docfx:navrel" content="toc.html">
-      <meta property="docfx:tocrel" content="toc.html">
-    
-    
-    
+      <title> </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content=" ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/gh-pages/CHANGELOG.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
   </head>
-  <body data-spy="scroll" data-target="#affix" data-offset="120">
-    <div id="wrapper">
-      <header>
 
-        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-
-              <a class="navbar-brand" href="index.html">
-                <img id="logo" class="svg" src="logo.svg" alt="">
-              </a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar">
-              <form class="navbar-form navbar-right" role="search" id="search">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
-                </div>
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
               </form>
             </div>
           </div>
-        </nav>
-
-        <div class="subnav navbar navbar-default">
-          <div class="container hide-when-search" id="breadcrumb">
-            <ul class="breadcrumb">
-              <li></li>
-            </ul>
-          </div>
         </div>
-      </header>
-      <div role="main" class="container body-content hide-when-search">
-        <div class="article row grid">
-          <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="">
-<h1 id="changelog">Changelog</h1>
+      </nav>
+    </header>
 
-<h2 id="v650-2023-03-24"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.5.0">v6.5.0</a> (2023-03-24)</h2>
-<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0-rc.1...v6.5.0">Full Changelog</a></p>
-<p><strong>Implemented enhancements:</strong></p>
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+<h2 id="changes-between-640-and-670">Changes Between 6.4.0 and 6.7.0</h2>
+<h2 id="v670-2023-11-16"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0">v6.7.0</a> (2023-11-16)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.7.0">Full Changelog</a></p>
+<p><strong>Fixed bugs:</strong></p>
 <ul>
-<li>Exception during recovery causes recovery failure <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/658">#658</a></li>
+<li>Removed <code>ReceiveBufferSize</code> and <code>SendBufferSize</code> because it limited performance <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1416">#1416</a></li>
+<li>Make <code>TcpClientAdapter</code> public <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1418">#1418</a></li>
+<li>6.5.0 can cause application freeze due to TaskScheduler change <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1357">#1357</a></li>
 </ul>
-<p><strong>Closed issues:</strong></p>
-<ul>
-<li>Consumer tags aren't cleaned on channel close causing memory leak. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1302">#1302</a></li>
-<li>Impossible to use a ulong as a header value <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1298">#1298</a></li>
-<li>Recovery does not appear to save consumer arguments <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1293">#1293</a></li>
-<li>Long delay from publish to consumer event <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1252">#1252</a></li>
-<li>Timeout when opening a new channel after channel exception <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1246">#1246</a></li>
-<li>Autorecovery for server-named queues loops indefinitely when consumer listen this queue <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1238">#1238</a></li>
-<li>IModel.WaitForConfirmsOrDie* methods don't document that they close <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1234">#1234</a></li>
-<li>Port #1223 to main <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1225">#1225</a></li>
-<li>Better integrate max message size <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1223">#1223</a></li>
-<li>7.0 Release Checklist <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1191">#1191</a></li>
-<li>Missing IRecoveryable implementation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/998">#998</a></li>
-<li>BasicGetResult body memory safety in 6.x+ <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/994">#994</a></li>
-</ul>
-<h2 id="v640-rc1-2022-06-14"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.4.0-rc.1">v6.4.0-rc.1</a> (2022-06-14)</h2>
-<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.4.0-rc.1">Full Changelog</a></p>
 <h2 id="changes-between-631-and-640">Changes Between 6.3.1 and 6.4.0</h2>
 <p>This release adds the ability to specify a maximum message size when receiving data. The default
 values are:</p>
@@ -260,44 +257,30 @@ longer be used to control concurrency.</p>
 <p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/239">rabbitmq-dotnet-client#239</a>.</p>
 <h3 id="occasional-nullreferenceexception-in-endpoint-resolution">Occasional <code>NullReferenceException</code> in Endpoint Resolution</h3>
 <p>GH issue: <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/238">rabbitmq-dotnet-client#238</a></p>
-<p>* <em>This Changelog was automatically generated by <a href="https://github.com/github-changelog-generator/github-changelog-generator">github_changelog_generator</a></em></p>
-</article>
-          </div>
 
-          <div class="hidden-sm col-md-2" role="complementary">
-            <div class="sideaffix">
-              <div class="contribution">
-                <ul class="nav">
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/CHANGELOG.md/#L1" class="contribution-link">Edit this page</a>
-                  </li>
-                </ul>
-              </div>
-              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In this article</h5>
-                <div></div>
-              </nav>
-            </div>
-          </div>
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/gh-pages/CHANGELOG.md/#L1" class="edit-link">Edit this page</a>
         </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
       </div>
 
-      <footer>
-        <div class="grad-bottom"></div>
-        <div class="footer">
-          <div class="container">
-            <span class="pull-right">
-              <a href="#top">Back to top</a>
-            </span>
-      
-      <span>Generated by <strong>DocFX</strong></span>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
 
-    <script type="text/javascript" src="styles/docfx.vendor.min.js"></script>
-    <script type="text/javascript" src="styles/docfx.js"></script>
-    <script type="text/javascript" src="styles/main.js"></script>
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

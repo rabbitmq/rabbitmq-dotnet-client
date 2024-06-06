@@ -1,88 +1,127 @@
 ﻿<!DOCTYPE html>
-<!--[if IE]><![endif]-->
 <html>
-
   <head>
     <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <title>Class TestAsyncConsumerExceptions
- </title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="title" content="Class TestAsyncConsumerExceptions
- ">
-    
-      <link rel="shortcut icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
-      <link rel="stylesheet" href="../styles/docfx.css">
-      <link rel="stylesheet" href="../styles/main.css">
-      <meta property="docfx:navrel" content="../toc.html">
-      <meta property="docfx:tocrel" content="toc.html">
-    
-    
-    
+      <title>Class TestAsyncConsumerExceptions </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TestAsyncConsumerExceptions ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/gh-pages/api/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
   </head>
-  <body data-spy="scroll" data-target="#affix" data-offset="120">
-    <div id="wrapper">
-      <header>
 
-        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
-              </a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar">
-              <form class="navbar-form navbar-right" role="search" id="search">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
-                </div>
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
               </form>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
+    </header>
 
-        <div class="subnav navbar navbar-default">
-          <div class="container hide-when-search" id="breadcrumb">
-            <ul class="breadcrumb">
-              <li></li>
-            </ul>
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
           </div>
         </div>
-      </header>
-      <div role="main" class="container body-content hide-when-search">
+      </div>
 
-        <div class="sidenav hide-when-search">
-          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
-          <div class="sidetoggle collapse" id="sidetoggle">
-            <div id="sidetoc"></div>
-          </div>
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
         </div>
-        <div class="article row grid-right">
-          <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions">
+
+        <article data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions">
 
 
 
-  <h1 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions" class="text-break">Class TestAsyncConsumerExceptions
-</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="inheritance">
-    <h5>Inheritance</h5>
-    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-    <div class="level1"><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html">IntegrationFixture</a></div>
-    <div class="level2"><span class="xref">TestAsyncConsumerExceptions</span></div>
+  <h1 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions" class="text-break">
+Class TestAsyncConsumerExceptions  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Unit.html">Unit</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Unit.dll</dd></dl>
   </div>
-  <div class="inheritedMembers">
-    <h5>Inherited Members</h5>
+
+  <div class="markdown summary"></div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[TestFixture]
+public class TestAsyncConsumerExceptions : IntegrationFixture</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html">IntegrationFixture</a></div>
+      <div><span class="xref">TestAsyncConsumerExceptions</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
     <div>
       <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_RECOVERY_INTERVAL">IntegrationFixture.RECOVERY_INTERVAL</a>
     </div>
@@ -125,209 +164,265 @@
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
-  </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Unit.html">Unit</a></h6>
-  <h6><strong>Assembly</strong>: Unit.dll</h6>
-  <h5 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_syntax">Syntax</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[TestFixture]
-public class TestAsyncConsumerExceptions : IntegrationFixture</code></pre>
-  </div>
-  <h3 id="constructors">Constructors
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions__ctor.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.%23ctor%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L45">View Source</a>
-  </span>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
   <a id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions__ctor_" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions__ctor" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.#ctor">TestAsyncConsumerExceptions()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions__ctor" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.#ctor">
+  TestAsyncConsumerExceptions()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L45"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public TestAsyncConsumerExceptions()</code></pre>
   </div>
-  <h3 id="methods">Methods
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_Init.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L71">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
   <a id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_Init_" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_Init" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init">Init()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_Init" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.Init">
+  Init()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L71"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[SetUp]
 public override void Init()</code></pre>
   </div>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Init">IntegrationFixture.Init()</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestCancelNotificationExceptionHandling.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L83">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestCancelNotificationExceptionHandling_" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestCancelNotificationExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling">TestCancelNotificationExceptionHandling()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestCancelNotificationExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestCancelNotificationExceptionHandling">
+  TestCancelNotificationExceptionHandling()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L83"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestCancelNotificationExceptionHandling()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerCancelOkExceptionHandling.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L90">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerCancelOkExceptionHandling_" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerCancelOkExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling">TestConsumerCancelOkExceptionHandling()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerCancelOkExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerCancelOkExceptionHandling">
+  TestConsumerCancelOkExceptionHandling()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L90"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestConsumerCancelOkExceptionHandling()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerConsumeOkExceptionHandling.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L97">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerConsumeOkExceptionHandling_" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerConsumeOkExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling">TestConsumerConsumeOkExceptionHandling()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerConsumeOkExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerConsumeOkExceptionHandling">
+  TestConsumerConsumeOkExceptionHandling()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L97"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestConsumerConsumeOkExceptionHandling()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerShutdownExceptionHandling.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L104">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerShutdownExceptionHandling_" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerShutdownExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling">TestConsumerShutdownExceptionHandling()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestConsumerShutdownExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestConsumerShutdownExceptionHandling">
+  TestConsumerShutdownExceptionHandling()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L104"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestConsumerShutdownExceptionHandling()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestDeliveryExceptionHandling.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L111">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestDeliveryExceptionHandling_" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestDeliveryExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling">TestDeliveryExceptionHandling()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestDeliveryExceptionHandling" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestDeliveryExceptionHandling">
+  TestDeliveryExceptionHandling()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L111"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestDeliveryExceptionHandling()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestExceptionHandlingWith_RabbitMQ_Client_IBasicConsumer_System_Action_RabbitMQ_Client_IModel_System_String_RabbitMQ_Client_IBasicConsumer_System_String__.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith(RabbitMQ.Client.IBasicConsumer%2CSystem.Action%7BRabbitMQ.Client.IModel%2CSystem.String%2CRabbitMQ.Client.IBasicConsumer%2CSystem.String%7D)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L49">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestExceptionHandlingWith_" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestExceptionHandlingWith_RabbitMQ_Client_IBasicConsumer_System_Action_RabbitMQ_Client_IModel_System_String_RabbitMQ_Client_IBasicConsumer_System_String__" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith(RabbitMQ.Client.IBasicConsumer,System.Action{RabbitMQ.Client.IModel,System.String,RabbitMQ.Client.IBasicConsumer,System.String})">TestExceptionHandlingWith(IBasicConsumer, Action&lt;IModel, string, IBasicConsumer, string&gt;)</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestAsyncConsumerExceptions_TestExceptionHandlingWith_RabbitMQ_Client_IBasicConsumer_System_Action_RabbitMQ_Client_IModel_System_String_RabbitMQ_Client_IBasicConsumer_System_String__" data-uid="RabbitMQ.Client.Unit.TestAsyncConsumerExceptions.TestExceptionHandlingWith(RabbitMQ.Client.IBasicConsumer,System.Action{RabbitMQ.Client.IModel,System.String,RabbitMQ.Client.IBasicConsumer,System.String})">
+  TestExceptionHandlingWith(IBasicConsumer, Action&lt;IModel, string, IBasicConsumer, string&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">protected void TestExceptionHandlingWith(IBasicConsumer consumer, Action&lt;IModel, string, IBasicConsumer, string&gt; action)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></td>
-        <td><span class="parametername">consumer</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-4">Action</a>&lt;<a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</td>
-        <td><span class="parametername">action</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>consumer</code> <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></dt>
+    <dd></dd>
+    <dt><code>action</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-4">Action</a>&lt;<a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
 
 </article>
-          </div>
 
-          <div class="hidden-sm col-md-2" role="complementary">
-            <div class="sideaffix">
-              <div class="contribution">
-                <ul class="nav">
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestAsyncConsumerExceptions.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestAsyncConsumerExceptions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L40" class="contribution-link">View Source</a>
-                  </li>
-                </ul>
-              </div>
-              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In this article</h5>
-                <div></div>
-              </nav>
-            </div>
-          </div>
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestAsyncConsumerExceptions.cs/#L40" class="edit-link">Edit this page</a>
         </div>
+
+
       </div>
 
-      <footer>
-        <div class="grad-bottom"></div>
-        <div class="footer">
-          <div class="container">
-            <span class="pull-right">
-              <a href="#top">Back to top</a>
-            </span>
-      
-      <span>Generated by <strong>DocFX</strong></span>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
 
-    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

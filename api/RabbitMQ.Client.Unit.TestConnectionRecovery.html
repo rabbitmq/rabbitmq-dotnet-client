@@ -1,88 +1,127 @@
 ﻿<!DOCTYPE html>
-<!--[if IE]><![endif]-->
 <html>
-
   <head>
     <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <title>Class TestConnectionRecovery
- </title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="title" content="Class TestConnectionRecovery
- ">
-    
-      <link rel="shortcut icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
-      <link rel="stylesheet" href="../styles/docfx.css">
-      <link rel="stylesheet" href="../styles/main.css">
-      <meta property="docfx:navrel" content="../toc.html">
-      <meta property="docfx:tocrel" content="toc.html">
-    
-    
-    
+      <title>Class TestConnectionRecovery </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TestConnectionRecovery ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/gh-pages/api/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
   </head>
-  <body data-spy="scroll" data-target="#affix" data-offset="120">
-    <div id="wrapper">
-      <header>
 
-        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
-              </a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar">
-              <form class="navbar-form navbar-right" role="search" id="search">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
-                </div>
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
               </form>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
+    </header>
 
-        <div class="subnav navbar navbar-default">
-          <div class="container hide-when-search" id="breadcrumb">
-            <ul class="breadcrumb">
-              <li></li>
-            </ul>
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
           </div>
         </div>
-      </header>
-      <div role="main" class="container body-content hide-when-search">
+      </div>
 
-        <div class="sidenav hide-when-search">
-          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
-          <div class="sidetoggle collapse" id="sidetoggle">
-            <div id="sidetoc"></div>
-          </div>
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
         </div>
-        <div class="article row grid-right">
-          <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery">
+
+        <article data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery">
 
 
 
-  <h1 id="RabbitMQ_Client_Unit_TestConnectionRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery" class="text-break">Class TestConnectionRecovery
-</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="inheritance">
-    <h5>Inheritance</h5>
-    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-    <div class="level1"><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html">IntegrationFixture</a></div>
-    <div class="level2"><span class="xref">TestConnectionRecovery</span></div>
+  <h1 id="RabbitMQ_Client_Unit_TestConnectionRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery" class="text-break">
+Class TestConnectionRecovery  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L48"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Unit.html">Unit</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Unit.dll</dd></dl>
   </div>
-  <div class="inheritedMembers">
-    <h5>Inherited Members</h5>
+
+  <div class="markdown summary"></div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[TestFixture]
+public class TestConnectionRecovery : IntegrationFixture</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html">IntegrationFixture</a></div>
+      <div><span class="xref">TestConnectionRecovery</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
     <div>
       <a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_RECOVERY_INTERVAL">IntegrationFixture.RECOVERY_INTERVAL</a>
     </div>
@@ -122,1101 +161,1824 @@
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
-  </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Unit.html">Unit</a></h6>
-  <h6><strong>Assembly</strong>: Unit.dll</h6>
-  <h5 id="RabbitMQ_Client_Unit_TestConnectionRecovery_syntax">Syntax</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[TestFixture]
-public class TestConnectionRecovery : IntegrationFixture</code></pre>
-  </div>
-  <h3 id="constructors">Constructors
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery__ctor.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.%23ctor%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L56">View Source</a>
-  </span>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery__ctor_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery__ctor" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.#ctor">TestConnectionRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery__ctor" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.#ctor">
+  TestConnectionRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L56"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public TestConnectionRecovery()</code></pre>
   </div>
-  <h3 id="methods">Methods
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_Init.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.Init%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L63">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_Init_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.Init*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_Init" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.Init">Init()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_Init" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.Init">
+  Init()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L63"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[SetUp]
 public override void Init()</code></pre>
   </div>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_Init">IntegrationFixture.Init()</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_ReleaseResources.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.ReleaseResources%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L72">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_ReleaseResources_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.ReleaseResources*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_ReleaseResources" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.ReleaseResources">ReleaseResources()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_ReleaseResources" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.ReleaseResources">
+  ReleaseResources()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L72"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">protected override void ReleaseResources()</code></pre>
   </div>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="RabbitMQ.Client.Unit.IntegrationFixture.html#RabbitMQ_Client_Unit_IntegrationFixture_ReleaseResources">IntegrationFixture.ReleaseResources()</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckAfterBasicGetAndChannelRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckAfterBasicGetAndChannelRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L153">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckAfterBasicGetAndChannelRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckAfterBasicGetAndChannelRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckAfterBasicGetAndChannelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckAfterBasicGetAndChannelRecovery">TestBasicAckAfterBasicGetAndChannelRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckAfterBasicGetAndChannelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckAfterBasicGetAndChannelRecovery">
+  TestBasicAckAfterBasicGetAndChannelRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L153"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicAckAfterBasicGetAndChannelRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckAfterChannelRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckAfterChannelRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L87">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckAfterChannelRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckAfterChannelRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckAfterChannelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckAfterChannelRecovery">TestBasicAckAfterChannelRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckAfterChannelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckAfterChannelRecovery">
+  TestBasicAckAfterChannelRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L87"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicAckAfterChannelRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckEventHandlerRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckEventHandlerRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L172">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckEventHandlerRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckEventHandlerRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckEventHandlerRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckEventHandlerRecovery">TestBasicAckEventHandlerRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicAckEventHandlerRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicAckEventHandlerRecovery">
+  TestBasicAckEventHandlerRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L172"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicAckEventHandlerRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L188">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecovery">TestBasicConnectionRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecovery">
+  TestBasicConnectionRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L188"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicConnectionRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryOnBrokerRestart.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryOnBrokerRestart%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L275">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryOnBrokerRestart_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryOnBrokerRestart*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryOnBrokerRestart" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryOnBrokerRestart">TestBasicConnectionRecoveryOnBrokerRestart()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryOnBrokerRestart" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryOnBrokerRestart">
+  TestBasicConnectionRecoveryOnBrokerRestart()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L275"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicConnectionRecoveryOnBrokerRestart()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryStopsAfterManualClose.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryStopsAfterManualClose%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L234">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryStopsAfterManualClose_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryStopsAfterManualClose*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryStopsAfterManualClose" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryStopsAfterManualClose">TestBasicConnectionRecoveryStopsAfterManualClose()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryStopsAfterManualClose" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryStopsAfterManualClose">
+  TestBasicConnectionRecoveryStopsAfterManualClose()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L234"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicConnectionRecoveryStopsAfterManualClose()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithEndpointList.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithEndpointList%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L218">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithEndpointList_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithEndpointList*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithEndpointList" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithEndpointList">TestBasicConnectionRecoveryWithEndpointList()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithEndpointList" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithEndpointList">
+  TestBasicConnectionRecoveryWithEndpointList()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L218"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicConnectionRecoveryWithEndpointList()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L258">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts">TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts">
+  TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L258"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicConnectionRecoveryWithEndpointListAndUnreachableHosts()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithHostnameList.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameList%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L196">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithHostnameList_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameList*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithHostnameList" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameList">TestBasicConnectionRecoveryWithHostnameList()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithHostnameList" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameList">
+  TestBasicConnectionRecoveryWithHostnameList()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L196"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicConnectionRecoveryWithHostnameList()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L207">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts">TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts">
+  TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L207"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicConnectionRecoveryWithHostnameListAndUnreachableHosts()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L283">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecovery">TestBasicModelRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecovery">
+  TestBasicModelRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L283"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicModelRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecoveryOnServerRestart.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecoveryOnServerRestart%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L291">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecoveryOnServerRestart_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecoveryOnServerRestart*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecoveryOnServerRestart" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecoveryOnServerRestart">TestBasicModelRecoveryOnServerRestart()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicModelRecoveryOnServerRestart" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicModelRecoveryOnServerRestart">
+  TestBasicModelRecoveryOnServerRestart()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L291"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicModelRecoveryOnServerRestart()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicNackAfterChannelRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicNackAfterChannelRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L109">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicNackAfterChannelRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicNackAfterChannelRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicNackAfterChannelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicNackAfterChannelRecovery">TestBasicNackAfterChannelRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicNackAfterChannelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicNackAfterChannelRecovery">
+  TestBasicNackAfterChannelRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L109"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicNackAfterChannelRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicRejectAfterChannelRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicRejectAfterChannelRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L131">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicRejectAfterChannelRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicRejectAfterChannelRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicRejectAfterChannelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicRejectAfterChannelRecovery">TestBasicRejectAfterChannelRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBasicRejectAfterChannelRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBasicRejectAfterChannelRecovery">
+  TestBasicRejectAfterChannelRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L131"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBasicRejectAfterChannelRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestBlockedListenersRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestBlockedListenersRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L299">View Source</a>
-  </span>
-  <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBlockedListenersRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBlockedListenersRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBlockedListenersRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBlockedListenersRecovery">TestBlockedListenersRecovery()</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBindingRecovery_GH1035_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBindingRecovery_GH1035*"></a>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBindingRecovery_GH1035" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBindingRecovery_GH1035">
+  TestBindingRecovery_GH1035()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1628"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Test]
+public void TestBindingRecovery_GH1035()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBlockedListenersRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBlockedListenersRecovery*"></a>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestBlockedListenersRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestBlockedListenersRecovery">
+  TestBlockedListenersRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L299"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestBlockedListenersRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L313">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecovery">TestClientNamedQueueRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecovery">
+  TestClientNamedQueueRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L313"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestClientNamedQueueRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecoveryNoWait.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecoveryNoWait%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L325">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecoveryNoWait_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecoveryNoWait*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecoveryNoWait" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecoveryNoWait">TestClientNamedQueueRecoveryNoWait()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecoveryNoWait" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecoveryNoWait">
+  TestClientNamedQueueRecoveryNoWait()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L325"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestClientNamedQueueRecoveryNoWait()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecoveryOnServerRestart.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecoveryOnServerRestart%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L336">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecoveryOnServerRestart_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecoveryOnServerRestart*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecoveryOnServerRestart" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecoveryOnServerRestart">TestClientNamedQueueRecoveryOnServerRestart()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedQueueRecoveryOnServerRestart" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedQueueRecoveryOnServerRestart">
+  TestClientNamedQueueRecoveryOnServerRestart()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L336"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestClientNamedQueueRecoveryOnServerRestart()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedTransientAutoDeleteQueueAndBindingRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedTransientAutoDeleteQueueAndBindingRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L639">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedTransientAutoDeleteQueueAndBindingRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedTransientAutoDeleteQueueAndBindingRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedTransientAutoDeleteQueueAndBindingRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedTransientAutoDeleteQueueAndBindingRecovery">TestClientNamedTransientAutoDeleteQueueAndBindingRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestClientNamedTransientAutoDeleteQueueAndBindingRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestClientNamedTransientAutoDeleteQueueAndBindingRecovery">
+  TestClientNamedTransientAutoDeleteQueueAndBindingRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L639"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestClientNamedTransientAutoDeleteQueueAndBindingRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryOnClientNamedQueueWithOneRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryOnClientNamedQueueWithOneRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L373">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryOnClientNamedQueueWithOneRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryOnClientNamedQueueWithOneRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryOnClientNamedQueueWithOneRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryOnClientNamedQueueWithOneRecovery">TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryOnClientNamedQueueWithOneRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryOnClientNamedQueueWithOneRecovery">
+  TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L373"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryWithManyConsumers.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryWithManyConsumers%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L445">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryWithManyConsumers_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryWithManyConsumers*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryWithManyConsumers" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryWithManyConsumers">TestConsumerRecoveryWithManyConsumers()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryWithManyConsumers" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryWithManyConsumers">
+  TestConsumerRecoveryWithManyConsumers()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L445"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestConsumerRecoveryWithManyConsumers()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryWithServerNamedQueue.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryWithServerNamedQueue%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L413">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryWithServerNamedQueue_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryWithServerNamedQueue*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryWithServerNamedQueue" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryWithServerNamedQueue">TestConsumerRecoveryWithServerNamedQueue()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerRecoveryWithServerNamedQueue" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerRecoveryWithServerNamedQueue">
+  TestConsumerRecoveryWithServerNamedQueue()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L413"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test(Description = &quot;https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1238&quot;)]
 public void TestConsumerRecoveryWithServerNamedQueue()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerWorkServiceRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerWorkServiceRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L348">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerWorkServiceRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerWorkServiceRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerWorkServiceRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerWorkServiceRecovery">TestConsumerWorkServiceRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestConsumerWorkServiceRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestConsumerWorkServiceRecovery">
+  TestConsumerWorkServiceRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L348"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestConsumerWorkServiceRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L466">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang">TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang">
+  TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L466"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestCreateModelOnClosedAutorecoveringConnectionDoesNotHang()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L494">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted">TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted">
+  TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L494"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreDeleted()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L510">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound">TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound">
+  TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L510"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestDeclarationOfManyAutoDeleteExchangesWithTransientExchangesThatAreUnbound()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L527">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted">TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted">
+  TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L527"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreDeleted()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L542">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound">TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound">
+  TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L542"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestDeclarationOfManyAutoDeleteExchangesWithTransientQueuesThatAreUnbound()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L557">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer">TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer">
+  TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L557"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L572">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeRecovery">TestExchangeRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeRecovery">
+  TestExchangeRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L572"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestExchangeRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeRecoveryWithNoWait.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeRecoveryWithNoWait%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L582">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeRecoveryWithNoWait_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeRecoveryWithNoWait*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeRecoveryWithNoWait" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeRecoveryWithNoWait">TestExchangeRecoveryWithNoWait()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeRecoveryWithNoWait" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeRecoveryWithNoWait">
+  TestExchangeRecoveryWithNoWait()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L582"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestExchangeRecoveryWithNoWait()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeToExchangeBindingRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeToExchangeBindingRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L592">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeToExchangeBindingRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeToExchangeBindingRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeToExchangeBindingRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeToExchangeBindingRecovery">TestExchangeToExchangeBindingRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestExchangeToExchangeBindingRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestExchangeToExchangeBindingRecovery">
+  TestExchangeToExchangeBindingRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L592"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestExchangeToExchangeBindingRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestPublishRpcRightAfterReconnect.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L960">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestPublishRpcRightAfterReconnect_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestPublishRpcRightAfterReconnect" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect">TestPublishRpcRightAfterReconnect()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestPublishRpcRightAfterReconnect" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestPublishRpcRightAfterReconnect">
+  TestPublishRpcRightAfterReconnect()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L960"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestPublishRpcRightAfterReconnect()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestQueueRecoveryWithManyQueues.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestQueueRecoveryWithManyQueues%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L620">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestQueueRecoveryWithManyQueues_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestQueueRecoveryWithManyQueues*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestQueueRecoveryWithManyQueues" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestQueueRecoveryWithManyQueues">TestQueueRecoveryWithManyQueues()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestQueueRecoveryWithManyQueues" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestQueueRecoveryWithManyQueues">
+  TestQueueRecoveryWithManyQueues()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L620"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestQueueRecoveryWithManyQueues()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoverTopologyOnDisposedChannel.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L928">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoverTopologyOnDisposedChannel_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoverTopologyOnDisposedChannel" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel">TestRecoverTopologyOnDisposedChannel()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoverTopologyOnDisposedChannel" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoverTopologyOnDisposedChannel">
+  TestRecoverTopologyOnDisposedChannel()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L928"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestRecoverTopologyOnDisposedChannel()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveringConsumerHandlerOnConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveringConsumerHandlerOnConnection%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L724">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveringConsumerHandlerOnConnection_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveringConsumerHandlerOnConnection*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveringConsumerHandlerOnConnection" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveringConsumerHandlerOnConnection">TestRecoveringConsumerHandlerOnConnection()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveringConsumerHandlerOnConnection" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveringConsumerHandlerOnConnection">
+  TestRecoveringConsumerHandlerOnConnection()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L724"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestRecoveringConsumerHandlerOnConnection()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L744">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown">TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown">
+  TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L744"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnChannel.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnChannel%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L696">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnChannel_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnChannel*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnChannel" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnChannel">TestRecoveryEventHandlersOnChannel()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnChannel" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnChannel">
+  TestRecoveryEventHandlersOnChannel()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L696"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestRecoveryEventHandlersOnChannel()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnConnection%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L709">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnConnection_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnConnection*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnConnection" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnConnection">TestRecoveryEventHandlersOnConnection()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnConnection" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnConnection">
+  TestRecoveryEventHandlersOnConnection()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L709"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestRecoveryEventHandlersOnConnection()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnModel.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnModel%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L770">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnModel_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnModel*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnModel" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnModel">TestRecoveryEventHandlersOnModel()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryEventHandlersOnModel" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryEventHandlersOnModel">
+  TestRecoveryEventHandlersOnModel()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L770"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestRecoveryEventHandlersOnModel()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryWithTopologyDisabled.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryWithTopologyDisabled%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L785">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryWithTopologyDisabled_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryWithTopologyDisabled*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryWithTopologyDisabled" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryWithTopologyDisabled">TestRecoveryWithTopologyDisabled()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestRecoveryWithTopologyDisabled" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestRecoveryWithTopologyDisabled">
+  TestRecoveryWithTopologyDisabled()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L785"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestRecoveryWithTopologyDisabled()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestServerNamedQueueRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestServerNamedQueueRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L813">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestServerNamedQueueRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestServerNamedQueueRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestServerNamedQueueRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestServerNamedQueueRecovery">TestServerNamedQueueRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestServerNamedQueueRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestServerNamedQueueRecovery">
+  TestServerNamedQueueRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L813"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestServerNamedQueueRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestServerNamedTransientAutoDeleteQueueAndBindingRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestServerNamedTransientAutoDeleteQueueAndBindingRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L664">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestServerNamedTransientAutoDeleteQueueAndBindingRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestServerNamedTransientAutoDeleteQueueAndBindingRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestServerNamedTransientAutoDeleteQueueAndBindingRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestServerNamedTransientAutoDeleteQueueAndBindingRecovery">TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestServerNamedTransientAutoDeleteQueueAndBindingRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestServerNamedTransientAutoDeleteQueueAndBindingRecovery">
+  TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L664"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnConnection%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L869">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnConnection_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnConnection*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnConnection" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnConnection">TestShutdownEventHandlersRecoveryOnConnection()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnConnection" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnConnection">
+  TestShutdownEventHandlersRecoveryOnConnection()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L869"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestShutdownEventHandlersRecoveryOnConnection()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L885">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart">TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart">
+  TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L885"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnModel.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnModel%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L912">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnModel_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnModel*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnModel" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnModel">TestShutdownEventHandlersRecoveryOnModel()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestShutdownEventHandlersRecoveryOnModel" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestShutdownEventHandlersRecoveryOnModel">
+  TestShutdownEventHandlersRecoveryOnModel()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L912"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestShutdownEventHandlersRecoveryOnModel()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatCancelledConsumerDoesNotReappearOnRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatCancelledConsumerDoesNotReappearOnRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1005">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatCancelledConsumerDoesNotReappearOnRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatCancelledConsumerDoesNotReappearOnRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatCancelledConsumerDoesNotReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatCancelledConsumerDoesNotReappearOnRecovery">TestThatCancelledConsumerDoesNotReappearOnRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatCancelledConsumerDoesNotReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatCancelledConsumerDoesNotReappearOnRecovery">
+  TestThatCancelledConsumerDoesNotReappearOnRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1005"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestThatCancelledConsumerDoesNotReappearOnRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedExchangeBindingsDontReappearOnRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedExchangeBindingsDontReappearOnRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1022">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedExchangeBindingsDontReappearOnRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedExchangeBindingsDontReappearOnRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedExchangeBindingsDontReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedExchangeBindingsDontReappearOnRecovery">TestThatDeletedExchangeBindingsDontReappearOnRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedExchangeBindingsDontReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedExchangeBindingsDontReappearOnRecovery">
+  TestThatDeletedExchangeBindingsDontReappearOnRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1022"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestThatDeletedExchangeBindingsDontReappearOnRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedExchangesDontReappearOnRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedExchangesDontReappearOnRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1051">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedExchangesDontReappearOnRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedExchangesDontReappearOnRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedExchangesDontReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedExchangesDontReappearOnRecovery">TestThatDeletedExchangesDontReappearOnRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedExchangesDontReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedExchangesDontReappearOnRecovery">
+  TestThatDeletedExchangesDontReappearOnRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1051"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestThatDeletedExchangesDontReappearOnRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedQueueBindingsDontReappearOnRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedQueueBindingsDontReappearOnRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1072">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedQueueBindingsDontReappearOnRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedQueueBindingsDontReappearOnRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedQueueBindingsDontReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedQueueBindingsDontReappearOnRecovery">TestThatDeletedQueueBindingsDontReappearOnRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedQueueBindingsDontReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedQueueBindingsDontReappearOnRecovery">
+  TestThatDeletedQueueBindingsDontReappearOnRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1072"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestThatDeletedQueueBindingsDontReappearOnRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedQueuesDontReappearOnRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedQueuesDontReappearOnRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1101">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedQueuesDontReappearOnRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedQueuesDontReappearOnRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedQueuesDontReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedQueuesDontReappearOnRecovery">TestThatDeletedQueuesDontReappearOnRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestThatDeletedQueuesDontReappearOnRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestThatDeletedQueuesDontReappearOnRecovery">
+  TestThatDeletedQueuesDontReappearOnRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1101"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestThatDeletedQueuesDontReappearOnRecovery()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryBindingExceptionHandler.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryBindingExceptionHandler%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1500">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryBindingExceptionHandler_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryBindingExceptionHandler*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryBindingExceptionHandler" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryBindingExceptionHandler">TestTopologyRecoveryBindingExceptionHandler()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryBindingExceptionHandler" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryBindingExceptionHandler">
+  TestTopologyRecoveryBindingExceptionHandler()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1500"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryBindingExceptionHandler()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryBindingFilter.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryBindingFilter%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1223">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryBindingFilter_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryBindingFilter*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryBindingFilter" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryBindingFilter">TestTopologyRecoveryBindingFilter()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryBindingFilter" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryBindingFilter">
+  TestTopologyRecoveryBindingFilter()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1223"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryBindingFilter()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryConsumerExceptionHandler.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryConsumerExceptionHandler%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1560">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryConsumerExceptionHandler_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryConsumerExceptionHandler*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryConsumerExceptionHandler" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryConsumerExceptionHandler">TestTopologyRecoveryConsumerExceptionHandler()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryConsumerExceptionHandler" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryConsumerExceptionHandler">
+  TestTopologyRecoveryConsumerExceptionHandler()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1560"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryConsumerExceptionHandler()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryConsumerFilter.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryConsumerFilter%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1267">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryConsumerFilter_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryConsumerFilter*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryConsumerFilter" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryConsumerFilter">TestTopologyRecoveryConsumerFilter()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryConsumerFilter" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryConsumerFilter">
+  TestTopologyRecoveryConsumerFilter()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1267"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryConsumerFilter()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryDefaultFilterRecoversAllEntities.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryDefaultFilterRecoversAllEntities%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1334">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryDefaultFilterRecoversAllEntities_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryDefaultFilterRecoversAllEntities*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryDefaultFilterRecoversAllEntities" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryDefaultFilterRecoversAllEntities">TestTopologyRecoveryDefaultFilterRecoversAllEntities()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryDefaultFilterRecoversAllEntities" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryDefaultFilterRecoversAllEntities">
+  TestTopologyRecoveryDefaultFilterRecoversAllEntities()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1334"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryDefaultFilterRecoversAllEntities()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryExchangeExceptionHandler.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryExchangeExceptionHandler%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1449">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryExchangeExceptionHandler_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryExchangeExceptionHandler*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryExchangeExceptionHandler" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryExchangeExceptionHandler">TestTopologyRecoveryExchangeExceptionHandler()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryExchangeExceptionHandler" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryExchangeExceptionHandler">
+  TestTopologyRecoveryExchangeExceptionHandler()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1449"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryExchangeExceptionHandler()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryExchangeFilter.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryExchangeFilter%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1179">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryExchangeFilter_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryExchangeFilter*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryExchangeFilter" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryExchangeFilter">TestTopologyRecoveryExchangeFilter()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryExchangeFilter" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryExchangeFilter">
+  TestTopologyRecoveryExchangeFilter()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1179"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryExchangeFilter()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryQueueExceptionHandler.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryQueueExceptionHandler%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1394">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryQueueExceptionHandler_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryQueueExceptionHandler*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryQueueExceptionHandler" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryQueueExceptionHandler">TestTopologyRecoveryQueueExceptionHandler()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryQueueExceptionHandler" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryQueueExceptionHandler">
+  TestTopologyRecoveryQueueExceptionHandler()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1394"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryQueueExceptionHandler()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryQueueFilter.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryQueueFilter%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1135">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryQueueFilter_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryQueueFilter*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryQueueFilter" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryQueueFilter">TestTopologyRecoveryQueueFilter()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestTopologyRecoveryQueueFilter" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestTopologyRecoveryQueueFilter">
+  TestTopologyRecoveryQueueFilter()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1135"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestTopologyRecoveryQueueFilter()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestUnbindQueueAfterRecoveryConnection.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestUnbindQueueAfterRecoveryConnection%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L839">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestUnbindQueueAfterRecoveryConnection_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestUnbindQueueAfterRecoveryConnection*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestUnbindQueueAfterRecoveryConnection" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestUnbindQueueAfterRecoveryConnection">TestUnbindQueueAfterRecoveryConnection()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestUnbindQueueAfterRecoveryConnection" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestUnbindQueueAfterRecoveryConnection">
+  TestUnbindQueueAfterRecoveryConnection()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L839"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestUnbindQueueAfterRecoveryConnection()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery_TestUnblockedListenersRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery.TestUnblockedListenersRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1122">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestUnblockedListenersRecovery_" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestUnblockedListenersRecovery*"></a>
-  <h4 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestUnblockedListenersRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestUnblockedListenersRecovery">TestUnblockedListenersRecovery()</h4>
+
+  <h3 id="RabbitMQ_Client_Unit_TestConnectionRecovery_TestUnblockedListenersRecovery" data-uid="RabbitMQ.Client.Unit.TestConnectionRecovery.TestUnblockedListenersRecovery">
+  TestUnblockedListenersRecovery()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L1122"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Test]
 public void TestUnblockedListenersRecovery()</code></pre>
   </div>
 
-</article>
-          </div>
 
-          <div class="hidden-sm col-md-2" role="complementary">
-            <div class="sideaffix">
-              <div class="contribution">
-                <ul class="nav">
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_Unit_TestConnectionRecovery.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Unit.TestConnectionRecovery%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L48" class="contribution-link">View Source</a>
-                  </li>
-                </ul>
-              </div>
-              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In this article</h5>
-                <div></div>
-              </nav>
-            </div>
-          </div>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/Unit/TestConnectionRecovery.cs/#L48" class="edit-link">Edit this page</a>
         </div>
+
+
       </div>
 
-      <footer>
-        <div class="grad-bottom"></div>
-        <div class="footer">
-          <div class="container">
-            <span class="pull-right">
-              <a href="#top">Back to top</a>
-            </span>
-      
-      <span>Generated by <strong>DocFX</strong></span>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
 
-    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

@@ -1,88 +1,126 @@
 ﻿<!DOCTYPE html>
-<!--[if IE]><![endif]-->
 <html>
-
   <head>
     <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <title>Class AmqpTcpEndpoint
- </title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="title" content="Class AmqpTcpEndpoint
- ">
-    
-      <link rel="shortcut icon" href="../favicon.ico">
-      <link rel="stylesheet" href="../styles/docfx.vendor.min.css">
-      <link rel="stylesheet" href="../styles/docfx.css">
-      <link rel="stylesheet" href="../styles/main.css">
-      <meta property="docfx:navrel" content="../toc.html">
-      <meta property="docfx:tocrel" content="toc.html">
-    
-    
-    
+      <title>Class AmqpTcpEndpoint </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class AmqpTcpEndpoint ">
+      
+      <meta name="description" content="Represents a TCP-addressable AMQP peer: a host name and port number.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/gh-pages/api/new?filename=RabbitMQ_Client_AmqpTcpEndpoint.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
   </head>
-  <body data-spy="scroll" data-target="#affix" data-offset="120">
-    <div id="wrapper">
-      <header>
 
-        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
-              </a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar">
-              <form class="navbar-form navbar-right" role="search" id="search">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
-                </div>
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
               </form>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
+    </header>
 
-        <div class="subnav navbar navbar-default">
-          <div class="container hide-when-search" id="breadcrumb">
-            <ul class="breadcrumb">
-              <li></li>
-            </ul>
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
           </div>
         </div>
-      </header>
-      <div role="main" class="container body-content hide-when-search">
+      </div>
 
-        <div class="sidenav hide-when-search">
-          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
-          <div class="sidetoggle collapse" id="sidetoggle">
-            <div id="sidetoc"></div>
-          </div>
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
         </div>
-        <div class="article row grid-right">
-          <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="RabbitMQ.Client.AmqpTcpEndpoint">
+
+        <article data-uid="RabbitMQ.Client.AmqpTcpEndpoint">
 
 
 
-  <h1 id="RabbitMQ_Client_AmqpTcpEndpoint" data-uid="RabbitMQ.Client.AmqpTcpEndpoint" class="text-break">Class AmqpTcpEndpoint
-</h1>
-  <div class="markdown level0 summary"><p>Represents a TCP-addressable AMQP peer: a host name and port number.</p>
-</div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="inheritance">
-    <h5>Inheritance</h5>
-    <div class="level0"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-    <div class="level1"><span class="xref">AmqpTcpEndpoint</span></div>
+  <h1 id="RabbitMQ_Client_AmqpTcpEndpoint" data-uid="RabbitMQ.Client.AmqpTcpEndpoint" class="text-break">
+Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
-  <div class="inheritedMembers">
-    <h5>Inherited Members</h5>
+
+  <div class="markdown summary"><p>Represents a TCP-addressable AMQP peer: a host name and port number.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class AmqpTcpEndpoint</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">AmqpTcpEndpoint</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
@@ -95,718 +133,680 @@
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
-  </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a></h6>
-  <h6><strong>Assembly</strong>: RabbitMQ.Client.dll</h6>
-  <h5 id="RabbitMQ_Client_AmqpTcpEndpoint_syntax">Syntax</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class AmqpTcpEndpoint</code></pre>
-  </div>
-  <h3 id="constructors">Constructors
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint__ctor.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.%23ctor%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L104">View Source</a>
-  </span>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor">AmqpTcpEndpoint()</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor">
+  AmqpTcpEndpoint()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L104"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Construct an AmqpTcpEndpoint with &quot;localhost&quot; as the hostname, and using the default port.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint()</code></pre>
   </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.%23ctor(System.String%2CSystem.Int32)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L96">View Source</a>
-  </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32)">AmqpTcpEndpoint(string, int)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32)">
+  AmqpTcpEndpoint(string, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L96"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint(string hostName, int portOrMinusOne = -1)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">hostName</span></td>
-        <td><p>Hostname.</p>
-</td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td><span class="parametername">portOrMinusOne</span></td>
-        <td><p>Port number. If the port number is -1, the default port number will be used.</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_RabbitMQ_Client_SslOption_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.%23ctor(System.String%2CSystem.Int32%2CRabbitMQ.Client.SslOption)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L86">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>hostName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Hostname.</p>
+</dd>
+    <dt><code>portOrMinusOne</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Port number. If the port number is -1, the default port number will be used.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_RabbitMQ_Client_SslOption_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32,RabbitMQ.Client.SslOption)">AmqpTcpEndpoint(string, int, SslOption)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_RabbitMQ_Client_SslOption_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32,RabbitMQ.Client.SslOption)">
+  AmqpTcpEndpoint(string, int, SslOption)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L86"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">hostName</span></td>
-        <td><p>Hostname.</p>
-</td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td><span class="parametername">portOrMinusOne</span></td>
-        <td><p>Port number. If the port number is -1, the default port number will be used.</p>
-</td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></td>
-        <td><span class="parametername">ssl</span></td>
-        <td><p>Ssl option.</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_RabbitMQ_Client_SslOption_System_UInt32_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.%23ctor(System.String%2CSystem.Int32%2CRabbitMQ.Client.SslOption%2CSystem.UInt32)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L72">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>hostName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Hostname.</p>
+</dd>
+    <dt><code>portOrMinusOne</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Port number. If the port number is -1, the default port number will be used.</p>
+</dd>
+    <dt><code>ssl</code> <a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></dt>
+    <dd><p>Ssl option.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_RabbitMQ_Client_SslOption_System_UInt32_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32,RabbitMQ.Client.SslOption,System.UInt32)">AmqpTcpEndpoint(string, int, SslOption, uint)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_RabbitMQ_Client_SslOption_System_UInt32_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32,RabbitMQ.Client.SslOption,System.UInt32)">
+  AmqpTcpEndpoint(string, int, SslOption, uint)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L72"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl, uint maxMessageSize)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">hostName</span></td>
-        <td><p>Hostname.</p>
-</td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td><span class="parametername">portOrMinusOne</span></td>
-        <td><p>Port number. If the port number is -1, the default port number will be used.</p>
-</td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></td>
-        <td><span class="parametername">ssl</span></td>
-        <td><p>Ssl option.</p>
-</td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></td>
-        <td><span class="parametername">maxMessageSize</span></td>
-        <td><p>Maximum message size from RabbitMQ. 0 means &quot;unlimited&quot;</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.%23ctor(System.Uri)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L124">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>hostName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Hostname.</p>
+</dd>
+    <dt><code>portOrMinusOne</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Port number. If the port number is -1, the default port number will be used.</p>
+</dd>
+    <dt><code>ssl</code> <a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></dt>
+    <dd><p>Ssl option.</p>
+</dd>
+    <dt><code>maxMessageSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Maximum message size from RabbitMQ. 0 means &quot;unlimited&quot;</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.Uri)">AmqpTcpEndpoint(Uri)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.Uri)">
+  AmqpTcpEndpoint(Uri)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L124"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a> with the given Uri.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint(Uri uri)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uri">Uri</a></td>
-        <td><span class="parametername">uri</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri__remarks">Remarks</h5>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>uri</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uri">Uri</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri__remarks">Remarks</h4>
   <div class="markdown level1 remarks"><p>Please see the class overview documentation for information about the Uri format in use.</p>
 </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_RabbitMQ_Client_SslOption_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.%23ctor(System.Uri%2CRabbitMQ.Client.SslOption)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L114">View Source</a>
-  </span>
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_RabbitMQ_Client_SslOption_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.Uri,RabbitMQ.Client.SslOption)">AmqpTcpEndpoint(Uri, SslOption)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_RabbitMQ_Client_SslOption_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.Uri,RabbitMQ.Client.SslOption)">
+  AmqpTcpEndpoint(Uri, SslOption)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L114"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a> with the given Uri and ssl options.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint(Uri uri, SslOption ssl)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uri">Uri</a></td>
-        <td><span class="parametername">uri</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></td>
-        <td><span class="parametername">ssl</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_RabbitMQ_Client_SslOption__remarks">Remarks</h5>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>uri</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uri">Uri</a></dt>
+    <dd></dd>
+    <dt><code>ssl</code> <a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_RabbitMQ_Client_SslOption__remarks">Remarks</h4>
   <div class="markdown level1 remarks"><p>Please see the class overview documentation for information about the Uri format in use.</p>
 </div>
-  <h3 id="fields">Fields
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_DefaultAmqpSslPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.DefaultAmqpSslPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L54">View Source</a>
-  </span>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_DefaultAmqpSslPort" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.DefaultAmqpSslPort">DefaultAmqpSslPort</h4>
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_DefaultAmqpSslPort" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.DefaultAmqpSslPort">
+  DefaultAmqpSslPort
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L54"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Default Amqp ssl port.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public const int DefaultAmqpSslPort = 5671</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_UseDefaultPort.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.UseDefaultPort%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L59">View Source</a>
-  </span>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_UseDefaultPort" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.UseDefaultPort">UseDefaultPort</h4>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_UseDefaultPort" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.UseDefaultPort">
+  UseDefaultPort
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L59"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Indicates that the default port for the protocol should be used.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public const int UseDefaultPort = -1</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h3 id="properties">Properties
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_AddressFamily.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L186">View Source</a>
-  </span>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_AddressFamily_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_AddressFamily" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily">AddressFamily</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_AddressFamily" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily">
+  AddressFamily
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L186"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Used to force the address family of the endpoint.
 Use <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.sockets.addressfamily#system-net-sockets-addressfamily-internetwork">InterNetwork</a> to force to IPv4.
 Use <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.sockets.addressfamily#system-net-sockets-addressfamily-internetworkv6">InterNetworkV6</a> to force to IPv6.
 Or use <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.sockets.addressfamily#system-net-sockets-addressfamily-unknown">Unknown</a> to attempt both IPv6 and IPv4.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public AddressFamily AddressFamily { get; set; }</code></pre>
   </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.sockets.addressfamily">AddressFamily</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_HostName.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.HostName%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L150">View Source</a>
-  </span>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.sockets.addressfamily">AddressFamily</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_HostName_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.HostName*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_HostName" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.HostName">HostName</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_HostName" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.HostName">
+  HostName
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L150"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Retrieve or set the hostname of this <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public string HostName { get; set; }</code></pre>
   </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_MaxMessageSize.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.MaxMessageSize%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L196">View Source</a>
-  </span>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_MaxMessageSize_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.MaxMessageSize*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_MaxMessageSize" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.MaxMessageSize">MaxMessageSize</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_MaxMessageSize" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.MaxMessageSize">
+  MaxMessageSize
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L196"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Get the maximum size for a message in bytes. The default value is 0 (unlimited)</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public uint MaxMessageSize { get; }</code></pre>
   </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_Port.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.Port%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L155">View Source</a>
-  </span>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_Port_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Port*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_Port" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Port">Port</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Port" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Port">
+  Port
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L155"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Retrieve or set the port number of this
 AmqpTcpEndpoint. A port number of -1 causes the default
 port number.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public int Port { get; set; }</code></pre>
   </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_Protocol.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.Protocol%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L175">View Source</a>
-  </span>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_Protocol_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Protocol*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_Protocol" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Protocol">Protocol</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Protocol" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Protocol">
+  Protocol
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L175"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Retrieve IProtocol of this <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public IProtocol Protocol { get; }</code></pre>
   </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.IProtocol.html">IProtocol</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_Ssl.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.Ssl%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L191">View Source</a>
-  </span>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.IProtocol.html">IProtocol</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_Ssl_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Ssl*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_Ssl" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Ssl">Ssl</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Ssl" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Ssl">
+  Ssl
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L191"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Retrieve the TLS options for this AmqpTcpEndpoint. If not set, null is returned.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public SslOption Ssl { get; set; }</code></pre>
   </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h3 id="methods">Methods
-</h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_Clone.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.Clone%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L132">View Source</a>
-  </span>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_Clone_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Clone*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_Clone" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Clone">Clone()</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Clone" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Clone">
+  Clone()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L132"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Clones the endpoint.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public object Clone()</code></pre>
   </div>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></td>
-        <td><p>A copy with the same hostname, port, and TLS settings</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_CloneWithHostname_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.CloneWithHostname(System.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L142">View Source</a>
-  </span>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>A copy with the same hostname, port, and TLS settings</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_CloneWithHostname_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.CloneWithHostname*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_CloneWithHostname_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.CloneWithHostname(System.String)">CloneWithHostname(string)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_CloneWithHostname_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.CloneWithHostname(System.String)">
+  CloneWithHostname(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L142"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Clones the endpoint using the provided hostname.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint CloneWithHostname(string hostname)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">hostname</span></td>
-        <td><p>Hostname to use</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a></td>
-        <td><p>A copy with the provided hostname and port/TLS settings of this endpoint</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_Equals_System_Object_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.Equals(System.Object)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L264">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>hostname</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Hostname to use</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a></dt>
+    <dd><p>A copy with the provided hostname and port/TLS settings of this endpoint</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_Equals_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Equals*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_Equals_System_Object_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Equals(System.Object)">Equals(object)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Equals_System_Object_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Equals(System.Object)">
+  Equals(object)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L264"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Compares this instance by value (protocol, hostname, port) against another instance.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public override bool Equals(object obj)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></td>
-        <td><span class="parametername">obj</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_GetHashCode.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.GetHashCode%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L285">View Source</a>
-  </span>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_GetHashCode_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.GetHashCode*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_GetHashCode" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.GetHashCode">GetHashCode()</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_GetHashCode" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.GetHashCode">
+  GetHashCode()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L285"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Implementation of hash code depending on protocol, hostname and port,
 to line up with the implementation of <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html#RabbitMQ_Client_AmqpTcpEndpoint_Equals_System_Object_">Equals(object)</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
   </div>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_Parse_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.Parse(System.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L212">View Source</a>
-  </span>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_Parse_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Parse*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_Parse_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Parse(System.String)">Parse(string)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Parse_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Parse(System.String)">
+  Parse(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L212"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Construct an instance from a protocol and an address in &quot;hostname:port&quot; format.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static AmqpTcpEndpoint Parse(string address)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">address</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 id="RabbitMQ_Client_AmqpTcpEndpoint_Parse_System_String__remarks">Remarks</h5>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>address</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_AmqpTcpEndpoint_Parse_System_String__remarks">Remarks</h4>
   <div class="markdown level1 remarks"><p>If the address string passed in contains &quot;:&quot;, it is split
 into a hostname and a port-number part. Otherwise, the
 entire string is used as the hostname, and the port-number
@@ -814,136 +814,110 @@ is set to -1 (meaning the default number for the protocol
 variant specified).
 Hostnames provided as IPv6 must appear in square brackets ([]).</p>
 </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_ParseMultiple_System_String_.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.ParseMultiple(System.String)%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L246">View Source</a>
-  </span>
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_ParseMultiple_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.ParseMultiple*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_ParseMultiple_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.ParseMultiple(System.String)">ParseMultiple(string)</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_ParseMultiple_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.ParseMultiple(System.String)">
+  ParseMultiple(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L246"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Splits the passed-in string on &quot;,&quot;, and passes the substrings to <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html#RabbitMQ_Client_AmqpTcpEndpoint_Parse_System_String_">Parse(string)</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static AmqpTcpEndpoint[] ParseMultiple(string addresses)</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td><span class="parametername">addresses</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>[]</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 id="RabbitMQ_Client_AmqpTcpEndpoint_ParseMultiple_System_String__remarks">Remarks</h5>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>addresses</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_AmqpTcpEndpoint_ParseMultiple_System_String__remarks">Remarks</h4>
   <div class="markdown level1 remarks"><p>Accepts a string of the form &quot;hostname:port,
 hostname:port, ...&quot;, where the &quot;:port&quot; pieces are
 optional, and returns a corresponding array of <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>s.</p>
 </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint_ToString.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint.ToString%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Edit this page</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L296">View Source</a>
-  </span>
+
+
+
+
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_ToString_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.ToString*"></a>
-  <h4 id="RabbitMQ_Client_AmqpTcpEndpoint_ToString" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.ToString">ToString()</h4>
+
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_ToString" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.ToString">
+  ToString()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L296"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
   <div class="markdown level1 summary"><p>Returns a URI-like string of the form amqp-PROTOCOL://HOSTNAME:PORTNUMBER.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
-  <h5 class="declaration">Declaration</h5>
+
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
   </div>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a></div>
-  <h5 id="RabbitMQ_Client_AmqpTcpEndpoint_ToString_remarks">Remarks</h5>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_AmqpTcpEndpoint_ToString_remarks">Remarks</h4>
   <div class="markdown level1 remarks"><p>This method is intended mainly for debugging and logging use.</p>
 </div>
 
-</article>
-          </div>
 
-          <div class="hidden-sm col-md-2" role="complementary">
-            <div class="sideaffix">
-              <div class="contribution">
-                <ul class="nav">
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/6.x/apiSpec/new?filename=RabbitMQ_Client_AmqpTcpEndpoint.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.AmqpTcpEndpoint%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Edit this page</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L49" class="contribution-link">View Source</a>
-                  </li>
-                </ul>
-              </div>
-              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-                <h5>In this article</h5>
-                <div></div>
-              </nav>
-            </div>
-          </div>
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L49" class="edit-link">Edit this page</a>
         </div>
+
+
       </div>
 
-      <footer>
-        <div class="grad-bottom"></div>
-        <div class="footer">
-          <div class="container">
-            <span class="pull-right">
-              <a href="#top">Back to top</a>
-            </span>
-      
-      <span>Generated by <strong>DocFX</strong></span>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
 
-    <script type="text/javascript" src="../styles/docfx.vendor.min.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

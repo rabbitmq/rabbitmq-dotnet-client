@@ -1254,6 +1254,16 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/RabbitMQ.Client.TcpClientAdapter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/RabbitMQ.Client.TcpClientAdapter.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/RabbitMQ.Client.TimerBasedCredentialRefresher.yml",
       "output": {
         ".html": {
@@ -1918,14 +1928,14 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
         }
       },
       "version": ""
     },
     {
-      "log_codes": [
-        "InvalidFileLink"
-      ],
       "type": "Conceptual",
       "source_relative_path": "index.md",
       "output": {
@@ -1941,6 +1951,9 @@
       "output": {
         ".html": {
           "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
         }
       },
       "version": ""
