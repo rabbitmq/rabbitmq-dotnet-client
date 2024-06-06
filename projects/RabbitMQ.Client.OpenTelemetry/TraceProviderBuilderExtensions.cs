@@ -12,7 +12,6 @@ namespace OpenTelemetry.Trace
     {
         public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder)
         {
-            RabbitMQActivitySource.UseRoutingKeyAsOperationName = true;
             RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
             RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
             builder.AddSource("RabbitMQ.Client.*");
