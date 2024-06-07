@@ -72,7 +72,9 @@
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
     <!--
       Note: do NOT upgrade these dependencies unless necessary
-      See https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
+      See:
+      * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
+      * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1594
     -->
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
