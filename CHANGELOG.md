@@ -1,20 +1,476 @@
 # Changelog
 
-## [oauth2-1.0.0-beta.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/oauth2-1.0.0-beta.0) (2023-09-25)
+## [Unreleased](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/HEAD)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/oauth2-1.0.0...oauth2-1.0.0-beta.0)
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.1...HEAD)
 
-## [oauth2-1.0.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/oauth2-1.0.0) (2023-09-25)
+**Fixed bugs:**
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0-beta.0...oauth2-1.0.0)
+- \[OTel\] Activity is not produced for BasicConsumeAsync on .NET Framework [\#1533](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1533)
 
-## [v6.6.0-beta.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0-beta.0) (2023-09-25)
+**Closed issues:**
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0...v6.6.0-beta.0)
+- "Ship" public API [\#1570](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1570)
+
+**Merged pull requests:**
+
+- Use default value for `RabbitMQActivitySource.UseRoutingKeyAsOperationName` [\#1595](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1595) ([lukebakken](https://github.com/lukebakken))
+- downgrade dependencies [\#1594](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1594) ([WeihanLi](https://github.com/WeihanLi))
+
+## [v7.0.0-rc.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.1) (2024-06-04)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.6...v7.0.0-rc.1)
+
+**Implemented enhancements:**
+
+- Ensure RabbitMQ.Client.OpenTelemetry is published to NuGet correctly [\#1591](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1591)
+- Review TaskExtensions [\#1425](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1425)
+- Support cancellation [\#1420](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1420)
+
+**Fixed bugs:**
+
+- Calling channel.CloseAsync from within AsyncEventingBasicConsumer handler causes deadlock [\#1567](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1567)
+- MaxMessageSize actually limits frame size [\#1356](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1356)
+- Calling Dispose on AutorecoveringModel that has already shutdown throws NullRefException [\#825](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/825)
+- Opening a channel inside a consumer interface callback times out waiting for continuation [\#650](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/650)
+
+**Closed issues:**
+
+- Incorrect comments in some public member documentation [\#1109](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1109)
+- CallbackException not raised for AsyncEventingBasicConsumer [\#1038](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1038)
+- Unhelpful exception message when clientProvidedName is too long [\#980](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/980)
+- Pool workers to handle incoming deliveries, ACKs etc. [\#906](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/906)
+- AutorecoveringConnection prevents AppDomain.Unload\(\) of enclosing AppDomain [\#826](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/826)
+- NullReferenceException when writing a frame on a connection being closed by the server [\#822](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/822)
+- Log what TLS version\(s\) is enabled on the system [\#765](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/765)
+
+**Merged pull requests:**
+
+- Ship PublicAPI [\#1593](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1593) ([lukebakken](https://github.com/lukebakken))
+- Ensure OpenTelemetry project is set up like OAuth2 [\#1592](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1592) ([lukebakken](https://github.com/lukebakken))
+- Add test to demonstrate that \#825 is fixed [\#1590](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1590) ([lukebakken](https://github.com/lukebakken))
+- Update copyright message [\#1589](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1589) ([lukebakken](https://github.com/lukebakken))
+- Change test to match code provided by @neilgreatorex [\#1588](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1588) ([lukebakken](https://github.com/lukebakken))
+- Add test demonstrating that \#1573 is fixed [\#1587](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1587) ([lukebakken](https://github.com/lukebakken))
+- Demonstrate that \#1038 is fixed [\#1585](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1585) ([lukebakken](https://github.com/lukebakken))
+- Handle AppDomain unload [\#1583](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1583) ([lukebakken](https://github.com/lukebakken))
+- Use ConcurrentDictionary [\#1580](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1580) ([lukebakken](https://github.com/lukebakken))
+- Fix two flaky tests [\#1579](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1579) ([lukebakken](https://github.com/lukebakken))
+- Add test that creates `IChannel` within async consumer callback [\#1578](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1578) ([lukebakken](https://github.com/lukebakken))
+- Remove two unnecessary `.Cast<>()` usages [\#1577](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1577) ([lukebakken](https://github.com/lukebakken))
+- Truncate long client provided names [\#1576](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1576) ([lukebakken](https://github.com/lukebakken))
+- Misc changes from lukebakken/amqp-string [\#1575](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1575) ([lukebakken](https://github.com/lukebakken))
+- Fix ShutdownInitiator in `CloseAsync` [\#1574](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1574) ([lukebakken](https://github.com/lukebakken))
+- Can't close channel from consumer dispatcher [\#1568](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1568) ([lukebakken](https://github.com/lukebakken))
+- Adding proper OpenTelemetry integration via. registration helpers and better context propagation [\#1528](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1528) ([stebet](https://github.com/stebet))
+
+## [v7.0.0-alpha.6](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.6) (2024-05-16)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.5...v7.0.0-alpha.6)
+
+**Implemented enhancements:**
+
+- Using the wrong consumer dispatcher type should throw an exception [\#1408](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1408)
+
+**Fixed bugs:**
+
+- 7.0.0-alpha.2 - Unexpected Exception: Unable to read data from the transport connection: Connection reset by peer [\#1464](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1464)
+- Do not create exceptions just for logging [\#1440](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1440)
+- Only throw `RabbitMQ.Client`-specific exceptions. [\#1439](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1439)
+
+**Merged pull requests:**
+
+- Enforce max message size with mutiple content frames [\#1566](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1566) ([lukebakken](https://github.com/lukebakken))
+- Various editor suggestions [\#1563](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1563) ([lukebakken](https://github.com/lukebakken))
+- Misc changes [\#1560](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1560) ([lukebakken](https://github.com/lukebakken))
+- Enable `rabbitmq-client` event logging when tests are verbose [\#1559](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1559) ([lukebakken](https://github.com/lukebakken))
+- More `CancellationToken` todos [\#1555](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1555) ([lukebakken](https://github.com/lukebakken))
+- Fix `TestThatDeletedQueueBindingsDontReappearOnRecovery` [\#1554](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1554) ([lukebakken](https://github.com/lukebakken))
+- `TestPublishRpcRightAfterReconnect` improvements [\#1553](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1553) ([lukebakken](https://github.com/lukebakken))
+- Better exception message when a continuation times out [\#1552](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1552) ([lukebakken](https://github.com/lukebakken))
+- Separate out connection recovery tests [\#1549](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1549) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-alpha.5](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.5) (2024-04-22)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.4...v7.0.0-alpha.5)
+
+**Implemented enhancements:**
+
+- add suport for wasm [\#1518](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1518)
+- Optimise dependencies needed for v7 release [\#1480](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1480)
+- Add net 6.0 so that conditional packages can be defined [\#1479](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1479)
+- ClientArrayPool tracking is already supported by ArrayPool [\#1421](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1421)
+
+**Closed issues:**
+
+- Remove sync API [\#1472](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1472)
+
+**Merged pull requests:**
+
+- Replace `lock` with `SemaphoreSlim` [\#1539](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1539) ([lukebakken](https://github.com/lukebakken))
+- Fix the flaky `TestConsumerRecoveryOnClientNamedQueueWithOneRecovery` test [\#1538](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1538) ([lukebakken](https://github.com/lukebakken))
+- Add `CancellationToken` to `Async` members of `IChannel` [\#1535](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1535) ([lukebakken](https://github.com/lukebakken))
+- Add build step to check for `inet_error` [\#1525](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1525) ([lukebakken](https://github.com/lukebakken))
+- Add a test that closes a connection with Toxiproxy [\#1522](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1522) ([lukebakken](https://github.com/lukebakken))
+- Fix small typos in ConnectionFactory [\#1521](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1521) ([markbosch](https://github.com/markbosch))
+- Remove a lot of unused code [\#1517](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1517) ([lukebakken](https://github.com/lukebakken))
+- Remove TODO [\#1516](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1516) ([lukebakken](https://github.com/lukebakken))
+- Remove `ClientArrayPool` [\#1515](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1515) ([lukebakken](https://github.com/lukebakken))
+- \#1480 Use conditional packages for v7 release [\#1481](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481) ([thompson-tomo](https://github.com/thompson-tomo))
+
+## [v7.0.0-alpha.4](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.4) (2024-03-05)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.3...v7.0.0-alpha.4)
+
+**Merged pull requests:**
+
+- Make handling of server-originated methods async [\#1508](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1508) ([lukebakken](https://github.com/lukebakken))
+- Continue simplifying code [\#1507](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1507) ([lukebakken](https://github.com/lukebakken))
+- Continue removing sync API [\#1506](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1506) ([lukebakken](https://github.com/lukebakken))
+- Use RabbitMQ 3.13 on Windows GHA [\#1505](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1505) ([lukebakken](https://github.com/lukebakken))
+- Remove more synchronous code [\#1504](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1504) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-alpha.3](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.3) (2024-02-20)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.2...v7.0.0-alpha.3)
+
+**Implemented enhancements:**
+
+- Consider re-trying opening connections in a specific scenario [\#1448](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1448)
+- Trimming and AOT compatibility of this library [\#1410](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1410)
+- Reduce allocations by using pooled memory and recycling memory streams [\#694](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/694)
+- Consider adding static analysis [\#444](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/444)
+
+**Fixed bugs:**
+
+- HandleMainLoopException puts exception StackTrace in the EventSource Message [\#1493](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1493)
+
+**Closed issues:**
+
+- Async API - socket read timeout has no effect [\#1492](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1492)
+- Deadlock when closing a channel in the Received Event [\#1382](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1382)
+- Enable long-running tests on a cron schedule. [\#1157](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1157)
+- Heap size grows when publishing a very large batch of messages [\#1106](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1106)
+- IModel.IsClosed set to false after dispose [\#1086](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1086)
+- WaitForConfirmsOrDie won't return if DeliveryTag on the client is diverged from the server [\#1043](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1043)
+- Bug in topology-auto-recovery functionality [\#1035](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1035)
+- Model.Close does not await CloseAsync [\#1011](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1011)
+- Discussion: Supported frameworks [\#867](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/867)
+- Evaluating how to support tracing and OpenTelemetry [\#776](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/776)
+
+**Merged pull requests:**
+
+- Remove more synchronous code. [\#1501](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1501) ([lukebakken](https://github.com/lukebakken))
+- Update codeql.yml [\#1499](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1499) ([lukebakken](https://github.com/lukebakken))
+- Address lack of Socket read timeout for async reads [\#1497](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1497) ([lukebakken](https://github.com/lukebakken))
+- Port \#1494 to `main` [\#1495](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1495) ([lukebakken](https://github.com/lukebakken))
+- Re-organize test projects [\#1491](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1491) ([lukebakken](https://github.com/lukebakken))
+- InternalsVisibleTo enhancements [\#1488](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1488) ([WeihanLi](https://github.com/WeihanLi))
+- Remove synchronous API [\#1473](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1473) ([lukebakken](https://github.com/lukebakken))
+- Add more use of CancellationToken in Async methods. [\#1468](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1468) ([lukebakken](https://github.com/lukebakken))
+- Add test code for issue \#1464 [\#1466](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1466) ([lukebakken](https://github.com/lukebakken))
+- Add test to prove bindings are restored by topology recovery [\#1460](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1460) ([lukebakken](https://github.com/lukebakken))
+- Ensure delivery tag is decremented for client-side exception [\#1453](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1453) ([lukebakken](https://github.com/lukebakken))
+- Enable long running tests [\#1451](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1451) ([lukebakken](https://github.com/lukebakken))
+- Add test that demonstrates the current behavior of a recovered channe… [\#1450](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1450) ([lukebakken](https://github.com/lukebakken))
+- Retry more connections in test suite [\#1449](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1449) ([lukebakken](https://github.com/lukebakken))
+- Use `Microsoft.CodeAnalysis.PublicApiAnalyzers` [\#1447](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1447) ([lukebakken](https://github.com/lukebakken))
+- Trimming and AOT compatibility [\#1411](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1411) ([eerhardt](https://github.com/eerhardt))
+- Add OpenTelemetry support via ActivitySource [\#1261](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1261) ([stebet](https://github.com/stebet))
+
+## [v7.0.0-alpha.2](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.2) (2023-12-14)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.1...v7.0.0-alpha.2)
+
+**Fixed bugs:**
+
+- 7.0: Stack overflow "ExchangeDeclareAsync" [\#1444](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1444)
+
+**Closed issues:**
+
+- Port \#1438 to main [\#1441](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1441)
+
+**Merged pull requests:**
+
+- Port \#1434 to `main` [\#1442](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1442) ([lukebakken](https://github.com/lukebakken))
+- Fix \#1429 [\#1431](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1431) ([lukebakken](https://github.com/lukebakken))
+- Add cancellation to initial socket connection [\#1428](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1428) ([lukebakken](https://github.com/lukebakken))
+- Ensure that the underlying timer for `Task.Delay` is canceled. [\#1426](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1426) ([lukebakken](https://github.com/lukebakken))
+
+## [v6.8.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.1) (2023-12-11)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.1-rc.1...v6.8.1)
+
+## [v6.8.1-rc.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.1-rc.1) (2023-12-11)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.0...v6.8.1-rc.1)
+
+**Fixed bugs:**
+
+- When using assembly binding redirect a connection error is shown [\#1434](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1434)
+- Queue Fails to Delete with Orphaned Binding [\#1376](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1376)
+
+## [v6.8.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.0) (2023-12-05)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.0-rc.1...v6.8.0)
+
+**Fixed bugs:**
+
+- Opening multiple connections from a `ConnectionFactory` with `CredentialsRefresher` makes the second connection fail [\#1429](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429)
+
+## [v6.8.0-rc.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.0-rc.1) (2023-12-01)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.1...v6.8.0-rc.1)
+
+**Closed issues:**
+
+- Should IModelExensions be named IModelExtensions \(with a "t"\)? [\#1430](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1430)
+- Review async RPC continuations, await, and ConfigureAwait [\#1427](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1427)
+
+## [v7.0.0-alpha.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.1) (2023-11-20)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.7.0...v7.0.0-alpha.1)
+
+**Closed issues:**
+
+- Xunit parallel test execution [\#1412](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1412)
+- Port "Implement Full Async Channel" PR to `main` [\#1308](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1308)
+- ConnectionRecovery recovers models before consumers [\#1076](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1076)
+- connection topology recover can miss restore consumers [\#1047](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1047)
+- Proposal: Full async channel interface \(IModel\) [\#970](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/970)
+- AMQP 0-9-1 Channel \(IModel\) API with async methods [\#843](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/843)
+
+**Merged pull requests:**
+
+- Make TcpClientAdapter public [\#1417](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1417) ([lukebakken](https://github.com/lukebakken))
+- Removed ReceiveBufferSize and SendBufferSize to improve message rates [\#1415](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1415) ([lukebakken](https://github.com/lukebakken))
+- Clarify Unix Time units in AmqpTimestamp [\#1407](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1407) ([ngbrown](https://github.com/ngbrown))
+- Implement asynchronous methods. [\#1347](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1347) ([lukebakken](https://github.com/lukebakken))
+
+## [v6.7.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0) (2023-11-16)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.7.0-rc.2...v6.7.0)
+
+## [v6.7.0-rc.2](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0-rc.2) (2023-11-16)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.7.0-rc.1...v6.7.0-rc.2)
+
+## [v6.7.0-rc.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0-rc.1) (2023-11-15)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.0...v6.7.0-rc.1)
+
+**Fixed bugs:**
+
+- 6.5.0 can cause application freeze due to TaskScheduler change [\#1357](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1357)
+
+**Closed issues:**
+
+- Consistent naming for methods that return Tasks [\#1296](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1296)
+- Take advantage of immutable collections [\#1171](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1171)
+
+## [v7.0.0-alpha.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.0) (2023-10-16)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0...v7.0.0-alpha.0)
+
+**Implemented enhancements:**
+
+- Remove the use of Moq [\#1369](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1369)
+- remove APIGen project [\#924](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/924) ([bollhals](https://github.com/bollhals))
+- Ability to do concurrent dispatches both on the async as well as the sync consumer [\#866](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/866) ([danielmarbach](https://github.com/danielmarbach))
+- simplify missed heartbeat recognition [\#854](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/854) ([bollhals](https://github.com/bollhals))
+- eliminate allocations from InboundFrame [\#848](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/848) ([bollhals](https://github.com/bollhals))
+
+**Fixed bugs:**
+
+- If CreateConnection is called on a thread with a non-default TaskScheduler it will attempt to start the MainLoop on that scheduler. [\#1355](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1355)
+- Fix flaky connection recovery tests. [\#1148](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1148) ([lukebakken](https://github.com/lukebakken))
+- Typo in Extension class name [\#922](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/922) ([JeremyMahieu](https://github.com/JeremyMahieu))
+
+**Merged pull requests:**
+
+- Update GHA for NuGet publishing [\#1406](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1406) ([lukebakken](https://github.com/lukebakken))
+- Update package dependencies [\#1403](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1403) ([lukebakken](https://github.com/lukebakken))
+- Ensure tests that interact with RabbitMQ do not run in parallel [\#1402](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1402) ([lukebakken](https://github.com/lukebakken))
+- Add certs and rabbitmq.conf to enable TLS testing on GHA [\#1398](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1398) ([lukebakken](https://github.com/lukebakken))
+- Add workflow to test OAuth2 [\#1397](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1397) ([lukebakken](https://github.com/lukebakken))
+- Use latest CI resources on Windows [\#1394](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1394) ([lukebakken](https://github.com/lukebakken))
+- Remove use of Moq [\#1393](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1393) ([lukebakken](https://github.com/lukebakken))
+- Ensure that the order of arguments is `expected`, `actual`, take two! [\#1386](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1386) ([lukebakken](https://github.com/lukebakken))
+- Ensure that the order of arguments is `expected`, `actual` [\#1385](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1385) ([lukebakken](https://github.com/lukebakken))
+- Update API documentation of MaxMessageSize [\#1381](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1381) ([MarcialRosales](https://github.com/MarcialRosales))
+- Fix \#1378 [\#1380](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1380) ([MarcialRosales](https://github.com/MarcialRosales))
+- fix typo [\#1377](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1377) ([WeihanLi](https://github.com/WeihanLi))
+- Update package references [\#1372](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1372) ([lukebakken](https://github.com/lukebakken))
+- Misc Windows CI updates [\#1366](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1366) ([lukebakken](https://github.com/lukebakken))
+- Support OAuth2 authentication [\#1346](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1346) ([MarcialRosales](https://github.com/MarcialRosales))
+- Implement QueueDeclareAsync [\#1345](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1345) ([lukebakken](https://github.com/lukebakken))
+- Build using traversal project [\#1344](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1344) ([lukebakken](https://github.com/lukebakken))
+- Follow-up to PR \#1332 [\#1340](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1340) ([lukebakken](https://github.com/lukebakken))
+- Add a missing constant for NO\_ROUTE [\#1332](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1332) ([michaelklishin](https://github.com/michaelklishin))
+- Updates from the 6.x branch [\#1328](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1328) ([lukebakken](https://github.com/lukebakken))
+- Misc updates [\#1326](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1326) ([lukebakken](https://github.com/lukebakken))
+- Fix consumer recovery with server-named queues [\#1325](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1325) ([lukebakken](https://github.com/lukebakken))
+- Port \#1317 to main [\#1323](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1323) ([lukebakken](https://github.com/lukebakken))
+- Ignore global.json [\#1319](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1319) ([michaelklishin](https://github.com/michaelklishin))
+- Add custom filtering and exception handling to topology recovery [\#1312](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1312) ([rosca-sabina](https://github.com/rosca-sabina))
+- Adding fully asynchronous versions of connect and publish. [\#1311](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1311) ([stebet](https://github.com/stebet))
+- Part 2 of \#1308 - Port Interlocked.cs from \#982 [\#1310](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1310) ([lukebakken](https://github.com/lukebakken))
+- Part 1 of \#1308 - renaming IModel and related names [\#1309](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1309) ([lukebakken](https://github.com/lukebakken))
+- Fix build warning [\#1307](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1307) ([lukebakken](https://github.com/lukebakken))
+- Port \#1304 - Add event for recovering consumer [\#1305](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1305) ([Zerpet](https://github.com/Zerpet))
+- Update package versions [\#1295](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1295) ([lukebakken](https://github.com/lukebakken))
+- Remove unused StringExtension.cs [\#1290](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1290) ([Pliner](https://github.com/Pliner))
+- Address some test flakes [\#1288](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1288) ([lukebakken](https://github.com/lukebakken))
+- Bump testing versions on Windows [\#1285](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1285) ([lukebakken](https://github.com/lukebakken))
+- Removed an unnecessary comment [\#1276](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1276) ([3baaady07](https://github.com/3baaady07))
+- fix: add unsigned short support in table deserialisation [\#1270](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1270) ([gytsen](https://github.com/gytsen))
+- Minimal System.IO.Pipelines integration to prepare for full-async work [\#1264](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1264) ([stebet](https://github.com/stebet))
+- Add exception logging on WriteLoop [\#1262](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1262) ([Turnerj](https://github.com/Turnerj))
+- Fixing header parsing bug [\#1260](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1260) ([stebet](https://github.com/stebet))
+- CI updates [\#1256](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1256) ([lukebakken](https://github.com/lukebakken))
+- change ref to in and use Unsafe.AsRef [\#1247](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1247) ([bollhals](https://github.com/bollhals))
+- Merge pull request \#1224 from rabbitmq/rabbitmq-dotnet-client-1223-6.x [\#1226](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1226) ([lukebakken](https://github.com/lukebakken))
+- Add ability to specify maximum message size [\#1218](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1218) ([lukebakken](https://github.com/lukebakken))
+- Misc updates [\#1215](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1215) ([lukebakken](https://github.com/lukebakken))
+- thread-safe Random generation [\#1207](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1207) ([amiru3f](https://github.com/amiru3f))
+- Use new Task.WaitAsync\(\) to cancel an await call [\#1206](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1206) ([ArminShoeibi](https://github.com/ArminShoeibi))
+- Fix perpetual auto-recovery problem [\#1204](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1204) ([mot256](https://github.com/mot256))
+- \[REVERTED\] Use file-scoped namesapces in RabbitMQ.Client project [\#1202](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1202) ([ArminShoeibi](https://github.com/ArminShoeibi))
+- Add related headers to streams feature in Headers.cs [\#1201](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1201) ([ArminShoeibi](https://github.com/ArminShoeibi))
+- Run "dotnet format" [\#1197](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1197) ([lukebakken](https://github.com/lukebakken))
+- Reduce message body size to help fix flaky test [\#1193](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1193) ([lukebakken](https://github.com/lukebakken))
+- Ensure target frameworks make sense for 7.0 [\#1189](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1189) ([lukebakken](https://github.com/lukebakken))
+- Restore readonly [\#1188](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1188) ([lukebakken](https://github.com/lukebakken))
+- Update AsyncDefaultBasicConsumer.cs [\#1186](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1186) ([lukebakken](https://github.com/lukebakken))
+- `AutorecoveringModel.IsClosed` should return `true` if model is unusable [\#1179](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1179) ([onematchfox](https://github.com/onematchfox))
+- Reference `RUNNING_TESTS.md` from `CONTRIBUTING.md` [\#1175](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1175) ([onematchfox](https://github.com/onematchfox))
+- Add test to try and repro \#1168 [\#1173](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1173) ([lukebakken](https://github.com/lukebakken))
+- Fix Concourse CI [\#1169](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1169) ([lukebakken](https://github.com/lukebakken))
+- Port rabbitmq/rabbitmq-dotnet-client \#950 to main [\#1165](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1165) ([lukebakken](https://github.com/lukebakken))
+- Add TimeOut to Abort call in dispose [\#1164](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1164) ([lukebakken](https://github.com/lukebakken))
+- Port PR \#1145 to main, manually [\#1161](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1161) ([lukebakken](https://github.com/lukebakken))
+- Do not setup dotnet on Win runner [\#1152](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1152) ([lukebakken](https://github.com/lukebakken))
+- Try different docker image [\#1151](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1151) ([lukebakken](https://github.com/lukebakken))
+- Add Windows GitHub build [\#1149](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1149) ([lukebakken](https://github.com/lukebakken))
+- Merge pull request \#1141 from rabbitmq/lukebakken/fix-appveyor [\#1143](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1143) ([lukebakken](https://github.com/lukebakken))
+- Clean-up the library's project file. [\#1124](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1124) ([teo-tsirpanis](https://github.com/teo-tsirpanis))
+- simplify code around RabbitMQCtl [\#1111](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1111) ([bollhals](https://github.com/bollhals))
+- introduce Connection Config class [\#1110](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1110) ([bollhals](https://github.com/bollhals))
+- improve basic properties read / write [\#1100](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1100) ([bollhals](https://github.com/bollhals))
+- Fix typo in comment for IConnection [\#1099](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1099) ([GitHubPang](https://github.com/GitHubPang))
+- use ref instead of in for generic T + interface [\#1098](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1098) ([bollhals](https://github.com/bollhals))
+- Fix minor typo [\#1097](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1097) ([GitHubPang](https://github.com/GitHubPang))
+- introduce struct BasicProperties for basicPublish [\#1096](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1096) ([bollhals](https://github.com/bollhals))
+- fix a typo in comments of WaitForConfirmsOrDieAsync [\#1095](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1095) ([ArminShoeibi](https://github.com/ArminShoeibi))
+- Fix typo in RUNNING\_TESTS.md [\#1094](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1094) ([GitHubPang](https://github.com/GitHubPang))
+- Remove unneeded comment [\#1092](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1092) ([GitHubPang](https://github.com/GitHubPang))
+- Fix XML doc for AmqpTcpEndpoint [\#1091](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1091) ([GitHubPang](https://github.com/GitHubPang))
+- Fix incorrect RemotePort [\#1090](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1090) ([GitHubPang](https://github.com/GitHubPang))
+- Add CodeQL code security analysis workflow [\#1085](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1085) ([MirahImage](https://github.com/MirahImage))
+- Fix comments in ConnectionFactory [\#1084](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1084) ([GitHubPang](https://github.com/GitHubPang))
+- Don't record consumers if topology recovery is off [\#1082](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1082) ([Pliner](https://github.com/Pliner))
+- Typos [\#1080](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1080) ([sungam3r](https://github.com/sungam3r))
+- Recover models together with consumers [\#1077](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1077) ([bollhals](https://github.com/bollhals))
+- add DeliveryModes convenience enum [\#1063](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1063) ([Jalalx](https://github.com/Jalalx))
+- Fix misspelling and add missing words in comments [\#1053](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1053) ([GitHubPang](https://github.com/GitHubPang))
+- Feature/recover topology if connection problem [\#1051](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1051) ([pierresetteskog](https://github.com/pierresetteskog))
+- Resolve \#1039 Confirms Failure should use ShutdownInitiator.Library [\#1040](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1040) ([StevenBonePgh](https://github.com/StevenBonePgh))
+- Fix typo in ConnectionFactory.cs [\#1034](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1034) ([GitHubPang](https://github.com/GitHubPang))
+- Removing bounds checks when serializing commands/frames. [\#1030](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1030) ([stebet](https://github.com/stebet))
+- split connection, enable nullable and remove SoftProtocolException [\#1029](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1029) ([bollhals](https://github.com/bollhals))
+- Remove batch publishing as its optimizations are now performed for "regular" publishes/outgoing frames [\#1028](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1028) ([bollhals](https://github.com/bollhals))
+- Performance counters \(metrics\) [\#1027](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1027) ([bollhals](https://github.com/bollhals))
+- Workaround: Fixing analyzer build errors on VS2019 v16.9 [\#1026](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1026) ([stebet](https://github.com/stebet))
+- Replacing nUnit with xUnit and parallelizing tests where possible. [\#1025](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1025) ([stebet](https://github.com/stebet))
+- remove unused classes [\#1022](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1022) ([bollhals](https://github.com/bollhals))
+- fix always throwing exception on session close [\#1020](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1020) ([bollhals](https://github.com/bollhals))
+- remove socket.poll [\#1018](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1018) ([bollhals](https://github.com/bollhals))
+- Code cleanups and performance optimizations. [\#1017](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1017) ([stebet](https://github.com/stebet))
+- Framing benchmarks and optimizations [\#1016](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1016) ([stebet](https://github.com/stebet))
+- Fix Semaphore Disposed Exception in AsyncConsumerWorkService [\#1015](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1015) ([ashneilson](https://github.com/ashneilson))
+- \#1012 Fixed exception when consumer tag cannot be found in the consumers dictionary [\#1013](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1013) ([LamarLugli](https://github.com/LamarLugli))
+- Drop deprecated members of framing [\#1010](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1010) ([bollhals](https://github.com/bollhals))
+- Various cleanups of Connection / Model [\#1009](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1009) ([bollhals](https://github.com/bollhals))
+- Reduce close / abort methods in public API [\#1008](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1008) ([bollhals](https://github.com/bollhals))
+- Simplify recordings in AutorecoveringConnection [\#1007](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1007) ([bollhals](https://github.com/bollhals))
+- Update EventingBasicConsumer.cs [\#1006](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1006) ([riddletd](https://github.com/riddletd))
+- Simplify connection recovery [\#1004](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1004) ([bollhals](https://github.com/bollhals))
+- add two test applications [\#1003](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1003) ([bollhals](https://github.com/bollhals))
+- simplify CloseReason handling & improve AutorecoveringConnection eventing [\#1002](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1002) ([bollhals](https://github.com/bollhals))
+- Remove Experimental from EventingBasicConsumer doc [\#1001](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1001) ([kjnilsson](https://github.com/kjnilsson))
+- 8.0: implement WaitForConfirmsAsync [\#999](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/999) ([bollhals](https://github.com/bollhals))
+- Consumer dispatcher improvements [\#997](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/997) ([bollhals](https://github.com/bollhals))
+- reduce allocations [\#996](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/996) ([bollhals](https://github.com/bollhals))
+- minor cleanup of \(unused / rarely used\) classes [\#992](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/992) ([bollhals](https://github.com/bollhals))
+- 8.0: implement BasicPublishMemory [\#990](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/990) ([bollhals](https://github.com/bollhals))
+- some more wire formatting improvements [\#989](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/989) ([bollhals](https://github.com/bollhals))
+- 8.0: improve eventing [\#986](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/986) ([bollhals](https://github.com/bollhals))
+- Speeding up shortstr/longstr \(de\)serialization. [\#985](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/985) ([stebet](https://github.com/stebet))
+- Speeding up decimal \(de\)serialization. [\#984](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/984) ([stebet](https://github.com/stebet))
+- Cleaning up and adding more benchmarks. [\#983](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/983) ([stebet](https://github.com/stebet))
+- 7.0: update target framework from net461 to netcoreapp3.1 [\#971](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/971) ([bollhals](https://github.com/bollhals))
+- Structify the Framing.Impl methods [\#962](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/962) ([bollhals](https://github.com/bollhals))
+- Update IModel Documentation [\#958](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/958) ([JKamsker](https://github.com/JKamsker))
+- Minor improvements to GitHub Actions CI build. [\#954](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/954) ([stebet](https://github.com/stebet))
+- Replace Travis with GitHub Actions [\#952](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/952) ([asbjornu](https://github.com/asbjornu))
+- Make sure OnCallbackException is executed for AsyncConsumers [\#946](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/946) ([BarShavit](https://github.com/BarShavit))
+- Breaking public API change: fold IAutorecoveringConnection \[back\] into IConnection [\#943](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/943) ([michaelklishin](https://github.com/michaelklishin))
+- Switch FxCop to PrivateAssets="All" [\#941](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/941) ([danielmarbach](https://github.com/danielmarbach))
+- Use span directly instead of reader / writer for methods & properties [\#936](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/936) ([bollhals](https://github.com/bollhals))
+- Expose events ConsumerTagChangeAfterRecovery and QueueNameChangeAfterRecovery [\#935](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/935) ([paulomf](https://github.com/paulomf))
+- Remove IAsyncConnectionFactory [\#933](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/933) ([danielmarbach](https://github.com/danielmarbach))
+- Add FxCop with only ConfigureAwait rule enabled for now [\#932](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/932) ([danielmarbach](https://github.com/danielmarbach))
+- Code cleanups [\#931](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/931) ([stebet](https://github.com/stebet))
+- Update dependencies to latest versions [\#929](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/929) ([lukebakken](https://github.com/lukebakken))
+- change from Memory to ReadOnlyMemory [\#928](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/928) ([bollhals](https://github.com/bollhals))
+- change AmqpVersion to struct [\#927](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/927) ([bollhals](https://github.com/bollhals))
+- Command Id instead of class & method id [\#925](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/925) ([bollhals](https://github.com/bollhals))
+- Running Tests docs: quotes for setting env vars in windows [\#921](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/921) ([JeremyMahieu](https://github.com/JeremyMahieu))
+- reduce the amount of times we rent / return from arraypool [\#919](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/919) ([bollhals](https://github.com/bollhals))
+- Switch to Mozilla Public License 2.0 \(MPL 2.0\) [\#916](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/916) ([dcorbacho](https://github.com/dcorbacho))
+- simplify ack/nack handling [\#912](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/912) ([bollhals](https://github.com/bollhals))
+- cache the frameHeaderBuffer & rentedArray [\#911](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/911) ([bollhals](https://github.com/bollhals))
+- Reduce work allocations [\#910](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/910) ([bollhals](https://github.com/bollhals))
+- More descriptive exception in WriteShortstr [\#908](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/908) ([tmasternak](https://github.com/tmasternak))
+- Rename ProcessingConcurrency to ConsumerDispatchConcurrency [\#905](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/905) ([danielmarbach](https://github.com/danielmarbach))
+- Getting rid of Command allocations [\#902](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/902) ([bollhals](https://github.com/bollhals))
+- Pull ProcessingConcurrency into connection factory interface [\#899](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/899) ([danielmarbach](https://github.com/danielmarbach))
+- Missing ConfigureAwait in TcpClientAdapter [\#897](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/897) ([danielmarbach](https://github.com/danielmarbach))
+- Edit docs [\#896](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/896) ([JeremyMahieu](https://github.com/JeremyMahieu))
+- 7.x: remove deprecated message publishing method overloads [\#895](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/895) ([danielmarbach](https://github.com/danielmarbach))
+- Do DNS resolution before connection attempt [\#893](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/893) ([JeremyMahieu](https://github.com/JeremyMahieu))
+- precompute sizes and and simplify BasicProperties presence [\#890](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/890) ([bollhals](https://github.com/bollhals))
+- add size hint variable for PublishBatch creation [\#888](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/888) ([bollhals](https://github.com/bollhals))
+- use cached empty BasicProperties when null [\#887](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/887) ([bollhals](https://github.com/bollhals))
+- Refactor: extracted RabbitMQ node management functions from IntegrationFixture [\#884](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/884) ([pergh](https://github.com/pergh))
+- Switch WorkPool of ConsumerWorkService to channels [\#882](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/882) ([danielmarbach](https://github.com/danielmarbach))
+- Move BinaryTableValue to public section [\#880](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/880) ([BenBorn](https://github.com/BenBorn))
+- fix issue 868 [\#878](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/878) ([bollhals](https://github.com/bollhals))
+- Fix AppVeyor build [\#871](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/871) ([lukebakken](https://github.com/lukebakken))
+- Prep for 6.1.1 [\#870](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/870) ([lukebakken](https://github.com/lukebakken))
+- Implement BasicPublishBatch with ReadOnlyMemory [\#865](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/865) ([danielmarbach](https://github.com/danielmarbach))
+- Report a Uri scheme of "amqps" in AmqpTcpEndpoint.ToString\(\) iff SslOption is enabled [\#864](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/864) ([ghost](https://github.com/ghost))
+- Re-merge pull request \#855 from bollhals/remove.task.yield [\#863](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/863) ([lukebakken](https://github.com/lukebakken))
+- Fix RabbitMQ version parsing [\#862](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/862) ([lukebakken](https://github.com/lukebakken))
+- Unify on IModel [\#858](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/858) ([danielmarbach](https://github.com/danielmarbach))
+- remove task yield [\#855](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/855) ([bollhals](https://github.com/bollhals))
+- Delete AutoClose from SessionManager [\#852](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/852) ([Pliner](https://github.com/Pliner))
+- Adding BinaryPrimitives support for NETSTANDARD targets [\#851](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/851) ([stebet](https://github.com/stebet))
+- Fixing rethrown exceptions to properly preserve stackframes. [\#850](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/850) ([stebet](https://github.com/stebet))
+- throw ArgumentOutOfRangeException when table key is too long \(\> 255\) [\#849](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/849) ([bollhals](https://github.com/bollhals))
+- Deletion of unreachable code [\#847](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/847) ([Pliner](https://github.com/Pliner))
+- Deletion of unused UseBackgroundThreadsForIO [\#846](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/846) ([Pliner](https://github.com/Pliner))
+- simplify WriteShortstr [\#845](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/845) ([bollhals](https://github.com/bollhals))
+- Frame optimizations [\#844](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/844) ([stebet](https://github.com/stebet))
+- Minor improvements and optimizations [\#842](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/842) ([bollhals](https://github.com/bollhals))
 
 ## [v6.6.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0) (2023-09-25)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.5.0...v6.6.0)
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0-beta.0...v6.6.0)
+
+## [v6.6.0-beta.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0-beta.0) (2023-09-25)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.5.0...v6.6.0-beta.0)
 
 **Implemented enhancements:**
 
@@ -34,7 +490,7 @@
 
 ## [v6.5.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.5.0) (2023-03-25)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0-rc.1...v6.5.0)
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.5.0)
 
 **Implemented enhancements:**
 
@@ -54,10 +510,6 @@
 - 7.0 Release Checklist [\#1191](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1191)
 - Missing IRecoveryable implementation [\#998](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/998)
 - BasicGetResult body memory safety in 6.x+ [\#994](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/994)
-
-## [v6.4.0-rc.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.4.0-rc.1) (2022-06-14)
-
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.4.0-rc.1)
 
 ## Changes Between 6.3.1 and 6.4.0
 
@@ -116,25 +568,7 @@ GitHub milestone: [`6.2.1`](https://github.com/rabbitmq/rabbitmq-dotnet-client/m
 
 ## Changes Between 6.1.0 and 6.2.0
 
-This releases primarily focuses on efficiency improvements and addressing
-bugs introduced in `6.x` releases.
-
 A full list of changes can be found in the GitHub milestone: [`6.2.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/49?closed=1).
-
-Key highlights include:
-
- * Concurrent publishing on a shared channel is now safer. We still recommend avoiding it when possible
-   but safety properties have been improved by changing how outgoing frame sequences are serialised.
-   
-   Contributed by @bollhals.
-
-   GitHub issue: [#878](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/878)
-
- * Batch publishing using `System.ReadOnlyMemory<byte>` payloads instead of byte arrays.
- 
-   Contributed by @danielmarbach.
-
-   GitHub issue: [#865](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/865), [#892](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/892)
 
 ## Changes Between 6.0.0 and 6.1.0
 
