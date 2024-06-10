@@ -1,19 +1,23 @@
 # Changelog
 
-## [oauth2-1.0.0-beta.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/oauth2-1.0.0-beta.0) (2023-09-25)
+## [v6.8.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.1)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/oauth2-1.0.0...oauth2-1.0.0-beta.0)
+GitHub milestone: [`6.8.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/67?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.0...v6.8.1)
 
-## [oauth2-1.0.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/oauth2-1.0.0) (2023-09-25)
+## [v6.8.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.0)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0-beta.0...oauth2-1.0.0)
+GitHub milestone: [`6.8.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/64?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.7.0...v6.8.0)
 
-## [v6.6.0-beta.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0-beta.0) (2023-09-25)
+## [v6.7.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0...v6.6.0-beta.0)
+GitHub milestone: [`6.7.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/63?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0...v6.7.0)
 
 ## [v6.6.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0) (2023-09-25)
 
+GitHub milestone: [`6.6.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/62?closed=1)
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.5.0...v6.6.0)
 
 **Implemented enhancements:**
