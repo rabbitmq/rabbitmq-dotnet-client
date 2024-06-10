@@ -1,14 +1,31 @@
-## Changes Between 6.4.0 and 6.7.0
+# Changelog
 
-## [v6.7.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0) (2023-11-16)
+## Changes Between 6.4.0 and 6.8.1
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.7.0)
+### 6.8.1
 
-**Fixed bugs:**
+GitHub milestone: [`6.8.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/67?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.0...v6.8.1)
 
-- Removed `ReceiveBufferSize` and `SendBufferSize` because it limited performance [\#1416](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1416)
-- Make `TcpClientAdapter` public [\#1418](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1418)
-- 6.5.0 can cause application freeze due to TaskScheduler change [\#1357](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1357)
+### 6.8.0
+
+GitHub milestone: [`6.8.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/64?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.7.0...v6.8.0)
+
+### 6.7.0
+
+GitHub milestone: [`6.7.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/63?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0...v6.7.0)
+
+### 6.6.0
+
+GitHub milestone: [`6.6.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/62?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.5.0...v6.6.0)
+
+### 6.5.0
+
+GitHub milestone: [`6.5.0`](https://github.com/rabbitmq/rabbitmq-dotnet-client/milestone/59?closed=1)
+Diff: [link](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.5.0)
 
 ## Changes Between 6.3.1 and 6.4.0
 
@@ -148,8 +165,6 @@ Added a TLS option to enforce CRL checks for server certificates.
 
 GitHub issue: [#500](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/500)
 
-
-
 ## Changes Between 5.1.2 and 5.2.0
 
 Please see the milestone for all changes:
@@ -165,8 +180,6 @@ GitHub issues: [#428](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/
 ### Re-introduce lock for all socket writes
 
 GitHub PR: [rabbitmq-dotnet-client#702](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/702)
-
-
 
 ## Changes Between 5.1.1 and 5.1.2
 
@@ -190,7 +203,6 @@ GitHub PR: [rabbitmq-dotnet-client#579](https://github.com/rabbitmq/rabbitmq-dot
 
 GitHub PR: [rabbitmq-dotnet-client#636](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/636)
 
-
 ## Changes Between 5.0.x and 5.1.0
 
 ### Batch Publishing
@@ -208,7 +220,6 @@ GitHub PR: [rabbitmq-dotnet-client#377](https://github.com/rabbitmq/rabbitmq-dot
 ### Reduced Lock Contention for Frame Writes
 
 GitHub PR: [rabbitmq-dotnet-client#354](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/354)
-
 
 ## Changes Between 4.1.x and 5.0.1
 
@@ -284,7 +295,6 @@ GitHub issue: [rabbitmq-dotnet-client#263](https://github.com/rabbitmq/rabbitmq-
 
 GitHub issue: [rabbitmq-dotnet-client#257](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/257)
 
-
 ## Changes Between 4.0.2 and 4.1.0
 
 `4.1.0` was released on **September 14th, 2016**.
@@ -306,7 +316,6 @@ Utility class changes:
 Contributed by Brandon Ording and Szymon Kulec.
 
 GH issue: [rabbitmq-dotnet-client#251](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/251)
-
 
 ## Changes Between 4.0.1 and 4.0.2 (September 1st, 2016)
 
