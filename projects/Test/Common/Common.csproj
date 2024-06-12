@@ -26,9 +26,9 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="EasyNetQ.Management.Client" Version="2.0.0" />
-    <PackageReference Include="xunit" Version="2.7.0" />
-    <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+    <PackageReference Include="EasyNetQ.Management.Client" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.abstractions" />
   </ItemGroup>
 
   <ItemGroup>
