@@ -112,7 +112,7 @@ namespace RabbitMQ.Client
             bool redelivered,
             string exchange,
             string routingKey,
-            in ReadOnlyBasicProperties properties,
+            ReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
             // Nothing to do here.

@@ -761,11 +761,11 @@ namespace Test.Integration
                 return base.HandleBasicConsumeOk(consumerTag);
             }
 
-            public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            public override async Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
+                string exchange, string routingKey, ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicDeliver {1}", _logPrefix, consumerTag);
-                return base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+                await base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             }
 
             public override Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)

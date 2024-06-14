@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         Task IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            in ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             return ((IBasicConsumer)this).HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
         }

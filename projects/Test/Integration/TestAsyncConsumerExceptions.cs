@@ -134,7 +134,7 @@ namespace Test.Integration
                 bool redelivered,
                 string exchange,
                 string routingKey,
-                in ReadOnlyBasicProperties properties,
+                ReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
                 return Task.FromException(TestException);
