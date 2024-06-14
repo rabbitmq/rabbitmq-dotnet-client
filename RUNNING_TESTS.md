@@ -32,7 +32,7 @@ Tests can be run from Visual Studio using the XUnit Test Adapter.  Note that it
 may take some time for the adapter to discover tests in the assemblies.
 
 The test suite assumes there's a RabbitMQ node running locally with all
-defaults, and the tests will need to be able to run commands against the
+defaults, incl. the management plugin, and the tests will need to be able to run commands against the
 [`rabbitmqctl`](https://www.rabbitmq.com/rabbitmqctl.8.html) tool for that node.
 Two options to accomplish this are covered below.
 
