@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             bool redelivered,
                             string exchange,
                             string routingKey,
-                            in ReadOnlyBasicProperties basicProperties,
+                            ReadOnlyBasicProperties basicProperties,
                             RentedMemory body,
                             CancellationToken cancellationToken);
 
