@@ -19,13 +19,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
-    <PackageReference Include="Ductus.FluentDocker" Version="2.10.59" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Ductus.FluentDocker" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../RabbitMQ.Client/RabbitMQ.Client.csproj" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

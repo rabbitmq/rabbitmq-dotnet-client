@@ -22,6 +22,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AssemblyOriginatorKeyFile>../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
+    <IsPackable>true</IsPackable>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerVerbosity>minimal</MinVerVerbosity>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -58,15 +59,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
-    <PackageReference Include="MinVer" Version="5.0.0" PrivateAssets="all" />
     <!--
       Note: do NOT upgrade this dependency unless necessary
       See https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
     -->
-    <PackageReference Include="System.IO.Pipelines" Version="6.0.0" />
+    <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
@@ -76,8 +73,8 @@
       * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
       * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1594
     -->
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
 </Project>
