@@ -259,7 +259,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public readonly bool Redelivered;
             public readonly string? Exchange;
             public readonly string? RoutingKey;
-            public readonly ReadOnlyBasicProperties BasicProperties;
+            public readonly ReadOnlyBasicProperties? BasicProperties;
             public readonly RentedMemory Body;
             public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
