@@ -68,23 +68,17 @@ namespace RabbitMQ.Client
             return new ReadOnlyMemory<byte>(Memory.ToArray());
         }
 
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
             if (!_disposedValue)
             {
-                if (disposing && RentedArray != null)
+                if (RentedArray != null)
                 {
                     ArrayPool<byte>.Shared.Return(RentedArray);
                 }
 
                 _disposedValue = true;
             }
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }

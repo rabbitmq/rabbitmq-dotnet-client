@@ -1069,10 +1069,7 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                var cmd = new BasicPublishMemory(
-                    Encoding.UTF8.GetBytes(exchange),
-                    Encoding.UTF8.GetBytes(routingKey),
-                    mandatory, default);
+                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
                 using Activity sendActivity = RabbitMQActivitySource.PublisherHasListeners
                     ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length)
                     : default;
