@@ -681,7 +681,6 @@ RabbitMQ.Client.ReadOnlyBasicProperties.IsUserIdPresent() -> bool
 RabbitMQ.Client.ReadOnlyBasicProperties.MessageId.get -> string
 RabbitMQ.Client.ReadOnlyBasicProperties.Persistent.get -> bool
 RabbitMQ.Client.ReadOnlyBasicProperties.Priority.get -> byte
-RabbitMQ.Client.ReadOnlyBasicProperties.ReadOnlyBasicProperties() -> void
 RabbitMQ.Client.ReadOnlyBasicProperties.ReadOnlyBasicProperties(System.ReadOnlySpan<byte> span) -> void
 RabbitMQ.Client.ReadOnlyBasicProperties.ReplyTo.get -> string
 RabbitMQ.Client.ReadOnlyBasicProperties.ReplyToAddress.get -> RabbitMQ.Client.PublicationAddress

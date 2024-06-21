@@ -39,7 +39,7 @@ namespace RabbitMQ.Client
     /// <summary>
     /// AMQP specification content header properties for content class "basic"
     /// </summary>
-    public readonly struct ReadOnlyBasicProperties : IReadOnlyBasicProperties
+    public sealed class ReadOnlyBasicProperties : IReadOnlyBasicProperties
     {
         private readonly string? _contentType;
         private readonly string? _contentEncoding;
@@ -83,7 +83,6 @@ namespace RabbitMQ.Client
         }
 
         public ReadOnlyBasicProperties(ReadOnlySpan<byte> span)
-            : this()
         {
             int offset = 2;
             ref readonly byte bits = ref span[0];
