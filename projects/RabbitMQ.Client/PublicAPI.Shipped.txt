@@ -122,7 +122,7 @@ RabbitMQ.Client.BasicProperties
 RabbitMQ.Client.BasicProperties.AppId.get -> string
 RabbitMQ.Client.BasicProperties.AppId.set -> void
 RabbitMQ.Client.BasicProperties.BasicProperties() -> void
-RabbitMQ.Client.BasicProperties.BasicProperties(in RabbitMQ.Client.ReadOnlyBasicProperties input) -> void
+RabbitMQ.Client.BasicProperties.BasicProperties(RabbitMQ.Client.ReadOnlyBasicProperties input) -> void
 RabbitMQ.Client.BasicProperties.ClearAppId() -> void
 RabbitMQ.Client.BasicProperties.ClearClusterId() -> void
 RabbitMQ.Client.BasicProperties.ClearContentEncoding() -> void

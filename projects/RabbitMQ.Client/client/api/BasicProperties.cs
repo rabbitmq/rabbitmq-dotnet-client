@@ -40,7 +40,7 @@ namespace RabbitMQ.Client
     /// <summary>
     /// AMQP specification content header properties for content class "basic".
     /// </summary>
-    public struct BasicProperties : IBasicProperties, IAmqpHeader
+    public sealed class BasicProperties : IBasicProperties, IAmqpHeader
     {
         public string? ContentType { get; set; }
         public string? ContentEncoding { get; set; }
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
 
         public bool Persistent
         {
-            readonly get
+            get
             {
                 return DeliveryMode == DeliveryModes.Persistent;
             }
@@ -72,7 +72,7 @@ namespace RabbitMQ.Client
 
         public PublicationAddress? ReplyToAddress
         {
-            readonly get
+            get
             {
                 PublicationAddress.TryParse(ReplyTo, out PublicationAddress result);
                 return result;
@@ -81,7 +81,11 @@ namespace RabbitMQ.Client
             set { ReplyTo = value?.ToString(); }
         }
 
-        public BasicProperties(in ReadOnlyBasicProperties input)
+        public BasicProperties()
+        {
+        }
+
+        public BasicProperties(ReadOnlyBasicProperties input)
         {
             ContentType = input.ContentType;
             ContentEncoding = input.ContentEncoding;
@@ -114,20 +118,20 @@ namespace RabbitMQ.Client
         public void ClearAppId() => AppId = default;
         public void ClearClusterId() => ClusterId = default;
 
-        public readonly bool IsContentTypePresent() => ContentType != default;
-        public readonly bool IsContentEncodingPresent() => ContentEncoding != default;
-        public readonly bool IsHeadersPresent() => Headers != default;
-        public readonly bool IsDeliveryModePresent() => DeliveryMode != default;
-        public readonly bool IsPriorityPresent() => Priority != default;
-        public readonly bool IsCorrelationIdPresent() => CorrelationId != default;
-        public readonly bool IsReplyToPresent() => ReplyTo != default;
-        public readonly bool IsExpirationPresent() => Expiration != default;
-        public readonly bool IsMessageIdPresent() => MessageId != default;
-        public readonly bool IsTimestampPresent() => Timestamp != default;
-        public readonly bool IsTypePresent() => Type != default;
-        public readonly bool IsUserIdPresent() => UserId != default;
-        public readonly bool IsAppIdPresent() => AppId != default;
-        public readonly bool IsClusterIdPresent() => ClusterId != default;
+        public bool IsContentTypePresent() => ContentType != default;
+        public bool IsContentEncodingPresent() => ContentEncoding != default;
+        public bool IsHeadersPresent() => Headers != default;
+        public bool IsDeliveryModePresent() => DeliveryMode != default;
+        public bool IsPriorityPresent() => Priority != default;
+        public bool IsCorrelationIdPresent() => CorrelationId != default;
+        public bool IsReplyToPresent() => ReplyTo != default;
+        public bool IsExpirationPresent() => Expiration != default;
+        public bool IsMessageIdPresent() => MessageId != default;
+        public bool IsTimestampPresent() => Timestamp != default;
+        public bool IsTypePresent() => Type != default;
+        public bool IsUserIdPresent() => UserId != default;
+        public bool IsAppIdPresent() => AppId != default;
+        public bool IsClusterIdPresent() => ClusterId != default;
 
         ushort IAmqpHeader.ProtocolClassId => ClassConstants.Basic;
 
@@ -153,7 +157,7 @@ namespace RabbitMQ.Client
         internal const byte AppIdBit = 3;
         internal const byte ClusterIdBit = 2;
 
-        readonly int IAmqpWriteable.WriteTo(Span<byte> span)
+        int IAmqpWriteable.WriteTo(Span<byte> span)
         {
             int offset = 2;
             ref byte bitValue = ref span.GetStart();
@@ -247,7 +251,7 @@ namespace RabbitMQ.Client
             return offset;
         }
 
-        readonly int IAmqpWriteable.GetRequiredBufferSize()
+        int IAmqpWriteable.GetRequiredBufferSize()
         {
             int bufferSize = 2; // number of presence fields (14) in 2 bytes blocks
             if (IsContentTypePresent()) { bufferSize += 1 + WireFormatting.GetByteCount(ContentType); } // _contentType in bytes
