@@ -39,7 +39,7 @@ namespace RabbitMQ.Client
     /// <summary>
     /// AMQP specification content header properties for content class "basic"
     /// </summary>
-    public class ReadOnlyBasicProperties : IReadOnlyBasicProperties
+    public sealed class ReadOnlyBasicProperties : IReadOnlyBasicProperties
     {
         private readonly string? _contentType;
         private readonly string? _contentEncoding;
