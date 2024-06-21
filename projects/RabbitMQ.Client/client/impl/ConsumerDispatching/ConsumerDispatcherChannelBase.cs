@@ -11,9 +11,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
 #nullable enable
     internal abstract class ConsumerDispatcherChannelBase : ConsumerDispatcherBase, IConsumerDispatcher
     {
-        protected readonly CancellationTokenSource _consumerDispatcherCts = new CancellationTokenSource();
-        protected readonly CancellationToken _consumerDispatcherToken;
-
         protected readonly ChannelBase _channel;
         protected readonly ChannelReader<WorkStruct> _reader;
         private readonly ChannelWriter<WorkStruct> _writer;
@@ -23,7 +20,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         internal ConsumerDispatcherChannelBase(ChannelBase channel, int concurrency)
         {
-            _consumerDispatcherToken = _consumerDispatcherCts.Token;
             _channel = channel;
             var workChannel = Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
             {
@@ -34,18 +30,17 @@ namespace RabbitMQ.Client.ConsumerDispatching
             _reader = workChannel.Reader;
             _writer = workChannel.Writer;
 
-            Func<Task> loopStart =
-                () => ProcessChannelAsync(_consumerDispatcherToken);
+            Func<Task> loopStart = ProcessChannelAsync;
             if (concurrency == 1)
             {
-                _worker = Task.Run(loopStart, _consumerDispatcherToken);
+                _worker = Task.Run(loopStart);
             }
             else
             {
                 var tasks = new Task[concurrency];
                 for (int i = 0; i < concurrency; i++)
                 {
-                    tasks[i] = Task.Run(loopStart, _consumerDispatcherToken);
+                    tasks[i] = Task.Run(loopStart);
                 }
                 _worker = Task.WhenAll(tasks);
             }
@@ -122,21 +117,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
             _quiesce = true;
         }
 
-        private bool IsCancellationRequested
-        {
-            get
-            {
-                try
-                {
-                    return _consumerDispatcherCts.IsCancellationRequested;
-                }
-                catch (ObjectDisposedException)
-                {
-                    return true;
-                }
-            }
-        }
-
         public void WaitForShutdown()
         {
             if (_disposed)
@@ -146,39 +126,36 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
             if (_quiesce)
             {
-                if (IsCancellationRequested)
+                try
                 {
-                    try
+                    if (false == _reader.Completion.Wait(TimeSpan.FromSeconds(2)))
                     {
-                        if (false == _reader.Completion.Wait(TimeSpan.FromSeconds(2)))
+                        ESLog.Warn("consumer dispatcher did not shut down in a timely fashion (sync)");
+                    }
+                    if (false == _worker.Wait(TimeSpan.FromSeconds(2)))
+                    {
+                        ESLog.Warn("consumer dispatcher did not shut down in a timely fashion (sync)");
+                    }
+                }
+                catch (AggregateException aex)
+                {
+                    AggregateException aexf = aex.Flatten();
+                    bool foundUnexpectedException = false;
+                    foreach (Exception innerAexf in aexf.InnerExceptions)
+                    {
+                        if (false == (innerAexf is OperationCanceledException))
                         {
-                            ESLog.Warn("consumer dispatcher did not shut down in a timely fashion (sync)");
-                        }
-                        if (false == _worker.Wait(TimeSpan.FromSeconds(2)))
-                        {
-                            ESLog.Warn("consumer dispatcher did not shut down in a timely fashion (sync)");
+                            foundUnexpectedException = true;
+                            break;
                         }
                     }
-                    catch (AggregateException aex)
+                    if (foundUnexpectedException)
                     {
-                        AggregateException aexf = aex.Flatten();
-                        bool foundUnexpectedException = false;
-                        foreach (Exception innerAexf in aexf.InnerExceptions)
-                        {
-                            if (false == (innerAexf is OperationCanceledException))
-                            {
-                                foundUnexpectedException = true;
-                                break;
-                            }
-                        }
-                        if (foundUnexpectedException)
-                        {
-                            ESLog.Warn("consumer dispatcher task had unexpected exceptions");
-                        }
+                        ESLog.Warn("consumer dispatcher task had unexpected exceptions");
                     }
-                    catch (OperationCanceledException)
-                    {
-                    }
+                }
+                catch (OperationCanceledException)
+                {
                 }
             }
             else
@@ -238,17 +215,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
         protected override void InternalShutdown()
         {
             _writer.Complete();
-            CancelConsumerDispatcherCts();
         }
 
         protected override Task InternalShutdownAsync()
         {
             _writer.Complete();
-            CancelConsumerDispatcherCts();
             return _worker;
         }
 
-        protected abstract Task ProcessChannelAsync(CancellationToken token);
+        protected abstract Task ProcessChannelAsync();
 
         protected readonly struct WorkStruct : IDisposable
         {
@@ -334,17 +309,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
             ConsumeOk
         }
 
-        protected void CancelConsumerDispatcherCts()
-        {
-            try
-            {
-                _consumerDispatcherCts.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-            }
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)
@@ -354,8 +318,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
                     if (disposing)
                     {
                         Quiesce();
-                        CancelConsumerDispatcherCts();
-                        _consumerDispatcherCts.Dispose();
                     }
                 }
                 catch

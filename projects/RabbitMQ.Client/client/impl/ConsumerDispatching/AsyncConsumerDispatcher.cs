@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
@@ -14,11 +13,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
         }
 
-        protected override async Task ProcessChannelAsync(CancellationToken token)
+        protected override async Task ProcessChannelAsync()
         {
             try
             {
-                while (await _reader.WaitToReadAsync(token).ConfigureAwait(false))
+                while (await _reader.WaitToReadAsync().ConfigureAwait(false))
                 {
                     while (_reader.TryRead(out WorkStruct work))
                     {
@@ -54,7 +53,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
             catch (OperationCanceledException)
             {
-                if (false == token.IsCancellationRequested)
+                if (false == _reader.Completion.IsCompleted)
                 {
                     throw;
                 }
