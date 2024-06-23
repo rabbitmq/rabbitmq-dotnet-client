@@ -127,6 +127,11 @@ namespace RabbitMQ.Client
         IEnumerable<ShutdownReportEntry> ShutdownReport { get; }
 
         /// <summary>
+        /// Returns if connection is set to use asynchronous consumer dispatcher/>.
+        /// </summary>
+        public bool DispatchConsumersAsync { get; }
+
+        /// <summary>
         /// Application-specific connection name, will be displayed in the management UI
         /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
         /// be used as a connection identifier, e.g. in HTTP API requests.
@@ -236,5 +241,8 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="cancellationToken">Cancellation token</param>
         Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default);
+
+
+        
     }
 }

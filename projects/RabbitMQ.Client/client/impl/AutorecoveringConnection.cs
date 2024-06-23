@@ -176,6 +176,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IProtocol Protocol => Endpoint.Protocol;
 
+        public bool DispatchConsumersAsync => _config.DispatchConsumersAsync;
+
         public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(CancellationToken cancellationToken)
         {
             ISession session = InnerConnection.CreateSession();

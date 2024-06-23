@@ -511,6 +511,7 @@ RabbitMQ.Client.IConnection.Endpoint.get -> RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.IConnection.FrameMax.get -> uint
 RabbitMQ.Client.IConnection.Heartbeat.get -> System.TimeSpan
 RabbitMQ.Client.IConnection.IsOpen.get -> bool
+RabbitMQ.Client.IConnection.DispatchConsumersAsync.get -> bool
 RabbitMQ.Client.IConnection.Protocol.get -> RabbitMQ.Client.IProtocol
 RabbitMQ.Client.IConnection.QueueNameChangedAfterRecovery -> System.EventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs>
 RabbitMQ.Client.IConnection.RecoveringConsumer -> System.EventHandler<RabbitMQ.Client.Events.RecoveringConsumerEventArgs>
