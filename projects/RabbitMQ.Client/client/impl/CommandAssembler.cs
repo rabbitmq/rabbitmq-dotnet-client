@@ -45,12 +45,9 @@ namespace RabbitMQ.Client.Impl
         private const int MaxArrayOfBytesSize = 2_147_483_591;
 
         private ProtocolCommandId _commandId;
-        private ReadOnlyMemory<byte> _methodMemory;
-        private byte[]? _rentedMethodArray;
-        private ReadOnlyMemory<byte> _headerMemory;
-        private byte[]? _rentedHeaderArray;
-        private ReadOnlyMemory<byte> _bodyMemory;
-        private byte[]? _rentedBodyArray;
+        private RentedMemory _methodMemory;
+        private RentedMemory _headerMemory;
+        private RentedMemory _bodyMemory;
         private int _remainingBodyByteCount;
         private int _offset;
         private AssemblyState _state;
@@ -66,61 +63,49 @@ namespace RabbitMQ.Client.Impl
         private void Reset()
         {
             _commandId = default;
-            _methodMemory = ReadOnlyMemory<byte>.Empty;
-            _rentedMethodArray = null;
-            _headerMemory = ReadOnlyMemory<byte>.Empty;
-            _rentedHeaderArray = null;
-            _bodyMemory = ReadOnlyMemory<byte>.Empty;
-            _rentedBodyArray = null;
+            _methodMemory = default;
+            _headerMemory = default;
+            _bodyMemory = default;
             _remainingBodyByteCount = 0;
             _offset = 0;
             _state = AssemblyState.ExpectingMethod;
         }
 
-        public bool HandleFrame(in InboundFrame frame, out IncomingCommand command)
+        public void HandleFrame(InboundFrame frame, out IncomingCommand command)
         {
-            bool shallReturn = true;
             switch (_state)
             {
                 case AssemblyState.ExpectingMethod:
-                    ParseMethodFrame(in frame);
-                    shallReturn = false;
+                    ParseMethodFrame(frame);
                     break;
                 case AssemblyState.ExpectingContentHeader:
-                    shallReturn = ParseHeaderFrame(in frame);
+                    ParseHeaderFrame(frame);
                     break;
                 case AssemblyState.ExpectingContentBody:
-                    shallReturn = ParseBodyFrame(in frame);
+                    ParseBodyFrame(frame);
                     break;
             }
 
             if (_state != AssemblyState.Complete)
             {
                 command = IncomingCommand.Empty;
-                return shallReturn;
+                return;
             }
 
             RabbitMqClientEventSource.Log.CommandReceived();
-
-            var method = new RentedMemory(_methodMemory, _rentedMethodArray);
-            var header = new RentedMemory(_headerMemory, _rentedHeaderArray);
-            var body = new RentedMemory(_bodyMemory, _rentedBodyArray);
-
-            command = new IncomingCommand(_commandId, method, header, body);
+            command = new IncomingCommand(_commandId, _methodMemory, _headerMemory, _bodyMemory);
             Reset();
-            return shallReturn;
         }
 
-        private void ParseMethodFrame(in InboundFrame frame)
+        private void ParseMethodFrame(InboundFrame frame)
         {
             if (frame.Type != FrameType.FrameMethod)
             {
                 throw new UnexpectedFrameException(frame.Type);
             }
 
-            _rentedMethodArray = frame.TakeoverPayload();
             _commandId = (ProtocolCommandId)NetworkOrderDeserializer.ReadUInt32(frame.Payload.Span);
-            _methodMemory = frame.Payload.Slice(4);
+            _methodMemory = frame.TakeoverPayload(Framing.Method.ArgumentsOffset);
 
             switch (_commandId)
             {
@@ -136,7 +121,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private bool ParseHeaderFrame(in InboundFrame frame)
+        private void ParseHeaderFrame(InboundFrame frame)
         {
             if (frame.Type != FrameType.FrameHeader)
             {
@@ -150,7 +135,7 @@ namespace RabbitMQ.Client.Impl
                 throw new UnknownClassOrMethodException(classId, 0);
             }
 
-            ulong totalBodyBytes = NetworkOrderDeserializer.ReadUInt64(span.Slice(4));
+            ulong totalBodyBytes = NetworkOrderDeserializer.ReadUInt64(span.Slice(Framing.Header.BodyLengthOffset));
             if (totalBodyBytes > MaxArrayOfBytesSize)
             {
                 throw new UnexpectedFrameException(frame.Type);
@@ -162,16 +147,21 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException(message: msg, canShutdownCleanly: false);
             }
 
-            _rentedHeaderArray = totalBodyBytes != 0 ? frame.TakeoverPayload() : Array.Empty<byte>();
-
-            _headerMemory = frame.Payload.Slice(12);
+            // There are always at least 2 bytes, even for empty ones
+            if (frame.Payload.Length <= Framing.Header.HeaderArgumentOffset + 2)
+            {
+                frame.TryReturnPayload();
+            }
+            else
+            {
+                _headerMemory = frame.TakeoverPayload(Framing.Header.HeaderArgumentOffset);
+            }
 
             _remainingBodyByteCount = (int)totalBodyBytes;
             UpdateContentBodyState();
-            return _rentedHeaderArray.Length == 0;
         }
 
-        private bool ParseBodyFrame(in InboundFrame frame)
+        private void ParseBodyFrame(InboundFrame frame)
         {
             if (frame.Type != FrameType.FrameBody)
             {
@@ -184,27 +174,26 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException($"Overlong content body received - {_remainingBodyByteCount} bytes remaining, {payloadLength} bytes received");
             }
 
-            if (_rentedBodyArray is null)
+            if (_bodyMemory.RentedArray is null)
             {
                 // check for single frame payload for an early exit
                 if (payloadLength == _remainingBodyByteCount)
                 {
-                    _rentedBodyArray = frame.TakeoverPayload();
-                    _bodyMemory = frame.Payload;
+                    _bodyMemory = frame.TakeoverPayload(0);
                     _state = AssemblyState.Complete;
-                    return false;
+                    return;
                 }
 
                 // Is returned by IncomingCommand.ReturnPayload in Session.HandleFrame
-                _rentedBodyArray = ArrayPool<byte>.Shared.Rent(_remainingBodyByteCount);
-                _bodyMemory = new ReadOnlyMemory<byte>(_rentedBodyArray, 0, _remainingBodyByteCount);
+                var rentedBodyArray = ArrayPool<byte>.Shared.Rent(_remainingBodyByteCount);
+                _bodyMemory = new RentedMemory(new ReadOnlyMemory<byte>(rentedBodyArray, 0, _remainingBodyByteCount), rentedBodyArray);
             }
 
-            frame.Payload.Span.CopyTo(_rentedBodyArray.AsSpan(_offset));
+            frame.Payload.Span.CopyTo(_bodyMemory.RentedArray.AsSpan(_offset));
+            frame.TryReturnPayload();
             _remainingBodyByteCount -= payloadLength;
             _offset += payloadLength;
             UpdateContentBodyState();
-            return true;
         }
 
         private void UpdateContentBodyState()

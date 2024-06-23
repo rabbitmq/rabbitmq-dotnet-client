@@ -278,16 +278,16 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public ValueTask<InboundFrame> ReadFrameAsync(CancellationToken mainLoopCancellationToken)
+        public ValueTask ReadFrameAsync(InboundFrame frame, CancellationToken mainLoopCancellationToken)
         {
             return InboundFrame.ReadFromPipeAsync(_pipeReader,
-                _amqpTcpEndpoint.MaxInboundMessageBodySize, mainLoopCancellationToken);
+                _amqpTcpEndpoint.MaxInboundMessageBodySize, frame, mainLoopCancellationToken);
         }
 
-        public bool TryReadFrame(out InboundFrame frame)
+        public bool TryReadFrame(InboundFrame frame)
         {
             return InboundFrame.TryReadFrameFromPipe(_pipeReader,
-                _amqpTcpEndpoint.MaxInboundMessageBodySize, out frame);
+                _amqpTcpEndpoint.MaxInboundMessageBodySize, frame);
         }
 
         public async Task SendProtocolHeaderAsync(CancellationToken cancellationToken)

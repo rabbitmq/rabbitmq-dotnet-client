@@ -46,17 +46,16 @@ namespace RabbitMQ.Client.Impl
             _assembler = new CommandAssembler(maxBodyLength);
         }
 
-        public override async Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
+        public override Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
         {
-            bool shallReturnFramePayload = _assembler.HandleFrame(in frame, out IncomingCommand cmd);
+            _assembler.HandleFrame(frame, out IncomingCommand cmd);
 
-            if (!cmd.IsEmpty)
+            if (cmd.IsEmpty)
             {
-                await CommandReceived.Invoke(cmd, cancellationToken)
-                    .ConfigureAwait(false);
+                return Task.CompletedTask;
             }
 
-            return shallReturnFramePayload;
+            return CommandReceived.Invoke(cmd, cancellationToken);
         }
     }
 }

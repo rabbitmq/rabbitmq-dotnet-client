@@ -74,7 +74,7 @@ namespace RabbitMQ.Client.Impl
 
         void Close(ShutdownEventArgs reason, bool notify);
 
-        Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
+        Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
 
         void Notify();
 
