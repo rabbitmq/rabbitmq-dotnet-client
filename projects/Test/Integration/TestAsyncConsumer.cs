@@ -52,6 +52,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
+            Assert.True(_conn.DispatchConsumersAsyncEnabled);
+
             AddCallbackExceptionHandlers();
             _channel.DefaultConsumer = new DefaultAsyncConsumer("_channel,", _output);
 
@@ -145,6 +147,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRoundtripConcurrentManyMessages()
         {
+            Assert.True(_conn.DispatchConsumersAsyncEnabled);
+
             AddCallbackExceptionHandlers();
             _channel.DefaultConsumer = new DefaultAsyncConsumer("_channel,", _output);
 
@@ -320,6 +324,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRejectAsync()
         {
+            Assert.True(_conn.DispatchConsumersAsyncEnabled);
+
             string queueName = GenerateQueueName();
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -485,6 +491,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicNackAsync()
         {
+            Assert.True(_conn.DispatchConsumersAsyncEnabled);
+
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _conn.ConnectionShutdown += (o, ea) =>
@@ -558,6 +566,8 @@ namespace Test.Integration
         [Fact]
         public async Task NonAsyncConsumerShouldThrowInvalidOperationException()
         {
+            Assert.True(_conn.DispatchConsumersAsyncEnabled);
+
             bool sawException = false;
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
             await _channel.BasicPublishAsync(string.Empty, q.QueueName, GetRandomBody(1024));
@@ -576,6 +586,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
         {
+            Assert.True(_conn.DispatchConsumersAsyncEnabled);
+
             AssertRecordedQueues((RabbitMQ.Client.Framing.Impl.AutorecoveringConnection)_conn, 0);
             var tasks = new List<Task>();
             for (int i = 0; i < 256; i++)
@@ -596,6 +608,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestCreateChannelWithinAsyncConsumerCallback_GH650()
         {
+            Assert.True(_conn.DispatchConsumersAsyncEnabled);
+
             string exchangeName = GenerateExchangeName();
             string queue1Name = GenerateQueueName();
             string queue2Name = GenerateQueueName();
@@ -663,6 +677,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestCloseWithinEventHandler_GH1567()
         {
+            Assert.True(_conn.DispatchConsumersAsyncEnabled);
+
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();

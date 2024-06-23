@@ -101,6 +101,8 @@ namespace RabbitMQ.Client.Framing.Impl
         public int LocalPort => _frameHandler.LocalPort;
         public int RemotePort => _frameHandler.RemotePort;
 
+        public bool DispatchConsumersAsyncEnabled => _config.DispatchConsumersAsync;
+
         public IDictionary<string, object?>? ServerProperties { get; private set; }
 
         public IEnumerable<ShutdownReportEntry> ShutdownReport => _shutdownReport;
