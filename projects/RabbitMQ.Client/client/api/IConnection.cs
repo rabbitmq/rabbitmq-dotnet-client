@@ -242,7 +242,5 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">Cancellation token</param>
         Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default);
 
-
-        
     }
 }
