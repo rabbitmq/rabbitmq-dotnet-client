@@ -36,8 +36,6 @@ namespace RabbitMQ.Client
 {
     internal struct RentedMemory : IDisposable
     {
-        private bool _disposedValue;
-
         internal RentedMemory(byte[] rentedArray)
             : this(new ReadOnlyMemory<byte>(rentedArray), rentedArray)
         {
@@ -47,21 +45,20 @@ namespace RabbitMQ.Client
         {
             Memory = memory;
             RentedArray = rentedArray;
-            _disposedValue = false;
         }
 
-        internal readonly ReadOnlyMemory<byte> Memory;
-
-        internal readonly byte[] ToArray()
-        {
-            return Memory.ToArray();
-        }
+        internal ReadOnlyMemory<byte> Memory;
 
         internal readonly int Size => Memory.Length;
 
         internal readonly ReadOnlySpan<byte> Span => Memory.Span;
 
-        internal readonly byte[] RentedArray;
+        internal byte[] RentedArray;
+
+        internal readonly byte[] ToArray()
+        {
+            return Memory.ToArray();
+        }
 
         internal readonly ReadOnlyMemory<byte> CopyToMemory()
         {
@@ -70,14 +67,11 @@ namespace RabbitMQ.Client
 
         public void Dispose()
         {
-            if (!_disposedValue)
+            if (RentedArray != null)
             {
-                if (RentedArray != null)
-                {
-                    ArrayPool<byte>.Shared.Return(RentedArray);
-                }
-
-                _disposedValue = true;
+                ArrayPool<byte>.Shared.Return(RentedArray);
+                RentedArray = default;
+                Memory = default;
             }
         }
     }

@@ -34,60 +34,29 @@ using RabbitMQ.Client.client.framing;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal readonly struct IncomingCommand
+    internal sealed class IncomingCommand
     {
-        public static readonly IncomingCommand Empty = default;
+        public ProtocolCommandId CommandId;
 
-        public readonly ProtocolCommandId CommandId;
+        public RentedMemory Method;
+        public RentedMemory Header;
+        public RentedMemory Body;
 
-        public readonly RentedMemory Method;
-        public readonly RentedMemory Header;
-        public readonly RentedMemory Body;
+        public ReadOnlySpan<byte> MethodSpan => Method.Memory.Span;
+        public ReadOnlySpan<byte> HeaderSpan => Header.Memory.Span;
+        public ReadOnlySpan<byte> BodySpan => Body.Memory.Span;
 
-        public readonly bool IsEmpty => CommandId is default(ProtocolCommandId);
-
-        public IncomingCommand(ProtocolCommandId commandId,
-            RentedMemory method, RentedMemory header, RentedMemory body)
+        public RentedMemory TakeoverBody()
         {
-            CommandId = commandId;
-            Method = method;
-            Header = header;
-            Body = body;
-        }
-
-        public ReadOnlySpan<byte> MethodSpan
-        {
-            get
-            {
-                return Method.Memory.Span;
-            }
-        }
-
-        public ReadOnlySpan<byte> HeaderSpan
-        {
-            get
-            {
-                return Header.Memory.Span;
-            }
-        }
-
-        public ReadOnlySpan<byte> BodySpan
-        {
-            get
-            {
-                return Body.Memory.Span;
-            }
-        }
-
-        public void ReturnMethodAndHeaderBuffers()
-        {
-            Method.Dispose();
-            Header.Dispose();
+            var body = Body;
+            Body = default;
+            return body;
         }
 
         public void ReturnBuffers()
         {
-            ReturnMethodAndHeaderBuffers();
+            Method.Dispose();
+            Header.Dispose();
             Body.Dispose();
         }
     }

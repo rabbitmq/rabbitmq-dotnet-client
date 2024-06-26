@@ -44,34 +44,19 @@ namespace RabbitMQ.Client.Impl
     {
         private const int MaxArrayOfBytesSize = 2_147_483_591;
 
-        private ProtocolCommandId _commandId;
-        private RentedMemory _methodMemory;
-        private RentedMemory _headerMemory;
-        private RentedMemory _bodyMemory;
-        private int _remainingBodyByteCount;
-        private int _offset;
-        private AssemblyState _state;
-
+        private readonly IncomingCommand _currentCommand;
         private readonly uint _maxBodyLength;
+
+        private int _remainingBodyByteCount;
+        private AssemblyState _state;
 
         public CommandAssembler(uint maxBodyLength)
         {
+            _currentCommand = new IncomingCommand();
             _maxBodyLength = maxBodyLength;
-            Reset();
         }
 
-        private void Reset()
-        {
-            _commandId = default;
-            _methodMemory = default;
-            _headerMemory = default;
-            _bodyMemory = default;
-            _remainingBodyByteCount = 0;
-            _offset = 0;
-            _state = AssemblyState.ExpectingMethod;
-        }
-
-        public void HandleFrame(InboundFrame frame, out IncomingCommand command)
+        public IncomingCommand? HandleFrame(InboundFrame frame)
         {
             switch (_state)
             {
@@ -88,13 +73,14 @@ namespace RabbitMQ.Client.Impl
 
             if (_state != AssemblyState.Complete)
             {
-                command = IncomingCommand.Empty;
-                return;
+                return default;
             }
 
             RabbitMqClientEventSource.Log.CommandReceived();
-            command = new IncomingCommand(_commandId, _methodMemory, _headerMemory, _bodyMemory);
-            Reset();
+            _remainingBodyByteCount = 0;
+            _state = AssemblyState.ExpectingMethod;
+
+            return _currentCommand;
         }
 
         private void ParseMethodFrame(InboundFrame frame)
@@ -104,10 +90,10 @@ namespace RabbitMQ.Client.Impl
                 throw new UnexpectedFrameException(frame.Type);
             }
 
-            _commandId = (ProtocolCommandId)NetworkOrderDeserializer.ReadUInt32(frame.Payload.Span);
-            _methodMemory = frame.TakeoverPayload(Framing.Method.ArgumentsOffset);
+            _currentCommand.CommandId = (ProtocolCommandId)NetworkOrderDeserializer.ReadUInt32(frame.Payload.Span);
+            _currentCommand.Method = frame.TakeoverPayload(Framing.Method.ArgumentsOffset);
 
-            switch (_commandId)
+            switch (_currentCommand.CommandId)
             {
                 // Commands with payload
                 case ProtocolCommandId.BasicGetOk:
@@ -154,7 +140,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _headerMemory = frame.TakeoverPayload(Framing.Header.HeaderArgumentOffset);
+                _currentCommand.Header = frame.TakeoverPayload(Framing.Header.HeaderArgumentOffset);
             }
 
             _remainingBodyByteCount = (int)totalBodyBytes;
@@ -174,25 +160,25 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException($"Overlong content body received - {_remainingBodyByteCount} bytes remaining, {payloadLength} bytes received");
             }
 
-            if (_bodyMemory.RentedArray is null)
+            if (_currentCommand.Body.RentedArray is null)
             {
                 // check for single frame payload for an early exit
                 if (payloadLength == _remainingBodyByteCount)
                 {
-                    _bodyMemory = frame.TakeoverPayload(0);
+                    _currentCommand.Body = frame.TakeoverPayload(0);
                     _state = AssemblyState.Complete;
                     return;
                 }
 
                 // Is returned by IncomingCommand.ReturnPayload in Session.HandleFrame
                 var rentedBodyArray = ArrayPool<byte>.Shared.Rent(_remainingBodyByteCount);
-                _bodyMemory = new RentedMemory(new ReadOnlyMemory<byte>(rentedBodyArray, 0, _remainingBodyByteCount), rentedBodyArray);
+                _currentCommand.Body.RentedArray = rentedBodyArray;
+                _currentCommand.Body.Memory = new ReadOnlyMemory<byte>(rentedBodyArray, 0, _remainingBodyByteCount);
             }
 
-            frame.Payload.Span.CopyTo(_bodyMemory.RentedArray.AsSpan(_offset));
+            frame.Payload.Span.CopyTo(_currentCommand.Body.RentedArray.AsSpan(_currentCommand.Body.Memory.Length - _remainingBodyByteCount));
             frame.TryReturnPayload();
             _remainingBodyByteCount -= payloadLength;
-            _offset += payloadLength;
             UpdateContentBodyState();
         }
 
