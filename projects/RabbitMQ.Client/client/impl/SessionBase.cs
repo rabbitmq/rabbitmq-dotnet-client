@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public abstract Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
+        public abstract Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
 
         public void Notify()
         {

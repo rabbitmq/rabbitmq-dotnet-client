@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override Task<bool> HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
+        public override Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
         {
             if (_closing)
             {
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Impl
 
                 // Either a non-method frame, or not what we were looking
                 // for. Ignore it - we're quiescing.
-                return Task.FromResult(true);
+                return Task.CompletedTask;
             }
 
             return base.HandleFrameAsync(frame, cancellationToken);

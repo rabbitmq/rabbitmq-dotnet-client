@@ -84,6 +84,11 @@ namespace RabbitMQ.Client
 
         public ReadOnlyBasicProperties(ReadOnlySpan<byte> span)
         {
+            if (span.IsEmpty)
+            {
+                return;
+            }
+
             int offset = 2;
             ref readonly byte bits = ref span[0];
             if (bits.IsBitSet(BasicProperties.ContentTypeBit)) { offset += WireFormatting.ReadShortstr(span.Slice(offset), out _contentType); }

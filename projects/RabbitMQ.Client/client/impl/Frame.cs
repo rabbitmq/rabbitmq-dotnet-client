@@ -36,7 +36,6 @@ using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Logging;
@@ -57,21 +56,22 @@ namespace RabbitMQ.Client.Impl
         internal static class Method
         {
             /* +----------+-----------+-----------+
-             * | CommandId (combined) | Arguments |    
+             * | CommandId (combined) | Arguments |
              * | Class Id | Method Id |           |
              * +----------+-----------+-----------+
              * | 4 bytes (combined)   | x bytes   |
              * | 2 bytes  | 2 bytes   |           |
              * +----------+-----------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2;
+            public const int ArgumentsOffset = 4;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo<T>(Span<byte> span, ushort channel, ref T method) where T : struct, IOutgoingAmqpMethod
             {
                 const int StartClassId = StartPayload;
-                const int StartMethodArguments = StartClassId + 4;
+                const int StartMethodArguments = StartPayload + ArgumentsOffset;
 
-                int payloadLength = method.WriteTo(span.Slice(StartMethodArguments)) + 4;
+                int payloadLength = ArgumentsOffset + method.WriteTo(span.Slice(StartMethodArguments));
                 NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameMethod << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
                 NetworkOrderSerializer.WriteUInt32(ref span.GetOffset(StartClassId), (uint)method.ProtocolCommandId);
                 span[payloadLength + StartPayload] = Constants.FrameEnd;
@@ -87,15 +87,17 @@ namespace RabbitMQ.Client.Impl
              * | 2 bytes  | 2 bytes  | 8 bytes           | x bytes   |
              * +----------+----------+-------------------+-----------+ */
             public const int FrameSize = BaseFrameSize + 2 + 2 + 8;
+            public const int BodyLengthOffset = 4;
+            public const int HeaderArgumentOffset = 12;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo<T>(Span<byte> span, ushort channel, ref T header, int bodyLength) where T : IAmqpHeader
             {
                 const int StartClassId = StartPayload;
-                const int StartBodyLength = StartPayload + 4;
-                const int StartHeaderArguments = StartPayload + 12;
+                const int StartBodyLength = StartPayload + BodyLengthOffset;
+                const int StartHeaderArguments = StartPayload + HeaderArgumentOffset;
 
-                int payloadLength = 12 + header.WriteTo(span.Slice(StartHeaderArguments));
+                int payloadLength = HeaderArgumentOffset + header.WriteTo(span.Slice(StartHeaderArguments));
                 NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameHeader << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
                 NetworkOrderSerializer.WriteUInt32(ref span.GetOffset(StartClassId), (uint)header.ProtocolClassId << 16); // The last 16 bytes (Weight) aren't used
                 NetworkOrderSerializer.WriteUInt64(ref span.GetOffset(StartBodyLength), (ulong)bodyLength);
@@ -205,20 +207,13 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal readonly struct InboundFrame
+#nullable enable
+    internal sealed class InboundFrame
     {
-        public readonly FrameType Type;
-        public readonly int Channel;
-        public readonly ReadOnlyMemory<byte> Payload;
-        private readonly byte[] _rentedArray;
-
-        private InboundFrame(FrameType type, int channel, ReadOnlyMemory<byte> payload, byte[] rentedArray)
-        {
-            Type = type;
-            Channel = channel;
-            Payload = payload;
-            _rentedArray = rentedArray;
-        }
+        public FrameType Type { get; private set; }
+        public int Channel { get; private set; }
+        public ReadOnlyMemory<byte> Payload { get; private set; }
+        private byte[]? _rentedArray;
 
         private static void ProcessProtocolHeader(ReadOnlySequence<byte> buffer)
         {
@@ -254,26 +249,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static async ValueTask<InboundFrame> ReadFromPipeAsync(PipeReader reader,
-            uint maxInboundMessageBodySize,
-            CancellationToken mainLoopCancellationToken)
+        internal static async ValueTask ReadFromPipeAsync(PipeReader reader,
+            uint maxInboundMessageBodySize, InboundFrame frame, CancellationToken mainLoopCancellationToken)
         {
-            ReadResult result = await reader.ReadAsync(mainLoopCancellationToken)
-               .ConfigureAwait(false);
+            ReadResult result = await reader.ReadAsync(mainLoopCancellationToken).ConfigureAwait(false);
 
             ReadOnlySequence<byte> buffer = result.Buffer;
 
             MaybeThrowEndOfStream(result, buffer);
 
-            InboundFrame frame;
             // Loop until we have enough data to read an entire frame, or until the pipe is completed.
-            while (!TryReadFrame(ref buffer, maxInboundMessageBodySize, out frame))
+            while (!TryReadFrame(ref buffer, maxInboundMessageBodySize, frame))
             {
                 reader.AdvanceTo(buffer.Start, buffer.End);
 
                 // Not enough data, read a bit more
                 result = await reader.ReadAsync(mainLoopCancellationToken)
-                   .ConfigureAwait(false);
+                    .ConfigureAwait(false);
 
                 MaybeThrowEndOfStream(result, buffer);
 
@@ -281,11 +273,10 @@ namespace RabbitMQ.Client.Impl
             }
 
             reader.AdvanceTo(buffer.Start);
-            return frame;
         }
 
         internal static bool TryReadFrameFromPipe(PipeReader reader,
-            uint maxInboundMessageBodySize, out InboundFrame frame)
+            uint maxInboundMessageBodySize, InboundFrame frame)
         {
             if (reader.TryRead(out ReadResult result))
             {
@@ -293,7 +284,7 @@ namespace RabbitMQ.Client.Impl
 
                 MaybeThrowEndOfStream(result, buffer);
 
-                if (TryReadFrame(ref buffer, maxInboundMessageBodySize, out frame))
+                if (TryReadFrame(ref buffer, maxInboundMessageBodySize, frame))
                 {
                     reader.AdvanceTo(buffer.Start);
                     return true;
@@ -304,16 +295,14 @@ namespace RabbitMQ.Client.Impl
             }
 
             // Failed to synchronously read sufficient data from the pipe. We'll need to go async.
-            frame = default;
             return false;
         }
 
         internal static bool TryReadFrame(ref ReadOnlySequence<byte> buffer,
-            uint maxInboundMessageBodySize, out InboundFrame frame)
+            uint maxInboundMessageBodySize, InboundFrame frame)
         {
             if (buffer.Length < 7)
             {
-                frame = default;
                 return false;
             }
 
@@ -332,8 +321,8 @@ namespace RabbitMQ.Client.Impl
                 ProcessProtocolHeader(buffer);
             }
 
-            FrameType type = (FrameType)firstByte;
-            int channel = NetworkOrderDeserializer.ReadUInt16(buffer.Slice(1));
+            frame.Type = (FrameType)firstByte;
+            frame.Channel = NetworkOrderDeserializer.ReadUInt16(buffer.Slice(1));
             int payloadSize = NetworkOrderDeserializer.ReadInt32(buffer.Slice(3));
             if ((maxInboundMessageBodySize > 0) && (payloadSize > maxInboundMessageBodySize))
             {
@@ -345,40 +334,51 @@ namespace RabbitMQ.Client.Impl
             // Is returned by InboundFrame.ReturnPayload in Connection.MainLoopIteration
             int readSize = payloadSize + EndMarkerLength;
 
-            if ((buffer.Length - 7) < readSize)
+            if (buffer.Length - 7 < readSize)
             {
-                frame = default;
                 return false;
             }
-            else
+
+            byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
+            ReadOnlySequence<byte> framePayload = buffer.Slice(7, readSize);
+            framePayload.CopyTo(payloadBytes);
+
+            if (payloadBytes[payloadSize] != Constants.FrameEnd)
             {
-                byte[] payloadBytes = ArrayPool<byte>.Shared.Rent(readSize);
-                ReadOnlySequence<byte> framePayload = buffer.Slice(7, readSize);
-                framePayload.CopyTo(payloadBytes);
-
-                if (payloadBytes[payloadSize] != Constants.FrameEnd)
-                {
-                    byte frameEndMarker = payloadBytes[payloadSize];
-                    ArrayPool<byte>.Shared.Return(payloadBytes);
-                    throw new MalformedFrameException($"Bad frame end marker: {frameEndMarker}");
-                }
-
-                RabbitMqClientEventSource.Log.DataReceived(payloadSize + Framing.BaseFrameSize);
-                frame = new InboundFrame(type, channel, new ReadOnlyMemory<byte>(payloadBytes, 0, payloadSize), payloadBytes);
-                // Advance the buffer
-                buffer = buffer.Slice(7 + readSize);
-                return true;
+                byte frameEndMarker = payloadBytes[payloadSize];
+                ArrayPool<byte>.Shared.Return(payloadBytes);
+                throw new MalformedFrameException($"Bad frame end marker: {frameEndMarker}");
             }
+
+            RabbitMqClientEventSource.Log.DataReceived(payloadSize + Framing.BaseFrameSize);
+            frame._rentedArray = payloadBytes;
+            frame.Payload = new ReadOnlyMemory<byte>(payloadBytes, 0, payloadSize);
+
+            // Advance the buffer
+            buffer = buffer.Slice(7 + readSize);
+            return true;
         }
 
-        public byte[] TakeoverPayload()
+        public RentedMemory TakeoverPayload(int sliceOffset)
         {
-            return _rentedArray;
+            byte[]? array = _rentedArray ?? throw new InvalidOperationException("Payload was already taken over or returned.");
+            ReadOnlyMemory<byte> payload = Payload.Slice(sliceOffset);
+            Payload = ReadOnlyMemory<byte>.Empty;
+            _rentedArray = null;
+            return new RentedMemory(payload, array);
         }
 
-        public void ReturnPayload()
+        public void TryReturnPayload()
         {
-            ArrayPool<byte>.Shared.Return(_rentedArray);
+            byte[]? array = _rentedArray;
+            if (array is null)
+            {
+                return;
+            }
+
+            ArrayPool<byte>.Shared.Return(array);
+            Payload = ReadOnlyMemory<byte>.Empty;
+            _rentedArray = null;
         }
 
         public override string ToString()

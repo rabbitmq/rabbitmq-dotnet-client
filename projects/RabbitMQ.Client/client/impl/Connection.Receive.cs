@@ -123,11 +123,13 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private async Task ReceiveLoopAsync(CancellationToken mainLoopCancellationToken)
         {
+            InboundFrame frame = new InboundFrame();
+
             while (false == _closed)
             {
                 mainLoopCancellationToken.ThrowIfCancellationRequested();
 
-                while (_frameHandler.TryReadFrame(out InboundFrame frame))
+                while (_frameHandler.TryReadFrame(frame))
                 {
                     NotifyHeartbeatListener();
                     await ProcessFrameAsync(frame, mainLoopCancellationToken)
@@ -135,17 +137,16 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
 
                 // Done reading frames synchronously, go async
-                InboundFrame asyncFrame = await _frameHandler.ReadFrameAsync(mainLoopCancellationToken)
+                await _frameHandler.ReadFrameAsync(frame, mainLoopCancellationToken)
                     .ConfigureAwait(false);
                 NotifyHeartbeatListener();
-                await ProcessFrameAsync(asyncFrame, mainLoopCancellationToken)
-                        .ConfigureAwait(false);
+                await ProcessFrameAsync(frame, mainLoopCancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
         private async Task ProcessFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
         {
-            bool shallReturnPayload = true;
             if (frame.Channel == 0)
             {
                 if (frame.Type == FrameType.FrameHeartbeat)
@@ -164,7 +165,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     // quiescing situation, even though technically we
                     // should be ignoring everything except
                     // connection.close-ok.
-                    shallReturnPayload = await _session0.HandleFrameAsync(frame, cancellationToken)
+                    await _session0.HandleFrameAsync(frame, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
@@ -182,15 +183,12 @@ namespace RabbitMQ.Client.Framing.Impl
                     // Session itself may be quiescing this particular
                     // channel, but that's none of our concern.)
                     ISession session = _sessionManager.Lookup(frame.Channel);
-                    shallReturnPayload = await session.HandleFrameAsync(frame, cancellationToken)
+                    await session.HandleFrameAsync(frame, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
 
-            if (shallReturnPayload)
-            {
-                frame.ReturnPayload();
-            }
+            frame.TryReturnPayload();
         }
 
         ///<remarks>

@@ -61,12 +61,12 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out
         ///(see Timeout property).</summary>
-        ValueTask<InboundFrame> ReadFrameAsync(CancellationToken cancellationToken);
+        ValueTask ReadFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
 
         ///<summary>Try to synchronously read a frame from the underlying transport.
         ///Returns false if connection buffer contains insufficient data.
         ///</summary>
-        bool TryReadFrame(out InboundFrame frame);
+        bool TryReadFrame(InboundFrame frame);
 
         Task SendProtocolHeaderAsync(CancellationToken cancellationToken);
 
