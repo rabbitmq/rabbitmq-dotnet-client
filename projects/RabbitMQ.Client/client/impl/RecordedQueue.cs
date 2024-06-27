@@ -59,7 +59,15 @@ namespace RabbitMQ.Client.Impl
             _durable = durable;
             _exclusive = exclusive;
             _autoDelete = autoDelete;
-            _arguments = arguments;
+
+            if (arguments is null)
+            {
+                _arguments = null;
+            }
+            else
+            {
+                _arguments = new Dictionary<string, object>(arguments);
+            }
         }
 
         public RecordedQueue(string newName, in RecordedQueue old)

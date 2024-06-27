@@ -84,7 +84,15 @@ namespace RabbitMQ.Client.Impl
 
             _autoAck = autoAck;
             _exclusive = exclusive;
-            _arguments = arguments;
+
+            if (arguments is null)
+            {
+                _arguments = null;
+            }
+            else
+            {
+                _arguments = new Dictionary<string, object>(arguments);
+            }
         }
 
         public AutorecoveringChannel Channel => _channel;
