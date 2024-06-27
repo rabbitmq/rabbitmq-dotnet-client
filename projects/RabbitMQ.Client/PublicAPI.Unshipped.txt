@@ -1,1 +1,2 @@
 RabbitMQ.Client.BasicProperties.BasicProperties(RabbitMQ.Client.ReadOnlyBasicProperties! input) -> void
+RabbitMQ.Client.IConnection.DispatchConsumersAsyncEnabled.get -> bool

@@ -50,8 +50,30 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task AsyncConsumerShouldThrowInvalidOperationException()
+        {
+            Assert.False(_conn.DispatchConsumersAsyncEnabled);
+
+            bool sawException = false;
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
+            await _channel.BasicPublishAsync(string.Empty, q.QueueName, GetRandomBody(1024));
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            try
+            {
+                string consumerTag = await _channel.BasicConsumeAsync(q.QueueName, false, string.Empty, false, false, null, consumer);
+            }
+            catch (InvalidOperationException)
+            {
+                sawException = true;
+            }
+            Assert.True(sawException, "did not see expected InvalidOperationException");
+        }
+
+        [Fact]
         public async Task TestBasicRoundtrip()
         {
+            Assert.False(_conn.DispatchConsumersAsyncEnabled);
+
             TimeSpan waitSpan = TimeSpan.FromSeconds(2);
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             await _channel.BasicPublishAsync("", q.QueueName, _body);
@@ -77,6 +99,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRoundtripNoWait()
         {
+            Assert.False(_conn.DispatchConsumersAsyncEnabled);
+
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             await _channel.BasicPublishAsync("", q.QueueName, _body);
             var consumer = new EventingBasicConsumer(_channel);
@@ -101,6 +125,8 @@ namespace Test.Integration
         [Fact]
         public async Task ConcurrentEventingTestForReceived()
         {
+            Assert.False(_conn.DispatchConsumersAsyncEnabled);
+
             const int NumberOfThreads = 4;
             const int NumberOfRegistrations = 5000;
 

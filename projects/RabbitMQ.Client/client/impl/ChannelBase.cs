@@ -975,9 +975,17 @@ namespace RabbitMQ.Client.Impl
         {
             if (ConsumerDispatcher is AsyncConsumerDispatcher)
             {
-                if (!(consumer is IAsyncBasicConsumer))
+                if (false == (consumer is IAsyncBasicConsumer))
                 {
                     throw new InvalidOperationException("When using an AsyncConsumerDispatcher, the consumer must implement IAsyncBasicConsumer");
+                }
+            }
+
+            if (ConsumerDispatcher is ConsumerDispatcher)
+            {
+                if (consumer is IAsyncBasicConsumer)
+                {
+                    throw new InvalidOperationException("When using an ConsumerDispatcher, the consumer must not implement IAsyncBasicConsumer");
                 }
             }
 
