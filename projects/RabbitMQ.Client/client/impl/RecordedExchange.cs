@@ -56,7 +56,15 @@ namespace RabbitMQ.Client.Impl
             _type = type;
             _durable = durable;
             _autoDelete = autoDelete;
-            _arguments = arguments;
+
+            if (arguments is null)
+            {
+                _arguments = null;
+            }
+            else
+            {
+                _arguments = new Dictionary<string, object>(arguments);
+            }
         }
 
         public Task RecoverAsync(IChannel channel, CancellationToken cancellationToken)

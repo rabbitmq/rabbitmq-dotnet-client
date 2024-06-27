@@ -57,6 +57,15 @@ namespace RabbitMQ.Client.Impl
             _source = source;
             _routingKey = routingKey;
             _arguments = arguments;
+
+            if (arguments is null)
+            {
+                _arguments = null;
+            }
+            else
+            {
+                _arguments = new Dictionary<string, object>(arguments);
+            }
         }
 
         public RecordedBinding(string destination, in RecordedBinding old)

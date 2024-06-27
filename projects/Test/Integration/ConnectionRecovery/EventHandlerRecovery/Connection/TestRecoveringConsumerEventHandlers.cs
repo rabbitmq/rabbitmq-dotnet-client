@@ -69,10 +69,17 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
         [Fact]
         public async Task TestRecoveringConsumerEventHandler_EventArgumentsArePassedDown()
         {
-            var myArgs = new Dictionary<string, object> { { "first-argument", "some-value" } };
+            const string key = "first-argument";
+            const string value = "some-value";
+
+            IDictionary<string, object> arguments = new Dictionary<string, object>
+            {
+                { key, value }
+            };
+
             RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
             var cons = new EventingBasicConsumer(_channel);
-            string expectedCTag = await _channel.BasicConsumeAsync(cons, q, arguments: myArgs);
+            string expectedCTag = await _channel.BasicConsumeAsync(cons, q, arguments: arguments);
 
             bool ctagMatches = false;
             bool consumerArgumentMatches = false;
@@ -82,15 +89,14 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
                 // passed to a CallbackExceptionHandler, instead of failing the test. Instead, we have to do this trick
                 // and assert in the test function.
                 ctagMatches = args.ConsumerTag == expectedCTag;
-                consumerArgumentMatches = (string)args.ConsumerArguments["first-argument"] == "some-value";
-                args.ConsumerArguments["first-argument"] = "event-handler-set-this-value";
+                consumerArgumentMatches = (string)args.ConsumerArguments[key] == value;
             };
 
             await CloseAndWaitForRecoveryAsync();
             Assert.True(ctagMatches, "expected consumer tag to match");
             Assert.True(consumerArgumentMatches, "expected consumer arguments to match");
-            string actualVal = (string)Assert.Contains("first-argument", myArgs as IDictionary<string, object>);
-            Assert.Equal("event-handler-set-this-value", actualVal);
+            string actualVal = (string)Assert.Contains(key, arguments);
+            Assert.Equal(value, actualVal);
         }
     }
 }
