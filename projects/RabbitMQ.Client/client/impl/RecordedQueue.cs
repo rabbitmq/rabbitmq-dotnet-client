@@ -66,7 +66,15 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedQueue WithArguments(IDictionary<string, object> value)
         {
-            Arguments = value;
+            if (value is null)
+            {
+                Arguments = null;
+            }
+            else
+            {
+                Arguments = new Dictionary<string, object>(value);
+            }
+
             return this;
         }
 

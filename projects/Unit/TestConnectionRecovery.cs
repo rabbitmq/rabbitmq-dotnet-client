@@ -744,10 +744,17 @@ namespace RabbitMQ.Client.Unit
         [Test]
         public void TestRecoveringConsumerHandlerOnConnection_EventArgumentsArePassedDown()
         {
-            var myArgs = new Dictionary<string, object> { { "first-argument", "some-value" } };
+            const string key = "first-argument";
+            const string value = "some-value";
+
+            IDictionary<string, object> arguments = new Dictionary<string, object>
+            {
+                { key, value }
+            };
+
             string q = Model.QueueDeclare(GenerateQueueName(), false, false, false, null).QueueName;
             var cons = new EventingBasicConsumer(Model);
-            string expectedCTag = Model.BasicConsume(cons, q, arguments: myArgs);
+            string expectedCTag = Model.BasicConsume(cons, q, arguments: arguments);
 
             bool ctagMatches = false;
             bool consumerArgumentMatches = false;
@@ -757,14 +764,15 @@ namespace RabbitMQ.Client.Unit
                 // passed to a CallbackExceptionHandler, instead of failing the test. Instead, we have to do this trick
                 // and assert in the test function.
                 ctagMatches = args.ConsumerTag == expectedCTag;
-                consumerArgumentMatches = (string)args.ConsumerArguments["first-argument"] == "some-value";
-                args.ConsumerArguments["first-argument"] = "event-handler-set-this-value";
+                consumerArgumentMatches = (string)args.ConsumerArguments[key] == value;
             };
 
             CloseAndWaitForRecovery();
             Assert.That(ctagMatches, Is.True, "expected consumer tag to match");
             Assert.That(consumerArgumentMatches, Is.True, "expected consumer arguments to match");
-            Assert.That(myArgs, Does.ContainKey("first-argument").WithValue("event-handler-set-this-value"));
+            Assert.That(arguments.ContainsKey(key), Is.True);
+            string actualVal = (string)arguments[key];
+            Assert.That(actualVal, Is.EqualTo(value));
         }
 
         [Test]
@@ -1685,6 +1693,51 @@ namespace RabbitMQ.Client.Unit
 
                 Assert.True(receivedMessageEvent.WaitOne(waitSpan));
             }
+        }
+
+        [Test]
+        public void TestQueueRecoveryWithDlxArgument_RabbitMQUsers_hk5pJ4cKF0c()
+        {
+            string tdiWaitExchangeName = GenerateExchangeName();
+            string tdiRetryExchangeName = GenerateExchangeName();
+            string testRetryQueueName = GenerateQueueName();
+            string testQueueName = GenerateQueueName();
+
+            Model.ExchangeDeclare(exchange: tdiWaitExchangeName,
+                type: ExchangeType.Topic, durable: true, autoDelete: false, arguments: null);
+            Model.ExchangeDeclare(exchange: tdiRetryExchangeName,
+                type: ExchangeType.Topic, durable: true, autoDelete: false, arguments: null);
+
+            var arguments = new Dictionary<string, object>
+            {
+                { "x-dead-letter-exchange", "tdi.retry.exchange" },
+                { "x-dead-letter-routing-key", "QueueTest" }
+            };
+
+            Model.QueueDeclare(testRetryQueueName, durable: false, exclusive: false, autoDelete: false, arguments);
+
+            arguments["x-dead-letter-exchange"] = "tdi.wait.exchange";
+            arguments["x-dead-letter-routing-key"] = "QueueTest";
+
+            Model.QueueDeclare(testQueueName, durable: false, exclusive: false, autoDelete: false, arguments);
+
+            arguments.Remove("x-dead-letter-exchange");
+            arguments.Remove("x-dead-letter-routing-key");
+
+            Model.QueueBind(testRetryQueueName, tdiWaitExchangeName, testQueueName);
+
+            Model.QueueBind(testQueueName, tdiRetryExchangeName, testQueueName);
+
+            var consumerAsync = new EventingBasicConsumer(Model);
+            Model.BasicConsume(queue: testQueueName, autoAck: false, consumer: consumerAsync);
+
+            CloseAndWaitForRecovery();
+
+            QueueDeclareOk q0 = Model.QueueDeclarePassive(testRetryQueueName);
+            Assert.AreEqual(testRetryQueueName, q0.QueueName);
+
+            QueueDeclareOk q1 = Model.QueueDeclarePassive(testQueueName);
+            Assert.AreEqual(testQueueName, q1.QueueName);
         }
 
         internal bool SendAndConsumeMessage(string queue, string exchange, string routingKey)
