@@ -71,7 +71,7 @@ namespace RabbitMQ.Client
                 }
             }
 
-            if (Object.Equals(t, default(T)) && exceptions.Count > 0)
+            if (EqualityComparer<T>.Default.Equals(t, default(T)) && exceptions.Count > 0)
             {
                 throw new AggregateException(exceptions);
             }
