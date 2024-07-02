@@ -266,8 +266,56 @@ namespace Test.SequentialIntegration
 
             await WaitAsync(shutdownLatch, WaitSpan, "connection shutdown");
             await WaitAsync(recoveryLatch, WaitSpan, "connection recovery");
+
             Assert.True(_conn.IsOpen);
             Assert.True(counter >= 1);
+        }
+
+        [Fact]
+        public async Task TestShutdownEventHandlersRecoveryOnConnectionAfterTwoDelayedServerRestarts_GH1623()
+        {
+            const int restartCount = 2;
+            int counter = 0;
+            TimeSpan delaySpan = TimeSpan.FromSeconds(_connFactory.NetworkRecoveryInterval.TotalSeconds * 2);
+
+            AutorecoveringConnection aconn = (AutorecoveringConnection)_conn;
+
+            aconn.ConnectionRecoveryError += (c, args) =>
+            {
+                // Uncomment for debugging
+                // _output.WriteLine("[INFO] ConnectionRecoveryError: {0}", args.Exception);
+            };
+
+            aconn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+
+            Assert.True(_conn.IsOpen);
+
+            TaskCompletionSource<bool> recoveryLatch = null;
+
+            for (int i = 0; i < restartCount; i++)
+            {
+                if (i == (restartCount - 1))
+                {
+                    recoveryLatch = PrepareForRecovery(aconn);
+                }
+
+                try
+                {
+                    await StopRabbitMqAsync();
+                    await Task.Delay(delaySpan);
+                }
+                finally
+                {
+                    await StartRabbitMqAsync();
+                    // Ensure recovery has a chance to connect!
+                    await Task.Delay(delaySpan);
+                }
+            }
+
+            await WaitAsync(recoveryLatch, WaitSpan, "connection recovery");
+
+            Assert.True(aconn.IsOpen);
+            Assert.Equal(restartCount, counter);
         }
 
         [Fact]

@@ -240,15 +240,27 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private async ValueTask<bool> TryRecoverConnectionDelegateAsync(CancellationToken cancellationToken)
         {
+            Connection? maybeNewInnerConnection = null;
             try
             {
                 Connection defunctConnection = _innerConnection;
+
                 IFrameHandler fh = await _endpoints.SelectOneAsync(_config.FrameHandlerFactoryAsync, cancellationToken)
                     .ConfigureAwait(false);
-                _innerConnection = new Connection(_config, fh);
-                await _innerConnection.OpenAsync(cancellationToken)
+
+                maybeNewInnerConnection = new Connection(_config, fh);
+
+                await maybeNewInnerConnection.OpenAsync(cancellationToken)
                     .ConfigureAwait(false);
-                _innerConnection.TakeOver(defunctConnection);
+                maybeNewInnerConnection.TakeOver(defunctConnection);
+
+                /*
+                 * Note: do this last in case something above throws an exception during re-connection
+                 * We don't want to lose te old defunct connection in this case, since we have to take
+                 * over its data / event handlers / etc when the re-connect eventually succeeds.
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1623 
+                 */
+                _innerConnection = maybeNewInnerConnection;
                 return true;
             }
             catch (Exception e)
@@ -260,6 +272,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     // Note: recordedEntities semaphore is _NOT_ held at this point
                     _connectionRecoveryErrorWrapper.Invoke(this, new ConnectionRecoveryErrorEventArgs(e));
                 }
+
+                maybeNewInnerConnection?.Dispose();
             }
 
             return false;
