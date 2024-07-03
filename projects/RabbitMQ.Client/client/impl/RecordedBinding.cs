@@ -85,7 +85,15 @@ namespace RabbitMQ.Client.Impl
 
         public RecordedBinding WithArguments(IDictionary<string, object> value)
         {
-            Arguments = value;
+            if (value is null)
+            {
+                Arguments = null;
+            }
+            else
+            {
+                Arguments = new Dictionary<string, object>(value);
+            }
+
             return this;
         }
 
