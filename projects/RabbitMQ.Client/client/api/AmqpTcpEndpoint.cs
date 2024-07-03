@@ -266,7 +266,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Compares this instance by value (protocol, hostname, port) against another instance.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (!(obj is AmqpTcpEndpoint other))
             {

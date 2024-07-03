@@ -35,7 +35,7 @@ namespace RabbitMQ.Client
 {
     public class PlainMechanism : IAuthMechanism
     {
-        public byte[] handleChallenge(byte[] challenge, ConnectionConfig config)
+        public byte[] handleChallenge(byte[]? challenge, ConnectionConfig config)
         {
             return Encoding.UTF8.GetBytes($"\0{config.CredentialsProvider.UserName}\0{config.CredentialsProvider.Password}");
         }

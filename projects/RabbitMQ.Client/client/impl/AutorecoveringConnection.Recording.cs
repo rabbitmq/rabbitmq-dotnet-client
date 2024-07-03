@@ -38,7 +38,6 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-#nullable enable
     internal sealed partial class AutorecoveringConnection
     {
         private readonly SemaphoreSlim _recordedEntitiesSemaphore = new SemaphoreSlim(1, 1);

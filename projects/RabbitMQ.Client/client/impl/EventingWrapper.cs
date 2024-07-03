@@ -2,7 +2,6 @@
 
 namespace RabbitMQ.Client.Impl
 {
-#nullable enable
     internal struct EventingWrapper<T>
     {
         private event EventHandler<T>? _event;

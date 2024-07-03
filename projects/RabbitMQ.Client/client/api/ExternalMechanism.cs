@@ -38,7 +38,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Handle one round of challenge-response.
         /// </summary>
-        public byte[] handleChallenge(byte[] challenge, ConnectionConfig config)
+        public byte[] handleChallenge(byte[]? challenge, ConnectionConfig config)
         {
             return Array.Empty<byte>();
         }

@@ -40,7 +40,6 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-#nullable enable
     internal sealed partial class Connection
     {
         public Task UpdateSecretAsync(string newSecret, string reason,
@@ -73,7 +72,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private async ValueTask StartAndTuneAsync(CancellationToken cancellationToken)
         {
-            var connectionStartCell = new TaskCompletionSource<ConnectionStartDetails>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var connectionStartCell = new TaskCompletionSource<ConnectionStartDetails?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 #if NET6_0_OR_GREATER
             using CancellationTokenRegistration ctr = cancellationToken.UnsafeRegister((object? state) =>
@@ -99,8 +98,8 @@ namespace RabbitMQ.Client.Framing.Impl
             await _frameHandler.SendProtocolHeaderAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            Task<ConnectionStartDetails> csct = connectionStartCell.Task;
-            ConnectionStartDetails connectionStart = await csct.ConfigureAwait(false);
+            Task<ConnectionStartDetails?> csct = connectionStartCell.Task;
+            ConnectionStartDetails? connectionStart = await csct.ConfigureAwait(false);
 
             if (connectionStart is null || csct.IsCanceled)
             {
@@ -150,7 +149,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     if (res.m_challenge is null)
                     {
-                        connectionTune = res.m_tuneDetails;
+                        connectionTune = res.m_tuneDetails.GetValueOrDefault();
                         tuned = true;
                     }
                     else

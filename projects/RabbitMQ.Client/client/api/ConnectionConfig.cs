@@ -37,7 +37,6 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     /// <summary>
     /// The configuration of a connection.
     /// </summary>
@@ -151,7 +150,7 @@ namespace RabbitMQ.Client
         internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;
 
         internal ConnectionConfig(string virtualHost, string userName, string password,
-            ICredentialsProvider credentialsProvider, ICredentialsRefresher credentialsRefresher,
+            ICredentialsProvider? credentialsProvider, ICredentialsRefresher credentialsRefresher,
             IEnumerable<IAuthMechanismFactory> authMechanisms,
             IDictionary<string, object?> clientProperties, string? clientProvidedName,
             ushort maxChannelCount, uint maxFrameSize, uint maxInboundMessageBodySize, bool topologyRecoveryEnabled,

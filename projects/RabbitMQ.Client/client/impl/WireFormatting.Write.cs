@@ -41,7 +41,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal static partial class WireFormatting
     {
-        public static int WriteArray(ref byte destination, IList val)
+        public static int WriteArray(ref byte destination, IList? val)
         {
             if (val is null || val.Count == 0)
             {
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client.Impl
             return bytesWritten;
         }
 
-        public static int GetArrayByteCount(IList val)
+        public static int GetArrayByteCount(IList? val)
         {
             if (val is null || val.Count == 0)
             {
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Impl
             return 5;
         }
 
-        public static int WriteFieldValue(ref byte destination, object value)
+        public static int WriteFieldValue(ref byte destination, object? value)
         {
             if (value == null)
             {
@@ -158,7 +158,7 @@ namespace RabbitMQ.Client.Impl
                         destination = (byte)'f';
                         NetworkOrderSerializer.WriteSingle(ref fieldValue, val);
                         return 5;
-                    case IDictionary<string, object> val:
+                    case IDictionary<string, object?> val:
                         destination = (byte)'F';
                         return 1 + WriteTable(ref fieldValue, val);
                     case IList val:
@@ -210,7 +210,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public static int GetFieldValueByteCount(object value)
+        public static int GetFieldValueByteCount(object? value)
         {
             // Order by likelihood of occurrence
             switch (value)
@@ -226,7 +226,7 @@ namespace RabbitMQ.Client.Impl
                     return 5;
                 case byte[] val:
                     return 5 + val.Length;
-                case IDictionary<string, object> val:
+                case IDictionary<string, object?> val:
                     return 1 + GetTableByteCount(val);
                 case IList val:
                     return 1 + GetArrayByteCount(val);
@@ -338,7 +338,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteShortstr(ref byte destination, string val)
+        public static int WriteShortstr(ref byte destination, string? val)
         {
             int bytesWritten = 0;
             if (!string.IsNullOrEmpty(val))
@@ -350,7 +350,7 @@ namespace RabbitMQ.Client.Impl
                     fixed (char* chars = val)
                     fixed (byte* bytes = &valDestination)
                     {
-                        bytesWritten = UTF8.GetBytes(chars, val.Length, bytes, byte.MaxValue);
+                        bytesWritten = UTF8.GetBytes(chars, val!.Length, bytes, byte.MaxValue);
                     }
                 }
             }
@@ -379,7 +379,7 @@ namespace RabbitMQ.Client.Impl
             return bytesWritten + 4;
         }
 
-        public static int WriteTable(ref byte destination, IDictionary val)
+        public static int WriteTable(ref byte destination, IDictionary? val)
         {
             if (val is null || val.Count == 0)
             {
@@ -399,7 +399,7 @@ namespace RabbitMQ.Client.Impl
             return bytesWritten;
         }
 
-        public static int WriteTable(ref byte destination, IDictionary<string, object> val)
+        public static int WriteTable(ref byte destination, IDictionary<string, object?>? val)
         {
             if (val is null || val.Count == 0)
             {
@@ -409,9 +409,9 @@ namespace RabbitMQ.Client.Impl
 
             // Let's only write after the length header.
             int bytesWritten = 4;
-            if (val is Dictionary<string, object> dict)
+            if (val is Dictionary<string, object?> dict)
             {
-                foreach (KeyValuePair<string, object> entry in dict)
+                foreach (KeyValuePair<string, object?> entry in dict)
                 {
                     bytesWritten += WriteShortstr(ref destination.GetOffset(bytesWritten), entry.Key);
                     bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), entry.Value);
@@ -419,7 +419,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                foreach (KeyValuePair<string, object> entry in val)
+                foreach (KeyValuePair<string, object?> entry in val)
                 {
                     bytesWritten += WriteShortstr(ref destination.GetOffset(bytesWritten), entry.Key);
                     bytesWritten += WriteFieldValue(ref destination.GetOffset(bytesWritten), entry.Value);
@@ -430,7 +430,7 @@ namespace RabbitMQ.Client.Impl
             return bytesWritten;
         }
 
-        public static int GetTableByteCount(IDictionary val)
+        public static int GetTableByteCount(IDictionary? val)
         {
             if (val is null || val.Count == 0)
             {
@@ -447,7 +447,7 @@ namespace RabbitMQ.Client.Impl
             return byteCount;
         }
 
-        public static int GetTableByteCount(IDictionary<string, object> val)
+        public static int GetTableByteCount(IDictionary<string, object?>? val)
         {
             if (val is null || val.Count == 0)
             {
@@ -455,9 +455,9 @@ namespace RabbitMQ.Client.Impl
             }
 
             int byteCount = 4;
-            if (val is Dictionary<string, object> dict)
+            if (val is Dictionary<string, object?> dict)
             {
-                foreach (KeyValuePair<string, object> entry in dict)
+                foreach (KeyValuePair<string, object?> entry in dict)
                 {
                     byteCount += GetByteCount(entry.Key) + 1;
                     byteCount += GetFieldValueByteCount(entry.Value);
@@ -465,7 +465,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                foreach (KeyValuePair<string, object> entry in val)
+                foreach (KeyValuePair<string, object?> entry in val)
                 {
                     byteCount += GetByteCount(entry.Key) + 1;
                     byteCount += GetFieldValueByteCount(entry.Value);

@@ -2,7 +2,6 @@
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     public interface IRecordedQueue
     {
         string Name { get; }
@@ -13,7 +12,7 @@ namespace RabbitMQ.Client
 
         bool AutoDelete { get; }
 
-        IDictionary<string, object>? Arguments { get; }
+        IDictionary<string, object?>? Arguments { get; }
 
         bool IsServerNamed { get; }
     }

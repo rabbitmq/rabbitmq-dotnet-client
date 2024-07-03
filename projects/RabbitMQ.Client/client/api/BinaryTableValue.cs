@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     /// <summary>Wrapper for a byte[]. May appear as values read from
@@ -61,9 +63,9 @@ namespace RabbitMQ.Client
     public class BinaryTableValue
     {
         /// <summary>
-        /// Creates a new instance of the <see cref="BinaryTableValue"/> with null for its Bytes property.
+        /// Creates a new instance of the <see cref="BinaryTableValue"/> with an empty array for its Bytes property.
         /// </summary>
-        public BinaryTableValue() : this(null)
+        public BinaryTableValue() : this(Array.Empty<byte>())
         {
         }
 

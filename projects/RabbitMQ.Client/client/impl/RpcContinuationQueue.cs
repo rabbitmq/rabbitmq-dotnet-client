@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -122,7 +123,7 @@ namespace RabbitMQ.Client.Impl
         /// waiting continuations.
         ///</para>
         ///</remarks>
-        public bool TryPeek<T>(out T continuation) where T : IRpcContinuation
+        public bool TryPeek<T>([MaybeNullWhen(false)] out T continuation) where T : IRpcContinuation
         {
             if (_outstandingRpc is T result)
             {

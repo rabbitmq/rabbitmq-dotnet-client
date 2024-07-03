@@ -13,14 +13,14 @@ namespace RabbitMQ.Client
         private static readonly Func<IRecordedBinding, Exception, bool> s_defaultBindingExceptionCondition = (b, ex) => true;
         private static readonly Func<IRecordedConsumer, Exception, bool> s_defaultConsumerExceptionCondition = (c, ex) => true;
 
-        private Func<IRecordedExchange, Exception, bool> _exchangeRecoveryExceptionCondition;
-        private Func<IRecordedQueue, Exception, bool> _queueRecoveryExceptionCondition;
-        private Func<IRecordedBinding, Exception, bool> _bindingRecoveryExceptionCondition;
-        private Func<IRecordedConsumer, Exception, bool> _consumerRecoveryExceptionCondition;
-        private Func<IRecordedExchange, Exception, IConnection, Task> _exchangeRecoveryExceptionHandlerAsync;
-        private Func<IRecordedQueue, Exception, IConnection, Task> _queueRecoveryExceptionHandlerAsync;
-        private Func<IRecordedBinding, Exception, IConnection, Task> _bindingRecoveryExceptionHandlerAsync;
-        private Func<IRecordedConsumer, Exception, IConnection, Task> _consumerRecoveryExceptionHandlerAsync;
+        private Func<IRecordedExchange, Exception, bool>? _exchangeRecoveryExceptionCondition;
+        private Func<IRecordedQueue, Exception, bool>? _queueRecoveryExceptionCondition;
+        private Func<IRecordedBinding, Exception, bool>? _bindingRecoveryExceptionCondition;
+        private Func<IRecordedConsumer, Exception, bool>? _consumerRecoveryExceptionCondition;
+        private Func<IRecordedExchange, Exception, IConnection, Task>? _exchangeRecoveryExceptionHandlerAsync;
+        private Func<IRecordedQueue, Exception, IConnection, Task>? _queueRecoveryExceptionHandlerAsync;
+        private Func<IRecordedBinding, Exception, IConnection, Task>? _bindingRecoveryExceptionHandlerAsync;
+        private Func<IRecordedConsumer, Exception, IConnection, Task>? _consumerRecoveryExceptionHandlerAsync;
 
         /// <summary>
         /// Decides which exchange recovery exceptions the custom exception handler is applied to.
@@ -67,9 +67,9 @@ namespace RabbitMQ.Client
             set
             {
                 if (_bindingRecoveryExceptionCondition != null)
-                    throw new InvalidOperationException($"Cannot modify {nameof(ExchangeRecoveryExceptionCondition)} after it has been initialized.");
+                    throw new InvalidOperationException($"Cannot modify {nameof(BindingRecoveryExceptionCondition)} after it has been initialized.");
 
-                _bindingRecoveryExceptionCondition = value ?? throw new ArgumentNullException(nameof(ExchangeRecoveryExceptionCondition));
+                _bindingRecoveryExceptionCondition = value ?? throw new ArgumentNullException(nameof(BindingRecoveryExceptionCondition));
             }
         }
 
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover an exchange.
         /// </summary>
-        public Func<IRecordedExchange, Exception, IConnection, Task> ExchangeRecoveryExceptionHandlerAsync
+        public Func<IRecordedExchange, Exception, IConnection, Task>? ExchangeRecoveryExceptionHandlerAsync
         {
             get => _exchangeRecoveryExceptionHandlerAsync;
 
@@ -111,7 +111,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a queue.
         /// </summary>
-        public Func<IRecordedQueue, Exception, IConnection, Task> QueueRecoveryExceptionHandlerAsync
+        public Func<IRecordedQueue, Exception, IConnection, Task>? QueueRecoveryExceptionHandlerAsync
         {
             get => _queueRecoveryExceptionHandlerAsync;
 
@@ -129,7 +129,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a binding.
         /// </summary>
-        public Func<IRecordedBinding, Exception, IConnection, Task> BindingRecoveryExceptionHandlerAsync
+        public Func<IRecordedBinding, Exception, IConnection, Task>? BindingRecoveryExceptionHandlerAsync
         {
             get => _bindingRecoveryExceptionHandlerAsync;
 
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retries, or otherwise handles, an exception thrown when attempting to recover a consumer.
         /// </summary>
-        public Func<IRecordedConsumer, Exception, IConnection, Task> ConsumerRecoveryExceptionHandlerAsync
+        public Func<IRecordedConsumer, Exception, IConnection, Task>? ConsumerRecoveryExceptionHandlerAsync
         {
             get => _consumerRecoveryExceptionHandlerAsync;
 

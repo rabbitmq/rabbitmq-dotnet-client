@@ -67,8 +67,18 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal abstract ProtocolCommandId DecodeCommandIdFrom(ReadOnlySpan<byte> span);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
             return GetType() == obj.GetType();
         }
 

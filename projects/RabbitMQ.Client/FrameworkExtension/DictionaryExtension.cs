@@ -33,7 +33,6 @@ using System.Collections.Generic;
 
 namespace RabbitMQ
 {
-#nullable enable
 #if NETSTANDARD
     internal static class DictionaryExtension
     {

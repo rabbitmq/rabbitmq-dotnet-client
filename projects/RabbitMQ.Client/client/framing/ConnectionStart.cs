@@ -41,7 +41,7 @@ namespace RabbitMQ.Client.Framing.Impl
     {
         public readonly byte _versionMajor;
         public readonly byte _versionMinor;
-        public readonly Dictionary<string, object> _serverProperties;
+        public readonly Dictionary<string, object?>? _serverProperties;
         public readonly byte[] _mechanisms;
         public readonly byte[] _locales;
 

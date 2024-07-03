@@ -39,7 +39,7 @@ namespace RabbitMQ.Client
         public const string PublisherSourceName = "RabbitMQ.Client.Publisher";
         public const string SubscriberSourceName = "RabbitMQ.Client.Subscriber";
 
-        public static Action<Activity, IDictionary<string, object>> ContextInjector { get; set; } = DefaultContextInjector;
+        public static Action<Activity, IDictionary<string, object?>> ContextInjector { get; set; } = DefaultContextInjector;
 
         public static Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor { get; set; } =
             DefaultContextExtractor;
@@ -48,47 +48,48 @@ namespace RabbitMQ.Client
         internal static bool PublisherHasListeners => s_publisherSource.HasListeners();
         internal static bool SubscriberHasListeners => s_subscriberSource.HasListeners();
 
-        internal static readonly IEnumerable<KeyValuePair<string, object>> CreationTags = new[]
+        internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
         {
-            new KeyValuePair<string, object>(MessagingSystem, "rabbitmq"),
-            new KeyValuePair<string, object>(ProtocolName, "amqp"),
-            new KeyValuePair<string, object>(ProtocolVersion, "0.9.1")
+            new KeyValuePair<string, object?>(MessagingSystem, "rabbitmq"),
+            new KeyValuePair<string, object?>(ProtocolName, "amqp"),
+            new KeyValuePair<string, object?>(ProtocolVersion, "0.9.1")
         };
 
-        internal static Activity Send(string routingKey, string exchange, int bodySize,
+        internal static Activity? Send(string routingKey, string exchange, int bodySize,
             ActivityContext linkedContext = default)
         {
-            if (s_publisherSource.HasListeners())
+            if (!s_publisherSource.HasListeners())
             {
-                Activity activity = linkedContext == default
-                    ? s_publisherSource.StartRabbitMQActivity(
-                        UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
-                        ActivityKind.Producer)
-                    : s_publisherSource.StartLinkedRabbitMQActivity(
-                        UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
-                        ActivityKind.Producer, linkedContext);
-                if (activity?.IsAllDataRequested == true)
-                {
-                    PopulateMessagingTags("publish", routingKey, exchange, 0, bodySize, activity);
-                }
-
-                return activity;
+                return null;
             }
 
-            return null;
+            Activity? activity = linkedContext == default
+                ? s_publisherSource.StartRabbitMQActivity(
+                    UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
+                    ActivityKind.Producer)
+                : s_publisherSource.StartLinkedRabbitMQActivity(
+                    UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
+                    ActivityKind.Producer, linkedContext);
+            if (activity != null && activity.IsAllDataRequested)
+            {
+                PopulateMessagingTags("publish", routingKey, exchange, 0, bodySize, activity);
+            }
+
+            return activity;
+
         }
 
-        internal static Activity ReceiveEmpty(string queue)
+        internal static Activity? ReceiveEmpty(string queue)
         {
             if (!s_subscriberSource.HasListeners())
             {
                 return null;
             }
 
-            Activity activity = s_subscriberSource.StartRabbitMQActivity(
+            Activity? activity = s_subscriberSource.StartRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{queue} receive" : "receive",
                 ActivityKind.Consumer);
-            if (activity.IsAllDataRequested)
+            if (activity != null && activity.IsAllDataRequested)
             {
                 activity
                     .SetTag(MessagingOperation, "receive")
@@ -98,7 +99,7 @@ namespace RabbitMQ.Client
             return activity;
         }
 
-        internal static Activity Receive(string routingKey, string exchange, ulong deliveryTag,
+        internal static Activity? Receive(string routingKey, string exchange, ulong deliveryTag,
             in ReadOnlyBasicProperties readOnlyBasicProperties, int bodySize)
         {
             if (!s_subscriberSource.HasListeners())
@@ -107,10 +108,10 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            Activity activity = s_subscriberSource.StartLinkedRabbitMQActivity(
+            Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{routingKey} receive" : "receive", ActivityKind.Consumer,
                 ContextExtractor(readOnlyBasicProperties));
-            if (activity.IsAllDataRequested)
+            if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags("receive", routingKey, exchange, deliveryTag, readOnlyBasicProperties,
                     bodySize, activity);
@@ -119,7 +120,7 @@ namespace RabbitMQ.Client
             return activity;
         }
 
-        internal static Activity Deliver(BasicDeliverEventArgs deliverEventArgs)
+        internal static Activity? Deliver(BasicDeliverEventArgs deliverEventArgs)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -127,7 +128,7 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            Activity activity = s_subscriberSource.StartLinkedRabbitMQActivity(
+            Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{deliverEventArgs.RoutingKey} deliver" : "deliver",
                 ActivityKind.Consumer, ContextExtractor(deliverEventArgs.BasicProperties));
             if (activity != null && activity.IsAllDataRequested)
@@ -138,25 +139,21 @@ namespace RabbitMQ.Client
             }
 
             return activity;
-
         }
 
-        private static Activity StartRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
+        private static Activity? StartRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
             ActivityContext parentContext = default)
         {
-            Activity activity = source
-                .CreateActivity(name, kind, parentContext, idFormat: ActivityIdFormat.W3C, tags: CreationTags)?.Start();
-            return activity;
+            return source.CreateActivity(name, kind, parentContext, idFormat: ActivityIdFormat.W3C, tags: CreationTags)?.Start();
         }
 
-        private static Activity StartLinkedRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
+        private static Activity? StartLinkedRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
             ActivityContext linkedContext = default, ActivityContext parentContext = default)
         {
-            Activity activity = source.CreateActivity(name, kind, parentContext: parentContext,
+            return source.CreateActivity(name, kind, parentContext: parentContext,
                     links: new[] { new ActivityLink(linkedContext) }, idFormat: ActivityIdFormat.W3C,
                     tags: CreationTags)
                 ?.Start();
-            return activity;
         }
 
         private static void PopulateMessagingTags(string operation, string routingKey, string exchange,
@@ -190,7 +187,7 @@ namespace RabbitMQ.Client
             }
         }
 
-        internal static void PopulateMessageEnvelopeSize(Activity activity, int size)
+        internal static void PopulateMessageEnvelopeSize(Activity? activity, int size)
         {
             if (activity != null && activity.IsAllDataRequested && PublisherHasListeners)
             {
@@ -198,7 +195,7 @@ namespace RabbitMQ.Client
             }
         }
 
-        internal static void SetNetworkTags(this Activity activity, IFrameHandler frameHandler)
+        internal static void SetNetworkTags(this Activity? activity, IFrameHandler frameHandler)
         {
             if (PublisherHasListeners && activity != null && activity.IsAllDataRequested)
             {
@@ -247,9 +244,8 @@ namespace RabbitMQ.Client
             }
         }
 
-        private static void DefaultContextInjector(Activity sendActivity, IDictionary<string, object> props)
+        private static void DefaultContextInjector(Activity sendActivity, IDictionary<string, object?> props)
         {
-            props ??= new Dictionary<string, object>();
             DistributedContextPropagator.Current.Inject(sendActivity, props, DefaultContextSetter);
         }
 
@@ -276,11 +272,11 @@ namespace RabbitMQ.Client
                 return default;
             }
 
-            DistributedContextPropagator.Current.ExtractTraceIdAndState(props.Headers, DefaultContextGetter, out string traceParent, out string traceState);
+            DistributedContextPropagator.Current.ExtractTraceIdAndState(props.Headers, DefaultContextGetter, out string? traceParent, out string? traceState);
             return ActivityContext.TryParse(traceParent, traceState, out ActivityContext context) ? context : default;
         }
 
-        private static void DefaultContextSetter(object carrier, string name, string value)
+        private static void DefaultContextSetter(object? carrier, string name, string value)
         {
             if (!(carrier is IDictionary<string, object> carrierDictionary))
             {
@@ -291,11 +287,10 @@ namespace RabbitMQ.Client
             carrierDictionary[name] = value;
         }
 
-        private static void DefaultContextGetter(object carrier, string name, out string value,
-            out IEnumerable<string> values)
+        private static void DefaultContextGetter(object? carrier, string name, out string? value, out IEnumerable<string>? values)
         {
             if (carrier is IDictionary<string, object> carrierDict &&
-                carrierDict.TryGetValue(name, out object propsVal) && propsVal is byte[] bytes)
+                carrierDict.TryGetValue(name, out object? propsVal) && propsVal is byte[] bytes)
             {
                 value = Encoding.UTF8.GetString(bytes);
                 values = default;

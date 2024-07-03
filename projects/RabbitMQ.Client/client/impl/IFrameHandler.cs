@@ -48,8 +48,6 @@ namespace RabbitMQ.Client.Impl
 
         int RemotePort { get; }
 
-        Task ConnectAsync(CancellationToken cancellationToken);
-
         ///<summary>Socket read timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
         TimeSpan ReadTimeout { set; }
 

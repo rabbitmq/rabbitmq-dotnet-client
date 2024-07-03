@@ -2,7 +2,6 @@
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     public interface IRecordedBinding
     {
         string Source { get; }
@@ -11,6 +10,6 @@ namespace RabbitMQ.Client
 
         string RoutingKey { get; }
 
-        IDictionary<string, object>? Arguments { get; }
+        IDictionary<string, object?>? Arguments { get; }
     }
 }

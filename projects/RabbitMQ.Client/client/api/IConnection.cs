@@ -66,7 +66,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// A copy of the client properties that has been sent to the server.
         /// </summary>
-        IDictionary<string, object> ClientProperties { get; }
+        IDictionary<string, object?> ClientProperties { get; }
 
         /// <summary>
         /// Returns null if the connection is still in a state
@@ -86,7 +86,7 @@ namespace RabbitMQ.Client
         /// vary depending on the particular operation being attempted).
         /// </para>
         /// </remarks>
-        ShutdownEventArgs CloseReason { get; }
+        ShutdownEventArgs? CloseReason { get; }
 
         /// <summary>
         /// Retrieve the endpoint this connection is connected to.
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client
         /// A dictionary of the server properties sent by the server while establishing the connection.
         /// This typically includes the product name and version of the server.
         /// </summary>
-        IDictionary<string, object> ServerProperties { get; }
+        IDictionary<string, object?>? ServerProperties { get; }
 
         /// <summary>
         /// Returns the list of <see cref="ShutdownReportEntry"/> objects that contain information
@@ -137,7 +137,7 @@ namespace RabbitMQ.Client
         /// be used as a connection identifier, e.g. in HTTP API requests.
         /// This value is supposed to be human-readable.
         /// </summary>
-        string ClientProvidedName { get; }
+        string? ClientProvidedName { get; }
 
         /// <summary>
         /// Signalled when an exception occurs in a callback invoked by the connection.

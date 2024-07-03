@@ -36,7 +36,6 @@ using System.Threading;
 
 namespace RabbitMQ.Client.Logging
 {
-#nullable enable
     internal sealed partial class RabbitMqClientEventSource : EventSource
     {
         public static readonly RabbitMqClientEventSource Log = new RabbitMqClientEventSource();

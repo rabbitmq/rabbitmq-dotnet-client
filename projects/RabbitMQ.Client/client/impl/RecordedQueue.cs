@@ -35,11 +35,10 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
-#nullable enable
     internal readonly struct RecordedQueue : IRecordedQueue
     {
         private readonly string _name;
-        private readonly IDictionary<string, object>? _arguments;
+        private readonly IDictionary<string, object?>? _arguments;
         private readonly bool _durable;
         private readonly bool _exclusive;
         private readonly bool _autoDelete;
@@ -50,9 +49,9 @@ namespace RabbitMQ.Client.Impl
         public bool IsServerNamed => _isServerNamed;
         public bool Durable => _durable;
         public bool Exclusive => _exclusive;
-        public IDictionary<string, object>? Arguments => _arguments;
+        public IDictionary<string, object?>? Arguments => _arguments;
 
-        public RecordedQueue(string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object>? arguments)
+        public RecordedQueue(string name, bool isServerNamed, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object?>? arguments)
         {
             _name = name;
             _isServerNamed = isServerNamed;
@@ -66,7 +65,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _arguments = new Dictionary<string, object>(arguments);
+                _arguments = new Dictionary<string, object?>(arguments);
             }
         }
 

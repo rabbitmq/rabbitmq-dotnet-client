@@ -31,7 +31,6 @@
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     /// <summary>
     /// A AMQP header.
     /// </summary>

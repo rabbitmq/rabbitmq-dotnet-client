@@ -39,12 +39,12 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal readonly struct ConnectionStartOk : IOutgoingAmqpMethod
     {
-        public readonly IDictionary<string, object> _clientProperties;
+        public readonly IDictionary<string, object?>? _clientProperties;
         public readonly string _mechanism;
         public readonly byte[] _response;
         public readonly string _locale;
 
-        public ConnectionStartOk(IDictionary<string, object> ClientProperties, string Mechanism, byte[] Response, string Locale)
+        public ConnectionStartOk(IDictionary<string, object?>? ClientProperties, string Mechanism, byte[] Response, string Locale)
         {
             _clientProperties = ClientProperties;
             _mechanism = Mechanism;

@@ -37,7 +37,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Impl
@@ -45,36 +45,26 @@ namespace RabbitMQ.Client.Impl
     internal sealed class SocketFrameHandler : IFrameHandler
     {
         private readonly AmqpTcpEndpoint _amqpTcpEndpoint;
-        private readonly Func<AddressFamily, ITcpClient> _socketFactory;
-        private readonly TimeSpan _connectionTimeout;
+        private readonly ITcpClient _socket;
+        private readonly Stream _stream;
 
         private readonly ChannelWriter<RentedMemory> _channelWriter;
         private readonly ChannelReader<RentedMemory> _channelReader;
         private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
 
-        private IPAddress[] _amqpTcpEndpointAddresses;
-        private PipeWriter _pipeWriter;
-        private PipeReader _pipeReader;
-        private Task _writerTask;
-        private ITcpClient _socket;
+        private readonly PipeWriter _pipeWriter;
+        private readonly PipeReader _pipeReader;
+        private Task? _writerTask;
 
-        private TimeSpan _readTimeout;
-        private TimeSpan _writeTimeout;
-
-        private bool _connected;
         private bool _closed;
 
         private static ReadOnlyMemory<byte> Amqp091ProtocolHeader => new byte[] { (byte)'A', (byte)'M', (byte)'Q', (byte)'P', 0, 0, 9, 1 };
 
-        public SocketFrameHandler(AmqpTcpEndpoint amqpTcpEndpoint,
-            Func<AddressFamily, ITcpClient> socketFactory,
-            TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+        private SocketFrameHandler(AmqpTcpEndpoint amqpTcpEndpoint, ITcpClient socket, Stream stream)
         {
             _amqpTcpEndpoint = amqpTcpEndpoint;
-            _socketFactory = socketFactory;
-            _connectionTimeout = connectionTimeout;
-            _readTimeout = readTimeout;
-            _writeTimeout = writeTimeout;
+            _socket = socket;
+            _stream = stream;
 
             var channel = Channel.CreateBounded<RentedMemory>(
                 new BoundedChannelOptions(128)
@@ -86,6 +76,9 @@ namespace RabbitMQ.Client.Impl
 
             _channelWriter = channel.Writer;
             _channelReader = channel.Reader;
+
+            _pipeWriter = PipeWriter.Create(stream);
+            _pipeReader = PipeReader.Create(stream);
         }
 
         public AmqpTcpEndpoint Endpoint
@@ -95,7 +88,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint LocalEndPoint
         {
-            get { return _socket.Client.LocalEndPoint; }
+            get { return _socket.Client.LocalEndPoint!; }
         }
 
         public int LocalPort
@@ -105,7 +98,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint RemoteEndPoint
         {
-            get { return _socket.Client.RemoteEndPoint; }
+            get { return _socket.Client.RemoteEndPoint!; }
         }
 
         public int RemotePort
@@ -119,8 +112,8 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    _readTimeout = value;
-                    SetSocketReceiveTimeout();
+                    _socket.ReceiveTimeout = value;
+                    _stream.ReadTimeout = (int)value.TotalMilliseconds;
                 }
                 catch (SocketException)
                 {
@@ -133,107 +126,38 @@ namespace RabbitMQ.Client.Impl
         {
             set
             {
-                _writeTimeout = value;
-                SetSocketSendTimout();
+                _socket.Client.SendTimeout = (int)value.TotalMilliseconds;
+                _stream.WriteTimeout = (int)value.TotalMilliseconds;
             }
         }
 
-        public async Task ConnectAsync(CancellationToken cancellationToken)
+        public static async Task<SocketFrameHandler> CreateAsync(AmqpTcpEndpoint amqpTcpEndpoint, Func<AddressFamily, ITcpClient> socketFactory,
+            TimeSpan connectionTimeout, CancellationToken cancellationToken)
         {
-            if (_connected)
-            {
-                if (_socket is null)
-                {
-                    throw new InvalidOperationException();
-                }
+            ITcpClient socket = await SocketFactory.OpenAsync(amqpTcpEndpoint, socketFactory, connectionTimeout, cancellationToken).ConfigureAwait(false);
+            Stream stream = socket.GetStream();
 
-                if (false == _socket.Connected)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                return;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-#if NET6_0_OR_GREATER
-            _amqpTcpEndpointAddresses = await Dns.GetHostAddressesAsync(_amqpTcpEndpoint.HostName, cancellationToken)
-                .ConfigureAwait(false);
-#else
-            _amqpTcpEndpointAddresses = await Dns.GetHostAddressesAsync(_amqpTcpEndpoint.HostName)
-                .ConfigureAwait(false);
-#endif
-            IPAddress ipv6 = TcpClientAdapter.GetMatchingHost(_amqpTcpEndpointAddresses, AddressFamily.InterNetworkV6);
-
-            if (ipv6 == default(IPAddress))
-            {
-                if (_amqpTcpEndpoint.AddressFamily == AddressFamily.InterNetworkV6)
-                {
-                    throw new ConnectFailureException($"Connection failed, host {_amqpTcpEndpoint}",
-                        new ArgumentException($"No IPv6 address could be resolved for {_amqpTcpEndpoint}"));
-                }
-            }
-            else if (ShouldTryIPv6(_amqpTcpEndpoint))
+            if (amqpTcpEndpoint.Ssl.Enabled)
             {
                 try
                 {
-                    var ipep = new IPEndPoint(ipv6, _amqpTcpEndpoint.Port);
-                    _socket = await ConnectUsingIPv6Async(ipep, _socketFactory, _connectionTimeout, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (ConnectFailureException)
-                {
-                    // We resolved to a ipv6 address and tried it but it still didn't connect, try IPv4
-                    _socket = null;
-                }
-            }
-
-            if (_socket is null)
-            {
-                IPAddress ipv4 = TcpClientAdapter.GetMatchingHost(_amqpTcpEndpointAddresses, AddressFamily.InterNetwork);
-                if (ipv4 == default(IPAddress))
-                {
-                    throw new ConnectFailureException($"Connection failed, host {_amqpTcpEndpoint}",
-                        new ArgumentException($"No ip address could be resolved for {_amqpTcpEndpoint}"));
-                }
-                var ipep = new IPEndPoint(ipv4, _amqpTcpEndpoint.Port);
-                _socket = await ConnectUsingIPv4Async(ipep, _socketFactory, _connectionTimeout, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            SetSocketReceiveTimeout();
-            SetSocketSendTimout();
-
-            Stream netstream = _socket.GetStream();
-            netstream.ReadTimeout = (int)_readTimeout.TotalMilliseconds;
-            netstream.WriteTimeout = (int)_writeTimeout.TotalMilliseconds;
-
-            if (_amqpTcpEndpoint.Ssl.Enabled)
-            {
-                try
-                {
-                    netstream = await SslHelper.TcpUpgradeAsync(netstream, _amqpTcpEndpoint.Ssl, cancellationToken)
-                        .ConfigureAwait(false);
+                    stream = await SslHelper.TcpUpgradeAsync(stream, amqpTcpEndpoint.Ssl, cancellationToken).ConfigureAwait(false);
                 }
                 catch
                 {
-                    await CloseAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                    socket.Close();
                     throw;
                 }
             }
 
-            _pipeWriter = PipeWriter.Create(netstream);
-            _pipeReader = PipeReader.Create(netstream);
-
-            _writerTask = Task.Run(WriteLoop, cancellationToken);
-            _connected = true;
+            SocketFrameHandler socketFrameHandler = new(amqpTcpEndpoint, socket, stream);
+            socketFrameHandler._writerTask = Task.Run(socketFrameHandler.WriteLoop, cancellationToken);
+            return socketFrameHandler;
         }
 
         public async Task CloseAsync(CancellationToken cancellationToken)
         {
-            if (_closed || _socket == null)
+            if (_closed)
             {
                 return;
             }
@@ -311,22 +235,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void SetSocketReceiveTimeout()
-        {
-            if (_socket != null && _socket.Connected)
-            {
-                _socket.ReceiveTimeout = _readTimeout;
-            }
-        }
-
-        private void SetSocketSendTimout()
-        {
-            if (_socket != null)
-            {
-                _socket.Client.SendTimeout = (int)_writeTimeout.TotalMilliseconds;
-            }
-        }
-
         private async Task WriteLoop()
         {
             try
@@ -355,88 +263,6 @@ namespace RabbitMQ.Client.Impl
             {
                 ESLog.Error("Background socket write loop has crashed", ex);
                 throw;
-            }
-        }
-
-        private static bool ShouldTryIPv6(AmqpTcpEndpoint endpoint)
-        {
-            return Socket.OSSupportsIPv6 && endpoint.AddressFamily != AddressFamily.InterNetwork;
-        }
-
-        private static ValueTask<ITcpClient> ConnectUsingIPv6Async(IPEndPoint endpoint,
-            Func<AddressFamily, ITcpClient> socketFactory,
-            TimeSpan connectionTimeout, CancellationToken cancellationToken)
-        {
-            return ConnectUsingAddressFamilyAsync(endpoint, socketFactory, AddressFamily.InterNetworkV6,
-                connectionTimeout, cancellationToken);
-        }
-
-        private static ValueTask<ITcpClient> ConnectUsingIPv4Async(IPEndPoint endpoint,
-            Func<AddressFamily, ITcpClient> socketFactory,
-            TimeSpan connectionTimeout, CancellationToken cancellationToken)
-        {
-            return ConnectUsingAddressFamilyAsync(endpoint, socketFactory, AddressFamily.InterNetwork,
-                connectionTimeout, cancellationToken);
-        }
-
-        private static async ValueTask<ITcpClient> ConnectUsingAddressFamilyAsync(IPEndPoint endpoint,
-            Func<AddressFamily, ITcpClient> socketFactory, AddressFamily family,
-            TimeSpan connectionTimeout, CancellationToken cancellationToken)
-        {
-            ITcpClient socket = socketFactory(family);
-            try
-            {
-                await ConnectOrFailAsync(socket, endpoint, connectionTimeout, cancellationToken)
-                    .ConfigureAwait(false);
-                return socket;
-            }
-            catch
-            {
-                socket.Dispose();
-                throw;
-            }
-        }
-
-        private static async Task ConnectOrFailAsync(ITcpClient tcpClient, IPEndPoint endpoint,
-            TimeSpan connectionTimeout, CancellationToken externalCancellationToken)
-        {
-            string msg = $"Connection failed, host {endpoint}";
-
-            /*
-             * Create linked cancellation token that incldes the connection timeout value
-             * https://learn.microsoft.com/en-us/dotnet/standard/threading/how-to-listen-for-multiple-cancellation-requests
-             */
-            using var timeoutTokenSource = new CancellationTokenSource(connectionTimeout);
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, externalCancellationToken);
-
-            try
-            {
-                await tcpClient.ConnectAsync(endpoint.Address, endpoint.Port, linkedTokenSource.Token)
-                    .ConfigureAwait(false);
-            }
-            catch (ArgumentException e)
-            {
-                throw new ConnectFailureException(msg, e);
-            }
-            catch (SocketException e)
-            {
-                throw new ConnectFailureException(msg, e);
-            }
-            catch (NotSupportedException e)
-            {
-                throw new ConnectFailureException(msg, e);
-            }
-            catch (OperationCanceledException e)
-            {
-                if (timeoutTokenSource.Token.IsCancellationRequested)
-                {
-                    var timeoutException = new TimeoutException(msg, e);
-                    throw new ConnectFailureException(msg, timeoutException);
-                }
-                else
-                {
-                    throw;
-                }
             }
         }
     }

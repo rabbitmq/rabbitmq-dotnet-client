@@ -48,7 +48,7 @@ namespace RabbitMQ.Client
             string consumerTag = "",
             bool noLocal = false,
             bool exclusive = false,
-            IDictionary<string, object> arguments = null)
+            IDictionary<string, object?>? arguments = null)
         {
             return channel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
         }
@@ -74,13 +74,11 @@ namespace RabbitMQ.Client
         public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
             bool autoAck,
             string consumerTag,
-            IDictionary<string, object> arguments,
+            IDictionary<string, object?>? arguments,
             IBasicConsumer consumer)
         {
             return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, arguments, consumer);
         }
-
-#nullable enable
 
         /// <summary>
         /// (Extension method) Convenience overload of BasicPublish.
@@ -103,13 +101,11 @@ namespace RabbitMQ.Client
             CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false) =>
             channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
 
-#nullable disable
-
         /// <summary>
         /// Asynchronously declare a queue.
         /// </summary>
         public static Task<QueueDeclareOk> QueueDeclareAsync(this IChannel channel, string queue = "", bool durable = false, bool exclusive = true,
-            bool autoDelete = true, IDictionary<string, object> arguments = null, bool noWait = false)
+            bool autoDelete = true, IDictionary<string, object?>? arguments = null, bool noWait = false)
         {
             return channel.QueueDeclareAsync(queue: queue, passive: false,
                 durable: durable, exclusive: exclusive, autoDelete: autoDelete,
@@ -120,7 +116,7 @@ namespace RabbitMQ.Client
         /// Asynchronously declare an exchange.
         /// </summary>
         public static Task ExchangeDeclareAsync(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
-            IDictionary<string, object> arguments = null, bool noWait = false)
+            IDictionary<string, object?>? arguments = null, bool noWait = false)
         {
             return channel.ExchangeDeclareAsync(exchange, type, durable, autoDelete,
                 arguments: arguments, passive: false, noWait: noWait);
@@ -137,7 +133,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously unbinds a queue.
         /// </summary>
-        public static Task QueueUnbindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        public static Task QueueUnbindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object?>? arguments = null)
         {
             return channel.QueueUnbindAsync(queue, exchange, routingKey, arguments);
         }

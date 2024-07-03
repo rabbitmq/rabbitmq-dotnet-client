@@ -35,7 +35,6 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
-#nullable enable
     internal readonly struct RecordedConsumer : IRecordedConsumer
     {
         private readonly AutorecoveringChannel _channel;
@@ -44,9 +43,9 @@ namespace RabbitMQ.Client.Impl
         private readonly bool _autoAck;
         private readonly string _consumerTag;
         private readonly bool _exclusive;
-        private readonly IDictionary<string, object>? _arguments;
+        private readonly IDictionary<string, object?>? _arguments;
 
-        public RecordedConsumer(AutorecoveringChannel channel, IBasicConsumer consumer, string consumerTag, string queue, bool autoAck, bool exclusive, IDictionary<string, object>? arguments)
+        public RecordedConsumer(AutorecoveringChannel channel, IBasicConsumer consumer, string consumerTag, string queue, bool autoAck, bool exclusive, IDictionary<string, object?>? arguments)
         {
             if (channel == null)
             {
@@ -68,7 +67,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (queue == string.Empty)
                 {
-                    _queue = _channel.CurrentQueue;
+                    _queue = _channel.CurrentQueue ?? string.Empty;
                 }
                 else
                 {
@@ -91,7 +90,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _arguments = new Dictionary<string, object>(arguments);
+                _arguments = new Dictionary<string, object?>(arguments);
             }
         }
 
@@ -101,7 +100,7 @@ namespace RabbitMQ.Client.Impl
         public bool AutoAck => _autoAck;
         public string ConsumerTag => _consumerTag;
         public bool Exclusive => _exclusive;
-        public IDictionary<string, object>? Arguments => _arguments;
+        public IDictionary<string, object?>? Arguments => _arguments;
 
         public static RecordedConsumer WithNewConsumerTag(string newTag, in RecordedConsumer old)
         {

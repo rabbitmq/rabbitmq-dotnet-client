@@ -44,7 +44,6 @@ using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-#nullable enable
     internal sealed partial class Connection : IConnection
     {
         private bool _disposed;
@@ -225,9 +224,6 @@ namespace RabbitMQ.Client.Framing.Impl
                 RabbitMqClientEventSource.Log.ConnectionOpened();
 
                 cancellationToken.ThrowIfCancellationRequested();
-
-                await _frameHandler.ConnectAsync(cancellationToken)
-                    .ConfigureAwait(false);
 
                 // Note: this must happen *after* the frame handler is started
                 _mainLoopTask = Task.Run(MainLoop, cancellationToken);
@@ -427,9 +423,8 @@ namespace RabbitMQ.Client.Framing.Impl
             _closed = true;
             MaybeStopHeartbeatTimers();
 
-            await _frameHandler.CloseAsync(cancellationToken)
-                .ConfigureAwait(false);
-            _channel0.SetCloseReason(CloseReason);
+            await _frameHandler.CloseAsync(cancellationToken).ConfigureAwait(false);
+            _channel0.SetCloseReason(CloseReason!);
             _channel0.FinishClose();
             RabbitMqClientEventSource.Log.ConnectionClosed();
         }

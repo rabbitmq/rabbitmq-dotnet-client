@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
                 return Task.CompletedTask;
             }
 
-            return CommandReceived.Invoke(cmd, cancellationToken);
+            return CommandReceived!.Invoke(cmd, cancellationToken);
         }
     }
 }

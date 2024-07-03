@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Impl
             return Unsafe.As<DecimalData, decimal>(ref data);
         }
 
-        public static IList ReadArray(ReadOnlySpan<byte> span, out int bytesRead)
+        public static IList? ReadArray(ReadOnlySpan<byte> span, out int bytesRead)
         {
             bytesRead = 4;
             long arrayLength = NetworkOrderDeserializer.ReadUInt32(span);
@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Impl
             {
                 return null;
             }
-            List<object> array = new List<object>();
+            List<object?> array = new List<object?>();
             while (bytesRead - 4 < arrayLength)
             {
                 array.Add(ReadFieldValue(span.Slice(bytesRead), out int fieldValueBytesRead));
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Impl
             return array;
         }
 
-        public static object ReadFieldValue(ReadOnlySpan<byte> span, out int bytesRead)
+        public static object? ReadFieldValue(ReadOnlySpan<byte> span, out int bytesRead)
         {
             switch ((char)span[0])
             {
@@ -94,16 +94,16 @@ namespace RabbitMQ.Client.Impl
             }
 
             // Moved out of outer switch to have a shorter main method (improves performance)
-            static object ReadFieldValueSlow(ReadOnlySpan<byte> span, out int bytesRead)
+            static object? ReadFieldValueSlow(ReadOnlySpan<byte> span, out int bytesRead)
             {
                 ReadOnlySpan<byte> slice = span.Slice(1);
                 switch ((char)span[0])
                 {
                     case 'F':
-                        bytesRead = 1 + ReadDictionary(slice, out Dictionary<string, object> dictionary);
+                        bytesRead = 1 + ReadDictionary(slice, out Dictionary<string, object?>? dictionary);
                         return dictionary;
                     case 'A':
-                        IList arrayResult = ReadArray(slice, out int arrayBytesRead);
+                        IList? arrayResult = ReadArray(slice, out int arrayBytesRead);
                         bytesRead = 1 + arrayBytesRead;
                         return arrayResult;
                     case 'l':
@@ -152,7 +152,7 @@ namespace RabbitMQ.Client.Impl
             uint byteCount = NetworkOrderDeserializer.ReadUInt32(span);
             if (byteCount > int.MaxValue)
             {
-                value = null;
+                value = null!;
                 return ThrowSyntaxErrorException(byteCount);
             }
 
@@ -269,7 +269,7 @@ namespace RabbitMQ.Client.Impl
         /// x and V types and the AMQP 0-9-1 A type.
         ///</remarks>
         /// <returns>A <seealso cref="System.Collections.Generic.Dictionary{TKey,TValue}"/>.</returns>
-        public static int ReadDictionary(ReadOnlySpan<byte> span, out Dictionary<string, object> valueDictionary)
+        public static int ReadDictionary(ReadOnlySpan<byte> span, out Dictionary<string, object?>? valueDictionary)
         {
             long tableLength = NetworkOrderDeserializer.ReadUInt32(span);
             if (tableLength == 0)
@@ -279,7 +279,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             span = span.Slice(4);
-            valueDictionary = new Dictionary<string, object>();
+            valueDictionary = new Dictionary<string, object?>();
             int bytesRead = 0;
             while (bytesRead < tableLength)
             {

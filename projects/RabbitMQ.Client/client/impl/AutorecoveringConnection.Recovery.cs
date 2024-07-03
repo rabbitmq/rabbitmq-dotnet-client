@@ -40,13 +40,12 @@ using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-#nullable enable
     internal sealed partial class AutorecoveringConnection
     {
         private Task? _recoveryTask;
         private readonly CancellationTokenSource _recoveryCancellationTokenSource = new CancellationTokenSource();
 
-        private void HandleConnectionShutdown(object _, ShutdownEventArgs args)
+        private void HandleConnectionShutdown(object? _, ShutdownEventArgs args)
         {
             if (ShouldTriggerConnectionRecovery(args))
             {

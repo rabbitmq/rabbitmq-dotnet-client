@@ -95,7 +95,7 @@ namespace RabbitMQ.Client
         /// Parse a <see cref="PublicationAddress"/> out of the given string,
         ///  using the <see cref="PSEUDO_URI_PARSER"/> regex.
         /// </summary>
-        public static PublicationAddress Parse(string uriLikeString)
+        public static PublicationAddress? Parse(string uriLikeString)
         {
             Match match = PSEUDO_URI_PARSER.Match(uriLikeString);
             if (match.Success)
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client
             return null;
         }
 
-        public static bool TryParse(string uriLikeString, out PublicationAddress result)
+        public static bool TryParse(string? uriLikeString, out PublicationAddress? result)
         {
             // Callers such as IBasicProperties.ReplyToAddress
             // expect null result for invalid input.
@@ -121,7 +121,7 @@ namespace RabbitMQ.Client
             {
                 try
                 {
-                    PublicationAddress res = Parse(uriLikeString);
+                    PublicationAddress? res = Parse(uriLikeString);
                     result = res;
                     return true;
                 }
