@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Impl
         public void Enqueue(IRpcContinuation k)
         {
             IRpcContinuation result = Interlocked.CompareExchange(ref _outstandingRpc, k, s_tmp);
-            if (!(result is EmptyRpcContinuation))
+            if (result is not EmptyRpcContinuation)
             {
                 throw new NotSupportedException($"Pipelining of requests forbidden (attempted: {k.GetType()}, enqueued: {result.GetType()})");
             }
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Impl
         /// waiting continuations.
         ///</para>
         ///</remarks>
-        public bool TryPeek<T>([MaybeNullWhen(false)] out T continuation) where T : IRpcContinuation
+        public bool TryPeek<T>([NotNullWhen(true)] out T? continuation) where T : class, IRpcContinuation
         {
             if (_outstandingRpc is T result)
             {
