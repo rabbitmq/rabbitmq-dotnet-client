@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Security;
 using System.Reflection;
@@ -759,6 +760,7 @@ namespace RabbitMQ.Client
             return new List<AmqpTcpEndpoint> { Endpoint };
         }
 
+        [return: NotNullIfNotNull(nameof(clientProvidedName))]
         private static string? EnsureClientProvidedNameLength(string? clientProvidedName)
         {
             if (clientProvidedName != null)
