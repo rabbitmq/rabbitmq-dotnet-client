@@ -107,7 +107,7 @@ namespace RabbitMQ.Client
             return null;
         }
 
-        public static bool TryParse(string? uriLikeString, out PublicationAddress? result)
+        public static bool TryParse([NotNullWhen(true)] string? uriLikeString, out PublicationAddress? result)
         {
             // Callers such as IBasicProperties.ReplyToAddress
             // expect null result for invalid input.
