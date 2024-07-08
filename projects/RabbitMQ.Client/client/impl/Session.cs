@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Impl
 
         public override Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
         {
-            IncomingCommand cmd = _assembler.HandleFrame(frame);
+            IncomingCommand? cmd = _assembler.HandleFrame(frame);
             if (cmd is null)
             {
                 return Task.CompletedTask;
