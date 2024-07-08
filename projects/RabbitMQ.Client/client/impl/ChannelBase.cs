@@ -1495,10 +1495,7 @@ namespace RabbitMQ.Client.Impl
                     await ModelSendAsync(method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    if (false == passive)
-                    {
-                        CurrentQueue = queue;
-                    }
+                    CurrentQueue = queue;
 
                     return new QueueDeclareOk(queue, 0, 0);
                 }
