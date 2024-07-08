@@ -34,7 +34,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading;
@@ -197,7 +196,6 @@ namespace RabbitMQ.Client
         private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
 
         // just here to hold the value that was set through the setter
-        private Uri? _uri;
         private string? _clientProvidedName;
 
         /// <summary>
@@ -360,9 +358,9 @@ namespace RabbitMQ.Client
         /// <summary>
         /// The uri to use for the connection.
         /// </summary>
-        public Uri? Uri
+        public Uri Uri
         {
-            get { return _uri; }
+            get { return GetUri(); }
             set { SetUri(value); }
         }
 
@@ -644,14 +642,50 @@ namespace RabbitMQ.Client
             return fh;
         }
 
-        private void SetUri(Uri? uri)
+        private Uri GetUri()
         {
-            if (uri is null)
+            var builder = new UriBuilder();
+
+            if (Ssl.Enabled)
             {
-                _uri = uri;
-                return;
+                builder.Scheme = "amqps";
+            }
+            else
+            {
+                builder.Scheme = "amqp";
             }
 
+            builder.Host = HostName;
+
+            if (Port == AmqpTcpEndpoint.UseDefaultPort)
+            {
+                builder.Port = 5672;
+            }
+            else
+            {
+                builder.Port = Port;
+            }
+
+            if (false == string.IsNullOrEmpty(UserName))
+            {
+                builder.UserName = UserName;
+            }
+
+            if (false == string.IsNullOrEmpty(Password))
+            {
+                builder.Password = Password;
+            }
+
+            if (false == string.IsNullOrEmpty(VirtualHost))
+            {
+                builder.Path = Uri.EscapeDataString(VirtualHost);
+            }
+
+            return builder.Uri;
+        }
+
+        private void SetUri(Uri uri)
+        {
             Endpoint = new AmqpTcpEndpoint();
 
             if (string.Equals("amqp", uri.Scheme, StringComparison.OrdinalIgnoreCase))
@@ -669,11 +703,13 @@ namespace RabbitMQ.Client
             {
                 throw new ArgumentException($"Wrong scheme in AMQP URI: {uri.Scheme}");
             }
+
             string host = uri.Host;
             if (!string.IsNullOrEmpty(host))
             {
                 HostName = host;
             }
+
             Ssl.ServerName = HostName;
 
             int port = uri.Port;
@@ -703,12 +739,11 @@ namespace RabbitMQ.Client
             {
                 throw new ArgumentException($"Multiple segments in path of AMQP URI: {string.Join(", ", uri.Segments)}");
             }
+
             if (uri.Segments.Length == 2)
             {
                 VirtualHost = UriDecode(uri.Segments[1]);
             }
-
-            _uri = uri;
         }
 
         ///<summary>
@@ -716,7 +751,7 @@ namespace RabbitMQ.Client
         /// </summary>
         private static string UriDecode(string uri)
         {
-            return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
+            return Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
 
         private List<AmqpTcpEndpoint> LocalEndpoints()
