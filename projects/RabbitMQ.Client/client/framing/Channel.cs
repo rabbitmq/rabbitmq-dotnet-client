@@ -88,17 +88,17 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.BasicAck:
                     {
-                        HandleBasicAck(in cmd);
+                        HandleBasicAck(cmd);
                         return Task.FromResult(true);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
-                        HandleBasicNack(in cmd);
+                        HandleBasicNack(cmd);
                         return Task.FromResult(true);
                     }
                 case ProtocolCommandId.BasicReturn:
                     {
-                        HandleBasicReturn(in cmd);
+                        HandleBasicReturn(cmd);
                         return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ChannelClose:
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionBlocked:
                     {
-                        HandleConnectionBlocked(in cmd);
+                        HandleConnectionBlocked(cmd);
                         return Task.FromResult(true);
                     }
                 case ProtocolCommandId.ConnectionClose:
@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionUnblocked:
                     {
-                        HandleConnectionUnblocked(in cmd);
+                        HandleConnectionUnblocked(cmd);
                         return Task.FromResult(true);
                     }
                 default:

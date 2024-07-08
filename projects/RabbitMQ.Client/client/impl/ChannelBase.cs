@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
         internal TaskCompletionSource<ConnectionStartDetails> m_connectionStartCell;
         private Exception m_connectionStartException = null;
 
-        // AMQP only allows one RPC operation to be active at a time. 
+        // AMQP only allows one RPC operation to be active at a time.
         protected readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
@@ -425,8 +425,8 @@ namespace RabbitMQ.Client.Impl
             /*
              * If DispatchCommandAsync returns `true`, it means that the incoming command is server-originated, and has
              * already been handled.
-             * 
-             * Else, the incoming command is the return of an RPC call, and must be handled. 
+             *
+             * Else, the incoming command is the return of an RPC call, and must be handled.
              */
             if (false == await DispatchCommandAsync(cmd, cancellationToken)
                 .ConfigureAwait(false))
@@ -561,7 +561,7 @@ namespace RabbitMQ.Client.Impl
             return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
-        protected void HandleBasicAck(in IncomingCommand cmd)
+        protected void HandleBasicAck(IncomingCommand cmd)
         {
             try
             {
@@ -580,7 +580,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void HandleBasicNack(in IncomingCommand cmd)
+        protected void HandleBasicNack(IncomingCommand cmd)
         {
             try
             {
@@ -679,17 +679,17 @@ namespace RabbitMQ.Client.Impl
                         method._exchange,
                         method._routingKey,
                         header,
-                        cmd.Body,
+                        /*
+                         * Takeover Body so it doesn't get returned as it is necessary
+                         * for handling the Basic.Deliver method by client code.
+                         */
+                        cmd.TakeoverBody(),
                         cancellationToken).ConfigureAwait(false);
                 return true;
             }
             finally
             {
-                /*
-                 * Note: do not return the Body as it is necessary for handling
-                 * the Basic.Deliver method by client code
-                 */
-                cmd.ReturnMethodAndHeaderBuffers();
+                cmd.ReturnBuffers();
             }
         }
 
@@ -698,7 +698,7 @@ namespace RabbitMQ.Client.Impl
             return deliveryTag;
         }
 
-        protected void HandleBasicReturn(in IncomingCommand cmd)
+        protected void HandleBasicReturn(IncomingCommand cmd)
         {
             try
             {
@@ -800,7 +800,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void HandleConnectionBlocked(in IncomingCommand cmd)
+        protected void HandleConnectionBlocked(IncomingCommand cmd)
         {
             try
             {
@@ -851,7 +851,7 @@ namespace RabbitMQ.Client.Impl
         protected async Task<bool> HandleConnectionSecureAsync(IncomingCommand _)
         {
             var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
-            await k.HandleCommandAsync(IncomingCommand.Empty)
+            await k.HandleCommandAsync(new IncomingCommand())
                 .ConfigureAwait(false); // release the continuation.
             return true;
         }
@@ -903,7 +903,7 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected void HandleConnectionUnblocked(in IncomingCommand cmd)
+        protected void HandleConnectionUnblocked(IncomingCommand cmd)
         {
             try
             {
