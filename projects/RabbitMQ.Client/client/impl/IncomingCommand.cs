@@ -48,7 +48,7 @@ namespace RabbitMQ.Client.Impl
 
         public RentedMemory TakeoverBody()
         {
-            var body = Body;
+            RentedMemory body = Body;
             Body = default;
             return body;
         }
