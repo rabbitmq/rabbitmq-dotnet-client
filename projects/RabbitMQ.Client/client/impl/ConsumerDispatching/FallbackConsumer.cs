@@ -37,7 +37,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicDeliverAsync)} for tag {consumerTag}");
             return Task.CompletedTask;
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         Task IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             return ((IBasicConsumer)this).HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
         }

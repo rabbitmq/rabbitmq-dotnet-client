@@ -100,7 +100,7 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? Receive(string routingKey, string exchange, ulong deliveryTag,
-            in ReadOnlyBasicProperties readOnlyBasicProperties, int bodySize)
+            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -157,7 +157,7 @@ namespace RabbitMQ.Client
         }
 
         private static void PopulateMessagingTags(string operation, string routingKey, string exchange,
-            ulong deliveryTag, in ReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, Activity activity)
+            ulong deliveryTag, IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, Activity activity)
         {
             PopulateMessagingTags(operation, routingKey, exchange, deliveryTag, bodySize, activity);
 

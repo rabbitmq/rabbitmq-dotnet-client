@@ -57,12 +57,12 @@ namespace Test.Integration
             public FaultyConsumer(IChannel channel) : base(channel) { }
 
             public override Task HandleBasicDeliverAsync(string consumerTag,
-                                               ulong deliveryTag,
-                                               bool redelivered,
-                                               string exchange,
-                                               string routingKey,
-                                               ReadOnlyBasicProperties properties,
-                                               ReadOnlyMemory<byte> body)
+                ulong deliveryTag,
+                bool redelivered,
+                string exchange,
+                string routingKey,
+                IReadOnlyBasicProperties properties,
+                ReadOnlyMemory<byte> body)
             {
                 throw new Exception("I am a bad consumer");
             }

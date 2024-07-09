@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         public ValueTask HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey, ReadOnlyBasicProperties basicProperties, RentedMemory body,
+            string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body,
             CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
@@ -233,7 +233,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public readonly bool Redelivered;
             public readonly string? Exchange;
             public readonly string? RoutingKey;
-            public readonly ReadOnlyBasicProperties? BasicProperties;
+            public readonly IReadOnlyBasicProperties? BasicProperties;
             public readonly RentedMemory Body;
             public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
@@ -255,7 +255,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
 
             private WorkStruct(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, ReadOnlyBasicProperties basicProperties, RentedMemory body)
+                string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body)
             {
                 WorkType = WorkType.Deliver;
                 Consumer = consumer;
@@ -290,7 +290,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
 
             public static WorkStruct CreateDeliver(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, ReadOnlyBasicProperties basicProperties, RentedMemory body)
+                string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body)
             {
                 return new WorkStruct(consumer, consumerTag, deliveryTag, redelivered,
                     exchange, routingKey, basicProperties, body);

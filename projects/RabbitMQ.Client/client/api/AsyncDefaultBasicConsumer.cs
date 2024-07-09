@@ -112,7 +112,7 @@ namespace RabbitMQ.Client
             bool redelivered,
             string exchange,
             string routingKey,
-            ReadOnlyBasicProperties properties,
+            IReadOnlyBasicProperties properties,
             ReadOnlyMemory<byte> body)
         {
             // Nothing to do here.
@@ -166,8 +166,9 @@ namespace RabbitMQ.Client
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
 
-        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
+            string exchange, string routingKey,
+            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             throw new InvalidOperationException("Should never be called. Enable 'DispatchConsumersAsync'.");
         }
