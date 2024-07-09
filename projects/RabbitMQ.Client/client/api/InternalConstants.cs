@@ -51,5 +51,7 @@ namespace RabbitMQ.Client
         /// https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/980
         /// </summary>
         internal const int DefaultRabbitMqMaxClientProvideNameLength = 3000;
+
+        internal const string BugFound = "BUG FOUND - please report this exception (with stacktrace) here: https://github.com/rabbitmq/rabbitmq-dotnet-client/issues";
     }
 }
