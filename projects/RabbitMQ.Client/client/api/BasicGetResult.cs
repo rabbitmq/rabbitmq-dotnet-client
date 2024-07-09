@@ -50,7 +50,7 @@ namespace RabbitMQ.Client
         /// <param name="basicProperties">The Basic-class content header properties for the message.</param>
         /// <param name="body">The body</param>
         public BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            uint messageCount, in ReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+            uint messageCount, IReadOnlyBasicProperties basicProperties, ReadOnlyMemory<byte> body)
         {
             DeliveryTag = deliveryTag;
             Redelivered = redelivered;
@@ -64,7 +64,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieves the Basic-class content header properties for this message.
         /// </summary>
-        public readonly ReadOnlyBasicProperties BasicProperties;
+        public readonly IReadOnlyBasicProperties BasicProperties;
 
         /// <summary>
         /// Retrieves the body of this message.

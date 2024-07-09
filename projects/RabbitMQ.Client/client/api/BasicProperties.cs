@@ -85,7 +85,7 @@ namespace RabbitMQ.Client
         {
         }
 
-        public BasicProperties(ReadOnlyBasicProperties input)
+        public BasicProperties(IReadOnlyBasicProperties input)
         {
             ContentType = input.ContentType;
             ContentEncoding = input.ContentEncoding;

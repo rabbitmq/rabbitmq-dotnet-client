@@ -42,7 +42,7 @@ namespace RabbitMQ.Client.Events
             string replyText,
             string exchange,
             string routingKey,
-            ReadOnlyBasicProperties basicProperties,
+            IReadOnlyBasicProperties basicProperties,
             ReadOnlyMemory<byte> body) : base()
         {
             ReplyCode = replyCode;
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>The content header of the message.</summary>
-        public readonly ReadOnlyBasicProperties BasicProperties;
+        public readonly IReadOnlyBasicProperties BasicProperties;
 
         ///<summary>The message body.</summary>
         public readonly ReadOnlyMemory<byte> Body;
