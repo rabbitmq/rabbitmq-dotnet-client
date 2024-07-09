@@ -76,8 +76,7 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey,
+        public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);

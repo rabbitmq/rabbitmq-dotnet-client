@@ -18,8 +18,7 @@ namespace RabbitMQ.Benchmarks
             _autoResetEvent = autoResetEvent;
         }
 
-        public Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange,
-            string routingKey,
+        public Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (Interlocked.Increment(ref _current) == Count)
@@ -30,8 +29,7 @@ namespace RabbitMQ.Benchmarks
             return Task.CompletedTask;
         }
 
-        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey,
+        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (Interlocked.Increment(ref _current) == Count)

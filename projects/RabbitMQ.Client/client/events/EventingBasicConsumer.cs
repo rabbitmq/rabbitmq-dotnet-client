@@ -86,8 +86,7 @@ namespace RabbitMQ.Client.Events
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.
         /// </remarks>
-        public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey,
+        public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             BasicDeliverEventArgs eventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
