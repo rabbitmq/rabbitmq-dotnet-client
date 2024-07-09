@@ -49,7 +49,7 @@ namespace RabbitMQ.Client
                 try
                 {
                     t = await selector(ep, cancellationToken).ConfigureAwait(false);
-                    if (t.Equals(default(T)) == false)
+                    if (t!.Equals(default(T)) == false)
                     {
                         return t;
                     }
@@ -71,12 +71,19 @@ namespace RabbitMQ.Client
                 }
             }
 
-            if (EqualityComparer<T>.Default.Equals(t, default(T)) && exceptions.Count > 0)
+            if (EqualityComparer<T>.Default.Equals(t!, default!))
             {
-                throw new AggregateException(exceptions);
+                if (exceptions.Count > 0)
+                {
+                    throw new AggregateException(exceptions);
+                }
+                else
+                {
+                    throw new InvalidOperationException(InternalConstants.BugFound);
+                }
             }
 
-            return t;
+            return t!;
         }
     }
 }

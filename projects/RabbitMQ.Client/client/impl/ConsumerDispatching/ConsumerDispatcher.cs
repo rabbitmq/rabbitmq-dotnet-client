@@ -5,7 +5,6 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-#nullable enable
     internal sealed class ConsumerDispatcher : ConsumerDispatcherChannelBase
     {
         internal ConsumerDispatcher(ChannelBase channel, int concurrency)
@@ -26,13 +25,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             try
                             {
                                 IBasicConsumer consumer = work.Consumer;
-                                string? consumerTag = work.ConsumerTag;
+                                string consumerTag = work.ConsumerTag!;
                                 switch (work.WorkType)
                                 {
                                     case WorkType.Deliver:
                                         await consumer.HandleBasicDeliverAsync(
                                             consumerTag, work.DeliveryTag, work.Redelivered,
-                                            work.Exchange, work.RoutingKey, work.BasicProperties, work.Body.Memory)
+                                            work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory)
                                             .ConfigureAwait(false);
                                         break;
                                     case WorkType.Cancel:
@@ -45,7 +44,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                         consumer.HandleBasicConsumeOk(consumerTag);
                                         break;
                                     case WorkType.Shutdown:
-                                        consumer.HandleChannelShutdown(_channel, work.Reason);
+                                        consumer.HandleChannelShutdown(_channel, work.Reason!);
                                         break;
                                 }
                             }

@@ -48,9 +48,9 @@ namespace RabbitMQ.Client.Framing.Impl
         public readonly bool _autoDelete;
         public readonly bool _internal;
         public readonly bool _nowait;
-        public readonly IDictionary<string, object> _arguments;
+        public readonly IDictionary<string, object?>? _arguments;
 
-        public ExchangeDeclare(string Exchange, string Type, bool Passive, bool Durable, bool AutoDelete, bool Internal, bool Nowait, IDictionary<string, object> Arguments)
+        public ExchangeDeclare(string Exchange, string Type, bool Passive, bool Durable, bool AutoDelete, bool Internal, bool Nowait, IDictionary<string, object?>? Arguments)
         {
             _exchange = Exchange;
             _type = Type;

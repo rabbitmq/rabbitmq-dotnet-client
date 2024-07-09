@@ -2,7 +2,6 @@
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     public interface IRecordedExchange
     {
         string Name { get; }
@@ -13,6 +12,6 @@ namespace RabbitMQ.Client
 
         bool AutoDelete { get; }
 
-        IDictionary<string, object>? Arguments { get; }
+        IDictionary<string, object?>? Arguments { get; }
     }
 }

@@ -5,7 +5,6 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.client.impl
 {
-#nullable enable
     internal sealed class EmptyBasicProperty : IReadOnlyBasicProperties, IAmqpHeader
     {
         internal static EmptyBasicProperty Empty => new EmptyBasicProperty();

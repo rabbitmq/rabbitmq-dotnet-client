@@ -44,7 +44,7 @@ namespace RabbitMQ.Client
     /// </summary>
     public class SslOption
     {
-        private X509CertificateCollection _certificateCollection;
+        private X509CertificateCollection? _certificateCollection;
 
         /// <summary>
         /// Constructs an <see cref="SslOption"/> specifying both the server canonical name and the client's certificate path.
@@ -76,7 +76,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve or set the client certificate passphrase.
         /// </summary>
-        public string CertPassphrase { get; set; }
+        public string? CertPassphrase { get; set; }
 
         /// <summary>
         /// Retrieve or set the path to client certificate.
@@ -87,20 +87,20 @@ namespace RabbitMQ.Client
         /// An optional client TLS certificate selection callback. If this is not specified,
         /// the first valid certificate found will be used.
         /// </summary>
-        public LocalCertificateSelectionCallback CertificateSelectionCallback { get; set; }
+        public LocalCertificateSelectionCallback? CertificateSelectionCallback { get; set; }
 
         /// <summary>
         /// An optional peer verification (TLS certificate validation) callback. If this is not specified,
         /// the default callback will be used in conjunction with the <see cref="AcceptablePolicyErrors"/> property to
         /// determine if the peer's (server's) certificate should be considered valid (acceptable).
         /// </summary>
-        public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
+        public RemoteCertificateValidationCallback? CertificateValidationCallback { get; set; }
 
         /// <summary>
         /// Retrieve or set the X509CertificateCollection containing the client certificate.
         /// If no collection is set, the client will attempt to load one from the specified <see cref="CertPath"/>.
         /// </summary>
-        public X509CertificateCollection Certs
+        public X509CertificateCollection? Certs
         {
             get
             {

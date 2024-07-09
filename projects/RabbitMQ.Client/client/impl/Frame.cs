@@ -207,7 +207,6 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-#nullable enable
     internal sealed class InboundFrame
     {
         public FrameType Type { get; private set; }

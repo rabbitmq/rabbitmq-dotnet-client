@@ -11,7 +11,7 @@ namespace RabbitMQ.Client
         /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        IChannel Channel { get; }
+        IChannel? Channel { get; }
 
         /// <summary>
         /// Signalled when the consumer gets cancelled.

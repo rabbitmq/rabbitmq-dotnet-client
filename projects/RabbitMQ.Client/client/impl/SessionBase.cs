@@ -31,6 +31,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,8 +44,8 @@ namespace RabbitMQ.Client.Impl
 {
     internal abstract class SessionBase : ISession
     {
-        private ShutdownEventArgs _closeReason;
-        public ShutdownEventArgs CloseReason => Volatile.Read(ref _closeReason);
+        private ShutdownEventArgs? _closeReason;
+        public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
         protected SessionBase(Connection connection, ushort channelNumber)
         {
@@ -79,12 +80,13 @@ namespace RabbitMQ.Client.Impl
 
         public ushort ChannelNumber { get; }
 
-        public CommandReceivedAction CommandReceived { get; set; }
+        public CommandReceivedAction? CommandReceived { get; set; }
         public Connection Connection { get; }
 
+        [MemberNotNullWhen(false, nameof(CloseReason))]
         public bool IsOpen => CloseReason is null;
 
-        public virtual void OnConnectionShutdown(object conn, ShutdownEventArgs reason)
+        public virtual void OnConnectionShutdown(object? conn, ShutdownEventArgs reason)
         {
             Close(reason);
         }
@@ -114,7 +116,7 @@ namespace RabbitMQ.Client.Impl
 
             if (notify)
             {
-                OnSessionShutdown(CloseReason);
+                OnSessionShutdown(CloseReason!);
             }
         }
 
@@ -124,7 +126,7 @@ namespace RabbitMQ.Client.Impl
         {
             // Ensure that we notify only when session is already closed
             // If not, throw exception, since this is a serious bug in the library
-            ShutdownEventArgs reason = CloseReason;
+            ShutdownEventArgs? reason = CloseReason;
             if (reason is null)
             {
                 throw new InvalidOperationException("Internal Error in SessionBase.Notify");
@@ -160,6 +162,6 @@ namespace RabbitMQ.Client.Impl
         }
 
         private void ThrowAlreadyClosedException()
-            => throw new AlreadyClosedException(CloseReason);
+            => throw new AlreadyClosedException(CloseReason!);
     }
 }

@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Exceptions
     {
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation, if any.</summary>
-        public OperationInterruptedException(ShutdownEventArgs reason)
+        public OperationInterruptedException(ShutdownEventArgs? reason)
             : base(reason is null ? "The AMQP operation was interrupted" :
                 $"The AMQP operation was interrupted: {reason}")
         {
@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.Exceptions
 
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation and prefix, if any.</summary>
-        public OperationInterruptedException(ShutdownEventArgs reason, string prefix)
+        public OperationInterruptedException(ShutdownEventArgs? reason, string prefix)
             : base(reason is null ? $"{prefix}: The AMQP operation was interrupted" :
                 $"{prefix}: The AMQP operation was interrupted: {reason}")
         {
@@ -77,6 +77,6 @@ namespace RabbitMQ.Client.Exceptions
 
         ///<summary>Retrieves the explanation for the shutdown. May
         ///return null if no explanation is available.</summary>
-        public ShutdownEventArgs ShutdownReason { get; protected set; }
+        public ShutdownEventArgs? ShutdownReason { get; protected set; }
     }
 }

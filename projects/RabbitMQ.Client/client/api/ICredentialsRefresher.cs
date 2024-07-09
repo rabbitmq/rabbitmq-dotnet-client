@@ -94,7 +94,7 @@ namespace RabbitMQ.Client
 
         public bool Unregister(ICredentialsProvider provider)
         {
-            if (_registrations.TryRemove(provider, out System.Timers.Timer timer))
+            if (_registrations.TryRemove(provider, out System.Timers.Timer? timer))
             {
                 try
                 {
@@ -116,7 +116,7 @@ namespace RabbitMQ.Client
         private System.Timers.Timer scheduleTimer(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
         {
             System.Timers.Timer timer = new System.Timers.Timer();
-            timer.Interval = provider.ValidUntil.Value.TotalMilliseconds * (1.0 - (1 / 3.0));
+            timer.Interval = provider.ValidUntil!.Value.TotalMilliseconds * (1.0 - (1 / 3.0));
             timer.Elapsed += (o, e) =>
             {
                 TimerBasedCredentialRefresherEventSource.Log.TriggeredTimer(provider.Name);

@@ -35,7 +35,6 @@ using System.Threading;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-#nullable enable
     internal sealed partial class Connection
     {
         private TimeSpan _heartbeat;

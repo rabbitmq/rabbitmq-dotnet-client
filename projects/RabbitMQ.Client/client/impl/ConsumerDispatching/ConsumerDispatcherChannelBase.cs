@@ -8,7 +8,6 @@ using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-#nullable enable
     internal abstract class ConsumerDispatcherChannelBase : ConsumerDispatcherBase, IConsumerDispatcher
     {
         protected readonly ChannelBase _channel;

@@ -13,7 +13,7 @@ namespace RabbitMQ.Client
     /// </summary>
     public class TcpClientAdapter : ITcpClient
     {
-        private Socket _sock;
+        private readonly Socket _sock;
 
         public TcpClientAdapter(Socket socket)
         {
@@ -23,7 +23,6 @@ namespace RabbitMQ.Client
 #if NET6_0_OR_GREATER
         public virtual Task ConnectAsync(IPAddress ep, int port, CancellationToken cancellationToken = default)
         {
-            AssertSocket();
             return _sock.ConnectAsync(ep, port, cancellationToken).AsTask();
         }
 #else
@@ -36,7 +35,6 @@ namespace RabbitMQ.Client
         public virtual void Close()
         {
             _sock.Dispose();
-            _sock = null;
         }
 
         public void Dispose()
@@ -54,7 +52,6 @@ namespace RabbitMQ.Client
 
         public virtual NetworkStream GetStream()
         {
-            AssertSocket();
             return new NetworkStream(_sock);
         }
 
@@ -70,10 +67,6 @@ namespace RabbitMQ.Client
         {
             get
             {
-                if (_sock is null)
-                {
-                    return false;
-                }
                 return _sock.Connected;
             }
         }
@@ -82,27 +75,17 @@ namespace RabbitMQ.Client
         {
             get
             {
-                AssertSocket();
                 return TimeSpan.FromMilliseconds(_sock.ReceiveTimeout);
             }
             set
             {
-                AssertSocket();
                 _sock.ReceiveTimeout = (int)value.TotalMilliseconds;
             }
         }
 
-        private void AssertSocket()
+        public static IPAddress? GetMatchingHost(IReadOnlyCollection<IPAddress> addresses, AddressFamily addressFamily)
         {
-            if (_sock is null)
-            {
-                throw new InvalidOperationException("Cannot perform operation as socket is null");
-            }
-        }
-
-        public static IPAddress GetMatchingHost(IReadOnlyCollection<IPAddress> addresses, AddressFamily addressFamily)
-        {
-            IPAddress ep = addresses.FirstOrDefault(a => a.AddressFamily == addressFamily);
+            IPAddress? ep = addresses.FirstOrDefault(a => a.AddressFamily == addressFamily);
             if (ep is null && addresses.Count == 1 && addressFamily == AddressFamily.Unspecified)
             {
                 return addresses.Single();

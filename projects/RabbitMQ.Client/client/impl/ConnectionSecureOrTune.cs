@@ -45,9 +45,15 @@ namespace RabbitMQ.Client.Impl
         public ushort m_heartbeatInSeconds;
     }
 
-    internal class ConnectionSecureOrTune
+    internal sealed class ConnectionSecureOrTune
     {
-        public byte[] m_challenge;
-        public ConnectionTuneDetails m_tuneDetails;
+        public byte[]? m_challenge;
+        public ConnectionTuneDetails? m_tuneDetails;
+
+        public ConnectionSecureOrTune(byte[]? challenge, ConnectionTuneDetails? tuneDetails)
+        {
+            m_challenge = challenge;
+            m_tuneDetails = tuneDetails;
+        }
     }
 }

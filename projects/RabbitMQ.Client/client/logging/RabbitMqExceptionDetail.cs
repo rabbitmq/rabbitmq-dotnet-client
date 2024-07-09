@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Logging
             Type = ex["Type"].ToString();
             Message = ex["Message"].ToString();
             StackTrace = ex["StackTrace"].ToString();
-            if (ex.TryGetValue("InnerException", out object inner))
+            if (ex.TryGetValue("InnerException", out object? inner))
             {
                 InnerException = inner.ToString();
             }
@@ -64,10 +64,10 @@ namespace RabbitMQ.Client.Logging
         // in RabbitMqClientEventSource. If RabbitMqExceptionDetail gets a property that is a complex type, we need to ensure the nested properties are
         // preserved as well.
 
-        public string Type { get; }
-        public string Message { get; }
-        public string StackTrace { get; }
-        public string InnerException { get; }
+        public string? Type { get; }
+        public string? Message { get; }
+        public string? StackTrace { get; }
+        public string? InnerException { get; }
 
         public override string ToString()
         {

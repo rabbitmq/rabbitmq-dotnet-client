@@ -90,7 +90,7 @@ namespace RabbitMQ.Client
         /// If our <see cref="IChannel"/> shuts down, this property will contain a description of the reason for the
         /// shutdown. Otherwise it will contain null. See <see cref="ShutdownEventArgs"/>.
         /// </summary>
-        public ShutdownEventArgs ShutdownReason { get; protected set; }
+        public ShutdownEventArgs? ShutdownReason { get; protected set; }
 
         /// <summary>
         /// Signalled when the consumer gets cancelled.
@@ -106,7 +106,7 @@ namespace RabbitMQ.Client
         /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        public IChannel Channel { get; set; }
+        public IChannel? Channel { get; set; }
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:

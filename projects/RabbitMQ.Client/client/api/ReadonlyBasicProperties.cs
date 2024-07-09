@@ -31,11 +31,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     /// <summary>
     /// AMQP specification content header properties for content class "basic"
     /// </summary>
@@ -77,7 +77,7 @@ namespace RabbitMQ.Client
         {
             get
             {
-                PublicationAddress.TryParse(ReplyTo, out PublicationAddress result);
+                PublicationAddress.TryParse(ReplyTo, out PublicationAddress? result);
                 return result;
             }
         }
@@ -109,19 +109,30 @@ namespace RabbitMQ.Client
             if (bits.IsBitSet(BasicProperties.ClusterIdBit)) { WireFormatting.ReadShortstr(span.Slice(offset), out _clusterId); }
         }
 
+        [MemberNotNullWhen(true, nameof(ContentType))]
         public bool IsContentTypePresent() => ContentType != default;
+        [MemberNotNullWhen(true, nameof(ContentEncoding))]
         public bool IsContentEncodingPresent() => ContentEncoding != default;
+        [MemberNotNullWhen(true, nameof(Headers))]
         public bool IsHeadersPresent() => Headers != default;
         public bool IsDeliveryModePresent() => DeliveryMode != default;
         public bool IsPriorityPresent() => Priority != default;
+        [MemberNotNullWhen(true, nameof(CorrelationId))]
         public bool IsCorrelationIdPresent() => CorrelationId != default;
+        [MemberNotNullWhen(true, nameof(ReplyTo))]
         public bool IsReplyToPresent() => ReplyTo != default;
+        [MemberNotNullWhen(true, nameof(Expiration))]
         public bool IsExpirationPresent() => Expiration != default;
+        [MemberNotNullWhen(true, nameof(MessageId))]
         public bool IsMessageIdPresent() => MessageId != default;
         public bool IsTimestampPresent() => Timestamp != default;
+        [MemberNotNullWhen(true, nameof(Type))]
         public bool IsTypePresent() => Type != default;
+        [MemberNotNullWhen(true, nameof(UserId))]
         public bool IsUserIdPresent() => UserId != default;
+        [MemberNotNullWhen(true, nameof(AppId))]
         public bool IsAppIdPresent() => AppId != default;
+        [MemberNotNullWhen(true, nameof(ClusterId))]
         public bool IsClusterIdPresent() => ClusterId != default;
     }
 }

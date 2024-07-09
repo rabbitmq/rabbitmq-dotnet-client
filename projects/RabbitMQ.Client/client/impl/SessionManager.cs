@@ -83,11 +83,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void HandleSessionShutdown(object sender, ShutdownEventArgs reason)
+        private void HandleSessionShutdown(object? sender, ShutdownEventArgs reason)
         {
             lock (_sessionMap)
             {
-                var session = (ISession)sender;
+                var session = (ISession)sender!;
                 _sessionMap.Remove(session.ChannelNumber);
                 _ints.Free(session.ChannelNumber);
             }

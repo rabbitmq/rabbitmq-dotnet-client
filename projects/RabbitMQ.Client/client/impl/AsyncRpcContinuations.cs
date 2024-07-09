@@ -61,9 +61,9 @@ namespace RabbitMQ.Client.Impl
             _continuationTimeoutCancellationTokenSource = new CancellationTokenSource(continuationTimeout);
 
 #if NET6_0_OR_GREATER
-            _continuationTimeoutCancellationTokenRegistration = _continuationTimeoutCancellationTokenSource.Token.UnsafeRegister((object state) =>
+            _continuationTimeoutCancellationTokenRegistration = _continuationTimeoutCancellationTokenSource.Token.UnsafeRegister((object? state) =>
             {
-                var tcs = (TaskCompletionSource<T>)state;
+                var tcs = (TaskCompletionSource<T>)state!;
                 if (tcs.TrySetCanceled())
                 {
                     // Cancellation was successful, does this mean we set a TimeoutException
@@ -150,15 +150,17 @@ namespace RabbitMQ.Client.Impl
                 if (cmd.CommandId == ProtocolCommandId.ConnectionSecure)
                 {
                     var secure = new ConnectionSecure(cmd.MethodSpan);
-                    _tcs.TrySetResult(new ConnectionSecureOrTune { m_challenge = secure._challenge });
+                    _tcs.TrySetResult(new ConnectionSecureOrTune(secure._challenge, default));
                 }
                 else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
                 {
                     var tune = new ConnectionTune(cmd.MethodSpan);
-                    _tcs.TrySetResult(new ConnectionSecureOrTune
+                    _tcs.TrySetResult(new ConnectionSecureOrTune(default, new ConnectionTuneDetails
                     {
-                        m_tuneDetails = new ConnectionTuneDetails { m_channelMax = tune._channelMax, m_frameMax = tune._frameMax, m_heartbeatInSeconds = tune._heartbeat }
-                    });
+                        m_channelMax = tune._channelMax,
+                        m_frameMax = tune._frameMax,
+                        m_heartbeatInSeconds = tune._heartbeat
+                    }));
                 }
                 else
                 {
@@ -280,7 +282,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class BasicGetAsyncRpcContinuation : AsyncRpcContinuation<BasicGetResult>
+    internal class BasicGetAsyncRpcContinuation : AsyncRpcContinuation<BasicGetResult?>
     {
         private readonly Func<ulong, ulong> _adjustDeliveryTag;
 
@@ -358,7 +360,7 @@ namespace RabbitMQ.Client.Impl
             // Nothing to do here!
         }
 
-        public void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
+        public void OnConnectionShutdown(object? sender, ShutdownEventArgs reason)
         {
             _tcs.TrySetResult(true);
         }

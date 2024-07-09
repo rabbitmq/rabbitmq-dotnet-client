@@ -38,7 +38,6 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
-#nullable enable
     internal sealed partial class Connection
     {
         private readonly CancellationTokenSource _mainLoopCts = new CancellationTokenSource();
@@ -208,14 +207,14 @@ namespace RabbitMQ.Client.Framing.Impl
             string message = reason.GetLogMessage();
             if (false == SetCloseReason(reason))
             {
-                LogCloseError($"unexpected main loop exception while closing: {message}", reason.Exception);
+                LogCloseError($"unexpected main loop exception while closing: {message}", reason.Exception!);
                 return;
             }
 
-            _channel0.MaybeSetConnectionStartException(reason.Exception);
+            _channel0.MaybeSetConnectionStartException(reason.Exception!);
 
             OnShutdown(reason);
-            LogCloseError($"unexpected connection closure: {message}", reason.Exception);
+            LogCloseError($"unexpected connection closure: {message}", reason.Exception!);
         }
 
         private async Task HardProtocolExceptionHandlerAsync(HardProtocolException hpe,

@@ -66,7 +66,7 @@ namespace RabbitMQ.Client
 
         public bool Equals(AmqpTimestamp other) => UnixTime == other.UnixTime;
 
-        public override bool Equals(object obj) => obj is AmqpTimestamp other && Equals(other);
+        public override bool Equals(object? obj) => obj is AmqpTimestamp other && Equals(other);
 
         public override int GetHashCode() => UnixTime.GetHashCode();
 

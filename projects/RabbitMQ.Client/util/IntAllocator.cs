@@ -40,7 +40,7 @@ namespace RabbitMQ.Util
     internal class IntAllocator
     {
         private readonly int[] _unsorted;
-        private IntervalList _base;
+        private IntervalList? _base;
         private int _unsortedCount = 0;
 
         /**
@@ -127,7 +127,7 @@ namespace RabbitMQ.Util
             public int End;
 
             // Invariant: If Next != Null then Next.Start > this.End + 1
-            public IntervalList Next;
+            public IntervalList? Next;
             public int Start;
 
             public IntervalList(int start, int end)
@@ -140,12 +140,12 @@ namespace RabbitMQ.Util
             // Invariant: None of the Intervals in the two lists may overlap
             // intervals in this list.
 
-            public static IntervalList FromArray(int[] xs, int length)
+            public static IntervalList? FromArray(int[] xs, int length)
             {
                 Array.Sort(xs, 0, length);
 
-                IntervalList result = null;
-                IntervalList current = null;
+                IntervalList? result = null;
+                IntervalList? current = null;
 
                 int i = 0;
                 while (i < length)
@@ -165,7 +165,7 @@ namespace RabbitMQ.Util
                     }
                     else
                     {
-                        current.Next = interval;
+                        current!.Next = interval;
                         current = interval;
                     }
                     i++;
@@ -173,7 +173,7 @@ namespace RabbitMQ.Util
                 return result;
             }
 
-            public static IntervalList Merge(IntervalList x, IntervalList y)
+            public static IntervalList? Merge(IntervalList? x, IntervalList? y)
             {
                 if (x is null)
                 {

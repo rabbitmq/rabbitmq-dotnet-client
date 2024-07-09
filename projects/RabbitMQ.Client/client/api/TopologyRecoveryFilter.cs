@@ -13,10 +13,10 @@ namespace RabbitMQ.Client
         private static readonly Func<IRecordedBinding, bool> s_defaultBindingFilter = binding => true;
         private static readonly Func<IRecordedConsumer, bool> s_defaultConsumerFilter = consumer => true;
 
-        private Func<IRecordedExchange, bool> _exchangeFilter;
-        private Func<IRecordedQueue, bool> _queueFilter;
-        private Func<IRecordedBinding, bool> _bindingFilter;
-        private Func<IRecordedConsumer, bool> _consumerFilter;
+        private Func<IRecordedExchange, bool>? _exchangeFilter;
+        private Func<IRecordedQueue, bool>? _queueFilter;
+        private Func<IRecordedBinding, bool>? _bindingFilter;
+        private Func<IRecordedConsumer, bool>? _consumerFilter;
 
         /// <summary>
         /// Decides whether an exchange is recovered or not.

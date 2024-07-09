@@ -5,7 +5,6 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-#nullable enable
     internal sealed class AsyncConsumerDispatcher : ConsumerDispatcherChannelBase
     {
         internal AsyncConsumerDispatcher(ChannelBase channel, int concurrency)
@@ -28,16 +27,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                 Task task = work.WorkType switch
                                 {
                                     WorkType.Deliver => work.AsyncConsumer.HandleBasicDeliver(
-                                        work.ConsumerTag, work.DeliveryTag, work.Redelivered,
-                                        work.Exchange, work.RoutingKey, work.BasicProperties, work.Body.Memory),
+                                        work.ConsumerTag!, work.DeliveryTag, work.Redelivered,
+                                        work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory),
 
-                                    WorkType.Cancel => work.AsyncConsumer.HandleBasicCancel(work.ConsumerTag),
+                                    WorkType.Cancel => work.AsyncConsumer.HandleBasicCancel(work.ConsumerTag!),
 
-                                    WorkType.CancelOk => work.AsyncConsumer.HandleBasicCancelOk(work.ConsumerTag),
+                                    WorkType.CancelOk => work.AsyncConsumer.HandleBasicCancelOk(work.ConsumerTag!),
 
-                                    WorkType.ConsumeOk => work.AsyncConsumer.HandleBasicConsumeOk(work.ConsumerTag),
+                                    WorkType.ConsumeOk => work.AsyncConsumer.HandleBasicConsumeOk(work.ConsumerTag!),
 
-                                    WorkType.Shutdown => work.AsyncConsumer.HandleChannelShutdown(_channel, work.Reason),
+                                    WorkType.Shutdown => work.AsyncConsumer.HandleChannelShutdown(_channel, work.Reason!),
 
                                     _ => Task.CompletedTask
                                 };

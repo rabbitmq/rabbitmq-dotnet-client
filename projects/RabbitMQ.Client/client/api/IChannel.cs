@@ -56,7 +56,7 @@ namespace RabbitMQ.Client
         /// Returns null if the session is still in a state where it can be used,
         /// or the cause of its closure otherwise.
         /// </summary>
-        ShutdownEventArgs CloseReason { get; }
+        ShutdownEventArgs? CloseReason { get; }
 
         /// <summary>Signalled when an unexpected message is delivered.</summary>
         ///
@@ -82,7 +82,7 @@ namespace RabbitMQ.Client
         ///
         /// Most people will not need to use this.
         /// </remarks>
-        IBasicConsumer DefaultConsumer { get; set; }
+        IBasicConsumer? DefaultConsumer { get; set; }
 
         /// <summary>
         /// Returns true if the channel is no longer in a state where it can be used.
@@ -106,7 +106,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// https://www.rabbitmq.com/amqp-0-9-1-reference.html#domain.queue-name
         /// </remarks>
-        string CurrentQueue { get; }
+        string? CurrentQueue { get; }
 
         /// <summary>
         /// Signalled when a Basic.Ack command arrives from the broker.
@@ -178,7 +178,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns></returns>
         Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
-            IDictionary<string, object> arguments, IBasicConsumer consumer,
+            IDictionary<string, object?>? arguments, IBasicConsumer consumer,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -190,10 +190,8 @@ namespace RabbitMQ.Client
         /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns><see cref="BasicGetResult"/></returns>
-        ValueTask<BasicGetResult> BasicGetAsync(string queue, bool autoAck,
+        ValueTask<BasicGetResult?> BasicGetAsync(string queue, bool autoAck,
             CancellationToken cancellationToken = default);
-
-#nullable enable
 
         /// <summary>
         /// Asynchronously publishes a message.
@@ -229,16 +227,14 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
-#nullable disable
-
         /// <summary>
         /// Configures QoS parameters of the Basic content-class.
         /// </summary>
         /// <param name="prefetchSize">Size of the prefetch in bytes.</param>
         /// <param name="prefetchCount">The prefetch count.</param>
-        /// <param name="global">If set to <c>true</c>, use global prefetch.
+        /// <param name="global">If set to <c>true</c>, use global prefetch.</param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
-        /// See the <seealso href="https://www.rabbitmq.com/consumer-prefetch.html#overview">Consumer Prefetch documentation</seealso>.</param>
+        /// <remarks>See the <seealso href="https://www.rabbitmq.com/consumer-prefetch.html#overview">Consumer Prefetch documentation</seealso>.</remarks>
         Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global,
             CancellationToken cancellationToken = default);
 
@@ -286,7 +282,7 @@ namespace RabbitMQ.Client
         /// The exchange is declared non-internal.
         /// </remarks>
         Task ExchangeDeclareAsync(string exchange, string type, bool durable, bool autoDelete,
-            IDictionary<string, object> arguments = null, bool passive = false, bool noWait = false,
+            IDictionary<string, object?>? arguments = null, bool passive = false, bool noWait = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -325,7 +321,7 @@ namespace RabbitMQ.Client
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         Task ExchangeBindAsync(string destination, string source, string routingKey,
-            IDictionary<string, object> arguments = null, bool noWait = false,
+            IDictionary<string, object?>? arguments = null, bool noWait = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -341,7 +337,7 @@ namespace RabbitMQ.Client
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         Task ExchangeUnbindAsync(string destination, string source, string routingKey,
-            IDictionary<string, object> arguments = null, bool noWait = false,
+            IDictionary<string, object?>? arguments = null, bool noWait = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -356,7 +352,7 @@ namespace RabbitMQ.Client
         /// <param name="noWait">Optional; Set to <c>true</c> to not require a response from the server.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         Task<QueueDeclareOk> QueueDeclareAsync(string queue, bool durable, bool exclusive, bool autoDelete,
-            IDictionary<string, object> arguments = null, bool passive = false, bool noWait = false,
+            IDictionary<string, object?>? arguments = null, bool passive = false, bool noWait = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>Asynchronously declare a queue passively.</summary>
@@ -403,7 +399,7 @@ namespace RabbitMQ.Client
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         Task QueueBindAsync(string queue, string exchange, string routingKey,
-            IDictionary<string, object> arguments = null, bool noWait = false,
+            IDictionary<string, object?>? arguments = null, bool noWait = false,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -418,7 +414,7 @@ namespace RabbitMQ.Client
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
         Task QueueUnbindAsync(string queue, string exchange, string routingKey,
-            IDictionary<string, object> arguments = null,
+            IDictionary<string, object?>? arguments = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>

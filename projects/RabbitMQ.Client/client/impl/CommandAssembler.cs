@@ -39,7 +39,6 @@ using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-#nullable enable
     internal sealed class CommandAssembler
     {
         private const int MaxArrayOfBytesSize = 2_147_483_591;
@@ -160,7 +159,7 @@ namespace RabbitMQ.Client.Impl
                 throw new MalformedFrameException($"Overlong content body received - {_remainingBodyByteCount} bytes remaining, {payloadLength} bytes received");
             }
 
-            if (_currentCommand.Body.RentedArray is null)
+            if (_currentCommand.Body.Memory.IsEmpty)
             {
                 // check for single frame payload for an early exit
                 if (payloadLength == _remainingBodyByteCount)

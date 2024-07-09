@@ -70,7 +70,7 @@ namespace RabbitMQ.Client
             if (RentedArray != null)
             {
                 ArrayPool<byte>.Shared.Return(RentedArray);
-                RentedArray = default;
+                RentedArray = Array.Empty<byte>();
                 Memory = default;
             }
         }

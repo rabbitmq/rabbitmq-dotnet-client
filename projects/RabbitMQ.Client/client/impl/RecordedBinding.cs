@@ -36,21 +36,20 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Impl
 {
-#nullable enable
     internal readonly struct RecordedBinding : IEquatable<RecordedBinding>, IRecordedBinding
     {
         private readonly bool _isQueueBinding;
         private readonly string _destination;
         private readonly string _source;
         private readonly string _routingKey;
-        private readonly IDictionary<string, object>? _arguments;
+        private readonly IDictionary<string, object?>? _arguments;
 
         public string Destination => _destination;
         public string Source => _source;
         public string RoutingKey => _routingKey;
-        public IDictionary<string, object>? Arguments => _arguments;
+        public IDictionary<string, object?>? Arguments => _arguments;
 
-        public RecordedBinding(bool isQueueBinding, string destination, string source, string routingKey, IDictionary<string, object>? arguments)
+        public RecordedBinding(bool isQueueBinding, string destination, string source, string routingKey, IDictionary<string, object?>? arguments)
         {
             _isQueueBinding = isQueueBinding;
             _destination = destination;
@@ -64,7 +63,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _arguments = new Dictionary<string, object>(arguments);
+                _arguments = new Dictionary<string, object?>(arguments);
             }
         }
 

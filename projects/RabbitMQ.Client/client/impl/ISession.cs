@@ -48,12 +48,12 @@ namespace RabbitMQ.Client.Impl
         /// <summary>
         /// Gets the close reason.
         /// </summary>
-        ShutdownEventArgs CloseReason { get; }
+        ShutdownEventArgs? CloseReason { get; }
 
         ///<summary>
         /// Single recipient - no need for multiple handlers to be informed of arriving commands.
         ///</summary>
-        CommandReceivedAction CommandReceived { get; set; }
+        CommandReceivedAction? CommandReceived { get; set; }
 
         /// <summary>
         /// Gets the connection.

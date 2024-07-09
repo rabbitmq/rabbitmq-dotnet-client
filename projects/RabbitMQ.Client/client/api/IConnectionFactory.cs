@@ -42,7 +42,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
-        IDictionary<string, object> ClientProperties { get; set; }
+        IDictionary<string, object?> ClientProperties { get; set; }
 
         /// <summary>
         /// Password to use when authenticating to the server.
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client
         /// Credentials provider. It is optional. When set, username and password 
         /// are obtained thru this provider.
         /// </summary>
-        ICredentialsProvider CredentialsProvider { get; set; }
+        ICredentialsProvider? CredentialsProvider { get; set; }
 
         ICredentialsRefresher CredentialsRefresher { get; set; }
 
@@ -90,13 +90,13 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Default client provided name to be used for connections.
         /// </summary>
-        string ClientProvidedName { get; set; }
+        string? ClientProvidedName { get; set; }
 
         /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         /// or null if we have none in common.
         /// </summary>
-        IAuthMechanismFactory AuthMechanismFactory(IEnumerable<string> mechanismNames);
+        IAuthMechanismFactory? AuthMechanismFactory(IEnumerable<string> mechanismNames);
 
         /// <summary>
         /// Asynchronously create a connection to the specified endpoint.

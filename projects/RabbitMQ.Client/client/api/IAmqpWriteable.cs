@@ -33,7 +33,6 @@ using System;
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     /// <summary>
     /// A AMQP writeable.
     /// </summary>

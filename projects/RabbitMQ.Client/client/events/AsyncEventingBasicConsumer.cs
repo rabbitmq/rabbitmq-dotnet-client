@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Events
 
         private async Task BasicDeliverWrapper(BasicDeliverEventArgs eventArgs)
         {
-            using (Activity activity = RabbitMQActivitySource.Deliver(eventArgs))
+            using (Activity? activity = RabbitMQActivitySource.Deliver(eventArgs))
             {
                 await _receivedWrapper.InvokeAsync(this, eventArgs).ConfigureAwait(false);
             }

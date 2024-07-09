@@ -53,16 +53,16 @@ namespace RabbitMQ.Client.Events
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.
         /// </remarks>
-        public event EventHandler<BasicDeliverEventArgs> Received;
+        public event EventHandler<BasicDeliverEventArgs>? Received;
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public event EventHandler<ConsumerEventArgs> Registered;
+        public event EventHandler<ConsumerEventArgs>? Registered;
 
         ///<summary>Fires on channel (channel) shutdown, both client and server initiated.</summary>
-        public event EventHandler<ShutdownEventArgs> Shutdown;
+        public event EventHandler<ShutdownEventArgs>? Shutdown;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public event EventHandler<ConsumerEventArgs> Unregistered;
+        public event EventHandler<ConsumerEventArgs>? Unregistered;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
         public override void HandleBasicCancelOk(string consumerTag)
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Events
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             BasicDeliverEventArgs eventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-            using (Activity activity = RabbitMQActivitySource.SubscriberHasListeners ? RabbitMQActivitySource.Deliver(eventArgs) : default)
+            using (Activity? activity = RabbitMQActivitySource.SubscriberHasListeners ? RabbitMQActivitySource.Deliver(eventArgs) : default)
             {
                 await base.HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)
                     .ConfigureAwait(false);

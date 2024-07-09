@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// Implement value-equality comparison.
         /// </summary>
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             return other is AmqpVersion version && Equals(version);
         }

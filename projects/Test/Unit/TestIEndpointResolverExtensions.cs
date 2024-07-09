@@ -62,7 +62,7 @@ namespace Test.Unit
     public class TestIEndpointResolverExtensions
     {
         [Fact]
-        public async Task SelectOneShouldReturnDefaultWhenThereAreNoEndpoints()
+        public Task SelectOneShouldThrowInsteadOfReturningNull()
         {
             var ep = new TestEndpointResolver(new List<AmqpTcpEndpoint>());
 
@@ -71,7 +71,12 @@ namespace Test.Unit
                 return Task.FromResult<AmqpTcpEndpoint>(null);
             }
 
-            Assert.Null(await ep.SelectOneAsync<AmqpTcpEndpoint>(selector, CancellationToken.None));
+            Task<AmqpTcpEndpoint> testCode()
+            {
+                return ep.SelectOneAsync(selector, CancellationToken.None);
+            }
+
+            return Assert.ThrowsAsync<InvalidOperationException>((Func<Task<AmqpTcpEndpoint>>)testCode);
         }
 
         [Fact]

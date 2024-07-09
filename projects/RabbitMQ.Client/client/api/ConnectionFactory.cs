@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Security;
 using System.Reflection;
@@ -107,7 +108,7 @@ namespace RabbitMQ.Client
         public const uint DefaultFrameMax = 0;
 
         /// <summary>
-        /// Default value for <code>ConnectionFactory</code>'s <code>MaxInboundMessageBodySize</code>.        
+        /// Default value for <code>ConnectionFactory</code>'s <code>MaxInboundMessageBodySize</code>.
         /// </summary>
         public const uint DefaultMaxInboundMessageBodySize = 1_048_576 * 64;
 
@@ -196,8 +197,7 @@ namespace RabbitMQ.Client
         private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
 
         // just here to hold the value that was set through the setter
-        private Uri _uri;
-        private string _clientProvidedName;
+        private string? _clientProvidedName;
 
         /// <summary>
         /// Amount of time protocol handshake operations are allowed to take before
@@ -278,7 +278,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public ConnectionFactory()
         {
-            ClientProperties = new Dictionary<string, object>(DefaultClientProperties);
+            ClientProperties = new Dictionary<string, object?>(DefaultClientProperties);
         }
 
         /// <summary>
@@ -299,12 +299,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
-        public IDictionary<string, object> ClientProperties { get; set; }
+        public IDictionary<string, object?> ClientProperties { get; set; }
 
-        private static readonly Dictionary<string, object> DefaultClientProperties = new Dictionary<string, object>(5)
+        private static readonly Dictionary<string, object?> DefaultClientProperties = new Dictionary<string, object?>(5)
         {
             ["product"] = Encoding.UTF8.GetBytes("RabbitMQ"),
-            ["version"] = Encoding.UTF8.GetBytes(typeof(ConnectionFactory).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion),
+            ["version"] = Encoding.UTF8.GetBytes(typeof(ConnectionFactory).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion),
             ["platform"] = Encoding.UTF8.GetBytes(".NET"),
             ["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2023 Broadcom."),
             ["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL. See https://www.rabbitmq.com/")
@@ -323,7 +323,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// CredentialsProvider used to obtain username and password.
         /// </summary>
-        public ICredentialsProvider CredentialsProvider { get; set; }
+        public ICredentialsProvider? CredentialsProvider { get; set; }
 
         /// <summary>
         /// Used to refresh credentials.
@@ -361,14 +361,14 @@ namespace RabbitMQ.Client
         /// </summary>
         public Uri Uri
         {
-            get { return _uri; }
+            get { return GetUri(); }
             set { SetUri(value); }
         }
 
         /// <summary>
         /// Default client provided name to be used for connections.
         /// </summary>
-        public string ClientProvidedName
+        public string? ClientProvidedName
         {
             get => _clientProvidedName;
             set
@@ -381,7 +381,7 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
-        public IAuthMechanismFactory AuthMechanismFactory(IEnumerable<string> argServerMechanismNames)
+        public IAuthMechanismFactory? AuthMechanismFactory(IEnumerable<string> argServerMechanismNames)
         {
             string[] serverMechanismNames = argServerMechanismNames.ToArray();
 
@@ -435,7 +435,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public Task<IConnection> CreateConnectionAsync(string clientProvidedName,
+        public Task<IConnection> CreateConnectionAsync(string? clientProvidedName,
             CancellationToken cancellationToken = default)
         {
             return CreateConnectionAsync(EndpointResolverFactory(LocalEndpoints()), clientProvidedName, cancellationToken);
@@ -483,7 +483,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string clientProvidedName,
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string? clientProvidedName,
             CancellationToken cancellationToken = default)
         {
             IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxInboundMessageBodySize));
@@ -530,7 +530,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string clientProvidedName,
+        public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string? clientProvidedName,
             CancellationToken cancellationToken = default)
         {
             return CreateConnectionAsync(EndpointResolverFactory(endpoints), clientProvidedName, cancellationToken);
@@ -553,7 +553,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public async Task<IConnection> CreateConnectionAsync(IEndpointResolver endpointResolver, string clientProvidedName,
+        public async Task<IConnection> CreateConnectionAsync(IEndpointResolver endpointResolver, string? clientProvidedName,
             CancellationToken cancellationToken = default)
         {
             ConnectionConfig config = CreateConfig(clientProvidedName);
@@ -561,8 +561,7 @@ namespace RabbitMQ.Client
             {
                 if (AutomaticRecoveryEnabled)
                 {
-                    var c = new AutorecoveringConnection(config, endpointResolver);
-                    return await c.OpenAsync(cancellationToken)
+                    return await AutorecoveringConnection.CreateAsync(config, endpointResolver, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
@@ -591,7 +590,7 @@ namespace RabbitMQ.Client
             }
         }
 
-        private ConnectionConfig CreateConfig(string clientProvidedName)
+        private ConnectionConfig CreateConfig(string? clientProvidedName)
         {
             return new ConnectionConfig(
                 VirtualHost,
@@ -622,10 +621,9 @@ namespace RabbitMQ.Client
             AmqpTcpEndpoint endpoint, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            IFrameHandler fh = new SocketFrameHandler(endpoint, SocketFactory, RequestedConnectionTimeout, SocketReadTimeout, SocketWriteTimeout);
-            await fh.ConnectAsync(cancellationToken)
+            SocketFrameHandler frameHandler = await SocketFrameHandler.CreateAsync(endpoint, SocketFactory, RequestedConnectionTimeout, cancellationToken)
                 .ConfigureAwait(false);
-            return ConfigureFrameHandler(fh);
+            return ConfigureFrameHandler(frameHandler);
         }
 
         private IFrameHandler ConfigureFrameHandler(IFrameHandler fh)
@@ -647,6 +645,48 @@ namespace RabbitMQ.Client
             return fh;
         }
 
+        private Uri GetUri()
+        {
+            var builder = new UriBuilder();
+
+            if (Ssl.Enabled)
+            {
+                builder.Scheme = "amqps";
+            }
+            else
+            {
+                builder.Scheme = "amqp";
+            }
+
+            builder.Host = HostName;
+
+            if (Port == AmqpTcpEndpoint.UseDefaultPort)
+            {
+                builder.Port = 5672;
+            }
+            else
+            {
+                builder.Port = Port;
+            }
+
+            if (false == string.IsNullOrEmpty(UserName))
+            {
+                builder.UserName = UserName;
+            }
+
+            if (false == string.IsNullOrEmpty(Password))
+            {
+                builder.Password = Password;
+            }
+
+            if (false == string.IsNullOrEmpty(VirtualHost))
+            {
+                builder.Path = Uri.EscapeDataString(VirtualHost);
+            }
+
+            return builder.Uri;
+        }
+
         private void SetUri(Uri uri)
         {
             Endpoint = new AmqpTcpEndpoint();
@@ -666,11 +706,13 @@ namespace RabbitMQ.Client
             {
                 throw new ArgumentException($"Wrong scheme in AMQP URI: {uri.Scheme}");
             }
+
             string host = uri.Host;
             if (!string.IsNullOrEmpty(host))
             {
                 HostName = host;
             }
+
             Ssl.ServerName = HostName;
 
             int port = uri.Port;
@@ -700,12 +742,11 @@ namespace RabbitMQ.Client
             {
                 throw new ArgumentException($"Multiple segments in path of AMQP URI: {string.Join(", ", uri.Segments)}");
             }
+
             if (uri.Segments.Length == 2)
             {
                 VirtualHost = UriDecode(uri.Segments[1]);
             }
-
-            _uri = uri;
         }
 
         ///<summary>
@@ -713,7 +754,7 @@ namespace RabbitMQ.Client
         /// </summary>
         private static string UriDecode(string uri)
         {
-            return System.Uri.UnescapeDataString(uri.Replace("+", "%2B"));
+            return Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
 
         private List<AmqpTcpEndpoint> LocalEndpoints()
@@ -721,7 +762,8 @@ namespace RabbitMQ.Client
             return new List<AmqpTcpEndpoint> { Endpoint };
         }
 
-        private static string EnsureClientProvidedNameLength(string clientProvidedName)
+        [return: NotNullIfNotNull(nameof(clientProvidedName))]
+        private static string? EnsureClientProvidedNameLength(string? clientProvidedName)
         {
             if (clientProvidedName != null)
             {

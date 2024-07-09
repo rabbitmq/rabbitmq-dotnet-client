@@ -33,7 +33,6 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     /// <summary>
     /// The AMQP Basic headers class interface,
     /// spanning the union of the functionality offered by versions

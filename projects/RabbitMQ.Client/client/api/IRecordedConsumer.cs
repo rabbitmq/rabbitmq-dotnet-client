@@ -2,7 +2,6 @@
 
 namespace RabbitMQ.Client
 {
-#nullable enable
     public interface IRecordedConsumer
     {
         string ConsumerTag { get; }
@@ -13,6 +12,6 @@ namespace RabbitMQ.Client
 
         bool Exclusive { get; }
 
-        IDictionary<string, object>? Arguments { get; }
+        IDictionary<string, object?>? Arguments { get; }
     }
 }

@@ -41,14 +41,14 @@ namespace RabbitMQ.Client
     /// </remarks>
     public class ShutdownEventArgs : EventArgs
     {
-        private readonly Exception _exception;
+        private readonly Exception? _exception;
 
         /// <summary>
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters and
         ///  0 for <see cref="ClassId"/> and <see cref="MethodId"/>.
         /// </summary>
         public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText,
-            object cause = null)
+            object? cause = null)
             : this(initiator, replyCode, replyText, 0, 0, cause)
         {
         }
@@ -57,7 +57,7 @@ namespace RabbitMQ.Client
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters.
         /// </summary>
         public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText,
-            ushort classId, ushort methodId, object cause = null)
+            ushort classId, ushort methodId, object? cause = null)
         {
             Initiator = initiator;
             ReplyCode = replyCode;
@@ -79,7 +79,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Exception causing the shutdown, or null if none.
         /// </summary>
-        public Exception Exception
+        public Exception? Exception
         {
             get
             {
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Object causing the shutdown, or null if none.
         /// </summary>
-        public object Cause { get; }
+        public object? Cause { get; }
 
         /// <summary>
         /// AMQP content-class ID, or 0 if none.
@@ -142,7 +142,7 @@ namespace RabbitMQ.Client
         {
             return $"AMQP close-reason, initiated by {Initiator}"
                 + $", code={ReplyCode}"
-                + (ReplyText != null ? $", text='{ReplyText}'" : string.Empty)
+                + $", text='{ReplyText}'"
                 + $", classId={ClassId}"
                 + $", methodId={MethodId}"
                 + (Cause != null ? $", cause={Cause}" : string.Empty);

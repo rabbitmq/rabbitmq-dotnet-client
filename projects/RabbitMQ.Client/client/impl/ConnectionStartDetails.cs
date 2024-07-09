@@ -33,12 +33,21 @@ using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class ConnectionStartDetails
+    internal sealed class ConnectionStartDetails
     {
         public byte[] m_locales;
         public byte[] m_mechanisms;
-        public IDictionary<string, object> m_serverProperties;
+        public IDictionary<string, object?>? m_serverProperties;
         public byte m_versionMajor;
         public byte m_versionMinor;
+
+        public ConnectionStartDetails(byte[] locales, byte[] mechanisms, IDictionary<string, object?>? serverProperties, byte versionMajor, byte versionMinor)
+        {
+            m_locales = locales;
+            m_mechanisms = mechanisms;
+            m_serverProperties = serverProperties;
+            m_versionMajor = versionMajor;
+            m_versionMinor = versionMinor;
+        }
     }
 }

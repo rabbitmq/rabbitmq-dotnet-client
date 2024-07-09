@@ -39,7 +39,7 @@ namespace RabbitMQ.Client
         private readonly string _userName;
         private readonly string _password;
 
-        public BasicCredentialsProvider(string name, string userName, string password)
+        public BasicCredentialsProvider(string? name, string userName, string password)
         {
             _name = name ?? string.Empty;
             _userName = userName ?? throw new ArgumentNullException(nameof(userName));

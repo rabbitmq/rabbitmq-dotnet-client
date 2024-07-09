@@ -1,12 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-#nullable enable
     internal abstract class ConsumerDispatcherBase
     {
         private static readonly FallbackConsumer s_fallbackConsumer = new FallbackConsumer();

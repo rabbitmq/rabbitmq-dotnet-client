@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.Events
         /// </summary>
         /// <param name="consumerTag">Consumer arguments of the consumer for this event</param>
         /// <param name="consumerArguments">Consumer tag of the consumer for this event</param>
-        public RecoveringConsumerEventArgs(string consumerTag, IDictionary<string, object> consumerArguments)
+        public RecoveringConsumerEventArgs(string consumerTag, IDictionary<string, object?>? consumerArguments)
         {
             ConsumerTag = consumerTag;
             ConsumerArguments = consumerArguments;
@@ -58,6 +58,6 @@ namespace RabbitMQ.Client.Events
         /// <summary>
         /// Access the consumer tag of the consumer this event relates to.
         /// </summary>
-        public IDictionary<string, object> ConsumerArguments { get; }
+        public IDictionary<string, object?>? ConsumerArguments { get; }
     }
 }
