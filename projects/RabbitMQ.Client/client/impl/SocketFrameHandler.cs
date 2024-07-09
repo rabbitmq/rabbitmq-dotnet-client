@@ -134,14 +134,16 @@ namespace RabbitMQ.Client.Impl
         public static async Task<SocketFrameHandler> CreateAsync(AmqpTcpEndpoint amqpTcpEndpoint, Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, CancellationToken cancellationToken)
         {
-            ITcpClient socket = await SocketFactory.OpenAsync(amqpTcpEndpoint, socketFactory, connectionTimeout, cancellationToken).ConfigureAwait(false);
+            ITcpClient socket = await SocketFactory.OpenAsync(amqpTcpEndpoint, socketFactory, connectionTimeout, cancellationToken)
+                .ConfigureAwait(false);
             Stream stream = socket.GetStream();
 
             if (amqpTcpEndpoint.Ssl.Enabled)
             {
                 try
                 {
-                    stream = await SslHelper.TcpUpgradeAsync(stream, amqpTcpEndpoint.Ssl, cancellationToken).ConfigureAwait(false);
+                    stream = await SslHelper.TcpUpgradeAsync(stream, amqpTcpEndpoint.Ssl, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch
                 {

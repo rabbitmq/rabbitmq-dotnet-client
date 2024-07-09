@@ -33,7 +33,9 @@ namespace RabbitMQ.Client
             set
             {
                 if (_exchangeRecoveryExceptionCondition != null)
+                {
                     throw new InvalidOperationException($"Cannot modify {nameof(ExchangeRecoveryExceptionCondition)} after it has been initialized.");
+                }
 
                 _exchangeRecoveryExceptionCondition = value ?? throw new ArgumentNullException(nameof(ExchangeRecoveryExceptionCondition));
             }
@@ -50,7 +52,9 @@ namespace RabbitMQ.Client
             set
             {
                 if (_queueRecoveryExceptionCondition != null)
+                {
                     throw new InvalidOperationException($"Cannot modify {nameof(QueueRecoveryExceptionCondition)} after it has been initialized.");
+                }
 
                 _queueRecoveryExceptionCondition = value ?? throw new ArgumentNullException(nameof(QueueRecoveryExceptionCondition));
             }
@@ -67,7 +71,9 @@ namespace RabbitMQ.Client
             set
             {
                 if (_bindingRecoveryExceptionCondition != null)
+                {
                     throw new InvalidOperationException($"Cannot modify {nameof(BindingRecoveryExceptionCondition)} after it has been initialized.");
+                }
 
                 _bindingRecoveryExceptionCondition = value ?? throw new ArgumentNullException(nameof(BindingRecoveryExceptionCondition));
             }
@@ -84,7 +90,9 @@ namespace RabbitMQ.Client
             set
             {
                 if (_consumerRecoveryExceptionCondition != null)
+                {
                     throw new InvalidOperationException($"Cannot modify {nameof(ConsumerRecoveryExceptionCondition)} after it has been initialized.");
+                }
 
                 _consumerRecoveryExceptionCondition = value ?? throw new ArgumentNullException(nameof(ConsumerRecoveryExceptionCondition));
             }

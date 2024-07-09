@@ -561,7 +561,8 @@ namespace RabbitMQ.Client
             {
                 if (AutomaticRecoveryEnabled)
                 {
-                    return await AutorecoveringConnection.CreateAsync(config, endpointResolver, cancellationToken).ConfigureAwait(false);
+                    return await AutorecoveringConnection.CreateAsync(config, endpointResolver, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -620,7 +621,8 @@ namespace RabbitMQ.Client
             AmqpTcpEndpoint endpoint, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            SocketFrameHandler frameHandler = await SocketFrameHandler.CreateAsync(endpoint, SocketFactory, RequestedConnectionTimeout, cancellationToken).ConfigureAwait(false);
+            SocketFrameHandler frameHandler = await SocketFrameHandler.CreateAsync(endpoint, SocketFactory, RequestedConnectionTimeout, cancellationToken)
+                .ConfigureAwait(false);
             return ConfigureFrameHandler(frameHandler);
         }
 

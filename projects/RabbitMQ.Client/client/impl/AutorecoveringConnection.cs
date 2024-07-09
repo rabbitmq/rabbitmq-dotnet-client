@@ -76,12 +76,15 @@ namespace RabbitMQ.Client.Framing.Impl
                 _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
         }
 
-        internal static async ValueTask<AutorecoveringConnection> CreateAsync(ConnectionConfig config, IEndpointResolver endpoints, CancellationToken cancellationToken)
+        internal static async ValueTask<AutorecoveringConnection> CreateAsync(ConnectionConfig config, IEndpointResolver endpoints,
+            CancellationToken cancellationToken)
         {
-            IFrameHandler fh = await endpoints.SelectOneAsync(config.FrameHandlerFactoryAsync, cancellationToken).ConfigureAwait(false);
+            IFrameHandler fh = await endpoints.SelectOneAsync(config.FrameHandlerFactoryAsync, cancellationToken)
+                .ConfigureAwait(false);
             Connection innerConnection = new(config, fh);
             AutorecoveringConnection connection = new(config, endpoints, innerConnection);
-            await innerConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await innerConnection.OpenAsync(cancellationToken)
+                .ConfigureAwait(false);
             return connection;
         }
 
