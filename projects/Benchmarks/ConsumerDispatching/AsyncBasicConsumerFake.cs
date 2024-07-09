@@ -19,7 +19,7 @@ namespace RabbitMQ.Benchmarks
         }
 
         public Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (Interlocked.Increment(ref _current) == Count)
             {
@@ -30,7 +30,7 @@ namespace RabbitMQ.Benchmarks
         }
 
         Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             if (Interlocked.Increment(ref _current) == Count)
             {

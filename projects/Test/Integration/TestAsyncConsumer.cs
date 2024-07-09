@@ -778,7 +778,7 @@ namespace Test.Integration
             }
 
             public override async Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+                string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicDeliver {1}", _logPrefix, consumerTag);
                 await base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);

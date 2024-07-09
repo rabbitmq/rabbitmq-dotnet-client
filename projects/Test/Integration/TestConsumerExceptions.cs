@@ -58,7 +58,7 @@ namespace Test.Integration
                 bool redelivered,
                 string exchange,
                 string routingKey,
-                ReadOnlyBasicProperties properties,
+                IReadOnlyBasicProperties properties,
                 ReadOnlyMemory<byte> body)
             {
                 throw new Exception("oops");

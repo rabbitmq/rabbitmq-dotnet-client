@@ -6,9 +6,9 @@ using RabbitMQ.Client.Impl;
 namespace RabbitMQ.Client.client.impl
 {
 #nullable enable
-    internal readonly struct EmptyBasicProperty : IReadOnlyBasicProperties, IAmqpHeader
+    internal sealed class EmptyBasicProperty : IReadOnlyBasicProperties, IAmqpHeader
     {
-        internal static readonly EmptyBasicProperty Empty;
+        internal static EmptyBasicProperty Empty => new EmptyBasicProperty();
 
         ushort IAmqpHeader.ProtocolClassId => ClassConstants.Basic;
 

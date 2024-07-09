@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Events
         /// be already released.
         /// </remarks>
         public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            ReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             BasicDeliverEventArgs eventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             using (Activity activity = RabbitMQActivitySource.SubscriberHasListeners ? RabbitMQActivitySource.Deliver(eventArgs) : default)
