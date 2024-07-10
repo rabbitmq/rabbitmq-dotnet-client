@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 
@@ -80,8 +79,9 @@ namespace RabbitMQ.Client.Events
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+
             // No need to call base, it's empty.
-            return BasicDeliverWrapper(deliverEventArgs);
+            return _receivedWrapper.InvokeAsync(this, deliverEventArgs);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
@@ -93,14 +93,6 @@ namespace RabbitMQ.Client.Events
             {
                 await _shutdownWrapper.InvokeAsync(this, reason)
                     .ConfigureAwait(false);
-            }
-        }
-
-        private async Task BasicDeliverWrapper(BasicDeliverEventArgs eventArgs)
-        {
-            using (Activity? activity = RabbitMQActivitySource.Deliver(eventArgs))
-            {
-                await _receivedWrapper.InvokeAsync(this, eventArgs).ConfigureAwait(false);
             }
         }
     }

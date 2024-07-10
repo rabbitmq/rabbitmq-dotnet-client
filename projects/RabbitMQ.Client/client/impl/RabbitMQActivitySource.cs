@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
-using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
@@ -46,7 +45,6 @@ namespace RabbitMQ.Client
 
         public static bool UseRoutingKeyAsOperationName { get; set; } = true;
         internal static bool PublisherHasListeners => s_publisherSource.HasListeners();
-        internal static bool SubscriberHasListeners => s_subscriberSource.HasListeners();
 
         internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
         {
@@ -120,7 +118,8 @@ namespace RabbitMQ.Client
             return activity;
         }
 
-        internal static Activity? Deliver(BasicDeliverEventArgs deliverEventArgs)
+        internal static Activity? Deliver(string routingKey, string exchange, ulong deliveryTag,
+            IReadOnlyBasicProperties basicProperties, int bodySize)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -129,13 +128,12 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{deliverEventArgs.RoutingKey} deliver" : "deliver",
-                ActivityKind.Consumer, ContextExtractor(deliverEventArgs.BasicProperties));
+                UseRoutingKeyAsOperationName ? $"{routingKey} deliver" : "deliver",
+                ActivityKind.Consumer, ContextExtractor(basicProperties));
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags("deliver", deliverEventArgs.RoutingKey, deliverEventArgs.Exchange,
-                    deliverEventArgs.DeliveryTag, deliverEventArgs.BasicProperties, deliverEventArgs.Body.Length,
-                    activity);
+                PopulateMessagingTags("deliver", routingKey, exchange,
+                    deliveryTag, basicProperties, bodySize, activity);
             }
 
             return activity;

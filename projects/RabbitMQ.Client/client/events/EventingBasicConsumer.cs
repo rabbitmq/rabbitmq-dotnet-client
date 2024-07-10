@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.Events
@@ -89,13 +88,10 @@ namespace RabbitMQ.Client.Events
         public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            BasicDeliverEventArgs eventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-            using (Activity? activity = RabbitMQActivitySource.SubscriberHasListeners ? RabbitMQActivitySource.Deliver(eventArgs) : default)
-            {
-                await base.HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)
-                    .ConfigureAwait(false);
-                Received?.Invoke(this, eventArgs);
-            }
+            var eventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+            await base.HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body)
+                .ConfigureAwait(false);
+            Received?.Invoke(this, eventArgs);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
