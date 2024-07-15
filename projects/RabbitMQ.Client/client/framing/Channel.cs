@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionUnblocked:
                     {
-                        HandleConnectionUnblocked(cmd);
+                        HandleConnectionUnblocked();
                         return Task.FromResult(true);
                     }
                 default:

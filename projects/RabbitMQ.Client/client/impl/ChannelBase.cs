@@ -440,6 +440,8 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
             }
+
+            cmd.ReturnBuffers();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -567,41 +569,27 @@ namespace RabbitMQ.Client.Impl
 
         protected void HandleBasicAck(IncomingCommand cmd)
         {
-            try
+            var ack = new BasicAck(cmd.MethodSpan);
+            if (!_basicAcksWrapper.IsEmpty)
             {
-                var ack = new BasicAck(cmd.MethodSpan);
-                if (!_basicAcksWrapper.IsEmpty)
-                {
-                    var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple);
-                    _basicAcksWrapper.Invoke(this, args);
-                }
+                var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple);
+                _basicAcksWrapper.Invoke(this, args);
+            }
 
-                HandleAckNack(ack._deliveryTag, ack._multiple, false);
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            HandleAckNack(ack._deliveryTag, ack._multiple, false);
         }
 
         protected void HandleBasicNack(IncomingCommand cmd)
         {
-            try
+            var nack = new BasicNack(cmd.MethodSpan);
+            if (!_basicNacksWrapper.IsEmpty)
             {
-                var nack = new BasicNack(cmd.MethodSpan);
-                if (!_basicNacksWrapper.IsEmpty)
-                {
-                    var args = new BasicNackEventArgs(
-                        nack._deliveryTag, nack._multiple, nack._requeue);
-                    _basicNacksWrapper.Invoke(this, args);
-                }
+                var args = new BasicNackEventArgs(
+                    nack._deliveryTag, nack._multiple, nack._requeue);
+                _basicNacksWrapper.Invoke(this, args);
+            }
 
-                HandleAckNack(nack._deliveryTag, nack._multiple, true);
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            HandleAckNack(nack._deliveryTag, nack._multiple, true);
         }
 
         protected void HandleAckNack(ulong deliveryTag, bool multiple, bool isNack)
@@ -657,44 +645,30 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleBasicCancelAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            try
-            {
-                string consumerTag = new Client.Framing.Impl.BasicCancel(cmd.MethodSpan)._consumerTag;
-                await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
-                    .ConfigureAwait(false);
-                return true;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            string consumerTag = new Client.Framing.Impl.BasicCancel(cmd.MethodSpan)._consumerTag;
+            await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
+                .ConfigureAwait(false);
+            return true;
         }
 
         protected async Task<bool> HandleBasicDeliverAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            try
-            {
-                var method = new Client.Framing.Impl.BasicDeliver(cmd.MethodSpan);
-                var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
-                await ConsumerDispatcher.HandleBasicDeliverAsync(
-                        method._consumerTag,
-                        AdjustDeliveryTag(method._deliveryTag),
-                        method._redelivered,
-                        method._exchange,
-                        method._routingKey,
-                        header,
-                        /*
-                         * Takeover Body so it doesn't get returned as it is necessary
-                         * for handling the Basic.Deliver method by client code.
-                         */
-                        cmd.TakeoverBody(),
-                        cancellationToken).ConfigureAwait(false);
-                return true;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            var method = new Client.Framing.Impl.BasicDeliver(cmd.MethodSpan);
+            var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
+            await ConsumerDispatcher.HandleBasicDeliverAsync(
+                    method._consumerTag,
+                    AdjustDeliveryTag(method._deliveryTag),
+                    method._redelivered,
+                    method._exchange,
+                    method._routingKey,
+                    header,
+                    /*
+                     * Takeover Body so it doesn't get returned as it is necessary
+                     * for handling the Basic.Deliver method by client code.
+                     */
+                    cmd.TakeoverBody(),
+                    cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         protected virtual ulong AdjustDeliveryTag(ulong deliveryTag)
@@ -704,152 +678,109 @@ namespace RabbitMQ.Client.Impl
 
         protected void HandleBasicReturn(IncomingCommand cmd)
         {
-            try
+            if (!_basicReturnWrapper.IsEmpty)
             {
-                if (!_basicReturnWrapper.IsEmpty)
-                {
-                    var basicReturn = new BasicReturn(cmd.MethodSpan);
-                    var e = new BasicReturnEventArgs(basicReturn._replyCode, basicReturn._replyText,
-                        basicReturn._exchange, basicReturn._routingKey,
-                        new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory);
-                    _basicReturnWrapper.Invoke(this, e);
-                }
-            }
-            finally
-            {
-                // Note: we can return all the buffers here since the event has been invoked and has returned
-                cmd.ReturnBuffers();
+                var basicReturn = new BasicReturn(cmd.MethodSpan);
+                var e = new BasicReturnEventArgs(basicReturn._replyCode, basicReturn._replyText,
+                    basicReturn._exchange, basicReturn._routingKey,
+                    new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory);
+                _basicReturnWrapper.Invoke(this, e);
             }
         }
 
         protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            try
-            {
-                var channelClose = new ChannelClose(cmd.MethodSpan);
-                SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
-                    channelClose._replyCode,
-                    channelClose._replyText,
-                    channelClose._classId,
-                    channelClose._methodId));
+            var channelClose = new ChannelClose(cmd.MethodSpan);
+            SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
+                channelClose._replyCode,
+                channelClose._replyText,
+                channelClose._classId,
+                channelClose._methodId));
 
-                Session.Close(_closeReason, false);
+            Session.Close(_closeReason, false);
 
-                var method = new ChannelCloseOk();
-                await ModelSendAsync(method, cancellationToken)
-                    .ConfigureAwait(false);
+            var method = new ChannelCloseOk();
+            await ModelSendAsync(method, cancellationToken)
+                .ConfigureAwait(false);
 
-                return true;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-                Session.Notify();
-            }
+            Session.Notify();
+            return true;
         }
 
         protected async Task<bool> HandleChannelCloseOkAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            try
-            {
-                /*
-                 * Note:
-                 * This call _must_ come before completing the async continuation
-                 */
-                FinishClose();
+            /*
+             * Note:
+             * This call _must_ come before completing the async continuation
+             */
+            FinishClose();
 
-                if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out ChannelCloseAsyncRpcContinuation? k))
-                {
-                    _continuationQueue.Next();
-                    await k.HandleCommandAsync(cmd)
-                        .ConfigureAwait(false);
-                }
-
-                return true;
-            }
-            finally
+            if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out ChannelCloseAsyncRpcContinuation? k))
             {
-                cmd.ReturnBuffers();
+                _continuationQueue.Next();
+                await k.HandleCommandAsync(cmd)
+                    .ConfigureAwait(false);
             }
+
+            return true;
         }
 
         protected async Task<bool> HandleChannelFlowAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            try
+            bool active = new ChannelFlow(cmd.MethodSpan)._active;
+            if (active)
             {
-                bool active = new ChannelFlow(cmd.MethodSpan)._active;
-                if (active)
-                {
-                    _flowControlBlock.Set();
-                }
-                else
-                {
-                    _flowControlBlock.Reset();
-                }
-
-                var method = new ChannelFlowOk(active);
-                await ModelSendAsync(method, cancellationToken).
-                    ConfigureAwait(false);
-
-                if (!_flowControlWrapper.IsEmpty)
-                {
-                    _flowControlWrapper.Invoke(this, new FlowControlEventArgs(active));
-                }
-
-                return true;
+                _flowControlBlock.Set();
             }
-            finally
+            else
             {
-                cmd.ReturnBuffers();
+                _flowControlBlock.Reset();
             }
+
+            var method = new ChannelFlowOk(active);
+            await ModelSendAsync(method, cancellationToken).
+                ConfigureAwait(false);
+
+            if (!_flowControlWrapper.IsEmpty)
+            {
+                _flowControlWrapper.Invoke(this, new FlowControlEventArgs(active));
+            }
+
+            return true;
         }
 
         protected void HandleConnectionBlocked(IncomingCommand cmd)
         {
-            try
-            {
-                string reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
-                Session.Connection.HandleConnectionBlocked(reason);
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            string reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
+            Session.Connection.HandleConnectionBlocked(reason);
         }
 
         protected async Task<bool> HandleConnectionCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
+            var method = new ConnectionClose(cmd.MethodSpan);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
             try
             {
-                var method = new ConnectionClose(cmd.MethodSpan);
-                var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
-                try
-                {
-                    Session.Connection.ClosedViaPeer(reason);
+                Session.Connection.ClosedViaPeer(reason);
 
-                    var replyMethod = new ConnectionCloseOk();
-                    await ModelSendAsync(replyMethod, cancellationToken)
-                        .ConfigureAwait(false);
+                var replyMethod = new ConnectionCloseOk();
+                await ModelSendAsync(replyMethod, cancellationToken)
+                    .ConfigureAwait(false);
 
-                    SetCloseReason(Session.Connection.CloseReason!);
-                }
-                catch (IOException)
-                {
-                    // Ignored. We're only trying to be polite by sending
-                    // the close-ok, after all.
-                }
-                catch (AlreadyClosedException)
-                {
-                    // Ignored. We're only trying to be polite by sending
-                    // the close-ok, after all.
-                }
-
-                return true;
+                SetCloseReason(Session.Connection.CloseReason!);
             }
-            finally
+            catch (IOException)
             {
-                cmd.ReturnBuffers();
+                // Ignored. We're only trying to be polite by sending
+                // the close-ok, after all.
             }
+            catch (AlreadyClosedException)
+            {
+                // Ignored. We're only trying to be polite by sending
+                // the close-ok, after all.
+            }
+
+            return true;
         }
 
         protected async Task<bool> HandleConnectionSecureAsync(IncomingCommand _)
@@ -862,31 +793,24 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleConnectionStartAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            try
+            if (m_connectionStartCell is null)
             {
-                if (m_connectionStartCell is null)
-                {
-                    var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
-                    await Session.Connection.CloseAsync(reason, false,
-                        InternalConstants.DefaultConnectionCloseTimeout,
-                        cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    var method = new ConnectionStart(cmd.MethodSpan);
-                    var details = new ConnectionStartDetails(method._locales, method._mechanisms,
-                        method._serverProperties, method._versionMajor, method._versionMinor);
-                    m_connectionStartCell.SetResult(details);
-                    m_connectionStartCell = null;
-                }
+                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
+                await Session.Connection.CloseAsync(reason, false,
+                    InternalConstants.DefaultConnectionCloseTimeout,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                var method = new ConnectionStart(cmd.MethodSpan);
+                var details = new ConnectionStartDetails(method._locales, method._mechanisms,
+                    method._serverProperties, method._versionMajor, method._versionMinor);
+                m_connectionStartCell.SetResult(details);
+                m_connectionStartCell = null;
+            }
 
-                return true;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            return true;
         }
 
         protected async Task<bool> HandleConnectionTuneAsync(IncomingCommand cmd)
@@ -901,16 +825,9 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected void HandleConnectionUnblocked(IncomingCommand cmd)
+        protected void HandleConnectionUnblocked()
         {
-            try
-            {
-                Session.Connection.HandleConnectionUnblocked();
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            Session.Connection.HandleConnectionUnblocked();
         }
 
         public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
