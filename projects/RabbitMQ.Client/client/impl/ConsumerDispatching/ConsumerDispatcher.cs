@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
@@ -29,10 +30,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                 switch (work.WorkType)
                                 {
                                     case WorkType.Deliver:
-                                        await consumer.HandleBasicDeliverAsync(
-                                            consumerTag, work.DeliveryTag, work.Redelivered,
-                                            work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory)
-                                            .ConfigureAwait(false);
+                                        using (Activity? activity = RabbitMQActivitySource.Deliver(work.RoutingKey!, work.Exchange!,
+                                            work.DeliveryTag, work.BasicProperties!, work.Body.Size))
+                                        {
+                                            await consumer.HandleBasicDeliverAsync(
+                                                consumerTag, work.DeliveryTag, work.Redelivered,
+                                                work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory)
+                                                .ConfigureAwait(false);
+                                        }
                                         break;
                                     case WorkType.Cancel:
                                         consumer.HandleBasicCancel(consumerTag);
