@@ -92,8 +92,6 @@ namespace RabbitMQ.Client.Impl
                 _continuationTimeoutCancellationTokenSource.Token, cancellationToken);
         }
 
-        internal DateTime StartTime { get; } = DateTime.UtcNow;
-
         public CancellationToken CancellationToken
         {
             get
@@ -136,7 +134,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class ConnectionSecureOrTuneAsyncRpcContinuation : AsyncRpcContinuation<ConnectionSecureOrTune>
+    internal sealed class ConnectionSecureOrTuneAsyncRpcContinuation : AsyncRpcContinuation<ConnectionSecureOrTune>
     {
         public ConnectionSecureOrTuneAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(continuationTimeout, cancellationToken)
@@ -145,34 +143,27 @@ namespace RabbitMQ.Client.Impl
 
         public override Task HandleCommandAsync(IncomingCommand cmd)
         {
-            try
+            if (cmd.CommandId == ProtocolCommandId.ConnectionSecure)
             {
-                if (cmd.CommandId == ProtocolCommandId.ConnectionSecure)
+                var secure = new ConnectionSecure(cmd.MethodSpan);
+                _tcs.TrySetResult(new ConnectionSecureOrTune(secure._challenge, default));
+            }
+            else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
+            {
+                var tune = new ConnectionTune(cmd.MethodSpan);
+                _tcs.TrySetResult(new ConnectionSecureOrTune(default, new ConnectionTuneDetails
                 {
-                    var secure = new ConnectionSecure(cmd.MethodSpan);
-                    _tcs.TrySetResult(new ConnectionSecureOrTune(secure._challenge, default));
-                }
-                else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
-                {
-                    var tune = new ConnectionTune(cmd.MethodSpan);
-                    _tcs.TrySetResult(new ConnectionSecureOrTune(default, new ConnectionTuneDetails
-                    {
-                        m_channelMax = tune._channelMax,
-                        m_frameMax = tune._frameMax,
-                        m_heartbeatInSeconds = tune._heartbeat
-                    }));
-                }
-                else
-                {
-                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                }
+                    m_channelMax = tune._channelMax,
+                    m_frameMax = tune._frameMax,
+                    m_heartbeatInSeconds = tune._heartbeat
+                }));
+            }
+            else
+            {
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+            }
 
-                return Task.CompletedTask;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            return Task.CompletedTask;
         }
     }
 
@@ -189,27 +180,20 @@ namespace RabbitMQ.Client.Impl
 
         public override Task HandleCommandAsync(IncomingCommand cmd)
         {
-            try
+            if (cmd.CommandId == _expectedCommandId)
             {
-                if (cmd.CommandId == _expectedCommandId)
-                {
-                    _tcs.TrySetResult(true);
-                }
-                else
-                {
-                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                }
+                _tcs.TrySetResult(true);
+            }
+            else
+            {
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+            }
 
-                return Task.CompletedTask;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            return Task.CompletedTask;
         }
     }
 
-    internal class BasicCancelAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class BasicCancelAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         private readonly string _consumerTag;
         private readonly IConsumerDispatcher _consumerDispatcher;
@@ -224,29 +208,21 @@ namespace RabbitMQ.Client.Impl
 
         public override async Task HandleCommandAsync(IncomingCommand cmd)
         {
-            try
+            if (cmd.CommandId == ProtocolCommandId.BasicCancelOk)
             {
-                if (cmd.CommandId == ProtocolCommandId.BasicCancelOk)
-                {
-                    var method = new Client.Framing.Impl.BasicCancelOk(cmd.MethodSpan);
-                    _tcs.TrySetResult(true);
-                    Debug.Assert(_consumerTag == method._consumerTag);
-                    await _consumerDispatcher.HandleBasicCancelOkAsync(_consumerTag, CancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                }
+                _tcs.TrySetResult(true);
+                Debug.Assert(_consumerTag == new Client.Framing.Impl.BasicCancelOk(cmd.MethodSpan)._consumerTag);
+                await _consumerDispatcher.HandleBasicCancelOkAsync(_consumerTag, CancellationToken)
+                    .ConfigureAwait(false);
             }
-            finally
+            else
             {
-                cmd.ReturnBuffers();
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
             }
         }
     }
 
-    internal class BasicConsumeAsyncRpcContinuation : AsyncRpcContinuation<string>
+    internal sealed class BasicConsumeAsyncRpcContinuation : AsyncRpcContinuation<string>
     {
         private readonly IBasicConsumer _consumer;
         private readonly IConsumerDispatcher _consumerDispatcher;
@@ -261,28 +237,21 @@ namespace RabbitMQ.Client.Impl
 
         public override async Task HandleCommandAsync(IncomingCommand cmd)
         {
-            try
+            if (cmd.CommandId == ProtocolCommandId.BasicConsumeOk)
             {
-                if (cmd.CommandId == ProtocolCommandId.BasicConsumeOk)
-                {
-                    var method = new Client.Framing.Impl.BasicConsumeOk(cmd.MethodSpan);
-                    _tcs.TrySetResult(method._consumerTag);
-                    await _consumerDispatcher.HandleBasicConsumeOkAsync(_consumer, method._consumerTag, CancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                }
+                var method = new Client.Framing.Impl.BasicConsumeOk(cmd.MethodSpan);
+                _tcs.TrySetResult(method._consumerTag);
+                await _consumerDispatcher.HandleBasicConsumeOkAsync(_consumer, method._consumerTag, CancellationToken)
+                    .ConfigureAwait(false);
             }
-            finally
+            else
             {
-                cmd.ReturnBuffers();
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
             }
         }
     }
 
-    internal class BasicGetAsyncRpcContinuation : AsyncRpcContinuation<BasicGetResult?>
+    internal sealed class BasicGetAsyncRpcContinuation : AsyncRpcContinuation<BasicGetResult?>
     {
         private readonly Func<ulong, ulong> _adjustDeliveryTag;
 
@@ -293,46 +262,40 @@ namespace RabbitMQ.Client.Impl
             _adjustDeliveryTag = adjustDeliveryTag;
         }
 
+        internal DateTime StartTime { get; } = DateTime.UtcNow;
+
         public override Task HandleCommandAsync(IncomingCommand cmd)
         {
-            try
+            if (cmd.CommandId == ProtocolCommandId.BasicGetOk)
             {
-                if (cmd.CommandId == ProtocolCommandId.BasicGetOk)
-                {
-                    var method = new Client.Framing.Impl.BasicGetOk(cmd.MethodSpan);
-                    var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
+                var method = new Client.Framing.Impl.BasicGetOk(cmd.MethodSpan);
+                var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
 
-                    var result = new BasicGetResult(
-                        _adjustDeliveryTag(method._deliveryTag),
-                        method._redelivered,
-                        method._exchange,
-                        method._routingKey,
-                        method._messageCount,
-                        header,
-                        cmd.Body.ToArray());
+                var result = new BasicGetResult(
+                    _adjustDeliveryTag(method._deliveryTag),
+                    method._redelivered,
+                    method._exchange,
+                    method._routingKey,
+                    method._messageCount,
+                    header,
+                    cmd.Body.ToArray());
 
-                    _tcs.TrySetResult(result);
-                }
-                else if (cmd.CommandId == ProtocolCommandId.BasicGetEmpty)
-                {
-                    _tcs.TrySetResult(null);
-                }
-                else
-                {
-                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                }
-
-                return Task.CompletedTask;
+                _tcs.TrySetResult(result);
             }
-            finally
+            else if (cmd.CommandId == ProtocolCommandId.BasicGetEmpty)
             {
-                // Note: since we copy the body buffer above, we want to return all buffers here
-                cmd.ReturnBuffers();
+                _tcs.TrySetResult(null);
             }
+            else
+            {
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+            }
+
+            return Task.CompletedTask;
         }
     }
 
-    internal class BasicQosAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class BasicQosAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public BasicQosAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.BasicQosOk, continuationTimeout, cancellationToken)
@@ -340,7 +303,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class ChannelOpenAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class ChannelOpenAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ChannelOpenAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.ChannelOpenOk, continuationTimeout, cancellationToken)
@@ -348,7 +311,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class ChannelCloseAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class ChannelCloseAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ChannelCloseAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.ChannelCloseOk, continuationTimeout, cancellationToken)
@@ -366,7 +329,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class ConfirmSelectAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class ConfirmSelectAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ConfirmSelectAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.ConfirmSelectOk, continuationTimeout, cancellationToken)
@@ -374,7 +337,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class ExchangeBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class ExchangeBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ExchangeBindAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.ExchangeBindOk, continuationTimeout, cancellationToken)
@@ -382,7 +345,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class ExchangeDeclareAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class ExchangeDeclareAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ExchangeDeclareAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.ExchangeDeclareOk, continuationTimeout, cancellationToken)
@@ -390,7 +353,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class ExchangeDeleteAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class ExchangeDeleteAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ExchangeDeleteAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.ExchangeDeleteOk, continuationTimeout, cancellationToken)
@@ -398,7 +361,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class ExchangeUnbindAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class ExchangeUnbindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public ExchangeUnbindAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.ExchangeUnbindOk, continuationTimeout, cancellationToken)
@@ -406,7 +369,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class QueueDeclareAsyncRpcContinuation : AsyncRpcContinuation<QueueDeclareOk>
+    internal sealed class QueueDeclareAsyncRpcContinuation : AsyncRpcContinuation<QueueDeclareOk>
     {
         public QueueDeclareAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(continuationTimeout, cancellationToken)
@@ -415,29 +378,22 @@ namespace RabbitMQ.Client.Impl
 
         public override Task HandleCommandAsync(IncomingCommand cmd)
         {
-            try
+            if (cmd.CommandId == ProtocolCommandId.QueueDeclareOk)
             {
-                if (cmd.CommandId == ProtocolCommandId.QueueDeclareOk)
-                {
-                    var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodSpan);
-                    var result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
-                    _tcs.TrySetResult(result);
-                }
-                else
-                {
-                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                }
+                var method = new Client.Framing.Impl.QueueDeclareOk(cmd.MethodSpan);
+                var result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
+                _tcs.TrySetResult(result);
+            }
+            else
+            {
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+            }
 
-                return Task.CompletedTask;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            return Task.CompletedTask;
         }
     }
 
-    internal class QueueBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class QueueBindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public QueueBindAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.QueueBindOk, continuationTimeout, cancellationToken)
@@ -445,7 +401,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class QueueUnbindAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class QueueUnbindAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public QueueUnbindAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.QueueUnbindOk, continuationTimeout, cancellationToken)
@@ -453,7 +409,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class QueueDeleteAsyncRpcContinuation : AsyncRpcContinuation<uint>
+    internal sealed class QueueDeleteAsyncRpcContinuation : AsyncRpcContinuation<uint>
     {
         public QueueDeleteAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(continuationTimeout, cancellationToken)
@@ -462,28 +418,21 @@ namespace RabbitMQ.Client.Impl
 
         public override Task HandleCommandAsync(IncomingCommand cmd)
         {
-            try
+            if (cmd.CommandId == ProtocolCommandId.QueueDeleteOk)
             {
-                if (cmd.CommandId == ProtocolCommandId.QueueDeleteOk)
-                {
-                    var method = new Client.Framing.Impl.QueueDeleteOk(cmd.MethodSpan);
-                    _tcs.TrySetResult(method._messageCount);
-                }
-                else
-                {
-                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                }
+                var method = new Client.Framing.Impl.QueueDeleteOk(cmd.MethodSpan);
+                _tcs.TrySetResult(method._messageCount);
+            }
+            else
+            {
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+            }
 
-                return Task.CompletedTask;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            return Task.CompletedTask;
         }
     }
 
-    internal class QueuePurgeAsyncRpcContinuation : AsyncRpcContinuation<uint>
+    internal sealed class QueuePurgeAsyncRpcContinuation : AsyncRpcContinuation<uint>
     {
         public QueuePurgeAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(continuationTimeout, cancellationToken)
@@ -492,28 +441,21 @@ namespace RabbitMQ.Client.Impl
 
         public override Task HandleCommandAsync(IncomingCommand cmd)
         {
-            try
+            if (cmd.CommandId == ProtocolCommandId.QueuePurgeOk)
             {
-                if (cmd.CommandId == ProtocolCommandId.QueuePurgeOk)
-                {
-                    var method = new Client.Framing.Impl.QueuePurgeOk(cmd.MethodSpan);
-                    _tcs.TrySetResult(method._messageCount);
-                }
-                else
-                {
-                    _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
-                }
+                var method = new Client.Framing.Impl.QueuePurgeOk(cmd.MethodSpan);
+                _tcs.TrySetResult(method._messageCount);
+            }
+            else
+            {
+                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+            }
 
-                return Task.CompletedTask;
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            return Task.CompletedTask;
         }
     }
 
-    internal class TxCommitAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class TxCommitAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public TxCommitAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.TxCommitOk, continuationTimeout, cancellationToken)
@@ -521,7 +463,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class TxRollbackAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class TxRollbackAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public TxRollbackAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.TxRollbackOk, continuationTimeout, cancellationToken)
@@ -529,7 +471,7 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
-    internal class TxSelectAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    internal sealed class TxSelectAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         public TxSelectAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
             : base(ProtocolCommandId.TxSelectOk, continuationTimeout, cancellationToken)
