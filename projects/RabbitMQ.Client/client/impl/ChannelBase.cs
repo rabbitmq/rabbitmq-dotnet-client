@@ -431,17 +431,22 @@ namespace RabbitMQ.Client.Impl
              *
              * Else, the incoming command is the return of an RPC call, and must be handled.
              */
-            if (false == await DispatchCommandAsync(cmd, cancellationToken)
-                .ConfigureAwait(false))
+            try
             {
-                using (IRpcContinuation c = _continuationQueue.Next())
+                if (false == await DispatchCommandAsync(cmd, cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    await c.HandleCommandAsync(cmd)
-                        .ConfigureAwait(false);
+                    using (IRpcContinuation c = _continuationQueue.Next())
+                    {
+                        await c.HandleCommandAsync(cmd)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
-
-            cmd.ReturnBuffers();
+            finally
+            {
+                cmd.ReturnBuffers();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
