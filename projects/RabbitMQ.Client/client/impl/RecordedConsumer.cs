@@ -38,14 +38,14 @@ namespace RabbitMQ.Client.Impl
     internal readonly struct RecordedConsumer : IRecordedConsumer
     {
         private readonly AutorecoveringChannel _channel;
-        private readonly IBasicConsumer _consumer;
+        private readonly IAsyncBasicConsumer _consumer;
         private readonly string _queue;
         private readonly bool _autoAck;
         private readonly string _consumerTag;
         private readonly bool _exclusive;
         private readonly IDictionary<string, object?>? _arguments;
 
-        public RecordedConsumer(AutorecoveringChannel channel, IBasicConsumer consumer, string consumerTag, string queue, bool autoAck, bool exclusive, IDictionary<string, object?>? arguments)
+        public RecordedConsumer(AutorecoveringChannel channel, IAsyncBasicConsumer consumer, string consumerTag, string queue, bool autoAck, bool exclusive, IDictionary<string, object?>? arguments)
         {
             if (channel == null)
             {
@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public AutorecoveringChannel Channel => _channel;
-        public IBasicConsumer Consumer => _consumer;
+        public IAsyncBasicConsumer Consumer => _consumer;
         public string Queue => _queue;
         public bool AutoAck => _autoAck;
         public string ConsumerTag => _consumerTag;

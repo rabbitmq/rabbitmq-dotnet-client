@@ -73,16 +73,7 @@ namespace RabbitMQ.Client.Impl
         protected ChannelBase(ConnectionConfig config, ISession session)
         {
             ContinuationTimeout = config.ContinuationTimeout;
-
-            if (config.DispatchConsumersAsync)
-            {
-                ConsumerDispatcher = new AsyncConsumerDispatcher(this, config.DispatchConsumerConcurrency);
-            }
-            else
-            {
-                ConsumerDispatcher = new ConsumerDispatcher(this, config.DispatchConsumerConcurrency);
-            }
-
+            ConsumerDispatcher = new AsyncConsumerDispatcher(this, config.DispatchConsumerConcurrency);
             Action<Exception, string> onException = (exception, context) =>
                 OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);
@@ -174,7 +165,7 @@ namespace RabbitMQ.Client.Impl
 
         public int ChannelNumber => ((Session)Session).ChannelNumber;
 
-        public IBasicConsumer? DefaultConsumer
+        public IAsyncBasicConsumer? DefaultConsumer
         {
             get => ConsumerDispatcher.DefaultConsumer;
             set => ConsumerDispatcher.DefaultConsumer = value;
@@ -890,25 +881,9 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
-            IDictionary<string, object?>? arguments, IBasicConsumer consumer,
+            IDictionary<string, object?>? arguments, IAsyncBasicConsumer consumer,
             CancellationToken cancellationToken)
         {
-            if (ConsumerDispatcher is AsyncConsumerDispatcher)
-            {
-                if (false == (consumer is IAsyncBasicConsumer))
-                {
-                    throw new InvalidOperationException("When using an AsyncConsumerDispatcher, the consumer must implement IAsyncBasicConsumer");
-                }
-            }
-
-            if (ConsumerDispatcher is ConsumerDispatcher)
-            {
-                if (consumer is IAsyncBasicConsumer)
-                {
-                    throw new InvalidOperationException("When using an ConsumerDispatcher, the consumer must not implement IAsyncBasicConsumer");
-                }
-            }
-
             // NOTE:
             // Maybe don't dispose this instance because the CancellationToken must remain
             // valid for processing the response.

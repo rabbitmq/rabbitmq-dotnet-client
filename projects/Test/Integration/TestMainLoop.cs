@@ -52,7 +52,7 @@ namespace Test.Integration
              */
         }
 
-        private sealed class FaultyConsumer : DefaultBasicConsumer
+        private sealed class FaultyConsumer : AsyncDefaultBasicConsumer
         {
             public FaultyConsumer(IChannel channel) : base(channel) { }
 

@@ -46,8 +46,8 @@ namespace Test
         protected const ushort TotalMessageCount = 16384;
         protected const ushort CloseAtCount = 16;
 
-        public TestConnectionRecoveryBase(ITestOutputHelper output, bool dispatchConsumersAsync = false)
-            : base(output, dispatchConsumersAsync: dispatchConsumersAsync)
+        public TestConnectionRecoveryBase(ITestOutputHelper output)
+            : base(output)
         {
             _messageBody = GetRandomBody(4096);
         }
@@ -302,7 +302,7 @@ namespace Test
             }
         }
 
-        public class TestBasicConsumer : DefaultBasicConsumer
+        public class TestBasicConsumer : AsyncDefaultBasicConsumer
         {
             protected readonly TaskCompletionSource<bool> _allMessagesSeenTcs;
             protected readonly ushort _totalMessageCount;

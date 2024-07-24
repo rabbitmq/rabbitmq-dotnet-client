@@ -118,7 +118,6 @@ namespace Test.Integration
         public async Task TestMultithreadFloodPublishing()
         {
             _connFactory = CreateConnectionFactory();
-            _connFactory.DispatchConsumersAsync = true;
             _connFactory.AutomaticRecoveryEnabled = false;
 
             _conn = await _connFactory.CreateConnectionAsync();

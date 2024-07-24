@@ -41,7 +41,7 @@ namespace Test.Integration.ConnectionRecovery
     public class TestConsumerRecovery : TestConnectionRecoveryBase
     {
         public TestConsumerRecovery(ITestOutputHelper output)
-            : base(output, dispatchConsumersAsync: true)
+            : base(output)
         {
         }
 

@@ -104,7 +104,7 @@ namespace Test.SequentialIntegration
                 QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
                 byte[] sendBody = Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
-                var consumer = new EventingBasicConsumer(_channel);
+                var consumer = new AsyncEventingBasicConsumer(_channel);
                 var consumerReceivedTcs =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 consumer.Received += (o, a) =>
@@ -120,6 +120,8 @@ namespace Test.SequentialIntegration
                         consumerReceivedTcs.SetException(
                             EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
                     }
+
+                    return Task.CompletedTask;
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
@@ -160,7 +162,7 @@ namespace Test.SequentialIntegration
                 QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
                 byte[] sendBody = Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
-                var consumer = new EventingBasicConsumer(_channel);
+                var consumer = new AsyncEventingBasicConsumer(_channel);
                 var consumerReceivedTcs =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 consumer.Received += (o, a) =>
@@ -176,6 +178,8 @@ namespace Test.SequentialIntegration
                         consumerReceivedTcs.SetException(
                             EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
                     }
+
+                    return Task.CompletedTask;
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
@@ -216,7 +220,7 @@ namespace Test.SequentialIntegration
                 QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
                 byte[] sendBody = Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
-                var consumer = new EventingBasicConsumer(_channel);
+                var consumer = new AsyncEventingBasicConsumer(_channel);
                 var consumerReceivedTcs =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 consumer.Received += (o, a) =>
@@ -232,6 +236,8 @@ namespace Test.SequentialIntegration
                         consumerReceivedTcs.SetException(
                             EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
                     }
+
+                    return Task.CompletedTask;
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
@@ -273,7 +279,7 @@ namespace Test.SequentialIntegration
                 QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
                 byte[] sendBody = Encoding.UTF8.GetBytes("hi");
                 byte[] consumeBody = null;
-                var consumer = new EventingBasicConsumer(_channel);
+                var consumer = new AsyncEventingBasicConsumer(_channel);
                 var consumerReceivedTcs =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 consumer.Received += (o, a) =>
@@ -289,6 +295,8 @@ namespace Test.SequentialIntegration
                         consumerReceivedTcs.SetException(
                             EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
                     }
+
+                    return Task.CompletedTask;
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);

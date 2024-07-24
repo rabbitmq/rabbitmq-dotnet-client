@@ -40,7 +40,7 @@ using Xunit.Abstractions;
 
 namespace Test.Integration
 {
-    public class TestConsumerOperationDispatch : IntegrationFixture
+    public class TestAsyncConsumerOperationDispatch : IntegrationFixture
     {
         // number of channels (and consumers)
         private const int Y = 100;
@@ -55,7 +55,7 @@ namespace Test.Integration
         private readonly List<CollectingConsumer> _consumers = new List<CollectingConsumer>();
 
 
-        public TestConsumerOperationDispatch(ITestOutputHelper output) : base(output)
+        public TestAsyncConsumerOperationDispatch(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -74,7 +74,7 @@ namespace Test.Integration
             await base.DisposeAsync();
         }
 
-        private class CollectingConsumer : DefaultBasicConsumer
+        private class CollectingConsumer : AsyncDefaultBasicConsumer
         {
             public List<ulong> DeliveryTags { get; }
 
@@ -165,11 +165,12 @@ namespace Test.Integration
             await ch2.QueueBindAsync(queue: q2, exchange: _x, routingKey: "");
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            await ch1.BasicConsumeAsync(q1, true, new EventingBasicConsumer(ch1));
-            var c2 = new EventingBasicConsumer(ch2);
+            await ch1.BasicConsumeAsync(q1, true, new AsyncEventingBasicConsumer(ch1));
+            var c2 = new AsyncEventingBasicConsumer(ch2);
             c2.Received += (object sender, BasicDeliverEventArgs e) =>
             {
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
             await ch2.BasicConsumeAsync(q2, true, c2);
             // closing this channel must not affect ch2
@@ -179,7 +180,7 @@ namespace Test.Integration
             await WaitAsync(tcs, "received event");
         }
 
-        private class ShutdownLatchConsumer : DefaultBasicConsumer
+        private class ShutdownLatchConsumer : AsyncDefaultBasicConsumer
         {
             public ShutdownLatchConsumer()
             {
@@ -190,7 +191,7 @@ namespace Test.Integration
             public readonly TaskCompletionSource<bool> Latch;
             public readonly TaskCompletionSource<bool> DuplicateLatch;
 
-            public override void HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+            public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
             {
                 // keep track of duplicates
                 if (Latch.Task.IsCompletedSuccessfully())
@@ -201,6 +202,8 @@ namespace Test.Integration
                 {
                     Latch.SetResult(true);
                 }
+
+                return Task.CompletedTask;
             }
         }
 

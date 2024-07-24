@@ -63,7 +63,7 @@ namespace Test.Integration
                 await ch.CloseAsync();
             }
 
-            var cons = new EventingBasicConsumer(_channel);
+            var cons = new AsyncEventingBasicConsumer(_channel);
             await _channel.BasicConsumeAsync(q, true, cons);
             await AssertConsumerCountAsync(_channel, q, 1);
 
@@ -71,7 +71,11 @@ namespace Test.Integration
             await AssertConsumerCountAsync(_channel, q, 1);
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            cons.Received += (s, args) => tcs.SetResult(true);
+            cons.Received += (s, args) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
 
             await _channel.BasicPublishAsync("", q, _messageBody);
             await WaitAsync(tcs, "received event");
@@ -246,13 +250,21 @@ namespace Test.Integration
                 await ch.QueuePurgeAsync(queue2);
 
                 var consumerReceivedTcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var consumer1 = new EventingBasicConsumer(ch);
-                consumer1.Received += (source, ea) => consumerReceivedTcs1.SetResult(true);
+                var consumer1 = new AsyncEventingBasicConsumer(ch);
+                consumer1.Received += (source, ea) =>
+                {
+                    consumerReceivedTcs1.SetResult(true);
+                    return Task.CompletedTask;
+                };
                 await ch.BasicConsumeAsync(queue1, true, "recovered.consumer", consumer1);
 
                 var consumerReceivedTcs2 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var consumer2 = new EventingBasicConsumer(ch);
-                consumer2.Received += (source, ea) => consumerReceivedTcs2.SetResult(true);
+                var consumer2 = new AsyncEventingBasicConsumer(ch);
+                consumer2.Received += (source, ea) =>
+                {
+                    consumerReceivedTcs2.SetResult(true);
+                    return Task.CompletedTask;
+                };
                 await ch.BasicConsumeAsync(queue2, true, "filtered.consumer", consumer2);
 
                 await _channel.ExchangeDeleteAsync(exchange);
@@ -506,8 +518,12 @@ namespace Test.Integration
                 await _channel.QueuePurgeAsync(queueWithExceptionConsumer);
 
                 var recoveredConsumerReceivedTcs = new ManualResetEventSlim(false);
-                var consumerToRecover = new EventingBasicConsumer(ch);
-                consumerToRecover.Received += (source, ea) => recoveredConsumerReceivedTcs.Set();
+                var consumerToRecover = new AsyncEventingBasicConsumer(ch);
+                consumerToRecover.Received += (source, ea) =>
+                {
+                    recoveredConsumerReceivedTcs.Set();
+                    return Task.CompletedTask;
+                };
                 await ch.BasicConsumeAsync(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover);
 
                 await _channel.QueueDeleteAsync(queueWithExceptionConsumer);

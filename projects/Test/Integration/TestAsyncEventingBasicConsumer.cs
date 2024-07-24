@@ -49,7 +49,7 @@ namespace Test.Integration
             new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public TestAsyncEventingBasicConsumer(ITestOutputHelper output)
-            : base(output, dispatchConsumersAsync: true, consumerDispatchConcurrency: 2)
+            : base(output, consumerDispatchConcurrency: 2)
         {
             _ctr = _cts.Token.Register(OnTokenCanceled);
         }

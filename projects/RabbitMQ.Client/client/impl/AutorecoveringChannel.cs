@@ -130,7 +130,7 @@ namespace RabbitMQ.Client.Impl
 
         public ShutdownEventArgs? CloseReason => InnerChannel.CloseReason;
 
-        public IBasicConsumer? DefaultConsumer
+        public IAsyncBasicConsumer? DefaultConsumer
         {
             get => InnerChannel.DefaultConsumer;
             set => InnerChannel.DefaultConsumer = value;
@@ -272,7 +272,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async Task<string> BasicConsumeAsync(string queue, bool autoAck, string consumerTag, bool noLocal, bool exclusive,
-            IDictionary<string, object?>? arguments, IBasicConsumer consumer,
+            IDictionary<string, object?>? arguments, IAsyncBasicConsumer consumer,
             CancellationToken cancellationToken)
         {
             string resultConsumerTag = await InnerChannel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal,

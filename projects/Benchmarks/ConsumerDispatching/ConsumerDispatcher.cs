@@ -52,30 +52,7 @@ namespace RabbitMQ.Benchmarks
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, body,
-                        CancellationToken.None);
-                }
-                _autoResetEvent.Wait();
-                _autoResetEvent.Reset();
-            }
-        }
-
-        [GlobalSetup(Target = nameof(ConsumerDispatcher))]
-        public async Task SetUpConsumer()
-        {
-            _consumer.Count = Count;
-            _dispatcher = new ConsumerDispatcher(null, Concurrency);
-            await _dispatcher.HandleBasicConsumeOkAsync(_consumer, _consumerTag, CancellationToken.None);
-        }
-
-        [Benchmark]
-        public async Task ConsumerDispatcher()
-        {
-            using (RentedMemory body = new RentedMemory(_body))
-            {
-                for (int i = 0; i < Count; i++)
-                {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, _properties, body,
+                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, default, body,
                         CancellationToken.None);
                 }
                 _autoResetEvent.Wait();
