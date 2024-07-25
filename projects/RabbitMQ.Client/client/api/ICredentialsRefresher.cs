@@ -76,7 +76,7 @@ namespace RabbitMQ.Client
         private readonly IDictionary<ICredentialsProvider, TimerRegistration> _registrations =
             new Dictionary<ICredentialsProvider, TimerRegistration>();
         private readonly object _lockObj = new();
-        
+
         public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
         {
             if (!provider.ValidUntil.HasValue || provider.ValidUntil.Value.Equals(TimeSpan.Zero))
@@ -96,7 +96,7 @@ namespace RabbitMQ.Client
                 registration = new TimerRegistration(_lockObj, callback);
                 _registrations.Add(provider, registration);
                 registration.ScheduleTimer(provider);
-                
+
                 TimerBasedCredentialRefresherEventSource.Log.Registered(provider.Name);
             }
 
@@ -110,13 +110,13 @@ namespace RabbitMQ.Client
                 if (_registrations.TryGetValue(provider, out var registration))
                 {
                     _registrations.Remove(provider);
-                    
+
                     TimerBasedCredentialRefresherEventSource.Log.Unregistered(provider.Name);
                     registration.Dispose();
                     return true;
-                }                
+                }
             }
-            
+
             return false;
         }
 
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client
             private readonly object _lockObj;
             private System.Timers.Timer? _timer;
             private bool _disposed;
-            
+
             public ICredentialsRefresher.NotifyCredentialRefreshedAsync Callback { get; set; }
 
             public TimerRegistration(object lockObj, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
@@ -145,7 +145,7 @@ namespace RabbitMQ.Client
                 {
                     throw new InvalidOperationException("Registration already disposed");
                 }
-                
+
                 var newTimer = new Timer();
                 newTimer.Interval = provider.ValidUntil.Value.TotalMilliseconds * (1.0 - 1 / 3.0);
                 newTimer.Elapsed += (o, e) =>
@@ -161,7 +161,7 @@ namespace RabbitMQ.Client
                                 // We were waiting and the registration has been disposed in meanwhile
                                 return;
                             }
-                
+
                             provider.Refresh();
                             ScheduleTimer(provider);
                             Callback.Invoke(provider.Password != null);
@@ -171,7 +171,7 @@ namespace RabbitMQ.Client
                         {
                             Callback.Invoke(false);
                             TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, false);
-                        }                        
+                        }
                     }
                 };
                 newTimer.Enabled = true;
@@ -179,14 +179,14 @@ namespace RabbitMQ.Client
                 TimerBasedCredentialRefresherEventSource.Log.ScheduledTimer(provider.Name, newTimer.Interval);
                 _timer = newTimer;
             }
-            
+
             public void Dispose()
             {
                 if (_disposed)
                 {
                     throw new InvalidOperationException("registration already disposed");
                 }
-        
+
                 try
                 {
                     _timer?.Stop();
@@ -200,7 +200,7 @@ namespace RabbitMQ.Client
             }
 
         }
-        
+
     }
 
     class NoOpCredentialsRefresher : ICredentialsRefresher
