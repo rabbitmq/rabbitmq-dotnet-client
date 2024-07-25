@@ -31,9 +31,11 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
+using System.Timers;
+
 namespace RabbitMQ.Client
 {
     public interface ICredentialsRefresher
@@ -71,8 +73,10 @@ namespace RabbitMQ.Client
 
     public class TimerBasedCredentialRefresher : ICredentialsRefresher
     {
-        private readonly ConcurrentDictionary<ICredentialsProvider, System.Timers.Timer> _registrations = new ConcurrentDictionary<ICredentialsProvider, System.Timers.Timer>();
-
+        private readonly IDictionary<ICredentialsProvider, TimerRegistration> _registrations =
+            new Dictionary<ICredentialsProvider, TimerRegistration>();
+        private readonly object _lockObj = new();
+        
         public ICredentialsProvider Register(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
         {
             if (!provider.ValidUntil.HasValue || provider.ValidUntil.Value.Equals(TimeSpan.Zero))
@@ -80,13 +84,20 @@ namespace RabbitMQ.Client
                 return provider;
             }
 
-            if (_registrations.TryAdd(provider, scheduleTimer(provider, callback)))
+            lock (_lockObj)
             {
+                if (_registrations.TryGetValue(provider, out var registration))
+                {
+                    registration.Callback = callback;
+                    TimerBasedCredentialRefresherEventSource.Log.AlreadyRegistered(provider.Name);
+                    return provider;
+                }
+
+                registration = new TimerRegistration(_lockObj, callback);
+                _registrations.Add(provider, registration);
+                registration.ScheduleTimer(provider);
+                
                 TimerBasedCredentialRefresherEventSource.Log.Registered(provider.Name);
-            }
-            else
-            {
-                TimerBasedCredentialRefresherEventSource.Log.AlreadyRegistered(provider.Name);
             }
 
             return provider;
@@ -94,51 +105,102 @@ namespace RabbitMQ.Client
 
         public bool Unregister(ICredentialsProvider provider)
         {
-            if (_registrations.TryRemove(provider, out System.Timers.Timer? timer))
+            lock (_lockObj)
             {
+                if (_registrations.TryGetValue(provider, out var registration))
+                {
+                    _registrations.Remove(provider);
+                    
+                    TimerBasedCredentialRefresherEventSource.Log.Unregistered(provider.Name);
+                    registration.Dispose();
+                    return true;
+                }                
+            }
+            
+            return false;
+        }
+
+        private class TimerRegistration : IDisposable
+        {
+
+            private readonly object _lockObj;
+            private System.Timers.Timer? _timer;
+            private bool _disposed;
+            
+            public ICredentialsRefresher.NotifyCredentialRefreshedAsync Callback { get; set; }
+
+            public TimerRegistration(object lockObj, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
+            {
+                _lockObj = lockObj;
+                Callback = callback;
+            }
+
+            public void ScheduleTimer(ICredentialsProvider provider)
+            {
+                if (provider.ValidUntil == null)
+                {
+                    throw new ArgumentNullException("ValidUntil of " + nameof(provider) + " was null");
+                }
+                if (_disposed)
+                {
+                    throw new InvalidOperationException("Registration already disposed");
+                }
+                
+                var newTimer = new Timer();
+                newTimer.Interval = provider.ValidUntil.Value.TotalMilliseconds * (1.0 - 1 / 3.0);
+                newTimer.Elapsed += (o, e) =>
+                {
+                    TimerBasedCredentialRefresherEventSource.Log.TriggeredTimer(provider.Name);
+
+                    lock (_lockObj)
+                    {
+                        try
+                        {
+                            if (_disposed)
+                            {
+                                // We were waiting and the registration has been disposed in meanwhile
+                                return;
+                            }
+                
+                            provider.Refresh();
+                            ScheduleTimer(provider);
+                            Callback.Invoke(provider.Password != null);
+                            TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, true);
+                        }
+                        catch (Exception)
+                        {
+                            Callback.Invoke(false);
+                            TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, false);
+                        }                        
+                    }
+                };
+                newTimer.Enabled = true;
+                newTimer.AutoReset = false;
+                TimerBasedCredentialRefresherEventSource.Log.ScheduledTimer(provider.Name, newTimer.Interval);
+                _timer = newTimer;
+            }
+            
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    throw new InvalidOperationException("registration already disposed");
+                }
+        
                 try
                 {
-                    TimerBasedCredentialRefresherEventSource.Log.Unregistered(provider.Name);
-                    timer.Stop();
+                    _timer?.Stop();
+                    _disposed = true;
                 }
                 finally
                 {
-                    timer.Dispose();
+                    _timer?.Dispose();
+                    _timer = null;
                 }
-                return true;
             }
-            else
-            {
-                return false;
-            }
-        }
 
-        private System.Timers.Timer scheduleTimer(ICredentialsProvider provider, ICredentialsRefresher.NotifyCredentialRefreshedAsync callback)
-        {
-            System.Timers.Timer timer = new System.Timers.Timer();
-            timer.Interval = provider.ValidUntil!.Value.TotalMilliseconds * (1.0 - (1 / 3.0));
-            timer.Elapsed += (o, e) =>
-            {
-                TimerBasedCredentialRefresherEventSource.Log.TriggeredTimer(provider.Name);
-                try
-                {
-                    provider.Refresh();
-                    scheduleTimer(provider, callback);
-                    callback.Invoke(provider.Password != null);
-                    TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, true);
-                }
-                catch (Exception)
-                {
-                    callback.Invoke(false);
-                    TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, false);
-                }
-
-            };
-            timer.Enabled = true;
-            timer.AutoReset = false;
-            TimerBasedCredentialRefresherEventSource.Log.ScheduledTimer(provider.Name, timer.Interval);
-            return timer;
         }
+        
     }
 
     class NoOpCredentialsRefresher : ICredentialsRefresher
