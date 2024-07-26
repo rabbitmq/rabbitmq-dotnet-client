@@ -161,7 +161,8 @@ namespace Test.Unit
 
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
             {
-                using (CancellationTokenRegistration ctr = cts.Token.Register(() => { tcs1.TrySetCanceled(); tcs2.TrySetCanceled(); })) {
+                using (CancellationTokenRegistration ctr = cts.Token.Register(() => { tcs1.TrySetCanceled(); tcs2.TrySetCanceled(); }))
+                {
                     var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
 
                     Task cb1(bool arg)
