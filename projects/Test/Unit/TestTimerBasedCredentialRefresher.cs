@@ -43,7 +43,7 @@ namespace Test.Unit
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly TimeSpan? _validUntil = TimeSpan.FromSeconds(1);
         private Exception _ex = null;
-        private bool _refreshCalled = false;
+        private int _refreshCalledTimes = 0;
 
         public MockCredentialsProvider(ITestOutputHelper testOutputHelper)
         {
@@ -56,11 +56,11 @@ namespace Test.Unit
             _validUntil = validUntil;
         }
 
-        public bool RefreshCalled
+        public int RefreshCalledTimes
         {
             get
             {
-                return _refreshCalled;
+                return _refreshCalledTimes;
             }
         }
 
@@ -87,7 +87,7 @@ namespace Test.Unit
 
         public void Refresh()
         {
-            _refreshCalled = true;
+            _refreshCalledTimes++;
         }
 
         public void PasswordThrows(Exception ex)
@@ -145,7 +145,49 @@ namespace Test.Unit
 
                     _refresher.Register(credentialsProvider, cb);
                     Assert.True(await tcs.Task);
-                    Assert.True(credentialsProvider.RefreshCalled);
+                    Assert.True(credentialsProvider.RefreshCalledTimes > 0);
+                    Assert.True(_refresher.Unregister(credentialsProvider));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task TestRefreshTokenUpdateCallback()
+        {
+            var tcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var tcs2 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            int cb1CalledTimes = 0;
+            int cb2CalledTimes = 0;
+
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+            {
+                using (CancellationTokenRegistration ctr = cts.Token.Register(() => { tcs1.TrySetCanceled(); tcs2.TrySetCanceled(); })) {
+                    var credentialsProvider = new MockCredentialsProvider(_testOutputHelper, TimeSpan.FromSeconds(1));
+
+                    Task cb1(bool arg)
+                    {
+                        cb1CalledTimes++;
+                        tcs1.SetResult(arg);
+                        return Task.CompletedTask;
+                    }
+
+                    Task cb2(bool arg)
+                    {
+                        cb2CalledTimes++;
+                        tcs2.SetResult(arg);
+                        return Task.CompletedTask;
+                    }
+
+                    _refresher.Register(credentialsProvider, cb1);
+                    Assert.True(await tcs1.Task);
+                    Assert.True(credentialsProvider.RefreshCalledTimes == 1);
+                    Assert.True(cb1CalledTimes == 1);
+                    _refresher.Register(credentialsProvider, cb2);
+                    Assert.True(await tcs2.Task);
+                    Assert.True(credentialsProvider.RefreshCalledTimes == 2);
+                    Assert.True(cb2CalledTimes == 1);
+                    Assert.True(cb1CalledTimes == 1);
+
                     Assert.True(_refresher.Unregister(credentialsProvider));
                 }
             }
@@ -172,7 +214,7 @@ namespace Test.Unit
 
                     _refresher.Register(credentialsProvider, cb);
                     Assert.False(await tcs.Task);
-                    Assert.True(credentialsProvider.RefreshCalled);
+                    Assert.True(credentialsProvider.RefreshCalledTimes > 0);
                     Assert.True(_refresher.Unregister(credentialsProvider));
                 }
             }
