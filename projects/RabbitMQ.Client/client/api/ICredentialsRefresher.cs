@@ -139,39 +139,39 @@ namespace RabbitMQ.Client
             {
                 if (provider.ValidUntil == null)
                 {
-                    throw new ArgumentNullException("ValidUntil of " + nameof(provider) + " was null");
+                    throw new ArgumentNullException(nameof(provider.ValidUntil) + " of " + nameof(provider) + " was null");
                 }
                 if (_disposed)
                 {
-                    throw new InvalidOperationException("Registration already disposed");
+                    return;
                 }
 
                 var newTimer = new Timer();
                 newTimer.Interval = provider.ValidUntil.Value.TotalMilliseconds * (1.0 - 1 / 3.0);
-                newTimer.Elapsed += (o, e) =>
+                newTimer.Elapsed += async (o, e) =>
                 {
                     TimerBasedCredentialRefresherEventSource.Log.TriggeredTimer(provider.Name);
 
                     lock (_lockObj)
                     {
-                        try
+                        if (_disposed)
                         {
-                            if (_disposed)
-                            {
-                                // We were waiting and the registration has been disposed in meanwhile
-                                return;
-                            }
+                            // We were waiting and the registration has been disposed in meanwhile
+                            return;
+                        }
+                    }
 
-                            provider.Refresh();
-                            ScheduleTimer(provider);
-                            Callback.Invoke(provider.Password != null);
-                            TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, true);
-                        }
-                        catch (Exception)
-                        {
-                            Callback.Invoke(false);
-                            TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, false);
-                        }
+                    try
+                    {
+                        provider.Refresh();
+                        ScheduleTimer(provider);
+                        await Callback.Invoke(provider.Password != null).ConfigureAwait(false);
+                        TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, true);
+                    }
+                    catch (Exception)
+                    {
+                        await Callback.Invoke(false).ConfigureAwait(false);
+                        TimerBasedCredentialRefresherEventSource.Log.RefreshedCredentials(provider.Name, false);
                     }
                 };
                 newTimer.Enabled = true;
