@@ -1,80 +1,41 @@
 ﻿using System;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-    internal sealed class FallbackConsumer : IBasicConsumer, IAsyncBasicConsumer
+    internal sealed class FallbackConsumer : IAsyncBasicConsumer
     {
         public IChannel? Channel { get; } = null;
 
-        event AsyncEventHandler<ConsumerEventArgs> IAsyncBasicConsumer.ConsumerCancelled
+        Task IAsyncBasicConsumer.HandleBasicCancelAsync(string consumerTag)
         {
-            add { }
-            remove { }
+            ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleBasicCancelAsync)} for tag {consumerTag}");
+            return Task.CompletedTask;
         }
 
-        event EventHandler<ConsumerEventArgs> IBasicConsumer.ConsumerCancelled
+        Task IAsyncBasicConsumer.HandleBasicCancelOkAsync(string consumerTag)
         {
-            add { }
-            remove { }
+            ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleBasicCancelOkAsync)} for tag {consumerTag}");
+            return Task.CompletedTask;
         }
 
-        void IBasicConsumer.HandleBasicCancel(string consumerTag)
+        Task IAsyncBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag)
         {
-            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicCancel)} for tag {consumerTag}");
+            ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleBasicConsumeOkAsync)} for tag {consumerTag}");
+            return Task.CompletedTask;
         }
 
-        void IBasicConsumer.HandleBasicCancelOk(string consumerTag)
-        {
-            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicCancelOk)} for tag {consumerTag}");
-        }
-
-        void IBasicConsumer.HandleBasicConsumeOk(string consumerTag)
-        {
-            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicConsumeOk)} for tag {consumerTag}");
-        }
-
-        Task IBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+        Task IAsyncBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
-            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleBasicDeliverAsync)} for tag {consumerTag}");
+            ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleBasicDeliverAsync)} for tag {consumerTag}");
             return Task.CompletedTask;
         }
 
-        void IBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+        Task IAsyncBasicConsumer.HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
         {
-            ESLog.Info($"Unhandled {nameof(IBasicConsumer.HandleChannelShutdown)}");
-        }
-
-        Task IAsyncBasicConsumer.HandleBasicCancel(string consumerTag)
-        {
-            ((IBasicConsumer)this).HandleBasicCancel(consumerTag);
-            return Task.CompletedTask;
-        }
-
-        Task IAsyncBasicConsumer.HandleBasicCancelOk(string consumerTag)
-        {
-            ((IBasicConsumer)this).HandleBasicCancelOk(consumerTag);
-            return Task.CompletedTask;
-        }
-
-        Task IAsyncBasicConsumer.HandleBasicConsumeOk(string consumerTag)
-        {
-            ((IBasicConsumer)this).HandleBasicConsumeOk(consumerTag);
-            return Task.CompletedTask;
-        }
-
-        Task IAsyncBasicConsumer.HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
-        {
-            return ((IBasicConsumer)this).HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
-        }
-
-        Task IAsyncBasicConsumer.HandleChannelShutdown(object channel, ShutdownEventArgs reason)
-        {
-            ((IBasicConsumer)this).HandleChannelShutdown(channel, reason);
+            ESLog.Info($"Unhandled {nameof(IAsyncBasicConsumer.HandleChannelShutdownAsync)}");
             return Task.CompletedTask;
         }
     }

@@ -31,26 +31,26 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                         using (Activity? activity = RabbitMQActivitySource.Deliver(work.RoutingKey!, work.Exchange!,
                                             work.DeliveryTag, work.BasicProperties!, work.Body.Size))
                                         {
-                                            await work.AsyncConsumer.HandleBasicDeliver(
+                                            await work.Consumer.HandleBasicDeliverAsync(
                                                 work.ConsumerTag!, work.DeliveryTag, work.Redelivered,
                                                 work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory)
                                                 .ConfigureAwait(false);
                                         }
                                         break;
                                     case WorkType.Cancel:
-                                        await work.AsyncConsumer.HandleBasicCancel(work.ConsumerTag!)
+                                        await work.Consumer.HandleBasicCancelAsync(work.ConsumerTag!)
                                             .ConfigureAwait(false);
                                         break;
                                     case WorkType.CancelOk:
-                                        await work.AsyncConsumer.HandleBasicCancelOk(work.ConsumerTag!)
+                                        await work.Consumer.HandleBasicCancelOkAsync(work.ConsumerTag!)
                                             .ConfigureAwait(false);
                                         break;
                                     case WorkType.ConsumeOk:
-                                        await work.AsyncConsumer.HandleBasicConsumeOk(work.ConsumerTag!)
+                                        await work.Consumer.HandleBasicConsumeOkAsync(work.ConsumerTag!)
                                             .ConfigureAwait(false);
                                         break;
                                     case WorkType.Shutdown:
-                                        await work.AsyncConsumer.HandleChannelShutdown(_channel, work.Reason!)
+                                        await work.Consumer.HandleChannelShutdownAsync(_channel, work.Reason!)
                                             .ConfigureAwait(false);
                                         break;
                                 }

@@ -51,21 +51,21 @@ namespace RabbitMQ.Client.Events
         private AsyncEventingWrapper<ConsumerEventArgs> _unregisteredWrapper;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public override async Task HandleBasicCancelOk(string consumerTag)
+        public override async Task OnCancel(params string[] consumerTags)
         {
-            await base.HandleBasicCancelOk(consumerTag)
+            await base.OnCancel(consumerTags)
                 .ConfigureAwait(false);
             if (!_unregisteredWrapper.IsEmpty)
             {
-                await _unregisteredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }))
+                await _unregisteredWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags))
                     .ConfigureAwait(false);
             }
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public override async Task HandleBasicConsumeOk(string consumerTag)
+        public override async Task HandleBasicConsumeOkAsync(string consumerTag)
         {
-            await base.HandleBasicConsumeOk(consumerTag)
+            await base.HandleBasicConsumeOkAsync(consumerTag)
                 .ConfigureAwait(false);
             if (!_registeredWrapper.IsEmpty)
             {
@@ -75,7 +75,7 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Received event.</summary>
-        public override Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
+        public override Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
             IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
         {
             var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
@@ -85,9 +85,9 @@ namespace RabbitMQ.Client.Events
         }
 
         ///<summary>Fires the Shutdown event.</summary>
-        public override async Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+        public override async Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
         {
-            await base.HandleChannelShutdown(channel, reason)
+            await base.HandleChannelShutdownAsync(channel, reason)
                 .ConfigureAwait(false);
             if (!_shutdownWrapper.IsEmpty)
             {

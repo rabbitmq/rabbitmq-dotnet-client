@@ -67,7 +67,7 @@ namespace Test.Integration
         {
             OperationInterruptedException exception = await Assert.ThrowsAsync<OperationInterruptedException>(() =>
             {
-                var consumer = new EventingBasicConsumer(_channel);
+                var consumer = new AsyncEventingBasicConsumer(_channel);
                 return _channel.BasicConsumeAsync("NonExistingQueue", true, consumer);
             });
 

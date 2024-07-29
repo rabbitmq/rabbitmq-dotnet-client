@@ -45,15 +45,13 @@ namespace Test.Integration
         private readonly ShutdownEventArgs _closeArgs = new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "normal shutdown");
 
         public TestAsyncConsumer(ITestOutputHelper output)
-            : base(output, dispatchConsumersAsync: true, consumerDispatchConcurrency: 2)
+            : base(output, consumerDispatchConcurrency: 2)
         {
         }
 
         [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
-            Assert.True(_conn.DispatchConsumersAsyncEnabled);
-
             AddCallbackExceptionHandlers();
             _channel.DefaultConsumer = new DefaultAsyncConsumer("_channel,", _output);
 
@@ -101,12 +99,12 @@ namespace Test.Integration
 
                 consumer.Received += (o, a) =>
                 {
-                    if (ByteArraysEqual(a.Body.ToArray(), body1))
+                    if (ByteArraysEqual(a.Body.Span, body1))
                     {
                         body1Received = true;
                         publish1SyncSource.TrySetResult(true);
                     }
-                    else if (ByteArraysEqual(a.Body.ToArray(), body2))
+                    else if (ByteArraysEqual(a.Body.Span, body2))
                     {
                         body2Received = true;
                         publish2SyncSource.TrySetResult(true);
@@ -147,8 +145,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRoundtripConcurrentManyMessages()
         {
-            Assert.True(_conn.DispatchConsumersAsyncEnabled);
-
             AddCallbackExceptionHandlers();
             _channel.DefaultConsumer = new DefaultAsyncConsumer("_channel,", _output);
 
@@ -324,8 +320,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRejectAsync()
         {
-            Assert.True(_conn.DispatchConsumersAsyncEnabled);
-
             string queueName = GenerateQueueName();
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -366,7 +360,7 @@ namespace Test.Integration
                      * AI.TestAsyncConsumer.TestBasicRejectAsync channel 1 shut down:
                      *     AMQP close-reason, initiated by Peer, code=406, text=
                      *         'PRECONDITION_FAILED - delivery acknowledgement on channel 1 timed out. Timeout value used: 1800000 ms ...', classId=0, methodId=0
-                     *  
+                     *
                      * Added Task.Yield() to see if it ever happens again.
                      */
                     await Task.Yield();
@@ -491,8 +485,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicNackAsync()
         {
-            Assert.True(_conn.DispatchConsumersAsyncEnabled);
-
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _conn.ConnectionShutdown += (o, ea) =>
@@ -564,30 +556,8 @@ namespace Test.Integration
         }
 
         [Fact]
-        public async Task NonAsyncConsumerShouldThrowInvalidOperationException()
-        {
-            Assert.True(_conn.DispatchConsumersAsyncEnabled);
-
-            bool sawException = false;
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
-            await _channel.BasicPublishAsync(string.Empty, q.QueueName, GetRandomBody(1024));
-            var consumer = new EventingBasicConsumer(_channel);
-            try
-            {
-                string consumerTag = await _channel.BasicConsumeAsync(q.QueueName, false, string.Empty, false, false, null, consumer);
-            }
-            catch (InvalidOperationException)
-            {
-                sawException = true;
-            }
-            Assert.True(sawException, "did not see expected InvalidOperationException");
-        }
-
-        [Fact]
         public async Task TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
         {
-            Assert.True(_conn.DispatchConsumersAsyncEnabled);
-
             AssertRecordedQueues((RabbitMQ.Client.Framing.Impl.AutorecoveringConnection)_conn, 0);
             var tasks = new List<Task>();
             for (int i = 0; i < 256; i++)
@@ -608,8 +578,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestCreateChannelWithinAsyncConsumerCallback_GH650()
         {
-            Assert.True(_conn.DispatchConsumersAsyncEnabled);
-
             string exchangeName = GenerateExchangeName();
             string queue1Name = GenerateQueueName();
             string queue2Name = GenerateQueueName();
@@ -677,8 +645,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestCloseWithinEventHandler_GH1567()
         {
-            Assert.True(_conn.DispatchConsumersAsyncEnabled);
-
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
@@ -759,35 +725,35 @@ namespace Test.Integration
                 _output = output;
             }
 
-            public override Task HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag)
             {
-                _output.WriteLine("[ERROR] {0} HandleBasicCancel {1}", _logPrefix, consumerTag);
-                return base.HandleBasicCancel(consumerTag);
+                _output.WriteLine("[ERROR] {0} HandleBasicCancelAsync {1}", _logPrefix, consumerTag);
+                return base.HandleBasicCancelAsync(consumerTag);
             }
 
-            public override Task HandleBasicCancelOk(string consumerTag)
+            public override Task HandleBasicCancelOkAsync(string consumerTag)
             {
-                _output.WriteLine("[ERROR] {0} HandleBasicCancelOk {1}", _logPrefix, consumerTag);
-                return base.HandleBasicCancelOk(consumerTag);
+                _output.WriteLine("[ERROR] {0} HandleBasicCancelOkAsync {1}", _logPrefix, consumerTag);
+                return base.HandleBasicCancelOkAsync(consumerTag);
             }
 
-            public override Task HandleBasicConsumeOk(string consumerTag)
+            public override Task HandleBasicConsumeOkAsync(string consumerTag)
             {
-                _output.WriteLine("[ERROR] {0} HandleBasicConsumeOk {1}", _logPrefix, consumerTag);
-                return base.HandleBasicConsumeOk(consumerTag);
+                _output.WriteLine("[ERROR] {0} HandleBasicConsumeOkAsync {1}", _logPrefix, consumerTag);
+                return base.HandleBasicConsumeOkAsync(consumerTag);
             }
 
-            public override async Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
+            public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
                 string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
             {
-                _output.WriteLine("[ERROR] {0} HandleBasicDeliver {1}", _logPrefix, consumerTag);
-                await base.HandleBasicDeliver(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+                _output.WriteLine("[ERROR] {0} HandleBasicDeliverAsync {1}", _logPrefix, consumerTag);
+                await base.HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
             }
 
-            public override Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+            public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
             {
-                _output.WriteLine("[ERROR] {0} HandleChannelShutdown", _logPrefix);
-                return base.HandleChannelShutdown(channel, reason);
+                _output.WriteLine("[ERROR] {0} HandleChannelShutdownAsync", _logPrefix);
+                return base.HandleChannelShutdownAsync(channel, reason);
             }
 
             public override Task OnCancel(params string[] consumerTags)

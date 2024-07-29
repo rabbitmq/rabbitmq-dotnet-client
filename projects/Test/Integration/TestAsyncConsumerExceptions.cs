@@ -45,7 +45,6 @@ namespace Test.Integration
 
         public TestAsyncConsumerExceptions(ITestOutputHelper output)
             : base(output,
-                  dispatchConsumersAsync: true,
                   consumerDispatchConcurrency: 1)
         {
         }
@@ -61,41 +60,41 @@ namespace Test.Integration
         [Fact]
         public Task TestCancelNotificationExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnCancel(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnCancel(_channel);
             return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => ch.QueueDeleteAsync(q, false, false));
         }
 
         [Fact]
         public Task TestConsumerCancelOkExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnCancelOk(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnCancelOk(_channel);
             return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => ch.BasicCancelAsync(ct));
         }
 
         [Fact]
         public Task TestConsumerConsumeOkExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnConsumeOk(_channel);
             return TestExceptionHandlingWith(consumer, async (ch, q, c, ct) => await Task.Yield());
         }
 
         [Fact]
         public Task TestConsumerShutdownExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnShutdown(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnShutdown(_channel);
             return TestExceptionHandlingWith(consumer, (ch, q, c, ct) => ch.CloseAsync());
         }
 
         [Fact]
         public Task TestDeliveryExceptionHandling()
         {
-            IBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
+            IAsyncBasicConsumer consumer = new ConsumerFailingOnDelivery(_channel);
             return TestExceptionHandlingWith(consumer, (ch, q, c, ct) =>
                 ch.BasicPublishAsync("", q, _encoding.GetBytes("msg")).AsTask());
         }
 
-        protected async Task TestExceptionHandlingWith(IBasicConsumer consumer,
-            Func<IChannel, string, IBasicConsumer, string, Task> action)
+        protected async Task TestExceptionHandlingWith(IAsyncBasicConsumer consumer,
+            Func<IChannel, string, IAsyncBasicConsumer, string, Task> action)
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cts = new CancellationTokenSource(ShortSpan);
@@ -129,7 +128,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicDeliver(string consumerTag,
+            public override Task HandleBasicDeliverAsync(string consumerTag,
                 ulong deliveryTag,
                 bool redelivered,
                 string exchange,
@@ -147,7 +146,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag)
             {
                 return Task.FromException(TestException);
             }
@@ -159,7 +158,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleChannelShutdown(object channel, ShutdownEventArgs reason)
+            public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
             {
                 return Task.FromException(TestException);
             }
@@ -171,7 +170,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicConsumeOk(string consumerTag)
+            public override Task HandleBasicConsumeOkAsync(string consumerTag)
             {
                 return Task.FromException(TestException);
             }
@@ -183,7 +182,7 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicCancelOk(string consumerTag)
+            public override Task HandleBasicCancelOkAsync(string consumerTag)
             {
                 return Task.FromException(TestException);
             }

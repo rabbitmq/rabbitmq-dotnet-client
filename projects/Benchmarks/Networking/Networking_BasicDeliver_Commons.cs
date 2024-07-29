@@ -1,8 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 namespace Benchmarks.Networking
 {
@@ -11,19 +11,10 @@ namespace Benchmarks.Networking
     {
         public static async Task Publish_Hello_World(IConnection connection, uint messageCount, byte[] body)
         {
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             using (IChannel channel = await connection.CreateChannelAsync())
             {
                 QueueDeclareOk queue = await channel.QueueDeclareAsync();
-                int consumed = 0;
-                var consumer = new EventingBasicConsumer(channel);
-                consumer.Received += (s, args) =>
-                {
-                    if (Interlocked.Increment(ref consumed) == messageCount)
-                    {
-                        tcs.SetResult(true);
-                    }
-                };
+                var consumer = new CountingConsumer(messageCount);
                 await channel.BasicConsumeAsync(queue.QueueName, true, consumer);
 
                 for (int i = 0; i < messageCount; i++)
@@ -31,9 +22,34 @@ namespace Benchmarks.Networking
                     await channel.BasicPublishAsync("", queue.QueueName, body);
                 }
 
-                await tcs.Task;
+                await consumer.CompletedTask.ConfigureAwait(false);
                 await channel.CloseAsync();
             }
+        }
+    }
+
+    internal sealed class CountingConsumer : AsyncDefaultBasicConsumer
+    {
+        private int _remainingCount;
+        private readonly TaskCompletionSource<bool> _tcs;
+
+        public Task CompletedTask => _tcs.Task;
+
+        public CountingConsumer(uint messageCount)
+        {
+            _remainingCount = (int)messageCount;
+            _tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+
+        /// <inheritdoc />
+        public override Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        {
+            if (Interlocked.Decrement(ref _remainingCount) == 0)
+            {
+                _tcs.SetResult(true);
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

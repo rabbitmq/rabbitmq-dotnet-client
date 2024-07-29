@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public ValueTask HandleBasicConsumeOkAsync(IBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
+        public ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
             if (false == _disposed && false == _quiesce)
             {
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             if (false == _disposed && false == _quiesce)
             {
-                IBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
+                IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
                 var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
                 return _writer.WriteAsync(work, cancellationToken);
             }
@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             if (false == _disposed && false == _quiesce)
             {
-                IBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
+                IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag);
                 return _writer.WriteAsync(work, cancellationToken);
             }
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             if (false == _disposed && false == _quiesce)
             {
-                IBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
+                IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag);
                 return _writer.WriteAsync(work, cancellationToken);
             }
@@ -206,7 +206,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        protected sealed override void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason)
+        protected sealed override void ShutdownConsumer(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
         {
             _writer.TryWrite(WorkStruct.CreateShutdown(consumer, reason));
         }
@@ -226,8 +226,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected readonly struct WorkStruct : IDisposable
         {
-            public readonly IBasicConsumer Consumer;
-            public IAsyncBasicConsumer AsyncConsumer => (IAsyncBasicConsumer)Consumer;
+            public readonly IAsyncBasicConsumer Consumer;
             public readonly string? ConsumerTag;
             public readonly ulong DeliveryTag;
             public readonly bool Redelivered;
@@ -238,7 +237,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
 
-            private WorkStruct(WorkType type, IBasicConsumer consumer, string consumerTag)
+            private WorkStruct(WorkType type, IAsyncBasicConsumer consumer, string consumerTag)
                 : this()
             {
                 WorkType = type;
@@ -246,7 +245,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 ConsumerTag = consumerTag;
             }
 
-            private WorkStruct(IBasicConsumer consumer, ShutdownEventArgs reason)
+            private WorkStruct(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
                 : this()
             {
                 WorkType = WorkType.Shutdown;
@@ -254,7 +253,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 Reason = reason;
             }
 
-            private WorkStruct(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
+            private WorkStruct(IAsyncBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
                 string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body)
             {
                 WorkType = WorkType.Deliver;
@@ -269,27 +268,27 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 Reason = default;
             }
 
-            public static WorkStruct CreateCancel(IBasicConsumer consumer, string consumerTag)
+            public static WorkStruct CreateCancel(IAsyncBasicConsumer consumer, string consumerTag)
             {
                 return new WorkStruct(WorkType.Cancel, consumer, consumerTag);
             }
 
-            public static WorkStruct CreateCancelOk(IBasicConsumer consumer, string consumerTag)
+            public static WorkStruct CreateCancelOk(IAsyncBasicConsumer consumer, string consumerTag)
             {
                 return new WorkStruct(WorkType.CancelOk, consumer, consumerTag);
             }
 
-            public static WorkStruct CreateConsumeOk(IBasicConsumer consumer, string consumerTag)
+            public static WorkStruct CreateConsumeOk(IAsyncBasicConsumer consumer, string consumerTag)
             {
                 return new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag);
             }
 
-            public static WorkStruct CreateShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
+            public static WorkStruct CreateShutdown(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
             {
                 return new WorkStruct(consumer, reason);
             }
 
-            public static WorkStruct CreateDeliver(IBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
+            public static WorkStruct CreateDeliver(IAsyncBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
                 string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body)
             {
                 return new WorkStruct(consumer, consumerTag, deliveryTag, redelivered,

@@ -42,7 +42,7 @@ namespace Test.Integration.ConnectionRecovery
     public class TestRpcAfterRecovery : TestConnectionRecoveryBase
     {
         public TestRpcAfterRecovery(ITestOutputHelper output)
-            : base(output, dispatchConsumersAsync: true)
+            : base(output)
         {
         }
 
@@ -86,11 +86,11 @@ namespace Test.Integration.ConnectionRecovery
                         /*
                          * Note:
                          * 406 is received, when the reply consumer isn't yet recovered.
-                         * 
+                         *
                          * Note that this test _used_ to do an immediate assertion, but it would
                          * fail sometimes. Re-tries were added with a time limit to work around
                          * this.
-                         * 
+                         *
                          * Assert.NotEqual(406, a.ShutdownReason.ReplyCode);
                          */
                         if (a.ShutdownReason.ReplyCode == 406)

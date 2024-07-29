@@ -8,27 +8,27 @@ namespace RabbitMQ.Client.ConsumerDispatching
     internal abstract class ConsumerDispatcherBase
     {
         private static readonly FallbackConsumer s_fallbackConsumer = new FallbackConsumer();
-        private readonly ConcurrentDictionary<string, IBasicConsumer> _consumers = new ConcurrentDictionary<string, IBasicConsumer>();
+        private readonly ConcurrentDictionary<string, IAsyncBasicConsumer> _consumers = new ConcurrentDictionary<string, IAsyncBasicConsumer>();
 
-        public IBasicConsumer? DefaultConsumer { get; set; }
+        public IAsyncBasicConsumer? DefaultConsumer { get; set; }
 
         protected ConsumerDispatcherBase()
         {
         }
 
-        protected void AddConsumer(IBasicConsumer consumer, string tag)
+        protected void AddConsumer(IAsyncBasicConsumer consumer, string tag)
         {
             _consumers[tag] = consumer;
         }
 
-        protected IBasicConsumer GetConsumerOrDefault(string tag)
+        protected IAsyncBasicConsumer GetConsumerOrDefault(string tag)
         {
-            return _consumers.TryGetValue(tag, out IBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
+            return _consumers.TryGetValue(tag, out IAsyncBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
         }
 
-        public IBasicConsumer GetAndRemoveConsumer(string tag)
+        public IAsyncBasicConsumer GetAndRemoveConsumer(string tag)
         {
-            return _consumers.Remove(tag, out IBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
+            return _consumers.Remove(tag, out IAsyncBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
         }
 
         public void Shutdown(ShutdownEventArgs reason)
@@ -45,14 +45,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         private void DoShutdownConsumers(ShutdownEventArgs reason)
         {
-            foreach (KeyValuePair<string, IBasicConsumer> pair in _consumers.ToArray())
+            foreach (KeyValuePair<string, IAsyncBasicConsumer> pair in _consumers.ToArray())
             {
                 ShutdownConsumer(pair.Value, reason);
             }
             _consumers.Clear();
         }
 
-        protected abstract void ShutdownConsumer(IBasicConsumer consumer, ShutdownEventArgs reason);
+        protected abstract void ShutdownConsumer(IAsyncBasicConsumer consumer, ShutdownEventArgs reason);
 
         protected abstract void InternalShutdown();
 
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         // Do not inline as it's not the default case on a hot path
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private IBasicConsumer GetDefaultOrFallbackConsumer()
+        private IAsyncBasicConsumer GetDefaultOrFallbackConsumer()
         {
             return DefaultConsumer ?? s_fallbackConsumer;
         }

@@ -71,7 +71,6 @@ namespace Test
         protected readonly ITestOutputHelper _output;
         protected readonly string _testDisplayName;
 
-        protected readonly bool _dispatchConsumersAsync = false;
         protected readonly ushort _consumerDispatchConcurrency = 1;
         protected readonly bool _openChannel = true;
 
@@ -110,11 +109,9 @@ namespace Test
         }
 
         public IntegrationFixture(ITestOutputHelper output,
-            bool dispatchConsumersAsync = false,
             ushort consumerDispatchConcurrency = 1,
             bool openChannel = true)
         {
-            _dispatchConsumersAsync = dispatchConsumersAsync;
             _consumerDispatchConcurrency = consumerDispatchConcurrency;
             _openChannel = openChannel;
             _output = output;
@@ -140,14 +137,13 @@ namespace Test
         {
             /*
              * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/120f9bfce627f704956e1008d095b853b459d45b#r135400345
-             * 
+             *
              * Integration tests must use CreateConnectionFactory so that ClientProvidedName is set for the connection.
              * Tests that close connections via `rabbitmqctl` depend on finding the connection PID via its name.
              */
             if (_connFactory == null)
             {
                 _connFactory = CreateConnectionFactory();
-                _connFactory.DispatchConsumersAsync = _dispatchConsumersAsync;
                 _connFactory.ConsumerDispatchConcurrency = _consumerDispatchConcurrency;
             }
 

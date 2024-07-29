@@ -127,11 +127,6 @@ namespace RabbitMQ.Client
         IEnumerable<ShutdownReportEntry> ShutdownReport { get; }
 
         /// <summary>
-        /// Returns <c>true</c> if the connection is set to use asynchronous consumer dispatchers.
-        /// </summary>
-        public bool DispatchConsumersAsyncEnabled { get; }
-
-        /// <summary>
         /// Application-specific connection name, will be displayed in the management UI
         /// if RabbitMQ server supports it. This value doesn't have to be unique and cannot
         /// be used as a connection identifier, e.g. in HTTP API requests.

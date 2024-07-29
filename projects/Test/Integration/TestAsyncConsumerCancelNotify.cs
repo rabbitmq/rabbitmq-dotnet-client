@@ -38,12 +38,12 @@ using Xunit.Abstractions;
 
 namespace Test.Integration
 {
-    public class TestConsumerCancelNotify : IntegrationFixture
+    public class TestAsyncConsumerCancelNotify : IntegrationFixture
     {
         private readonly TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         private string _consumerTag;
 
-        public TestConsumerCancelNotify(ITestOutputHelper output) : base(output)
+        public TestAsyncConsumerCancelNotify(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -68,15 +68,16 @@ namespace Test.Integration
             await _channel.QueueDeclareAsync(q1, false, false, false);
             await _channel.QueueDeclareAsync(q2, false, false, false);
 
-            EventingBasicConsumer consumer = new EventingBasicConsumer(_channel);
+            AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(_channel);
             string consumerTag1 = await _channel.BasicConsumeAsync(q1, true, consumer);
             string consumerTag2 = await _channel.BasicConsumeAsync(q2, true, consumer);
 
             string notifiedConsumerTag = null;
-            consumer.ConsumerCancelled += (sender, args) =>
+            consumer.Unregistered += (sender, args) =>
             {
                 notifiedConsumerTag = args.ConsumerTags.First();
                 _tcs.TrySetResult(true);
+                return Task.CompletedTask;
             };
 
             await _channel.QueueDeleteAsync(q1);
@@ -89,7 +90,7 @@ namespace Test.Integration
         private async Task TestConsumerCancelAsync(string queue, bool eventMode)
         {
             await _channel.QueueDeclareAsync(queue, false, true, false);
-            IBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, eventMode);
+            IAsyncBasicConsumer consumer = new CancelNotificationConsumer(_channel, this, eventMode);
             string actualConsumerTag = await _channel.BasicConsumeAsync(queue, false, consumer);
 
             await _channel.QueueDeleteAsync(queue);
@@ -97,23 +98,23 @@ namespace Test.Integration
             Assert.Equal(actualConsumerTag, _consumerTag);
         }
 
-        private class CancelNotificationConsumer : DefaultBasicConsumer
+        private class CancelNotificationConsumer : AsyncEventingBasicConsumer
         {
-            private readonly TestConsumerCancelNotify _testClass;
+            private readonly TestAsyncConsumerCancelNotify _testClass;
             private readonly bool _eventMode;
 
-            public CancelNotificationConsumer(IChannel channel, TestConsumerCancelNotify tc, bool eventMode)
+            public CancelNotificationConsumer(IChannel channel, TestAsyncConsumerCancelNotify tc, bool eventMode)
                 : base(channel)
             {
                 _testClass = tc;
                 _eventMode = eventMode;
                 if (eventMode)
                 {
-                    ConsumerCancelled += Cancelled;
+                    Unregistered += CancelledAsync;
                 }
             }
 
-            public override void HandleBasicCancel(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag)
             {
                 if (!_eventMode)
                 {
@@ -121,13 +122,14 @@ namespace Test.Integration
                     _testClass._tcs.SetResult(true);
                 }
 
-                base.HandleBasicCancel(consumerTag);
+                return base.HandleBasicCancelAsync(consumerTag);
             }
 
-            private void Cancelled(object sender, ConsumerEventArgs arg)
+            private Task CancelledAsync(object sender, ConsumerEventArgs arg)
             {
                 _testClass._consumerTag = arg.ConsumerTags[0];
                 _testClass._tcs.SetResult(true);
+                return Task.CompletedTask;
             }
         }
     }
