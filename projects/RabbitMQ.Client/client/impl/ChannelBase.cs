@@ -832,7 +832,7 @@ namespace RabbitMQ.Client.Impl
         public abstract ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
             CancellationToken cancellationToken);
 
-        public abstract Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+        public abstract ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue,
             CancellationToken cancellationToken);
 
         public async Task BasicCancelAsync(string consumerTag, bool noWait,
