@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.Impl
             return socketFrameHandler;
         }
 
-        public async Task CloseAsync(CancellationToken cancellationToken)
+        public async ValueTask CloseAsync(CancellationToken cancellationToken)
         {
             if (_closed)
             {
@@ -216,7 +216,7 @@ namespace RabbitMQ.Client.Impl
                 _amqpTcpEndpoint.MaxInboundMessageBodySize, frame);
         }
 
-        public async Task SendProtocolHeaderAsync(CancellationToken cancellationToken)
+        public async ValueTask SendProtocolHeaderAsync(CancellationToken cancellationToken)
         {
             await _pipeWriter.WriteAsync(Amqp091ProtocolHeader, cancellationToken)
                 .ConfigureAwait(false);

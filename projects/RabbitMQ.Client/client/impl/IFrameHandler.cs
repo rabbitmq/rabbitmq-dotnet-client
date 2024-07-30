@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Socket write timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
         TimeSpan WriteTimeout { set; }
 
-        Task CloseAsync(CancellationToken cancellationToken);
+        ValueTask CloseAsync(CancellationToken cancellationToken);
 
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out
@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Impl
         ///</summary>
         bool TryReadFrame(InboundFrame frame);
 
-        Task SendProtocolHeaderAsync(CancellationToken cancellationToken);
+        ValueTask SendProtocolHeaderAsync(CancellationToken cancellationToken);
 
         ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken);
     }
