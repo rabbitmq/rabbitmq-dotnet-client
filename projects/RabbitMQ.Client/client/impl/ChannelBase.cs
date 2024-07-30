@@ -453,7 +453,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (!_flowControlBlock.IsSet)
             {
-                _flowControlBlock.Wait();
+                _flowControlBlock.Wait(cancellationToken);
             }
 
             return Session.TransmitAsync(in method, in header, body, cancellationToken);
