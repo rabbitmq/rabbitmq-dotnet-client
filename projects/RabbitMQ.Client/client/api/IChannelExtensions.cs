@@ -48,26 +48,29 @@ namespace RabbitMQ.Client
             string consumerTag = "",
             bool noLocal = false,
             bool exclusive = false,
-            IDictionary<string, object?>? arguments = null)
+            IDictionary<string, object?>? arguments = null,
+            CancellationToken cancellationToken = default)
         {
-            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer);
+            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer, cancellationToken);
         }
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
         public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
             bool autoAck,
-            IAsyncBasicConsumer consumer)
+            IAsyncBasicConsumer consumer,
+            CancellationToken cancellationToken = default)
         {
-            return channel.BasicConsumeAsync(queue, autoAck, string.Empty, false, false, null, consumer);
+            return channel.BasicConsumeAsync(queue, autoAck, string.Empty, false, false, null, consumer, cancellationToken);
         }
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
         public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
             bool autoAck,
             string consumerTag,
-            IAsyncBasicConsumer consumer)
+            IAsyncBasicConsumer consumer,
+            CancellationToken cancellationToken = default)
         {
-            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, null, consumer);
+            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, null, consumer, cancellationToken);
         }
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
@@ -75,9 +78,10 @@ namespace RabbitMQ.Client
             bool autoAck,
             string consumerTag,
             IDictionary<string, object?>? arguments,
-            IAsyncBasicConsumer consumer)
+            IAsyncBasicConsumer consumer,
+            CancellationToken cancellationToken = default)
         {
-            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, arguments, consumer);
+            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, arguments, consumer, cancellationToken);
         }
 
         /// <summary>
@@ -87,55 +91,55 @@ namespace RabbitMQ.Client
         /// The publication occurs with mandatory=false and immediate=false.
         /// </remarks>
         public static ValueTask BasicPublishAsync<T>(this IChannel channel, PublicationAddress addr, T basicProperties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
-            return channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties, body);
+            return channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties, body, false, cancellationToken);
         }
 
         public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey,
-            ReadOnlyMemory<byte> body = default, bool mandatory = false) =>
-            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
+            ReadOnlyMemory<byte> body = default, bool mandatory = false, CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory, cancellationToken);
 
         public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange,
-            CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false) =>
-            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory);
+            CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false, CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory, cancellationToken);
 
         /// <summary>
         /// Asynchronously declare a queue.
         /// </summary>
         public static Task<QueueDeclareOk> QueueDeclareAsync(this IChannel channel, string queue = "", bool durable = false, bool exclusive = true,
-            bool autoDelete = true, IDictionary<string, object?>? arguments = null, bool noWait = false)
+            bool autoDelete = true, IDictionary<string, object?>? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)
         {
             return channel.QueueDeclareAsync(queue: queue, passive: false,
                 durable: durable, exclusive: exclusive, autoDelete: autoDelete,
-                arguments: arguments, noWait: noWait);
+                arguments: arguments, noWait: noWait, cancellationToken: cancellationToken);
         }
 
         /// <summary>
         /// Asynchronously declare an exchange.
         /// </summary>
         public static Task ExchangeDeclareAsync(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
-            IDictionary<string, object?>? arguments = null, bool noWait = false)
+            IDictionary<string, object?>? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)
         {
             return channel.ExchangeDeclareAsync(exchange, type, durable, autoDelete,
-                arguments: arguments, passive: false, noWait: noWait);
+                arguments: arguments, passive: false, noWait: noWait, cancellationToken: cancellationToken);
         }
 
         /// <summary>
         /// Asynchronously deletes a queue.
         /// </summary>
-        public static Task<uint> QueueDeleteAsync(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false)
+        public static Task<uint> QueueDeleteAsync(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false, CancellationToken cancellationToken = default)
         {
-            return channel.QueueDeleteAsync(queue, ifUnused, ifEmpty);
+            return channel.QueueDeleteAsync(queue, ifUnused, ifEmpty, false, cancellationToken);
         }
 
         /// <summary>
         /// Asynchronously unbinds a queue.
         /// </summary>
-        public static Task QueueUnbindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object?>? arguments = null)
+        public static Task QueueUnbindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object?>? arguments = null, CancellationToken cancellationToken = default)
         {
-            return channel.QueueUnbindAsync(queue, exchange, routingKey, arguments);
+            return channel.QueueUnbindAsync(queue, exchange, routingKey, arguments, cancellationToken);
         }
 
         /// <summary>

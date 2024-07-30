@@ -77,8 +77,8 @@ namespace Test.Integration.ConnectionRecovery
 
             await _channel.QueueBindAsync(testQueueName, tdiRetryExchangeName, testQueueName);
 
-            var consumerAsync = new AsyncEventingBasicConsumer(_channel);
-            await _channel.BasicConsumeAsync(queue: testQueueName, autoAck: false, consumer: consumerAsync);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            await _channel.BasicConsumeAsync(testQueueName, false, consumer);
 
             await CloseAndWaitForRecoveryAsync();
 
