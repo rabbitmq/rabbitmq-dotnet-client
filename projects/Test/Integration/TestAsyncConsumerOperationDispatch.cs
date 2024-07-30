@@ -118,7 +118,7 @@ namespace Test.Integration
                 _queues.Add(q);
                 var cons = new CollectingConsumer(ch);
                 _consumers.Add(cons);
-                await ch.BasicConsumeAsync(queue: q, autoAck: false, consumer: cons);
+                await ch.BasicConsumeAsync(q, false, cons);
             }
 
             for (int i = 0; i < N; i++)
@@ -211,20 +211,20 @@ namespace Test.Integration
         public async Task TestChannelShutdownHandler()
         {
             string q = await _channel.QueueDeclareAsync();
-            var c = new ShutdownLatchConsumer();
+            var consumer = new ShutdownLatchConsumer();
 
-            await _channel.BasicConsumeAsync(queue: q, autoAck: true, consumer: c);
+            await _channel.BasicConsumeAsync(q, true, consumer);
             await _channel.CloseAsync();
 
-            await c.Latch.Task.WaitAsync(ShortSpan);
-            Assert.True(c.Latch.Task.IsCompletedSuccessfully());
+            await consumer.Latch.Task.WaitAsync(ShortSpan);
+            Assert.True(consumer.Latch.Task.IsCompletedSuccessfully());
 
             await Assert.ThrowsAsync<TimeoutException>(() =>
             {
-                return c.DuplicateLatch.Task.WaitAsync(ShortSpan);
+                return consumer.DuplicateLatch.Task.WaitAsync(ShortSpan);
             });
 
-            Assert.False(c.DuplicateLatch.Task.IsCompletedSuccessfully());
+            Assert.False(consumer.DuplicateLatch.Task.IsCompletedSuccessfully());
         }
     }
 }
