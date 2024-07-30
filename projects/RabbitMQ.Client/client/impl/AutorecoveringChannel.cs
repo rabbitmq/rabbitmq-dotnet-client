@@ -259,7 +259,7 @@ namespace RabbitMQ.Client.Impl
         public ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue, CancellationToken cancellationToken)
             => InnerChannel.BasicNackAsync(deliveryTag, multiple, requeue, cancellationToken);
 
-        public Task BasicRejectAsync(ulong deliveryTag, bool requeue, CancellationToken cancellationToken)
+        public ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue, CancellationToken cancellationToken)
             => InnerChannel.BasicRejectAsync(deliveryTag, requeue, cancellationToken);
 
         public async Task BasicCancelAsync(string consumerTag, bool noWait, CancellationToken cancellationToken)

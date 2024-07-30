@@ -298,7 +298,7 @@ namespace Test
 
             public override Task PostHandleDeliveryAsync(ulong deliveryTag)
             {
-                return Channel.BasicRejectAsync(deliveryTag, false);
+                return Channel.BasicRejectAsync(deliveryTag, false).AsTask();
             }
         }
 

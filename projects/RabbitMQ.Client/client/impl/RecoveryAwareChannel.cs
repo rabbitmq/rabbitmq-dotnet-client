@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+        public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue,
             CancellationToken cancellationToken)
         {
             ulong realTag = deliveryTag - ActiveDeliveryTagOffset;
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                return Task.CompletedTask;
+                return default;
             }
         }
     }

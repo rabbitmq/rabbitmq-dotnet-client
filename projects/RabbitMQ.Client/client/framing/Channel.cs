@@ -56,11 +56,11 @@ namespace RabbitMQ.Client.Framing.Impl
             return ModelSendAsync(method, cancellationToken);
         }
 
-        public override Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+        public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue,
             CancellationToken cancellationToken)
         {
             var method = new BasicReject(deliveryTag, requeue);
-            return ModelSendAsync(method, cancellationToken).AsTask();
+            return ModelSendAsync(method, cancellationToken);
         }
 
         /// <summary>

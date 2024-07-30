@@ -242,7 +242,7 @@ namespace RabbitMQ.Client
         /// <param name="deliveryTag">The delivery tag.</param>
         /// <param name="requeue">If set to <c>true</c>, requeue rejected messages.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
-        Task BasicRejectAsync(ulong deliveryTag, bool requeue,
+        ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue,
             CancellationToken cancellationToken = default);
 
         /// <summary>
