@@ -107,7 +107,7 @@ namespace RabbitMQ.Client
         {
             lock (_lockObj)
             {
-                if (_registrations.Remove(provider, out var registration)) 
+                if (_registrations.Remove(provider, out var registration))
                 {
                     TimerBasedCredentialRefresherEventSource.Log.Unregistered(provider.Name);
                     registration.Dispose();
