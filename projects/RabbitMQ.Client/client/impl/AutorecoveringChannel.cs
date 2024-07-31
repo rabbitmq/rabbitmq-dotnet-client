@@ -144,7 +144,7 @@ namespace RabbitMQ.Client.Impl
 
         public string? CurrentQueue => InnerChannel.CurrentQueue;
 
-        internal async Task AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
+        internal async Task<bool> AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (false == recordedEntitiesSemaphoreHeld)
@@ -154,7 +154,7 @@ namespace RabbitMQ.Client.Impl
 
             if (_disposed)
             {
-                return;
+                return false;
             }
 
             _connection = conn;
@@ -198,6 +198,7 @@ namespace RabbitMQ.Client.Impl
             {
                 await newChannel.AbortAsync()
                     .ConfigureAwait(false);
+                return false;
             }
             else
             {
@@ -210,6 +211,8 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 _innerChannel.RunRecoveryEventHandlers(this);
+
+                return true;
             }
         }
 

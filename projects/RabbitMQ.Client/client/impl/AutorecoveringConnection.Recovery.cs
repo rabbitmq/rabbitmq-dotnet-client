@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -583,12 +584,29 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
             }
 
-            foreach (AutorecoveringChannel channel in _channels)
+            var recoveredChannels = new List<AutorecoveringChannel>();
+            await _channelsSemaphore.WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+            try
             {
-                await channel.AutomaticallyRecoverAsync(this, _config.TopologyRecoveryEnabled,
-                    recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld,
-                    cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+                foreach (AutorecoveringChannel channel in _channels)
+                {
+                    bool recovered = await channel.AutomaticallyRecoverAsync(this, _config.TopologyRecoveryEnabled,
+                        recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld,
+                        cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (recovered)
+                    {
+                        recoveredChannels.Add(channel);
+                    }
+                }
+            }
+            finally
+            {
+                _channels.Clear();
+                _channels = recoveredChannels;
+                _channelsSemaphore.Release();
             }
         }
     }
