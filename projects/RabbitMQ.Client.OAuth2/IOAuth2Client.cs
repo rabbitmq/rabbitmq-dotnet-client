@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -29,41 +29,14 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.OAuth2
 {
-    public interface ICredentialsProvider
+    public interface IOAuth2Client
     {
-        string Name { get; }
-        Task<Credentials> GetCredentialsAsync(CancellationToken cancellationToken = default);
-    }
-
-    public class Credentials
-    {
-        private readonly string _name;
-        private readonly string _userName;
-        private readonly string _password;
-        private readonly TimeSpan? _validUntil;
-
-        public Credentials(string name, string userName, string password, TimeSpan? validUntil)
-        {
-            _name = name;
-            _userName = userName;
-            _password = password;
-            _validUntil = validUntil;
-        }
-
-        public string Name => _name;
-        public string UserName => _userName;
-        public string Password => _password;
-
-        /// <summary>
-        /// If credentials have an expiry time this property returns the interval.
-        /// Otherwise, it returns null.
-        /// </summary>
-        public TimeSpan? ValidUntil => _validUntil;
+        Task<IToken> RequestTokenAsync(CancellationToken cancellationToken = default);
+        Task<IToken> RefreshTokenAsync(IToken token, CancellationToken cancellationToken = default);
     }
 }

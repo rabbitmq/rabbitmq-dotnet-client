@@ -161,8 +161,6 @@ namespace RabbitMQ.Client
         /// </summary>
         public static System.Net.Sockets.AddressFamily DefaultAddressFamily { get; set; }
 
-        public static readonly ICredentialsRefresher DefaultCredentialsRefresher = new NoOpCredentialsRefresher();
-
         /// <summary>
         /// Set to false to disable automatic connection recovery.
         /// Defaults to true.
@@ -315,14 +313,9 @@ namespace RabbitMQ.Client
         public string Password { get; set; } = DefaultPass;
 
         /// <summary>
-        /// CredentialsProvider used to obtain username and password.
+        /// ICredentialsProvider used to obtain username and password.
         /// </summary>
         public ICredentialsProvider? CredentialsProvider { get; set; }
-
-        /// <summary>
-        /// Used to refresh credentials.
-        /// </summary>
-        public ICredentialsRefresher CredentialsRefresher { get; set; } = DefaultCredentialsRefresher;
 
         /// <summary>
         /// Maximum channel number to ask for.
@@ -591,7 +584,6 @@ namespace RabbitMQ.Client
                 UserName,
                 Password,
                 CredentialsProvider,
-                CredentialsRefresher,
                 AuthMechanisms,
                 ClientProperties,
                 EnsureClientProvidedNameLength(clientProvidedName),

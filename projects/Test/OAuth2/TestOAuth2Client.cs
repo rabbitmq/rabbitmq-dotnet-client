@@ -32,6 +32,7 @@
 using System;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 using RabbitMQ.Client.OAuth2;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -51,96 +52,63 @@ namespace OAuth2Test
         public TestOAuth2Client()
         {
             _oauthServer = WireMockServer.Start();
-
-            _client = new OAuth2ClientBuilder(_client_id, _client_secret, new System.Uri(_oauthServer.Url + "/token")).Build();
-        }
-
-        private void expectTokenRequest(RequestFormMatcher expectedRequestBody, JsonToken expectedResponse)
-        {
-            _oauthServer
-                .Given(
-                    Request.Create()
-                        .WithPath("/token")
-                        .WithBody(expectedRequestBody.Matcher())
-                        .UsingPost()
-                )
-                .RespondWith(
-                    Response.Create()
-                    .WithStatusCode(200)
-                    .WithHeader("Content-Type", "application/json;charset=UTF-8")
-                    .WithBody(JsonSerializer.Serialize(expectedResponse))
-                );
+            var uri = new Uri(_oauthServer.Url + "/token");
+            _client = new OAuth2ClientBuilder(_client_id, _client_secret, uri).Build();
         }
 
         [Fact]
-        public void TestRequestToken()
+        public async Task TestRequestToken()
         {
             JsonToken expectedJsonToken = new JsonToken("the_access_token", "the_refresh_token", TimeSpan.FromSeconds(10));
-            expectTokenRequest(new RequestFormMatcher()
+            ExpectTokenRequest(new RequestFormMatcher()
                             .WithParam("client_id", _client_id)
                             .WithParam("client_secret", _client_secret)
                             .WithParam("grant_type", "client_credentials"),
                             expectedJsonToken);
 
-            IToken token = _client.RequestToken();
+            IToken token = await _client.RequestTokenAsync();
             Assert.NotNull(token);
-            Assert.Equal(expectedJsonToken.access_token, token.AccessToken);
-            Assert.Equal(expectedJsonToken.refresh_token, token.RefreshToken);
-            Assert.Equal(TimeSpan.FromSeconds(expectedJsonToken.expires_in), token.ExpiresIn);
-        }
-
-        private void expectTokenRefresh(JsonToken expectedResponse)
-        {
-            _oauthServer
-                .Given(
-                    Request.Create()
-                        .WithPath("/token")
-                        .WithParam("client_id", _client_id)
-                        .WithParam("client_secret", _client_secret)
-                        .WithParam("grant_type", "refresh_token")
-                        .WithParam("refresh_token", expectedResponse.refresh_token)
-                        .WithHeader("content_type", "application/x-www-form-urlencoded")
-                        .UsingPost()
-                )
-                .RespondWith(
-                    Response.Create()
-                    .WithStatusCode(200)
-                    .WithHeader("Content-Type", "application/json;charset=UTF-8")
-                    .WithBody(JsonSerializer.Serialize(expectedResponse))
-                );
+            Assert.Equal(expectedJsonToken.AccessToken, token.AccessToken);
+            Assert.Equal(expectedJsonToken.RefreshToken, token.RefreshToken);
+            Assert.Equal(TimeSpan.FromSeconds(expectedJsonToken.ExpiresIn), token.ExpiresIn);
         }
 
         [Fact]
-        public void TestRefreshToken()
+        public async Task TestRefreshToken()
         {
-            JsonToken expectedJsonToken = new JsonToken("the_access_token", "the_refresh_token", TimeSpan.FromSeconds(10));
-            expectTokenRequest(new RequestFormMatcher()
+            const string accessToken0 = "the_access_token";
+            const string accessToken1 = "the_access_token_2";
+            const string refreshToken = "the_refresh_token";
+
+            JsonToken expectedJsonToken = new JsonToken(accessToken0, refreshToken, TimeSpan.FromSeconds(10));
+
+            ExpectTokenRequest(new RequestFormMatcher()
                             .WithParam("client_id", _client_id)
                             .WithParam("client_secret", _client_secret)
                             .WithParam("grant_type", "client_credentials"),
                             expectedJsonToken);
 
-            IToken token = _client.RequestToken();
+            IToken token = await _client.RequestTokenAsync();
             _oauthServer.Reset();
 
-            expectedJsonToken = new JsonToken("the_access_token2", "the_refresh_token", TimeSpan.FromSeconds(20));
-            expectTokenRequest(new RequestFormMatcher()
+            JsonToken responseJsonToken = new JsonToken(accessToken1, refreshToken, TimeSpan.FromSeconds(20));
+            ExpectTokenRefresh(new RequestFormMatcher()
                             .WithParam("client_id", _client_id)
                             .WithParam("client_secret", _client_secret)
                             .WithParam("grant_type", "refresh_token")
-                            .WithParam("refresh_token", "the_refresh_token"),
-                            expectedJsonToken);
+                            .WithParam("refresh_token", refreshToken),
+                            responseJsonToken);
 
-            IToken refreshedToken = _client.RefreshToken(token);
-            Assert.False(refreshedToken == token);
+            IToken refreshedToken = await _client.RefreshTokenAsync(token);
             Assert.NotNull(refreshedToken);
-            Assert.Equal(expectedJsonToken.access_token, refreshedToken.AccessToken);
-            Assert.Equal(expectedJsonToken.refresh_token, refreshedToken.RefreshToken);
-            Assert.Equal(TimeSpan.FromSeconds(expectedJsonToken.expires_in), refreshedToken.ExpiresIn);
+            Assert.False(Object.ReferenceEquals(refreshedToken, token));
+            Assert.Equal(responseJsonToken.AccessToken, refreshedToken.AccessToken);
+            Assert.Equal(responseJsonToken.RefreshToken, refreshedToken.RefreshToken);
+            Assert.Equal(TimeSpan.FromSeconds(responseJsonToken.ExpiresIn), refreshedToken.ExpiresIn);
         }
 
         [Fact]
-        public void TestInvalidCredentials()
+        public async Task TestInvalidCredentials()
         {
             _oauthServer
                 .Given(
@@ -159,10 +127,46 @@ namespace OAuth2Test
 
             try
             {
-                IToken token = _client.RequestToken();
+                IToken token = await _client.RequestTokenAsync();
                 Assert.Fail("Should have thrown Exception");
             }
-            catch (HttpRequestException) { }
+            catch (HttpRequestException)
+            {
+            }
+        }
+
+        private void ExpectTokenRequest(RequestFormMatcher expectedRequestBody, JsonToken response)
+        {
+            _oauthServer
+                .Given(
+                    Request.Create()
+                        .WithPath("/token")
+                        .WithBody(expectedRequestBody.Matcher())
+                        .UsingPost()
+                )
+                .RespondWith(
+                    Response.Create()
+                    .WithStatusCode(200)
+                    .WithHeader("Content-Type", "application/json;charset=UTF-8")
+                    .WithBody(JsonSerializer.Serialize(response))
+                );
+        }
+
+        private void ExpectTokenRefresh(RequestFormMatcher expectedRequestBody, JsonToken expectedResponse)
+        {
+            _oauthServer
+                .Given(
+                    Request.Create()
+                        .WithPath("/token")
+                        .WithBody(expectedRequestBody.Matcher())
+                        .UsingPost()
+                )
+                .RespondWith(
+                    Response.Create()
+                    .WithStatusCode(200)
+                    .WithHeader("Content-Type", "application/json;charset=UTF-8")
+                    .WithBody(JsonSerializer.Serialize(expectedResponse))
+                );
         }
     }
 }

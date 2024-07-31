@@ -5,21 +5,21 @@
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.13.12" />
     <PackageVersion Include="Ductus.FluentDocker" Version="2.10.59" />
-    <PackageVersion Include="EasyNetQ.Management.Client" Version="2.0.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageVersion Include="EasyNetQ.Management.Client" Version="3.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageVersion Include="Nullable" Version="1.3.1" />
-    <PackageVersion Include="OpenTelemetry.Api" Version="1.7.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.8.0" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.9.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.9.0" />
     <!--
       Note: do NOT upgrade the System.IO.Pipelines dependency unless necessary
       See https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
     -->
     <PackageVersion Include="System.IO.Pipelines" Version="6.0.0" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
-    <PackageVersion Include="WireMock.Net" Version="1.5.49" />
-    <PackageVersion Include="xunit" Version="2.7.0" />
+    <PackageVersion Include="WireMock.Net" Version="1.5.62" />
+    <PackageVersion Include="xunit" Version="2.9.0" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.7" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFramework)=='netstandard2.0'">

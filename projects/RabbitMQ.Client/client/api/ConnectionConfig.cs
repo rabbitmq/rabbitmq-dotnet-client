@@ -58,11 +58,10 @@ namespace RabbitMQ.Client
         public readonly string Password;
 
         /// <summary>
-        /// Default CredentialsProvider implementation. If set, this
+        /// Default ICredentialsProvider implementation. If set, this
         /// overrides UserName / Password
         /// </summary>
-        public ICredentialsProvider CredentialsProvider;
-        public ICredentialsRefresher CredentialsRefresher;
+        public readonly ICredentialsProvider CredentialsProvider;
 
         /// <summary>
         ///  SASL auth mechanisms to use.
@@ -145,7 +144,7 @@ namespace RabbitMQ.Client
         internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;
 
         internal ConnectionConfig(string virtualHost, string userName, string password,
-            ICredentialsProvider? credentialsProvider, ICredentialsRefresher credentialsRefresher,
+            ICredentialsProvider? credentialsProvider,
             IEnumerable<IAuthMechanismFactory> authMechanisms,
             IDictionary<string, object?> clientProperties, string? clientProvidedName,
             ushort maxChannelCount, uint maxFrameSize, uint maxInboundMessageBodySize, bool topologyRecoveryEnabled,
@@ -157,7 +156,6 @@ namespace RabbitMQ.Client
             UserName = userName;
             Password = password;
             CredentialsProvider = credentialsProvider ?? new BasicCredentialsProvider(clientProvidedName, userName, password);
-            CredentialsRefresher = credentialsRefresher;
             AuthMechanisms = authMechanisms;
             ClientProperties = clientProperties;
             ClientProvidedName = clientProvidedName;

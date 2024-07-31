@@ -40,8 +40,9 @@ using Xunit.Abstractions;
 
 namespace Test
 {
-    public class TestConnectionRecoveryBase : IntegrationFixture
+    public class TestConnectionRecoveryBase : IntegrationFixture, IDisposable
     {
+        private readonly Util _util;
         protected readonly byte[] _messageBody;
         protected const ushort TotalMessageCount = 16384;
         protected const ushort CloseAtCount = 16;
@@ -49,8 +50,11 @@ namespace Test
         public TestConnectionRecoveryBase(ITestOutputHelper output)
             : base(output)
         {
+            _util = new Util(output);
             _messageBody = GetRandomBody(4096);
         }
+
+        public void Dispose() => _util.Dispose();
 
         protected Task AssertConsumerCountAsync(string q, int count)
         {
@@ -166,7 +170,7 @@ namespace Test
 
         protected Task CloseConnectionAsync(IConnection conn)
         {
-            return Util.CloseConnectionAsync(conn);
+            return _util.CloseConnectionAsync(conn.ClientProvidedName);
         }
 
         protected Task CloseAndWaitForRecoveryAsync()

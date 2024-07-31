@@ -1,99 +1,47 @@
-﻿using System;
+﻿// This source code is dual-licensed under the Apache License, version
+// 2.0, and the Mozilla Public License, version 2.0.
+//
+// The APL v2.0:
+//
+//---------------------------------------------------------------------------
+//   Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       https://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//---------------------------------------------------------------------------
+//
+// The MPL v2.0:
+//
+//---------------------------------------------------------------------------
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+//  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
+//---------------------------------------------------------------------------
+
+using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.OAuth2;
+using Test;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace OAuth2Test
 {
-    public enum Mode
-    {
-        uaa,
-        keycloak
-    }
-
-    public class OAuth2Options
-    {
-        private readonly Mode _mode;
-
-        public OAuth2Options(Mode mode)
-        {
-            _mode = mode;
-        }
-
-        public string Name
-        {
-            get
-            {
-                switch (_mode)
-                {
-                    case Mode.uaa:
-                        return "uaa";
-                    case Mode.keycloak:
-                        return "keycloak";
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
-        }
-
-        public string ClientId => "producer";
-
-        public string ClientSecret
-        {
-            get
-            {
-                switch (_mode)
-                {
-                    case Mode.uaa:
-                        return "producer_secret";
-                    case Mode.keycloak:
-                        return "kbOFBXI9tANgKUq8vXHLhT6YhbivgXxn";
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
-        }
-
-        public string Scope
-        {
-            get
-            {
-                switch (_mode)
-                {
-                    case Mode.uaa:
-                        return string.Empty;
-                    case Mode.keycloak:
-                        return "rabbitmq:configure:*/* rabbitmq:read:*/* rabbitmq:write:*/*";
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
-        }
-
-        public string TokenEndpoint // => _mode switch
-        {
-            get
-            {
-                switch (_mode)
-                {
-                    case Mode.uaa:
-                        return "http://localhost:8080/oauth/token";
-                    case Mode.keycloak:
-                        return "http://localhost:8080/realms/test/protocol/openid-connect/token";
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
-        }
-
-        public int TokenExpiresInSeconds => 60;
-    }
-
     public class TestOAuth2 : IAsyncLifetime
     {
         private const string Exchange = "test_direct";
@@ -101,8 +49,13 @@ namespace OAuth2Test
         private readonly SemaphoreSlim _doneEvent = new SemaphoreSlim(0, 1);
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IConnectionFactory _connectionFactory;
-        private IConnection _connection;
         private readonly int _tokenExpiresInSeconds;
+        private readonly OAuth2ClientCredentialsProvider _producerCredentialsProvider;
+        private readonly OAuth2ClientCredentialsProvider _httpApiCredentialsProvider;
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+        private IConnection? _connection;
+        private CredentialsRefresher? _credentialsRefresher;
 
         public TestOAuth2(ITestOutputHelper testOutputHelper)
         {
@@ -110,43 +63,100 @@ namespace OAuth2Test
 
             string modeStr = Environment.GetEnvironmentVariable("OAUTH2_MODE") ?? "uaa";
             Mode mode = (Mode)Enum.Parse(typeof(Mode), modeStr.ToLowerInvariant());
-            var options = new OAuth2Options(mode);
+
+            var producerOptions = new OAuth2ProducerOptions(mode);
+            _producerCredentialsProvider = GetCredentialsProvider(producerOptions);
+
+            var httpApiOptions = new OAuth2HttpApiOptions(mode);
+            _httpApiCredentialsProvider = GetCredentialsProvider(httpApiOptions);
 
             _connectionFactory = new ConnectionFactory
             {
                 AutomaticRecoveryEnabled = true,
-                CredentialsProvider = GetCredentialsProvider(options),
-                CredentialsRefresher = GetCredentialsRefresher(),
+                CredentialsProvider = _producerCredentialsProvider,
                 ClientProvidedName = nameof(TestOAuth2)
             };
 
-            _tokenExpiresInSeconds = options.TokenExpiresInSeconds;
+            _tokenExpiresInSeconds = OAuth2OptionsBase.TokenExpiresInSeconds;
         }
 
         public async Task InitializeAsync()
         {
-            _connection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
+            _connection = await _connectionFactory.CreateConnectionAsync(_cancellationTokenSource.Token);
+
+            _connection.ConnectionShutdown += (sender, ea) =>
+            {
+                _testOutputHelper.WriteLine("{0} [WARNING] connection shutdown!", DateTime.Now);
+            };
+
+            _connection.ConnectionRecoveryError += (sender, ea) =>
+            {
+                _testOutputHelper.WriteLine("{0} [ERROR] connection recovery error: {1}",
+                    DateTime.Now, ea.Exception);
+            };
+
+            _connection.RecoverySucceeded += (sender, ea) =>
+            {
+                _testOutputHelper.WriteLine("{0} [INFO] connection recovery succeeded", DateTime.Now);
+            };
+
+            _credentialsRefresher = new CredentialsRefresher(_producerCredentialsProvider,
+                OnCredentialsRefreshedAsync,
+                _cancellationTokenSource.Token);
         }
 
         public async Task DisposeAsync()
         {
             try
             {
-                await _connection.CloseAsync();
+                _cancellationTokenSource.Cancel();
+
+                if (_connection != null)
+                {
+                    await _connection.CloseAsync();
+                }
             }
             finally
             {
                 _doneEvent.Dispose();
-                _connection.Dispose();
+                _producerCredentialsProvider.Dispose();
+                _connection?.Dispose();
             }
         }
 
-        [Fact]
-        public async void IntegrationTest()
+        private Task OnCredentialsRefreshedAsync(Credentials? credentials, Exception? exception,
+            CancellationToken cancellationToken = default)
         {
-            using (IChannel publishChannel = await DeclarePublisherAsync())
+            if (_connection is null)
             {
-                using (IChannel consumeChannel = await DeclareConsumerAsync())
+                _testOutputHelper.WriteLine("connection is unexpectedly null!");
+                Assert.Fail("_connection is unexpectedly null!");
+            }
+
+            if (exception != null)
+            {
+                _testOutputHelper.WriteLine("exception is unexpectedly not-null: {0}", exception);
+                Assert.Fail($"exception is unexpectedly not-null: {exception}");
+            }
+
+            if (credentials is null)
+            {
+                _testOutputHelper.WriteLine("credentials arg is unexpectedly null!");
+                Assert.Fail("credentials arg is unexpectedly null!");
+            }
+
+            return _connection.UpdateSecretAsync(credentials.Password, "Token refresh", cancellationToken);
+        }
+
+        [Fact]
+        public async Task IntegrationTest()
+        {
+            Util? closeConnectionUtil = null;
+            Task? closeConnectionTask = null;
+
+            using (IChannel publishChannel = await DeclarePublishChannelAsync())
+            {
+                using (IChannel consumeChannel = await DeclareConsumeChannelAsync())
                 {
                     await PublishAsync(publishChannel);
                     await ConsumeAsync(consumeChannel);
@@ -155,10 +165,38 @@ namespace OAuth2Test
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            _testOutputHelper.WriteLine("Wait until Token expires. Attempt #" + (i + 1));
+                            var delaySpan = TimeSpan.FromSeconds(_tokenExpiresInSeconds + 10);
+                            _testOutputHelper.WriteLine("{0} [INFO] wait '{1}' until Token expires. Attempt #{1}",
+                                DateTime.Now, delaySpan, (i + 1));
 
-                            await Task.Delay(TimeSpan.FromSeconds(_tokenExpiresInSeconds + 10));
-                            _testOutputHelper.WriteLine("Resuming ..");
+                            if (i == 1)
+                            {
+                                async Task CloseConnection()
+                                {
+                                    Assert.NotNull(_connection);
+                                    Credentials httpApiCredentials = await _httpApiCredentialsProvider.GetCredentialsAsync();
+                                    closeConnectionUtil = new Util(_testOutputHelper, "mgt_api_client", httpApiCredentials.Password);
+                                    await closeConnectionUtil.CloseConnectionAsync(_connection.ClientProvidedName);
+                                }
+
+                                closeConnectionTask = Task.Run(CloseConnection);
+                            }
+
+                            await Task.Delay(delaySpan);
+
+                            if (closeConnectionTask != null)
+                            {
+                                await closeConnectionTask;
+                                closeConnectionTask = null;
+
+                                if (closeConnectionUtil != null)
+                                {
+                                    closeConnectionUtil.Dispose();
+                                    closeConnectionUtil = null;
+                                }
+                            }
+
+                            _testOutputHelper.WriteLine("{0} [INFO] Resuming ...", DateTime.Now);
 
                             await PublishAsync(publishChannel);
                             await ConsumeAsync(consumeChannel);
@@ -177,22 +215,23 @@ namespace OAuth2Test
         }
 
         [Fact]
-        public async void SecondConnectionCrashes_GH1429()
+        public async Task SecondConnectionCrashes_GH1429()
         {
             // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429
             IConnection secondConnection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
             secondConnection.Dispose();
         }
 
-        private async Task<IChannel> DeclarePublisherAsync()
+        private async Task<IChannel> DeclarePublishChannelAsync()
         {
-            IChannel publisher = await _connection.CreateChannelAsync();
-            await publisher.ConfirmSelectAsync();
-            await publisher.ExchangeDeclareAsync("test_direct", ExchangeType.Direct, true, false);
-            return publisher;
+            Assert.NotNull(_connection);
+            IChannel publishChannel = await _connection.CreateChannelAsync();
+            await publishChannel.ConfirmSelectAsync();
+            await publishChannel.ExchangeDeclareAsync("test_direct", ExchangeType.Direct, true, false);
+            return publishChannel;
         }
 
-        private async Task PublishAsync(IChannel publisher)
+        private async Task PublishAsync(IChannel publishChannel)
         {
             const string message = "Hello World!";
 
@@ -202,32 +241,33 @@ namespace OAuth2Test
                 AppId = "oauth2",
             };
 
-            await publisher.BasicPublishAsync(exchange: Exchange, routingKey: "hello", basicProperties: properties, body: body);
+            await publishChannel.BasicPublishAsync(exchange: Exchange, routingKey: "hello", basicProperties: properties, body: body);
             _testOutputHelper.WriteLine("Sent message");
 
-            await publisher.WaitForConfirmsOrDieAsync();
+            await publishChannel.WaitForConfirmsOrDieAsync();
             _testOutputHelper.WriteLine("Confirmed Sent message");
         }
 
-        private async ValueTask<IChannel> DeclareConsumerAsync()
+        private async ValueTask<IChannel> DeclareConsumeChannelAsync()
         {
-            IChannel subscriber = await _connection.CreateChannelAsync();
-            await subscriber.QueueDeclareAsync(queue: "testqueue", true, false, false);
-            await subscriber.QueueBindAsync("testqueue", Exchange, "hello");
-            return subscriber;
+            Assert.NotNull(_connection);
+            IChannel consumeChannel = await _connection.CreateChannelAsync();
+            await consumeChannel.QueueDeclareAsync(queue: "testqueue", true, false, false);
+            await consumeChannel.QueueBindAsync("testqueue", Exchange, "hello");
+            return consumeChannel;
         }
 
-        private async Task ConsumeAsync(IChannel subscriber)
+        private async Task ConsumeAsync(IChannel consumeChannel)
         {
-            var asyncListener = new AsyncEventingBasicConsumer(subscriber);
+            var asyncListener = new AsyncEventingBasicConsumer(consumeChannel);
             asyncListener.Received += AsyncListener_Received;
-            string consumerTag = await subscriber.BasicConsumeAsync("testqueue", true, "testconsumer", asyncListener);
-            await _doneEvent.WaitAsync(TimeSpan.FromMilliseconds(500));
+            string consumerTag = await consumeChannel.BasicConsumeAsync("testqueue", true, "testconsumer", asyncListener);
+            await _doneEvent.WaitAsync(TimeSpan.FromSeconds(5));
             _testOutputHelper.WriteLine("Received message");
-            await subscriber.BasicCancelAsync(consumerTag);
+            await consumeChannel.BasicCancelAsync(consumerTag);
         }
 
-        private OAuth2ClientCredentialsProvider GetCredentialsProvider(OAuth2Options opts)
+        private OAuth2ClientCredentialsProvider GetCredentialsProvider(OAuth2OptionsBase opts)
         {
             _testOutputHelper.WriteLine("OAuth2Client ");
             _testOutputHelper.WriteLine($"- ClientId: {opts.ClientId}");
@@ -244,11 +284,6 @@ namespace OAuth2Test
         {
             _doneEvent.Release();
             return Task.CompletedTask;
-        }
-
-        private static ICredentialsRefresher GetCredentialsRefresher()
-        {
-            return new TimerBasedCredentialRefresher();
         }
     }
 }

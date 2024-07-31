@@ -46,7 +46,7 @@ namespace Test.Integration
         }
 
         [Fact]
-        public async void TestQueueDeclareAsync()
+        public async Task TestQueueDeclareAsync()
         {
             string q = GenerateQueueName();
 
@@ -58,7 +58,7 @@ namespace Test.Integration
         }
 
         [Fact]
-        public async void TestConcurrentQueueDeclareAndBindAsync()
+        public async Task TestConcurrentQueueDeclareAndBindAsync()
         {
             bool sawShutdown = false;
 
