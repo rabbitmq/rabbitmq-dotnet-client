@@ -144,7 +144,7 @@ namespace RabbitMQ.Client.Impl
 
         public string? CurrentQueue => InnerChannel.CurrentQueue;
 
-        internal async Task AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
+        internal async Task<bool> AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (false == recordedEntitiesSemaphoreHeld)
@@ -152,7 +152,11 @@ namespace RabbitMQ.Client.Impl
                 throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
             }
 
-            ThrowIfDisposed();
+            if (_disposed)
+            {
+                return false;
+            }
+
             _connection = conn;
 
             RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(cancellationToken)
@@ -189,15 +193,27 @@ namespace RabbitMQ.Client.Impl
              * chance that an invalid Channel will be used to handle a basic.deliver frame,
              * with the resulting basic.ack never getting sent out.
              */
-            _innerChannel = newChannel;
 
-            if (recoverConsumers)
+            if (_disposed)
             {
-                await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld)
+                await newChannel.AbortAsync()
                     .ConfigureAwait(false);
+                return false;
             }
+            else
+            {
+                _innerChannel = newChannel;
 
-            _innerChannel.RunRecoveryEventHandlers(this);
+                if (recoverConsumers)
+                {
+                    await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld)
+                        .ConfigureAwait(false);
+                }
+
+                _innerChannel.RunRecoveryEventHandlers(this);
+
+                return true;
+            }
         }
 
         public async Task CloseAsync(ushort replyCode, string replyText, bool abort,
