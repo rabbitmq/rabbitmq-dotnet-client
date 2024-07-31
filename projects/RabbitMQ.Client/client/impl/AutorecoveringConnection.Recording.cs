@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private readonly Dictionary<string, RecordedQueue> _recordedQueues = new Dictionary<string, RecordedQueue>();
         private readonly HashSet<RecordedBinding> _recordedBindings = new HashSet<RecordedBinding>();
         private readonly Dictionary<string, RecordedConsumer> _recordedConsumers = new Dictionary<string, RecordedConsumer>();
-        private List<AutorecoveringChannel> _channels = new List<AutorecoveringChannel>();
+        private readonly List<AutorecoveringChannel> _channels = new List<AutorecoveringChannel>();
 
         internal int RecordedExchangesCount => _recordedExchanges.Count;
 

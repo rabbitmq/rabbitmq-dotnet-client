@@ -584,28 +584,43 @@ namespace RabbitMQ.Client.Framing.Impl
                 throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
             }
 
-            var recoveredChannels = new List<AutorecoveringChannel>();
+            var channelsToRecover = new List<AutorecoveringChannel>();
             await _channelsSemaphore.WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
             try
             {
-                foreach (AutorecoveringChannel channel in _channels)
-                {
-                    bool recovered = await channel.AutomaticallyRecoverAsync(this, _config.TopologyRecoveryEnabled,
-                        recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld,
-                        cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                channelsToRecover.AddRange(_channels);
+            }
+            finally
+            {
+                _channelsSemaphore.Release();
+            }
 
-                    if (recovered)
-                    {
-                        recoveredChannels.Add(channel);
-                    }
+            var notRecoveredChannels = new List<AutorecoveringChannel>();
+            foreach (AutorecoveringChannel channel in channelsToRecover)
+            {
+                bool recovered = await channel.AutomaticallyRecoverAsync(this, _config.TopologyRecoveryEnabled,
+                    recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld,
+                    cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (false == recovered)
+                {
+                    notRecoveredChannels.Add(channel);
+                }
+            }
+
+            await _channelsSemaphore.WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+            try
+            {
+                foreach (AutorecoveringChannel channel in notRecoveredChannels)
+                {
+                    _channels.Remove(channel);
                 }
             }
             finally
             {
-                _channels.Clear();
-                _channels = recoveredChannels;
                 _channelsSemaphore.Release();
             }
         }
