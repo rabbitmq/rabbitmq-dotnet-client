@@ -1,37 +1,19 @@
 #nullable enable
 RabbitMQ.Client.OAuth2.IOAuth2Client
-RabbitMQ.Client.OAuth2.IOAuth2Client.RefreshToken(RabbitMQ.Client.OAuth2.IToken token) -> RabbitMQ.Client.OAuth2.IToken
-RabbitMQ.Client.OAuth2.IOAuth2Client.RequestToken() -> RabbitMQ.Client.OAuth2.IToken
 RabbitMQ.Client.OAuth2.IToken
 RabbitMQ.Client.OAuth2.IToken.AccessToken.get -> string
 RabbitMQ.Client.OAuth2.IToken.ExpiresIn.get -> System.TimeSpan
-RabbitMQ.Client.OAuth2.IToken.hasExpired.get -> bool
+RabbitMQ.Client.OAuth2.IToken.HasExpired.get -> bool
 RabbitMQ.Client.OAuth2.IToken.RefreshToken.get -> string
-RabbitMQ.Client.OAuth2.JsonToken
-RabbitMQ.Client.OAuth2.JsonToken.access_token.get -> string
-RabbitMQ.Client.OAuth2.JsonToken.access_token.set -> void
-RabbitMQ.Client.OAuth2.JsonToken.expires_in.get -> long
-RabbitMQ.Client.OAuth2.JsonToken.expires_in.set -> void
-RabbitMQ.Client.OAuth2.JsonToken.JsonToken() -> void
-RabbitMQ.Client.OAuth2.JsonToken.JsonToken(string access_token, string refresh_token, long expires_in) -> void
-RabbitMQ.Client.OAuth2.JsonToken.JsonToken(string access_token, string refresh_token, System.TimeSpan expires_in_span) -> void
-RabbitMQ.Client.OAuth2.JsonToken.refresh_token.get -> string
-RabbitMQ.Client.OAuth2.JsonToken.refresh_token.set -> void
 RabbitMQ.Client.OAuth2.OAuth2ClientBuilder
 RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.AddRequestParameter(string param, string paramValue) -> RabbitMQ.Client.OAuth2.OAuth2ClientBuilder
 RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.Build() -> RabbitMQ.Client.OAuth2.IOAuth2Client
 RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.OAuth2ClientBuilder(string clientId, string clientSecret, System.Uri tokenEndpoint) -> void
-RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.SetHttpClientHandler(System.Net.Http.HttpClientHandler handler) -> RabbitMQ.Client.OAuth2.OAuth2ClientBuilder
 RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.SetScope(string scope) -> RabbitMQ.Client.OAuth2.OAuth2ClientBuilder
 RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider
 RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider.Name.get -> string
 RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider.OAuth2ClientCredentialsProvider(string name, RabbitMQ.Client.OAuth2.IOAuth2Client oAuth2Client) -> void
-RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider.Password.get -> string
-RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider.Refresh() -> void
-RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider.UserName.get -> string
-RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider.ValidUntil.get -> System.TimeSpan?
 RabbitMQ.Client.OAuth2.Token
 RabbitMQ.Client.OAuth2.Token.AccessToken.get -> string
 RabbitMQ.Client.OAuth2.Token.ExpiresIn.get -> System.TimeSpan
 RabbitMQ.Client.OAuth2.Token.RefreshToken.get -> string
-RabbitMQ.Client.OAuth2.Token.Token(RabbitMQ.Client.OAuth2.JsonToken json) -> void

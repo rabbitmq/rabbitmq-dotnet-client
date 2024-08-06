@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -38,9 +40,10 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Handle one round of challenge-response.
         /// </summary>
-        public byte[] handleChallenge(byte[]? challenge, ConnectionConfig config)
+        public Task<byte[]> HandleChallengeAsync(byte[]? challenge, ConnectionConfig config,
+            CancellationToken cancellationToken = default)
         {
-            return Array.Empty<byte>();
+            return Task.FromResult(Array.Empty<byte>());
         }
     }
 }

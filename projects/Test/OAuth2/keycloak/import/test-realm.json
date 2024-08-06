@@ -508,7 +508,7 @@
     "credentials" : [ ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-test", "rabbitmq-management" ],
+    "realmRoles" : [ "default-roles-test", "rabbitmq-management", "rabbitmq.tag:administrator" ],
     "notBefore" : 0,
     "groups" : [ ]
   }, {

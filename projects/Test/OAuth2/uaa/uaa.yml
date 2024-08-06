@@ -125,7 +125,7 @@ oauth:
       id: mgt_api_client
       secret: mgt_api_client
       authorized-grant-types: client_credentials
-      authorities: rabbitmq.tag:monitoring
+      authorities: rabbitmq.tag:administrator
     rabbit_client_code:
       id: rabbit_client_code
       secret: rabbit_client_code

@@ -105,13 +105,6 @@ RabbitMQ.Client.AsyncDefaultBasicConsumer.IsRunning.get -> bool
 RabbitMQ.Client.AsyncDefaultBasicConsumer.IsRunning.set -> void
 RabbitMQ.Client.AsyncDefaultBasicConsumer.ShutdownReason.get -> RabbitMQ.Client.ShutdownEventArgs
 RabbitMQ.Client.AsyncDefaultBasicConsumer.ShutdownReason.set -> void
-RabbitMQ.Client.BasicCredentialsProvider
-RabbitMQ.Client.BasicCredentialsProvider.BasicCredentialsProvider(string name, string userName, string password) -> void
-RabbitMQ.Client.BasicCredentialsProvider.Name.get -> string
-RabbitMQ.Client.BasicCredentialsProvider.Password.get -> string
-RabbitMQ.Client.BasicCredentialsProvider.Refresh() -> void
-RabbitMQ.Client.BasicCredentialsProvider.UserName.get -> string
-RabbitMQ.Client.BasicCredentialsProvider.ValidUntil.get -> System.TimeSpan?
 RabbitMQ.Client.BasicGetResult
 RabbitMQ.Client.BasicGetResult.BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IReadOnlyBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) -> void
 RabbitMQ.Client.BasicProperties
@@ -187,8 +180,6 @@ RabbitMQ.Client.CachedString.CachedString(string value) -> void
 RabbitMQ.Client.CachedString.CachedString(string value, System.ReadOnlyMemory<byte> bytes) -> void
 RabbitMQ.Client.CachedString.CachedString(System.ReadOnlyMemory<byte> bytes) -> void
 RabbitMQ.Client.ConnectionConfig
-RabbitMQ.Client.ConnectionConfig.CredentialsProvider -> RabbitMQ.Client.ICredentialsProvider
-RabbitMQ.Client.ConnectionConfig.CredentialsRefresher -> RabbitMQ.Client.ICredentialsRefresher
 RabbitMQ.Client.ConnectionFactory
 RabbitMQ.Client.ConnectionFactory.AmqpUriSslProtocols.get -> System.Security.Authentication.SslProtocols
 RabbitMQ.Client.ConnectionFactory.AmqpUriSslProtocols.set -> void
@@ -206,10 +197,6 @@ RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency.get -> int
 RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency.set -> void
 RabbitMQ.Client.ConnectionFactory.ContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.ConnectionFactory.ContinuationTimeout.set -> void
-RabbitMQ.Client.ConnectionFactory.CredentialsProvider.get -> RabbitMQ.Client.ICredentialsProvider
-RabbitMQ.Client.ConnectionFactory.CredentialsProvider.set -> void
-RabbitMQ.Client.ConnectionFactory.CredentialsRefresher.get -> RabbitMQ.Client.ICredentialsRefresher
-RabbitMQ.Client.ConnectionFactory.CredentialsRefresher.set -> void
 RabbitMQ.Client.ConnectionFactory.Endpoint.get -> RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.ConnectionFactory.Endpoint.set -> void
 RabbitMQ.Client.ConnectionFactory.EndpointResolverFactory.get -> System.Func<System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>, RabbitMQ.Client.IEndpointResolver>
@@ -373,7 +360,6 @@ RabbitMQ.Client.Exceptions.WireFormattingException.WireFormattingException(strin
 RabbitMQ.Client.ExchangeType
 RabbitMQ.Client.ExternalMechanism
 RabbitMQ.Client.ExternalMechanism.ExternalMechanism() -> void
-RabbitMQ.Client.ExternalMechanism.handleChallenge(byte[] challenge, RabbitMQ.Client.ConnectionConfig config) -> byte[]
 RabbitMQ.Client.ExternalMechanismFactory
 RabbitMQ.Client.ExternalMechanismFactory.ExternalMechanismFactory() -> void
 RabbitMQ.Client.ExternalMechanismFactory.GetInstance() -> RabbitMQ.Client.IAuthMechanism
@@ -392,7 +378,6 @@ RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicConsumeOkAsync(string consumerTag
 RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, RabbitMQ.Client.IReadOnlyBasicProperties properties, System.ReadOnlyMemory<byte> body) -> System.Threading.Tasks.Task
 RabbitMQ.Client.IAsyncBasicConsumer.HandleChannelShutdownAsync(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
 RabbitMQ.Client.IAuthMechanism
-RabbitMQ.Client.IAuthMechanism.handleChallenge(byte[] challenge, RabbitMQ.Client.ConnectionConfig config) -> byte[]
 RabbitMQ.Client.IAuthMechanismFactory
 RabbitMQ.Client.IAuthMechanismFactory.GetInstance() -> RabbitMQ.Client.IAuthMechanism
 RabbitMQ.Client.IAuthMechanismFactory.Name.get -> string
@@ -497,10 +482,6 @@ RabbitMQ.Client.IConnectionFactory.ConsumerDispatchConcurrency.get -> int
 RabbitMQ.Client.IConnectionFactory.ConsumerDispatchConcurrency.set -> void
 RabbitMQ.Client.IConnectionFactory.ContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.IConnectionFactory.ContinuationTimeout.set -> void
-RabbitMQ.Client.IConnectionFactory.CredentialsProvider.get -> RabbitMQ.Client.ICredentialsProvider
-RabbitMQ.Client.IConnectionFactory.CredentialsProvider.set -> void
-RabbitMQ.Client.IConnectionFactory.CredentialsRefresher.get -> RabbitMQ.Client.ICredentialsRefresher
-RabbitMQ.Client.IConnectionFactory.CredentialsRefresher.set -> void
 RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout.set -> void
 RabbitMQ.Client.IConnectionFactory.Password.get -> string
@@ -517,15 +498,6 @@ RabbitMQ.Client.IConnectionFactory.UserName.get -> string
 RabbitMQ.Client.IConnectionFactory.UserName.set -> void
 RabbitMQ.Client.IConnectionFactory.VirtualHost.get -> string
 RabbitMQ.Client.IConnectionFactory.VirtualHost.set -> void
-RabbitMQ.Client.ICredentialsProvider
-RabbitMQ.Client.ICredentialsProvider.Name.get -> string
-RabbitMQ.Client.ICredentialsProvider.Password.get -> string
-RabbitMQ.Client.ICredentialsProvider.Refresh() -> void
-RabbitMQ.Client.ICredentialsProvider.UserName.get -> string
-RabbitMQ.Client.ICredentialsProvider.ValidUntil.get -> System.TimeSpan?
-RabbitMQ.Client.ICredentialsRefresher
-RabbitMQ.Client.ICredentialsRefresher.NotifyCredentialRefreshedAsync
-RabbitMQ.Client.ICredentialsRefresher.Unregister(RabbitMQ.Client.ICredentialsProvider provider) -> bool
 RabbitMQ.Client.IEndpointResolver
 RabbitMQ.Client.IEndpointResolver.All() -> System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint>
 RabbitMQ.Client.INetworkConnection
@@ -610,7 +582,6 @@ RabbitMQ.Client.Logging.RabbitMqExceptionDetail.RabbitMqExceptionDetail(System.E
 RabbitMQ.Client.Logging.RabbitMqExceptionDetail.StackTrace.get -> string
 RabbitMQ.Client.Logging.RabbitMqExceptionDetail.Type.get -> string
 RabbitMQ.Client.PlainMechanism
-RabbitMQ.Client.PlainMechanism.handleChallenge(byte[] challenge, RabbitMQ.Client.ConnectionConfig config) -> byte[]
 RabbitMQ.Client.PlainMechanism.PlainMechanism() -> void
 RabbitMQ.Client.PlainMechanismFactory
 RabbitMQ.Client.PlainMechanismFactory.GetInstance() -> RabbitMQ.Client.IAuthMechanism
@@ -701,17 +672,6 @@ RabbitMQ.Client.SslOption.Version.set -> void
 RabbitMQ.Client.TcpClientAdapter
 RabbitMQ.Client.TcpClientAdapter.Dispose() -> void
 RabbitMQ.Client.TcpClientAdapter.TcpClientAdapter(System.Net.Sockets.Socket socket) -> void
-RabbitMQ.Client.TimerBasedCredentialRefresher
-RabbitMQ.Client.TimerBasedCredentialRefresher.TimerBasedCredentialRefresher() -> void
-RabbitMQ.Client.TimerBasedCredentialRefresher.Unregister(RabbitMQ.Client.ICredentialsProvider provider) -> bool
-RabbitMQ.Client.TimerBasedCredentialRefresherEventSource
-RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.AlreadyRegistered(string name) -> void
-RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.RefreshedCredentials(string name, bool succesfully) -> void
-RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.Registered(string name) -> void
-RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.ScheduledTimer(string name, double interval) -> void
-RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.TimerBasedCredentialRefresherEventSource() -> void
-RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.TriggeredTimer(string name) -> void
-RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.Unregistered(string name) -> void
 RabbitMQ.Client.TopologyRecoveryExceptionHandler
 RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition.get -> System.Func<RabbitMQ.Client.IRecordedBinding, System.Exception, bool>
 RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition.set -> void
@@ -814,11 +774,9 @@ static RabbitMQ.Client.QueueDeclareOk.implicit operator string(RabbitMQ.Client.Q
 static RabbitMQ.Client.RabbitMQActivitySource.UseRoutingKeyAsOperationName.get -> bool
 static RabbitMQ.Client.RabbitMQActivitySource.UseRoutingKeyAsOperationName.set -> void
 static RabbitMQ.Client.TcpClientAdapter.GetMatchingHost(System.Collections.Generic.IReadOnlyCollection<System.Net.IPAddress> addresses, System.Net.Sockets.AddressFamily addressFamily) -> System.Net.IPAddress
-static RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.Log.get -> RabbitMQ.Client.TimerBasedCredentialRefresherEventSource
 static readonly RabbitMQ.Client.CachedString.Empty -> RabbitMQ.Client.CachedString
 static readonly RabbitMQ.Client.ConnectionFactory.DefaultAuthMechanisms -> System.Collections.Generic.IEnumerable<RabbitMQ.Client.IAuthMechanismFactory>
 static readonly RabbitMQ.Client.ConnectionFactory.DefaultConnectionTimeout -> System.TimeSpan
-static readonly RabbitMQ.Client.ConnectionFactory.DefaultCredentialsRefresher -> RabbitMQ.Client.ICredentialsRefresher
 static readonly RabbitMQ.Client.ConnectionFactory.DefaultHeartbeat -> System.TimeSpan
 static readonly RabbitMQ.Client.Protocols.AMQP_0_9_1 -> RabbitMQ.Client.IProtocol
 static readonly RabbitMQ.Client.Protocols.DefaultProtocol -> RabbitMQ.Client.IProtocol
@@ -883,8 +841,6 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable<string> hostnames, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
-~RabbitMQ.Client.ICredentialsRefresher.Register(RabbitMQ.Client.ICredentialsProvider provider, RabbitMQ.Client.ICredentialsRefresher.NotifyCredentialRefreshedAsync callback) -> RabbitMQ.Client.ICredentialsProvider
-~RabbitMQ.Client.TimerBasedCredentialRefresher.Register(RabbitMQ.Client.ICredentialsProvider provider, RabbitMQ.Client.ICredentialsRefresher.NotifyCredentialRefreshedAsync callback) -> RabbitMQ.Client.ICredentialsProvider
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync.get -> System.Func<RabbitMQ.Client.IRecordedBinding, System.Exception, RabbitMQ.Client.IConnection, System.Threading.Tasks.Task>
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync.set -> void
 ~RabbitMQ.Client.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync.get -> System.Func<RabbitMQ.Client.IRecordedConsumer, System.Exception, RabbitMQ.Client.IConnection, System.Threading.Tasks.Task>

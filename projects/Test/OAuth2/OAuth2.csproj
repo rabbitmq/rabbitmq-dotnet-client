@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
@@ -16,12 +16,14 @@
     <AssemblyOriginatorKeyFile>../../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <IsTestProject>true</IsTestProject>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../RabbitMQ.Client/RabbitMQ.Client.csproj" />
     <ProjectReference Include="../../RabbitMQ.Client.OAuth2/RabbitMQ.Client.OAuth2.csproj" />
+    <ProjectReference Include="../Common/Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

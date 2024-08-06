@@ -31,13 +31,14 @@
 
 using System;
 using System.Collections.Specialized;
+using System.Web;
 using Xunit;
 
 namespace OAuth2Test
 {
     public class RequestFormMatcher
     {
-        private NameValueCollection _expected = new NameValueCollection();
+        private readonly NameValueCollection _expected = new NameValueCollection();
 
         public RequestFormMatcher WithParam(string key, string value)
         {
@@ -45,12 +46,17 @@ namespace OAuth2Test
             return this;
         }
 
-        public Func<string, bool> Matcher()
+        public Func<string?, bool> Matcher()
         {
             return (body) =>
             {
-                NameValueCollection actual = System.Web.HttpUtility.ParseQueryString(body);
-                Assert.Equal(actual.Count, _expected.Count);
+                if (body is null)
+                {
+                    throw new ArgumentNullException(nameof(body));
+                }
+
+                NameValueCollection actual = HttpUtility.ParseQueryString(body);
+                Assert.Equal(_expected.Count, actual.Count);
                 foreach (string k in actual.Keys)
                 {
                     Assert.NotNull(_expected[k]);

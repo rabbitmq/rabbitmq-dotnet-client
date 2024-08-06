@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
@@ -27,7 +27,12 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>../../packages</PackageOutputPath>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <LangVersion>7.3</LangVersion>
+    <!--
+      https://learn.microsoft.com/en-us/answers/questions/1371494/for-net-standard-2-0-library-why-add-net-core-3-1
+      https://devblogs.microsoft.com/dotnet/embracing-nullable-reference-types/#what-should-library-authors-do
+    -->
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(CI)' == 'true'">
@@ -44,8 +49,8 @@
     <None Remove="icon.png" />
     <Content Include="icon.png" PackagePath="" />
     <None Include="README.md" Pack="true" PackagePath="/" />
-    <InternalsVisibleTo Include="Unit" />
     <InternalsVisibleTo Include="Benchmarks" />
+    <InternalsVisibleTo Include="OAuth2" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">

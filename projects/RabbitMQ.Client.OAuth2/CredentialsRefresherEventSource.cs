@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -29,41 +29,26 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Tracing;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.OAuth2
 {
-    public interface ICredentialsProvider
+    [EventSource(Name = "CredentialRefresher")]
+    public class CredentialsRefresherEventSource : EventSource
     {
-        string Name { get; }
-        Task<Credentials> GetCredentialsAsync(CancellationToken cancellationToken = default);
-    }
+        public static CredentialsRefresherEventSource Log { get; } = new CredentialsRefresherEventSource();
 
-    public class Credentials
-    {
-        private readonly string _name;
-        private readonly string _userName;
-        private readonly string _password;
-        private readonly TimeSpan? _validUntil;
+        [Event(1)]
+        public void Started(string name) => WriteEvent(1, "Started", name);
 
-        public Credentials(string name, string userName, string password, TimeSpan? validUntil)
-        {
-            _name = name;
-            _userName = userName;
-            _password = password;
-            _validUntil = validUntil;
-        }
+        [Event(2)]
+        public void Stopped(string name) => WriteEvent(2, "Stopped", name);
 
-        public string Name => _name;
-        public string UserName => _userName;
-        public string Password => _password;
-
-        /// <summary>
-        /// If credentials have an expiry time this property returns the interval.
-        /// Otherwise, it returns null.
-        /// </summary>
-        public TimeSpan? ValidUntil => _validUntil;
+        [Event(3)]
+#if NET6_0_OR_GREATER
+        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "Parameters to this method are primitive and are trimmer safe")]
+#endif
+        public void RefreshedCredentials(string name) => WriteEvent(3, "RefreshedCredentials", name);
     }
 }

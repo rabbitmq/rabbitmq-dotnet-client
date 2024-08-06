@@ -29,6 +29,9 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace RabbitMQ.Client
 {
     /// <summary>
@@ -39,6 +42,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Handle one round of challenge-response.
         /// </summary>
-        byte[] handleChallenge(byte[]? challenge, ConnectionConfig config);
+        Task<byte[]> HandleChallengeAsync(byte[]? challenge, ConnectionConfig config,
+            CancellationToken cancellationToken = default);
     }
 }

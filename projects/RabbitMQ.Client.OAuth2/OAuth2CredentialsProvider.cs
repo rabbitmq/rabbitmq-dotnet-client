@@ -31,17 +31,17 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.OAuth2
 {
-    public class OAuth2ClientCredentialsProvider : ICredentialsProvider
+    public class OAuth2ClientCredentialsProvider : ICredentialsProvider, IDisposable
     {
-        const int TOKEN_RETRIEVAL_TIMEOUT = 5000;
-        private ReaderWriterLock _lock = new ReaderWriterLock();
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         private readonly string _name;
         private readonly IOAuth2Client _oAuth2Client;
-        private IToken _token;
+        private IToken? _token;
 
         public OAuth2ClientCredentialsProvider(string name, IOAuth2Client oAuth2Client)
         {
@@ -49,94 +49,44 @@ namespace RabbitMQ.Client.OAuth2
             _oAuth2Client = oAuth2Client ?? throw new ArgumentNullException(nameof(oAuth2Client));
         }
 
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public string Name => _name;
 
-        public string UserName
+        public async Task<Credentials> GetCredentialsAsync(CancellationToken cancellationToken = default)
         {
-            get
+            await _semaphore.WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
+            try
             {
-                checkState();
-                return string.Empty;
-            }
-        }
-
-        public string Password
-        {
-            get
-            {
-                return checkState().AccessToken;
-            }
-        }
-
-        public Nullable<TimeSpan> ValidUntil
-        {
-            get
-            {
-                IToken t = checkState();
-                if (t is null)
+                if (_token == null || string.IsNullOrEmpty(_token.RefreshToken))
                 {
-                    return null;
+                    _token = await _oAuth2Client.RequestTokenAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    return t.ExpiresIn;
-                }
-            }
-        }
-
-        public void Refresh()
-        {
-            retrieveToken();
-        }
-
-        private IToken checkState()
-        {
-            _lock.AcquireReaderLock(TOKEN_RETRIEVAL_TIMEOUT);
-            try
-            {
-                if (_token != null)
-                {
-                    return _token;
+                    _token = await _oAuth2Client.RefreshTokenAsync(_token, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             finally
             {
-                _lock.ReleaseReaderLock();
+                _semaphore.Release();
             }
 
-            return retrieveToken();
-        }
-
-        private IToken retrieveToken()
-        {
-            _lock.AcquireWriterLock(TOKEN_RETRIEVAL_TIMEOUT);
-            try
+            if (_token is null)
             {
-                return requestOrRenewToken();
-            }
-            finally
-            {
-                _lock.ReleaseReaderLock();
-            }
-        }
-
-        private IToken requestOrRenewToken()
-        {
-            if (_token == null || _token.RefreshToken == null)
-            {
-                _token = _oAuth2Client.RequestToken();
+                throw new InvalidOperationException("_token should not be null here");
             }
             else
             {
-                _token = _oAuth2Client.RefreshToken(_token);
+                return new Credentials(_name, string.Empty,
+                    _token.AccessToken, _token.ExpiresIn);
             }
-            return _token;
+        }
+
+        public void Dispose()
+        {
+            _semaphore.Dispose();
         }
     }
 }

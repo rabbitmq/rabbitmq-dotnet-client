@@ -30,14 +30,20 @@
 //---------------------------------------------------------------------------
 
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
     public class PlainMechanism : IAuthMechanism
     {
-        public byte[] handleChallenge(byte[]? challenge, ConnectionConfig config)
+        public async Task<byte[]> HandleChallengeAsync(byte[]? challenge, ConnectionConfig config,
+            CancellationToken cancellationToken = default)
         {
-            return Encoding.UTF8.GetBytes($"\0{config.CredentialsProvider.UserName}\0{config.CredentialsProvider.Password}");
+            ICredentialsProvider credentialsProvider = config.CredentialsProvider;
+            Credentials credentials = await credentialsProvider.GetCredentialsAsync(cancellationToken)
+                .ConfigureAwait(false);
+            return Encoding.UTF8.GetBytes($"\0{credentials.UserName}\0{credentials.Password}");
         }
     }
 }

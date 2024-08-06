@@ -34,84 +34,26 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client.OAuth2
 {
-    public interface IOAuth2Client
-    {
-        IToken RequestToken();
-        IToken RefreshToken(IToken token);
-    }
-
-    public interface IToken
-    {
-        string AccessToken { get; }
-        string RefreshToken { get; }
-        TimeSpan ExpiresIn { get; }
-        bool hasExpired { get; }
-    }
-
-    public class Token : IToken
-    {
-        private readonly JsonToken _source;
-        private readonly DateTime _lastTokenRenewal;
-
-        public Token(JsonToken json)
-        {
-            this._source = json;
-            this._lastTokenRenewal = DateTime.Now;
-        }
-
-        public string AccessToken
-        {
-            get
-            {
-                return _source.access_token;
-            }
-        }
-
-        public string RefreshToken
-        {
-            get
-            {
-                return _source.refresh_token;
-            }
-        }
-
-        public TimeSpan ExpiresIn
-        {
-            get
-            {
-                return TimeSpan.FromSeconds(_source.expires_in);
-            }
-        }
-
-        bool IToken.hasExpired
-        {
-            get
-            {
-                TimeSpan age = DateTime.Now - _lastTokenRenewal;
-                return age > ExpiresIn;
-            }
-        }
-    }
-
     public class OAuth2ClientBuilder
     {
         private readonly string _clientId;
         private readonly string _clientSecret;
         private readonly Uri _tokenEndpoint;
-        private string _scope;
-        private IDictionary<string, string> _additionalRequestParameters;
-        private HttpClientHandler _httpClientHandler;
+        private string? _scope;
+        private IDictionary<string, string>? _additionalRequestParameters;
+        private HttpClientHandler? _httpClientHandler;
 
         public OAuth2ClientBuilder(string clientId, string clientSecret, Uri tokenEndpoint)
         {
             _clientId = clientId ?? throw new ArgumentNullException(nameof(clientId));
             _clientSecret = clientSecret ?? throw new ArgumentNullException(nameof(clientSecret));
             _tokenEndpoint = tokenEndpoint ?? throw new ArgumentNullException(nameof(tokenEndpoint));
-
         }
 
         public OAuth2ClientBuilder SetScope(string scope)
@@ -132,15 +74,18 @@ namespace RabbitMQ.Client.OAuth2
             {
                 throw new ArgumentNullException("param is null");
             }
+
             if (paramValue == null)
             {
                 throw new ArgumentNullException("paramValue is null");
             }
+
             if (_additionalRequestParameters == null)
             {
                 _additionalRequestParameters = new Dictionary<string, string>();
             }
             _additionalRequestParameters[param] = paramValue;
+
             return this;
         }
 
@@ -169,60 +114,91 @@ namespace RabbitMQ.Client.OAuth2
         private readonly string _clientId;
         private readonly string _clientSecret;
         private readonly Uri _tokenEndpoint;
-        private readonly string _scope;
+        private readonly string? _scope;
         private readonly IDictionary<string, string> _additionalRequestParameters;
 
         public static readonly IDictionary<string, string> EMPTY = new Dictionary<string, string>();
 
         private HttpClient _httpClient;
 
-        public OAuth2Client(string clientId, string clientSecret, Uri tokenEndpoint, string scope,
-                IDictionary<string, string> additionalRequestParameters,
-                HttpClientHandler httpClientHandler)
+        public OAuth2Client(string clientId, string clientSecret, Uri tokenEndpoint,
+            string? scope,
+            IDictionary<string, string>? additionalRequestParameters,
+            HttpClientHandler? httpClientHandler)
         {
-            this._clientId = clientId;
-            this._clientSecret = clientSecret;
-            this._scope = scope;
-            this._additionalRequestParameters = additionalRequestParameters == null ? EMPTY : additionalRequestParameters;
-            this._tokenEndpoint = tokenEndpoint;
+            _clientId = clientId;
+            _clientSecret = clientSecret;
+            _scope = scope;
+            _additionalRequestParameters = additionalRequestParameters ?? EMPTY;
+            _tokenEndpoint = tokenEndpoint;
 
-            _httpClient = httpClientHandler == null ? new HttpClient() :
-                new HttpClient(httpClientHandler);
+            if (httpClientHandler is null)
+            {
+                _httpClient = new HttpClient();
+            }
+            else
+            {
+                _httpClient = new HttpClient(httpClientHandler, false);
+            }
+
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public IToken RequestToken()
+        public async Task<IToken> RequestTokenAsync(CancellationToken cancellationToken = default)
         {
-            var req = new HttpRequestMessage(HttpMethod.Post, _tokenEndpoint);
-            req.Content = new FormUrlEncodedContent(buildRequestParameters());
+            using HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, _tokenEndpoint);
+            req.Content = new FormUrlEncodedContent(BuildRequestParameters());
 
-            Task<HttpResponseMessage> response = _httpClient.SendAsync(req);
-            response.Wait();
-            response.Result.EnsureSuccessStatusCode();
-            Task<JsonToken> token = response.Result.Content.ReadFromJsonAsync<JsonToken>();
-            token.Wait();
-            return new Token(token.Result);
+            using HttpResponseMessage response = await _httpClient.SendAsync(req)
+                .ConfigureAwait(false);
+
+            response.EnsureSuccessStatusCode();
+
+            JsonToken? token = await response.Content.ReadFromJsonAsync<JsonToken>()
+                .ConfigureAwait(false);
+
+            if (token is null)
+            {
+                // TODO specific exception?
+                throw new InvalidOperationException("token is null");
+            }
+            else
+            {
+                return new Token(token);
+            }
         }
 
-        public IToken RefreshToken(IToken token)
+        public async Task<IToken> RefreshTokenAsync(IToken token,
+            CancellationToken cancellationToken = default)
         {
             if (token.RefreshToken == null)
             {
                 throw new InvalidOperationException("Token has no Refresh Token");
             }
 
-            var req = new HttpRequestMessage(HttpMethod.Post, _tokenEndpoint)
+            using HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, _tokenEndpoint)
             {
-                Content = new FormUrlEncodedContent(buildRefreshParameters(token))
+                Content = new FormUrlEncodedContent(BuildRefreshParameters(token))
             };
 
-            Task<HttpResponseMessage> response = _httpClient.SendAsync(req);
-            response.Wait();
-            response.Result.EnsureSuccessStatusCode();
-            Task<JsonToken> refreshedToken = response.Result.Content.ReadFromJsonAsync<JsonToken>();
-            refreshedToken.Wait();
-            return new Token(refreshedToken.Result);
+            using HttpResponseMessage response = await _httpClient.SendAsync(req)
+                .ConfigureAwait(false);
+
+            response.EnsureSuccessStatusCode();
+
+            JsonToken? refreshedToken = await response.Content.ReadFromJsonAsync<JsonToken>()
+                .ConfigureAwait(false);
+
+            if (refreshedToken is null)
+            {
+                // TODO specific exception?
+                throw new InvalidOperationException("refreshed token is null");
+            }
+            else
+            {
+                return new Token(refreshedToken);
+            }
         }
 
         public void Dispose()
@@ -230,66 +206,80 @@ namespace RabbitMQ.Client.OAuth2
             _httpClient.Dispose();
         }
 
-        private Dictionary<string, string> buildRequestParameters()
+        private Dictionary<string, string> BuildRequestParameters()
         {
             var dict = new Dictionary<string, string>(_additionalRequestParameters)
             {
                 { CLIENT_ID, _clientId },
                 { CLIENT_SECRET, _clientSecret }
             };
+
             if (_scope != null && _scope.Length > 0)
             {
                 dict.Add(SCOPE, _scope);
             }
+
             dict.Add(GRANT_TYPE, GRANT_TYPE_CLIENT_CREDENTIALS);
+
             return dict;
         }
 
-        private Dictionary<string, string> buildRefreshParameters(IToken token)
+        private Dictionary<string, string> BuildRefreshParameters(IToken token)
         {
-            var dict = buildRequestParameters();
+            Dictionary<string, string> dict = BuildRequestParameters();
             dict.Remove(GRANT_TYPE);
             dict.Add(GRANT_TYPE, REFRESH_TOKEN);
+
             if (_scope != null)
             {
                 dict.Add(SCOPE, _scope);
             }
-            dict.Add(REFRESH_TOKEN, token.RefreshToken);
+
+            if (token.RefreshToken != null)
+            {
+                dict.Add(REFRESH_TOKEN, token.RefreshToken);
+            }
+
             return dict;
         }
     }
 
-    public class JsonToken
+    internal class JsonToken
     {
         public JsonToken()
         {
+            AccessToken = string.Empty;
+            RefreshToken = string.Empty;
         }
 
         public JsonToken(string access_token, string refresh_token, TimeSpan expires_in_span)
         {
-            this.access_token = access_token;
-            this.refresh_token = refresh_token;
-            this.expires_in = (long)expires_in_span.TotalSeconds;
+            AccessToken = access_token;
+            RefreshToken = refresh_token;
+            ExpiresIn = (long)expires_in_span.TotalSeconds;
         }
 
         public JsonToken(string access_token, string refresh_token, long expires_in)
         {
-            this.access_token = access_token;
-            this.refresh_token = refresh_token;
-            this.expires_in = expires_in;
+            AccessToken = access_token;
+            RefreshToken = refresh_token;
+            ExpiresIn = expires_in;
         }
 
-        public string access_token
+        [JsonPropertyName("access_token")]
+        public string AccessToken
         {
             get; set;
         }
 
-        public string refresh_token
+        [JsonPropertyName("refresh_token")]
+        public string? RefreshToken
         {
             get; set;
         }
 
-        public long expires_in
+        [JsonPropertyName("expires_in")]
+        public long ExpiresIn
         {
             get; set;
         }

@@ -4,45 +4,48 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyNetQ.Management.Client;
-using RabbitMQ.Client;
+using Xunit.Abstractions;
 
 namespace Test
 {
-    public static class Util
+    public class Util : IDisposable
     {
-        private static readonly ManagementClient s_managementClient;
+        private readonly ITestOutputHelper _output;
+        private readonly ManagementClient _managementClient;
         private static readonly bool s_isWindows = false;
 
         static Util()
         {
-            var managementUri = new Uri("http://localhost:15672");
-            s_managementClient = new ManagementClient(managementUri, "guest", "guest");
             s_isWindows = InitIsWindows();
         }
 
-        public static string Now => DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+        public Util(ITestOutputHelper output) : this(output, "guest", "guest")
+        {
+        }
+
+        public Util(ITestOutputHelper output, string managementUsername, string managementPassword)
+        {
+            _output = output;
+
+            if (string.IsNullOrEmpty(managementUsername))
+            {
+                managementUsername = "guest";
+            }
+
+            if (string.IsNullOrEmpty(managementPassword))
+            {
+                throw new ArgumentNullException(nameof(managementPassword));
+            }
+
+            var managementUri = new Uri("http://localhost:15672");
+            _managementClient = new ManagementClient(managementUri, managementUsername, managementPassword);
+        }
+
+        public static string Now => DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
 
         public static bool IsWindows => s_isWindows;
 
-        private static bool InitIsWindows()
-        {
-            PlatformID platform = Environment.OSVersion.Platform;
-            if (platform == PlatformID.Win32NT)
-            {
-                return true;
-            }
-
-            string os = Environment.GetEnvironmentVariable("OS");
-            if (os != null)
-            {
-                os = os.Trim();
-                return os == "Windows_NT";
-            }
-
-            return false;
-        }
-
-        public static async Task CloseConnectionAsync(IConnection conn)
+        public async Task CloseConnectionAsync(string connectionClientProvidedName)
         {
             ushort tries = 1;
             EasyNetQ.Management.Client.Model.Connection connectionToClose = null;
@@ -61,11 +64,11 @@ namespace Test
 
                         await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
 
-                        connections = await s_managementClient.GetConnectionsAsync();
+                        connections = await _managementClient.GetConnectionsAsync();
                     } while (connections.Count == 0);
 
                     connectionToClose = connections.Where(c0 =>
-                        string.Equals((string)c0.ClientProperties["connection_name"], conn.ClientProvidedName,
+                        string.Equals((string)c0.ClientProperties["connection_name"], connectionClientProvidedName,
                         StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
                 }
                 catch (ArgumentNullException)
@@ -79,7 +82,7 @@ namespace Test
                 {
                     try
                     {
-                        await s_managementClient.CloseConnectionAsync(connectionToClose);
+                        await _managementClient.CloseConnectionAsync(connectionToClose);
                         return;
                     }
                     catch (UnexpectedHttpStatusCodeException)
@@ -91,8 +94,29 @@ namespace Test
 
             if (connectionToClose == null)
             {
-                throw new InvalidOperationException($"Could not delete connection: '{conn.ClientProvidedName}'");
+                _output.WriteLine("{0} [WARNING] could not find/delete connection: '{1}'",
+                    Now, connectionClientProvidedName);
             }
+        }
+
+        public void Dispose() => _managementClient.Dispose();
+
+        private static bool InitIsWindows()
+        {
+            PlatformID platform = Environment.OSVersion.Platform;
+            if (platform == PlatformID.Win32NT)
+            {
+                return true;
+            }
+
+            string os = Environment.GetEnvironmentVariable("OS");
+            if (os != null)
+            {
+                os = os.Trim();
+                return os == "Windows_NT";
+            }
+
+            return false;
         }
     }
 }

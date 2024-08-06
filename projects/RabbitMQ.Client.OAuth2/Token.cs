@@ -1,4 +1,4 @@
-// This source code is dual-licensed under the Apache License, version
+﻿// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -30,40 +30,59 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace RabbitMQ.Client
+namespace RabbitMQ.Client.OAuth2
 {
-    public interface ICredentialsProvider
+    public interface IToken
     {
-        string Name { get; }
-        Task<Credentials> GetCredentialsAsync(CancellationToken cancellationToken = default);
+        string AccessToken { get; }
+        string? RefreshToken { get; }
+        TimeSpan ExpiresIn { get; }
+        bool HasExpired { get; }
     }
 
-    public class Credentials
+    public class Token : IToken
     {
-        private readonly string _name;
-        private readonly string _userName;
-        private readonly string _password;
-        private readonly TimeSpan? _validUntil;
+        private readonly JsonToken _source;
+        private readonly DateTime _lastTokenRenewal;
 
-        public Credentials(string name, string userName, string password, TimeSpan? validUntil)
+        internal Token(JsonToken json)
         {
-            _name = name;
-            _userName = userName;
-            _password = password;
-            _validUntil = validUntil;
+            _source = json;
+            _lastTokenRenewal = DateTime.Now;
         }
 
-        public string Name => _name;
-        public string UserName => _userName;
-        public string Password => _password;
+        public string AccessToken
+        {
+            get
+            {
+                return _source.AccessToken;
+            }
+        }
 
-        /// <summary>
-        /// If credentials have an expiry time this property returns the interval.
-        /// Otherwise, it returns null.
-        /// </summary>
-        public TimeSpan? ValidUntil => _validUntil;
+        public string? RefreshToken
+        {
+            get
+            {
+                return _source.RefreshToken;
+            }
+        }
+
+        public TimeSpan ExpiresIn
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(_source.ExpiresIn);
+            }
+        }
+
+        bool IToken.HasExpired
+        {
+            get
+            {
+                TimeSpan age = DateTime.Now - _lastTokenRenewal;
+                return age > ExpiresIn;
+            }
+        }
     }
 }
