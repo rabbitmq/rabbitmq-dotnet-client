@@ -100,13 +100,13 @@ namespace Test.Integration
             };
 
             var c = (AutorecoveringConnection)_conn;
-            Task frameHandlerCloseTask = c.CloseFrameHandlerAsync();
+            ValueTask frameHandlerCloseTask = c.CloseFrameHandlerAsync();
 
             try
             {
                 _conn.Dispose();
                 await WaitAsync(tcs, WaitSpan, "channel shutdown");
-                await frameHandlerCloseTask.WaitAsync(WaitSpan);
+                await frameHandlerCloseTask.AsTask().WaitAsync(WaitSpan);
             }
             finally
             {

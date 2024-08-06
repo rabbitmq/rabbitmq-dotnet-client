@@ -183,7 +183,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public override string ToString()
             => $"AutorecoveringConnection({InnerConnection.Id},{Endpoint},{GetHashCode()})";
 
-        internal Task CloseFrameHandlerAsync()
+        internal ValueTask CloseFrameHandlerAsync()
         {
             return InnerConnection.FrameHandler.CloseAsync(CancellationToken.None);
         }
