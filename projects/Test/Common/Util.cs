@@ -94,8 +94,8 @@ namespace Test
 
             if (connectionToClose == null)
             {
-                _output.WriteLine("{0} [WARNING] could not find/delete connection: '{1}'",
-                    Now, connectionClientProvidedName);
+                throw new InvalidOperationException(
+                    $"{Now} [ERROR] could not find/delete connection: '{connectionClientProvidedName}'");
             }
         }
 

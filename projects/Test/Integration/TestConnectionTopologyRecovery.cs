@@ -187,7 +187,9 @@ namespace Test.Integration
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
             conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+
             IChannel ch = await conn.CreateChannelAsync();
+
             try
             {
                 string exchange = "topology.recovery.exchange";
