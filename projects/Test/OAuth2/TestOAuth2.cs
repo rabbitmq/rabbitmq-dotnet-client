@@ -46,29 +46,33 @@ namespace OAuth2Test
     {
         private const string Exchange = "test_direct";
 
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly SemaphoreSlim _doneEvent = new SemaphoreSlim(0, 1);
         private readonly ITestOutputHelper _testOutputHelper;
-        private readonly IConnectionFactory _connectionFactory;
         private readonly int _tokenExpiresInSeconds;
-        private readonly OAuth2ClientCredentialsProvider _producerCredentialsProvider;
-        private readonly OAuth2ClientCredentialsProvider _httpApiCredentialsProvider;
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
+        private OAuth2ClientCredentialsProvider? _producerCredentialsProvider;
+        private OAuth2ClientCredentialsProvider? _httpApiCredentialsProvider;
+        private IConnectionFactory? _connectionFactory;
         private IConnection? _connection;
         private CredentialsRefresher? _credentialsRefresher;
 
         public TestOAuth2(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
+            _tokenExpiresInSeconds = OAuth2OptionsBase.TokenExpiresInSeconds;
+        }
 
+        public async Task InitializeAsync()
+        {
             string modeStr = Environment.GetEnvironmentVariable("OAUTH2_MODE") ?? "uaa";
             Mode mode = (Mode)Enum.Parse(typeof(Mode), modeStr.ToLowerInvariant());
 
             var producerOptions = new OAuth2ProducerOptions(mode);
-            _producerCredentialsProvider = GetCredentialsProvider(producerOptions);
+            _producerCredentialsProvider = await GetCredentialsProviderAsync(producerOptions);
 
             var httpApiOptions = new OAuth2HttpApiOptions(mode);
-            _httpApiCredentialsProvider = GetCredentialsProvider(httpApiOptions);
+            _httpApiCredentialsProvider = await GetCredentialsProviderAsync(httpApiOptions);
 
             _connectionFactory = new ConnectionFactory
             {
@@ -77,11 +81,6 @@ namespace OAuth2Test
                 ClientProvidedName = nameof(TestOAuth2)
             };
 
-            _tokenExpiresInSeconds = OAuth2OptionsBase.TokenExpiresInSeconds;
-        }
-
-        public async Task InitializeAsync()
-        {
             _connection = await _connectionFactory.CreateConnectionAsync(_cancellationTokenSource.Token);
 
             _connection.ConnectionShutdown += (sender, ea) =>
@@ -119,8 +118,9 @@ namespace OAuth2Test
             finally
             {
                 _doneEvent.Dispose();
-                _producerCredentialsProvider.Dispose();
+                _producerCredentialsProvider?.Dispose();
                 _connection?.Dispose();
+                _cancellationTokenSource.Dispose();
             }
         }
 
@@ -174,6 +174,7 @@ namespace OAuth2Test
                                 async Task CloseConnection()
                                 {
                                     Assert.NotNull(_connection);
+                                    Assert.NotNull(_httpApiCredentialsProvider);
                                     Credentials httpApiCredentials = await _httpApiCredentialsProvider.GetCredentialsAsync();
                                     closeConnectionUtil = new Util(_testOutputHelper, "mgt_api_client", httpApiCredentials.Password);
                                     await closeConnectionUtil.CloseConnectionAsync(_connection.ClientProvidedName);
@@ -217,6 +218,7 @@ namespace OAuth2Test
         [Fact]
         public async Task SecondConnectionCrashes_GH1429()
         {
+            Assert.NotNull(_connectionFactory);
             // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429
             IConnection secondConnection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
             secondConnection.Dispose();
@@ -267,7 +269,7 @@ namespace OAuth2Test
             await consumeChannel.BasicCancelAsync(consumerTag);
         }
 
-        private OAuth2ClientCredentialsProvider GetCredentialsProvider(OAuth2OptionsBase opts)
+        private async Task<OAuth2ClientCredentialsProvider> GetCredentialsProviderAsync(OAuth2OptionsBase opts)
         {
             _testOutputHelper.WriteLine("OAuth2Client ");
             _testOutputHelper.WriteLine($"- ClientId: {opts.ClientId}");
@@ -276,7 +278,8 @@ namespace OAuth2Test
             _testOutputHelper.WriteLine($"- Scope: {opts.Scope}");
 
             var tokenEndpointUri = new Uri(opts.TokenEndpoint);
-            IOAuth2Client oAuth2Client = new OAuth2ClientBuilder(opts.ClientId, opts.ClientSecret, tokenEndpointUri).Build();
+            var builder = new OAuth2ClientBuilder(opts.ClientId, opts.ClientSecret, tokenEndpointUri);
+            IOAuth2Client oAuth2Client = await builder.BuildAsync();
             return new OAuth2ClientCredentialsProvider(opts.Name, oAuth2Client);
         }
 

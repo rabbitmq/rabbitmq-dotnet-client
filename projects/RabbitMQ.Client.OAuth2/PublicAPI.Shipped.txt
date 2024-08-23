@@ -7,8 +7,7 @@ RabbitMQ.Client.OAuth2.IToken.HasExpired.get -> bool
 RabbitMQ.Client.OAuth2.IToken.RefreshToken.get -> string
 RabbitMQ.Client.OAuth2.OAuth2ClientBuilder
 RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.AddRequestParameter(string param, string paramValue) -> RabbitMQ.Client.OAuth2.OAuth2ClientBuilder
-RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.Build() -> RabbitMQ.Client.OAuth2.IOAuth2Client
-RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.OAuth2ClientBuilder(string clientId, string clientSecret, System.Uri tokenEndpoint) -> void
+RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.OAuth2ClientBuilder(string! clientId, string! clientSecret, System.Uri? tokenEndpoint = null, System.Uri? issuer = null) -> void
 RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.SetScope(string scope) -> RabbitMQ.Client.OAuth2.OAuth2ClientBuilder
 RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider
 RabbitMQ.Client.OAuth2.OAuth2ClientCredentialsProvider.Name.get -> string

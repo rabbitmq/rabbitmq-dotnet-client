@@ -41,24 +41,36 @@ using Xunit;
 
 namespace OAuth2Test
 {
-    public class TestOAuth2Client
+    public class TestOAuth2Client : IAsyncLifetime
     {
         protected string _client_id = "producer";
         protected string _client_secret = "kbOFBXI9tANgKUq8vXHLhT6YhbivgXxn";
         protected WireMockServer _oauthServer;
 
-        protected IOAuth2Client _client;
+        protected IOAuth2Client? _client;
 
         public TestOAuth2Client()
         {
             _oauthServer = WireMockServer.Start();
+        }
+
+        public async Task InitializeAsync()
+        {
             var uri = new Uri(_oauthServer.Url + "/token");
-            _client = new OAuth2ClientBuilder(_client_id, _client_secret, uri).Build();
+            var builder = new OAuth2ClientBuilder(_client_id, _client_secret, uri);
+            _client = await builder.BuildAsync();
+        }
+
+        public Task DisposeAsync()
+        {
+            return Task.CompletedTask;
         }
 
         [Fact]
         public async Task TestRequestToken()
         {
+            Assert.NotNull(_client);
+
             JsonToken expectedJsonToken = new JsonToken("the_access_token", "the_refresh_token", TimeSpan.FromSeconds(10));
             ExpectTokenRequest(new RequestFormMatcher()
                             .WithParam("client_id", _client_id)
@@ -76,6 +88,8 @@ namespace OAuth2Test
         [Fact]
         public async Task TestRefreshToken()
         {
+            Assert.NotNull(_client);
+
             const string accessToken0 = "the_access_token";
             const string accessToken1 = "the_access_token_2";
             const string refreshToken = "the_refresh_token";
@@ -110,6 +124,8 @@ namespace OAuth2Test
         [Fact]
         public async Task TestInvalidCredentials()
         {
+            Assert.NotNull(_client);
+
             _oauthServer
                 .Given(
                     Request.Create()
