@@ -36,12 +36,19 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Called each time a message arrives for this consumer.
-        /// </summary>
         /// <remarks>
-        /// Does nothing with the passed in information.
-        /// Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAckAsync"/>.
-        /// The implementation of this method in this class does NOT acknowledge such messages.
+        ///  <para>
+        ///   Does nothing with the passed in information.
+        ///   Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAckAsync"/>.
+        ///   The implementation of this method in this class does NOT acknowledge such messages.
+        ///  </para>
+        ///  <para>
+        ///    NOTE: Using the <c>body</c> outside of
+        ///    <c><seealso cref="IAsyncBasicConsumer.HandleBasicDeliverAsync(string, ulong, bool, string, string, IReadOnlyBasicProperties, ReadOnlyMemory{byte})"/></c>
+        ///    requires that it be copied!
+        ///  </para>
         /// </remarks>
+        ///</summary>
         Task HandleBasicDeliverAsync(string consumerTag,
             ulong deliveryTag,
             bool redelivered,

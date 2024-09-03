@@ -2,10 +2,117 @@
 
 ## [Unreleased](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/HEAD)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.1...HEAD)
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.8...HEAD)
+
+**Closed issues:**
+
+- Re-review use of `Task` vs `ValueTask` in API [\#1645](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1645)
+
+**Merged pull requests:**
+
+- Added ability to use Issuer to receive Token Endpoint for the OAuth2ClientBuilder [\#1656](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1656) ([Lyphion](https://github.com/Lyphion))
+- Consistently use `Task` or `ValueTask` in APIs [\#1646](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1646) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-rc.8](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.8) (2024-08-06)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.7...v7.0.0-rc.8)
 
 **Fixed bugs:**
 
+- Automatic recovery fails if the channel is disposed [\#1647](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1647)
+- Timer leak and potential JWT/OAuth2 expiry in TimerBasedCredentialRefresher \[OAuth2\] [\#1639](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1639)
+
+**Merged pull requests:**
+
+- Refactor credential refresh [\#1649](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1649) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-rc.7](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.7) (2024-07-31)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.6...v7.0.0-rc.7)
+
+**Merged pull requests:**
+
+- Fix object disposed exception during channel Recovery [\#1648](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1648) ([lukebakken](https://github.com/lukebakken))
+- Support cancellation on the flow control block [\#1643](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1643) ([danielmarbach](https://github.com/danielmarbach))
+- Align Reject with Ack/Nack [\#1642](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1642) ([danielmarbach](https://github.com/danielmarbach))
+- Add cancellation token overload to channel extensions [\#1641](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1641) ([danielmarbach](https://github.com/danielmarbach))
+- use async consumer only [\#1638](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1638) ([bollhals](https://github.com/bollhals))
+
+## [v7.0.0-rc.6](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.6) (2024-07-22)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.5...v7.0.0-rc.6)
+
+**Implemented enhancements:**
+
+- Nullable Reference Types [\#1596](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1596)
+
+**Fixed bugs:**
+
+- NullReferenceException when setting null Uri into ConnectionFactory [\#1622](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1622)
+- RabbitMQActivitySource.Deliver cannot be used by types that implement Consumer [\#1621](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1621)
+
+**Merged pull requests:**
+
+- simplify IncomingCommand.ReturnBuffers handling [\#1636](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1636) ([bollhals](https://github.com/bollhals))
+- Move `Deliver` OTEL activity to consumer dispatchers [\#1633](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1633) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-rc.5](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.5) (2024-07-09)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.4...v7.0.0-rc.5)
+
+**Implemented enhancements:**
+
+- Testability of HandleBasicDeliver in IAsyncBasicConsumer [\#1630](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1630)
+
+**Fixed bugs:**
+
+- Connection recovery issue when docker container stopped / started. [\#1623](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1623)
+
+**Closed issues:**
+
+- Back-port \#1616 to 6.x [\#1617](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1617)
+
+**Merged pull requests:**
+
+- Replace ReadOnlyBasicProperties with IReadOnlyBasicProperties [\#1631](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1631) ([Tornhoof](https://github.com/Tornhoof))
+- make IncomingCommand a class and simplify code around it [\#1628](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1628) ([bollhals](https://github.com/bollhals))
+- Add NRT for the whole client assembly [\#1626](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1626) ([bollhals](https://github.com/bollhals))
+
+## [v7.0.0-rc.4](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.4) (2024-07-02)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.3...v7.0.0-rc.4)
+
+**Closed issues:**
+
+- "Serialized to wrong size" exception when call `BasicPublish` [\#1620](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1620)
+
+**Merged pull requests:**
+
+- Fix issue when recovery takes longer than recovery interval [\#1624](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1624) ([lukebakken](https://github.com/lukebakken))
+- Avoid boxing in IEndpointResolverExtensions.cs [\#1619](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1619) ([lechu445](https://github.com/lechu445))
+
+## [v7.0.0-rc.3](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.3) (2024-06-27)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.2...v7.0.0-rc.3)
+
+**Implemented enhancements:**
+
+- Expose ConnectionFactory.DispatchConsumersAsync as a ReadOnly property on IConnection [\#1610](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1610)
+
+**Merged pull requests:**
+
+- Ensure that arguments passed to recorded entities are copied. [\#1616](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1616) ([lukebakken](https://github.com/lukebakken))
+- Add `DispatchConsumersAsyncEnabled` property on `IConnection` \(\#1611\) [\#1615](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1615) ([lukebakken](https://github.com/lukebakken))
+- change InboundFrame to a class [\#1613](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1613) ([bollhals](https://github.com/bollhals))
+- Make `BasicProperties` a class [\#1609](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1609) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-rc.2](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.2) (2024-06-21)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.1...v7.0.0-rc.2)
+
+**Fixed bugs:**
+
+- Issues with 7.0rc1 IAsyncBasicConsumer's method  [\#1601](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1601)
 - \[OTel\] Activity is not produced for BasicConsumeAsync on .NET Framework [\#1533](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1533)
 
 **Closed issues:**
@@ -14,6 +121,13 @@
 
 **Merged pull requests:**
 
+- docs: update badge [\#1608](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1608) ([WeihanLi](https://github.com/WeihanLi))
+- Make `ReadonlyBasicProperties` a class. [\#1607](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1607) ([lukebakken](https://github.com/lukebakken))
+- remove CancellationTokenSource from DispatcherChannelBase [\#1606](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1606) ([bollhals](https://github.com/bollhals))
+- fix some quick wins [\#1603](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1603) ([bollhals](https://github.com/bollhals))
+- Remove in from async methods [\#1602](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1602) ([Tornhoof](https://github.com/Tornhoof))
+- nuget CPM support [\#1599](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1599) ([WeihanLi](https://github.com/WeihanLi))
+- Update CHANGELOG [\#1598](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1598) ([lukebakken](https://github.com/lukebakken))
 - Use default value for `RabbitMQActivitySource.UseRoutingKeyAsOperationName` [\#1595](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1595) ([lukebakken](https://github.com/lukebakken))
 - downgrade dependencies [\#1594](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1594) ([WeihanLi](https://github.com/WeihanLi))
 

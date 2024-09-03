@@ -14,22 +14,31 @@ The client is [distributed via NuGet](https://www.nuget.org/packages/RabbitMQ.Cl
 
 ## Tutorials and Documentation
 
- * [Tutorials](https://www.rabbitmq.com/getstarted.html)
- * [Documentation guide](https://www.rabbitmq.com/dotnet.html)
- * [API Documentation](https://rabbitmq.github.io/rabbitmq-dotnet-client/index.html)
+ * [Tutorials](https://www.rabbitmq.com/tutorials)
+ * [Documentation guide](https://www.rabbitmq.com/client-libraries/dotnet)
+ * [API Documentation](https://rabbitmq.github.io/rabbitmq-dotnet-client/api/RabbitMQ.Client.html)
 
 
 ## Supported Platforms and .NET Releases
 
+### 7.x
+
+`7.x` versions of the library require .NET framework 4.6.1 or any supported
+.NET version. They also introduce potentially breaking public API changes
+covered in the [changelog](CHANGELOG.md) and [migration
+guide](v7-MIGRATION.md).
+
 ### 6.x
 
-Latest `6.x` versions of the library require .NET framework 4.6.1 or a .NET version up to 7.
-They also introduce potentially breaking public API changes covered in the [changelog](CHANGELOG.md).
+`6.x` versions of the library require .NET framework 4.6.1 or any supported
+.NET version. They also introduce potentially breaking public API changes
+covered in the [changelog](CHANGELOG.md).
 
 ### 5.x and 4.x
 
-`4.x` and `5.x` versions of the library require .NET 4.5.1 or later or .NET Core.
-For .NET Core users, 2.0 is the minimum supported version for `5.x` series.
+`4.x` and `5.x` versions of the library require .NET 4.5.1 or later or .NET
+Core. For .NET Core users, 2.0 is the minimum supported version for `5.x`
+series.
 
 
 ## Change Log
