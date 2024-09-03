@@ -36,7 +36,19 @@ namespace RabbitMQ.Client.OAuth2
 {
     public interface IOAuth2Client
     {
+        /// <summary>
+        /// Request a new AccessToken from the Token Endpoint.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token for this request</param>
+        /// <returns>Token with Access and Refresh Token</returns>
         Task<IToken> RequestTokenAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Request a new AccessToken using the Refresh Token from the Token Endpoint.
+        /// </summary>
+        /// <param name="token">Token with the Refresh Token</param>
+        /// <param name="cancellationToken">Cancellation token for this request</param>
+        /// <returns>Token with Access and Refresh Token</returns>
         Task<IToken> RefreshTokenAsync(IToken token, CancellationToken cancellationToken = default);
     }
 }
