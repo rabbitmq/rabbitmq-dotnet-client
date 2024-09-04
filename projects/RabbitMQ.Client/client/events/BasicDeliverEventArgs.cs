@@ -59,7 +59,23 @@ namespace RabbitMQ.Client.Events
         ///<summary>The content header of the message.</summary>
         public readonly IReadOnlyBasicProperties BasicProperties;
 
-        ///<summary>The message body.</summary>
+        ///<summary>
+        /// <para>
+        ///   The message body as a sequence of bytes.
+        /// </para>
+        /// <para>
+        ///   NOTE: Using this memory outside of
+        ///   <c><seealso cref="AsyncEventingBasicConsumer.Received"/></c>
+        ///   requires that it be copied!
+        ///   <example>
+        ///   This shows how to copy the data for use:
+        ///   <code>
+        ///   byte[] bodyCopy = eventArgs.Body.ToArray();
+        ///   // bodyCopy is now safe to use elsewhere
+        ///   </code>
+        ///   </example>
+        /// </para>
+        ///</summary>
         public readonly ReadOnlyMemory<byte> Body;
 
         ///<summary>The consumer tag of the consumer that the message
