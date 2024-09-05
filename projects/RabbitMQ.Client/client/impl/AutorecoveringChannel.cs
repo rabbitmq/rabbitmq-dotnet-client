@@ -50,6 +50,7 @@ namespace RabbitMQ.Client.Impl
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
         private bool _usesPublisherConfirms;
+        private bool _tracksPublisherConfirmations;
         private bool _usesTransactions;
 
         internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
@@ -177,7 +178,7 @@ namespace RabbitMQ.Client.Impl
 
             if (_usesPublisherConfirms)
             {
-                await newChannel.ConfirmSelectAsync(cancellationToken)
+                await newChannel.ConfirmSelectAsync(_tracksPublisherConfirmations, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -334,11 +335,12 @@ namespace RabbitMQ.Client.Impl
             return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global, cancellationToken);
         }
 
-        public async Task ConfirmSelectAsync(CancellationToken cancellationToken)
+        public async Task ConfirmSelectAsync(bool trackConfirmations = true, CancellationToken cancellationToken = default)
         {
-            await InnerChannel.ConfirmSelectAsync(cancellationToken)
+            await InnerChannel.ConfirmSelectAsync(trackConfirmations, cancellationToken)
                 .ConfigureAwait(false);
             _usesPublisherConfirms = true;
+            _tracksPublisherConfirmations = trackConfirmations;
         }
 
         public async Task ExchangeBindAsync(string destination, string source, string routingKey,

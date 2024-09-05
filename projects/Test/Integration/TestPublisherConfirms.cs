@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -105,12 +104,8 @@ namespace Test.Integration
         {
             return TestWaitForConfirmsAsync(2000, async (ch) =>
             {
-                IChannel actualChannel = ((AutorecoveringChannel)ch).InnerChannel;
-                actualChannel
-                    .GetType()
-                    .GetMethod("HandleAckNack", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .Invoke(actualChannel, new object[] { 10UL, false, true });
-
+                RecoveryAwareChannel actualChannel = ((AutorecoveringChannel)ch).InnerChannel;
+                actualChannel.HandleAckNack(10UL, false, true);
                 using (var cts = new CancellationTokenSource(ShortSpan))
                 {
                     Assert.False(await ch.WaitForConfirmsAsync(cts.Token));

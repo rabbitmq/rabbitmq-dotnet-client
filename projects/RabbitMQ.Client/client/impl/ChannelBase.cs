@@ -60,8 +60,11 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
 
+        private ulong _nextPublishSeqNo;
         private SemaphoreSlim? _confirmSemaphore;
-        private readonly LinkedList<ulong> _pendingDeliveryTags = new LinkedList<ulong>();
+        private bool _trackConfirmations;
+        private LinkedList<ulong>? _pendingDeliveryTags;
+        private List<TaskCompletionSource<bool>>? _confirmsTaskCompletionSources;
 
         private bool _onlyAcksReceived = true;
 
@@ -176,7 +179,28 @@ namespace RabbitMQ.Client.Impl
         [MemberNotNullWhen(false, nameof(CloseReason))]
         public bool IsOpen => CloseReason is null;
 
-        public ulong NextPublishSeqNo { get; private set; }
+        public ulong NextPublishSeqNo
+        {
+            get
+            {
+                if (ConfirmsAreEnabled)
+                {
+                    _confirmSemaphore.Wait();
+                    try
+                    {
+                        return _nextPublishSeqNo;
+                    }
+                    finally
+                    {
+                        _confirmSemaphore.Release();
+                    }
+                }
+                else
+                {
+                    return _nextPublishSeqNo;
+                }
+            }
+        }
 
         public string? CurrentQueue { get; private set; }
 
@@ -588,57 +612,6 @@ namespace RabbitMQ.Client.Impl
             HandleAckNack(nack._deliveryTag, nack._multiple, true);
         }
 
-        protected void HandleAckNack(ulong deliveryTag, bool multiple, bool isNack)
-        {
-            // No need to do this if publisher confirms have never been enabled.
-            if (ConfirmsAreEnabled)
-            {
-                // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
-                _confirmSemaphore.Wait();
-                try
-                {
-                    // No need to do anything if there are no delivery tags in the list
-                    if (_pendingDeliveryTags.Count > 0)
-                    {
-                        if (multiple)
-                        {
-                            while (_pendingDeliveryTags.First!.Value < deliveryTag)
-                            {
-                                _pendingDeliveryTags.RemoveFirst();
-                            }
-
-                            if (_pendingDeliveryTags.First.Value == deliveryTag)
-                            {
-                                _pendingDeliveryTags.RemoveFirst();
-                            }
-                        }
-                        else
-                        {
-                            _pendingDeliveryTags.Remove(deliveryTag);
-                        }
-                    }
-
-                    _onlyAcksReceived = _onlyAcksReceived && !isNack;
-
-                    if (_pendingDeliveryTags.Count == 0 && _confirmsTaskCompletionSources!.Count > 0)
-                    {
-                        // Done, mark tasks
-                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
-                        {
-                            confirmsTaskCompletionSource.TrySetResult(_onlyAcksReceived);
-                        }
-
-                        _confirmsTaskCompletionSources.Clear();
-                        _onlyAcksReceived = true;
-                    }
-                }
-                finally
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
-        }
-
         protected async Task<bool> HandleBasicCancelAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             string consumerTag = new Client.Framing.Impl.BasicCancel(cmd.MethodSpan)._consumerTag;
@@ -962,7 +935,16 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
                 try
                 {
-                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                    if (_trackConfirmations)
+                    {
+                        if (_pendingDeliveryTags is null)
+                        {
+                            throw new InvalidOperationException(InternalConstants.BugFound);
+                        }
+                        _pendingDeliveryTags.AddLast(_nextPublishSeqNo);
+                    }
+
+                    _nextPublishSeqNo++;
                 }
                 finally
                 {
@@ -1005,8 +987,11 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                     try
                     {
-                        NextPublishSeqNo--;
-                        _pendingDeliveryTags.RemoveLast();
+                        _nextPublishSeqNo--;
+                        if (_trackConfirmations && _pendingDeliveryTags is not null)
+                        {
+                            _pendingDeliveryTags.RemoveLast();
+                        }
                     }
                     finally
                     {
@@ -1029,7 +1014,16 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
                 try
                 {
-                    _pendingDeliveryTags.AddLast(NextPublishSeqNo++);
+                    if (_trackConfirmations)
+                    {
+                        if (_pendingDeliveryTags is null)
+                        {
+                            throw new InvalidOperationException(InternalConstants.BugFound);
+                        }
+                        _pendingDeliveryTags.AddLast(_nextPublishSeqNo);
+                    }
+
+                    _nextPublishSeqNo++;
                 }
                 finally
                 {
@@ -1072,8 +1066,11 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                     try
                     {
-                        NextPublishSeqNo--;
-                        _pendingDeliveryTags.RemoveLast();
+                        _nextPublishSeqNo--;
+                        if (_trackConfirmations && _pendingDeliveryTags is not null)
+                        {
+                            _pendingDeliveryTags.RemoveLast();
+                        }
                     }
                     finally
                     {
@@ -1157,8 +1154,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task ConfirmSelectAsync(CancellationToken cancellationToken)
+        public async Task ConfirmSelectAsync(bool trackConfirmations = true, CancellationToken cancellationToken = default)
         {
+            _trackConfirmations = trackConfirmations;
             bool enqueued = false;
             var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
@@ -1166,10 +1164,14 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             try
             {
-                if (NextPublishSeqNo == 0UL)
+                if (_nextPublishSeqNo == 0UL)
                 {
-                    _confirmsTaskCompletionSources = new List<TaskCompletionSource<bool>>();
-                    NextPublishSeqNo = 1;
+                    if (_trackConfirmations)
+                    {
+                        _pendingDeliveryTags = new LinkedList<ulong>();
+                        _confirmsTaskCompletionSources = new List<TaskCompletionSource<bool>>();
+                    }
+                    _nextPublishSeqNo = 1;
                 }
 
                 enqueued = Enqueue(k);
@@ -1681,13 +1683,21 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private List<TaskCompletionSource<bool>>? _confirmsTaskCompletionSources;
-
         public async Task<bool> WaitForConfirmsAsync(CancellationToken cancellationToken = default)
         {
             if (false == ConfirmsAreEnabled)
             {
                 throw new InvalidOperationException("Confirms not selected");
+            }
+
+            if (false == _trackConfirmations)
+            {
+                throw new InvalidOperationException("Confirmation tracking is not enabled");
+            }
+
+            if (_pendingDeliveryTags is null)
+            {
+                throw new InvalidOperationException(InternalConstants.BugFound);
             }
 
             TaskCompletionSource<bool> tcs;
@@ -1731,6 +1741,21 @@ namespace RabbitMQ.Client.Impl
 
         public async Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
         {
+            if (false == ConfirmsAreEnabled)
+            {
+                throw new InvalidOperationException("Confirms not selected");
+            }
+
+            if (false == _trackConfirmations)
+            {
+                throw new InvalidOperationException("Confirmation tracking is not enabled");
+            }
+
+            if (_pendingDeliveryTags is null)
+            {
+                throw new InvalidOperationException(InternalConstants.BugFound);
+            }
+
             try
             {
                 bool onlyAcksReceived = await WaitForConfirmsAsync(token)
@@ -1761,6 +1786,21 @@ namespace RabbitMQ.Client.Impl
         private async Task<bool> WaitForConfirmsWithTokenAsync(TaskCompletionSource<bool> tcs,
             CancellationToken cancellationToken)
         {
+            if (false == ConfirmsAreEnabled)
+            {
+                throw new InvalidOperationException("Confirms not selected");
+            }
+
+            if (false == _trackConfirmations)
+            {
+                throw new InvalidOperationException("Confirmation tracking is not enabled");
+            }
+
+            if (_pendingDeliveryTags is null)
+            {
+                throw new InvalidOperationException(InternalConstants.BugFound);
+            }
+
             CancellationTokenRegistration tokenRegistration =
 #if NET6_0_OR_GREATER
                 cancellationToken.UnsafeRegister(
@@ -1782,6 +1822,63 @@ namespace RabbitMQ.Client.Impl
 #else
                 tokenRegistration.Dispose();
 #endif
+            }
+        }
+
+        // NOTE: this method is internal for its use in this test:
+        // TestWaitForConfirmsWithTimeoutAsync_MessageNacked_WaitingHasTimedout_ReturnFalse
+        internal void HandleAckNack(ulong deliveryTag, bool multiple, bool isNack)
+        {
+            // Only do this if confirms are enabled *and* the library is tracking confirmations
+            if (ConfirmsAreEnabled && _trackConfirmations)
+            {
+                if (_pendingDeliveryTags is null)
+                {
+                    throw new InvalidOperationException(InternalConstants.BugFound);
+                }
+                // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
+                _confirmSemaphore.Wait();
+                try
+                {
+                    // No need to do anything if there are no delivery tags in the list
+                    if (_pendingDeliveryTags.Count > 0)
+                    {
+                        if (multiple)
+                        {
+                            while (_pendingDeliveryTags.First!.Value < deliveryTag)
+                            {
+                                _pendingDeliveryTags.RemoveFirst();
+                            }
+
+                            if (_pendingDeliveryTags.First.Value == deliveryTag)
+                            {
+                                _pendingDeliveryTags.RemoveFirst();
+                            }
+                        }
+                        else
+                        {
+                            _pendingDeliveryTags.Remove(deliveryTag);
+                        }
+                    }
+
+                    _onlyAcksReceived = _onlyAcksReceived && !isNack;
+
+                    if (_pendingDeliveryTags.Count == 0 && _confirmsTaskCompletionSources!.Count > 0)
+                    {
+                        // Done, mark tasks
+                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                        {
+                            confirmsTaskCompletionSource.TrySetResult(_onlyAcksReceived);
+                        }
+
+                        _confirmsTaskCompletionSources.Clear();
+                        _onlyAcksReceived = true;
+                    }
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
+                }
             }
         }
 
