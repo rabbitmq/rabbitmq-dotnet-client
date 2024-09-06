@@ -194,7 +194,7 @@ namespace Test.Integration
 
                         for (int i = 0; i < publishCount && false == stop; i++)
                         {
-                            await publishChannel.BasicPublishAsync(string.Empty, queueName, sendBody, true);
+                            await publishChannel.BasicPublishAsync(string.Empty, queueName, true, sendBody);
                         }
 
                         await publishChannel.WaitForConfirmsOrDieAsync();

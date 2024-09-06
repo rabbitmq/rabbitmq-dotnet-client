@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.impl;
@@ -42,105 +41,166 @@ namespace RabbitMQ.Client
     {
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
         public static Task<string> BasicConsumeAsync(this IChannel channel,
-            IAsyncBasicConsumer consumer,
             string queue,
-            bool autoAck = false,
-            string consumerTag = "",
-            bool noLocal = false,
-            bool exclusive = false,
-            IDictionary<string, object?>? arguments = null,
-            CancellationToken cancellationToken = default)
-        {
-            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, noLocal, exclusive, arguments, consumer, cancellationToken);
-        }
-
-        /// <summary>Asynchronously start a Basic content-class consumer.</summary>
-        public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
             bool autoAck,
             IAsyncBasicConsumer consumer,
-            CancellationToken cancellationToken = default)
-        {
-            return channel.BasicConsumeAsync(queue, autoAck, string.Empty, false, false, null, consumer, cancellationToken);
-        }
+            CancellationToken cancellationToken = default) =>
+            channel.BasicConsumeAsync(queue: queue, autoAck: autoAck, consumerTag: string.Empty,
+                noLocal: false, exclusive: false, arguments: null, consumer: consumer,
+                cancellationToken);
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
-        public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
+        public static Task<string> BasicConsumeAsync(this IChannel channel,
+            string queue,
             bool autoAck,
             string consumerTag,
             IAsyncBasicConsumer consumer,
-            CancellationToken cancellationToken = default)
-        {
-            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, null, consumer, cancellationToken);
-        }
+            CancellationToken cancellationToken = default) =>
+            channel.BasicConsumeAsync(queue: queue, autoAck: autoAck, consumerTag: consumerTag,
+                noLocal: false, exclusive: false, arguments: null, consumer: consumer,
+                cancellationToken);
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
-        public static Task<string> BasicConsumeAsync(this IChannel channel, string queue,
+        public static Task<string> BasicConsumeAsync(this IChannel channel,
+            string queue,
             bool autoAck,
             string consumerTag,
             IDictionary<string, object?>? arguments,
             IAsyncBasicConsumer consumer,
-            CancellationToken cancellationToken = default)
-        {
-            return channel.BasicConsumeAsync(queue, autoAck, consumerTag, false, false, arguments, consumer, cancellationToken);
-        }
+            CancellationToken cancellationToken = default) =>
+            channel.BasicConsumeAsync(queue: queue, autoAck: autoAck, consumerTag: consumerTag,
+                noLocal: false, exclusive: false, arguments: arguments, consumer: consumer,
+                cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of BasicPublish.
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
         /// </summary>
         /// <remarks>
-        /// The publication occurs with mandatory=false and immediate=false.
+        /// The publication occurs with mandatory=false.
         /// </remarks>
-        public static ValueTask BasicPublishAsync<T>(this IChannel channel, PublicationAddress addr, T basicProperties,
-            ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
-            where T : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            return channel.BasicPublishAsync(addr.ExchangeName, addr.RoutingKey, basicProperties, body, false, cancellationToken);
-        }
+        public static ValueTask BasicPublishAsync<T>(this IChannel channel,
+            PublicationAddress addr,
+            T basicProperties,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default)
+            where T : IReadOnlyBasicProperties, IAmqpHeader =>
+            channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
+                mandatory: false, basicProperties: basicProperties, body: body,
+                cancellationToken);
 
-        public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey,
-            ReadOnlyMemory<byte> body = default, bool mandatory = false, CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory, cancellationToken);
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with mandatory=false and empty BasicProperties
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            string exchange,
+            string routingKey,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body,
+                cancellationToken);
 
-        public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange,
-            CachedString routingKey, ReadOnlyMemory<byte> body = default, bool mandatory = false, CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange, routingKey, EmptyBasicProperty.Empty, body, mandatory, cancellationToken);
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with mandatory=false and empty BasicProperties
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            CachedString exchange,
+            CachedString routingKey,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with empty BasicProperties
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            string exchange,
+            string routingKey,
+            bool mandatory,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with empty BasicProperties
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            CachedString exchange,
+            CachedString routingKey,
+            bool mandatory,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body,
+                cancellationToken);
 
         /// <summary>
         /// Asynchronously declare a queue.
         /// </summary>
-        public static Task<QueueDeclareOk> QueueDeclareAsync(this IChannel channel, string queue = "", bool durable = false, bool exclusive = true,
-            bool autoDelete = true, IDictionary<string, object?>? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)
-        {
-            return channel.QueueDeclareAsync(queue: queue, passive: false,
+        public static Task<QueueDeclareOk> QueueDeclareAsync(this IChannel channel,
+            string queue = "",
+            bool durable = false,
+            bool exclusive = true,
+            bool autoDelete = true,
+            IDictionary<string, object?>? arguments = null,
+            bool noWait = false,
+            CancellationToken cancellationToken = default) =>
+            channel.QueueDeclareAsync(queue: queue, passive: false,
                 durable: durable, exclusive: exclusive, autoDelete: autoDelete,
-                arguments: arguments, noWait: noWait, cancellationToken: cancellationToken);
-        }
+                arguments: arguments, noWait: noWait,
+                cancellationToken: cancellationToken);
 
         /// <summary>
         /// Asynchronously declare an exchange.
         /// </summary>
-        public static Task ExchangeDeclareAsync(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false,
-            IDictionary<string, object?>? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)
-        {
-            return channel.ExchangeDeclareAsync(exchange, type, durable, autoDelete,
-                arguments: arguments, passive: false, noWait: noWait, cancellationToken: cancellationToken);
-        }
+        public static Task ExchangeDeclareAsync(this IChannel channel,
+            string exchange,
+            string type,
+            bool durable = false,
+            bool autoDelete = false,
+            IDictionary<string, object?>? arguments = null,
+            bool noWait = false,
+            CancellationToken cancellationToken = default) =>
+            channel.ExchangeDeclareAsync(exchange: exchange, type: type, durable: durable,
+                autoDelete: autoDelete, arguments: arguments, passive: false, noWait: noWait,
+                cancellationToken: cancellationToken);
 
         /// <summary>
         /// Asynchronously deletes a queue.
         /// </summary>
-        public static Task<uint> QueueDeleteAsync(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false, CancellationToken cancellationToken = default)
-        {
-            return channel.QueueDeleteAsync(queue, ifUnused, ifEmpty, false, cancellationToken);
-        }
+        public static Task<uint> QueueDeleteAsync(this IChannel channel,
+            string queue,
+            bool ifUnused = false,
+            bool ifEmpty = false,
+            CancellationToken cancellationToken = default) =>
+            channel.QueueDeleteAsync(queue, ifUnused, ifEmpty, false, cancellationToken);
 
         /// <summary>
         /// Asynchronously unbinds a queue.
         /// </summary>
-        public static Task QueueUnbindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary<string, object?>? arguments = null, CancellationToken cancellationToken = default)
-        {
-            return channel.QueueUnbindAsync(queue, exchange, routingKey, arguments, cancellationToken);
-        }
+        public static Task QueueUnbindAsync(this IChannel channel,
+            string queue,
+            string exchange,
+            string routingKey,
+            IDictionary<string, object?>? arguments = null,
+            CancellationToken cancellationToken = default) =>
+            channel.QueueUnbindAsync(queue, exchange, routingKey, arguments, cancellationToken);
 
         /// <summary>
         /// Asynchronously abort this session.
@@ -153,11 +213,10 @@ namespace RabbitMQ.Client
         /// In comparison to normal <see cref="CloseAsync(IChannel, CancellationToken)"/> method, <see cref="AbortAsync(IChannel, CancellationToken)"/> will not throw
         /// <see cref="Exceptions.AlreadyClosedException"/> or <see cref="System.IO.IOException"/> or any other <see cref="Exception"/> during closing channel.
         /// </remarks>
-        public static Task AbortAsync(this IChannel channel, CancellationToken cancellationToken = default)
-        {
-            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", true,
+        public static Task AbortAsync(this IChannel channel,
+            CancellationToken cancellationToken = default) =>
+            channel.CloseAsync(Constants.ReplySuccess, "Goodbye", true,
                 cancellationToken);
-        }
 
         /// <summary>Asynchronously close this session.</summary>
         /// <remarks>
@@ -166,11 +225,10 @@ namespace RabbitMQ.Client
         /// operation to complete. This method will not return to the
         /// caller until the shutdown is complete.
         /// </remarks>
-        public static Task CloseAsync(this IChannel channel, CancellationToken cancellationToken = default)
-        {
-            return channel.CloseAsync(Constants.ReplySuccess, "Goodbye", false,
+        public static Task CloseAsync(this IChannel channel,
+            CancellationToken cancellationToken = default) =>
+            channel.CloseAsync(Constants.ReplySuccess, "Goodbye", false,
                 cancellationToken);
-        }
 
         /// <summary>
         /// Asynchronously close this channel.
@@ -189,10 +247,10 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the channel
         /// </para>
         /// </remarks>
-        public static Task CloseAsync(this IChannel channel, ushort replyCode, string replyText,
-            CancellationToken cancellationToken = default)
-        {
-            return channel.CloseAsync(replyCode, replyText, false, cancellationToken);
-        }
+        public static Task CloseAsync(this IChannel channel,
+            ushort replyCode,
+            string replyText,
+            CancellationToken cancellationToken = default) =>
+            channel.CloseAsync(replyCode, replyText, false, cancellationToken);
     }
 }

@@ -125,7 +125,7 @@ namespace Test.SequentialIntegration
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
                 await _channel.WaitForConfirmsOrDieAsync();
                 Baggage.ClearBaggage();
                 Assert.Null(Baggage.GetBaggage("TestItem"));
@@ -183,7 +183,7 @@ namespace Test.SequentialIntegration
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
                 await _channel.WaitForConfirmsOrDieAsync();
                 Baggage.ClearBaggage();
                 Assert.Null(Baggage.GetBaggage("TestItem"));
@@ -339,7 +339,7 @@ namespace Test.SequentialIntegration
                 try
                 {
                     await _channel.QueueDeclareAsync(queue, false, false, false, null);
-                    await _channel.BasicPublishAsync("", queue, Encoding.UTF8.GetBytes(msg), mandatory: true);
+                    await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
                     await _channel.WaitForConfirmsOrDieAsync();
                     Baggage.ClearBaggage();
                     Assert.Null(Baggage.GetBaggage("TestItem"));

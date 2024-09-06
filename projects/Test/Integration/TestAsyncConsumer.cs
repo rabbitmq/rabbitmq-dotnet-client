@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -620,7 +621,9 @@ namespace Test.Integration
                 using (IChannel innerChannel = await _conn.CreateChannelAsync())
                 {
                     await innerChannel.ConfirmSelectAsync();
-                    await innerChannel.BasicPublishAsync(exchangeName, queue2Name, mandatory: true);
+                    await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
+                        mandatory: true,
+                        body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));
                     await innerChannel.WaitForConfirmsOrDieAsync();
                     await innerChannel.CloseAsync();
                 }
@@ -664,7 +667,7 @@ namespace Test.Integration
                 tcs.TrySetResult(true);
             };
 
-            await _channel.BasicConsumeAsync(consumer, queueName, true);
+            await _channel.BasicConsumeAsync(consumer: consumer, queue: queueName, autoAck: true);
 
             var bp = new BasicProperties();
 

@@ -79,7 +79,8 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
 
             RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
             var cons = new AsyncEventingBasicConsumer(_channel);
-            string expectedCTag = await _channel.BasicConsumeAsync(cons, q, arguments: arguments);
+            string expectedCTag = await _channel.BasicConsumeAsync(consumer: cons, queue: q, autoAck: false,
+                arguments: arguments, consumerTag: string.Empty);
 
             bool ctagMatches = false;
             bool consumerArgumentMatches = false;

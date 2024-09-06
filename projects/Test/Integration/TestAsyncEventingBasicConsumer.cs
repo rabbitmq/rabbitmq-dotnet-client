@@ -100,7 +100,8 @@ namespace Test.Integration
             using IChannel publisherChannel = await _conn.CreateChannelAsync();
             byte[] messageBodyBytes = System.Text.Encoding.UTF8.GetBytes("Hello, world!");
             var props = new BasicProperties();
-            await publisherChannel.BasicPublishAsync(exchangeName, "", props, messageBodyBytes);
+            await publisherChannel.BasicPublishAsync(exchange: exchangeName, routingKey: string.Empty,
+                mandatory: false, basicProperties: props, body: messageBodyBytes);
 
             await Task.WhenAll(_onReceivedTcs.Task, _onCallbackExceptionTcs.Task);
             Assert.True(await _onReceivedTcs.Task);

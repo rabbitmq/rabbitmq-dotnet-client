@@ -18,7 +18,8 @@ for (int i = 0; i < 300; i++)
     {
         using var channel = await connection.CreateChannelAsync(); // New channel for each message
         await Task.Delay(1000);
-        await channel.BasicPublishAsync(string.Empty, string.Empty, props, msg);
+        await channel.BasicPublishAsync(exchange: string.Empty, routingKey: string.Empty,
+            mandatory: false, basicProperties: props, body: msg);
         Console.WriteLine($"Sent message {i}");
     }
     catch (Exception ex)

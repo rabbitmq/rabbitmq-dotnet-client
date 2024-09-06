@@ -52,7 +52,7 @@ namespace Test.Integration
             QueueDeclareOk queueResult = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
             string queueName = queueResult.QueueName;
 
-            await _channel.BasicPublishAsync(string.Empty, queueName, _encoding.GetBytes(msg), true);
+            await _channel.BasicPublishAsync(string.Empty, queueName, true, _encoding.GetBytes(msg));
 
             BasicGetResult getResult = await _channel.BasicGetAsync(queueName, true);
             Assert.Equal(msg, _encoding.GetString(getResult.Body.ToArray()));
@@ -72,7 +72,7 @@ namespace Test.Integration
                 {
                     return Assert.ThrowsAsync<AlreadyClosedException>(() =>
                     {
-                        return ch.BasicGetAsync(q, true).AsTask();
+                        return ch.BasicGetAsync(q, true);
                     });
                 });
             });

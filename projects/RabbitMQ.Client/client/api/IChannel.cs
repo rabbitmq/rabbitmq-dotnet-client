@@ -190,7 +190,7 @@ namespace RabbitMQ.Client
         /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns><see cref="BasicGetResult"/></returns>
-        ValueTask<BasicGetResult?> BasicGetAsync(string queue, bool autoAck,
+        Task<BasicGetResult?> BasicGetAsync(string queue, bool autoAck,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -198,15 +198,15 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="exchange">The exchange.</param>
         /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties,
-            ReadOnlyMemory<byte> body = default, bool mandatory = false,
+        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
@@ -215,15 +215,15 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="exchange">The exchange.</param>
         /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, TProperties basicProperties,
-            ReadOnlyMemory<byte> body = default, bool mandatory = false,
+        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
