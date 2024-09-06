@@ -72,7 +72,7 @@ namespace Test.Integration
                 {
                     return Assert.ThrowsAsync<AlreadyClosedException>(() =>
                     {
-                        return ch.BasicGetAsync(q, true).AsTask();
+                        return ch.BasicGetAsync(q, true);
                     });
                 });
             });

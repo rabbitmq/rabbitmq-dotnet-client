@@ -303,7 +303,7 @@ namespace RabbitMQ.Client.Impl
             return resultConsumerTag;
         }
 
-        public ValueTask<BasicGetResult?> BasicGetAsync(string queue, bool autoAck, CancellationToken cancellationToken)
+        public Task<BasicGetResult?> BasicGetAsync(string queue, bool autoAck, CancellationToken cancellationToken)
             => InnerChannel.BasicGetAsync(queue, autoAck, cancellationToken);
 
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,

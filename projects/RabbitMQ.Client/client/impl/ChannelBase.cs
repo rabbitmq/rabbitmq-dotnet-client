@@ -885,7 +885,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async ValueTask<BasicGetResult?> BasicGetAsync(string queue, bool autoAck,
+        public async Task<BasicGetResult?> BasicGetAsync(string queue, bool autoAck,
             CancellationToken cancellationToken)
         {
             bool enqueued = false;

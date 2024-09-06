@@ -190,7 +190,7 @@ namespace RabbitMQ.Client
         /// <param name="autoAck">If set to <c>true</c>, automatically ack the message.</param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns><see cref="BasicGetResult"/></returns>
-        ValueTask<BasicGetResult?> BasicGetAsync(string queue, bool autoAck,
+        Task<BasicGetResult?> BasicGetAsync(string queue, bool autoAck,
             CancellationToken cancellationToken = default);
 
         /// <summary>
