@@ -130,7 +130,7 @@ namespace Test.Integration
                         QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
                         for (ushort j = 0; j < _messageCount; j++)
                         {
-                            await ch.BasicPublishAsync("", q.QueueName, body, mandatory: true);
+                            await ch.BasicPublishAsync("", q.QueueName, mandatory: true, body: body);
                         }
 
                         Assert.True(await tcs.Task);

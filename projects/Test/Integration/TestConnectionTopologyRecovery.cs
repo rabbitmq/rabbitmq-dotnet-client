@@ -281,10 +281,10 @@ namespace Test.Integration
                 await ch.QueueDeclarePassiveAsync(queue1);
                 await ch.QueueDeclarePassiveAsync(queue2);
 
-                await ch.BasicPublishAsync(exchange, binding1, _encoding.GetBytes("test message"), mandatory: true);
+                await ch.BasicPublishAsync(exchange, binding1, true, _encoding.GetBytes("test message"));
                 // await ch.WaitForConfirmsOrDieAsync();
 
-                await ch.BasicPublishAsync(exchange, binding2, _encoding.GetBytes("test message"), mandatory: true);
+                await ch.BasicPublishAsync(exchange, binding2, true, _encoding.GetBytes("test message"));
                 // await ch.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs1.Task.WaitAsync(TimeSpan.FromSeconds(5));

@@ -37,7 +37,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client;
-using RabbitMQ.Client.client.impl;
 using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
@@ -103,7 +102,7 @@ namespace Test.SequentialIntegration
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
                 await _channel.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -144,7 +143,7 @@ namespace Test.SequentialIntegration
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
                 CachedString exchange = new CachedString("");
                 CachedString routingKey = new CachedString(q.QueueName);
-                await _channel.BasicPublishAsync(exchange, routingKey, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync(exchange, routingKey, true, sendBody);
                 await _channel.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -224,7 +223,7 @@ namespace Test.SequentialIntegration
                 };
 
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
                 await _channel.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -266,7 +265,7 @@ namespace Test.SequentialIntegration
                 string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
                 CachedString exchange = new CachedString("");
                 CachedString routingKey = new CachedString(q.QueueName);
-                await _channel.BasicPublishAsync(exchange, routingKey, sendBody, mandatory: true);
+                await _channel.BasicPublishAsync(exchange, routingKey, true, sendBody);
                 await _channel.WaitForConfirmsOrDieAsync();
 
                 await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -336,7 +335,7 @@ namespace Test.SequentialIntegration
                 try
                 {
                     await _channel.QueueDeclareAsync(queue, false, false, false, null);
-                    await _channel.BasicPublishAsync("", queue, Encoding.UTF8.GetBytes(msg), mandatory: true);
+                    await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
                     await _channel.WaitForConfirmsOrDieAsync();
                     QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                     Assert.Equal(1u, ok.MessageCount);
@@ -373,7 +372,7 @@ namespace Test.SequentialIntegration
                     CachedString exchange = new CachedString("");
                     CachedString routingKey = new CachedString(queue);
                     await _channel.QueueDeclareAsync(queue, false, false, false, null);
-                    await _channel.BasicPublishAsync(exchange, routingKey, Encoding.UTF8.GetBytes(msg), mandatory: true);
+                    await _channel.BasicPublishAsync(exchange, routingKey, true, Encoding.UTF8.GetBytes(msg));
                     await _channel.WaitForConfirmsOrDieAsync();
                     QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                     Assert.Equal(1u, ok.MessageCount);

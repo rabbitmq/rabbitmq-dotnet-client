@@ -925,8 +925,8 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory,
-            CancellationToken cancellationToken)
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (ConfirmsAreEnabled)
@@ -1004,8 +1004,8 @@ namespace RabbitMQ.Client.Impl
         }
 
         public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            TProperties basicProperties, ReadOnlyMemory<byte> body, bool mandatory,
-            CancellationToken cancellationToken)
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             if (ConfirmsAreEnabled)

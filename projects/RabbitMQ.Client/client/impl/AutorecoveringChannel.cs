@@ -306,17 +306,21 @@ namespace RabbitMQ.Client.Impl
         public ValueTask<BasicGetResult?> BasicGetAsync(string queue, bool autoAck, CancellationToken cancellationToken)
             => InnerChannel.BasicGetAsync(queue, autoAck, cancellationToken);
 
-        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey, TProperties basicProperties,
-            ReadOnlyMemory<byte> body, bool mandatory,
-            CancellationToken cancellationToken)
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            bool mandatory,
+            TProperties basicProperties,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory, cancellationToken);
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, cancellationToken);
 
-        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey, TProperties basicProperties,
-            ReadOnlyMemory<byte> body, bool mandatory,
-            CancellationToken cancellationToken)
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            bool mandatory,
+            TProperties basicProperties,
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory, cancellationToken);
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, cancellationToken);
 
         public Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global,
             CancellationToken cancellationToken)

@@ -76,7 +76,7 @@ namespace Test.Integration
                 };
                 string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-                await _channel.BasicPublishAsync("", q.QueueName, bp, sendBody);
+                await _channel.BasicPublishAsync("", q.QueueName, true, bp, sendBody);
                 bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
                 await _channel.BasicCancelAsync(tag);
 
@@ -106,7 +106,7 @@ namespace Test.Integration
                 };
                 string tag = await _channel.BasicConsumeAsync(queueName.Value, true, consumer);
 
-                await _channel.BasicPublishAsync(exchangeName, queueName, sendBody);
+                await _channel.BasicPublishAsync(exchange: exchangeName, routingKey: queueName, body: sendBody);
                 bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
                 await _channel.BasicCancelAsync(tag);
 
@@ -319,7 +319,7 @@ namespace Test.Integration
                 };
 
                 string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, bp, sendBody);
+                await _channel.BasicPublishAsync("", q.QueueName, false, bp, sendBody);
                 bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
                 await _channel.BasicCancelAsync(tag);
                 Assert.True(waitResFalse);

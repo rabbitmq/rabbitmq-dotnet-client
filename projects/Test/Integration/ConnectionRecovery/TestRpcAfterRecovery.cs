@@ -77,7 +77,8 @@ namespace Test.Integration.ConnectionRecovery
 
                 try
                 {
-                    await _channel.BasicPublishAsync(string.Empty, testQueueName, properties, _messageBody);
+                    await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: testQueueName,
+                        mandatory: false, basicProperties: properties, body: _messageBody);
                 }
                 catch (Exception e)
                 {

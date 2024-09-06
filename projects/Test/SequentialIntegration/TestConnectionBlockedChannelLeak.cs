@@ -97,7 +97,7 @@ namespace Test.SequentialIntegration
                 using (IChannel publishChannel = await _conn.CreateChannelAsync())
                 {
                     await publishChannel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
-                    await publishChannel.BasicPublishAsync(exchangeName, exchangeName, GetRandomBody(), mandatory: true);
+                    await publishChannel.BasicPublishAsync(exchangeName, exchangeName, true, GetRandomBody());
                     await publishChannel.CloseAsync();
                 }
             }

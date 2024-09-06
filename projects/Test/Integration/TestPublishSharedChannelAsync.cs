@@ -94,7 +94,7 @@ namespace Test.Integration
                             {
                                 for (int j = 0; j < Repeats; j++)
                                 {
-                                    await channel.BasicPublishAsync(ExchangeName, PublishKey, _body, false);
+                                    await channel.BasicPublishAsync(ExchangeName, PublishKey, false, _body);
                                 }
                             }
                         }

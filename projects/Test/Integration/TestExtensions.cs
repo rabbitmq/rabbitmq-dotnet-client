@@ -49,7 +49,7 @@ namespace Test.Integration
             await _channel.ConfirmSelectAsync();
             for (int i = 0; i < 10; i++)
             {
-                await _channel.BasicPublishAsync(string.Empty, string.Empty);
+                await _channel.BasicPublishAsync(string.Empty, string.Empty, Array.Empty<byte>());
             }
             Assert.True(await _channel.WaitForConfirmsAsync());
         }
@@ -72,12 +72,12 @@ namespace Test.Integration
             await _channel.ExchangeBindAsync("dest", "src", string.Empty);
             await _channel.QueueBindAsync(queue, "dest", string.Empty);
 
-            await _channel.BasicPublishAsync("src", string.Empty);
+            await _channel.BasicPublishAsync("src", string.Empty, Array.Empty<byte>());
             await _channel.WaitForConfirmsAsync();
             Assert.NotNull(await _channel.BasicGetAsync(queue, true));
 
             await _channel.ExchangeUnbindAsync("dest", "src", string.Empty);
-            await _channel.BasicPublishAsync("src", string.Empty);
+            await _channel.BasicPublishAsync("src", string.Empty, Array.Empty<byte>());
             await _channel.WaitForConfirmsAsync();
 
             Assert.Null(await _channel.BasicGetAsync(queue, true));
