@@ -664,7 +664,7 @@ namespace Test.Integration
                 tcs.TrySetResult(true);
             };
 
-            await _channel.BasicConsumeAsync(consumer, queueName, true);
+            await _channel.BasicConsumeAsync(consumer: consumer, queue: queueName, autoAck: true);
 
             var bp = new BasicProperties();
 
