@@ -30,18 +30,19 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Test.Integration
 {
-    public class TestConcurrentAccessWithSharedConnection : IntegrationFixture
+    public class TestConcurrentAccessWithSharedConnection : TestConcurrentAccessBase
     {
         public TestConcurrentAccessWithSharedConnection(ITestOutputHelper output)
-            : base(output)
+            : base(output, openChannel: false)
         {
         }
 
@@ -49,6 +50,7 @@ namespace Test.Integration
         {
             _connFactory = CreateConnectionFactory();
             _conn = await _connFactory.CreateConnectionAsync();
+            _conn.ConnectionShutdown += HandleConnectionShutdown;
             // NB: not creating _channel because this test suite doesn't use it.
             Assert.Null(_channel);
         }
@@ -56,41 +58,103 @@ namespace Test.Integration
         [Fact]
         public async Task TestConcurrentChannelOpenCloseLoop()
         {
-            await TestConcurrentChannelOperationsAsync(async (conn) =>
+            await TestConcurrentOperationsAsync(async () =>
             {
-                using (IChannel ch = await conn.CreateChannelAsync())
+                using (IChannel ch = await _conn.CreateChannelAsync())
                 {
                     await ch.CloseAsync();
                 }
             }, 50);
         }
 
-        private async Task TestConcurrentChannelOperationsAsync(Func<IConnection, Task> action, int iterations)
+        [Fact]
+        public Task TestConcurrentChannelOpenAndPublishingWithBlankMessagesAsync()
         {
-            var tasks = new List<Task>();
-            for (int i = 0; i < _processorCount; i++)
+            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(Array.Empty<byte>(), 30);
+        }
+
+        [Fact]
+        public Task TestConcurrentChannelOpenAndPublishingSize64Async()
+        {
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(64);
+        }
+
+        [Fact]
+        public Task TestConcurrentChannelOpenAndPublishingSize256Async()
+        {
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(256);
+        }
+
+        [Fact]
+        public Task TestConcurrentChannelOpenAndPublishingSize1024Async()
+        {
+            return TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(1024);
+        }
+
+        private Task TestConcurrentChannelOpenAndPublishingWithBodyOfSizeAsync(ushort length, int iterations = 30)
+        {
+            byte[] body = GetRandomBody(length);
+            return TestConcurrentChannelOpenAndPublishingWithBodyAsync(body, iterations);
+        }
+
+        private Task TestConcurrentChannelOpenAndPublishingWithBodyAsync(byte[] body, int iterations)
+        {
+            return TestConcurrentOperationsAsync(async () =>
             {
-                tasks.Add(Task.Run(() =>
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var tokenSource = new CancellationTokenSource(LongWaitSpan);
+                CancellationTokenRegistration ctsr = tokenSource.Token.Register(() =>
                 {
-                    var subTasks = new List<Task>();
-                    for (int j = 0; j < iterations; j++)
+                    tcs.TrySetResult(false);
+                });
+
+                try
+                {
+                    using (IChannel ch = await _conn.CreateChannelAsync())
                     {
-                        subTasks.Add(action(_conn));
+                        ch.ChannelShutdown += (o, ea) =>
+                        {
+                            HandleChannelShutdown(ch, ea, (args) =>
+                            {
+                                if (args.Initiator != ShutdownInitiator.Application)
+                                {
+                                    tcs.TrySetException(args.Exception);
+                                }
+                            });
+                        };
+
+                        await ch.ConfirmSelectAsync(trackConfirmations: false);
+
+                        ch.BasicAcks += (object sender, BasicAckEventArgs e) =>
+                        {
+                            if (e.DeliveryTag >= _messageCount)
+                            {
+                                tcs.SetResult(true);
+                            }
+                        };
+
+                        ch.BasicNacks += (object sender, BasicNackEventArgs e) =>
+                        {
+                            tcs.SetResult(false);
+                            _output.WriteLine($"channel #{ch.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
+                        };
+
+                        QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
+                        for (ushort j = 0; j < _messageCount; j++)
+                        {
+                            await ch.BasicPublishAsync("", q.QueueName, mandatory: true, body: body);
+                        }
+
+                        Assert.True(await tcs.Task);
+                        await ch.CloseAsync();
                     }
-                    return Task.WhenAll(subTasks);
-                }));
-            }
-
-            Task whenTask = Task.WhenAll(tasks);
-            await whenTask.WaitAsync(LongWaitSpan);
-            Assert.True(whenTask.IsCompleted);
-            Assert.False(whenTask.IsCanceled);
-            Assert.False(whenTask.IsFaulted);
-
-            // incorrect frame interleaving in these tests will result
-            // in an unrecoverable connection-level exception, thus
-            // closing the connection
-            Assert.True(_conn.IsOpen);
+                }
+                finally
+                {
+                    tokenSource.Dispose();
+                    ctsr.Dispose();
+                }
+            }, iterations);
         }
     }
 }
