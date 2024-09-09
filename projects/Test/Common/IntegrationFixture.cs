@@ -485,9 +485,11 @@ namespace Test
             AssertShutdownError(args, Constants.PreconditionFailed);
         }
 
-        protected static Task AssertRanToCompletion(IEnumerable<Task> tasks)
+        protected async Task AssertRanToCompletion(IEnumerable<Task> tasks)
         {
-            return DoAssertRanToCompletion(tasks);
+            Task whenAllTask = Task.WhenAll(tasks);
+            await whenAllTask.WaitAsync(LongWaitSpan);
+            Assert.True(whenAllTask.IsCompletedSuccessfully());
         }
 
         internal static void AssertRecordedQueues(AutorecoveringConnection c, int n)
@@ -596,13 +598,6 @@ namespace Test
         private static int GetConnectionIdx()
         {
             return Interlocked.Increment(ref _connectionIdx);
-        }
-
-        private static async Task DoAssertRanToCompletion(IEnumerable<Task> tasks)
-        {
-            Task whenAllTask = Task.WhenAll(tasks);
-            await whenAllTask;
-            Assert.True(whenAllTask.IsCompletedSuccessfully());
         }
 
         protected static string GetUniqueString(ushort length)
