@@ -471,7 +471,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
+        protected ValueTask ModelSendObserveFlowControlAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -964,18 +964,18 @@ namespace RabbitMQ.Client.Impl
                     BasicProperties? props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     if (props is null)
                     {
-                        await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                        await ModelSendObserveFlowControlAsync(in cmd, in basicProperties, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        await ModelSendAsync(in cmd, in props, body, cancellationToken)
+                        await ModelSendObserveFlowControlAsync(in cmd, in props, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                    await ModelSendObserveFlowControlAsync(in cmd, in basicProperties, body, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
@@ -1043,18 +1043,18 @@ namespace RabbitMQ.Client.Impl
                     BasicProperties? props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     if (props is null)
                     {
-                        await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                        await ModelSendObserveFlowControlAsync(in cmd, in basicProperties, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        await ModelSendAsync(in cmd, in props, body, cancellationToken)
+                        await ModelSendObserveFlowControlAsync(in cmd, in props, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                    await ModelSendObserveFlowControlAsync(in cmd, in basicProperties, body, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
