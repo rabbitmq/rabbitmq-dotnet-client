@@ -14,7 +14,7 @@ namespace Benchmarks.Networking
             using (IChannel channel = await connection.CreateChannelAsync())
             {
                 QueueDeclareOk queue = await channel.QueueDeclareAsync();
-                var consumer = new CountingConsumer(messageCount);
+                var consumer = new CountingConsumer(channel, messageCount);
                 await channel.BasicConsumeAsync(queue.QueueName, true, consumer);
 
                 for (int i = 0; i < messageCount; i++)
@@ -35,7 +35,7 @@ namespace Benchmarks.Networking
 
         public Task CompletedTask => _tcs.Task;
 
-        public CountingConsumer(uint messageCount)
+        public CountingConsumer(IChannel channel, uint messageCount) : base(channel)
         {
             _remainingCount = (int)messageCount;
             _tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
