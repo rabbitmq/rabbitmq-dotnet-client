@@ -182,7 +182,7 @@ namespace Test.Integration
 
         private class ShutdownLatchConsumer : AsyncDefaultBasicConsumer
         {
-            public ShutdownLatchConsumer()
+            public ShutdownLatchConsumer(IChannel channel) : base(channel)
             {
                 Latch = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 DuplicateLatch = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -211,7 +211,7 @@ namespace Test.Integration
         public async Task TestChannelShutdownHandler()
         {
             string q = await _channel.QueueDeclareAsync();
-            var consumer = new ShutdownLatchConsumer();
+            var consumer = new ShutdownLatchConsumer(_channel);
 
             await _channel.BasicConsumeAsync(q, true, consumer);
             await _channel.CloseAsync();

@@ -54,7 +54,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripConcurrent()
         {
             AddCallbackExceptionHandlers();
-            _channel.DefaultConsumer = new DefaultAsyncConsumer("_channel,", _output);
+            _channel.DefaultConsumer = new DefaultAsyncConsumer(_channel, "_channel,", _output);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
 
@@ -147,7 +147,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripConcurrentManyMessages()
         {
             AddCallbackExceptionHandlers();
-            _channel.DefaultConsumer = new DefaultAsyncConsumer("_channel,", _output);
+            _channel.DefaultConsumer = new DefaultAsyncConsumer(_channel, "_channel,", _output);
 
             const int publish_total = 4096;
             const int length = 512;
@@ -205,7 +205,8 @@ namespace Test.Integration
                                 using (IChannel publishChannel = await publishConn.CreateChannelAsync())
                                 {
                                     AddCallbackExceptionHandlers(publishConn, publishChannel);
-                                    publishChannel.DefaultConsumer = new DefaultAsyncConsumer("publishChannel,", _output);
+                                    publishChannel.DefaultConsumer = new DefaultAsyncConsumer(publishChannel,
+                                        "publishChannel,", _output);
                                     publishChannel.ChannelShutdown += (o, ea) =>
                                     {
                                         HandleChannelShutdown(publishChannel, ea, (args) =>
@@ -247,7 +248,8 @@ namespace Test.Integration
                                 using (IChannel consumeChannel = await consumeConn.CreateChannelAsync())
                                 {
                                     AddCallbackExceptionHandlers(consumeConn, consumeChannel);
-                                    consumeChannel.DefaultConsumer = new DefaultAsyncConsumer("consumeChannel,", _output);
+                                    consumeChannel.DefaultConsumer = new DefaultAsyncConsumer(consumeChannel,
+                                        "consumeChannel,", _output);
                                     consumeChannel.ChannelShutdown += (o, ea) =>
                                     {
                                         HandleChannelShutdown(consumeChannel, ea, (args) =>
@@ -722,7 +724,8 @@ namespace Test.Integration
             private readonly string _logPrefix;
             private readonly ITestOutputHelper _output;
 
-            public DefaultAsyncConsumer(string logPrefix, ITestOutputHelper output)
+            public DefaultAsyncConsumer(IChannel channel, string logPrefix, ITestOutputHelper output)
+                : base(channel)
             {
                 _logPrefix = logPrefix;
                 _output = output;

@@ -96,15 +96,11 @@ RabbitMQ.Client.AmqpTimestamp.AmqpTimestamp() -> void
 RabbitMQ.Client.AmqpTimestamp.AmqpTimestamp(long unixTime) -> void
 RabbitMQ.Client.AmqpTimestamp.Equals(RabbitMQ.Client.AmqpTimestamp other) -> bool
 RabbitMQ.Client.AsyncDefaultBasicConsumer
-RabbitMQ.Client.AsyncDefaultBasicConsumer.AsyncDefaultBasicConsumer() -> void
 RabbitMQ.Client.AsyncDefaultBasicConsumer.AsyncDefaultBasicConsumer(RabbitMQ.Client.IChannel channel) -> void
 RabbitMQ.Client.AsyncDefaultBasicConsumer.Channel.get -> RabbitMQ.Client.IChannel
-RabbitMQ.Client.AsyncDefaultBasicConsumer.Channel.set -> void
 RabbitMQ.Client.AsyncDefaultBasicConsumer.ConsumerTags.get -> string[]
 RabbitMQ.Client.AsyncDefaultBasicConsumer.IsRunning.get -> bool
-RabbitMQ.Client.AsyncDefaultBasicConsumer.IsRunning.set -> void
 RabbitMQ.Client.AsyncDefaultBasicConsumer.ShutdownReason.get -> RabbitMQ.Client.ShutdownEventArgs
-RabbitMQ.Client.AsyncDefaultBasicConsumer.ShutdownReason.set -> void
 RabbitMQ.Client.BasicGetResult
 RabbitMQ.Client.BasicGetResult.BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IReadOnlyBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) -> void
 RabbitMQ.Client.BasicProperties

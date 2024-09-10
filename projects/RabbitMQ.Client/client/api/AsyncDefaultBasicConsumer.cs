@@ -10,13 +10,6 @@ namespace RabbitMQ.Client
         private readonly HashSet<string> _consumerTags = new HashSet<string>();
 
         /// <summary>
-        /// Creates a new instance of an <see cref="AsyncDefaultBasicConsumer"/>.
-        /// </summary>
-        public AsyncDefaultBasicConsumer()
-        {
-        }
-
-        /// <summary>
         /// Constructor which sets the Channel property to the given value.
         /// </summary>
         /// <param name="channel">Common AMQP channel.</param>
@@ -40,19 +33,19 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Returns true while the consumer is registered and expecting deliveries from the broker.
         /// </summary>
-        public bool IsRunning { get; protected set; }
+        public bool IsRunning { get; private set; }
 
         /// <summary>
         /// If our <see cref="IChannel"/> shuts down, this property will contain a description of the reason for the
         /// shutdown. Otherwise it will contain null. See <see cref="ShutdownEventArgs"/>.
         /// </summary>
-        public ShutdownEventArgs? ShutdownReason { get; protected set; }
+        public ShutdownEventArgs? ShutdownReason { get; private set; }
 
         /// <summary>
         /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        public IChannel? Channel { get; set; }
+        public IChannel Channel { get; private set; }
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
