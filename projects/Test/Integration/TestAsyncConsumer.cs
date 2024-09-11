@@ -36,6 +36,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -43,16 +44,20 @@ namespace Test.Integration
 {
     public class TestAsyncConsumer : IntegrationFixture
     {
+        private const ushort ConsumerDispatchConcurrency = 2;
+
         private readonly ShutdownEventArgs _closeArgs = new ShutdownEventArgs(ShutdownInitiator.Application, Constants.ReplySuccess, "normal shutdown");
 
         public TestAsyncConsumer(ITestOutputHelper output)
-            : base(output, consumerDispatchConcurrency: 2)
+            : base(output, consumerDispatchConcurrency: ConsumerDispatchConcurrency)
         {
         }
 
         [Fact]
         public async Task TestBasicRoundtripConcurrent()
         {
+            await ValidateConsumerDispatchConcurrency();
+
             AddCallbackExceptionHandlers();
             _channel.DefaultConsumer = new DefaultAsyncConsumer(_channel, "_channel,", _output);
 
@@ -146,6 +151,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRoundtripConcurrentManyMessages()
         {
+            await ValidateConsumerDispatchConcurrency();
+
             AddCallbackExceptionHandlers();
             _channel.DefaultConsumer = new DefaultAsyncConsumer(_channel, "_channel,", _output);
 
@@ -323,6 +330,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicRejectAsync()
         {
+            await ValidateConsumerDispatchConcurrency();
+
             string queueName = GenerateQueueName();
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -421,6 +430,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicAckAsync()
         {
+            await ValidateConsumerDispatchConcurrency();
+
             string queueName = GenerateQueueName();
 
             const int messageCount = 1024;
@@ -488,6 +499,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicNackAsync()
         {
+            await ValidateConsumerDispatchConcurrency();
+
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             _conn.ConnectionShutdown += (o, ea) =>
@@ -561,6 +574,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestDeclarationOfManyAutoDeleteQueuesWithTransientConsumer()
         {
+            await ValidateConsumerDispatchConcurrency();
+
             AssertRecordedQueues((RabbitMQ.Client.Framing.Impl.AutorecoveringConnection)_conn, 0);
             var tasks = new List<Task>();
             for (int i = 0; i < 256; i++)
@@ -581,6 +596,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestCreateChannelWithinAsyncConsumerCallback_GH650()
         {
+            await ValidateConsumerDispatchConcurrency();
+
             string exchangeName = GenerateExchangeName();
             string queue1Name = GenerateQueueName();
             string queue2Name = GenerateQueueName();
@@ -650,6 +667,8 @@ namespace Test.Integration
         [Fact]
         public async Task TestCloseWithinEventHandler_GH1567()
         {
+            await ValidateConsumerDispatchConcurrency();
+
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
@@ -677,6 +696,20 @@ namespace Test.Integration
                 basicProperties: bp, mandatory: true, body: GetRandomBody(64));
 
             Assert.True(await tcs.Task);
+        }
+
+        private async Task ValidateConsumerDispatchConcurrency()
+        {
+            ushort expectedConsumerDispatchConcurrency = (ushort)S_Random.Next(3, 10);
+            AutorecoveringChannel autorecoveringChannel = (AutorecoveringChannel)_channel;
+            Assert.Equal(ConsumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
+            Assert.Equal(_consumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
+            using (IChannel ch = await _conn.CreateChannelAsync(
+                consumerDispatchConcurrency: expectedConsumerDispatchConcurrency))
+            {
+                AutorecoveringChannel ach = (AutorecoveringChannel)ch;
+                Assert.Equal(expectedConsumerDispatchConcurrency, ach.ConsumerDispatcher.Concurrency);
+            }
         }
 
         private static void SetException(Exception ex, params TaskCompletionSource<bool>[] tcsAry)

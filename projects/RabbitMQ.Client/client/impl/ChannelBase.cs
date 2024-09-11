@@ -45,6 +45,7 @@ using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -73,10 +74,11 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
-        protected ChannelBase(ConnectionConfig config, ISession session, ushort consumerDispatchConcurrency)
+        protected ChannelBase(ConnectionConfig config, ISession session,
+            ushort consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency)
         {
             ContinuationTimeout = config.ContinuationTimeout;
-            ConsumerDispatcher = new AsyncConsumerDispatcher(this, consumerDispatchConcurrency);
+            ConsumerDispatcher = BuildConsumerDispatcher(config, consumerDispatchConcurrency);
             Action<Exception, string> onException = (exception, context) =>
                 OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);
@@ -90,6 +92,12 @@ namespace RabbitMQ.Client.Impl
             session.CommandReceived = HandleCommandAsync;
             session.SessionShutdown += OnSessionShutdown;
             Session = session;
+        }
+
+        private IConsumerDispatcher BuildConsumerDispatcher(ConnectionConfig config, ushort perChannelConsumerDispatchConcurrency)
+        {
+            ushort cdc = Misc.DetermineConsumerDispatchConcurrency(config, perChannelConsumerDispatchConcurrency);
+            return new AsyncConsumerDispatcher(this, cdc);
         }
 
         internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);

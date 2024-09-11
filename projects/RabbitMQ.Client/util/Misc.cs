@@ -29,41 +29,20 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
+using RabbitMQ.Client;
 
-namespace Test.Integration
+namespace RabbitMQ.Util
 {
-    public class TestConcurrentAccessBase : IntegrationFixture
+    internal static class Misc
     {
-        protected const ushort _messageCount = 200;
-
-        public TestConcurrentAccessBase(ITestOutputHelper output,
-            ushort consumerDispatchConcurrency = RabbitMQ.Client.Constants.DefaultConsumerDispatchConcurrency,
-            bool openChannel = true) : base(output, consumerDispatchConcurrency, openChannel)
+        internal static ushort DetermineConsumerDispatchConcurrency(ConnectionConfig config, ushort perChannelConsumerDispatchConcurrency)
         {
-        }
-
-        protected async Task TestConcurrentOperationsAsync(Func<Task> action, int iterations)
-        {
-            var tasks = new List<Task>();
-            for (int i = 0; i < _processorCount; i++)
+            ushort cdc = config.ConsumerDispatchConcurrency;
+            if (perChannelConsumerDispatchConcurrency > Constants.DefaultConsumerDispatchConcurrency)
             {
-                for (int j = 0; j < iterations; j++)
-                {
-                    await Task.Delay(S_Random.Next(1, 10));
-                    tasks.Add(action());
-                }
+                cdc = perChannelConsumerDispatchConcurrency;
             }
-            await AssertRanToCompletion(tasks);
-
-            // incorrect frame interleaving in these tests will result
-            // in an unrecoverable connection-level exception, thus
-            // closing the connection
-            Assert.True(_conn.IsOpen);
+            return cdc;
         }
     }
 }

@@ -38,7 +38,8 @@ namespace RabbitMQ.Client.Framing.Impl
 {
     internal class Channel : ChannelBase
     {
-        public Channel(ConnectionConfig config, ISession session, ushort consumerDispatchConcurrency)
+        public Channel(ConnectionConfig config, ISession session,
+            ushort consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency)
             : base(config, session, consumerDispatchConcurrency)
         {
         }
