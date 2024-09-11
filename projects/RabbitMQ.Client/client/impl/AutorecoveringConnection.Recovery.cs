@@ -406,7 +406,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync()
+                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -493,7 +493,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, IChannel channelToUse,
-            bool recordedEntitiesSemaphoreHeld = false)
+            bool recordedEntitiesSemaphoreHeld = false, CancellationToken cancellationToken = default)
         {
             if (_disposed)
             {
@@ -519,7 +519,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 finally
                 {
-                    _recordedEntitiesSemaphore.Wait();
+                    await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
 
                 string oldTag = consumer.ConsumerTag;
@@ -539,7 +540,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync()
+                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -557,7 +558,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync()
+                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                                 .ConfigureAwait(false);
                         }
                     }
