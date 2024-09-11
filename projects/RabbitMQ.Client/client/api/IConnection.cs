@@ -234,8 +234,17 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously create and return a fresh channel, session, and channel.
         /// </summary>
+        /// <param name="consumerDispatchConcurrency">
+        /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
+        /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
+        /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
+        ///
+        /// Defaults to <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>.
+        /// 
+        /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
+        /// In addition to that consumers need to be thread/concurrency safe.
+        /// </param>
         /// <param name="cancellationToken">Cancellation token</param>
-        Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default);
-
+        Task<IChannel> CreateChannelAsync(ushort consumerDispatchConcurrency, CancellationToken cancellationToken = default);
     }
 }

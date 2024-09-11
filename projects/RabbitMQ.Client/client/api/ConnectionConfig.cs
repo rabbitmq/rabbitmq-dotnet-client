@@ -139,7 +139,7 @@ namespace RabbitMQ.Client
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
         /// </summary>
-        public readonly int DispatchConsumerConcurrency;
+        public readonly ushort ConsumerDispatchConcurrency;
 
         internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;
 
@@ -150,7 +150,7 @@ namespace RabbitMQ.Client
             ushort maxChannelCount, uint maxFrameSize, uint maxInboundMessageBodySize, bool topologyRecoveryEnabled,
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
-            int dispatchConsumerConcurrency, Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
+            ushort consumerDispatchConcurrency, Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
         {
             VirtualHost = virtualHost;
             UserName = userName;
@@ -170,7 +170,7 @@ namespace RabbitMQ.Client
             ContinuationTimeout = continuationTimeout;
             HandshakeContinuationTimeout = handshakeContinuationTimeout;
             RequestedConnectionTimeout = requestedConnectionTimeout;
-            DispatchConsumerConcurrency = dispatchConsumerConcurrency;
+            ConsumerDispatchConcurrency = consumerDispatchConcurrency;
             FrameHandlerFactoryAsync = frameHandlerFactoryAsync;
         }
     }

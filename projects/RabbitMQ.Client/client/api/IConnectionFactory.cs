@@ -194,6 +194,6 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
         /// In addition to that consumers need to be thread/concurrency safe.</remarks>
-        int ConsumerDispatchConcurrency { get; set; }
+        ushort ConsumerDispatchConcurrency { get; set; }
     }
 }

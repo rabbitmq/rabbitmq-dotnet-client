@@ -8,7 +8,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 {
     internal sealed class AsyncConsumerDispatcher : ConsumerDispatcherChannelBase
     {
-        internal AsyncConsumerDispatcher(ChannelBase channel, int concurrency)
+        internal AsyncConsumerDispatcher(ChannelBase channel, ushort concurrency)
             : base(channel, concurrency)
         {
         }
