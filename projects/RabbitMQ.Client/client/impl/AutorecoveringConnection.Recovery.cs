@@ -77,8 +77,7 @@ namespace RabbitMQ.Client.Framing.Impl
                      * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/826
                      * Happens when an AppDomain is unloaded
                      */
-                    if (args.Exception is ThreadAbortException &&
-                        args.ReplyCode == Constants.InternalError)
+                    if (args is { Exception: ThreadAbortException, ReplyCode: Constants.InternalError })
                     {
                         return false;
                     }
