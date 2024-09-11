@@ -197,7 +197,7 @@ namespace RabbitMQ.Client.Impl
 
             if (_disposed)
             {
-                await newChannel.AbortAsync()
+                await newChannel.AbortAsync(CancellationToken.None)
                     .ConfigureAwait(false);
                 return false;
             }
@@ -207,7 +207,7 @@ namespace RabbitMQ.Client.Impl
 
                 if (recoverConsumers)
                 {
-                    await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld)
+                    await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld, cancellationToken)
                         .ConfigureAwait(false);
                 }
 
