@@ -189,7 +189,7 @@ RabbitMQ.Client.ConnectionFactory.ClientProperties.set -> void
 RabbitMQ.Client.ConnectionFactory.ClientProvidedName.get -> string
 RabbitMQ.Client.ConnectionFactory.ClientProvidedName.set -> void
 RabbitMQ.Client.ConnectionFactory.ConnectionFactory() -> void
-RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency.get -> int
+RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency.get -> ushort
 RabbitMQ.Client.ConnectionFactory.ConsumerDispatchConcurrency.set -> void
 RabbitMQ.Client.ConnectionFactory.ContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.ConnectionFactory.ContinuationTimeout.set -> void
@@ -472,7 +472,7 @@ RabbitMQ.Client.IConnectionFactory.ClientProperties.get -> System.Collections.Ge
 RabbitMQ.Client.IConnectionFactory.ClientProperties.set -> void
 RabbitMQ.Client.IConnectionFactory.ClientProvidedName.get -> string
 RabbitMQ.Client.IConnectionFactory.ClientProvidedName.set -> void
-RabbitMQ.Client.IConnectionFactory.ConsumerDispatchConcurrency.get -> int
+RabbitMQ.Client.IConnectionFactory.ConsumerDispatchConcurrency.get -> ushort
 RabbitMQ.Client.IConnectionFactory.ConsumerDispatchConcurrency.set -> void
 RabbitMQ.Client.IConnectionFactory.ContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.IConnectionFactory.ContinuationTimeout.set -> void
@@ -700,7 +700,6 @@ readonly RabbitMQ.Client.ConnectionConfig.AuthMechanisms -> System.Collections.G
 readonly RabbitMQ.Client.ConnectionConfig.ClientProperties -> System.Collections.Generic.IDictionary<string, object>
 readonly RabbitMQ.Client.ConnectionConfig.ClientProvidedName -> string
 readonly RabbitMQ.Client.ConnectionConfig.ContinuationTimeout -> System.TimeSpan
-readonly RabbitMQ.Client.ConnectionConfig.DispatchConsumerConcurrency -> int
 readonly RabbitMQ.Client.ConnectionConfig.HandshakeContinuationTimeout -> System.TimeSpan
 readonly RabbitMQ.Client.ConnectionConfig.HeartbeatInterval -> System.TimeSpan
 readonly RabbitMQ.Client.ConnectionConfig.MaxChannelCount -> ushort
@@ -826,7 +825,6 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.IChannel.WaitForConfirmsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>
 ~RabbitMQ.Client.IChannel.WaitForConfirmsOrDieAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.IConnection.CloseAsync(ushort reasonCode, string reasonText, System.TimeSpan timeout, bool abort, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
-~RabbitMQ.Client.IConnection.CreateChannelAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel>
 ~RabbitMQ.Client.IConnection.UpdateSecretAsync(string newSecret, string reason, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
 ~RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable<RabbitMQ.Client.AmqpTcpEndpoint> endpoints, string clientProvidedName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IConnection>
@@ -894,3 +892,7 @@ static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, string! exchange, string! routingKey, bool mandatory, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, string! exchange, string! routingKey, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.ConfirmSelectAsync(bool trackConfirmations = true, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+const RabbitMQ.Client.ConnectionFactory.DefaultConsumerDispatchConcurrency = 1 -> ushort
+RabbitMQ.Client.IConnection.CreateChannelAsync(ushort consumerDispatchConcurrency, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!
+static RabbitMQ.Client.IConnectionExtensions.CreateChannelAsync(this RabbitMQ.Client.IConnection! connection, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!
+readonly RabbitMQ.Client.ConnectionConfig.ConsumerDispatchConcurrency -> ushort

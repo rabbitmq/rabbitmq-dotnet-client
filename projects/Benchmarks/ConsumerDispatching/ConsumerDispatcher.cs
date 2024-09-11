@@ -35,7 +35,7 @@ namespace RabbitMQ.Benchmarks
         public int Count { get; set; }
 
         [Params(1, 2)]
-        public int Concurrency { get; set; }
+        public ushort Concurrency { get; set; }
 
         [GlobalSetup(Target = nameof(AsyncConsumerDispatcher))]
         public async Task SetUpAsyncConsumer()

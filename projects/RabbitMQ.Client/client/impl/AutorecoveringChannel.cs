@@ -52,6 +52,7 @@ namespace RabbitMQ.Client.Impl
         private bool _usesPublisherConfirms;
         private bool _tracksPublisherConfirmations;
         private bool _usesTransactions;
+        private ushort _consumerDispatchConcurrency;
 
         internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
 
@@ -70,10 +71,12 @@ namespace RabbitMQ.Client.Impl
             set => InnerChannel.ContinuationTimeout = value;
         }
 
-        public AutorecoveringChannel(AutorecoveringConnection conn, RecoveryAwareChannel innerChannel)
+        public AutorecoveringChannel(AutorecoveringConnection conn, RecoveryAwareChannel innerChannel,
+            ushort consumerDispatchConcurrency)
         {
             _connection = conn;
             _innerChannel = innerChannel;
+            _consumerDispatchConcurrency = consumerDispatchConcurrency;
         }
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
@@ -160,7 +163,8 @@ namespace RabbitMQ.Client.Impl
 
             _connection = conn;
 
-            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(cancellationToken)
+            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(_consumerDispatchConcurrency,
+                cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
             newChannel.TakeOver(_innerChannel);
 

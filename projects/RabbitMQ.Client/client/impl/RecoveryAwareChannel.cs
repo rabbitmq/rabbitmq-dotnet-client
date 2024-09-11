@@ -37,7 +37,8 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class RecoveryAwareChannel : Channel
     {
-        public RecoveryAwareChannel(ConnectionConfig config, ISession session) : base(config, session)
+        public RecoveryAwareChannel(ConnectionConfig config, ISession session, ushort consumerDispatchConcurrency)
+            : base(config, session, consumerDispatchConcurrency)
         {
             ActiveDeliveryTagOffset = 0;
             MaxSeenDeliveryTag = 0;

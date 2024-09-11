@@ -73,10 +73,10 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
-        protected ChannelBase(ConnectionConfig config, ISession session)
+        protected ChannelBase(ConnectionConfig config, ISession session, ushort consumerDispatchConcurrency)
         {
             ContinuationTimeout = config.ContinuationTimeout;
-            ConsumerDispatcher = new AsyncConsumerDispatcher(this, config.DispatchConsumerConcurrency);
+            ConsumerDispatcher = new AsyncConsumerDispatcher(this, consumerDispatchConcurrency);
             Action<Exception, string> onException = (exception, context) =>
                 OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
             _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);

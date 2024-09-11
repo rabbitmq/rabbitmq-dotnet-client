@@ -295,7 +295,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
+                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
                         await recordedExchange.RecoverAsync(ch, cancellationToken)
                             .ConfigureAwait(false);
@@ -347,7 +347,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     string newName = string.Empty;
-                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
+                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
                         newName = await recordedQueue.RecoverAsync(ch, cancellationToken)
                             .ConfigureAwait(false);
@@ -458,7 +458,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 try
                 {
-                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken).ConfigureAwait(false))
+                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false))
                     {
                         await binding.RecoverAsync(ch, cancellationToken)
                             .ConfigureAwait(false);

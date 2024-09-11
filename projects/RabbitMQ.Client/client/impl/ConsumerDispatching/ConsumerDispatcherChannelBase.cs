@@ -17,7 +17,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         private bool _quiesce = false;
         private bool _disposed;
 
-        internal ConsumerDispatcherChannelBase(ChannelBase channel, int concurrency)
+        internal ConsumerDispatcherChannelBase(ChannelBase channel, ushort concurrency)
         {
             _channel = channel;
             var workChannel = Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
