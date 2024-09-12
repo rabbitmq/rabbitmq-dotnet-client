@@ -14,15 +14,17 @@ namespace RabbitMQ.Client.ConsumerDispatching
         protected readonly ChannelReader<WorkStruct> _reader;
         private readonly ChannelWriter<WorkStruct> _writer;
         private readonly Task _worker;
+        private readonly ushort _concurrency;
         private bool _quiesce = false;
         private bool _disposed;
 
         internal ConsumerDispatcherChannelBase(ChannelBase channel, ushort concurrency)
         {
             _channel = channel;
+            _concurrency = concurrency;
             var workChannel = Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
             {
-                SingleReader = concurrency == 1,
+                SingleReader = _concurrency == 1,
                 SingleWriter = false,
                 AllowSynchronousContinuations = false
             });
@@ -30,14 +32,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
             _writer = workChannel.Writer;
 
             Func<Task> loopStart = ProcessChannelAsync;
-            if (concurrency == 1)
+            if (_concurrency == 1)
             {
                 _worker = Task.Run(loopStart);
             }
             else
             {
-                var tasks = new Task[concurrency];
-                for (int i = 0; i < concurrency; i++)
+                var tasks = new Task[_concurrency];
+                for (int i = 0; i < _concurrency; i++)
                 {
                     tasks[i] = Task.Run(loopStart);
                 }
@@ -45,13 +47,9 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public bool IsShutdown
-        {
-            get
-            {
-                return _quiesce;
-            }
-        }
+        public bool IsShutdown => _quiesce;
+
+        public ushort Concurrency => _concurrency;
 
         public ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {

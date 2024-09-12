@@ -71,7 +71,7 @@ namespace Test
         protected readonly ITestOutputHelper _output;
         protected readonly string _testDisplayName;
 
-        protected readonly ushort _consumerDispatchConcurrency = 1;
+        protected readonly ushort _consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency;
         protected readonly bool _openChannel = true;
 
         public static readonly TimeSpan ShortSpan;
@@ -109,7 +109,7 @@ namespace Test
         }
 
         public IntegrationFixture(ITestOutputHelper output,
-            ushort consumerDispatchConcurrency = 1,
+            ushort consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency,
             bool openChannel = true)
         {
             _consumerDispatchConcurrency = consumerDispatchConcurrency;
@@ -143,8 +143,7 @@ namespace Test
              */
             if (_connFactory == null)
             {
-                _connFactory = CreateConnectionFactory();
-                _connFactory.ConsumerDispatchConcurrency = _consumerDispatchConcurrency;
+                _connFactory = CreateConnectionFactory(_consumerDispatchConcurrency);
             }
 
             if (_conn == null)
@@ -517,13 +516,15 @@ namespace Test
             }
         }
 
-        protected ConnectionFactory CreateConnectionFactory()
+        protected ConnectionFactory CreateConnectionFactory(
+            ushort consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency)
         {
             return new ConnectionFactory
             {
                 ClientProvidedName = $"{_testDisplayName}:{Util.Now}:{GetConnectionIdx()}",
                 ContinuationTimeout = WaitSpan,
                 HandshakeContinuationTimeout = WaitSpan,
+                ConsumerDispatchConcurrency = consumerDispatchConcurrency
             };
         }
 

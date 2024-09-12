@@ -8,12 +8,6 @@ namespace RabbitMQ.Client
     public static class IConnectionExtensions
     {
         /// <summary>
-        /// Asynchronously create and return a fresh channel, session, and channel.
-        /// </summary>
-        public static Task<IChannel> CreateChannelAsync(this IConnection connection, CancellationToken cancellationToken = default) =>
-            connection.CreateChannelAsync(ConnectionFactory.DefaultConsumerDispatchConcurrency, cancellationToken);
-
-        /// <summary>
         /// Asynchronously close this connection and all its channels.
         /// </summary>
         /// <remarks>

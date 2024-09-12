@@ -41,6 +41,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         bool IsShutdown { get; }
 
+        ushort Concurrency { get; }
+
         IAsyncBasicConsumer GetAndRemoveConsumer(string tag);
 
         ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken);

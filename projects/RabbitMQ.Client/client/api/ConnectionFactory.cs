@@ -93,11 +93,6 @@ namespace RabbitMQ.Client
     public sealed class ConnectionFactory : ConnectionFactoryBase, IConnectionFactory
     {
         /// <summary>
-        /// Default value for consumer dispatch concurrency.
-        /// </summary>
-        public const ushort DefaultConsumerDispatchConcurrency = 1;
-
-        /// <summary>
         /// Default value for the desired maximum channel number. Default: 2047.
         /// </summary>
         public const ushort DefaultChannelMax = 2047;
@@ -180,7 +175,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
         /// In addition to that consumers need to be thread/concurrency safe.</remarks>
-        public ushort ConsumerDispatchConcurrency { get; set; } = DefaultConsumerDispatchConcurrency;
+        public ushort ConsumerDispatchConcurrency { get; set; } = Constants.DefaultConsumerDispatchConcurrency;
 
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";

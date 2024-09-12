@@ -83,5 +83,13 @@ namespace RabbitMQ.Client
         public const int NotImplemented = 540;
         ///<summary>(= 541)</summary>
         public const int InternalError = 541;
+
+        /// <summary>
+        /// The default consumer dispatch concurrency. See <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>
+        /// to set this value for every channel created on a connection,
+        /// and <see cref="IConnection.CreateChannelAsync(ushort?, System.Threading.CancellationToken)"/>
+        /// for setting this value for a particular channel.
+        /// </summary>
+        public const ushort DefaultConsumerDispatchConcurrency = 1;
     }
 }

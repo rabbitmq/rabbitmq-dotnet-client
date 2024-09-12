@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _sessionManager = new SessionManager(this, 0, config.MaxInboundMessageBodySize);
             _session0 = new MainSession(this, config.MaxInboundMessageBodySize);
-            _channel0 = new Channel(_config, _session0, ConnectionFactory.DefaultConsumerDispatchConcurrency); ;
+            _channel0 = new Channel(_config, _session0);
 
             ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)
             {
@@ -253,7 +253,8 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public Task<IChannel> CreateChannelAsync(ushort consumerDispatchConcurrency, CancellationToken cancellationToken = default)
+        public Task<IChannel> CreateChannelAsync(ushort? consumerDispatchConcurrency = null,
+            CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
             ISession session = CreateSession();

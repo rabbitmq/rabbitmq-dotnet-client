@@ -42,7 +42,7 @@ namespace Test.Integration
         protected const ushort _messageCount = 200;
 
         public TestConcurrentAccessBase(ITestOutputHelper output,
-            ushort consumerDispatchConcurrency = 1,
+            ushort consumerDispatchConcurrency = RabbitMQ.Client.Constants.DefaultConsumerDispatchConcurrency,
             bool openChannel = true) : base(output, consumerDispatchConcurrency, openChannel)
         {
         }

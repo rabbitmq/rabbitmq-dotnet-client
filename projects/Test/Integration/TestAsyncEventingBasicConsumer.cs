@@ -34,6 +34,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -41,6 +42,8 @@ namespace Test.Integration
 {
     public class TestAsyncEventingBasicConsumer : IntegrationFixture
     {
+        private const ushort ConsumerDispatchConcurrency = 2;
+
         private readonly CancellationTokenSource _cts = new CancellationTokenSource(ShortSpan);
         private readonly CancellationTokenRegistration _ctr;
         private readonly TaskCompletionSource<bool> _onCallbackExceptionTcs =
@@ -49,7 +52,7 @@ namespace Test.Integration
             new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public TestAsyncEventingBasicConsumer(ITestOutputHelper output)
-            : base(output, consumerDispatchConcurrency: 2)
+            : base(output, consumerDispatchConcurrency: ConsumerDispatchConcurrency)
         {
             _ctr = _cts.Token.Register(OnTokenCanceled);
         }
@@ -81,6 +84,10 @@ namespace Test.Integration
         [Fact]
         public async Task TestAsyncEventingBasicConsumer_GH1038()
         {
+            AutorecoveringChannel autorecoveringChannel = (AutorecoveringChannel)_channel;
+            Assert.Equal(ConsumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
+            Assert.Equal(_consumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
+
             string exchangeName = GenerateExchangeName();
             string queueName = GenerateQueueName();
             string routingKey = string.Empty;
