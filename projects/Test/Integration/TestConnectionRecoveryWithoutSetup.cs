@@ -270,6 +270,12 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryConsumerFilter()
         {
+            const string exchange = "topology.recovery.exchange";
+            const string queueWithRecoveredConsumer = "topology.recovery.queue.1";
+            const string queueWithIgnoredConsumer = "topology.recovery.queue.2";
+            const string binding1 = "recovered.binding.1";
+            const string binding2 = "recovered.binding.2";
+
             var filter = new TopologyRecoveryFilter
             {
                 ConsumerFilter = consumer => !consumer.ConsumerTag.Contains("filtered")
@@ -280,16 +286,12 @@ namespace Test.Integration
             using (AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter))
             {
                 conn.RecoverySucceeded += (source, ea) => connectionRecoveryTcs.SetResult(true);
+                conn.ConnectionRecoveryError += (source, ea) => connectionRecoveryTcs.SetException(ea.Exception);
+                conn.CallbackException += (source, ea) => connectionRecoveryTcs.SetException(ea.Exception);
 
                 using (IChannel ch = await conn.CreateChannelAsync())
                 {
                     await ch.ConfirmSelectAsync();
-
-                    string exchange = "topology.recovery.exchange";
-                    string queueWithRecoveredConsumer = "topology.recovery.queue.1";
-                    string queueWithIgnoredConsumer = "topology.recovery.queue.2";
-                    string binding1 = "recovered.binding.1";
-                    string binding2 = "recovered.binding.2";
 
                     await ch.ExchangeDeclareAsync(exchange, "direct");
                     await ch.QueueDeclareAsync(queueWithRecoveredConsumer, false, false, false);
@@ -325,6 +327,7 @@ namespace Test.Integration
                         Assert.True(ch.IsOpen);
                         await ch.BasicPublishAsync(exchange, binding1, _encoding.GetBytes("test message"));
                         await ch.BasicPublishAsync(exchange, binding2, _encoding.GetBytes("test message"));
+                        await WaitForConfirmsWithCancellationAsync(ch);
 
                         await consumerRecoveryTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
                         Assert.True(await consumerRecoveryTcs.Task);

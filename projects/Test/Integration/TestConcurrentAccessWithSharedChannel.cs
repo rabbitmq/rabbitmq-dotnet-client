@@ -128,8 +128,6 @@ namespace Test.Integration
 
                 Assert.True(await tcs.Task);
             }, Iterations);
-
-            _output.WriteLine("@@@@@@@@ PUBLISH ACK COUNT: {0}", publishAckCount);
         }
     }
 }

@@ -228,20 +228,23 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryDefaultFilterRecoversAllEntities()
         {
+            const string exchange = "topology.recovery.exchange";
+            const string queue1 = "topology.recovery.queue.1";
+            const string queue2 = "topology.recovery.queue.2";
+            const string binding1 = "recovered.binding";
+            const string binding2 = "filtered.binding";
+
             var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var filter = new TopologyRecoveryFilter();
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
             conn.RecoverySucceeded += (source, ea) => connectionRecoveryTcs.SetResult(true);
+            conn.ConnectionRecoveryError += (source, ea) => connectionRecoveryTcs.SetException(ea.Exception);
+            conn.CallbackException += (source, ea) => connectionRecoveryTcs.SetException(ea.Exception);
+
             IChannel ch = await conn.CreateChannelAsync();
             try
             {
                 await ch.ConfirmSelectAsync();
-
-                string exchange = "topology.recovery.exchange";
-                string queue1 = "topology.recovery.queue.1";
-                string queue2 = "topology.recovery.queue.2";
-                string binding1 = "recovered.binding";
-                string binding2 = "filtered.binding";
 
                 await ch.ExchangeDeclareAsync(exchange, "direct");
                 await ch.QueueDeclareAsync(queue1, false, false, false);
@@ -281,16 +284,14 @@ namespace Test.Integration
                 await ch.QueueDeclarePassiveAsync(queue1);
                 await ch.QueueDeclarePassiveAsync(queue2);
 
-                await ch.BasicPublishAsync(exchange, binding1, true, _encoding.GetBytes("test message"));
-                // await ch.WaitForConfirmsOrDieAsync();
+                var pt1 = ch.BasicPublishAsync(exchange, binding1, true, _encoding.GetBytes("test message"));
+                var pt2 = ch.BasicPublishAsync(exchange, binding2, true, _encoding.GetBytes("test message"));
+                await WaitForConfirmsWithCancellationAsync(ch);
+                await Task.WhenAll(pt1.AsTask(), pt2.AsTask()).WaitAsync(WaitSpan);
 
-                await ch.BasicPublishAsync(exchange, binding2, true, _encoding.GetBytes("test message"));
-                // await ch.WaitForConfirmsOrDieAsync();
-
-                await consumerReceivedTcs1.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                await consumerReceivedTcs2.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.True(consumerReceivedTcs1.Task.IsCompletedSuccessfully());
-                Assert.True(consumerReceivedTcs2.Task.IsCompletedSuccessfully());
+                await Task.WhenAll(consumerReceivedTcs1.Task, consumerReceivedTcs2.Task).WaitAsync(WaitSpan);
+                Assert.True(await consumerReceivedTcs1.Task);
+                Assert.True(await consumerReceivedTcs2.Task);
             }
             finally
             {

@@ -80,7 +80,7 @@ namespace Test
                 await m.QueueBindAsync(q, x, rk);
                 await m.BasicPublishAsync(x, rk, _messageBody);
 
-                Assert.True(await TestConnectionRecoveryBase.WaitForConfirmsWithCancellationAsync(m));
+                Assert.True(await WaitForConfirmsWithCancellationAsync(m));
                 await m.ExchangeDeclarePassiveAsync(x);
             });
         }
@@ -234,11 +234,11 @@ namespace Test
             return tcs;
         }
 
-        protected static Task<bool> WaitForConfirmsWithCancellationAsync(IChannel m)
+        protected static Task<bool> WaitForConfirmsWithCancellationAsync(IChannel channel)
         {
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
             {
-                return m.WaitForConfirmsAsync(cts.Token);
+                return channel.WaitForConfirmsAsync(cts.Token);
             }
         }
 
