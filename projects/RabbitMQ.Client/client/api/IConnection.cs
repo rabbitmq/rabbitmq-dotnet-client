@@ -239,13 +239,13 @@ namespace RabbitMQ.Client
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
         ///
-        /// Defaults to <see cref="Constants.DefaultConsumerDispatchConcurrency"/>.
+        /// Defaults to <c>null</c>, which will use the value from <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>
         /// 
         /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
         /// In addition to that consumers need to be thread/concurrency safe.
         /// </param>
         /// <param name="cancellationToken">Cancellation token</param>
-        Task<IChannel> CreateChannelAsync(ushort consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency,
+        Task<IChannel> CreateChannelAsync(ushort? consumerDispatchConcurrency = null,
             CancellationToken cancellationToken = default);
     }
 }

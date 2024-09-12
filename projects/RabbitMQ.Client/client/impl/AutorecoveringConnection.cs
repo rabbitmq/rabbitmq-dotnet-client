@@ -37,7 +37,6 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -241,11 +240,11 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync(ushort consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency,
+        public async Task<IChannel> CreateChannelAsync(ushort? consumerDispatchConcurrency = null,
             CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
-            ushort cdc = Misc.DetermineConsumerDispatchConcurrency(_config, consumerDispatchConcurrency);
+            ushort cdc = consumerDispatchConcurrency.GetValueOrDefault(_config.ConsumerDispatchConcurrency);
             RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(cdc, cancellationToken)
                 .ConfigureAwait(false);
             AutorecoveringChannel channel = new AutorecoveringChannel(this, recoveryAwareChannel, cdc);

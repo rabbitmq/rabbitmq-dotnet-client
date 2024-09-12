@@ -253,7 +253,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        public Task<IChannel> CreateChannelAsync(ushort consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency,
+        public Task<IChannel> CreateChannelAsync(ushort? consumerDispatchConcurrency = null,
             CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();

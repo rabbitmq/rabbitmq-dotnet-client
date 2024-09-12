@@ -87,7 +87,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// The default consumer dispatch concurrency. See <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>
         /// to set this value for every channel created on a connection,
-        /// and <see cref="IConnection.CreateChannelAsync(ushort, System.Threading.CancellationToken)"/>
+        /// and <see cref="IConnection.CreateChannelAsync(ushort?, System.Threading.CancellationToken)"/>
         /// for setting this value for a particular channel.
         /// </summary>
         public const ushort DefaultConsumerDispatchConcurrency = 1;
