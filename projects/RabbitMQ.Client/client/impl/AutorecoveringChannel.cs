@@ -144,8 +144,6 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsOpen => !_disposed && _innerChannel.IsOpen;
 
-        public ulong NextPublishSeqNo => InnerChannel.NextPublishSeqNo;
-
         public string? CurrentQueue => InnerChannel.CurrentQueue;
 
         internal async Task<bool> AutomaticallyRecoverAsync(AutorecoveringConnection conn, bool recoverConsumers,
@@ -273,6 +271,8 @@ namespace RabbitMQ.Client.Impl
             _recordedConsumerTags.Clear();
             _disposed = true;
         }
+
+        public ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default) => InnerChannel.GetNextPublishSequenceNumberAsync(cancellationToken);
 
         public ValueTask BasicAckAsync(ulong deliveryTag, bool multiple, CancellationToken cancellationToken)
             => InnerChannel.BasicAckAsync(deliveryTag, multiple, cancellationToken);

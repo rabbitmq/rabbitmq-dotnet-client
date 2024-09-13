@@ -440,9 +440,9 @@ RabbitMQ.Client.IChannel.CurrentQueue.get -> string
 RabbitMQ.Client.IChannel.DefaultConsumer.get -> RabbitMQ.Client.IAsyncBasicConsumer
 RabbitMQ.Client.IChannel.DefaultConsumer.set -> void
 RabbitMQ.Client.IChannel.FlowControl -> System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs>
+RabbitMQ.Client.IChannel.GetNextPublishSequenceNumberAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<ulong>
 RabbitMQ.Client.IChannel.IsClosed.get -> bool
 RabbitMQ.Client.IChannel.IsOpen.get -> bool
-RabbitMQ.Client.IChannel.NextPublishSeqNo.get -> ulong
 RabbitMQ.Client.IChannelExtensions
 RabbitMQ.Client.IConnection
 RabbitMQ.Client.IConnection.CallbackException -> System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs>

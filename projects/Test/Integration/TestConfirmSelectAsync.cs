@@ -49,19 +49,19 @@ namespace Test.Integration
         public async Task TestConfirmSelectIdempotency()
         {
             await _channel.ConfirmSelectAsync();
-            Assert.Equal(1ul, _channel.NextPublishSeqNo);
+            Assert.Equal(1ul, await _channel.GetNextPublishSequenceNumberAsync());
             await Publish();
-            Assert.Equal(2ul, _channel.NextPublishSeqNo);
+            Assert.Equal(2ul, await _channel.GetNextPublishSequenceNumberAsync());
             await Publish();
-            Assert.Equal(3ul, _channel.NextPublishSeqNo);
+            Assert.Equal(3ul, await _channel.GetNextPublishSequenceNumberAsync());
 
             await _channel.ConfirmSelectAsync();
             await Publish();
-            Assert.Equal(4ul, _channel.NextPublishSeqNo);
+            Assert.Equal(4ul, await _channel.GetNextPublishSequenceNumberAsync());
             await Publish();
-            Assert.Equal(5ul, _channel.NextPublishSeqNo);
+            Assert.Equal(5ul, await _channel.GetNextPublishSequenceNumberAsync());
             await Publish();
-            Assert.Equal(6ul, _channel.NextPublishSeqNo);
+            Assert.Equal(6ul, await _channel.GetNextPublishSequenceNumberAsync());
         }
 
         private ValueTask Publish()

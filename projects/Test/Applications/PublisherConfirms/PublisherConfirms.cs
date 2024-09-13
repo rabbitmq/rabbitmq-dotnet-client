@@ -173,7 +173,7 @@ async Task HandlePublishConfirmsAsynchronously()
     {
         string msg = i.ToString();
         byte[] body = Encoding.UTF8.GetBytes(msg);
-        ulong nextPublishSeqNo = channel.NextPublishSeqNo;
+        ulong nextPublishSeqNo = await channel.GetNextPublishSequenceNumberAsync();
         if ((ulong)(i + 1) != nextPublishSeqNo)
         {
             Console.WriteLine($"{DateTime.Now} [WARNING] i {i + 1} does not equal next sequence number: {nextPublishSeqNo}");

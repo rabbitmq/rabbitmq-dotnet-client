@@ -181,29 +181,6 @@ namespace RabbitMQ.Client.Impl
         [MemberNotNullWhen(false, nameof(CloseReason))]
         public bool IsOpen => CloseReason is null;
 
-        public ulong NextPublishSeqNo
-        {
-            get
-            {
-                if (ConfirmsAreEnabled)
-                {
-                    _confirmSemaphore.Wait();
-                    try
-                    {
-                        return _nextPublishSeqNo;
-                    }
-                    finally
-                    {
-                        _confirmSemaphore.Release();
-                    }
-                }
-                else
-                {
-                    return _nextPublishSeqNo;
-                }
-            }
-        }
-
         public string? CurrentQueue { get; private set; }
 
         public ISession Session { get; private set; }
@@ -803,6 +780,26 @@ namespace RabbitMQ.Client.Impl
         protected void HandleConnectionUnblocked()
         {
             Session.Connection.HandleConnectionUnblocked();
+        }
+
+        public async ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default)
+        {
+            if (ConfirmsAreEnabled)
+            {
+                await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    return _nextPublishSeqNo;
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
+                }
+            }
+            else
+            {
+                return _nextPublishSeqNo;
+            }
         }
 
         public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
