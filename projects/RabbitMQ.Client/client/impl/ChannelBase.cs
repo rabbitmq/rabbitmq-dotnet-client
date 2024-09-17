@@ -181,29 +181,6 @@ namespace RabbitMQ.Client.Impl
         [MemberNotNullWhen(false, nameof(CloseReason))]
         public bool IsOpen => CloseReason is null;
 
-        public ulong NextPublishSeqNo
-        {
-            get
-            {
-                if (ConfirmsAreEnabled)
-                {
-                    _confirmSemaphore.Wait();
-                    try
-                    {
-                        return _nextPublishSeqNo;
-                    }
-                    finally
-                    {
-                        _confirmSemaphore.Release();
-                    }
-                }
-                else
-                {
-                    return _nextPublishSeqNo;
-                }
-            }
-        }
-
         public string? CurrentQueue { get; private set; }
 
         public ISession Session { get; private set; }
@@ -589,7 +566,7 @@ namespace RabbitMQ.Client.Impl
             return ModelSendAsync(method, cancellationToken).AsTask();
         }
 
-        protected void HandleBasicAck(IncomingCommand cmd)
+        protected async Task<bool> HandleBasicAck(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             var ack = new BasicAck(cmd.MethodSpan);
             if (!_basicAcksWrapper.IsEmpty)
@@ -598,10 +575,12 @@ namespace RabbitMQ.Client.Impl
                 _basicAcksWrapper.Invoke(this, args);
             }
 
-            HandleAckNack(ack._deliveryTag, ack._multiple, false);
+            await HandleAckNack(ack._deliveryTag, ack._multiple, false, cancellationToken)
+                .ConfigureAwait(false);
+            return true;
         }
 
-        protected void HandleBasicNack(IncomingCommand cmd)
+        protected async Task<bool> HandleBasicNack(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             var nack = new BasicNack(cmd.MethodSpan);
             if (!_basicNacksWrapper.IsEmpty)
@@ -611,7 +590,9 @@ namespace RabbitMQ.Client.Impl
                 _basicNacksWrapper.Invoke(this, args);
             }
 
-            HandleAckNack(nack._deliveryTag, nack._multiple, true);
+            await HandleAckNack(nack._deliveryTag, nack._multiple, true, cancellationToken)
+                .ConfigureAwait(false);
+            return true;
         }
 
         protected async Task<bool> HandleBasicCancelAsync(IncomingCommand cmd, CancellationToken cancellationToken)
@@ -799,6 +780,26 @@ namespace RabbitMQ.Client.Impl
         protected void HandleConnectionUnblocked()
         {
             Session.Connection.HandleConnectionUnblocked();
+        }
+
+        public async ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default)
+        {
+            if (ConfirmsAreEnabled)
+            {
+                await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    return _nextPublishSeqNo;
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
+                }
+            }
+            else
+            {
+                return _nextPublishSeqNo;
+            }
         }
 
         public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
@@ -1829,7 +1830,7 @@ namespace RabbitMQ.Client.Impl
 
         // NOTE: this method is internal for its use in this test:
         // TestWaitForConfirmsWithTimeoutAsync_MessageNacked_WaitingHasTimedout_ReturnFalse
-        internal void HandleAckNack(ulong deliveryTag, bool multiple, bool isNack)
+        internal async Task HandleAckNack(ulong deliveryTag, bool multiple, bool isNack, CancellationToken cancellationToken = default)
         {
             // Only do this if confirms are enabled *and* the library is tracking confirmations
             if (ConfirmsAreEnabled && _trackConfirmations)
@@ -1839,7 +1840,8 @@ namespace RabbitMQ.Client.Impl
                     throw new InvalidOperationException(InternalConstants.BugFound);
                 }
                 // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
-                _confirmSemaphore.Wait();
+                await _confirmSemaphore.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 try
                 {
                     // No need to do anything if there are no delivery tags in the list

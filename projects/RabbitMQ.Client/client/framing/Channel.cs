@@ -89,13 +89,11 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.BasicAck:
                     {
-                        HandleBasicAck(cmd);
-                        return Task.FromResult(true);
+                        return HandleBasicAck(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
-                        HandleBasicNack(cmd);
-                        return Task.FromResult(true);
+                        return HandleBasicNack(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.BasicReturn:
                     {

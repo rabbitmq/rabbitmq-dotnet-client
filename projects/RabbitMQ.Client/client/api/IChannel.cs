@@ -96,11 +96,6 @@ namespace RabbitMQ.Client
         bool IsOpen { get; }
 
         /// <summary>
-        /// When in confirm mode, return the sequence number of the next message to be published.
-        /// </summary>
-        ulong NextPublishSeqNo { get; }
-
-        /// <summary>
         /// The name of the last queue declared on this channel.
         /// </summary>
         /// <remarks>
@@ -142,6 +137,11 @@ namespace RabbitMQ.Client
         /// handler is added to this event, the event handler will be fired immediately.
         /// </remarks>
         event EventHandler<ShutdownEventArgs> ChannelShutdown;
+
+        /// <summary>
+        /// When in confirm mode, return the sequence number of the next message to be published.
+        /// </summary>
+        ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default);
 
         /// <summary>Asynchronously acknknowledges one or more messages.</summary>
         /// <param name="deliveryTag">The delivery tag.</param>
