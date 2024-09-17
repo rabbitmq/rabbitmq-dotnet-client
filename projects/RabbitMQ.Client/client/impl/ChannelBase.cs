@@ -701,10 +701,10 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected async Task<bool> HandleConnectionBlocked(IncomingCommand cmd, CancellationToken cancellationToken)
+        protected async Task<bool> HandleConnectionBlockedAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             string reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
-            await Session.Connection.HandleConnectionBlocked(reason)
+            await Session.Connection.HandleConnectionBlockedAsync(reason)
                 .ConfigureAwait(false);
             return true;
         }
@@ -780,9 +780,9 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected async Task<bool> HandleConnectionUnblocked(CancellationToken cancellationToken)
+        protected async Task<bool> HandleConnectionUnblockedAsync(CancellationToken cancellationToken)
         {
-            await Session.Connection.HandleConnectionUnblocked()
+            await Session.Connection.HandleConnectionUnblockedAsync()
                 .ConfigureAwait(false);
             return true;
         }

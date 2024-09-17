@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _closed = true;
         }
 
-        internal Task HandleConnectionBlocked(string reason)
+        internal Task HandleConnectionBlockedAsync(string reason)
         {
             if (!_connectionBlockedWrapper.IsEmpty)
             {
@@ -63,7 +63,7 @@ namespace RabbitMQ.Client.Framing.Impl
             return Task.CompletedTask;
         }
 
-        internal Task HandleConnectionUnblocked()
+        internal Task HandleConnectionUnblockedAsync()
         {
             if (!_connectionUnblockedWrapper.IsEmpty)
             {

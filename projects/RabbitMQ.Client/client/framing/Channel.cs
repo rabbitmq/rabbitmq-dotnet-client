@@ -118,7 +118,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 case ProtocolCommandId.ConnectionBlocked:
                     {
                         // Note: always returns true
-                        return HandleConnectionBlocked(cmd, cancellationToken);
+                        return HandleConnectionBlockedAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionClose:
                     {
@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 case ProtocolCommandId.ConnectionUnblocked:
                     {
                         // Note: always returns true
-                        return HandleConnectionUnblocked(cancellationToken);
+                        return HandleConnectionUnblockedAsync(cancellationToken);
                     }
                 default:
                     {
