@@ -151,10 +151,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync
         {
-            add => _consumerAboutToBeRecoveredWrapper.AddHandler(value);
-            remove => _consumerAboutToBeRecoveredWrapper.RemoveHandler(value);
+            add => _consumerAboutToBeRecoveredAsyncWrapper.AddHandler(value);
+            remove => _consumerAboutToBeRecoveredAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecoveredWrapper;
+        private AsyncEventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecoveredAsyncWrapper;
 
         public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync
         {
@@ -221,7 +221,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _connectionBlockedAsyncWrapper.Takeover(other._connectionBlockedAsyncWrapper);
             _connectionUnblockedAsyncWrapper.Takeover(other._connectionUnblockedAsyncWrapper);
             _connectionShutdownAsyncWrapper.Takeover(other._connectionShutdownAsyncWrapper);
-            // TODO Why are other wrappers not taken over?
+            _consumerAboutToBeRecoveredAsyncWrapper.Takeover(other._consumerAboutToBeRecoveredAsyncWrapper);
         }
 
         internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
