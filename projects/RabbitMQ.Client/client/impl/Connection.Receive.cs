@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     Constants.InternalError,
                     "Thread aborted (AppDomain unloaded?)",
                     exception: taex);
-                await HandleMainLoopException(ea)
+                await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }
 #endif
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     0,
                     "End of stream",
                     exception: eose);
-                await HandleMainLoopException(ea)
+                await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }
             catch (HardProtocolException hpe)
@@ -91,7 +91,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     Constants.InternalError,
                     fileLoadException.Message,
                     exception: fileLoadException);
-                await HandleMainLoopException(ea)
+                await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }
             catch (OperationCanceledException ocex)
@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Framing.Impl
                         Constants.InternalError,
                         ocex.Message,
                         exception: ocex);
-                    await HandleMainLoopException(ea)
+                    await HandleMainLoopExceptionAsync(ea)
                         .ConfigureAwait(false);
                 }
             }
@@ -116,7 +116,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     Constants.InternalError,
                     ex.Message,
                     exception: ex);
-                await HandleMainLoopException(ea)
+                await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }
 
@@ -207,7 +207,7 @@ namespace RabbitMQ.Client.Framing.Impl
             MaybeStopHeartbeatTimers();
         }
 
-        private async Task HandleMainLoopException(ShutdownEventArgs reason)
+        private async Task HandleMainLoopExceptionAsync(ShutdownEventArgs reason)
         {
             string message = reason.GetLogMessage();
             if (false == SetCloseReason(reason))
