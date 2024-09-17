@@ -60,7 +60,7 @@ namespace Test.SequentialIntegration
         public async Task TestConnectionBlockedNotification()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _conn.ConnectionBlocked += async (object sender, ConnectionBlockedEventArgs args) =>
+            _conn.ConnectionBlockedAsync += async (object sender, ConnectionBlockedEventArgs args) =>
             {
                 // TODO should this continue to be doing fire and forget?
                 await UnblockAsync();

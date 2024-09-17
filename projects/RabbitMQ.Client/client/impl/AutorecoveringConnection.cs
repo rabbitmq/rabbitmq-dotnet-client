@@ -108,10 +108,10 @@ namespace RabbitMQ.Client.Framing.Impl
             remove => InnerConnection.CallbackExceptionAsync -= value;
         }
 
-        public event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
+        public event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlockedAsync
         {
-            add => InnerConnection.ConnectionBlocked += value;
-            remove => InnerConnection.ConnectionBlocked -= value;
+            add => InnerConnection.ConnectionBlockedAsync += value;
+            remove => InnerConnection.ConnectionBlockedAsync -= value;
         }
 
         public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdown

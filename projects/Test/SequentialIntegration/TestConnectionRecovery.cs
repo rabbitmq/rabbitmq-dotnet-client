@@ -146,7 +146,7 @@ namespace Test.SequentialIntegration
             try
             {
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                _conn.ConnectionBlocked += (c, reason) =>
+                _conn.ConnectionBlockedAsync += (c, reason) =>
                 {
                     tcs.SetResult(true);
                     return Task.CompletedTask;

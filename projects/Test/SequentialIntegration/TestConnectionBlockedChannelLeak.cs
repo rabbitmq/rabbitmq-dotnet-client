@@ -82,7 +82,7 @@ namespace Test.SequentialIntegration
 
             string exchangeName = GenerateExchangeName();
 
-            _conn.ConnectionBlocked += (object sender, ConnectionBlockedEventArgs args) =>
+            _conn.ConnectionBlockedAsync += (object sender, ConnectionBlockedEventArgs args) =>
             {
                 connectionBlockedTcs.SetResult(true);
                 return Task.CompletedTask;

@@ -56,9 +56,9 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal Task HandleConnectionBlockedAsync(string reason)
         {
-            if (!_connectionBlockedWrapper.IsEmpty)
+            if (!_connectionBlockedAsyncWrapper.IsEmpty)
             {
-                return _connectionBlockedWrapper.InvokeAsync(this, new ConnectionBlockedEventArgs(reason));
+                return _connectionBlockedAsyncWrapper.InvokeAsync(this, new ConnectionBlockedEventArgs(reason));
             }
             return Task.CompletedTask;
         }

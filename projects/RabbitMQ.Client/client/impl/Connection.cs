@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             Func<Exception, string, Task> onException = (exception, context) => OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
             _callbackExceptionAsyncWrapper = new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
-            _connectionBlockedWrapper = new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
+            _connectionBlockedAsyncWrapper = new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
             _connectionUnblockedWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
             _connectionShutdownWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
 
@@ -125,12 +125,12 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private AsyncEventingWrapper<CallbackExceptionEventArgs> _callbackExceptionAsyncWrapper;
 
-        public event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
+        public event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlockedAsync
         {
-            add => _connectionBlockedWrapper.AddHandler(value);
-            remove => _connectionBlockedWrapper.RemoveHandler(value);
+            add => _connectionBlockedAsyncWrapper.AddHandler(value);
+            remove => _connectionBlockedAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<ConnectionBlockedEventArgs> _connectionBlockedWrapper;
+        private AsyncEventingWrapper<ConnectionBlockedEventArgs> _connectionBlockedAsyncWrapper;
 
         public event AsyncEventHandler<EventArgs> ConnectionUnblocked
         {
@@ -208,7 +208,7 @@ namespace RabbitMQ.Client.Framing.Impl
         internal void TakeOver(Connection other)
         {
             _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
-            _connectionBlockedWrapper.Takeover(other._connectionBlockedWrapper);
+            _connectionBlockedAsyncWrapper.Takeover(other._connectionBlockedAsyncWrapper);
             _connectionUnblockedWrapper.Takeover(other._connectionUnblockedWrapper);
             _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
             // TODO Why are other wrappers not taken over?

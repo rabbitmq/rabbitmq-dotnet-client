@@ -449,7 +449,6 @@ RabbitMQ.Client.IConnection.ChannelMax.get -> ushort
 RabbitMQ.Client.IConnection.ClientProperties.get -> System.Collections.Generic.IDictionary<string, object>
 RabbitMQ.Client.IConnection.ClientProvidedName.get -> string
 RabbitMQ.Client.IConnection.CloseReason.get -> RabbitMQ.Client.ShutdownEventArgs
-RabbitMQ.Client.IConnection.ConnectionBlocked -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs>
 RabbitMQ.Client.IConnection.ConnectionRecoveryError -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs>
 RabbitMQ.Client.IConnection.ConnectionShutdown -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.ShutdownEventArgs>
 RabbitMQ.Client.IConnection.ConnectionUnblocked -> RabbitMQ.Client.Events.AsyncEventHandler<System.EventArgs>
@@ -895,3 +894,4 @@ const RabbitMQ.Client.Constants.DefaultConsumerDispatchConcurrency = 1 -> ushort
 readonly RabbitMQ.Client.ConnectionConfig.ConsumerDispatchConcurrency -> ushort
 RabbitMQ.Client.IConnection.CreateChannelAsync(ushort? consumerDispatchConcurrency = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!
 RabbitMQ.Client.IConnection.CallbackExceptionAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs!>!
+RabbitMQ.Client.IConnection.ConnectionBlockedAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs!>!

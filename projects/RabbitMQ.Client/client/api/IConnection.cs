@@ -145,7 +145,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync;
 
-        event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
+        event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlockedAsync;
 
         /// <summary>
         /// Raised when the connection is destroyed.
