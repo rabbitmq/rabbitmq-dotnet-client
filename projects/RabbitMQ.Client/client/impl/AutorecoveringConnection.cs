@@ -67,10 +67,21 @@ namespace RabbitMQ.Client.Framing.Impl
             _innerConnection = innerConnection;
 
             ConnectionShutdownAsync += HandleConnectionShutdown;
-            _recoverySucceededAsyncWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
-            _connectionRecoveryErrorAsyncWrapper = new AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onExceptionAsync);
-            _consumerTagChangeAfterRecoveryAsyncWrapper = new AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onExceptionAsync);
-            _queueNameChangedAfterRecoveryAsyncWrapper = new AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onExceptionAsync);
+
+            _recoverySucceededAsyncWrapper =
+                new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
+
+            _connectionRecoveryErrorAsyncWrapper =
+                new AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onExceptionAsync);
+
+            _consumerTagChangeAfterRecoveryAsyncWrapper =
+                new AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onExceptionAsync);
+
+            _queueNameChangedAfterRecoveryAsyncWrapper =
+                new AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onExceptionAsync);
+
+            _recoveringConsumerAsyncWrapper =
+                new AsyncEventingWrapper<RecoveringConsumerEventArgs>("OnRecoveringConsumer", onExceptionAsync);
 
             Task onExceptionAsync(Exception exception, string context) =>
                 _innerConnection.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
