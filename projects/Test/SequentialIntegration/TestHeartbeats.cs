@@ -114,7 +114,7 @@ namespace Test.SequentialIntegration
                     IConnection conn = await cf.CreateConnectionAsync($"{_testDisplayName}:{i}");
                     conns.Add(conn);
                     IChannel ch = await conn.CreateChannelAsync();
-                    conn.ConnectionShutdown += (sender, evt) =>
+                    conn.ConnectionShutdownAsync += (sender, evt) =>
                         {
                             CheckInitiator(evt);
                             return Task.CompletedTask;
@@ -140,7 +140,7 @@ namespace Test.SequentialIntegration
                 {
                     bool wasShutdown = false;
 
-                    conn.ConnectionShutdown += (sender, evt) =>
+                    conn.ConnectionShutdownAsync += (sender, evt) =>
                     {
                         lock (conn)
                         {

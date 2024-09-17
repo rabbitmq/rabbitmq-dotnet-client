@@ -87,7 +87,7 @@ namespace Test.Integration
             bool body2Received = false;
             try
             {
-                _conn.ConnectionShutdown += (o, ea) =>
+                _conn.ConnectionShutdownAsync += (o, ea) =>
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
                     {
@@ -180,7 +180,7 @@ namespace Test.Integration
 
             try
             {
-                _conn.ConnectionShutdown += (o, ea) =>
+                _conn.ConnectionShutdownAsync += (o, ea) =>
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
                     {
@@ -204,7 +204,7 @@ namespace Test.Integration
                         {
                             using (IConnection publishConn = await _connFactory.CreateConnectionAsync())
                             {
-                                publishConn.ConnectionShutdown += (o, ea) =>
+                                publishConn.ConnectionShutdownAsync += (o, ea) =>
                                 {
                                     HandleConnectionShutdown(publishConn, ea, (args) =>
                                     {
@@ -248,7 +248,7 @@ namespace Test.Integration
                         {
                             using (IConnection consumeConn = await _connFactory.CreateConnectionAsync())
                             {
-                                consumeConn.ConnectionShutdown += (o, ea) =>
+                                consumeConn.ConnectionShutdownAsync += (o, ea) =>
                                 {
                                     HandleConnectionShutdown(consumeConn, ea, (args) =>
                                     {
@@ -347,7 +347,7 @@ namespace Test.Integration
 
             try
             {
-                _conn.ConnectionShutdown += (o, ea) =>
+                _conn.ConnectionShutdownAsync += (o, ea) =>
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
                     {
@@ -444,7 +444,7 @@ namespace Test.Integration
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _conn.ConnectionShutdown += (o, ea) =>
+            _conn.ConnectionShutdownAsync += (o, ea) =>
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
@@ -509,7 +509,7 @@ namespace Test.Integration
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _conn.ConnectionShutdown += (o, ea) =>
+            _conn.ConnectionShutdownAsync += (o, ea) =>
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
@@ -616,7 +616,7 @@ namespace Test.Integration
                 tcs.SetCanceled();
             });
 
-            _conn.ConnectionShutdown += (o, ea) =>
+            _conn.ConnectionShutdownAsync += (o, ea) =>
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {

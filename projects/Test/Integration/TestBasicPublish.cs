@@ -202,7 +202,7 @@ namespace Test.Integration
 
             using (IConnection conn = await cf.CreateConnectionAsync())
             {
-                conn.ConnectionShutdown += (o, a) =>
+                conn.ConnectionShutdownAsync += (o, a) =>
                 {
                     sawConnectionShutdown = true;
                     return Task.CompletedTask;

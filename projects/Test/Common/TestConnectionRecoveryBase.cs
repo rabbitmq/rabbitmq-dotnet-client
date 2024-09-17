@@ -229,7 +229,7 @@ namespace Test
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.ConnectionShutdown += (c, args) =>
+            aconn.ConnectionShutdownAsync += (c, args) =>
             {
                 tcs.TrySetResult(true);
                 return Task.CompletedTask;

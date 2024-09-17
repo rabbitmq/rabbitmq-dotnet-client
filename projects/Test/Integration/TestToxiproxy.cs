@@ -99,7 +99,7 @@ namespace Test.Integration
                             return Task.CompletedTask;
                         };
 
-                        conn.ConnectionShutdown += (s, ea) =>
+                        conn.ConnectionShutdownAsync += (s, ea) =>
                         {
                             if (IsVerbose)
                             {
@@ -269,7 +269,7 @@ namespace Test.Integration
                 {
                     using (IConnection conn = await cf.CreateConnectionAsync())
                     {
-                        conn.ConnectionShutdown += (o, ea) =>
+                        conn.ConnectionShutdownAsync += (o, ea) =>
                         {
                             connectionShutdownTcs.SetResult(true);
                             return Task.CompletedTask;

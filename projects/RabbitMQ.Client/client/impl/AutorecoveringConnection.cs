@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _endpoints = endpoints;
             _innerConnection = innerConnection;
 
-            ConnectionShutdown += HandleConnectionShutdown;
+            ConnectionShutdownAsync += HandleConnectionShutdown;
             _recoverySucceededWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
             _connectionRecoveryErrorWrapper = new AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onExceptionAsync);
             _consumerTagChangeAfterRecoveryWrapper = new AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onExceptionAsync);
@@ -114,10 +114,10 @@ namespace RabbitMQ.Client.Framing.Impl
             remove => InnerConnection.ConnectionBlockedAsync -= value;
         }
 
-        public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync
         {
-            add => InnerConnection.ConnectionShutdown += value;
-            remove => InnerConnection.ConnectionShutdown -= value;
+            add => InnerConnection.ConnectionShutdownAsync += value;
+            remove => InnerConnection.ConnectionShutdownAsync -= value;
         }
 
         public event AsyncEventHandler<EventArgs> ConnectionUnblocked

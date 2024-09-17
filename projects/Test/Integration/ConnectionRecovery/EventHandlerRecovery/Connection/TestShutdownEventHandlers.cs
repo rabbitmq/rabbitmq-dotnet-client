@@ -46,7 +46,7 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
         public async Task TestShutdownEventHandlers_Called()
         {
             int counter = 0;
-            _conn.ConnectionShutdown += (c, args) =>
+            _conn.ConnectionShutdownAsync += (c, args) =>
             {
                 Interlocked.Increment(ref counter);
                 return Task.CompletedTask;

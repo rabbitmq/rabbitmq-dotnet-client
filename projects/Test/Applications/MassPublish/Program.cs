@@ -68,7 +68,7 @@ namespace MassPublish
         static async Task Main()
         {
             using IConnection consumeConnection = await s_consumeConnectionFactory.CreateConnectionAsync();
-            consumeConnection.ConnectionShutdown += ConnectionConnectionShutdown;
+            consumeConnection.ConnectionShutdownAsync += ConnectionShutdownAsync;
 
             using IChannel consumeChannel = await consumeConnection.CreateChannelAsync();
             consumeChannel.ChannelShutdown += Channel_ChannelShutdown;
@@ -92,7 +92,7 @@ namespace MassPublish
             for (int i = 0; i < ConnectionCount; i++)
             {
                 IConnection publishConnection = await s_publishConnectionFactory.CreateConnectionAsync($"{AppId}-PUBLISH-{i}");
-                publishConnection.ConnectionShutdown += ConnectionConnectionShutdown;
+                publishConnection.ConnectionShutdownAsync += ConnectionShutdownAsync;
                 publishConnections.Add(publishConnection);
             }
 
@@ -163,7 +163,7 @@ namespace MassPublish
             Console.Error.WriteLine("[ERROR] unexpected nack on publish: {0}", e);
         }
 
-        private static Task ConnectionConnectionShutdown(object sender, ShutdownEventArgs e)
+        private static Task ConnectionShutdownAsync(object sender, ShutdownEventArgs e)
         {
             if (e.Initiator != ShutdownInitiator.Application)
             {

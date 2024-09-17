@@ -83,7 +83,7 @@ namespace OAuth2Test
 
             _connection = await _connectionFactory.CreateConnectionAsync(_cancellationTokenSource.Token);
 
-            _connection.ConnectionShutdown += (sender, ea) =>
+            _connection.ConnectionShutdownAsync += (sender, ea) =>
             {
                 _testOutputHelper.WriteLine("{0} [WARNING] connection shutdown!", DateTime.Now);
                 return Task.CompletedTask;

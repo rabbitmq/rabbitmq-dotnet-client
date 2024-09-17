@@ -278,7 +278,7 @@ namespace Test
         {
             if (_conn != null)
             {
-                _conn.ConnectionShutdown += (o, ea) =>
+                _conn.ConnectionShutdownAsync += (o, ea) =>
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
                     {
@@ -531,7 +531,7 @@ namespace Test
             };
         }
 
-        protected Task HandleConnectionShutdown(object sender, ShutdownEventArgs args)
+        protected Task HandleConnectionShutdownAsync(object sender, ShutdownEventArgs args)
         {
             if (args.Initiator != ShutdownInitiator.Application)
             {

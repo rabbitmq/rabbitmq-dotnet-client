@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Impl
             ChannelNumber = channelNumber;
             if (channelNumber != 0)
             {
-                connection.ConnectionShutdown += OnConnectionShutdownAsync;
+                connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
             }
             RabbitMqClientEventSource.Log.ChannelOpened();
         }
@@ -94,7 +94,7 @@ namespace RabbitMQ.Client.Impl
 
         public virtual void OnSessionShutdown(ShutdownEventArgs reason)
         {
-            Connection.ConnectionShutdown -= OnConnectionShutdownAsync;
+            Connection.ConnectionShutdownAsync -= OnConnectionShutdownAsync;
             _sessionShutdownWrapper.Invoke(this, reason);
         }
 

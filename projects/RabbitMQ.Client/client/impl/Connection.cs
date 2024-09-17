@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionAsyncWrapper = new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
             _connectionBlockedAsyncWrapper = new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
             _connectionUnblockedWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
-            _connectionShutdownWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
+            _connectionShutdownAsyncWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
 
             _sessionManager = new SessionManager(this, 0, config.MaxInboundMessageBodySize);
             _session0 = new MainSession(this, config.MaxInboundMessageBodySize);
@@ -146,7 +146,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private AsyncEventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecoveredWrapper;
 
-        public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync
         {
             add
             {
@@ -154,7 +154,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 ShutdownEventArgs? reason = CloseReason;
                 if (reason is null)
                 {
-                    _connectionShutdownWrapper.AddHandler(value);
+                    _connectionShutdownAsyncWrapper.AddHandler(value);
                 }
                 else
                 {
@@ -164,10 +164,10 @@ namespace RabbitMQ.Client.Framing.Impl
             remove
             {
                 ThrowIfDisposed();
-                _connectionShutdownWrapper.RemoveHandler(value);
+                _connectionShutdownAsyncWrapper.RemoveHandler(value);
             }
         }
-        private AsyncEventingWrapper<ShutdownEventArgs> _connectionShutdownWrapper;
+        private AsyncEventingWrapper<ShutdownEventArgs> _connectionShutdownAsyncWrapper;
 
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
@@ -210,7 +210,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
             _connectionBlockedAsyncWrapper.Takeover(other._connectionBlockedAsyncWrapper);
             _connectionUnblockedWrapper.Takeover(other._connectionUnblockedWrapper);
-            _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
+            _connectionShutdownAsyncWrapper.Takeover(other._connectionShutdownAsyncWrapper);
             // TODO Why are other wrappers not taken over?
         }
 
@@ -436,7 +436,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private Task OnShutdown(ShutdownEventArgs reason)
         {
             ThrowIfDisposed();
-            return _connectionShutdownWrapper.InvokeAsync(this, reason);
+            return _connectionShutdownAsyncWrapper.InvokeAsync(this, reason);
         }
 
         private bool SetCloseReason(ShutdownEventArgs reason)

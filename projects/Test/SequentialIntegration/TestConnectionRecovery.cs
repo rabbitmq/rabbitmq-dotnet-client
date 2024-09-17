@@ -253,7 +253,7 @@ namespace Test.SequentialIntegration
         public async Task TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()
         {
             int counter = 0;
-            _conn.ConnectionShutdown += (c, args) =>
+            _conn.ConnectionShutdownAsync += (c, args) =>
             {
                 Interlocked.Increment(ref counter);
                 return Task.CompletedTask;
@@ -296,7 +296,7 @@ namespace Test.SequentialIntegration
                 return Task.CompletedTask;
             };
 
-            aconn.ConnectionShutdown += (c, args) =>
+            aconn.ConnectionShutdownAsync += (c, args) =>
             {
                 Interlocked.Increment(ref counter);
                 return Task.CompletedTask;

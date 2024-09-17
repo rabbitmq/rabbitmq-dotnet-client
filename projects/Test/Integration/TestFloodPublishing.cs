@@ -66,7 +66,7 @@ namespace Test.Integration
             Assert.IsNotType<RabbitMQ.Client.Framing.Impl.AutorecoveringConnection>(_conn);
             _channel = await _conn.CreateChannelAsync();
 
-            _conn.ConnectionShutdown += (_, ea) =>
+            _conn.ConnectionShutdownAsync += (_, ea) =>
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
@@ -132,7 +132,7 @@ namespace Test.Integration
 
             var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _conn.ConnectionShutdown += (o, ea) =>
+            _conn.ConnectionShutdownAsync += (o, ea) =>
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
@@ -166,7 +166,7 @@ namespace Test.Integration
                 bool stop = false;
                 using (IConnection publishConnection = await _connFactory.CreateConnectionAsync())
                 {
-                    publishConnection.ConnectionShutdown += (o, ea) =>
+                    publishConnection.ConnectionShutdownAsync += (o, ea) =>
                     {
                         HandleConnectionShutdown(_conn, ea, (args) =>
                         {
@@ -218,7 +218,7 @@ namespace Test.Integration
             {
                 using (IConnection consumeConnection = await _connFactory.CreateConnectionAsync())
                 {
-                    consumeConnection.ConnectionShutdown += (o, ea) =>
+                    consumeConnection.ConnectionShutdownAsync += (o, ea) =>
                     {
                         HandleConnectionShutdown(_conn, ea, (args) =>
                         {
