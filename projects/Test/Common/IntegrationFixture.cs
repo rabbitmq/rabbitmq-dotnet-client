@@ -225,7 +225,7 @@ namespace Test
         {
             if (conn != null)
             {
-                conn.ConnectionRecoveryError += (s, ea) =>
+                conn.ConnectionRecoveryErrorAsync += (s, ea) =>
                 {
                     _connectionRecoveryException = ea.Exception;
 

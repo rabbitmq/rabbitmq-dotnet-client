@@ -269,10 +269,10 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 ESLog.Error("Connection recovery exception.", e);
                 // Trigger recovery error events
-                if (!_connectionRecoveryErrorWrapper.IsEmpty)
+                if (!_connectionRecoveryErrorAsyncWrapper.IsEmpty)
                 {
                     // Note: recordedEntities semaphore is _NOT_ held at this point
-                    await _connectionRecoveryErrorWrapper.InvokeAsync(this, new ConnectionRecoveryErrorEventArgs(e))
+                    await _connectionRecoveryErrorAsyncWrapper.InvokeAsync(this, new ConnectionRecoveryErrorEventArgs(e))
                         .ConfigureAwait(false);
                 }
 

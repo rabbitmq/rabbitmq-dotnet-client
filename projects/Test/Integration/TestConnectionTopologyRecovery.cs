@@ -254,7 +254,7 @@ namespace Test.Integration
                 connectionRecoveryTcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            conn.ConnectionRecoveryError += (source, ea) =>
+            conn.ConnectionRecoveryErrorAsync += (source, ea) =>
             {
                 connectionRecoveryTcs.SetException(ea.Exception);
                 return Task.CompletedTask;

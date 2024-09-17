@@ -89,7 +89,7 @@ namespace OAuth2Test
                 return Task.CompletedTask;
             };
 
-            _connection.ConnectionRecoveryError += (sender, ea) =>
+            _connection.ConnectionRecoveryErrorAsync += (sender, ea) =>
             {
                 _testOutputHelper.WriteLine("{0} [ERROR] connection recovery error: {1}",
                     DateTime.Now, ea.Exception);

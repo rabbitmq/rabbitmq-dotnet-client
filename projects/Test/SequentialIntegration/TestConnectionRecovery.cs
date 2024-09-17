@@ -289,7 +289,7 @@ namespace Test.SequentialIntegration
 
             AutorecoveringConnection aconn = (AutorecoveringConnection)_conn;
 
-            aconn.ConnectionRecoveryError += (c, args) =>
+            aconn.ConnectionRecoveryErrorAsync += (c, args) =>
             {
                 // Uncomment for debugging
                 // _output.WriteLine("[INFO] ConnectionRecoveryError: {0}", args.Exception);

@@ -172,7 +172,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event AsyncEventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+        event AsyncEventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryErrorAsync;
 
         /// <summary>
         /// Raised when the server-generated tag of a consumer registered on this connection changes during

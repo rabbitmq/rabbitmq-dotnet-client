@@ -92,7 +92,7 @@ namespace Test.Integration
                             return Task.CompletedTask;
                         };
 
-                        conn.ConnectionRecoveryError += (s, ea) =>
+                        conn.ConnectionRecoveryErrorAsync += (s, ea) =>
                         {
                             _output.WriteLine($"[ERROR] connection recovery error {ea.Exception}");
                             recoverySucceededTcs.SetResult(false);
