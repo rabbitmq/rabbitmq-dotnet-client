@@ -64,19 +64,18 @@ namespace RabbitMQ.Client.Framing.Impl
             _config = config;
             _frameHandler = frameHandler;
 
-            Func<Exception, string, Task> onException = (exception, context) => OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
-
             _callbackExceptionAsyncWrapper =
-                new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
+                new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty,
+                    (exception, context) => Task.CompletedTask);
 
             _connectionBlockedAsyncWrapper =
-                new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
+                new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onExceptionAsync);
 
             _connectionUnblockedAsyncWrapper =
-                new AsyncEventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
+                new AsyncEventingWrapper<EventArgs>("OnConnectionUnblocked", onExceptionAsync);
 
             _connectionShutdownAsyncWrapper =
-                new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
+                new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onExceptionAsync);
 
             _sessionManager = new SessionManager(this, 0, config.MaxInboundMessageBodySize);
             _session0 = new MainSession(this, config.MaxInboundMessageBodySize);
@@ -89,6 +88,9 @@ namespace RabbitMQ.Client.Framing.Impl
             };
 
             _mainLoopTask = Task.CompletedTask;
+
+            Task onExceptionAsync(Exception exception, string context) =>
+                OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
         }
 
         public Guid Id => _id;
