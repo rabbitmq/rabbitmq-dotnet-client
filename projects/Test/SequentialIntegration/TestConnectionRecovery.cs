@@ -336,7 +336,7 @@ namespace Test.SequentialIntegration
         public async Task TestUnblockedListenersRecovery()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _conn.ConnectionUnblocked += (source, ea) =>
+            _conn.ConnectionUnblockedAsync += (source, ea) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;

@@ -131,10 +131,10 @@ namespace RabbitMQ.Client.Framing.Impl
             remove => InnerConnection.ConnectionShutdownAsync -= value;
         }
 
-        public event AsyncEventHandler<EventArgs> ConnectionUnblocked
+        public event AsyncEventHandler<EventArgs> ConnectionUnblockedAsync
         {
-            add => InnerConnection.ConnectionUnblocked += value;
-            remove => InnerConnection.ConnectionUnblocked -= value;
+            add => InnerConnection.ConnectionUnblockedAsync += value;
+            remove => InnerConnection.ConnectionUnblockedAsync -= value;
         }
 
         public event AsyncEventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecoveryAsync

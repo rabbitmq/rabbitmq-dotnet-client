@@ -65,10 +65,18 @@ namespace RabbitMQ.Client.Framing.Impl
             _frameHandler = frameHandler;
 
             Func<Exception, string, Task> onException = (exception, context) => OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
-            _callbackExceptionAsyncWrapper = new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
-            _connectionBlockedAsyncWrapper = new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
-            _connectionUnblockedWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
-            _connectionShutdownAsyncWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
+
+            _callbackExceptionAsyncWrapper =
+                new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
+
+            _connectionBlockedAsyncWrapper =
+                new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
+
+            _connectionUnblockedAsyncWrapper =
+                new AsyncEventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
+
+            _connectionShutdownAsyncWrapper =
+                new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
 
             _sessionManager = new SessionManager(this, 0, config.MaxInboundMessageBodySize);
             _session0 = new MainSession(this, config.MaxInboundMessageBodySize);
@@ -132,12 +140,12 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private AsyncEventingWrapper<ConnectionBlockedEventArgs> _connectionBlockedAsyncWrapper;
 
-        public event AsyncEventHandler<EventArgs> ConnectionUnblocked
+        public event AsyncEventHandler<EventArgs> ConnectionUnblockedAsync
         {
-            add => _connectionUnblockedWrapper.AddHandler(value);
-            remove => _connectionUnblockedWrapper.RemoveHandler(value);
+            add => _connectionUnblockedAsyncWrapper.AddHandler(value);
+            remove => _connectionUnblockedAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<EventArgs> _connectionUnblockedWrapper;
+        private AsyncEventingWrapper<EventArgs> _connectionUnblockedAsyncWrapper;
 
         public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync
         {
@@ -209,7 +217,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
             _connectionBlockedAsyncWrapper.Takeover(other._connectionBlockedAsyncWrapper);
-            _connectionUnblockedWrapper.Takeover(other._connectionUnblockedWrapper);
+            _connectionUnblockedAsyncWrapper.Takeover(other._connectionUnblockedAsyncWrapper);
             _connectionShutdownAsyncWrapper.Takeover(other._connectionShutdownAsyncWrapper);
             // TODO Why are other wrappers not taken over?
         }

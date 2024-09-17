@@ -145,8 +145,6 @@ namespace RabbitMQ.Client
         /// </remarks>
         event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync;
 
-        event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlockedAsync;
-
         /// <summary>
         /// Raised when the connection is destroyed.
         /// </summary>
@@ -206,7 +204,15 @@ namespace RabbitMQ.Client
         /// </remarks>
         public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync;
 
-        event AsyncEventHandler<EventArgs> ConnectionUnblocked;
+        /// <summary>
+        /// Raised when a connection is blocked by the AMQP broker.
+        /// </summary>
+        event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlockedAsync;
+
+        /// <summary>
+        /// Raised when a connection is unblocked by the AMQP broker.
+        /// </summary>
+        event AsyncEventHandler<EventArgs> ConnectionUnblockedAsync;
 
         /// <summary>
         /// This method updates the secret used to authenticate this connection.
