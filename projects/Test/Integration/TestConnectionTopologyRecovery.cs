@@ -88,6 +88,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryQueueFilter()
         {
+            string queueToRecover = GenerateQueueName();
+            string queueToIgnore = GenerateQueueName() + "-filtered.queue";
+
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var filter = new TopologyRecoveryFilter
@@ -103,8 +106,6 @@ namespace Test.Integration
             };
             IChannel ch = await conn.CreateChannelAsync();
 
-            string queueToRecover = "recovered.queue";
-            string queueToIgnore = "filtered.queue";
             await ch.QueueDeclareAsync(queueToRecover, false, false, false);
             await ch.QueueDeclareAsync(queueToIgnore, false, false, false);
 
@@ -138,6 +139,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryExchangeFilter()
         {
+            string exchangeToRecover = GenerateExchangeName();
+            string exchangeToIgnore = GenerateExchangeName() + "-filtered.exchange";
+
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var filter = new TopologyRecoveryFilter
@@ -154,8 +158,6 @@ namespace Test.Integration
             IChannel ch = await conn.CreateChannelAsync();
             try
             {
-                string exchangeToRecover = "recovered.exchange";
-                string exchangeToIgnore = "filtered.exchange";
                 await ch.ExchangeDeclareAsync(exchangeToRecover, "topic", false, true);
                 await ch.ExchangeDeclareAsync(exchangeToIgnore, "direct", false, true);
 
@@ -186,6 +188,12 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryBindingFilter()
         {
+            string exchange = GenerateExchangeName();
+            string queueWithRecoveredBinding = GenerateQueueName();
+            string queueWithIgnoredBinding = GenerateQueueName();
+            const string bindingToRecover = "recovered.binding";
+            const string bindingToIgnore = "filtered.binding";
+
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var filter = new TopologyRecoveryFilter
@@ -204,12 +212,6 @@ namespace Test.Integration
 
             try
             {
-                string exchange = "topology.recovery.exchange";
-                string queueWithRecoveredBinding = "topology.recovery.queue.1";
-                string queueWithIgnoredBinding = "topology.recovery.queue.2";
-                string bindingToRecover = "recovered.binding";
-                string bindingToIgnore = "filtered.binding";
-
                 await ch.ExchangeDeclareAsync(exchange, "direct");
                 await ch.QueueDeclareAsync(queueWithRecoveredBinding, false, false, false);
                 await ch.QueueDeclareAsync(queueWithIgnoredBinding, false, false, false);
@@ -230,6 +232,9 @@ namespace Test.Integration
             }
             finally
             {
+                await ch.ExchangeDeleteAsync(exchange);
+                await ch.QueueDeleteAsync(queueWithRecoveredBinding);
+                await ch.QueueDeleteAsync(queueWithIgnoredBinding);
                 await ch.CloseAsync();
                 await conn.CloseAsync();
                 ch.Dispose();
@@ -240,9 +245,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryDefaultFilterRecoversAllEntities()
         {
-            const string exchange = "topology.recovery.exchange";
-            const string queue1 = "topology.recovery.queue.1";
-            const string queue2 = "topology.recovery.queue.2";
+            string exchange = GenerateExchangeName();
+            string queue1 = GenerateQueueName();
+            string queue2 = GenerateQueueName();
             const string binding1 = "recovered.binding";
             const string binding2 = "filtered.binding";
 
@@ -329,6 +334,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryQueueExceptionHandler()
         {
+            string queueToRecoverWithException = GenerateQueueName() + "-recovery.exception.queue";
+            string queueToRecoverSuccessfully = GenerateQueueName() + "-successfully.recovered.queue";
+
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var changedQueueArguments = new Dictionary<string, object>
@@ -363,8 +371,6 @@ namespace Test.Integration
             };
             IChannel ch = await conn.CreateChannelAsync();
 
-            string queueToRecoverWithException = "recovery.exception.queue";
-            string queueToRecoverSuccessfully = "successfully.recovered.queue";
             await ch.QueueDeclareAsync(queueToRecoverWithException, false, false, false);
             await ch.QueueDeclareAsync(queueToRecoverSuccessfully, false, false, false);
 
@@ -395,6 +401,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryExchangeExceptionHandler()
         {
+            string exchangeToRecoverWithException = GenerateExchangeName() + "-recovery.exception.exchange";
+            string exchangeToRecoverSuccessfully = GenerateExchangeName() + "-successfully.recovered.exchange";
+
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var exceptionHandler = new TopologyRecoveryExceptionHandler
@@ -422,8 +431,6 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            string exchangeToRecoverWithException = "recovery.exception.exchange";
-            string exchangeToRecoverSuccessfully = "successfully.recovered.exchange";
             IChannel ch = await conn.CreateChannelAsync();
             await ch.ExchangeDeclareAsync(exchangeToRecoverWithException, "direct", false, false);
             await ch.ExchangeDeclareAsync(exchangeToRecoverSuccessfully, "direct", false, false);
@@ -455,11 +462,11 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryBindingExceptionHandler()
         {
-            var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-            const string exchange = "topology.recovery.exchange";
-            const string queueWithExceptionBinding = "recovery.exception.queue";
+            string exchange = GenerateExchangeName();
+            string queueWithExceptionBinding = GenerateQueueName();
             const string bindingToRecoverWithException = "recovery.exception.binding";
+
+            var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var exceptionHandler = new TopologyRecoveryExceptionHandler
             {
@@ -520,9 +527,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryConsumerExceptionHandler()
         {
-            var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            string queueWithExceptionConsumer = GenerateQueueName() + "-recovery.exception.queue";
 
-            string queueWithExceptionConsumer = "recovery.exception.queue";
+            var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var exceptionHandler = new TopologyRecoveryExceptionHandler
             {
