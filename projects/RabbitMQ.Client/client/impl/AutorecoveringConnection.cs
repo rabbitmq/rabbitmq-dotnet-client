@@ -102,10 +102,10 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs> _connectionRecoveryErrorWrapper;
 
-        public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackException
+        public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync
         {
-            add => InnerConnection.CallbackException += value;
-            remove => InnerConnection.CallbackException -= value;
+            add => InnerConnection.CallbackExceptionAsync += value;
+            remove => InnerConnection.CallbackExceptionAsync -= value;
         }
 
         public event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlocked

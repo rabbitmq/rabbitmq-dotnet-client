@@ -85,7 +85,7 @@ namespace Test.Integration
                 {
                     using (IConnection conn = await cf.CreateConnectionAsync())
                     {
-                        conn.CallbackException += (s, ea) =>
+                        conn.CallbackExceptionAsync += (s, ea) =>
                         {
                             _output.WriteLine($"[ERROR] unexpected callback exception {ea.Detail} {ea.Exception}");
                             recoverySucceededTcs.SetResult(false);

@@ -445,7 +445,6 @@ RabbitMQ.Client.IChannel.IsClosed.get -> bool
 RabbitMQ.Client.IChannel.IsOpen.get -> bool
 RabbitMQ.Client.IChannelExtensions
 RabbitMQ.Client.IConnection
-RabbitMQ.Client.IConnection.CallbackException -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs>
 RabbitMQ.Client.IConnection.ChannelMax.get -> ushort
 RabbitMQ.Client.IConnection.ClientProperties.get -> System.Collections.Generic.IDictionary<string, object>
 RabbitMQ.Client.IConnection.ClientProvidedName.get -> string
@@ -895,3 +894,4 @@ RabbitMQ.Client.IChannel.ConfirmSelectAsync(bool trackConfirmations = true, Syst
 const RabbitMQ.Client.Constants.DefaultConsumerDispatchConcurrency = 1 -> ushort
 readonly RabbitMQ.Client.ConnectionConfig.ConsumerDispatchConcurrency -> ushort
 RabbitMQ.Client.IConnection.CreateChannelAsync(ushort? consumerDispatchConcurrency = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!
+RabbitMQ.Client.IConnection.CallbackExceptionAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs!>!

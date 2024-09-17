@@ -240,7 +240,7 @@ namespace Test
                     return Task.CompletedTask;
                 };
 
-                conn.CallbackException += (o, ea) =>
+                conn.CallbackExceptionAsync += (o, ea) =>
                 {
                     _connectionCallbackException = ea.Exception;
 

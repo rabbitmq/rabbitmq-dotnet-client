@@ -300,7 +300,7 @@ namespace Test.Integration
                     connectionRecoveryTcs.SetException(ea.Exception);
                     return Task.CompletedTask;
                 };
-                conn.CallbackException += (source, ea) =>
+                conn.CallbackExceptionAsync += (source, ea) =>
                 {
                     connectionRecoveryTcs.SetException(ea.Exception);
                     return Task.CompletedTask;

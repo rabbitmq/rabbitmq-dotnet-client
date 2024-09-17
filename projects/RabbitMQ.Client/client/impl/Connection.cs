@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _frameHandler = frameHandler;
 
             Func<Exception, string, Task> onException = (exception, context) => OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
-            _callbackExceptionWrapper = new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
+            _callbackExceptionAsyncWrapper = new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
             _connectionBlockedWrapper = new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onException);
             _connectionUnblockedWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionUnblocked", onException);
             _connectionShutdownWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onException);
@@ -118,12 +118,12 @@ namespace RabbitMQ.Client.Framing.Impl
             get { return _frameHandler; }
         }
 
-        public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackException
+        public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync
         {
-            add => _callbackExceptionWrapper.AddHandler(value);
-            remove => _callbackExceptionWrapper.RemoveHandler(value);
+            add => _callbackExceptionAsyncWrapper.AddHandler(value);
+            remove => _callbackExceptionAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<CallbackExceptionEventArgs> _callbackExceptionWrapper;
+        private AsyncEventingWrapper<CallbackExceptionEventArgs> _callbackExceptionAsyncWrapper;
 
         public event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
         {
@@ -207,7 +207,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal void TakeOver(Connection other)
         {
-            _callbackExceptionWrapper.Takeover(other._callbackExceptionWrapper);
+            _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
             _connectionBlockedWrapper.Takeover(other._connectionBlockedWrapper);
             _connectionUnblockedWrapper.Takeover(other._connectionUnblockedWrapper);
             _connectionShutdownWrapper.Takeover(other._connectionShutdownWrapper);
@@ -464,7 +464,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
         {
-            return _callbackExceptionWrapper.InvokeAsync(this, args);
+            return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
         }
 
         internal ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
