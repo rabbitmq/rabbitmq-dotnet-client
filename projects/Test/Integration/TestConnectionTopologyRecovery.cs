@@ -96,7 +96,11 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
-            conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+            conn.RecoverySucceeded += (source, ea) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
             IChannel ch = await conn.CreateChannelAsync();
 
             string queueToRecover = "recovered.queue";
@@ -142,7 +146,11 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
-            conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+            conn.RecoverySucceeded += (source, ea) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
             IChannel ch = await conn.CreateChannelAsync();
             try
             {
@@ -186,7 +194,11 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
-            conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+            conn.RecoverySucceeded += (source, ea) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
 
             IChannel ch = await conn.CreateChannelAsync();
 
@@ -237,9 +249,21 @@ namespace Test.Integration
             var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var filter = new TopologyRecoveryFilter();
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
-            conn.RecoverySucceeded += (source, ea) => connectionRecoveryTcs.SetResult(true);
-            conn.ConnectionRecoveryError += (source, ea) => connectionRecoveryTcs.SetException(ea.Exception);
-            conn.CallbackException += (source, ea) => connectionRecoveryTcs.SetException(ea.Exception);
+            conn.RecoverySucceeded += (source, ea) =>
+            {
+                connectionRecoveryTcs.SetResult(true);
+                return Task.CompletedTask;
+            };
+            conn.ConnectionRecoveryError += (source, ea) =>
+            {
+                connectionRecoveryTcs.SetException(ea.Exception);
+                return Task.CompletedTask;
+            };
+            conn.CallbackException += (source, ea) =>
+            {
+                connectionRecoveryTcs.SetException(ea.Exception);
+                return Task.CompletedTask;
+            };
 
             IChannel ch = await conn.CreateChannelAsync();
             try
@@ -332,7 +356,11 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
-            conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+            conn.RecoverySucceeded += (source, ea) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
             IChannel ch = await conn.CreateChannelAsync();
 
             string queueToRecoverWithException = "recovery.exception.queue";
@@ -388,7 +416,11 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
-            conn.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
+            conn.RecoverySucceeded += (source, ea) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
 
             string exchangeToRecoverWithException = "recovery.exception.exchange";
             string exchangeToRecoverSuccessfully = "successfully.recovered.exchange";
@@ -449,7 +481,11 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
-            conn.RecoverySucceeded += (source, ea) => connectionRecoveryTcs.SetResult(true);
+            conn.RecoverySucceeded += (source, ea) =>
+            {
+                connectionRecoveryTcs.SetResult(true);
+                return Task.CompletedTask;
+            };
             IChannel ch = await conn.CreateChannelAsync();
 
             const string queueWithRecoveredBinding = "successfully.recovered.queue";
@@ -511,7 +547,11 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
-            conn.RecoverySucceeded += (source, ea) => connectionRecoveryTcs.SetResult(true);
+            conn.RecoverySucceeded += (source, ea) =>
+            {
+                connectionRecoveryTcs.SetResult(true);
+                return Task.CompletedTask;
+            };
             IChannel ch = await conn.CreateChannelAsync();
             try
             {

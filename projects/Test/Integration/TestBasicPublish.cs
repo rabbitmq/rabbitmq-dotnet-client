@@ -205,6 +205,7 @@ namespace Test.Integration
                 conn.ConnectionShutdown += (o, a) =>
                 {
                     sawConnectionShutdown = true;
+                    return Task.CompletedTask;
                 };
 
                 Assert.Equal(maxMsgSize, cf.MaxInboundMessageBodySize);

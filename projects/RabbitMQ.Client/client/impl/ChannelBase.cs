@@ -701,10 +701,12 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected void HandleConnectionBlocked(IncomingCommand cmd)
+        protected async Task<bool> HandleConnectionBlocked(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             string reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
-            Session.Connection.HandleConnectionBlocked(reason);
+            await Session.Connection.HandleConnectionBlocked(reason)
+                .ConfigureAwait(false);
+            return true;
         }
 
         protected async Task<bool> HandleConnectionCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
@@ -713,7 +715,8 @@ namespace RabbitMQ.Client.Impl
             var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
             try
             {
-                Session.Connection.ClosedViaPeer(reason);
+                await Session.Connection.ClosedViaPeer(reason)
+                    .ConfigureAwait(false);
 
                 var replyMethod = new ConnectionCloseOk();
                 await ModelSendAsync(replyMethod, cancellationToken)
@@ -735,7 +738,7 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected async Task<bool> HandleConnectionSecureAsync(IncomingCommand _)
+        protected async Task<bool> HandleConnectionSecureAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
             await k.HandleCommandAsync(new IncomingCommand())
@@ -765,7 +768,7 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected async Task<bool> HandleConnectionTuneAsync(IncomingCommand cmd)
+        protected async Task<bool> HandleConnectionTuneAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             // Note: `using` here to ensure instance is disposed
             using var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
@@ -777,9 +780,11 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected void HandleConnectionUnblocked()
+        protected async Task<bool> HandleConnectionUnblocked(CancellationToken cancellationToken)
         {
-            Session.Connection.HandleConnectionUnblocked();
+            await Session.Connection.HandleConnectionUnblocked()
+                .ConfigureAwait(false);
+            return true;
         }
 
         public async ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default)

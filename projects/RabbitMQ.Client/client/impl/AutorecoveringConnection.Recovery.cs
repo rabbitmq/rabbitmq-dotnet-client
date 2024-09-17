@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private Task? _recoveryTask;
         private readonly CancellationTokenSource _recoveryCancellationTokenSource = new CancellationTokenSource();
 
-        private void HandleConnectionShutdown(object? _, ShutdownEventArgs args)
+        private Task HandleConnectionShutdown(object? _, ShutdownEventArgs args)
         {
             if (ShouldTriggerConnectionRecovery(args))
             {
@@ -56,6 +56,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     recoverTask.Start();
                 }
             }
+
+            return Task.CompletedTask;
 
             static bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
             {
@@ -204,7 +206,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     ESLog.Info("Connection recovery completed");
                     ThrowIfDisposed();
-                    _recoverySucceededWrapper.Invoke(this, EventArgs.Empty);
+                    await _recoverySucceededWrapper.InvokeAsync(this, EventArgs.Empty)
+                        .ConfigureAwait(false);
 
                     return true;
                 }
@@ -269,7 +272,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 if (!_connectionRecoveryErrorWrapper.IsEmpty)
                 {
                     // Note: recordedEntities semaphore is _NOT_ held at this point
-                    _connectionRecoveryErrorWrapper.Invoke(this, new ConnectionRecoveryErrorEventArgs(e));
+                    await _connectionRecoveryErrorWrapper.InvokeAsync(this, new ConnectionRecoveryErrorEventArgs(e))
+                        .ConfigureAwait(false);
                 }
 
                 maybeNewInnerConnection?.Dispose();
@@ -382,7 +386,8 @@ namespace RabbitMQ.Client.Framing.Impl
                             try
                             {
                                 _recordedEntitiesSemaphore.Release();
-                                _queueNameChangedAfterRecoveryWrapper.Invoke(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName));
+                                await _queueNameChangedAfterRecoveryWrapper.InvokeAsync(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName))
+                                    .ConfigureAwait(false);
                             }
                             finally
                             {
@@ -515,7 +520,8 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     _recordedEntitiesSemaphore.Release();
-                    _consumerAboutToBeRecovered.Invoke(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments));
+                    await _consumerAboutToBeRecoveredWrapper.InvokeAsync(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments))
+                        .ConfigureAwait(false);
                 }
                 finally
                 {
@@ -536,7 +542,8 @@ namespace RabbitMQ.Client.Framing.Impl
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
-                            _consumerTagChangeAfterRecoveryWrapper.Invoke(this, new ConsumerTagChangedAfterRecoveryEventArgs(oldTag, newTag));
+                            await _consumerTagChangeAfterRecoveryWrapper.InvokeAsync(this, new ConsumerTagChangedAfterRecoveryEventArgs(oldTag, newTag))
+                                .ConfigureAwait(false);
                         }
                         finally
                         {

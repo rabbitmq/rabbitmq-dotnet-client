@@ -71,6 +71,7 @@ namespace Test.Integration
                         sawShutdown = true;
                     }
                 });
+                return Task.CompletedTask;
             };
 
             _channel.ChannelShutdown += (o, ea) =>

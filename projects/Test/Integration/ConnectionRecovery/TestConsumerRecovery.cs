@@ -58,7 +58,11 @@ namespace Test.Integration.ConnectionRecovery
             }
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            ((AutorecoveringConnection)_conn).ConsumerTagChangeAfterRecovery += (prev, current) => tcs.TrySetResult(true);
+            ((AutorecoveringConnection)_conn).ConsumerTagChangeAfterRecovery += (prev, current) =>
+            {
+                tcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
 
             await CloseAndWaitForRecoveryAsync();
             await WaitAsync(tcs, "consumer tag change after recovery");

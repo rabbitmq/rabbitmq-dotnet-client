@@ -54,20 +54,22 @@ namespace RabbitMQ.Client.Framing.Impl
             _closed = true;
         }
 
-        internal void HandleConnectionBlocked(string reason)
+        internal Task HandleConnectionBlocked(string reason)
         {
             if (!_connectionBlockedWrapper.IsEmpty)
             {
-                _connectionBlockedWrapper.Invoke(this, new ConnectionBlockedEventArgs(reason));
+                return _connectionBlockedWrapper.InvokeAsync(this, new ConnectionBlockedEventArgs(reason));
             }
+            return Task.CompletedTask;
         }
 
-        internal void HandleConnectionUnblocked()
+        internal Task HandleConnectionUnblocked()
         {
             if (!_connectionUnblockedWrapper.IsEmpty)
             {
-                _connectionUnblockedWrapper.Invoke(this, EventArgs.Empty);
+                return _connectionUnblockedWrapper.InvokeAsync(this, EventArgs.Empty);
             }
+            return Task.CompletedTask;
         }
 
         private async ValueTask StartAndTuneAsync(CancellationToken cancellationToken)

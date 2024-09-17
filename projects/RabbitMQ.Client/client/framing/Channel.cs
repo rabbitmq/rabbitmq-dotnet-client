@@ -117,8 +117,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                 case ProtocolCommandId.ConnectionBlocked:
                     {
-                        HandleConnectionBlocked(cmd);
-                        return Task.FromResult(true);
+                        // Note: always returns true
+                        return HandleConnectionBlocked(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionClose:
                     {
@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 case ProtocolCommandId.ConnectionSecure:
                     {
                         // Note: always returns true
-                        return HandleConnectionSecureAsync(cmd);
+                        return HandleConnectionSecureAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionStart:
                     {
@@ -138,12 +138,12 @@ namespace RabbitMQ.Client.Framing.Impl
                 case ProtocolCommandId.ConnectionTune:
                     {
                         // Note: always returns true
-                        return HandleConnectionTuneAsync(cmd);
+                        return HandleConnectionTuneAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ConnectionUnblocked:
                     {
-                        HandleConnectionUnblocked();
-                        return Task.FromResult(true);
+                        // Note: always returns true
+                        return HandleConnectionUnblocked(cancellationToken);
                     }
                 default:
                     {

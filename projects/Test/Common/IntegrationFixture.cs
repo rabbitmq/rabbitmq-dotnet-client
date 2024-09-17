@@ -237,6 +237,7 @@ namespace Test
                     catch (InvalidOperationException)
                     {
                     }
+                    return Task.CompletedTask;
                 };
 
                 conn.CallbackException += (o, ea) =>
@@ -251,6 +252,7 @@ namespace Test
                     catch (InvalidOperationException)
                     {
                     }
+                    return Task.CompletedTask;
                 };
             }
 
@@ -289,6 +291,7 @@ namespace Test
                         {
                         }
                     });
+                    return Task.CompletedTask;
                 };
             }
 
@@ -528,13 +531,14 @@ namespace Test
             };
         }
 
-        protected void HandleConnectionShutdown(object sender, ShutdownEventArgs args)
+        protected Task HandleConnectionShutdown(object sender, ShutdownEventArgs args)
         {
             if (args.Initiator != ShutdownInitiator.Application)
             {
                 IConnection conn = (IConnection)sender;
                 _output.WriteLine($"{_testDisplayName} connection {conn.ClientProvidedName} shut down: {args}");
             }
+            return Task.CompletedTask;
         }
 
         protected void HandleConnectionShutdown(IConnection conn, ShutdownEventArgs args, Action<ShutdownEventArgs> a)
@@ -625,7 +629,11 @@ namespace Test
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.RecoverySucceeded += (source, ea) => tcs.TrySetResult(true);
+            aconn.RecoverySucceeded += (source, ea) =>
+            {
+                tcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
 
             return tcs;
         }

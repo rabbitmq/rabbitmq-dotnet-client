@@ -85,11 +85,13 @@ namespace Test.SequentialIntegration
             _conn.ConnectionBlocked += (object sender, ConnectionBlockedEventArgs args) =>
             {
                 connectionBlockedTcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             _conn.ConnectionUnblocked += (object sender, EventArgs ea) =>
             {
                 connectionUnblockedTcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             async Task ExchangeDeclareAndPublish()

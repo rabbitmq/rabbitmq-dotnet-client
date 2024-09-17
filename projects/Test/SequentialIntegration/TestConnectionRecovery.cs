@@ -146,7 +146,11 @@ namespace Test.SequentialIntegration
             try
             {
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                _conn.ConnectionBlocked += (c, reason) => tcs.SetResult(true);
+                _conn.ConnectionBlocked += (c, reason) =>
+                {
+                    tcs.SetResult(true);
+                    return Task.CompletedTask;
+                };
                 await CloseAndWaitForRecoveryAsync();
                 await CloseAndWaitForRecoveryAsync();
                 await BlockAsync(_channel);
@@ -224,6 +228,7 @@ namespace Test.SequentialIntegration
                 nameBefore = ea.NameBefore;
                 nameAfter = ea.NameAfter;
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             await _channel.QueueBindAsync(queue: nameBefore, exchange: x, routingKey: "");
@@ -248,7 +253,11 @@ namespace Test.SequentialIntegration
         public async Task TestShutdownEventHandlersRecoveryOnConnectionAfterDelayedServerRestart()
         {
             int counter = 0;
-            _conn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+            _conn.ConnectionShutdown += (c, args) =>
+            {
+                Interlocked.Increment(ref counter);
+                return Task.CompletedTask;
+            };
             TaskCompletionSource<bool> shutdownLatch = PrepareForShutdown(_conn);
             TaskCompletionSource<bool> recoveryLatch = PrepareForRecovery((AutorecoveringConnection)_conn);
 
@@ -284,9 +293,14 @@ namespace Test.SequentialIntegration
             {
                 // Uncomment for debugging
                 // _output.WriteLine("[INFO] ConnectionRecoveryError: {0}", args.Exception);
+                return Task.CompletedTask;
             };
 
-            aconn.ConnectionShutdown += (c, args) => Interlocked.Increment(ref counter);
+            aconn.ConnectionShutdown += (c, args) =>
+            {
+                Interlocked.Increment(ref counter);
+                return Task.CompletedTask;
+            };
 
             Assert.True(_conn.IsOpen);
 
@@ -322,7 +336,11 @@ namespace Test.SequentialIntegration
         public async Task TestUnblockedListenersRecovery()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _conn.ConnectionUnblocked += (source, ea) => tcs.SetResult(true);
+            _conn.ConnectionUnblocked += (source, ea) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
             await CloseAndWaitForRecoveryAsync();
             await CloseAndWaitForRecoveryAsync();
             await BlockAsync(_channel);

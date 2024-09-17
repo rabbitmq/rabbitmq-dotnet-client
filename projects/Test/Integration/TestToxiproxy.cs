@@ -89,12 +89,14 @@ namespace Test.Integration
                         {
                             _output.WriteLine($"[ERROR] unexpected callback exception {ea.Detail} {ea.Exception}");
                             recoverySucceededTcs.SetResult(false);
+                            return Task.CompletedTask;
                         };
 
                         conn.ConnectionRecoveryError += (s, ea) =>
                         {
                             _output.WriteLine($"[ERROR] connection recovery error {ea.Exception}");
                             recoverySucceededTcs.SetResult(false);
+                            return Task.CompletedTask;
                         };
 
                         conn.ConnectionShutdown += (s, ea) =>
@@ -109,6 +111,7 @@ namespace Test.Integration
                              * test exits, and connectionShutdownTcs will have already been set
                              */
                             connectionShutdownTcs.TrySetResult(true);
+                            return Task.CompletedTask;
                         };
 
                         conn.RecoverySucceeded += (s, ea) =>
@@ -119,6 +122,7 @@ namespace Test.Integration
                             }
 
                             recoverySucceededTcs.SetResult(true);
+                            return Task.CompletedTask;
                         };
 
                         async Task PublishLoop()
@@ -268,6 +272,7 @@ namespace Test.Integration
                         conn.ConnectionShutdown += (o, ea) =>
                         {
                             connectionShutdownTcs.SetResult(true);
+                            return Task.CompletedTask;
                         };
 
                         using (IChannel ch = await conn.CreateChannelAsync())

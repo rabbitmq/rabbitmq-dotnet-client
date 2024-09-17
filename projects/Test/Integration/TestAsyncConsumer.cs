@@ -93,6 +93,7 @@ namespace Test.Integration
                     {
                         MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                     });
+                    return Task.CompletedTask;
                 };
 
                 _channel.ChannelShutdown += (o, ea) =>
@@ -185,6 +186,7 @@ namespace Test.Integration
                     {
                         MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                     });
+                    return Task.CompletedTask;
                 };
 
                 _channel.ChannelShutdown += (o, ea) =>
@@ -208,6 +210,7 @@ namespace Test.Integration
                                     {
                                         MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                                     });
+                                    return Task.CompletedTask;
                                 };
                                 using (IChannel publishChannel = await publishConn.CreateChannelAsync())
                                 {
@@ -251,6 +254,7 @@ namespace Test.Integration
                                     {
                                         MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                                     });
+                                    return Task.CompletedTask;
                                 };
                                 using (IChannel consumeChannel = await consumeConn.CreateChannelAsync())
                                 {
@@ -349,6 +353,7 @@ namespace Test.Integration
                     {
                         MaybeSetException(args, publishSyncSource);
                     });
+                    return Task.CompletedTask;
                 };
 
                 _channel.ChannelShutdown += (o, ea) =>
@@ -445,6 +450,7 @@ namespace Test.Integration
                 {
                     MaybeSetException(args, publishSyncSource);
                 });
+                return Task.CompletedTask;
             };
 
             _channel.ChannelShutdown += (o, ea) =>
@@ -509,6 +515,7 @@ namespace Test.Integration
                 {
                     MaybeSetException(ea, publishSyncSource);
                 });
+                return Task.CompletedTask;
             };
 
             _channel.ChannelShutdown += (o, ea) =>
@@ -615,6 +622,7 @@ namespace Test.Integration
                 {
                     MaybeSetException(ea, tcs);
                 });
+                return Task.CompletedTask;
             };
 
             _channel.ChannelShutdown += (o, ea) =>

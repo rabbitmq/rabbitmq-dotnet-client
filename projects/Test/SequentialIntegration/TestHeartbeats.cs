@@ -117,6 +117,7 @@ namespace Test.SequentialIntegration
                     conn.ConnectionShutdown += (sender, evt) =>
                         {
                             CheckInitiator(evt);
+                            return Task.CompletedTask;
                         };
                 }
 
@@ -149,6 +150,7 @@ namespace Test.SequentialIntegration
                                 wasShutdown = true;
                             }
                         }
+                        return Task.CompletedTask;
                     };
 
                     await SleepFor(30);

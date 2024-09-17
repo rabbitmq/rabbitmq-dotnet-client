@@ -75,6 +75,7 @@ namespace Test.Integration
                         sawUnexpectedShutdown = true;
                     }
                 });
+                return Task.CompletedTask;
             };
 
             _channel.ChannelShutdown += (o, ea) =>
@@ -141,6 +142,7 @@ namespace Test.Integration
                         allMessagesSeenTcs.TrySetException(args.Exception);
                     }
                 });
+                return Task.CompletedTask;
             };
 
             _channel.ChannelShutdown += (o, ea) =>
@@ -174,6 +176,7 @@ namespace Test.Integration
                                 allMessagesSeenTcs.TrySetException(args.Exception);
                             }
                         });
+                        return Task.CompletedTask;
                     };
 
                     using (IChannel publishChannel = await publishConnection.CreateChannelAsync())
@@ -225,6 +228,7 @@ namespace Test.Integration
                                 allMessagesSeenTcs.TrySetException(args.Exception);
                             }
                         });
+                        return Task.CompletedTask;
                     };
 
                     using (IChannel consumeChannel = await consumeConnection.CreateChannelAsync())

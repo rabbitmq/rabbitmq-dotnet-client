@@ -47,7 +47,11 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
         public async Task TestRecoverySucceededEventHandlers_Called()
         {
             int counter = 0;
-            ((AutorecoveringConnection)_conn).RecoverySucceeded += (source, ea) => Interlocked.Increment(ref counter);
+            ((AutorecoveringConnection)_conn).RecoverySucceeded += (source, ea) =>
+            {
+                Interlocked.Increment(ref counter);
+                return Task.CompletedTask;
+            };
 
             await CloseAndWaitForRecoveryAsync();
             await CloseAndWaitForRecoveryAsync();

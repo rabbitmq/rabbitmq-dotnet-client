@@ -86,17 +86,20 @@ namespace OAuth2Test
             _connection.ConnectionShutdown += (sender, ea) =>
             {
                 _testOutputHelper.WriteLine("{0} [WARNING] connection shutdown!", DateTime.Now);
+                return Task.CompletedTask;
             };
 
             _connection.ConnectionRecoveryError += (sender, ea) =>
             {
                 _testOutputHelper.WriteLine("{0} [ERROR] connection recovery error: {1}",
                     DateTime.Now, ea.Exception);
+                return Task.CompletedTask;
             };
 
             _connection.RecoverySucceeded += (sender, ea) =>
             {
                 _testOutputHelper.WriteLine("{0} [INFO] connection recovery succeeded", DateTime.Now);
+                return Task.CompletedTask;
             };
 
             _credentialsRefresher = new CredentialsRefresher(_producerCredentialsProvider,
