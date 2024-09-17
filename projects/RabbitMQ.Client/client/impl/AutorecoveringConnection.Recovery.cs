@@ -520,7 +520,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     _recordedEntitiesSemaphore.Release();
-                    await _consumerAboutToBeRecoveredWrapper.InvokeAsync(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments))
+                    await _recoveringConsumerAsyncWrapper.InvokeAsync(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments))
                         .ConfigureAwait(false);
                 }
                 finally

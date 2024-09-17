@@ -204,7 +204,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumer;
+        public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync;
 
         event AsyncEventHandler<EventArgs> ConnectionUnblocked;
 

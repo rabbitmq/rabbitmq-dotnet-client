@@ -139,7 +139,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private AsyncEventingWrapper<EventArgs> _connectionUnblockedWrapper;
 
-        public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumer
+        public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync
         {
             add => _consumerAboutToBeRecoveredWrapper.AddHandler(value);
             remove => _consumerAboutToBeRecoveredWrapper.RemoveHandler(value);

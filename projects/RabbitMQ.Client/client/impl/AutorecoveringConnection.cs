@@ -140,12 +140,12 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangedAfterRecoveryAsyncWrapper;
 
-        public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumer
+        public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync
         {
-            add => _consumerAboutToBeRecoveredWrapper.AddHandler(value);
-            remove => _consumerAboutToBeRecoveredWrapper.RemoveHandler(value);
+            add => _recoveringConsumerAsyncWrapper.AddHandler(value);
+            remove => _recoveringConsumerAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecoveredWrapper;
+        private AsyncEventingWrapper<RecoveringConsumerEventArgs> _recoveringConsumerAsyncWrapper;
 
         public string? ClientProvidedName => _config.ClientProvidedName;
 
