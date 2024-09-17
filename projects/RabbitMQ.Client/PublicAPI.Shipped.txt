@@ -450,7 +450,6 @@ RabbitMQ.Client.IConnection.ClientProperties.get -> System.Collections.Generic.I
 RabbitMQ.Client.IConnection.ClientProvidedName.get -> string
 RabbitMQ.Client.IConnection.CloseReason.get -> RabbitMQ.Client.ShutdownEventArgs
 RabbitMQ.Client.IConnection.ConnectionUnblocked -> RabbitMQ.Client.Events.AsyncEventHandler<System.EventArgs>
-RabbitMQ.Client.IConnection.ConsumerTagChangeAfterRecovery -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs>
 RabbitMQ.Client.IConnection.Endpoint.get -> RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.IConnection.FrameMax.get -> uint
 RabbitMQ.Client.IConnection.Heartbeat.get -> System.TimeSpan
@@ -895,3 +894,4 @@ RabbitMQ.Client.IConnection.ConnectionBlockedAsync -> RabbitMQ.Client.Events.Asy
 RabbitMQ.Client.IConnection.ConnectionShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.ShutdownEventArgs!>!
 RabbitMQ.Client.IConnection.RecoverySucceededAsync -> RabbitMQ.Client.Events.AsyncEventHandler<System.EventArgs!>!
 RabbitMQ.Client.IConnection.ConnectionRecoveryErrorAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs!>!
+RabbitMQ.Client.IConnection.ConsumerTagChangeAfterRecoveryAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs!>!

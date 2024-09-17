@@ -58,7 +58,7 @@ namespace Test.Integration.ConnectionRecovery
             }
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            ((AutorecoveringConnection)_conn).ConsumerTagChangeAfterRecovery += (prev, current) =>
+            ((AutorecoveringConnection)_conn).ConsumerTagChangeAfterRecoveryAsync += (prev, current) =>
             {
                 tcs.TrySetResult(true);
                 return Task.CompletedTask;

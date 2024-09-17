@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ConnectionShutdownAsync += HandleConnectionShutdown;
             _recoverySucceededAsyncWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
             _connectionRecoveryErrorAsyncWrapper = new AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onExceptionAsync);
-            _consumerTagChangeAfterRecoveryWrapper = new AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onExceptionAsync);
+            _consumerTagChangeAfterRecoveryAsyncWrapper = new AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onExceptionAsync);
             _queueNameChangedAfterRecoveryWrapper = new AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onExceptionAsync);
 
             Task onExceptionAsync(Exception exception, string context) =>
@@ -126,12 +126,12 @@ namespace RabbitMQ.Client.Framing.Impl
             remove => InnerConnection.ConnectionUnblocked -= value;
         }
 
-        public event AsyncEventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
+        public event AsyncEventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecoveryAsync
         {
-            add => _consumerTagChangeAfterRecoveryWrapper.AddHandler(value);
-            remove => _consumerTagChangeAfterRecoveryWrapper.RemoveHandler(value);
+            add => _consumerTagChangeAfterRecoveryAsyncWrapper.AddHandler(value);
+            remove => _consumerTagChangeAfterRecoveryAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryWrapper;
+        private AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryAsyncWrapper;
 
         public event AsyncEventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecovery
         {

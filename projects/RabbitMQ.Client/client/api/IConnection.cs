@@ -182,7 +182,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event AsyncEventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
+        event AsyncEventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecoveryAsync;
 
         /// <summary>
         /// Raised when the name of a server-named queue declared on this connection changes during

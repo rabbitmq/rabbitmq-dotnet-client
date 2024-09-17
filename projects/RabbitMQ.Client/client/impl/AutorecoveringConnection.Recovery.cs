@@ -537,12 +537,12 @@ namespace RabbitMQ.Client.Framing.Impl
                     RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
                     UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
 
-                    if (!_consumerTagChangeAfterRecoveryWrapper.IsEmpty)
+                    if (!_consumerTagChangeAfterRecoveryAsyncWrapper.IsEmpty)
                     {
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
-                            await _consumerTagChangeAfterRecoveryWrapper.InvokeAsync(this, new ConsumerTagChangedAfterRecoveryEventArgs(oldTag, newTag))
+                            await _consumerTagChangeAfterRecoveryAsyncWrapper.InvokeAsync(this, new ConsumerTagChangedAfterRecoveryEventArgs(oldTag, newTag))
                                 .ConfigureAwait(false);
                         }
                         finally
