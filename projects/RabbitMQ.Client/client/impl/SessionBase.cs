@@ -86,13 +86,13 @@ namespace RabbitMQ.Client.Impl
         [MemberNotNullWhen(false, nameof(CloseReason))]
         public bool IsOpen => CloseReason is null;
 
-        public virtual Task OnConnectionShutdownAsync(object? conn, ShutdownEventArgs reason)
+        public Task OnConnectionShutdownAsync(object? conn, ShutdownEventArgs reason)
         {
             Close(reason);
             return Task.CompletedTask;
         }
 
-        public virtual void OnSessionShutdown(ShutdownEventArgs reason)
+        public void OnSessionShutdown(ShutdownEventArgs reason)
         {
             Connection.ConnectionShutdownAsync -= OnConnectionShutdownAsync;
             _sessionShutdownWrapper.Invoke(this, reason);
