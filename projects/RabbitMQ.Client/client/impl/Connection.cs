@@ -328,7 +328,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                await OnShutdown(reason)
+                await OnShutdownAsync(reason)
                     .ConfigureAwait(false);
                 await _session0.SetSessionClosingAsync(false)
                     .ConfigureAwait(false);
@@ -409,7 +409,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal async Task ClosedViaPeer(ShutdownEventArgs reason)
+        internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason)
         {
             if (false == SetCloseReason(reason))
             {
@@ -420,7 +420,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 // We are quiescing, but still allow for server-close
             }
 
-            await OnShutdown(reason)
+            await OnShutdownAsync(reason)
                 .ConfigureAwait(false);
             await _session0.SetSessionClosingAsync(true)
                 .ConfigureAwait(false);
@@ -441,7 +441,7 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the connection.</summary>
-        private Task OnShutdown(ShutdownEventArgs reason)
+        private Task OnShutdownAsync(ShutdownEventArgs reason)
         {
             ThrowIfDisposed();
             return _connectionShutdownAsyncWrapper.InvokeAsync(this, reason);

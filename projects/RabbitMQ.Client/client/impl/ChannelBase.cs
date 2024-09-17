@@ -715,7 +715,7 @@ namespace RabbitMQ.Client.Impl
             var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
             try
             {
-                await Session.Connection.ClosedViaPeer(reason)
+                await Session.Connection.ClosedViaPeerAsync(reason)
                     .ConfigureAwait(false);
 
                 var replyMethod = new ConnectionCloseOk();

@@ -218,7 +218,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _channel0.MaybeSetConnectionStartException(reason.Exception!);
 
-            await OnShutdown(reason).ConfigureAwait(false);
+            await OnShutdownAsync(reason).ConfigureAwait(false);
             LogCloseError($"unexpected connection closure: {message}", reason.Exception!);
         }
 
@@ -227,7 +227,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (SetCloseReason(hpe.ShutdownReason))
             {
-                await OnShutdown(hpe.ShutdownReason).ConfigureAwait(false);
+                await OnShutdownAsync(hpe.ShutdownReason).ConfigureAwait(false);
                 await _session0.SetSessionClosingAsync(false)
                     .ConfigureAwait(false);
                 try
