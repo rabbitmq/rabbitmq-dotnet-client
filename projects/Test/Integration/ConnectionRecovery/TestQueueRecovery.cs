@@ -81,7 +81,7 @@ namespace Test.Integration.ConnectionRecovery
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            connection.QueueNameChangedAfterRecovery += (source, ea) =>
+            connection.QueueNameChangedAfterRecoveryAsync += (source, ea) =>
             {
                 nameAfter = ea.NameAfter;
                 return Task.CompletedTask;

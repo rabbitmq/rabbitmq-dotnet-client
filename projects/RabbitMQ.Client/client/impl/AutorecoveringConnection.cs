@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _recoverySucceededAsyncWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
             _connectionRecoveryErrorAsyncWrapper = new AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onExceptionAsync);
             _consumerTagChangeAfterRecoveryAsyncWrapper = new AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onExceptionAsync);
-            _queueNameChangedAfterRecoveryWrapper = new AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onExceptionAsync);
+            _queueNameChangedAfterRecoveryAsyncWrapper = new AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onExceptionAsync);
 
             Task onExceptionAsync(Exception exception, string context) =>
                 _innerConnection.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
@@ -133,12 +133,12 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryAsyncWrapper;
 
-        public event AsyncEventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecovery
+        public event AsyncEventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecoveryAsync
         {
-            add => _queueNameChangedAfterRecoveryWrapper.AddHandler(value);
-            remove => _queueNameChangedAfterRecoveryWrapper.RemoveHandler(value);
+            add => _queueNameChangedAfterRecoveryAsyncWrapper.AddHandler(value);
+            remove => _queueNameChangedAfterRecoveryAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangedAfterRecoveryWrapper;
+        private AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangedAfterRecoveryAsyncWrapper;
 
         public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumer
         {

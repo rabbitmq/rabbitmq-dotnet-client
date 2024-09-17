@@ -167,7 +167,7 @@ namespace Test.Integration
                     await AssertConsumerCountAsync(ch, q1, 1);
 
                     bool queueNameChangeAfterRecoveryCalled = false;
-                    c.QueueNameChangedAfterRecovery += (source, ea) =>
+                    c.QueueNameChangedAfterRecoveryAsync += (source, ea) =>
                     {
                         queueNameChangeAfterRecoveryCalled = true;
                         return Task.CompletedTask;
@@ -226,7 +226,7 @@ namespace Test.Integration
                     bool queueNameBeforeIsEqual = false;
                     bool queueNameChangeAfterRecoveryCalled = false;
                     string qnameAfterRecovery = null;
-                    c.QueueNameChangedAfterRecovery += (source, ea) =>
+                    c.QueueNameChangedAfterRecoveryAsync += (source, ea) =>
                     {
                         queueNameChangeAfterRecoveryCalled = true;
                         queueNameBeforeIsEqual = qname.Equals(ea.NameBefore);

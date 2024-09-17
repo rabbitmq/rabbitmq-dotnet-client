@@ -381,12 +381,12 @@ namespace RabbitMQ.Client.Framing.Impl
                             recordedEntitiesSemaphoreHeld: recordedEntitiesSemaphoreHeld, cancellationToken)
                             .ConfigureAwait(false);
 
-                        if (!_queueNameChangedAfterRecoveryWrapper.IsEmpty)
+                        if (!_queueNameChangedAfterRecoveryAsyncWrapper.IsEmpty)
                         {
                             try
                             {
                                 _recordedEntitiesSemaphore.Release();
-                                await _queueNameChangedAfterRecoveryWrapper.InvokeAsync(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName))
+                                await _queueNameChangedAfterRecoveryAsyncWrapper.InvokeAsync(this, new QueueNameChangedAfterRecoveryEventArgs(oldName, newName))
                                     .ConfigureAwait(false);
                             }
                             finally

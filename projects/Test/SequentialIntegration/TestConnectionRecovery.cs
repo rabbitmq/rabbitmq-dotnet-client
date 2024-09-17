@@ -223,7 +223,7 @@ namespace Test.SequentialIntegration
             string nameAfter = null;
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            ((AutorecoveringConnection)_conn).QueueNameChangedAfterRecovery += (source, ea) =>
+            ((AutorecoveringConnection)_conn).QueueNameChangedAfterRecoveryAsync += (source, ea) =>
             {
                 nameBefore = ea.NameBefore;
                 nameAfter = ea.NameAfter;
