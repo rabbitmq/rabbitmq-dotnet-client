@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _innerConnection = innerConnection;
 
             ConnectionShutdownAsync += HandleConnectionShutdown;
-            _recoverySucceededWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
+            _recoverySucceededAsyncWrapper = new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
             _connectionRecoveryErrorWrapper = new AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onExceptionAsync);
             _consumerTagChangeAfterRecoveryWrapper = new AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onExceptionAsync);
             _queueNameChangedAfterRecoveryWrapper = new AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onExceptionAsync);
@@ -88,12 +88,12 @@ namespace RabbitMQ.Client.Framing.Impl
             return connection;
         }
 
-        public event AsyncEventHandler<EventArgs> RecoverySucceeded
+        public event AsyncEventHandler<EventArgs> RecoverySucceededAsync
         {
-            add => _recoverySucceededWrapper.AddHandler(value);
-            remove => _recoverySucceededWrapper.RemoveHandler(value);
+            add => _recoverySucceededAsyncWrapper.AddHandler(value);
+            remove => _recoverySucceededAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<EventArgs> _recoverySucceededWrapper;
+        private AsyncEventingWrapper<EventArgs> _recoverySucceededAsyncWrapper;
 
         public event AsyncEventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
         {

@@ -96,7 +96,7 @@ namespace OAuth2Test
                 return Task.CompletedTask;
             };
 
-            _connection.RecoverySucceeded += (sender, ea) =>
+            _connection.RecoverySucceededAsync += (sender, ea) =>
             {
                 _testOutputHelper.WriteLine("{0} [INFO] connection recovery succeeded", DateTime.Now);
                 return Task.CompletedTask;

@@ -290,7 +290,7 @@ namespace Test.Integration
 
             using (AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter))
             {
-                conn.RecoverySucceeded += (source, ea) =>
+                conn.RecoverySucceededAsync += (source, ea) =>
                 {
                     connectionRecoveryTcs.SetResult(true);
                     return Task.CompletedTask;

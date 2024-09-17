@@ -96,7 +96,7 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
-            conn.RecoverySucceeded += (source, ea) =>
+            conn.RecoverySucceededAsync += (source, ea) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;
@@ -146,7 +146,7 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
-            conn.RecoverySucceeded += (source, ea) =>
+            conn.RecoverySucceededAsync += (source, ea) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;
@@ -194,7 +194,7 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
-            conn.RecoverySucceeded += (source, ea) =>
+            conn.RecoverySucceededAsync += (source, ea) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;
@@ -249,7 +249,7 @@ namespace Test.Integration
             var connectionRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var filter = new TopologyRecoveryFilter();
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
-            conn.RecoverySucceeded += (source, ea) =>
+            conn.RecoverySucceededAsync += (source, ea) =>
             {
                 connectionRecoveryTcs.SetResult(true);
                 return Task.CompletedTask;
@@ -356,7 +356,7 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
-            conn.RecoverySucceeded += (source, ea) =>
+            conn.RecoverySucceededAsync += (source, ea) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;
@@ -416,7 +416,7 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
-            conn.RecoverySucceeded += (source, ea) =>
+            conn.RecoverySucceededAsync += (source, ea) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;
@@ -481,7 +481,7 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
-            conn.RecoverySucceeded += (source, ea) =>
+            conn.RecoverySucceededAsync += (source, ea) =>
             {
                 connectionRecoveryTcs.SetResult(true);
                 return Task.CompletedTask;
@@ -547,7 +547,7 @@ namespace Test.Integration
             };
 
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
-            conn.RecoverySucceeded += (source, ea) =>
+            conn.RecoverySucceededAsync += (source, ea) =>
             {
                 connectionRecoveryTcs.SetResult(true);
                 return Task.CompletedTask;

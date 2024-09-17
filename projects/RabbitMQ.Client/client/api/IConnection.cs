@@ -163,7 +163,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event AsyncEventHandler<EventArgs> RecoverySucceeded;
+        event AsyncEventHandler<EventArgs> RecoverySucceededAsync;
 
         /// <summary>
         /// Raised when the connection recovery fails, e.g. because reconnection or topology

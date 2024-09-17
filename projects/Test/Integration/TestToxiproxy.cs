@@ -114,7 +114,7 @@ namespace Test.Integration
                             return Task.CompletedTask;
                         };
 
-                        conn.RecoverySucceeded += (s, ea) =>
+                        conn.RecoverySucceededAsync += (s, ea) =>
                         {
                             if (IsVerbose)
                             {
