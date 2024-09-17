@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Framing.Impl
             _endpoints = endpoints;
             _innerConnection = innerConnection;
 
-            ConnectionShutdownAsync += HandleConnectionShutdown;
+            ConnectionShutdownAsync += HandleConnectionShutdownAsync;
 
             _recoverySucceededAsyncWrapper =
                 new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);

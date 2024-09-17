@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.Framing.Impl
         private Task? _recoveryTask;
         private readonly CancellationTokenSource _recoveryCancellationTokenSource = new CancellationTokenSource();
 
-        private Task HandleConnectionShutdown(object? _, ShutdownEventArgs args)
+        private Task HandleConnectionShutdownAsync(object? _, ShutdownEventArgs args)
         {
             if (ShouldTriggerConnectionRecovery(args))
             {
