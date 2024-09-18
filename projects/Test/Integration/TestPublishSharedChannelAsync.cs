@@ -84,7 +84,7 @@ namespace Test.Integration
                     {
                         try
                         {
-                            channel.ChannelShutdown += HandleChannelShutdown;
+                            channel.ChannelShutdownAsync += HandleChannelShutdownAsync;
                             await channel.ExchangeDeclareAsync(ExchangeName.Value, ExchangeType.Topic, passive: false, durable: false, autoDelete: true,
                                 noWait: false, arguments: null);
                             await channel.QueueDeclareAsync(QueueName, exclusive: false, autoDelete: true);

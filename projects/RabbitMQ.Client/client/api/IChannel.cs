@@ -106,28 +106,28 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Signalled when a Basic.Ack command arrives from the broker.
         /// </summary>
-        event EventHandler<BasicAckEventArgs> BasicAcks;
+        event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync;
 
         /// <summary>
         /// Signalled when a Basic.Nack command arrives from the broker.
         /// </summary>
-        event EventHandler<BasicNackEventArgs> BasicNacks;
+        event AsyncEventHandler<BasicNackEventArgs> BasicNacksAsync;
 
         /// <summary>
         /// Signalled when a Basic.Return command arrives from the broker.
         /// </summary>
-        event EventHandler<BasicReturnEventArgs> BasicReturn;
+        event AsyncEventHandler<BasicReturnEventArgs> BasicReturnAsync;
 
         /// <summary>
         /// Signalled when an exception occurs in a callback invoked by the channel.
         ///
         /// Examples of cases where this event will be signalled
         /// include exceptions thrown in <see cref="IAsyncBasicConsumer"/> methods, or
-        /// exceptions thrown in <see cref="ChannelShutdown"/> delegates etc.
+        /// exceptions thrown in <see cref="ChannelShutdownAsync"/> delegates etc.
         /// </summary>
-        event EventHandler<CallbackExceptionEventArgs> CallbackException;
+        event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync;
 
-        event EventHandler<FlowControlEventArgs> FlowControl;
+        event AsyncEventHandler<FlowControlEventArgs> FlowControlAsync;
 
         /// <summary>
         /// Notifies the destruction of the channel.
@@ -136,7 +136,7 @@ namespace RabbitMQ.Client
         /// If the channel is already destroyed at the time an event
         /// handler is added to this event, the event handler will be fired immediately.
         /// </remarks>
-        event EventHandler<ShutdownEventArgs> ChannelShutdown;
+        event AsyncEventHandler<ShutdownEventArgs> ChannelShutdownAsync;
 
         /// <summary>
         /// When in confirm mode, return the sequence number of the next message to be published.
@@ -268,7 +268,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously enable publisher confirmations.
         /// </summary>
-        /// <param name="trackConfirmations">Set to <c>false</c> if tracking via <see cref="BasicAcks"/> and <see cref="BasicNacks"/> yourself.</param>
+        /// <param name="trackConfirmations">Set to <c>false</c> if tracking via <see cref="BasicAcksAsync"/> and <see cref="BasicNacksAsync"/> yourself.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         Task ConfirmSelectAsync(bool trackConfirmations = true,
             CancellationToken cancellationToken = default);

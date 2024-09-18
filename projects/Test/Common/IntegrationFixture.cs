@@ -258,7 +258,7 @@ namespace Test
 
             if (channel != null)
             {
-                channel.CallbackException += (o, ea) =>
+                channel.CallbackExceptionAsync += (o, ea) =>
                 {
                     _channelCallbackException = ea.Exception;
 
@@ -270,6 +270,8 @@ namespace Test
                     catch (InvalidOperationException)
                     {
                     }
+
+                    return Task.CompletedTask;
                 };
             }
         }
@@ -297,7 +299,7 @@ namespace Test
 
             if (_channel != null)
             {
-                _channel.ChannelShutdown += (o, ea) =>
+                _channel.ChannelShutdownAsync += (o, ea) =>
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
@@ -310,6 +312,8 @@ namespace Test
                         {
                         }
                     });
+
+                    return Task.CompletedTask;
                 };
             }
         }
@@ -550,13 +554,14 @@ namespace Test
             a(args);
         }
 
-        protected void HandleChannelShutdown(object sender, ShutdownEventArgs args)
+        protected Task HandleChannelShutdownAsync(object sender, ShutdownEventArgs args)
         {
             if (args.Initiator != ShutdownInitiator.Application)
             {
                 IChannel ch = (IChannel)sender;
                 _output.WriteLine($"{_testDisplayName} channel {ch.ChannelNumber} shut down: {args}");
             }
+            return Task.CompletedTask;
         }
 
         protected void HandleChannelShutdown(IChannel ch, ShutdownEventArgs args, Action<ShutdownEventArgs> a)

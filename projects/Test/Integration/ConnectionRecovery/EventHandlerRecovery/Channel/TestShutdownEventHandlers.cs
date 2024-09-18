@@ -46,7 +46,11 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Channel
         public async Task TestShutdownEventHandlersOnChannel_Called()
         {
             int counter = 0;
-            _channel.ChannelShutdown += (c, args) => Interlocked.Increment(ref counter);
+            _channel.ChannelShutdownAsync += (c, args) =>
+            {
+                Interlocked.Increment(ref counter);
+                return Task.CompletedTask;
+            };
 
             Assert.True(_channel.IsOpen);
             await CloseAndWaitForRecoveryAsync();

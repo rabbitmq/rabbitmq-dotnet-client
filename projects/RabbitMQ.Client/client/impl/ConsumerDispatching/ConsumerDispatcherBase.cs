@@ -31,12 +31,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
             return _consumers.Remove(tag, out IAsyncBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
         }
 
-        public void Shutdown(ShutdownEventArgs reason)
-        {
-            DoShutdownConsumers(reason);
-            InternalShutdown();
-        }
-
         public Task ShutdownAsync(ShutdownEventArgs reason)
         {
             DoShutdownConsumers(reason);
@@ -53,8 +47,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         protected abstract void ShutdownConsumer(IAsyncBasicConsumer consumer, ShutdownEventArgs reason);
-
-        protected abstract void InternalShutdown();
 
         protected abstract Task InternalShutdownAsync();
 

@@ -112,7 +112,7 @@ async Task HandlePublishConfirmsAsynchronously()
     var allMessagesConfirmedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
     var outstandingConfirms = new LinkedList<ulong>();
     var semaphore = new SemaphoreSlim(1, 1);
-    void CleanOutstandingConfirms(ulong deliveryTag, bool multiple)
+    async Task CleanOutstandingConfirms(ulong deliveryTag, bool multiple)
     {
         if (debug)
         {
@@ -120,7 +120,7 @@ async Task HandlePublishConfirmsAsynchronously()
                 DateTime.Now, deliveryTag, multiple);
         }
 
-        semaphore.Wait();
+        await semaphore.WaitAsync();
         try
         {
             if (multiple)
@@ -158,11 +158,11 @@ async Task HandlePublishConfirmsAsynchronously()
         }
     }
 
-    channel.BasicAcks += (sender, ea) => CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
-    channel.BasicNacks += (sender, ea) =>
+    channel.BasicAcksAsync += (sender, ea) => CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
+    channel.BasicNacksAsync += (sender, ea) =>
     {
         Console.WriteLine($"{DateTime.Now} [WARNING] message sequence number: {ea.DeliveryTag} has been nacked (multiple: {ea.Multiple})");
-        CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
+        return CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
     };
 
     var sw = new Stopwatch();

@@ -127,9 +127,10 @@ namespace Test.Integration
                 // number of event handler invocations
                 int c = 0;
 
-                ch.BasicAcks += (_, args) =>
+                ch.BasicAcksAsync += (_, args) =>
                 {
                     Interlocked.Increment(ref c);
+                    return Task.CompletedTask;
                 };
 
                 try

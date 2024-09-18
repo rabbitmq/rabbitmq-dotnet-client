@@ -156,8 +156,16 @@ namespace Test.Integration.ConnectionRecovery
         {
             await _channel.ConfirmSelectAsync();
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            ((AutorecoveringChannel)_channel).BasicAcks += (m, args) => tcs.SetResult(true);
-            ((AutorecoveringChannel)_channel).BasicNacks += (m, args) => tcs.SetResult(true);
+            ((AutorecoveringChannel)_channel).BasicAcksAsync += (m, args) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
+            ((AutorecoveringChannel)_channel).BasicNacksAsync += (m, args) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
 
             await CloseAndWaitForRecoveryAsync();
             await CloseAndWaitForRecoveryAsync();

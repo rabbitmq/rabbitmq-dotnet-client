@@ -51,9 +51,10 @@ namespace Test.Integration
         public async Task TestCleanClosureWithSocketClosedOutOfBand()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _channel.ChannelShutdown += (channel, args) =>
+            _channel.ChannelShutdownAsync += (channel, args) =>
             {
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             var c = (AutorecoveringConnection)_conn;
@@ -75,9 +76,10 @@ namespace Test.Integration
         public async Task TestAbortWithSocketClosedOutOfBand()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _channel.ChannelShutdown += (channel, args) =>
+            _channel.ChannelShutdownAsync += (channel, args) =>
             {
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             var c = (AutorecoveringConnection)_conn;
@@ -94,9 +96,10 @@ namespace Test.Integration
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _channel.ChannelShutdown += (channel, args) =>
+            _channel.ChannelShutdownAsync += (channel, args) =>
             {
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             var c = (AutorecoveringConnection)_conn;
@@ -120,9 +123,10 @@ namespace Test.Integration
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _channel.ChannelShutdown += (channel, args) =>
+            _channel.ChannelShutdownAsync += (channel, args) =>
             {
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             await _conn.CloseAsync();
@@ -135,9 +139,10 @@ namespace Test.Integration
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _channel.ChannelShutdown += (channel, args) =>
+            _channel.ChannelShutdownAsync += (channel, args) =>
             {
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             _conn.Dispose();
@@ -152,9 +157,10 @@ namespace Test.Integration
             var m = (AutorecoveringChannel)_channel;
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _channel.ChannelShutdown += (channel, args) =>
+            _channel.ChannelShutdownAsync += (channel, args) =>
             {
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
             Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before CloseAsync");
             await _conn.CloseAsync();

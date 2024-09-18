@@ -71,7 +71,7 @@ namespace MassPublish
             consumeConnection.ConnectionShutdownAsync += ConnectionShutdownAsync;
 
             using IChannel consumeChannel = await consumeConnection.CreateChannelAsync();
-            consumeChannel.ChannelShutdown += Channel_ChannelShutdown;
+            consumeChannel.ChannelShutdownAsync += Channel_ChannelShutdownAsync;
             await consumeChannel.BasicQosAsync(prefetchSize: 0, prefetchCount: 128, global: false);
 
             await consumeChannel.ExchangeDeclareAsync(exchange: ExchangeName,
@@ -107,7 +107,7 @@ namespace MassPublish
                 publishTasks.Add(Task.Run(async () =>
                 {
                     using IChannel publishChannel = await publishConnection.CreateChannelAsync();
-                    publishChannel.ChannelShutdown += Channel_ChannelShutdown;
+                    publishChannel.ChannelShutdownAsync += Channel_ChannelShutdownAsync;
 
                     await publishChannel.ConfirmSelectAsync();
 
@@ -173,13 +173,15 @@ namespace MassPublish
             return Task.CompletedTask;
         }
 
-        private static void Channel_ChannelShutdown(object sender, ShutdownEventArgs e)
+        private static Task Channel_ChannelShutdownAsync(object sender, ShutdownEventArgs e)
         {
             if (e.Initiator != ShutdownInitiator.Application)
             {
                 Console.Error.WriteLine("[ERROR] unexpected channel shutdown: {0}", e);
                 s_consumeDoneEvent.TrySetResult(false);
             }
+
+            return Task.CompletedTask;
         }
 
         private static Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)

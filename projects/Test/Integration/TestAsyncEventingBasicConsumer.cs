@@ -70,9 +70,10 @@ namespace Test.Integration
             _onReceivedTcs.TrySetCanceled();
         }
 
-        private void ConsumerChannelOnCallbackException(object sender, CallbackExceptionEventArgs e)
+        private Task ConsumerChannelOnCallbackExceptionAsync(object sender, CallbackExceptionEventArgs e)
         {
             _onCallbackExceptionTcs.TrySetResult(true);
+            return Task.CompletedTask;
         }
 
         private Task AsyncConsumerOnReceived(object sender, BasicDeliverEventArgs @event)
@@ -96,7 +97,7 @@ namespace Test.Integration
             await _channel.QueueDeclareAsync(queueName, false, false, true, null);
             await _channel.QueueBindAsync(queueName, exchangeName, routingKey, null);
 
-            _channel.CallbackException += ConsumerChannelOnCallbackException;
+            _channel.CallbackExceptionAsync += ConsumerChannelOnCallbackExceptionAsync;
 
             //async subscriber
             var consumer = new AsyncEventingBasicConsumer(_channel);

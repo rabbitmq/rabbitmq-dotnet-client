@@ -74,7 +74,7 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            _channel.ChannelShutdown += (o, ea) =>
+            _channel.ChannelShutdownAsync += (o, ea) =>
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
@@ -83,6 +83,8 @@ namespace Test.Integration
                         sawShutdown = true;
                     }
                 });
+
+                return Task.CompletedTask;
             };
 
             var tasks = new List<Task>();

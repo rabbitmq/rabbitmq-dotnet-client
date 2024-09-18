@@ -57,7 +57,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
                             }
                             catch (Exception e)
                             {
-                                _channel.OnCallbackException(CallbackExceptionEventArgs.Build(e, work.WorkType.ToString(), work.Consumer));
+                                await _channel.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(e, work.WorkType.ToString(), work.Consumer))
+                                    .ConfigureAwait(false);
                             }
                         }
                     }

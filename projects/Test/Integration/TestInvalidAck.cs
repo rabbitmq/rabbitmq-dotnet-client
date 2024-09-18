@@ -48,11 +48,12 @@ namespace Test.Integration
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             bool shutdownFired = false;
             ShutdownEventArgs shutdownArgs = null;
-            _channel.ChannelShutdown += (s, args) =>
+            _channel.ChannelShutdownAsync += (s, args) =>
             {
                 shutdownFired = true;
                 shutdownArgs = args;
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             await _channel.BasicAckAsync(123456, false);

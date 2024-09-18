@@ -214,12 +214,13 @@ namespace Test.Integration
 
                 using (IChannel channel = await conn.CreateChannelAsync())
                 {
-                    channel.ChannelShutdown += (o, a) =>
+                    channel.ChannelShutdownAsync += (o, a) =>
                     {
                         sawChannelShutdown = true;
+                        return Task.CompletedTask;
                     };
 
-                    channel.CallbackException += (o, a) =>
+                    channel.CallbackExceptionAsync += (o, a) =>
                     {
                         throw new XunitException("Unexpected channel.CallbackException");
                     };

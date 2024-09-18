@@ -75,11 +75,17 @@ namespace Test.Integration
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
 
             CallbackExceptionEventArgs ea = null;
-            _channel.CallbackException += async (_, evt) =>
+            Task closeTask = null;
+            _channel.CallbackExceptionAsync += (_, evt) =>
             {
                 ea = evt;
-                await _channel.CloseAsync();
+                /*
+                 * NOTE:
+                 * await-ing CloseAsync here WILL result in a deadlock
+                 */
+                closeTask = _channel.CloseAsync();
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             await _channel.BasicConsumeAsync(q, true, new FaultyConsumer(_channel));
@@ -88,6 +94,7 @@ namespace Test.Integration
             await WaitAsync(tcs, "CallbackException");
 
             Assert.NotNull(ea);
+            await closeTask.WaitAsync(WaitSpan);
             Assert.False(_channel.IsOpen);
             Assert.Equal(200, _channel.CloseReason.ReplyCode);
         }
