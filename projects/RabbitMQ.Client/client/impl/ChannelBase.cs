@@ -463,7 +463,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (_flowControlBlock.IsSet)
             {
-                return new ValueTask();
+                return default;
             }
 
             return _flowControlBlock.WaitAsync(cancellationToken);
