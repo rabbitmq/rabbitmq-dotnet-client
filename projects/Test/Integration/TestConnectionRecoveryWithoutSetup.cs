@@ -167,7 +167,11 @@ namespace Test.Integration
                     await AssertConsumerCountAsync(ch, q1, 1);
 
                     bool queueNameChangeAfterRecoveryCalled = false;
-                    c.QueueNameChangedAfterRecovery += (source, ea) => { queueNameChangeAfterRecoveryCalled = true; };
+                    c.QueueNameChangedAfterRecoveryAsync += (source, ea) =>
+                    {
+                        queueNameChangeAfterRecoveryCalled = true;
+                        return Task.CompletedTask;
+                    };
 
                     // connection #2
                     await CloseAndWaitForRecoveryAsync(c);
@@ -222,11 +226,12 @@ namespace Test.Integration
                     bool queueNameBeforeIsEqual = false;
                     bool queueNameChangeAfterRecoveryCalled = false;
                     string qnameAfterRecovery = null;
-                    c.QueueNameChangedAfterRecovery += (source, ea) =>
+                    c.QueueNameChangedAfterRecoveryAsync += (source, ea) =>
                     {
                         queueNameChangeAfterRecoveryCalled = true;
                         queueNameBeforeIsEqual = qname.Equals(ea.NameBefore);
                         qnameAfterRecovery = ea.NameAfter;
+                        return Task.CompletedTask;
                     };
 
                     await CloseAndWaitForRecoveryAsync(c);
@@ -285,9 +290,21 @@ namespace Test.Integration
 
             using (AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter))
             {
-                conn.RecoverySucceeded += (source, ea) => connectionRecoveryTcs.SetResult(true);
-                conn.ConnectionRecoveryError += (source, ea) => connectionRecoveryTcs.SetException(ea.Exception);
-                conn.CallbackException += (source, ea) => connectionRecoveryTcs.SetException(ea.Exception);
+                conn.RecoverySucceededAsync += (source, ea) =>
+                {
+                    connectionRecoveryTcs.SetResult(true);
+                    return Task.CompletedTask;
+                };
+                conn.ConnectionRecoveryErrorAsync += (source, ea) =>
+                {
+                    connectionRecoveryTcs.SetException(ea.Exception);
+                    return Task.CompletedTask;
+                };
+                conn.CallbackExceptionAsync += (source, ea) =>
+                {
+                    connectionRecoveryTcs.SetException(ea.Exception);
+                    return Task.CompletedTask;
+                };
 
                 using (IChannel ch = await conn.CreateChannelAsync())
                 {

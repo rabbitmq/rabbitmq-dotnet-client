@@ -66,14 +66,25 @@ namespace RabbitMQ.Client.Framing.Impl
             _endpoints = endpoints;
             _innerConnection = innerConnection;
 
-            ConnectionShutdown += HandleConnectionShutdown;
-            _recoverySucceededWrapper = new EventingWrapper<EventArgs>("OnConnectionRecovery", onException);
-            _connectionRecoveryErrorWrapper = new EventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onException);
-            _consumerTagChangeAfterRecoveryWrapper = new EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onException);
-            _queueNameChangedAfterRecoveryWrapper = new EventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onException);
+            ConnectionShutdownAsync += HandleConnectionShutdownAsync;
 
-            void onException(Exception exception, string context) =>
-                _innerConnection.OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
+            _recoverySucceededAsyncWrapper =
+                new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
+
+            _connectionRecoveryErrorAsyncWrapper =
+                new AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onExceptionAsync);
+
+            _consumerTagChangeAfterRecoveryAsyncWrapper =
+                new AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs>("OnConsumerRecovery", onExceptionAsync);
+
+            _queueNameChangedAfterRecoveryAsyncWrapper =
+                new AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs>("OnQueueRecovery", onExceptionAsync);
+
+            _recoveringConsumerAsyncWrapper =
+                new AsyncEventingWrapper<RecoveringConsumerEventArgs>("OnRecoveringConsumer", onExceptionAsync);
+
+            Task onExceptionAsync(Exception exception, string context) =>
+                _innerConnection.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
         }
 
         internal static async ValueTask<AutorecoveringConnection> CreateAsync(ConnectionConfig config, IEndpointResolver endpoints,
@@ -88,64 +99,64 @@ namespace RabbitMQ.Client.Framing.Impl
             return connection;
         }
 
-        public event EventHandler<EventArgs> RecoverySucceeded
+        public event AsyncEventHandler<EventArgs> RecoverySucceededAsync
         {
-            add => _recoverySucceededWrapper.AddHandler(value);
-            remove => _recoverySucceededWrapper.RemoveHandler(value);
+            add => _recoverySucceededAsyncWrapper.AddHandler(value);
+            remove => _recoverySucceededAsyncWrapper.RemoveHandler(value);
         }
-        private EventingWrapper<EventArgs> _recoverySucceededWrapper;
+        private AsyncEventingWrapper<EventArgs> _recoverySucceededAsyncWrapper;
 
-        public event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError
+        public event AsyncEventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryErrorAsync
         {
-            add => _connectionRecoveryErrorWrapper.AddHandler(value);
-            remove => _connectionRecoveryErrorWrapper.RemoveHandler(value);
+            add => _connectionRecoveryErrorAsyncWrapper.AddHandler(value);
+            remove => _connectionRecoveryErrorAsyncWrapper.RemoveHandler(value);
         }
-        private EventingWrapper<ConnectionRecoveryErrorEventArgs> _connectionRecoveryErrorWrapper;
+        private AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs> _connectionRecoveryErrorAsyncWrapper;
 
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
+        public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync
         {
-            add => InnerConnection.CallbackException += value;
-            remove => InnerConnection.CallbackException -= value;
-        }
-
-        public event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked
-        {
-            add => InnerConnection.ConnectionBlocked += value;
-            remove => InnerConnection.ConnectionBlocked -= value;
+            add => InnerConnection.CallbackExceptionAsync += value;
+            remove => InnerConnection.CallbackExceptionAsync -= value;
         }
 
-        public event EventHandler<ShutdownEventArgs> ConnectionShutdown
+        public event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlockedAsync
         {
-            add => InnerConnection.ConnectionShutdown += value;
-            remove => InnerConnection.ConnectionShutdown -= value;
+            add => InnerConnection.ConnectionBlockedAsync += value;
+            remove => InnerConnection.ConnectionBlockedAsync -= value;
         }
 
-        public event EventHandler<EventArgs> ConnectionUnblocked
+        public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync
         {
-            add => InnerConnection.ConnectionUnblocked += value;
-            remove => InnerConnection.ConnectionUnblocked -= value;
+            add => InnerConnection.ConnectionShutdownAsync += value;
+            remove => InnerConnection.ConnectionShutdownAsync -= value;
         }
 
-        public event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery
+        public event AsyncEventHandler<EventArgs> ConnectionUnblockedAsync
         {
-            add => _consumerTagChangeAfterRecoveryWrapper.AddHandler(value);
-            remove => _consumerTagChangeAfterRecoveryWrapper.RemoveHandler(value);
+            add => InnerConnection.ConnectionUnblockedAsync += value;
+            remove => InnerConnection.ConnectionUnblockedAsync -= value;
         }
-        private EventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryWrapper;
 
-        public event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecovery
+        public event AsyncEventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecoveryAsync
         {
-            add => _queueNameChangedAfterRecoveryWrapper.AddHandler(value);
-            remove => _queueNameChangedAfterRecoveryWrapper.RemoveHandler(value);
+            add => _consumerTagChangeAfterRecoveryAsyncWrapper.AddHandler(value);
+            remove => _consumerTagChangeAfterRecoveryAsyncWrapper.RemoveHandler(value);
         }
-        private EventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangedAfterRecoveryWrapper;
+        private AsyncEventingWrapper<ConsumerTagChangedAfterRecoveryEventArgs> _consumerTagChangeAfterRecoveryAsyncWrapper;
 
-        public event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer
+        public event AsyncEventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecoveryAsync
         {
-            add => _consumerAboutToBeRecovered.AddHandler(value);
-            remove => _consumerAboutToBeRecovered.RemoveHandler(value);
+            add => _queueNameChangedAfterRecoveryAsyncWrapper.AddHandler(value);
+            remove => _queueNameChangedAfterRecoveryAsyncWrapper.RemoveHandler(value);
         }
-        private EventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecovered;
+        private AsyncEventingWrapper<QueueNameChangedAfterRecoveryEventArgs> _queueNameChangedAfterRecoveryAsyncWrapper;
+
+        public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync
+        {
+            add => _recoveringConsumerAsyncWrapper.AddHandler(value);
+            remove => _recoveringConsumerAsyncWrapper.RemoveHandler(value);
+        }
+        private AsyncEventingWrapper<RecoveringConsumerEventArgs> _recoveringConsumerAsyncWrapper;
 
         public string? ClientProvidedName => _config.ClientProvidedName;
 

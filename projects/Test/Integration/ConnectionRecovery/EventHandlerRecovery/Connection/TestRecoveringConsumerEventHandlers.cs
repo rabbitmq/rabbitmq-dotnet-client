@@ -56,7 +56,11 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
             await _channel.BasicConsumeAsync(q, true, cons);
 
             int counter = 0;
-            ((AutorecoveringConnection)_conn).RecoveringConsumer += (sender, args) => Interlocked.Increment(ref counter);
+            ((AutorecoveringConnection)_conn).RecoveringConsumerAsync += (sender, args) =>
+            {
+                Interlocked.Increment(ref counter);
+                return Task.CompletedTask;
+            };
 
             for (int i = 0; i < iterations; i++)
             {
@@ -84,13 +88,14 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
 
             bool ctagMatches = false;
             bool consumerArgumentMatches = false;
-            ((AutorecoveringConnection)_conn).RecoveringConsumer += (sender, args) =>
+            ((AutorecoveringConnection)_conn).RecoveringConsumerAsync += (sender, args) =>
             {
                 // We cannot assert here because NUnit throws when an assertion fails. This exception is caught and
                 // passed to a CallbackExceptionHandler, instead of failing the test. Instead, we have to do this trick
                 // and assert in the test function.
                 ctagMatches = args.ConsumerTag == expectedCTag;
                 consumerArgumentMatches = (string)args.ConsumerArguments[key] == value;
+                return Task.CompletedTask;
             };
 
             await CloseAndWaitForRecoveryAsync();

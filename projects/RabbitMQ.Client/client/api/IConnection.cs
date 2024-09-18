@@ -143,9 +143,7 @@ namespace RabbitMQ.Client
         /// <see cref="IConnection"/>, then this event will be signalled whenever one
         /// of those event handlers throws an exception, as well.
         /// </remarks>
-        event EventHandler<CallbackExceptionEventArgs> CallbackException;
-
-        event EventHandler<ConnectionBlockedEventArgs> ConnectionBlocked;
+        event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync;
 
         /// <summary>
         /// Raised when the connection is destroyed.
@@ -155,7 +153,7 @@ namespace RabbitMQ.Client
         /// event handler is added to this event, the event handler
         /// will be fired immediately.
         /// </remarks>
-        event EventHandler<ShutdownEventArgs> ConnectionShutdown;
+        event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync;
 
         /// <summary>
         /// Raised when the connection completes recovery.
@@ -163,7 +161,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event EventHandler<EventArgs> RecoverySucceeded;
+        event AsyncEventHandler<EventArgs> RecoverySucceededAsync;
 
         /// <summary>
         /// Raised when the connection recovery fails, e.g. because reconnection or topology
@@ -172,7 +170,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event EventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryError;
+        event AsyncEventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryErrorAsync;
 
         /// <summary>
         /// Raised when the server-generated tag of a consumer registered on this connection changes during
@@ -182,7 +180,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event EventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecovery;
+        event AsyncEventHandler<ConsumerTagChangedAfterRecoveryEventArgs> ConsumerTagChangeAfterRecoveryAsync;
 
         /// <summary>
         /// Raised when the name of a server-named queue declared on this connection changes during
@@ -192,7 +190,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event EventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecovery;
+        event AsyncEventHandler<QueueNameChangedAfterRecoveryEventArgs> QueueNameChangedAfterRecoveryAsync;
 
         /// <summary>
         /// Raised when a consumer is about to be recovered. This event raises when topology recovery
@@ -204,9 +202,17 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        public event EventHandler<RecoveringConsumerEventArgs> RecoveringConsumer;
+        public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync;
 
-        event EventHandler<EventArgs> ConnectionUnblocked;
+        /// <summary>
+        /// Raised when a connection is blocked by the AMQP broker.
+        /// </summary>
+        event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlockedAsync;
+
+        /// <summary>
+        /// Raised when a connection is unblocked by the AMQP broker.
+        /// </summary>
+        event AsyncEventHandler<EventArgs> ConnectionUnblockedAsync;
 
         /// <summary>
         /// This method updates the secret used to authenticate this connection.

@@ -225,7 +225,7 @@ namespace Test
         {
             if (conn != null)
             {
-                conn.ConnectionRecoveryError += (s, ea) =>
+                conn.ConnectionRecoveryErrorAsync += (s, ea) =>
                 {
                     _connectionRecoveryException = ea.Exception;
 
@@ -237,9 +237,10 @@ namespace Test
                     catch (InvalidOperationException)
                     {
                     }
+                    return Task.CompletedTask;
                 };
 
-                conn.CallbackException += (o, ea) =>
+                conn.CallbackExceptionAsync += (o, ea) =>
                 {
                     _connectionCallbackException = ea.Exception;
 
@@ -251,6 +252,7 @@ namespace Test
                     catch (InvalidOperationException)
                     {
                     }
+                    return Task.CompletedTask;
                 };
             }
 
@@ -276,7 +278,7 @@ namespace Test
         {
             if (_conn != null)
             {
-                _conn.ConnectionShutdown += (o, ea) =>
+                _conn.ConnectionShutdownAsync += (o, ea) =>
                 {
                     HandleConnectionShutdown(_conn, ea, (args) =>
                     {
@@ -289,6 +291,7 @@ namespace Test
                         {
                         }
                     });
+                    return Task.CompletedTask;
                 };
             }
 
@@ -528,13 +531,14 @@ namespace Test
             };
         }
 
-        protected void HandleConnectionShutdown(object sender, ShutdownEventArgs args)
+        protected Task HandleConnectionShutdownAsync(object sender, ShutdownEventArgs args)
         {
             if (args.Initiator != ShutdownInitiator.Application)
             {
                 IConnection conn = (IConnection)sender;
                 _output.WriteLine($"{_testDisplayName} connection {conn.ClientProvidedName} shut down: {args}");
             }
+            return Task.CompletedTask;
         }
 
         protected void HandleConnectionShutdown(IConnection conn, ShutdownEventArgs args, Action<ShutdownEventArgs> a)
@@ -625,7 +629,11 @@ namespace Test
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             AutorecoveringConnection aconn = conn as AutorecoveringConnection;
-            aconn.RecoverySucceeded += (source, ea) => tcs.TrySetResult(true);
+            aconn.RecoverySucceededAsync += (source, ea) =>
+            {
+                tcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
 
             return tcs;
         }

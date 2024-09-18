@@ -50,7 +50,7 @@ namespace Test.Integration
         {
             _connFactory = CreateConnectionFactory();
             _conn = await _connFactory.CreateConnectionAsync();
-            _conn.ConnectionShutdown += HandleConnectionShutdown;
+            _conn.ConnectionShutdownAsync += HandleConnectionShutdownAsync;
             // NB: not creating _channel because this test suite doesn't use it.
             Assert.Null(_channel);
         }

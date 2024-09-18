@@ -62,7 +62,7 @@ namespace Test.Integration
         {
             bool sawShutdown = false;
 
-            _conn.ConnectionShutdown += (o, ea) =>
+            _conn.ConnectionShutdownAsync += (o, ea) =>
             {
                 HandleConnectionShutdown(_conn, ea, (args) =>
                 {
@@ -71,6 +71,7 @@ namespace Test.Integration
                         sawShutdown = true;
                     }
                 });
+                return Task.CompletedTask;
             };
 
             _channel.ChannelShutdown += (o, ea) =>

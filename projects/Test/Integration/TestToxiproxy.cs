@@ -85,19 +85,21 @@ namespace Test.Integration
                 {
                     using (IConnection conn = await cf.CreateConnectionAsync())
                     {
-                        conn.CallbackException += (s, ea) =>
+                        conn.CallbackExceptionAsync += (s, ea) =>
                         {
                             _output.WriteLine($"[ERROR] unexpected callback exception {ea.Detail} {ea.Exception}");
                             recoverySucceededTcs.SetResult(false);
+                            return Task.CompletedTask;
                         };
 
-                        conn.ConnectionRecoveryError += (s, ea) =>
+                        conn.ConnectionRecoveryErrorAsync += (s, ea) =>
                         {
                             _output.WriteLine($"[ERROR] connection recovery error {ea.Exception}");
                             recoverySucceededTcs.SetResult(false);
+                            return Task.CompletedTask;
                         };
 
-                        conn.ConnectionShutdown += (s, ea) =>
+                        conn.ConnectionShutdownAsync += (s, ea) =>
                         {
                             if (IsVerbose)
                             {
@@ -109,9 +111,10 @@ namespace Test.Integration
                              * test exits, and connectionShutdownTcs will have already been set
                              */
                             connectionShutdownTcs.TrySetResult(true);
+                            return Task.CompletedTask;
                         };
 
-                        conn.RecoverySucceeded += (s, ea) =>
+                        conn.RecoverySucceededAsync += (s, ea) =>
                         {
                             if (IsVerbose)
                             {
@@ -119,6 +122,7 @@ namespace Test.Integration
                             }
 
                             recoverySucceededTcs.SetResult(true);
+                            return Task.CompletedTask;
                         };
 
                         async Task PublishLoop()
@@ -265,9 +269,10 @@ namespace Test.Integration
                 {
                     using (IConnection conn = await cf.CreateConnectionAsync())
                     {
-                        conn.ConnectionShutdown += (o, ea) =>
+                        conn.ConnectionShutdownAsync += (o, ea) =>
                         {
                             connectionShutdownTcs.SetResult(true);
+                            return Task.CompletedTask;
                         };
 
                         using (IChannel ch = await conn.CreateChannelAsync())

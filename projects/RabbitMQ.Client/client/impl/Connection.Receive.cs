@@ -62,7 +62,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     Constants.InternalError,
                     "Thread aborted (AppDomain unloaded?)",
                     exception: taex);
-                HandleMainLoopException(ea);
+                await HandleMainLoopExceptionAsync(ea)
+                    .ConfigureAwait(false);
             }
 #endif
             catch (EndOfStreamException eose)
@@ -72,7 +73,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     0,
                     "End of stream",
                     exception: eose);
-                HandleMainLoopException(ea);
+                await HandleMainLoopExceptionAsync(ea)
+                    .ConfigureAwait(false);
             }
             catch (HardProtocolException hpe)
             {
@@ -89,7 +91,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     Constants.InternalError,
                     fileLoadException.Message,
                     exception: fileLoadException);
-                HandleMainLoopException(ea);
+                await HandleMainLoopExceptionAsync(ea)
+                    .ConfigureAwait(false);
             }
             catch (OperationCanceledException ocex)
             {
@@ -103,7 +106,8 @@ namespace RabbitMQ.Client.Framing.Impl
                         Constants.InternalError,
                         ocex.Message,
                         exception: ocex);
-                    HandleMainLoopException(ea);
+                    await HandleMainLoopExceptionAsync(ea)
+                        .ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -112,7 +116,8 @@ namespace RabbitMQ.Client.Framing.Impl
                     Constants.InternalError,
                     ex.Message,
                     exception: ex);
-                HandleMainLoopException(ea);
+                await HandleMainLoopExceptionAsync(ea)
+                    .ConfigureAwait(false);
             }
 
             using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionCloseTimeout);
@@ -202,7 +207,7 @@ namespace RabbitMQ.Client.Framing.Impl
             MaybeStopHeartbeatTimers();
         }
 
-        private void HandleMainLoopException(ShutdownEventArgs reason)
+        private async Task HandleMainLoopExceptionAsync(ShutdownEventArgs reason)
         {
             string message = reason.GetLogMessage();
             if (false == SetCloseReason(reason))
@@ -213,7 +218,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _channel0.MaybeSetConnectionStartException(reason.Exception!);
 
-            OnShutdown(reason);
+            await OnShutdownAsync(reason).ConfigureAwait(false);
             LogCloseError($"unexpected connection closure: {message}", reason.Exception!);
         }
 
@@ -222,7 +227,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (SetCloseReason(hpe.ShutdownReason))
             {
-                OnShutdown(hpe.ShutdownReason);
+                await OnShutdownAsync(hpe.ShutdownReason).ConfigureAwait(false);
                 await _session0.SetSessionClosingAsync(false)
                     .ConfigureAwait(false);
                 try

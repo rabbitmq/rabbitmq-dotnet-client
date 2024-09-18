@@ -76,8 +76,16 @@ namespace Test.Integration.ConnectionRecovery
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var connection = (AutorecoveringConnection)_conn;
-            connection.RecoverySucceeded += (source, ea) => tcs.SetResult(true);
-            connection.QueueNameChangedAfterRecovery += (source, ea) => { nameAfter = ea.NameAfter; };
+            connection.RecoverySucceededAsync += (source, ea) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
+            connection.QueueNameChangedAfterRecoveryAsync += (source, ea) =>
+            {
+                nameAfter = ea.NameAfter;
+                return Task.CompletedTask;
+            };
 
             await CloseAndWaitForRecoveryAsync();
             await WaitAsync(tcs, "recovery succeeded");
