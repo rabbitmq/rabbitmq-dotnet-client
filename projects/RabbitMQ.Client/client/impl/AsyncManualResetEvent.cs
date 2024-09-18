@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
@@ -117,13 +118,38 @@ namespace RabbitMQ.Client.client.impl
             _valueTaskSource.Reset();
         }
 
-        void IValueTaskSource.GetResult(short token) =>
+        void IValueTaskSource.GetResult(short token)
+        {
+            if (token != _valueTaskSource.Version)
+            {
+                ThrowIncorrectTokenException();
+            }
+
             _valueTaskSource.GetResult(token);
+        }
 
-        ValueTaskSourceStatus IValueTaskSource.GetStatus(short token) =>
-            _valueTaskSource.GetStatus(token);
+        ValueTaskSourceStatus IValueTaskSource.GetStatus(short token)
+        {
+            if (token != _valueTaskSource.Version)
+            {
+                ThrowIncorrectTokenException();
+            }
 
-        void IValueTaskSource.OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) =>
+            return _valueTaskSource.GetStatus(token);
+        }
+
+        void IValueTaskSource.OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
+        {
+            if (token != _valueTaskSource.Version)
+            {
+                ThrowIncorrectTokenException();
+            }
+
             _valueTaskSource.OnCompleted(continuation, state, token, flags);
+        }
+
+        [DoesNotReturn]
+        static void ThrowIncorrectTokenException() =>
+            throw new InvalidOperationException("ValueTask cannot be awaited multiple times.");
     }
 }
