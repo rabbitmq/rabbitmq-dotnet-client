@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Impl
         // AMQP only allows one RPC operation to be active at a time.
         protected readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
-        private readonly ManualResetEventSlim _flowControlBlock = new ManualResetEventSlim(true);
+        private readonly AsyncManualResetEvent _flowControlBlock = new AsyncManualResetEvent(true);
 
         private ulong _nextPublishSeqNo;
         private SemaphoreSlim? _confirmSemaphore;
@@ -231,7 +231,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     var method = new ChannelClose(
                         args.ReplyCode, args.ReplyText, args.ClassId, args.MethodId);
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                 }
 
@@ -277,9 +277,9 @@ namespace RabbitMQ.Client.Impl
         {
             using var timeoutTokenSource = new CancellationTokenSource(HandshakeContinuationTimeout);
             using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
-            var m = new ConnectionOpen(virtualHost);
+            var method = new ConnectionOpen(virtualHost);
             // Note: must be awaited or else the timeoutTokenSource instance will be disposed
-            await ModelSendAsync(m, lts.Token).ConfigureAwait(false);
+            await ModelSendAsync(in method, lts.Token).ConfigureAwait(false);
         }
 
         internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response,
@@ -297,7 +297,7 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     var method = new ConnectionSecureOk(response);
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (AlreadyClosedException)
@@ -336,7 +336,7 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     var method = new ConnectionStartOk(clientProperties, mechanism, response, locale);
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (AlreadyClosedException)
@@ -386,7 +386,7 @@ namespace RabbitMQ.Client.Impl
                 enqueued = Enqueue(k);
 
                 var method = new ChannelOpen();
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -451,16 +451,22 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask ModelSendObserveFlowControlAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
+        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
-            if (!_flowControlBlock.IsSet)
+            return Session.TransmitAsync(in method, in header, body, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected ValueTask EnforceFlowControlAsync(CancellationToken cancellationToken)
+        {
+            if (_flowControlBlock.IsSet)
             {
-                _flowControlBlock.Wait(cancellationToken);
+                return default;
             }
 
-            return Session.TransmitAsync(in method, in header, body, cancellationToken);
+            return _flowControlBlock.WaitAsync(cancellationToken);
         }
 
         internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
@@ -568,7 +574,7 @@ namespace RabbitMQ.Client.Impl
         public Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
         {
             var method = new ConnectionTuneOk(channelMax, frameMax, heartbeat);
-            return ModelSendAsync(method, cancellationToken).AsTask();
+            return ModelSendAsync(in method, cancellationToken).AsTask();
         }
 
         protected async Task<bool> HandleBasicAck(IncomingCommand cmd, CancellationToken cancellationToken)
@@ -662,7 +668,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
 
             var method = new ChannelCloseOk();
-            await ModelSendAsync(method, cancellationToken)
+            await ModelSendAsync(in method, cancellationToken)
                 .ConfigureAwait(false);
 
             await Session.NotifyAsync(cancellationToken)
@@ -702,7 +708,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             var method = new ChannelFlowOk(active);
-            await ModelSendAsync(method, cancellationToken).
+            await ModelSendAsync(in method, cancellationToken).
                 ConfigureAwait(false);
 
             if (!_flowControlAsyncWrapper.IsEmpty)
@@ -732,7 +738,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
 
                 var replyMethod = new ConnectionCloseOk();
-                await ModelSendAsync(replyMethod, cancellationToken)
+                await ModelSendAsync(in replyMethod, cancellationToken)
                     .ConfigureAwait(false);
 
                 SetCloseReason(Session.Connection.CloseReason!);
@@ -847,7 +853,7 @@ namespace RabbitMQ.Client.Impl
 
                 if (noWait)
                 {
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                     ConsumerDispatcher.GetAndRemoveConsumer(consumerTag);
                 }
@@ -855,7 +861,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     bool result = await k;
@@ -891,7 +897,7 @@ namespace RabbitMQ.Client.Impl
                 enqueued = Enqueue(k);
 
                 var method = new Client.Framing.Impl.BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 return await k;
@@ -920,7 +926,7 @@ namespace RabbitMQ.Client.Impl
                 enqueued = Enqueue(k);
 
                 var method = new BasicGet(queue, autoAck);
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 BasicGetResult? result = await k;
@@ -985,18 +991,24 @@ namespace RabbitMQ.Client.Impl
                     BasicProperties? props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     if (props is null)
                     {
-                        await ModelSendObserveFlowControlAsync(in cmd, in basicProperties, body, cancellationToken)
+                        await EnforceFlowControlAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                        await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        await ModelSendObserveFlowControlAsync(in cmd, in props, body, cancellationToken)
+                        await EnforceFlowControlAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                        await ModelSendAsync(in cmd, in props, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    await ModelSendObserveFlowControlAsync(in cmd, in basicProperties, body, cancellationToken)
+                    await EnforceFlowControlAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
@@ -1064,18 +1076,24 @@ namespace RabbitMQ.Client.Impl
                     BasicProperties? props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     if (props is null)
                     {
-                        await ModelSendObserveFlowControlAsync(in cmd, in basicProperties, body, cancellationToken)
+                        await EnforceFlowControlAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                        await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        await ModelSendObserveFlowControlAsync(in cmd, in props, body, cancellationToken)
+                        await EnforceFlowControlAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                        await ModelSendAsync(in cmd, in props, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    await ModelSendObserveFlowControlAsync(in cmd, in basicProperties, body, cancellationToken)
+                    await EnforceFlowControlAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
@@ -1128,7 +1146,7 @@ namespace RabbitMQ.Client.Impl
 
                 byte[] newSecretBytes = Encoding.UTF8.GetBytes(newSecret);
                 var method = new ConnectionUpdateSecret(newSecretBytes, reason);
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -1158,7 +1176,7 @@ namespace RabbitMQ.Client.Impl
                 enqueued = Enqueue(k);
 
                 var method = new BasicQos(prefetchSize, prefetchCount, global);
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -1198,7 +1216,7 @@ namespace RabbitMQ.Client.Impl
                 enqueued = Enqueue(k);
 
                 var method = new ConfirmSelect(false);
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -1235,14 +1253,14 @@ namespace RabbitMQ.Client.Impl
 
                 if (noWait)
                 {
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     bool result = await k;
@@ -1282,14 +1300,14 @@ namespace RabbitMQ.Client.Impl
                 var method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, false, noWait, arguments);
                 if (noWait)
                 {
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     bool result = await k;
@@ -1322,14 +1340,14 @@ namespace RabbitMQ.Client.Impl
 
                 if (noWait)
                 {
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     bool result = await k;
@@ -1363,14 +1381,14 @@ namespace RabbitMQ.Client.Impl
 
                 if (noWait)
                 {
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     bool result = await k;
@@ -1426,7 +1444,7 @@ namespace RabbitMQ.Client.Impl
                 if (noWait)
                 {
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     if (false == passive)
@@ -1440,7 +1458,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     QueueDeclareOk result = await k;
@@ -1477,14 +1495,14 @@ namespace RabbitMQ.Client.Impl
 
                 if (noWait)
                 {
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     bool result = await k;
@@ -1533,7 +1551,7 @@ namespace RabbitMQ.Client.Impl
 
                 if (noWait)
                 {
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     return 0;
@@ -1542,7 +1560,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(method, k.CancellationToken)
+                    await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
                     return await k;
@@ -1571,7 +1589,7 @@ namespace RabbitMQ.Client.Impl
                 enqueued = Enqueue(k);
 
                 var method = new QueuePurge(queue, false);
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 return await k;
@@ -1600,7 +1618,7 @@ namespace RabbitMQ.Client.Impl
                 Enqueue(k);
 
                 var method = new QueueUnbind(queue, exchange, routingKey, arguments);
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -1629,7 +1647,7 @@ namespace RabbitMQ.Client.Impl
                 enqueued = Enqueue(k);
 
                 var method = new TxCommit();
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -1658,7 +1676,7 @@ namespace RabbitMQ.Client.Impl
                 enqueued = Enqueue(k);
 
                 var method = new TxRollback();
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
@@ -1687,7 +1705,7 @@ namespace RabbitMQ.Client.Impl
                 Enqueue(k);
 
                 var method = new TxSelect();
-                await ModelSendAsync(method, k.CancellationToken)
+                await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
                 bool result = await k;
