@@ -238,7 +238,7 @@ namespace RabbitMQ.Client
         /// <param name="replyText">The reply text.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <remarks>
-        /// The method behaves in the same way as Close(), with the only
+        /// The method behaves in the same way as CloseAsync(), with the only
         /// difference that the channel is closed with the given channel
         /// close code and message.
         /// <para>
