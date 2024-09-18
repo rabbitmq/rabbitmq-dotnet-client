@@ -459,7 +459,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask FlowControlAsync(CancellationToken cancellationToken)
+        protected ValueTask EnforceFlowControlAsync(CancellationToken cancellationToken)
         {
             if (_flowControlBlock.IsSet)
             {
@@ -991,14 +991,14 @@ namespace RabbitMQ.Client.Impl
                     BasicProperties? props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     if (props is null)
                     {
-                        await FlowControlAsync(cancellationToken)
+                        await EnforceFlowControlAsync(cancellationToken)
                             .ConfigureAwait(false);
                         await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        await FlowControlAsync(cancellationToken)
+                        await EnforceFlowControlAsync(cancellationToken)
                             .ConfigureAwait(false);
                         await ModelSendAsync(in cmd, in props, body, cancellationToken)
                             .ConfigureAwait(false);
@@ -1006,7 +1006,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 else
                 {
-                    await FlowControlAsync(cancellationToken)
+                    await EnforceFlowControlAsync(cancellationToken)
                         .ConfigureAwait(false);
                     await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
                         .ConfigureAwait(false);
@@ -1076,14 +1076,14 @@ namespace RabbitMQ.Client.Impl
                     BasicProperties? props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
                     if (props is null)
                     {
-                        await FlowControlAsync(cancellationToken)
+                        await EnforceFlowControlAsync(cancellationToken)
                             .ConfigureAwait(false);
                         await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
-                        await FlowControlAsync(cancellationToken)
+                        await EnforceFlowControlAsync(cancellationToken)
                             .ConfigureAwait(false);
                         await ModelSendAsync(in cmd, in props, body, cancellationToken)
                             .ConfigureAwait(false);
@@ -1091,7 +1091,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 else
                 {
-                    await FlowControlAsync(cancellationToken)
+                    await EnforceFlowControlAsync(cancellationToken)
                         .ConfigureAwait(false);
                     await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
                         .ConfigureAwait(false);
