@@ -156,10 +156,10 @@ namespace Test.Integration
             {
                 tcs.SetResult(true);
             };
-            Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
+            Assert.False(m.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before CloseAsync");
             await _conn.CloseAsync();
             await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
-            Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
+            Assert.True(m.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after CloseAsync");
         }
 
         [Fact]

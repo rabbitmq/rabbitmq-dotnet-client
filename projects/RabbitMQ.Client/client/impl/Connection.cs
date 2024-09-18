@@ -332,7 +332,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                 await OnShutdownAsync(reason)
                     .ConfigureAwait(false);
-                await _session0.SetSessionClosingAsync(false)
+                await _session0.SetSessionClosingAsync(false, cancellationToken)
                     .ConfigureAwait(false);
 
                 try
@@ -411,7 +411,7 @@ namespace RabbitMQ.Client.Framing.Impl
             }
         }
 
-        internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason)
+        internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason, CancellationToken cancellationToken)
         {
             if (false == SetCloseReason(reason))
             {
@@ -424,7 +424,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             await OnShutdownAsync(reason)
                 .ConfigureAwait(false);
-            await _session0.SetSessionClosingAsync(true)
+            await _session0.SetSessionClosingAsync(true, cancellationToken)
                 .ConfigureAwait(false);
             MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: true);
         }
@@ -436,9 +436,11 @@ namespace RabbitMQ.Client.Framing.Impl
             _closed = true;
             MaybeStopHeartbeatTimers();
 
-            await _frameHandler.CloseAsync(cancellationToken).ConfigureAwait(false);
+            await _frameHandler.CloseAsync(cancellationToken)
+                .ConfigureAwait(false);
             _channel0.SetCloseReason(CloseReason!);
-            _channel0.FinishClose();
+            await _channel0.FinishCloseAsync(cancellationToken)
+                .ConfigureAwait(false);
             RabbitMqClientEventSource.Log.ConnectionClosed();
         }
 

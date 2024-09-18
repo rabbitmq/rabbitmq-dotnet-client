@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Util;
@@ -77,13 +78,13 @@ namespace RabbitMQ.Client.Impl
 
                 ISession session = new Session(_connection,
                     (ushort)channelNumber, _maxInboundMessageBodySize);
-                session.SessionShutdown += HandleSessionShutdown;
+                session.SessionShutdownAsync += HandleSessionShutdownAsync;
                 _sessionMap[channelNumber] = session;
                 return session;
             }
         }
 
-        private void HandleSessionShutdown(object? sender, ShutdownEventArgs reason)
+        private Task HandleSessionShutdownAsync(object? sender, ShutdownEventArgs reason)
         {
             lock (_sessionMap)
             {
@@ -91,6 +92,7 @@ namespace RabbitMQ.Client.Impl
                 _sessionMap.Remove(session.ChannelNumber);
                 _ints.Free(session.ChannelNumber);
             }
+            return Task.CompletedTask;
         }
 
         public ISession Lookup(int number)

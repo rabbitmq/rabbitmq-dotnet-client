@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         /// <summary>
         /// Async cancels the main recovery loop and will block until the loop finishes, or the timeout
-        /// expires, to prevent Close operations overlapping with recovery operations.
+        /// expires, to prevent CloseAsync operations overlapping with recovery operations.
         /// </summary>
         private async ValueTask StopRecoveryLoopAsync(CancellationToken cancellationToken)
         {
