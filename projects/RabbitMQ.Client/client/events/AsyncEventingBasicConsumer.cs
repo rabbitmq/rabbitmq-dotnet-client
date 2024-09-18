@@ -58,7 +58,7 @@ namespace RabbitMQ.Client.Events
                 .ConfigureAwait(false);
             if (!_unregisteredWrapper.IsEmpty)
             {
-                await _unregisteredWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags, cancellationToken), cancellationToken)
+                await _unregisteredWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags, cancellationToken))
                     .ConfigureAwait(false);
             }
         }
@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Events
                 .ConfigureAwait(false);
             if (!_registeredWrapper.IsEmpty)
             {
-                await _registeredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }, cancellationToken), cancellationToken)
+                await _registeredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }, cancellationToken))
                     .ConfigureAwait(false);
             }
         }
@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Events
             var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body, cancellationToken);
 
             // No need to call base, it's empty.
-            return _receivedWrapper.InvokeAsync(this, deliverEventArgs, cancellationToken);
+            return _receivedWrapper.InvokeAsync(this, deliverEventArgs);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Events
                 .ConfigureAwait(false);
             if (!_shutdownWrapper.IsEmpty)
             {
-                await _shutdownWrapper.InvokeAsync(this, reason, reason.CancellationToken)
+                await _shutdownWrapper.InvokeAsync(this, reason)
                     .ConfigureAwait(false);
             }
         }
