@@ -83,8 +83,8 @@ namespace RabbitMQ.Client.Framing.Impl
             _recoveringConsumerAsyncWrapper =
                 new AsyncEventingWrapper<RecoveringConsumerEventArgs>("OnRecoveringConsumer", onExceptionAsync);
 
-            Task onExceptionAsync(Exception exception, string context) =>
-                _innerConnection.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
+            Task onExceptionAsync(Exception exception, string context, CancellationToken cancellationToken) =>
+                _innerConnection.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
         }
 
         internal static async ValueTask<AutorecoveringConnection> CreateAsync(ConnectionConfig config, IEndpointResolver endpoints,

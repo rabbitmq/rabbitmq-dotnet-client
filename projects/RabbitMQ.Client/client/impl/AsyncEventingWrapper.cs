@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
@@ -9,11 +10,11 @@ namespace RabbitMQ.Client.Impl
         private event AsyncEventHandler<T>? _event;
         private Delegate[]? _handlers;
         private string? _context;
-        private Func<Exception, string, Task>? _onException;
+        private Func<Exception, string, CancellationToken, Task>? _onException;
 
         public readonly bool IsEmpty => _event is null;
 
-        public AsyncEventingWrapper(string context, Func<Exception, string, Task> onException)
+        public AsyncEventingWrapper(string context, Func<Exception, string, CancellationToken, Task> onException)
         {
             _event = null;
             _handlers = null;
@@ -34,7 +35,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         // Do not make this function async! (This type is a struct that gets copied at the start of an async method => empty _handlers is copied)
-        public Task InvokeAsync(object sender, T parameter)
+        public Task InvokeAsync(object sender, T parameter, CancellationToken cancellationToken = default)
         {
             Delegate[]? handlers = _handlers;
             if (handlers is null)
@@ -48,10 +49,10 @@ namespace RabbitMQ.Client.Impl
                 _handlers = handlers;
             }
 
-            return InternalInvoke(handlers, sender, parameter);
+            return InternalInvoke(handlers, sender, parameter, cancellationToken);
         }
 
-        private readonly async Task InternalInvoke(Delegate[] handlers, object sender, T parameter)
+        private readonly async Task InternalInvoke(Delegate[] handlers, object sender, T parameter, CancellationToken cancellationToken)
         {
             foreach (AsyncEventHandler<T> action in handlers)
             {
@@ -64,7 +65,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_onException != null)
                     {
-                        await _onException(exception, _context!)
+                        await _onException(exception, _context!, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else

@@ -78,28 +78,29 @@ namespace RabbitMQ.Client.Events
         private const string ContextString = "context";
         private const string ConsumerString = "consumer";
 
+        // TODO Why is this public when there is a build method?
         public CallbackExceptionEventArgs(IDictionary<string, object> detail, Exception exception, CancellationToken cancellationToken = default)
             : base(detail, exception, cancellationToken)
         {
         }
 
-        public static CallbackExceptionEventArgs Build(Exception e, string context)
+        public static CallbackExceptionEventArgs Build(Exception e, string context, CancellationToken cancellationToken = default)
         {
             var details = new Dictionary<string, object>(1)
             {
                 {ContextString, context}
             };
-            return new CallbackExceptionEventArgs(details, e);
+            return new CallbackExceptionEventArgs(details, e, cancellationToken);
         }
 
-        public static CallbackExceptionEventArgs Build(Exception e, string context, object consumer)
+        public static CallbackExceptionEventArgs Build(Exception e, string context, object consumer, CancellationToken cancellationToken = default)
         {
             var details = new Dictionary<string, object>(2)
             {
                 {ContextString, context},
                 {ConsumerString, consumer}
             };
-            return new CallbackExceptionEventArgs(details, e);
+            return new CallbackExceptionEventArgs(details, e, cancellationToken);
         }
     }
 }

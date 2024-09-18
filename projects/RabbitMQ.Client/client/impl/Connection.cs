@@ -66,7 +66,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _callbackExceptionAsyncWrapper =
                 new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty,
-                    (exception, context) => Task.CompletedTask);
+                    (exception, context, cancellationToken) => Task.CompletedTask);
 
             _connectionBlockedAsyncWrapper =
                 new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onExceptionAsync);
@@ -89,8 +89,8 @@ namespace RabbitMQ.Client.Framing.Impl
 
             _mainLoopTask = Task.CompletedTask;
 
-            Task onExceptionAsync(Exception exception, string context) =>
-                OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
+            Task onExceptionAsync(Exception exception, string context, CancellationToken cancellationToken) =>
+                OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
         }
 
         public Guid Id => _id;
