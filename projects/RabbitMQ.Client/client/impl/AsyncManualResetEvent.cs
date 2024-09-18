@@ -55,7 +55,7 @@ namespace RabbitMQ.Client.client.impl
 
         public async ValueTask WaitAsync(CancellationToken cancellationToken)
         {
-            if (_isSet)
+            if (IsSet)
             {
                 return;
             }
