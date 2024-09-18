@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Impl
             _channelShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnChannelShutdown", onException);
             _recoveryWrapper = new EventingWrapper<EventArgs>("OnChannelRecovery", onException);
             session.CommandReceived = HandleCommandAsync;
-            session.SessionShutdown += OnSessionShutdown;
+            session.SessionShutdownAsync += OnSessionShutdownAsync;
             Session = session;
         }
 
@@ -403,12 +403,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal void FinishClose()
+        internal async Task FinishCloseAsync(CancellationToken cancellationToken)
         {
             ShutdownEventArgs? reason = CloseReason;
             if (reason != null)
             {
-                Session.Close(reason);
+                await Session.CloseAsync(reason, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             m_connectionStartCell?.TrySetResult(null);
@@ -470,7 +471,7 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Broadcasts notification of the final shutdown of the channel.</summary>
         ///<remarks>
         ///<para>
-        ///Do not call anywhere other than at the end of OnSessionShutdown.
+        ///Do not call anywhere other than at the end of OnSessionShutdownAsync.
         ///</para>
         ///<para>
         ///Must not be called when m_closeReason is null, because
@@ -517,12 +518,13 @@ namespace RabbitMQ.Client.Impl
          *
          * Aborted PR: https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1551
          */
-        private void OnSessionShutdown(object? sender, ShutdownEventArgs reason)
+        private Task OnSessionShutdownAsync(object? sender, ShutdownEventArgs reason)
         {
             ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnChannelShutdown(reason);
             ConsumerDispatcher.Shutdown(reason);
+            return Task.CompletedTask;
         }
 
         [MemberNotNull(nameof(_closeReason))]
@@ -533,7 +535,7 @@ namespace RabbitMQ.Client.Impl
                 throw new ArgumentNullException(nameof(reason));
             }
 
-            // NB: this ensures that Close is only called once on a channel
+            // NB: this ensures that CloseAsync is only called once on a channel
             return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
         }
 
@@ -649,13 +651,15 @@ namespace RabbitMQ.Client.Impl
                 channelClose._classId,
                 channelClose._methodId));
 
-            Session.Close(_closeReason, false);
+            await Session.CloseAsync(_closeReason, false, cancellationToken)
+                .ConfigureAwait(false);
 
             var method = new ChannelCloseOk();
             await ModelSendAsync(method, cancellationToken)
                 .ConfigureAwait(false);
 
-            Session.Notify();
+            await Session.NotifyAsync(cancellationToken)
+                .ConfigureAwait(false);
             return true;
         }
 
@@ -665,7 +669,8 @@ namespace RabbitMQ.Client.Impl
              * Note:
              * This call _must_ come before completing the async continuation
              */
-            FinishClose();
+            await FinishCloseAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out ChannelCloseAsyncRpcContinuation? k))
             {
@@ -715,7 +720,7 @@ namespace RabbitMQ.Client.Impl
             var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
             try
             {
-                await Session.Connection.ClosedViaPeerAsync(reason)
+                await Session.Connection.ClosedViaPeerAsync(reason, cancellationToken)
                     .ConfigureAwait(false);
 
                 var replyMethod = new ConnectionCloseOk();

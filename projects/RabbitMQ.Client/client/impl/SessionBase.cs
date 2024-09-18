@@ -36,6 +36,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Logging;
@@ -58,13 +59,13 @@ namespace RabbitMQ.Client.Impl
             RabbitMqClientEventSource.Log.ChannelOpened();
         }
 
-        public event EventHandler<ShutdownEventArgs> SessionShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> SessionShutdownAsync
         {
             add
             {
                 if (CloseReason is null)
                 {
-                    _sessionShutdownWrapper.AddHandler(value);
+                    _sessionShutdownAsyncWrapper.AddHandler(value);
                 }
                 else
                 {
@@ -73,10 +74,10 @@ namespace RabbitMQ.Client.Impl
             }
             remove
             {
-                _sessionShutdownWrapper.RemoveHandler(value);
+                _sessionShutdownAsyncWrapper.RemoveHandler(value);
             }
         }
-        private EventingWrapper<ShutdownEventArgs> _sessionShutdownWrapper;
+        private AsyncEventingWrapper<ShutdownEventArgs> _sessionShutdownAsyncWrapper;
 
         public ushort ChannelNumber { get; }
 
@@ -86,29 +87,17 @@ namespace RabbitMQ.Client.Impl
         [MemberNotNullWhen(false, nameof(CloseReason))]
         public bool IsOpen => CloseReason is null;
 
-        public Task OnConnectionShutdownAsync(object? conn, ShutdownEventArgs reason)
-        {
-            Close(reason);
-            return Task.CompletedTask;
-        }
-
-        public void OnSessionShutdown(ShutdownEventArgs reason)
-        {
-            Connection.ConnectionShutdownAsync -= OnConnectionShutdownAsync;
-            _sessionShutdownWrapper.Invoke(this, reason);
-        }
-
         public override string ToString()
         {
             return $"{GetType().Name}#{ChannelNumber}:{Connection}";
         }
 
-        public void Close(ShutdownEventArgs reason)
+        public Task CloseAsync(ShutdownEventArgs reason, CancellationToken cancellationToken)
         {
-            Close(reason, true);
+            return CloseAsync(reason, true, cancellationToken);
         }
 
-        public void Close(ShutdownEventArgs reason, bool notify)
+        public Task CloseAsync(ShutdownEventArgs reason, bool notify, CancellationToken cancellationToken)
         {
             if (Interlocked.CompareExchange(ref _closeReason, reason, null) is null)
             {
@@ -117,23 +106,25 @@ namespace RabbitMQ.Client.Impl
 
             if (notify)
             {
-                OnSessionShutdown(CloseReason!);
+                return OnSessionShutdownAsync(CloseReason!);
             }
+
+            return Task.CompletedTask;
         }
 
         public abstract Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
 
-        public void Notify()
+        public Task NotifyAsync(CancellationToken cancellationToken)
         {
             // Ensure that we notify only when session is already closed
             // If not, throw exception, since this is a serious bug in the library
             ShutdownEventArgs? reason = CloseReason;
             if (reason is null)
             {
-                throw new InvalidOperationException("Internal Error in SessionBase.Notify");
+                throw new InvalidOperationException("Internal Error in SessionBase.NotifyAsync");
             }
 
-            OnSessionShutdown(reason);
+            return OnSessionShutdownAsync(reason);
         }
 
         public virtual ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod
@@ -160,6 +151,17 @@ namespace RabbitMQ.Client.Impl
             RentedMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(cmd), ref Unsafe.AsRef(header), body, ChannelNumber, Connection.MaxPayloadSize);
             RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
             return Connection.WriteAsync(bytes, cancellationToken);
+        }
+
+        private Task OnConnectionShutdownAsync(object? conn, ShutdownEventArgs reason)
+        {
+            return CloseAsync(reason, CancellationToken.None);
+        }
+
+        private Task OnSessionShutdownAsync(ShutdownEventArgs reason)
+        {
+            Connection.ConnectionShutdownAsync -= OnConnectionShutdownAsync;
+            return _sessionShutdownAsyncWrapper.InvokeAsync(this, reason);
         }
 
         private void ThrowAlreadyClosedException()

@@ -228,7 +228,7 @@ namespace RabbitMQ.Client.Framing.Impl
             if (SetCloseReason(hpe.ShutdownReason))
             {
                 await OnShutdownAsync(hpe.ShutdownReason).ConfigureAwait(false);
-                await _session0.SetSessionClosingAsync(false)
+                await _session0.SetSessionClosingAsync(false, mainLoopCancellationToken)
                     .ConfigureAwait(false);
                 try
                 {

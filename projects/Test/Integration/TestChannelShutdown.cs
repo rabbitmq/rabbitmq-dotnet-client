@@ -55,10 +55,10 @@ namespace Test.Integration
                 tcs.SetResult(true);
             };
 
-            Assert.False(autorecoveringChannel.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before Close");
+            Assert.False(autorecoveringChannel.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before CloseAsync");
             await _channel.CloseAsync();
             await WaitAsync(tcs, TimeSpan.FromSeconds(5), "channel shutdown");
-            Assert.True(autorecoveringChannel.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after Close");
+            Assert.True(autorecoveringChannel.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after CloseAsync");
         }
     }
 }
