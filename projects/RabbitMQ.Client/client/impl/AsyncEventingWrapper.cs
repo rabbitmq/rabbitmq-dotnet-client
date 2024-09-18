@@ -12,7 +12,7 @@ namespace RabbitMQ.Client.Impl
         private string? _context;
         private Func<Exception, string, CancellationToken, Task>? _onException;
 
-        public readonly bool IsEmpty => _event is null;
+        public bool IsEmpty => _event is null;
 
         public AsyncEventingWrapper(string context, Func<Exception, string, CancellationToken, Task> onException)
         {
