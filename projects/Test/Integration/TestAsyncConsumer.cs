@@ -811,10 +811,10 @@ namespace Test.Integration
                 return base.HandleChannelShutdownAsync(channel, reason);
             }
 
-            public override Task OnCancel(params string[] consumerTags)
+            public override Task OnCancelAsync(params string[] consumerTags)
             {
                 _output.WriteLine("[ERROR] {0} OnCancel {1}", _logPrefix, consumerTags[0]);
-                return base.OnCancel(consumerTags);
+                return base.OnCancelAsync(consumerTags);
             }
         }
     }
