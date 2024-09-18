@@ -117,10 +117,13 @@ namespace RabbitMQ.Client.client.impl
             _valueTaskSource.Reset();
         }
 
-        void IValueTaskSource.GetResult(short token) => _valueTaskSource.GetResult(token);
+        void IValueTaskSource.GetResult(short token) =>
+            _valueTaskSource.GetResult(token);
 
-        ValueTaskSourceStatus IValueTaskSource.GetStatus(short token) => _valueTaskSource.GetStatus(token);
+        ValueTaskSourceStatus IValueTaskSource.GetStatus(short token) =>
+            _valueTaskSource.GetStatus(token);
 
-        void IValueTaskSource.OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) => _valueTaskSource.OnCompleted(continuation, state, token, flags);
+        void IValueTaskSource.OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) =>
+            _valueTaskSource.OnCompleted(continuation, state, token, flags);
     }
 }
