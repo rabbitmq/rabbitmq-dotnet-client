@@ -47,21 +47,21 @@ namespace RabbitMQ.Client.Framing.Impl
             CancellationToken cancellationToken)
         {
             var method = new BasicAck(deliveryTag, multiple);
-            return ModelSendAsync(method, cancellationToken);
+            return ModelSendAsync(in method, cancellationToken);
         }
 
         public override ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
             CancellationToken cancellationToken)
         {
             var method = new BasicNack(deliveryTag, multiple, requeue);
-            return ModelSendAsync(method, cancellationToken);
+            return ModelSendAsync(in method, cancellationToken);
         }
 
         public override ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue,
             CancellationToken cancellationToken)
         {
             var method = new BasicReject(deliveryTag, requeue);
-            return ModelSendAsync(method, cancellationToken);
+            return ModelSendAsync(in method, cancellationToken);
         }
 
         /// <summary>
