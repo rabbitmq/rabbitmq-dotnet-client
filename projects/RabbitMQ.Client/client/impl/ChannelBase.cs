@@ -459,13 +459,14 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected async Task FlowControlAsync(CancellationToken cancellationToken)
+        protected ValueTask FlowControlAsync(CancellationToken cancellationToken)
         {
-            if (!_flowControlBlock.IsSet)
+            if (_flowControlBlock.IsSet)
             {
-                await _flowControlBlock.WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                return new ValueTask();
             }
+
+            return _flowControlBlock.WaitAsync(cancellationToken);
         }
 
         internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
