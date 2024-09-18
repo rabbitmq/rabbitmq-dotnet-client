@@ -68,6 +68,16 @@ namespace RabbitMQ.Client.Events
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        public static AsyncEventArgs CreateOrDefault(CancellationToken cancellationToken)
+        {
+            if (cancellationToken.CanBeCanceled)
+            {
+                return new AsyncEventArgs(cancellationToken);
+            }
+
+            return Empty;
+        }
+
         /// <summary>
         /// Provides a value to use with events that do not have event data.
         /// </summary>

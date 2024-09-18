@@ -213,7 +213,7 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
 
-                await _innerChannel.RunRecoveryEventHandlers(this)
+                await _innerChannel.RunRecoveryEventHandlers(this, cancellationToken)
                     .ConfigureAwait(false);
 
                 return true;
