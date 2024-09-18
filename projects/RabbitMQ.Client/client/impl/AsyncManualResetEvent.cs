@@ -29,40 +29,63 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Sources;
 
 namespace RabbitMQ.Client.client.impl
 {
     /// <summary>
     /// Inspired by http://blogs.msdn.com/b/pfxteam/archive/2012/02/11/10266920.aspx
     /// </summary>
-    sealed class AsyncManualResetEvent
+    sealed class AsyncManualResetEvent : IValueTaskSource
     {
-        public AsyncManualResetEvent(bool initialState)
+        private ManualResetValueTaskSourceCore<bool> _valueTaskSource;
+        private volatile bool _isSet;
+
+        public AsyncManualResetEvent(bool initialState = false)
         {
+            _isSet = initialState;
+            _valueTaskSource.Reset();
             if (initialState)
             {
-                _taskCompletionSource.SetResult(true);
+                _valueTaskSource.SetResult(true);
             }
         }
 
-        public bool IsSet => _taskCompletionSource.Task.IsCompleted;
+        public bool IsSet => _isSet;
 
-        public async Task WaitAsync(CancellationToken cancellationToken)
+        public async ValueTask WaitAsync(CancellationToken cancellationToken)
         {
+            if (_isSet)
+            {
+                return;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             CancellationTokenRegistration tokenRegistration =
 #if NET6_0_OR_GREATER
                 cancellationToken.UnsafeRegister(
-                    state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(), _taskCompletionSource);
+                    static state =>
+                    {
+                        var (source, token) = ((ManualResetValueTaskSourceCore<bool>, CancellationToken))state!;
+                        source.SetException(new OperationCanceledException(token));
+                    }, (_valueTaskSource, cancellationToken));
 #else
                 cancellationToken.Register(
-                    state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(),
-                    state: _taskCompletionSource, useSynchronizationContext: false);
+                    static state =>
+                    {
+                        var (source, token) = ((ManualResetValueTaskSourceCore<bool>, CancellationToken))state!;
+                        source.SetException(new OperationCanceledException(token));
+                    },
+                    state: (_valueTaskSource, cancellationToken), useSynchronizationContext: false);
 #endif
             try
             {
-                await _taskCompletionSource.Task.ConfigureAwait(false);
+                await new ValueTask(this, _valueTaskSource.Version)
+                    .ConfigureAwait(false);
             }
             finally
             {
@@ -77,32 +100,30 @@ namespace RabbitMQ.Client.client.impl
 
         public void Set()
         {
-            _taskCompletionSource.TrySetResult(true);
+            if (_isSet)
+            {
+                return;
+            }
+
+            _isSet = true;
+            _valueTaskSource.SetResult(true);
         }
 
         public void Reset()
         {
-            var sw = new SpinWait();
-
-            do
+            if (!_isSet)
             {
-                var currentTaskCompletionSource = _taskCompletionSource;
-                if (!currentTaskCompletionSource.Task.IsCompleted)
-                {
-                    return;
-                }
-
-                var nextTaskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                if (Interlocked.CompareExchange(ref _taskCompletionSource, nextTaskCompletionSource, currentTaskCompletionSource) == currentTaskCompletionSource)
-                {
-                    return;
-                }
-
-                sw.SpinOnce();
+                return;
             }
-            while (true);
+
+            _isSet = false;
+            _valueTaskSource.Reset();
         }
 
-        volatile TaskCompletionSource<bool> _taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        void IValueTaskSource.GetResult(short token) => _valueTaskSource.GetResult(token);
+
+        ValueTaskSourceStatus IValueTaskSource.GetStatus(short token) => _valueTaskSource.GetStatus(token);
+
+        void IValueTaskSource.OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) => _valueTaskSource.OnCompleted(continuation, state, token, flags);
     }
 }
