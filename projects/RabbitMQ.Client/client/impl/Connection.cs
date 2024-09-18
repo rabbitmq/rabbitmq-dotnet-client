@@ -72,7 +72,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 new AsyncEventingWrapper<ConnectionBlockedEventArgs>("OnConnectionBlocked", onExceptionAsync);
 
             _connectionUnblockedAsyncWrapper =
-                new AsyncEventingWrapper<EventArgs>("OnConnectionUnblocked", onExceptionAsync);
+                new AsyncEventingWrapper<AsyncEventArgs>("OnConnectionUnblocked", onExceptionAsync);
 
             _connectionShutdownAsyncWrapper =
                 new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onExceptionAsync);
@@ -142,12 +142,12 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         private AsyncEventingWrapper<ConnectionBlockedEventArgs> _connectionBlockedAsyncWrapper;
 
-        public event AsyncEventHandler<EventArgs> ConnectionUnblockedAsync
+        public event AsyncEventHandler<AsyncEventArgs> ConnectionUnblockedAsync
         {
             add => _connectionUnblockedAsyncWrapper.AddHandler(value);
             remove => _connectionUnblockedAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<EventArgs> _connectionUnblockedAsyncWrapper;
+        private AsyncEventingWrapper<AsyncEventArgs> _connectionUnblockedAsyncWrapper;
 
         public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync
         {
@@ -182,7 +182,7 @@ namespace RabbitMQ.Client.Framing.Impl
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
         /// </summary>
-        public event AsyncEventHandler<EventArgs> RecoverySucceededAsync
+        public event AsyncEventHandler<AsyncEventArgs> RecoverySucceededAsync
         {
             add { }
             remove { }

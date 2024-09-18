@@ -30,15 +30,17 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
     /// <summary>
     /// Event relating to connection being blocked.
     /// </summary>
-    public class ConnectionBlockedEventArgs : EventArgs
+    public class ConnectionBlockedEventArgs : AsyncEventArgs
     {
-        public ConnectionBlockedEventArgs(string reason)
+        public ConnectionBlockedEventArgs(string reason, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             Reason = reason;
         }

@@ -161,7 +161,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// This event will never fire for connections that disable automatic recovery.
         /// </remarks>
-        event AsyncEventHandler<EventArgs> RecoverySucceededAsync;
+        event AsyncEventHandler<AsyncEventArgs> RecoverySucceededAsync;
 
         /// <summary>
         /// Raised when the connection recovery fails, e.g. because reconnection or topology
@@ -212,7 +212,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Raised when a connection is unblocked by the AMQP broker.
         /// </summary>
-        event AsyncEventHandler<EventArgs> ConnectionUnblockedAsync;
+        event AsyncEventHandler<AsyncEventArgs> ConnectionUnblockedAsync;
 
         /// <summary>
         /// This method updates the secret used to authenticate this connection.

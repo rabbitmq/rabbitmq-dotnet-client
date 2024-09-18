@@ -30,15 +30,17 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
     /// <summary>
     /// Event relating to flow control.
     /// </summary>
-    public class FlowControlEventArgs : EventArgs
+    public class FlowControlEventArgs : AsyncEventArgs
     {
-        public FlowControlEventArgs(bool active)
+        public FlowControlEventArgs(bool active, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             Active = active;
         }

@@ -30,15 +30,16 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
     ///<summary>Contains all the information about a message nack'd
     ///from an AMQP broker within the Basic content-class.</summary>
-    public class BasicNackEventArgs : EventArgs
+    public class BasicNackEventArgs : AsyncEventArgs
     {
-        public BasicNackEventArgs(ulong deliveryTag, bool multiple, bool requeue)
-            : base()
+        public BasicNackEventArgs(ulong deliveryTag, bool multiple, bool requeue, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             DeliveryTag = deliveryTag;
             Multiple = multiple;

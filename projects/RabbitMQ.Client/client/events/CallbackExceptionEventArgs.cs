@@ -31,13 +31,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
-    public abstract class BaseExceptionEventArgs : EventArgs
+    public abstract class BaseExceptionEventArgs : AsyncEventArgs
     {
         ///<summary>Wrap an exception thrown by a callback.</summary>
-        protected BaseExceptionEventArgs(IDictionary<string, object> detail, Exception exception)
+        protected BaseExceptionEventArgs(IDictionary<string, object> detail, Exception exception, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             Detail = detail;
             Exception = exception;
@@ -76,8 +78,8 @@ namespace RabbitMQ.Client.Events
         private const string ContextString = "context";
         private const string ConsumerString = "consumer";
 
-        public CallbackExceptionEventArgs(IDictionary<string, object> detail, Exception exception)
-            : base(detail, exception)
+        public CallbackExceptionEventArgs(IDictionary<string, object> detail, Exception exception, CancellationToken cancellationToken = default)
+            : base(detail, exception, cancellationToken)
         {
         }
 

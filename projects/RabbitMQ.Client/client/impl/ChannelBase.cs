@@ -88,7 +88,7 @@ namespace RabbitMQ.Client.Impl
                 new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
             _flowControlAsyncWrapper = new AsyncEventingWrapper<FlowControlEventArgs>("OnFlowControl", onExceptionAsync);
             _channelShutdownAsyncWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnChannelShutdownAsync", onExceptionAsync);
-            _recoveryAsyncWrapper = new AsyncEventingWrapper<EventArgs>("OnChannelRecovery", onExceptionAsync);
+            _recoveryAsyncWrapper = new AsyncEventingWrapper<AsyncEventArgs>("OnChannelRecovery", onExceptionAsync);
             session.CommandReceived = HandleCommandAsync;
             session.SessionShutdownAsync += OnSessionShutdownAsync;
             Session = session;
@@ -155,17 +155,17 @@ namespace RabbitMQ.Client.Impl
 
         private AsyncEventingWrapper<ShutdownEventArgs> _channelShutdownAsyncWrapper;
 
-        public event AsyncEventHandler<EventArgs> RecoveryAsync
+        public event AsyncEventHandler<AsyncEventArgs> RecoveryAsync
         {
             add => _recoveryAsyncWrapper.AddHandler(value);
             remove => _recoveryAsyncWrapper.RemoveHandler(value);
         }
 
-        private AsyncEventingWrapper<EventArgs> _recoveryAsyncWrapper;
+        private AsyncEventingWrapper<AsyncEventArgs> _recoveryAsyncWrapper;
 
         internal Task RunRecoveryEventHandlers(object sender)
         {
-            return _recoveryAsyncWrapper.InvokeAsync(sender, EventArgs.Empty);
+            return _recoveryAsyncWrapper.InvokeAsync(sender, AsyncEventArgs.Empty);
         }
 
         public int ChannelNumber => ((Session)Session).ChannelNumber;

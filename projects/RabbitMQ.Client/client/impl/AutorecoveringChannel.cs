@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Impl
             remove => InnerChannel.ChannelShutdownAsync -= value;
         }
 
-        public event AsyncEventHandler<EventArgs> RecoveryAsync
+        public event AsyncEventHandler<AsyncEventArgs> RecoveryAsync
         {
             add { InnerChannel.RecoveryAsync += value; }
             remove { InnerChannel.RecoveryAsync -= value; }

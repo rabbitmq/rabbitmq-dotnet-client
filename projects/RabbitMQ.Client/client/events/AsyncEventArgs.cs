@@ -51,6 +51,7 @@ namespace RabbitMQ.Client.Events
         /// default value is <see cref="CancellationToken.None"/>.
         /// </param>
         public AsyncEventArgs(CancellationToken cancellationToken = default)
+            : base()
         {
             CancellationToken = cancellationToken;
         }

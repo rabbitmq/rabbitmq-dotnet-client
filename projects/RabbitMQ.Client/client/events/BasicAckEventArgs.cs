@@ -30,15 +30,16 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
     ///<summary>Contains all the information about a message acknowledged
     ///from an AMQP broker within the Basic content-class.</summary>
-    public class BasicAckEventArgs : EventArgs
+    public class BasicAckEventArgs : AsyncEventArgs
     {
-        public BasicAckEventArgs(ulong deliveryTag, bool multiple)
-            : base()
+        public BasicAckEventArgs(ulong deliveryTag, bool multiple, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             DeliveryTag = deliveryTag;
             Multiple = multiple;

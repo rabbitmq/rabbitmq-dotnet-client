@@ -39,6 +39,6 @@ namespace RabbitMQ.Client
     /// </summary>
     public interface IRecoverable
     {
-        event AsyncEventHandler<EventArgs> RecoveryAsync;
+        event AsyncEventHandler<AsyncEventArgs> RecoveryAsync;
     }
 }

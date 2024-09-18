@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Framing.Impl
         {
             if (!_connectionUnblockedAsyncWrapper.IsEmpty)
             {
-                return _connectionUnblockedAsyncWrapper.InvokeAsync(this, EventArgs.Empty);
+                return _connectionUnblockedAsyncWrapper.InvokeAsync(this, AsyncEventArgs.Empty);
             }
             return Task.CompletedTask;
         }

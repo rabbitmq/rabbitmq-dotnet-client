@@ -206,7 +206,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
                     ESLog.Info("Connection recovery completed");
                     ThrowIfDisposed();
-                    await _recoverySucceededAsyncWrapper.InvokeAsync(this, EventArgs.Empty)
+                    await _recoverySucceededAsyncWrapper.InvokeAsync(this, AsyncEventArgs.Empty)
                         .ConfigureAwait(false);
 
                     return true;
