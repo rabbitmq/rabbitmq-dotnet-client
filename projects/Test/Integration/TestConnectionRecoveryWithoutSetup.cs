@@ -275,9 +275,9 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryConsumerFilter()
         {
-            const string exchange = "topology.recovery.exchange";
-            const string queueWithRecoveredConsumer = "topology.recovery.queue.1";
-            const string queueWithIgnoredConsumer = "topology.recovery.queue.2";
+            string exchange = GenerateExchangeName();
+            string queueWithRecoveredConsumer = GenerateQueueName();
+            string queueWithIgnoredConsumer = GenerateQueueName();
             const string binding1 = "recovered.binding.1";
             const string binding2 = "recovered.binding.2";
 
@@ -385,22 +385,25 @@ namespace Test.Integration
         [Fact]
         public async Task TestRecoveryWithTopologyDisabled()
         {
+            string queueName = GenerateQueueName() + "-dotnet-client.test.recovery.q2";
+
             using (AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryDisabledAsync())
             {
                 using (IChannel ch = await conn.CreateChannelAsync())
                 {
                     try
                     {
-                        string s = "dotnet-client.test.recovery.q2";
-                        await ch.QueueDeleteAsync(s);
-                        await ch.QueueDeclareAsync(queue: s, durable: false, exclusive: true, autoDelete: false, arguments: null);
-                        await ch.QueueDeclareAsync(queue: s, passive: true, durable: false, exclusive: true, autoDelete: false, arguments: null);
+                        await ch.QueueDeleteAsync(queueName);
+                        await ch.QueueDeclareAsync(queue: queueName,
+                            durable: false, exclusive: true, autoDelete: false, arguments: null);
+                        await ch.QueueDeclareAsync(queue: queueName,
+                            passive: true, durable: false, exclusive: true, autoDelete: false, arguments: null);
 
                         Assert.True(ch.IsOpen);
                         await CloseAndWaitForRecoveryAsync(conn);
 
                         Assert.True(ch.IsOpen);
-                        await ch.QueueDeclareAsync(queue: s, passive: true, durable: false, exclusive: true, autoDelete: false, arguments: null);
+                        await ch.QueueDeclareAsync(queue: queueName, passive: true, durable: false, exclusive: true, autoDelete: false, arguments: null);
 
                         Assert.Fail("Expected an exception");
                     }
