@@ -79,46 +79,46 @@ namespace RabbitMQ.Client.Impl
             _consumerDispatchConcurrency = consumerDispatchConcurrency;
         }
 
-        public event EventHandler<BasicAckEventArgs> BasicAcks
+        public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
         {
-            add => InnerChannel.BasicAcks += value;
-            remove => InnerChannel.BasicAcks -= value;
+            add => InnerChannel.BasicAcksAsync += value;
+            remove => InnerChannel.BasicAcksAsync -= value;
         }
 
-        public event EventHandler<BasicNackEventArgs> BasicNacks
+        public event AsyncEventHandler<BasicNackEventArgs> BasicNacksAsync
         {
-            add => InnerChannel.BasicNacks += value;
-            remove => InnerChannel.BasicNacks -= value;
+            add => InnerChannel.BasicNacksAsync += value;
+            remove => InnerChannel.BasicNacksAsync -= value;
         }
 
-        public event EventHandler<BasicReturnEventArgs> BasicReturn
+        public event AsyncEventHandler<BasicReturnEventArgs> BasicReturnAsync
         {
-            add => InnerChannel.BasicReturn += value;
-            remove => InnerChannel.BasicReturn -= value;
+            add => InnerChannel.BasicReturnAsync += value;
+            remove => InnerChannel.BasicReturnAsync -= value;
         }
 
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
+        public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync
         {
-            add => InnerChannel.CallbackException += value;
-            remove => InnerChannel.CallbackException -= value;
+            add => InnerChannel.CallbackExceptionAsync += value;
+            remove => InnerChannel.CallbackExceptionAsync -= value;
         }
 
-        public event EventHandler<FlowControlEventArgs> FlowControl
+        public event AsyncEventHandler<FlowControlEventArgs> FlowControlAsync
         {
-            add { InnerChannel.FlowControl += value; }
-            remove { InnerChannel.FlowControl -= value; }
+            add { InnerChannel.FlowControlAsync += value; }
+            remove { InnerChannel.FlowControlAsync -= value; }
         }
 
-        public event EventHandler<ShutdownEventArgs> ChannelShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ChannelShutdownAsync
         {
-            add => InnerChannel.ChannelShutdown += value;
-            remove => InnerChannel.ChannelShutdown -= value;
+            add => InnerChannel.ChannelShutdownAsync += value;
+            remove => InnerChannel.ChannelShutdownAsync -= value;
         }
 
-        public event EventHandler<EventArgs> Recovery
+        public event AsyncEventHandler<EventArgs> RecoveryAsync
         {
-            add { InnerChannel.Recovery += value; }
-            remove { InnerChannel.Recovery -= value; }
+            add { InnerChannel.RecoveryAsync += value; }
+            remove { InnerChannel.RecoveryAsync -= value; }
         }
 
         public IEnumerable<string> ConsumerTags
@@ -213,7 +213,8 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
 
-                _innerChannel.RunRecoveryEventHandlers(this);
+                await _innerChannel.RunRecoveryEventHandlers(this)
+                    .ConfigureAwait(false);
 
                 return true;
             }

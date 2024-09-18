@@ -79,16 +79,16 @@ namespace RabbitMQ.Client.Impl
             ContinuationTimeout = config.ContinuationTimeout;
             ConsumerDispatcher = new AsyncConsumerDispatcher(this,
                 perChannelConsumerDispatchConcurrency.GetValueOrDefault(config.ConsumerDispatchConcurrency));
-            Action<Exception, string> onException = (exception, context) =>
-                OnCallbackException(CallbackExceptionEventArgs.Build(exception, context));
-            _basicAcksWrapper = new EventingWrapper<BasicAckEventArgs>("OnBasicAck", onException);
-            _basicNacksWrapper = new EventingWrapper<BasicNackEventArgs>("OnBasicNack", onException);
-            _basicReturnWrapper = new EventingWrapper<BasicReturnEventArgs>("OnBasicReturn", onException);
-            _callbackExceptionWrapper =
-                new EventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => { });
-            _flowControlWrapper = new EventingWrapper<FlowControlEventArgs>("OnFlowControl", onException);
-            _channelShutdownWrapper = new EventingWrapper<ShutdownEventArgs>("OnChannelShutdown", onException);
-            _recoveryWrapper = new EventingWrapper<EventArgs>("OnChannelRecovery", onException);
+            Func<Exception, string, Task> onExceptionAsync = (exception, context) =>
+                OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
+            _basicAcksAsyncWrapper = new AsyncEventingWrapper<BasicAckEventArgs>("OnBasicAck", onExceptionAsync);
+            _basicNacksAsyncWrapper = new AsyncEventingWrapper<BasicNackEventArgs>("OnBasicNack", onExceptionAsync);
+            _basicReturnAsyncWrapper = new AsyncEventingWrapper<BasicReturnEventArgs>("OnBasicReturn", onExceptionAsync);
+            _callbackExceptionAsyncWrapper =
+                new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
+            _flowControlAsyncWrapper = new AsyncEventingWrapper<FlowControlEventArgs>("OnFlowControl", onExceptionAsync);
+            _channelShutdownAsyncWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnChannelShutdownAsync", onExceptionAsync);
+            _recoveryAsyncWrapper = new AsyncEventingWrapper<EventArgs>("OnChannelRecovery", onExceptionAsync);
             session.CommandReceived = HandleCommandAsync;
             session.SessionShutdownAsync += OnSessionShutdownAsync;
             Session = session;
@@ -97,75 +97,75 @@ namespace RabbitMQ.Client.Impl
         internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan ContinuationTimeout { get; set; }
 
-        public event EventHandler<BasicAckEventArgs> BasicAcks
+        public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
         {
-            add => _basicAcksWrapper.AddHandler(value);
-            remove => _basicAcksWrapper.RemoveHandler(value);
+            add => _basicAcksAsyncWrapper.AddHandler(value);
+            remove => _basicAcksAsyncWrapper.RemoveHandler(value);
         }
 
-        private EventingWrapper<BasicAckEventArgs> _basicAcksWrapper;
+        private AsyncEventingWrapper<BasicAckEventArgs> _basicAcksAsyncWrapper;
 
-        public event EventHandler<BasicNackEventArgs> BasicNacks
+        public event AsyncEventHandler<BasicNackEventArgs> BasicNacksAsync
         {
-            add => _basicNacksWrapper.AddHandler(value);
-            remove => _basicNacksWrapper.RemoveHandler(value);
+            add => _basicNacksAsyncWrapper.AddHandler(value);
+            remove => _basicNacksAsyncWrapper.RemoveHandler(value);
         }
 
-        private EventingWrapper<BasicNackEventArgs> _basicNacksWrapper;
+        private AsyncEventingWrapper<BasicNackEventArgs> _basicNacksAsyncWrapper;
 
-        public event EventHandler<BasicReturnEventArgs> BasicReturn
+        public event AsyncEventHandler<BasicReturnEventArgs> BasicReturnAsync
         {
-            add => _basicReturnWrapper.AddHandler(value);
-            remove => _basicReturnWrapper.RemoveHandler(value);
+            add => _basicReturnAsyncWrapper.AddHandler(value);
+            remove => _basicReturnAsyncWrapper.RemoveHandler(value);
         }
 
-        private EventingWrapper<BasicReturnEventArgs> _basicReturnWrapper;
+        private AsyncEventingWrapper<BasicReturnEventArgs> _basicReturnAsyncWrapper;
 
-        public event EventHandler<CallbackExceptionEventArgs> CallbackException
+        public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync
         {
-            add => _callbackExceptionWrapper.AddHandler(value);
-            remove => _callbackExceptionWrapper.RemoveHandler(value);
+            add => _callbackExceptionAsyncWrapper.AddHandler(value);
+            remove => _callbackExceptionAsyncWrapper.RemoveHandler(value);
         }
 
-        private EventingWrapper<CallbackExceptionEventArgs> _callbackExceptionWrapper;
+        private AsyncEventingWrapper<CallbackExceptionEventArgs> _callbackExceptionAsyncWrapper;
 
-        public event EventHandler<FlowControlEventArgs> FlowControl
+        public event AsyncEventHandler<FlowControlEventArgs> FlowControlAsync
         {
-            add => _flowControlWrapper.AddHandler(value);
-            remove => _flowControlWrapper.RemoveHandler(value);
+            add => _flowControlAsyncWrapper.AddHandler(value);
+            remove => _flowControlAsyncWrapper.RemoveHandler(value);
         }
 
-        private EventingWrapper<FlowControlEventArgs> _flowControlWrapper;
+        private AsyncEventingWrapper<FlowControlEventArgs> _flowControlAsyncWrapper;
 
-        public event EventHandler<ShutdownEventArgs> ChannelShutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ChannelShutdownAsync
         {
             add
             {
                 if (IsOpen)
                 {
-                    _channelShutdownWrapper.AddHandler(value);
+                    _channelShutdownAsyncWrapper.AddHandler(value);
                 }
                 else
                 {
                     value(this, CloseReason);
                 }
             }
-            remove => _channelShutdownWrapper.RemoveHandler(value);
+            remove => _channelShutdownAsyncWrapper.RemoveHandler(value);
         }
 
-        private EventingWrapper<ShutdownEventArgs> _channelShutdownWrapper;
+        private AsyncEventingWrapper<ShutdownEventArgs> _channelShutdownAsyncWrapper;
 
-        public event EventHandler<EventArgs> Recovery
+        public event AsyncEventHandler<EventArgs> RecoveryAsync
         {
-            add => _recoveryWrapper.AddHandler(value);
-            remove => _recoveryWrapper.RemoveHandler(value);
+            add => _recoveryAsyncWrapper.AddHandler(value);
+            remove => _recoveryAsyncWrapper.RemoveHandler(value);
         }
 
-        private EventingWrapper<EventArgs> _recoveryWrapper;
+        private AsyncEventingWrapper<EventArgs> _recoveryAsyncWrapper;
 
-        internal void RunRecoveryEventHandlers(object sender)
+        internal Task RunRecoveryEventHandlers(object sender)
         {
-            _recoveryWrapper.Invoke(sender, EventArgs.Empty);
+            return _recoveryAsyncWrapper.InvokeAsync(sender, EventArgs.Empty);
         }
 
         public int ChannelNumber => ((Session)Session).ChannelNumber;
@@ -197,13 +197,13 @@ namespace RabbitMQ.Client.Impl
 
         protected void TakeOver(ChannelBase other)
         {
-            _basicAcksWrapper.Takeover(other._basicAcksWrapper);
-            _basicNacksWrapper.Takeover(other._basicNacksWrapper);
-            _basicReturnWrapper.Takeover(other._basicReturnWrapper);
-            _callbackExceptionWrapper.Takeover(other._callbackExceptionWrapper);
-            _flowControlWrapper.Takeover(other._flowControlWrapper);
-            _channelShutdownWrapper.Takeover(other._channelShutdownWrapper);
-            _recoveryWrapper.Takeover(other._recoveryWrapper);
+            _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
+            _basicNacksAsyncWrapper.Takeover(other._basicNacksAsyncWrapper);
+            _basicReturnAsyncWrapper.Takeover(other._basicReturnAsyncWrapper);
+            _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
+            _flowControlAsyncWrapper.Takeover(other._flowControlAsyncWrapper);
+            _channelShutdownAsyncWrapper.Takeover(other._channelShutdownAsyncWrapper);
+            _recoveryAsyncWrapper.Takeover(other._recoveryAsyncWrapper);
         }
 
         public Task CloseAsync(ushort replyCode, string replyText, bool abort,
@@ -223,7 +223,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             try
             {
-                ChannelShutdown += k.OnConnectionShutdown;
+                ChannelShutdownAsync += k.OnConnectionShutdownAsync;
                 enqueued = Enqueue(k);
                 ConsumerDispatcher.Quiesce();
 
@@ -269,7 +269,7 @@ namespace RabbitMQ.Client.Impl
                     k.Dispose();
                 }
                 _rpcSemaphore.Release();
-                ChannelShutdown -= k.OnConnectionShutdown;
+                ChannelShutdownAsync -= k.OnConnectionShutdownAsync;
             }
         }
 
@@ -463,9 +463,9 @@ namespace RabbitMQ.Client.Impl
             return Session.TransmitAsync(in method, in header, body, cancellationToken);
         }
 
-        internal void OnCallbackException(CallbackExceptionEventArgs args)
+        internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
         {
-            _callbackExceptionWrapper.Invoke(this, args);
+            return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the channel.</summary>
@@ -480,14 +480,16 @@ namespace RabbitMQ.Client.Impl
         ///shutdown event. See the definition of Enqueue() above.
         ///</para>
         ///</remarks>
-        private void OnChannelShutdown(ShutdownEventArgs reason)
+        private async Task OnChannelShutdownAsync(ShutdownEventArgs reason)
         {
             _continuationQueue.HandleChannelShutdown(reason);
-            _channelShutdownWrapper.Invoke(this, reason);
+            await _channelShutdownAsyncWrapper.InvokeAsync(this, reason)
+                .ConfigureAwait(false);
 
             if (ConfirmsAreEnabled)
             {
-                _confirmSemaphore.Wait();
+                await _confirmSemaphore.WaitAsync()
+                    .ConfigureAwait(false);
                 try
                 {
                     if (_confirmsTaskCompletionSources?.Count > 0)
@@ -518,13 +520,14 @@ namespace RabbitMQ.Client.Impl
          *
          * Aborted PR: https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1551
          */
-        private Task OnSessionShutdownAsync(object? sender, ShutdownEventArgs reason)
+        private async Task OnSessionShutdownAsync(object? sender, ShutdownEventArgs reason)
         {
             ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
-            OnChannelShutdown(reason);
-            ConsumerDispatcher.Shutdown(reason);
-            return Task.CompletedTask;
+            await OnChannelShutdownAsync(reason)
+                .ConfigureAwait(false);
+            await ConsumerDispatcher.ShutdownAsync(reason)
+                .ConfigureAwait(false);
         }
 
         [MemberNotNull(nameof(_closeReason))]
@@ -571,10 +574,11 @@ namespace RabbitMQ.Client.Impl
         protected async Task<bool> HandleBasicAck(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             var ack = new BasicAck(cmd.MethodSpan);
-            if (!_basicAcksWrapper.IsEmpty)
+            if (!_basicAcksAsyncWrapper.IsEmpty)
             {
                 var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple);
-                _basicAcksWrapper.Invoke(this, args);
+                await _basicAcksAsyncWrapper.InvokeAsync(this, args)
+                    .ConfigureAwait(false);
             }
 
             await HandleAckNack(ack._deliveryTag, ack._multiple, false, cancellationToken)
@@ -585,11 +589,12 @@ namespace RabbitMQ.Client.Impl
         protected async Task<bool> HandleBasicNack(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             var nack = new BasicNack(cmd.MethodSpan);
-            if (!_basicNacksWrapper.IsEmpty)
+            if (!_basicNacksAsyncWrapper.IsEmpty)
             {
                 var args = new BasicNackEventArgs(
                     nack._deliveryTag, nack._multiple, nack._requeue);
-                _basicNacksWrapper.Invoke(this, args);
+                await _basicNacksAsyncWrapper.InvokeAsync(this, args)
+                    .ConfigureAwait(false);
             }
 
             await HandleAckNack(nack._deliveryTag, nack._multiple, true, cancellationToken)
@@ -630,16 +635,18 @@ namespace RabbitMQ.Client.Impl
             return deliveryTag;
         }
 
-        protected void HandleBasicReturn(IncomingCommand cmd)
+        protected async Task<bool> HandleBasicReturn(IncomingCommand cmd)
         {
-            if (!_basicReturnWrapper.IsEmpty)
+            if (!_basicReturnAsyncWrapper.IsEmpty)
             {
                 var basicReturn = new BasicReturn(cmd.MethodSpan);
                 var e = new BasicReturnEventArgs(basicReturn._replyCode, basicReturn._replyText,
                     basicReturn._exchange, basicReturn._routingKey,
                     new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory);
-                _basicReturnWrapper.Invoke(this, e);
+                await _basicReturnAsyncWrapper.InvokeAsync(this, e)
+                    .ConfigureAwait(false);
             }
+            return true;
         }
 
         protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
@@ -698,9 +705,10 @@ namespace RabbitMQ.Client.Impl
             await ModelSendAsync(method, cancellationToken).
                 ConfigureAwait(false);
 
-            if (!_flowControlWrapper.IsEmpty)
+            if (!_flowControlAsyncWrapper.IsEmpty)
             {
-                _flowControlWrapper.Invoke(this, new FlowControlEventArgs(active));
+                await _flowControlAsyncWrapper.InvokeAsync(this, new FlowControlEventArgs(active))
+                    .ConfigureAwait(false);
             }
 
             return true;

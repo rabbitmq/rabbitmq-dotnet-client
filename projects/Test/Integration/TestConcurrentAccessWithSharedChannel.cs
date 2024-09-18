@@ -56,14 +56,16 @@ namespace Test.Integration
         {
             int publishAckCount = 0;
 
-            _channel.BasicAcks += (object sender, BasicAckEventArgs e) =>
+            _channel.BasicAcksAsync += (object sender, BasicAckEventArgs e) =>
             {
                 Interlocked.Increment(ref publishAckCount);
+                return Task.CompletedTask;
             };
 
-            _channel.BasicNacks += (object sender, BasicNackEventArgs e) =>
+            _channel.BasicNacksAsync += (object sender, BasicNackEventArgs e) =>
             {
                 _output.WriteLine($"channel #{_channel.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
+                return Task.CompletedTask;
             };
 
             await _channel.ConfirmSelectAsync(trackConfirmations: false);

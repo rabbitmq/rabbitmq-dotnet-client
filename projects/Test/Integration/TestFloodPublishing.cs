@@ -78,7 +78,7 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            _channel.ChannelShutdown += (o, ea) =>
+            _channel.ChannelShutdownAsync += (o, ea) =>
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
@@ -87,6 +87,8 @@ namespace Test.Integration
                         sawUnexpectedShutdown = true;
                     }
                 });
+
+                return Task.CompletedTask;
             };
 
             var stopwatch = Stopwatch.StartNew();
@@ -145,7 +147,7 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            _channel.ChannelShutdown += (o, ea) =>
+            _channel.ChannelShutdownAsync += (o, ea) =>
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
@@ -155,6 +157,7 @@ namespace Test.Integration
                         allMessagesSeenTcs.TrySetException(args.Exception);
                     }
                 });
+                return Task.CompletedTask;
             };
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: string.Empty,
@@ -183,7 +186,7 @@ namespace Test.Integration
                     {
                         await publishChannel.ConfirmSelectAsync();
 
-                        publishChannel.ChannelShutdown += (o, ea) =>
+                        publishChannel.ChannelShutdownAsync += (o, ea) =>
                         {
                             HandleChannelShutdown(publishChannel, ea, (args) =>
                             {
@@ -193,6 +196,7 @@ namespace Test.Integration
                                     allMessagesSeenTcs.TrySetException(args.Exception);
                                 }
                             });
+                            return Task.CompletedTask;
                         };
 
                         for (int i = 0; i < publishCount && false == stop; i++)
@@ -233,7 +237,7 @@ namespace Test.Integration
 
                     using (IChannel consumeChannel = await consumeConnection.CreateChannelAsync())
                     {
-                        consumeChannel.ChannelShutdown += (o, ea) =>
+                        consumeChannel.ChannelShutdownAsync += (o, ea) =>
                         {
                             HandleChannelShutdown(consumeChannel, ea, (args) =>
                             {
@@ -242,6 +246,7 @@ namespace Test.Integration
                                     allMessagesSeenTcs.TrySetException(args.Exception);
                                 }
                             });
+                            return Task.CompletedTask;
                         };
 
                         var consumer = new AsyncEventingBasicConsumer(consumeChannel);

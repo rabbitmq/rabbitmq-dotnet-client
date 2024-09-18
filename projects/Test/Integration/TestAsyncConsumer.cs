@@ -96,12 +96,13 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                _channel.ChannelShutdown += (o, ea) =>
+                _channel.ChannelShutdownAsync += (o, ea) =>
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
                         MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                     });
+                    return Task.CompletedTask;
                 };
 
                 consumer.Received += (o, a) =>
@@ -189,12 +190,13 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                _channel.ChannelShutdown += (o, ea) =>
+                _channel.ChannelShutdownAsync += (o, ea) =>
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
                         MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                     });
+                    return Task.CompletedTask;
                 };
 
                 QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, autoDelete: true);
@@ -217,12 +219,13 @@ namespace Test.Integration
                                     AddCallbackExceptionHandlers(publishConn, publishChannel);
                                     publishChannel.DefaultConsumer = new DefaultAsyncConsumer(publishChannel,
                                         "publishChannel,", _output);
-                                    publishChannel.ChannelShutdown += (o, ea) =>
+                                    publishChannel.ChannelShutdownAsync += (o, ea) =>
                                     {
                                         HandleChannelShutdown(publishChannel, ea, (args) =>
                                         {
                                             MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                                         });
+                                        return Task.CompletedTask;
                                     };
                                     await publishChannel.ConfirmSelectAsync();
 
@@ -261,12 +264,13 @@ namespace Test.Integration
                                     AddCallbackExceptionHandlers(consumeConn, consumeChannel);
                                     consumeChannel.DefaultConsumer = new DefaultAsyncConsumer(consumeChannel,
                                         "consumeChannel,", _output);
-                                    consumeChannel.ChannelShutdown += (o, ea) =>
+                                    consumeChannel.ChannelShutdownAsync += (o, ea) =>
                                     {
                                         HandleChannelShutdown(consumeChannel, ea, (args) =>
                                         {
                                             MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                                         });
+                                        return Task.CompletedTask;
                                     };
 
                                     var consumer = new AsyncEventingBasicConsumer(consumeChannel);
@@ -356,12 +360,13 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                _channel.ChannelShutdown += (o, ea) =>
+                _channel.ChannelShutdownAsync += (o, ea) =>
                 {
                     HandleChannelShutdown(_channel, ea, (args) =>
                     {
                         MaybeSetException(args, publishSyncSource);
                     });
+                    return Task.CompletedTask;
                 };
 
                 var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -453,12 +458,13 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            _channel.ChannelShutdown += (o, ea) =>
+            _channel.ChannelShutdownAsync += (o, ea) =>
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
                     MaybeSetException(args, publishSyncSource);
                 });
+                return Task.CompletedTask;
             };
 
             await _channel.ConfirmSelectAsync();
@@ -518,12 +524,13 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            _channel.ChannelShutdown += (o, ea) =>
+            _channel.ChannelShutdownAsync += (o, ea) =>
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
                     MaybeSetException(ea, publishSyncSource);
                 });
+                return Task.CompletedTask;
             };
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -625,12 +632,13 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            _channel.ChannelShutdown += (o, ea) =>
+            _channel.ChannelShutdownAsync += (o, ea) =>
             {
                 HandleChannelShutdown(_channel, ea, (args) =>
                 {
                     MaybeSetException(ea, tcs);
                 });
+                return Task.CompletedTask;
             };
 
             // queue1 -> produce click to queue2

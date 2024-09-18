@@ -323,9 +323,10 @@ namespace RabbitMQ.Client.Impl
             // Nothing to do here!
         }
 
-        public void OnConnectionShutdown(object? sender, ShutdownEventArgs reason)
+        public Task OnConnectionShutdownAsync(object? sender, ShutdownEventArgs reason)
         {
             _tcs.TrySetResult(true);
+            return Task.CompletedTask;
         }
     }
 

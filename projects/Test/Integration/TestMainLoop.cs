@@ -75,7 +75,7 @@ namespace Test.Integration
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
 
             CallbackExceptionEventArgs ea = null;
-            _channel.CallbackException += async (_, evt) =>
+            _channel.CallbackExceptionAsync += async (_, evt) =>
             {
                 ea = evt;
                 await _channel.CloseAsync();

@@ -102,13 +102,15 @@ namespace Test.Integration
             try
             {
                 string q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
-                _channel.CallbackException += (ch, evt) =>
+                _channel.CallbackExceptionAsync += (ch, evt) =>
                 {
                     // _output.WriteLine($"[INFO] _channel.CallbackException: {evt.Exception}");
                     if (evt.Exception == TestException)
                     {
                         tcs.SetResult(true);
                     }
+
+                    return Task.CompletedTask;
                 };
 
                 string tag = await _channel.BasicConsumeAsync(q, true, string.Empty, false, false, null, consumer);

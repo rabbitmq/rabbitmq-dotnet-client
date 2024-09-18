@@ -426,20 +426,20 @@ RabbitMQ.Client.IBasicProperties.UserId.get -> string
 RabbitMQ.Client.IBasicProperties.UserId.set -> void
 RabbitMQ.Client.IChannel
 RabbitMQ.Client.IChannel.BasicAckAsync(ulong deliveryTag, bool multiple, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-RabbitMQ.Client.IChannel.BasicAcks -> System.EventHandler<RabbitMQ.Client.Events.BasicAckEventArgs>
+RabbitMQ.Client.IChannel.BasicAcksAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.BasicAckEventArgs>
 RabbitMQ.Client.IChannel.BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-RabbitMQ.Client.IChannel.BasicNacks -> System.EventHandler<RabbitMQ.Client.Events.BasicNackEventArgs>
-RabbitMQ.Client.IChannel.BasicReturn -> System.EventHandler<RabbitMQ.Client.Events.BasicReturnEventArgs>
-RabbitMQ.Client.IChannel.CallbackException -> System.EventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs>
+RabbitMQ.Client.IChannel.BasicNacksAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.BasicNackEventArgs>
+RabbitMQ.Client.IChannel.BasicReturnAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.BasicReturnEventArgs>
+RabbitMQ.Client.IChannel.CallbackExceptionAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs>
 RabbitMQ.Client.IChannel.ChannelNumber.get -> int
-RabbitMQ.Client.IChannel.ChannelShutdown -> System.EventHandler<RabbitMQ.Client.ShutdownEventArgs>
+RabbitMQ.Client.IChannel.ChannelShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.ShutdownEventArgs>
 RabbitMQ.Client.IChannel.CloseReason.get -> RabbitMQ.Client.ShutdownEventArgs
 RabbitMQ.Client.IChannel.ContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.IChannel.ContinuationTimeout.set -> void
 RabbitMQ.Client.IChannel.CurrentQueue.get -> string
 RabbitMQ.Client.IChannel.DefaultConsumer.get -> RabbitMQ.Client.IAsyncBasicConsumer
 RabbitMQ.Client.IChannel.DefaultConsumer.set -> void
-RabbitMQ.Client.IChannel.FlowControl -> System.EventHandler<RabbitMQ.Client.Events.FlowControlEventArgs>
+RabbitMQ.Client.IChannel.FlowControlAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.FlowControlEventArgs>
 RabbitMQ.Client.IChannel.GetNextPublishSequenceNumberAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<ulong>
 RabbitMQ.Client.IChannel.IsClosed.get -> bool
 RabbitMQ.Client.IChannel.IsOpen.get -> bool
@@ -550,7 +550,7 @@ RabbitMQ.Client.IRecordedQueue.Exclusive.get -> bool
 RabbitMQ.Client.IRecordedQueue.IsServerNamed.get -> bool
 RabbitMQ.Client.IRecordedQueue.Name.get -> string
 RabbitMQ.Client.IRecoverable
-RabbitMQ.Client.IRecoverable.Recovery -> System.EventHandler<System.EventArgs>
+RabbitMQ.Client.IRecoverable.RecoveryAsync -> RabbitMQ.Client.Events.AsyncEventHandler<System.EventArgs>
 RabbitMQ.Client.ITcpClient
 RabbitMQ.Client.ITcpClient.Client.get -> System.Net.Sockets.Socket
 RabbitMQ.Client.ITcpClient.Close() -> void

@@ -50,9 +50,10 @@ namespace Test.Integration
             var autorecoveringChannel = (AutorecoveringChannel)_channel;
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            _channel.ChannelShutdown += (channel, args) =>
+            _channel.ChannelShutdownAsync += (channel, args) =>
             {
                 tcs.SetResult(true);
+                return Task.CompletedTask;
             };
 
             Assert.False(autorecoveringChannel.ConsumerDispatcher.IsShutdown, "dispatcher should NOT be shut down before CloseAsync");

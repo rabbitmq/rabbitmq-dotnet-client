@@ -112,7 +112,7 @@ namespace Test.Integration
                 {
                     using (IChannel ch = await _conn.CreateChannelAsync())
                     {
-                        ch.ChannelShutdown += (o, ea) =>
+                        ch.ChannelShutdownAsync += (o, ea) =>
                         {
                             HandleChannelShutdown(ch, ea, (args) =>
                             {
@@ -121,22 +121,25 @@ namespace Test.Integration
                                     tcs.TrySetException(args.Exception);
                                 }
                             });
+                            return Task.CompletedTask;
                         };
 
                         await ch.ConfirmSelectAsync(trackConfirmations: false);
 
-                        ch.BasicAcks += (object sender, BasicAckEventArgs e) =>
+                        ch.BasicAcksAsync += (object sender, BasicAckEventArgs e) =>
                         {
                             if (e.DeliveryTag >= _messageCount)
                             {
                                 tcs.SetResult(true);
                             }
+                            return Task.CompletedTask;
                         };
 
-                        ch.BasicNacks += (object sender, BasicNackEventArgs e) =>
+                        ch.BasicNacksAsync += (object sender, BasicNackEventArgs e) =>
                         {
                             tcs.SetResult(false);
                             _output.WriteLine($"channel #{ch.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
+                            return Task.CompletedTask;
                         };
 
                         QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);

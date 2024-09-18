@@ -90,12 +90,13 @@ namespace Test.SequentialIntegration
         {
             TaskCompletionSource<bool> sawChannelShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            void _channel_ChannelShutdown(object sender, ShutdownEventArgs e)
+            Task _channel_ChannelShutdownAsync(object sender, ShutdownEventArgs e)
             {
                 sawChannelShutdownTcs.TrySetResult(true);
+                return Task.CompletedTask;
             }
 
-            _channel.ChannelShutdown += _channel_ChannelShutdown;
+            _channel.ChannelShutdownAsync += _channel_ChannelShutdownAsync;
 
             Assert.True(_channel.IsOpen);
 
