@@ -36,9 +36,6 @@ using System.Threading.Tasks.Sources;
 
 namespace RabbitMQ.Client.client.impl
 {
-    /// <summary>
-    /// Inspired by http://blogs.msdn.com/b/pfxteam/archive/2012/02/11/10266920.aspx
-    /// </summary>
     sealed class AsyncManualResetEvent : IValueTaskSource
     {
         private ManualResetValueTaskSourceCore<bool> _valueTaskSource;
