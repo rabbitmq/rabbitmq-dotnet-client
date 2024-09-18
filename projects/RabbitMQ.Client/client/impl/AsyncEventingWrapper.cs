@@ -7,16 +7,16 @@ namespace RabbitMQ.Client.Impl
 {
     internal struct AsyncEventingWrapper<TEvent> where TEvent : AsyncEventArgs
     {
-        private event AsyncEventHandler<TEvent>? _event;
+        private event AsyncEventHandler<TEvent>? _eventHandler;
         private Delegate[]? _handlers;
         private string? _context;
         private Func<Exception, string, CancellationToken, Task>? _onException;
 
-        public bool IsEmpty => _event is null;
+        public bool IsEmpty => _eventHandler is null;
 
         public AsyncEventingWrapper(string context, Func<Exception, string, CancellationToken, Task> onException)
         {
-            _event = null;
+            _eventHandler = null;
             _handlers = null;
             _context = context;
             _onException = onException;
@@ -24,13 +24,13 @@ namespace RabbitMQ.Client.Impl
 
         public void AddHandler(AsyncEventHandler<TEvent>? handler)
         {
-            _event += handler;
+            _eventHandler += handler;
             _handlers = null;
         }
 
         public void RemoveHandler(AsyncEventHandler<TEvent>? handler)
         {
-            _event -= handler;
+            _eventHandler -= handler;
             _handlers = null;
         }
 
@@ -40,7 +40,7 @@ namespace RabbitMQ.Client.Impl
             Delegate[]? handlers = _handlers;
             if (handlers is null)
             {
-                handlers = _event?.GetInvocationList();
+                handlers = _eventHandler?.GetInvocationList();
                 if (handlers is null)
                 {
                     return Task.CompletedTask;
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Impl
 
         public void Takeover(in AsyncEventingWrapper<TEvent> other)
         {
-            _event = other._event;
+            _eventHandler = other._eventHandler;
             _handlers = other._handlers;
             _context = other._context;
             _onException = other._onException;
