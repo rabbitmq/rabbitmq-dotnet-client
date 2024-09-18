@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.client.impl
     sealed class AsyncManualResetEvent : IValueTaskSource
     {
         private ManualResetValueTaskSourceCore<bool> _valueTaskSource;
-        private volatile bool _isSet;
+        private bool _isSet;
 
         public AsyncManualResetEvent(bool initialState = false)
         {
@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.client.impl
             }
         }
 
-        public bool IsSet => _isSet;
+        public bool IsSet => Volatile.Read(ref _isSet);
 
         public async ValueTask WaitAsync(CancellationToken cancellationToken)
         {
@@ -97,23 +97,23 @@ namespace RabbitMQ.Client.client.impl
 
         public void Set()
         {
-            if (_isSet)
+            if (IsSet)
             {
                 return;
             }
 
-            _isSet = true;
+            Volatile.Write(ref _isSet, true);
             _valueTaskSource.SetResult(true);
         }
 
         public void Reset()
         {
-            if (!_isSet)
+            if (!IsSet)
             {
                 return;
             }
 
-            _isSet = false;
+            Volatile.Write(ref _isSet, false);
             _valueTaskSource.Reset();
         }
 
