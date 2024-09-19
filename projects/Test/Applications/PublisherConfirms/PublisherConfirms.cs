@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 
 // const int MESSAGE_COUNT = 50_000;
-const int MESSAGE_COUNT = 21;
+const int MESSAGE_COUNT = 50;
 bool debug = false;
 
 // await PublishMessagesIndividuallyAsync();
@@ -223,7 +223,8 @@ async Task HandlePublishConfirmsAsynchronously()
         };
 
         string routingKey = queueName;
-        if (i % 2 == 0)
+        int modulo = Random.Shared.Next(1, 5);
+        if (i % modulo == 0)
         {
             Console.WriteLine($"{DateTime.Now} [INFO] publishing message {nextPublishSeqNo} with random routing key so it should be returned");
             routingKey = Guid.NewGuid().ToString();
