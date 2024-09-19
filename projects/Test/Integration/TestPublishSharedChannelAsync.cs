@@ -77,7 +77,7 @@ namespace Test.Integration
             {
                 try
                 {
-                    Assert.IsNotType<RabbitMQ.Client.Framing.Impl.AutorecoveringConnection>(conn);
+                    Assert.IsNotType<RabbitMQ.Client.Framing.AutorecoveringConnection>(conn);
                     conn.ConnectionShutdownAsync += HandleConnectionShutdownAsync;
 
                     using (IChannel channel = await conn.CreateChannelAsync())

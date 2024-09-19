@@ -31,7 +31,7 @@
 
 using System;
 using System.Threading;
-using RabbitMQ.Client.client.framing;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
 using Xunit;
 

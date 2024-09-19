@@ -60,7 +60,6 @@ override RabbitMQ.Client.AmqpTcpEndpoint.ToString() -> string
 override RabbitMQ.Client.AmqpTimestamp.Equals(object obj) -> bool
 override RabbitMQ.Client.AmqpTimestamp.GetHashCode() -> int
 override RabbitMQ.Client.AmqpTimestamp.ToString() -> string
-override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleChannelShutdownAsync(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
 override RabbitMQ.Client.Exceptions.MalformedFrameException.ReplyCode.get -> ushort
 override RabbitMQ.Client.Exceptions.SyntaxErrorException.ReplyCode.get -> ushort
 override RabbitMQ.Client.Exceptions.UnexpectedFrameException.ReplyCode.get -> ushort
@@ -68,7 +67,6 @@ override RabbitMQ.Client.Exceptions.UnknownClassOrMethodException.ReplyCode.get 
 override RabbitMQ.Client.Exceptions.UnknownClassOrMethodException.ToString() -> string
 override RabbitMQ.Client.Logging.RabbitMqExceptionDetail.ToString() -> string
 override RabbitMQ.Client.PublicationAddress.ToString() -> string
-override RabbitMQ.Client.ShutdownEventArgs.ToString() -> string
 override RabbitMQ.Client.ShutdownReportEntry.ToString() -> string
 RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily.get -> System.Net.Sockets.AddressFamily
@@ -97,7 +95,6 @@ RabbitMQ.Client.AsyncDefaultBasicConsumer.AsyncDefaultBasicConsumer(RabbitMQ.Cli
 RabbitMQ.Client.AsyncDefaultBasicConsumer.Channel.get -> RabbitMQ.Client.IChannel
 RabbitMQ.Client.AsyncDefaultBasicConsumer.ConsumerTags.get -> string[]
 RabbitMQ.Client.AsyncDefaultBasicConsumer.IsRunning.get -> bool
-RabbitMQ.Client.AsyncDefaultBasicConsumer.ShutdownReason.get -> RabbitMQ.Client.ShutdownEventArgs
 RabbitMQ.Client.BasicGetResult
 RabbitMQ.Client.BasicGetResult.BasicGetResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, RabbitMQ.Client.IReadOnlyBasicProperties basicProperties, System.ReadOnlyMemory<byte> body) -> void
 RabbitMQ.Client.BasicProperties
@@ -262,7 +259,6 @@ RabbitMQ.Client.Events.RecoveringConsumerEventArgs
 RabbitMQ.Client.Events.RecoveringConsumerEventArgs.ConsumerArguments.get -> System.Collections.Generic.IDictionary<string, object>
 RabbitMQ.Client.Events.RecoveringConsumerEventArgs.ConsumerTag.get -> string
 RabbitMQ.Client.Exceptions.AlreadyClosedException
-RabbitMQ.Client.Exceptions.AlreadyClosedException.AlreadyClosedException(RabbitMQ.Client.ShutdownEventArgs reason) -> void
 RabbitMQ.Client.Exceptions.AuthenticationFailureException
 RabbitMQ.Client.Exceptions.AuthenticationFailureException.AuthenticationFailureException(string msg) -> void
 RabbitMQ.Client.Exceptions.BrokerUnreachableException
@@ -282,11 +278,8 @@ RabbitMQ.Client.Exceptions.MalformedFrameException.MalformedFrameException(strin
 RabbitMQ.Client.Exceptions.MalformedFrameException.MalformedFrameException(string message, bool canShutdownCleanly) -> void
 RabbitMQ.Client.Exceptions.OperationInterruptedException
 RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException() -> void
-RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(RabbitMQ.Client.ShutdownEventArgs reason) -> void
-RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(RabbitMQ.Client.ShutdownEventArgs reason, string prefix) -> void
 RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(string message) -> void
 RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(string message, System.Exception inner) -> void
-RabbitMQ.Client.Exceptions.OperationInterruptedException.ShutdownReason.get -> RabbitMQ.Client.ShutdownEventArgs
 RabbitMQ.Client.Exceptions.OperationInterruptedException.ShutdownReason.set -> void
 RabbitMQ.Client.Exceptions.PacketNotRecognizedException
 RabbitMQ.Client.Exceptions.PacketNotRecognizedException.PacketNotRecognizedException(int transportHigh, int transportLow, int serverMajor, int serverMinor) -> void
@@ -348,7 +341,6 @@ RabbitMQ.Client.IAmqpWriteable.GetRequiredBufferSize() -> int
 RabbitMQ.Client.IAmqpWriteable.WriteTo(System.Span<byte> span) -> int
 RabbitMQ.Client.IAsyncBasicConsumer
 RabbitMQ.Client.IAsyncBasicConsumer.Channel.get -> RabbitMQ.Client.IChannel
-RabbitMQ.Client.IAsyncBasicConsumer.HandleChannelShutdownAsync(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
 RabbitMQ.Client.IAuthMechanism
 RabbitMQ.Client.IAuthMechanismFactory
 RabbitMQ.Client.IAuthMechanismFactory.GetInstance() -> RabbitMQ.Client.IAuthMechanism
@@ -408,8 +400,6 @@ RabbitMQ.Client.IChannel.BasicNacksAsync -> RabbitMQ.Client.Events.AsyncEventHan
 RabbitMQ.Client.IChannel.BasicReturnAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.BasicReturnEventArgs>
 RabbitMQ.Client.IChannel.CallbackExceptionAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs>
 RabbitMQ.Client.IChannel.ChannelNumber.get -> int
-RabbitMQ.Client.IChannel.ChannelShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.ShutdownEventArgs>
-RabbitMQ.Client.IChannel.CloseReason.get -> RabbitMQ.Client.ShutdownEventArgs
 RabbitMQ.Client.IChannel.ContinuationTimeout.get -> System.TimeSpan
 RabbitMQ.Client.IChannel.ContinuationTimeout.set -> void
 RabbitMQ.Client.IChannel.CurrentQueue.get -> string
@@ -424,7 +414,6 @@ RabbitMQ.Client.IConnection
 RabbitMQ.Client.IConnection.ChannelMax.get -> ushort
 RabbitMQ.Client.IConnection.ClientProperties.get -> System.Collections.Generic.IDictionary<string, object>
 RabbitMQ.Client.IConnection.ClientProvidedName.get -> string
-RabbitMQ.Client.IConnection.CloseReason.get -> RabbitMQ.Client.ShutdownEventArgs
 RabbitMQ.Client.IConnection.Endpoint.get -> RabbitMQ.Client.AmqpTcpEndpoint
 RabbitMQ.Client.IConnection.FrameMax.get -> uint
 RabbitMQ.Client.IConnection.Heartbeat.get -> System.TimeSpan
@@ -585,14 +574,6 @@ RabbitMQ.Client.ReadOnlyBasicProperties.ReplyToAddress.get -> RabbitMQ.Client.Pu
 RabbitMQ.Client.ReadOnlyBasicProperties.Timestamp.get -> RabbitMQ.Client.AmqpTimestamp
 RabbitMQ.Client.ReadOnlyBasicProperties.Type.get -> string
 RabbitMQ.Client.ReadOnlyBasicProperties.UserId.get -> string
-RabbitMQ.Client.ShutdownEventArgs
-RabbitMQ.Client.ShutdownEventArgs.Cause.get -> object
-RabbitMQ.Client.ShutdownEventArgs.ClassId.get -> ushort
-RabbitMQ.Client.ShutdownEventArgs.Exception.get -> System.Exception
-RabbitMQ.Client.ShutdownEventArgs.Initiator.get -> RabbitMQ.Client.ShutdownInitiator
-RabbitMQ.Client.ShutdownEventArgs.MethodId.get -> ushort
-RabbitMQ.Client.ShutdownEventArgs.ReplyCode.get -> ushort
-RabbitMQ.Client.ShutdownEventArgs.ReplyText.get -> string
 RabbitMQ.Client.ShutdownInitiator
 RabbitMQ.Client.ShutdownInitiator.Application = 0 -> RabbitMQ.Client.ShutdownInitiator
 RabbitMQ.Client.ShutdownInitiator.Library = 1 -> RabbitMQ.Client.ShutdownInitiator
@@ -735,8 +716,6 @@ static readonly RabbitMQ.Client.ConnectionFactory.DefaultHeartbeat -> System.Tim
 static readonly RabbitMQ.Client.Protocols.AMQP_0_9_1 -> RabbitMQ.Client.IProtocol
 static readonly RabbitMQ.Client.Protocols.DefaultProtocol -> RabbitMQ.Client.IProtocol
 static readonly RabbitMQ.Client.PublicationAddress.PSEUDO_URI_PARSER -> System.Text.RegularExpressions.Regex
-virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleChannelShutdownAsync(object channel, RabbitMQ.Client.ShutdownEventArgs reason) -> System.Threading.Tasks.Task
-virtual RabbitMQ.Client.Exceptions.ProtocolException.ShutdownReason.get -> RabbitMQ.Client.ShutdownEventArgs
 virtual RabbitMQ.Client.TcpClientAdapter.Client.get -> System.Net.Sockets.Socket
 virtual RabbitMQ.Client.TcpClientAdapter.Close() -> void
 virtual RabbitMQ.Client.TcpClientAdapter.ConnectAsync(System.Net.IPAddress ep, int port, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
@@ -760,7 +739,6 @@ virtual RabbitMQ.Client.TcpClientAdapter.ReceiveTimeout.set -> void
 ~RabbitMQ.Client.IChannel.BasicGetAsync(string queue, bool autoAck, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.BasicGetResult>
 ~RabbitMQ.Client.IChannel.BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.IChannel.BasicRejectAsync(ulong deliveryTag, bool requeue, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-~RabbitMQ.Client.IChannel.CloseAsync(RabbitMQ.Client.ShutdownEventArgs reason, bool abort, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.IChannel.CloseAsync(ushort replyCode, string replyText, bool abort, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 ~RabbitMQ.Client.IChannel.ConsumerCountAsync(string queue, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<uint>
 ~RabbitMQ.Client.IChannel.ExchangeBindAsync(string destination, string source, string routingKey, System.Collections.Generic.IDictionary<string, object> arguments = null, bool noWait = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
@@ -853,7 +831,6 @@ readonly RabbitMQ.Client.ConnectionConfig.ConsumerDispatchConcurrency -> ushort
 RabbitMQ.Client.IConnection.CreateChannelAsync(ushort? consumerDispatchConcurrency = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!
 RabbitMQ.Client.IConnection.CallbackExceptionAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.CallbackExceptionEventArgs!>!
 RabbitMQ.Client.IConnection.ConnectionBlockedAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConnectionBlockedEventArgs!>!
-RabbitMQ.Client.IConnection.ConnectionShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.ShutdownEventArgs!>!
 RabbitMQ.Client.IConnection.ConnectionRecoveryErrorAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConnectionRecoveryErrorEventArgs!>!
 RabbitMQ.Client.IConnection.ConsumerTagChangeAfterRecoveryAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerTagChangedAfterRecoveryEventArgs!>!
 RabbitMQ.Client.IConnection.QueueNameChangedAfterRecoveryAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.QueueNameChangedAfterRecoveryEventArgs!>!
@@ -884,9 +861,6 @@ RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliverAsync(string! consumerTag,
 RabbitMQ.Client.IConnection.ConnectionUnblockedAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.AsyncEventArgs!>!
 RabbitMQ.Client.IConnection.RecoverySucceededAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.AsyncEventArgs!>!
 RabbitMQ.Client.IRecoverable.RecoveryAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.AsyncEventArgs!>!
-RabbitMQ.Client.ShutdownEventArgs.ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string! replyText, object? cause = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
-RabbitMQ.Client.ShutdownEventArgs.ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string! replyText, System.Exception! exception, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
-RabbitMQ.Client.ShutdownEventArgs.ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string! replyText, ushort classId, ushort methodId, object? cause = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
 static RabbitMQ.Client.Events.AsyncEventArgs.CreateOrDefault(System.Threading.CancellationToken cancellationToken) -> RabbitMQ.Client.Events.AsyncEventArgs!
 static RabbitMQ.Client.Events.CallbackExceptionEventArgs.Build(System.Exception! e, string! context, object! consumer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> RabbitMQ.Client.Events.CallbackExceptionEventArgs!
 static RabbitMQ.Client.Events.CallbackExceptionEventArgs.Build(System.Exception! e, string! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> RabbitMQ.Client.Events.CallbackExceptionEventArgs!
@@ -896,7 +870,33 @@ virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicCancelOkAsync(strin
 virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicConsumeOkAsync(string! consumerTag, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicDeliverAsync(string! consumerTag, ulong deliveryTag, bool redelivered, string! exchange, string! routingKey, RabbitMQ.Client.IReadOnlyBasicProperties! properties, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.OnCancelAsync(string![]! consumerTags, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-RabbitMQ.Client.Events.AsyncEventingBasicConsumer.ShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.ShutdownEventArgs!>!
 RabbitMQ.Client.Events.AsyncEventingBasicConsumer.UnregisteredAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs!>!
 RabbitMQ.Client.Events.AsyncEventingBasicConsumer.RegisteredAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs!>!
+override RabbitMQ.Client.Events.AsyncEventingBasicConsumer.HandleChannelShutdownAsync(object! channel, RabbitMQ.Client.Events.ShutdownEventArgs! reason) -> System.Threading.Tasks.Task!
+override RabbitMQ.Client.Events.ShutdownEventArgs.ToString() -> string!
+RabbitMQ.Client.AsyncDefaultBasicConsumer.ShutdownReason.get -> RabbitMQ.Client.Events.ShutdownEventArgs?
+RabbitMQ.Client.Events.AsyncEventingBasicConsumer.ShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ShutdownEventArgs!>!
+RabbitMQ.Client.Events.ShutdownEventArgs
+RabbitMQ.Client.Events.ShutdownEventArgs.Cause.get -> object?
+RabbitMQ.Client.Events.ShutdownEventArgs.ClassId.get -> ushort
+RabbitMQ.Client.Events.ShutdownEventArgs.Exception.get -> System.Exception?
+RabbitMQ.Client.Events.ShutdownEventArgs.Initiator.get -> RabbitMQ.Client.ShutdownInitiator
+RabbitMQ.Client.Events.ShutdownEventArgs.MethodId.get -> ushort
+RabbitMQ.Client.Events.ShutdownEventArgs.ReplyCode.get -> ushort
+RabbitMQ.Client.Events.ShutdownEventArgs.ReplyText.get -> string!
+RabbitMQ.Client.Events.ShutdownEventArgs.ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string! replyText, object? cause = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+RabbitMQ.Client.Events.ShutdownEventArgs.ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string! replyText, System.Exception! exception, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+RabbitMQ.Client.Events.ShutdownEventArgs.ShutdownEventArgs(RabbitMQ.Client.ShutdownInitiator initiator, ushort replyCode, string! replyText, ushort classId, ushort methodId, object? cause = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+RabbitMQ.Client.Exceptions.AlreadyClosedException.AlreadyClosedException(RabbitMQ.Client.Events.ShutdownEventArgs! reason) -> void
+RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(RabbitMQ.Client.Events.ShutdownEventArgs? reason) -> void
+RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(RabbitMQ.Client.Events.ShutdownEventArgs? reason, string! prefix) -> void
+RabbitMQ.Client.Exceptions.OperationInterruptedException.ShutdownReason.get -> RabbitMQ.Client.Events.ShutdownEventArgs?
+RabbitMQ.Client.IAsyncBasicConsumer.HandleChannelShutdownAsync(object! channel, RabbitMQ.Client.Events.ShutdownEventArgs! reason) -> System.Threading.Tasks.Task!
+RabbitMQ.Client.IChannel.ChannelShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ShutdownEventArgs!>!
+RabbitMQ.Client.IChannel.CloseAsync(RabbitMQ.Client.Events.ShutdownEventArgs! reason, bool abort, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+RabbitMQ.Client.IChannel.CloseReason.get -> RabbitMQ.Client.Events.ShutdownEventArgs?
+RabbitMQ.Client.IConnection.CloseReason.get -> RabbitMQ.Client.Events.ShutdownEventArgs?
+RabbitMQ.Client.IConnection.ConnectionShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ShutdownEventArgs!>!
+virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleChannelShutdownAsync(object! channel, RabbitMQ.Client.Events.ShutdownEventArgs! reason) -> System.Threading.Tasks.Task!
+virtual RabbitMQ.Client.Exceptions.ProtocolException.ShutdownReason.get -> RabbitMQ.Client.Events.ShutdownEventArgs!
 RabbitMQ.Client.Events.AsyncEventingBasicConsumer.ReceivedAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.BasicDeliverEventArgs!>!

@@ -31,7 +31,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Framing;
 using Xunit;
 using Xunit.Abstractions;
 

@@ -30,8 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
-using RabbitMQ;
-using RabbitMQ.Util;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Util;
 using Xunit;
 
 namespace Test.Unit

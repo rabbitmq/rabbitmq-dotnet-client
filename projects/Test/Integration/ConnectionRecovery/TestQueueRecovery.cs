@@ -32,7 +32,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Framing;
 using Xunit;
 using Xunit.Abstractions;
 using QueueDeclareOk = RabbitMQ.Client.QueueDeclareOk;

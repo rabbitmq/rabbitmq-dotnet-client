@@ -32,7 +32,7 @@
 using System;
 using System.Buffers;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
 using Xunit;
 
