@@ -299,13 +299,12 @@ namespace RabbitMQ.Client.Framing
             {
                 try
                 {
-                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false))
-                    {
-                        await recordedExchange.RecoverAsync(ch, cancellationToken)
-                            .ConfigureAwait(false);
-                        await ch.CloseAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                    }
+                    var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                    await using var _ = channel.ConfigureAwait(false);
+                    await recordedExchange.RecoverAsync(channel, cancellationToken)
+                        .ConfigureAwait(false);
+                    await channel.CloseAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -351,11 +350,12 @@ namespace RabbitMQ.Client.Framing
                 try
                 {
                     string newName = string.Empty;
-                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false))
+                    var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                    await using (channel.ConfigureAwait(false))
                     {
-                        newName = await recordedQueue.RecoverAsync(ch, cancellationToken)
+                        newName = await recordedQueue.RecoverAsync(channel, cancellationToken)
                             .ConfigureAwait(false);
-                        await ch.CloseAsync(cancellationToken)
+                        await channel.CloseAsync(cancellationToken)
                             .ConfigureAwait(false);
                     }
                     string oldName = recordedQueue.Name;
@@ -463,13 +463,12 @@ namespace RabbitMQ.Client.Framing
             {
                 try
                 {
-                    using (IChannel ch = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false))
-                    {
-                        await binding.RecoverAsync(ch, cancellationToken)
-                            .ConfigureAwait(false);
-                        await ch.CloseAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                    }
+                    var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                    await using var _ = channel.ConfigureAwait(false);
+                    await binding.RecoverAsync(channel, cancellationToken)
+                        .ConfigureAwait(false);
+                    await channel.CloseAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
