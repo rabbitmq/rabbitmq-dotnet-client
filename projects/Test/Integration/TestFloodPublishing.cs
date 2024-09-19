@@ -63,7 +63,7 @@ namespace Test.Integration
             _connFactory.RequestedHeartbeat = TimeSpan.FromSeconds(60);
             _connFactory.AutomaticRecoveryEnabled = false;
             _conn = await _connFactory.CreateConnectionAsync();
-            Assert.IsNotType<RabbitMQ.Client.Framing.Impl.AutorecoveringConnection>(_conn);
+            Assert.IsNotType<RabbitMQ.Client.Framing.AutorecoveringConnection>(_conn);
             _channel = await _conn.CreateChannelAsync();
 
             _conn.ConnectionShutdownAsync += (_, ea) =>
@@ -124,7 +124,7 @@ namespace Test.Integration
             _connFactory.AutomaticRecoveryEnabled = false;
 
             _conn = await _connFactory.CreateConnectionAsync();
-            Assert.IsNotType<RabbitMQ.Client.Framing.Impl.AutorecoveringConnection>(_conn);
+            Assert.IsNotType<RabbitMQ.Client.Framing.AutorecoveringConnection>(_conn);
             _channel = await _conn.CreateChannelAsync();
 
             string message = "Hello from test TestMultithreadFloodPublishing";

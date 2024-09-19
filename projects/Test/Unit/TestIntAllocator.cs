@@ -31,7 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-using RabbitMQ.Util;
+using RabbitMQ.Client.Util;
 using Xunit;
 
 namespace Test.Unit

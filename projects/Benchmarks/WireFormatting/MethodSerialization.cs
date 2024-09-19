@@ -3,7 +3,7 @@ using System.Text;
 
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Benchmarks
 {
