@@ -20,7 +20,7 @@ namespace CreateChannel
             doneEvent = new AutoResetEvent(false);
 
             var connectionFactory = new ConnectionFactory { };
-            IConnection connection = await connectionFactory.CreateConnectionAsync();
+            await using IConnection connection = await connectionFactory.CreateConnectionAsync();
 
             var watch = Stopwatch.StartNew();
             _ = Task.Run(async () =>
@@ -55,7 +55,6 @@ namespace CreateChannel
             Console.WriteLine();
             Console.WriteLine($"Took {watch.Elapsed.TotalMilliseconds} ms");
 
-            connection.Dispose();
             Console.ReadLine();
         }
     }

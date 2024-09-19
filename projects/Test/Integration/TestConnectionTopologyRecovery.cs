@@ -55,7 +55,7 @@ namespace Test.Integration
             string q = GenerateQueueName();
             const string rk = "routing-key";
 
-            using (IChannel ch = await _conn.CreateChannelAsync())
+            await using (IChannel ch = await _conn.CreateChannelAsync())
             {
                 await ch.ExchangeDeclareAsync(exchange: x, type: "fanout");
                 await ch.QueueDeclareAsync(q, false, false, false);
@@ -354,12 +354,10 @@ namespace Test.Integration
                 },
                 QueueRecoveryExceptionHandlerAsync = async (rq, ex, connection) =>
                 {
-                    using (IChannel channel = await connection.CreateChannelAsync())
-                    {
-                        await channel.QueueDeclareAsync(rq.Name, false, false, false,
-                            noWait: false, arguments: changedQueueArguments);
-                        await channel.CloseAsync();
-                    }
+                    await using IChannel channel = await connection.CreateChannelAsync();
+                    await channel.QueueDeclareAsync(rq.Name, false, false, false,
+                        noWait: false, arguments: changedQueueArguments);
+                    await channel.CloseAsync();
                 }
             };
 
@@ -416,11 +414,9 @@ namespace Test.Integration
                 },
                 ExchangeRecoveryExceptionHandlerAsync = async (re, ex, connection) =>
                 {
-                    using (IChannel channel = await connection.CreateChannelAsync())
-                    {
-                        await channel.ExchangeDeclareAsync(re.Name, "topic", false, false);
-                        await channel.CloseAsync();
-                    }
+                    await using IChannel channel = await connection.CreateChannelAsync();
+                    await channel.ExchangeDeclareAsync(re.Name, "topic", false, false);
+                    await channel.CloseAsync();
                 }
             };
 
@@ -478,12 +474,10 @@ namespace Test.Integration
                 },
                 BindingRecoveryExceptionHandlerAsync = async (b, ex, connection) =>
                 {
-                    using (IChannel channel = await connection.CreateChannelAsync())
-                    {
-                        await channel.QueueDeclareAsync(queueWithExceptionBinding, false, false, false);
-                        await channel.QueueBindAsync(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
-                        await channel.CloseAsync();
-                    }
+                    await using IChannel channel = await connection.CreateChannelAsync();
+                    await channel.QueueDeclareAsync(queueWithExceptionBinding, false, false, false);
+                    await channel.QueueBindAsync(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
+                    await channel.CloseAsync();
                 }
             };
 
@@ -541,11 +535,9 @@ namespace Test.Integration
                 },
                 ConsumerRecoveryExceptionHandlerAsync = async (c, ex, connection) =>
                 {
-                    using (IChannel channel = await connection.CreateChannelAsync())
-                    {
-                        await channel.QueueDeclareAsync(queueWithExceptionConsumer, false, false, false);
-                        await channel.CloseAsync();
-                    }
+                    await using IChannel channel = await connection.CreateChannelAsync();
+                    await channel.QueueDeclareAsync(queueWithExceptionConsumer, false, false, false);
+                    await channel.CloseAsync();
 
                     // So topology recovery runs again. This time he missing queue should exist, making
                     // it possible to recover the consumer successfully.

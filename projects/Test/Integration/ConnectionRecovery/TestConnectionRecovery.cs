@@ -96,7 +96,7 @@ namespace Test.Integration.ConnectionRecovery
             consumer.ReceivedAsync += MessageReceived;
             await _channel.BasicConsumeAsync(queueName, true, consumer);
 
-            using (IChannel pubCh = await _conn.CreateChannelAsync())
+            await using (IChannel pubCh = await _conn.CreateChannelAsync())
             {
                 await pubCh.BasicPublishAsync(exchange: exchangeName, routingKey: routingKey, body: body);
                 await pubCh.CloseAsync();
@@ -106,7 +106,7 @@ namespace Test.Integration.ConnectionRecovery
 
             await CloseAndWaitForRecoveryAsync();
 
-            using (IChannel pubCh = await _conn.CreateChannelAsync())
+            await using (IChannel pubCh = await _conn.CreateChannelAsync())
             {
                 await pubCh.BasicPublishAsync(exchange: exchangeName, routingKey: "unused", body: body);
                 await pubCh.CloseAsync();

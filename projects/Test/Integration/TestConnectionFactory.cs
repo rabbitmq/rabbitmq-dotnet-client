@@ -159,12 +159,10 @@ namespace Test.Integration
             cf.AutomaticRecoveryEnabled = false;
             string expectedName = cf.ClientProvidedName;
 
-            using (IConnection conn = await cf.CreateConnectionAsync())
-            {
-                Assert.Equal(expectedName, conn.ClientProvidedName);
-                Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            Assert.Equal(expectedName, conn.ClientProvidedName);
+            Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -174,12 +172,10 @@ namespace Test.Integration
             cf.AutomaticRecoveryEnabled = false;
             string expectedName = cf.ClientProvidedName;
 
-            using (IConnection conn = await cf.CreateConnectionAsync(expectedName))
-            {
-                Assert.Equal(expectedName, conn.ClientProvidedName);
-                Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(expectedName);
+            Assert.Equal(expectedName, conn.ClientProvidedName);
+            Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -189,12 +185,10 @@ namespace Test.Integration
             cf.AutomaticRecoveryEnabled = true;
             string expectedName = cf.ClientProvidedName;
 
-            using (IConnection conn = await cf.CreateConnectionAsync(expectedName))
-            {
-                Assert.Equal(expectedName, conn.ClientProvidedName);
-                Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(expectedName);
+            Assert.Equal(expectedName, conn.ClientProvidedName);
+            Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -205,12 +199,10 @@ namespace Test.Integration
             string expectedName = cf.ClientProvidedName;
 
             var xs = new List<AmqpTcpEndpoint> { new AmqpTcpEndpoint("localhost") };
-            using (IConnection conn = await cf.CreateConnectionAsync(xs, expectedName))
-            {
-                Assert.Equal(expectedName, conn.ClientProvidedName);
-                Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(xs, expectedName);
+            Assert.Equal(expectedName, conn.ClientProvidedName);
+            Assert.Equal(expectedName, conn.ClientProperties["connection_name"]);
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -220,11 +212,9 @@ namespace Test.Integration
             cf.AutomaticRecoveryEnabled = true;
             cf.HostName = "localhost";
 
-            using (IConnection conn = await cf.CreateConnectionAsync())
-            {
-                Assert.Equal(5672, conn.Endpoint.Port);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            Assert.Equal(5672, conn.Endpoint.Port);
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -237,11 +227,9 @@ namespace Test.Integration
             Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, cf.MaxInboundMessageBodySize);
             Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, cf.Endpoint.MaxInboundMessageBodySize);
 
-            using (IConnection conn = await cf.CreateConnectionAsync())
-            {
-                Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -266,10 +254,8 @@ namespace Test.Integration
             cf.HostName = "not_localhost";
             cf.Port = 1234;
             var ep = new AmqpTcpEndpoint("localhost");
-            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
-            {
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -291,10 +277,8 @@ namespace Test.Integration
             cf.HostName = "not_localhost";
             cf.Port = 1234;
             var ep = new AmqpTcpEndpoint("localhost");
-            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
-            {
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -307,10 +291,8 @@ namespace Test.Integration
                 AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork
             };
             cf.Endpoint = ep;
-            using (IConnection conn = await cf.CreateConnectionAsync())
-            {
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -330,10 +312,8 @@ namespace Test.Integration
             ConnectionFactory cf = CreateConnectionFactory();
             var invalidEp = new AmqpTcpEndpoint("not_localhost");
             var ep = new AmqpTcpEndpoint("localhost");
-            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep }))
-            {
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep });
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -349,11 +329,9 @@ namespace Test.Integration
         {
             ConnectionFactory cf = CreateConnectionFactory();
             cf.MaxInboundMessageBodySize = 1500;
-            using (IConnection conn = await cf.CreateConnectionAsync())
-            {
-                Assert.Equal(cf.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            Assert.Equal(cf.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
+            await conn.CloseAsync();
         }
         [Fact]
         public async Task TestCreateConnectionWithAmqpEndpointListUsesAmqpTcpEndpointMaxMessageSize()
@@ -362,11 +340,9 @@ namespace Test.Integration
             cf.MaxInboundMessageBodySize = 1500;
             var ep = new AmqpTcpEndpoint("localhost");
             Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, ep.MaxInboundMessageBodySize);
-            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
-            {
-                Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
+            Assert.Equal(ConnectionFactory.DefaultMaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -375,11 +351,9 @@ namespace Test.Integration
             ConnectionFactory cf = CreateConnectionFactory();
             cf.MaxInboundMessageBodySize = 1500;
             var ep = new AmqpTcpEndpoint("localhost", -1, new SslOption(), 1200);
-            using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep }))
-            {
-                Assert.Equal(ep.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
+            Assert.Equal(ep.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
+            await conn.CloseAsync();
         }
 
         [Fact]
@@ -387,58 +361,50 @@ namespace Test.Integration
         {
             ConnectionFactory cf = CreateConnectionFactory();
             cf.MaxInboundMessageBodySize = 1500;
-            using (IConnection conn = await cf.CreateConnectionAsync(new List<string> { "localhost" }))
-            {
-                Assert.Equal(cf.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
-                await conn.CloseAsync();
-            }
+            await using IConnection conn = await cf.CreateConnectionAsync(new List<string> { "localhost" });
+            Assert.Equal(cf.MaxInboundMessageBodySize, conn.Endpoint.MaxInboundMessageBodySize);
+            await conn.CloseAsync();
         }
 
         [Fact]
         public async Task TestCreateConnectionAsync_WithAlreadyCanceledToken()
         {
-            using (var cts = new CancellationTokenSource())
-            {
-                cts.Cancel();
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
 
-                ConnectionFactory cf = CreateConnectionFactory();
+            ConnectionFactory cf = CreateConnectionFactory();
 
-                bool passed = false;
-                /*
+            bool passed = false;
+            /*
                  * If anyone wonders why TaskCanceledException is explicitly checked,
                  * even though it's a subclass of OperationCanceledException:
                  * https://github.com/rabbitmq/rabbitmq-dotnet-client/commit/383ca5c5f161edb717cf8fae7bf143c13143f634#r135400615
                  */
-                try
-                {
-                    await cf.CreateConnectionAsync(cts.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                    passed = true;
-                }
-                catch (OperationCanceledException)
-                {
-                    passed = true;
-                }
-
-                Assert.True(passed, "FAIL did not see TaskCanceledException nor OperationCanceledException");
+            try
+            {
+                await cf.CreateConnectionAsync(cts.Token);
             }
+            catch (TaskCanceledException)
+            {
+                passed = true;
+            }
+            catch (OperationCanceledException)
+            {
+                passed = true;
+            }
+
+            Assert.True(passed, "FAIL did not see TaskCanceledException nor OperationCanceledException");
         }
 
         [Fact]
         public async Task TestCreateConnectionAsync_UsesValidEndpointWhenMultipleSupplied()
         {
-            using (var cts = new CancellationTokenSource(WaitSpan))
-            {
-                ConnectionFactory cf = CreateConnectionFactory();
-                var invalidEp = new AmqpTcpEndpoint("not_localhost");
-                var ep = new AmqpTcpEndpoint("localhost");
-                using (IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep }, cts.Token))
-                {
-                    await conn.CloseAsync(cts.Token);
-                }
-            }
+            using var cts = new CancellationTokenSource(WaitSpan);
+            ConnectionFactory cf = CreateConnectionFactory();
+            var invalidEp = new AmqpTcpEndpoint("not_localhost");
+            var ep = new AmqpTcpEndpoint("localhost");
+            await using IConnection conn = await cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { invalidEp, ep }, cts.Token);
+            await conn.CloseAsync(cts.Token);
         }
 
         [Theory]
@@ -451,23 +417,21 @@ namespace Test.Integration
         public async Task TestCreateConnectionAsync_TruncatesWhenClientNameIsLong_GH980(ushort count)
         {
             string cpn = GetUniqueString(count);
-            using (var cts = new CancellationTokenSource(WaitSpan))
+            using var cts = new CancellationTokenSource(WaitSpan);
+            ConnectionFactory cf0 = new ConnectionFactory { ClientProvidedName = cpn };
+            await using (IConnection conn = await cf0.CreateConnectionAsync(cts.Token))
             {
-                ConnectionFactory cf0 = new ConnectionFactory { ClientProvidedName = cpn };
-                using (IConnection conn = await cf0.CreateConnectionAsync(cts.Token))
-                {
-                    await conn.CloseAsync(cts.Token);
-                    Assert.True(cf0.ClientProvidedName.Length <= InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
-                    Assert.Contains(cf0.ClientProvidedName, cpn);
-                }
+                await conn.CloseAsync(cts.Token);
+                Assert.True(cf0.ClientProvidedName.Length <= InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
+                Assert.Contains(cf0.ClientProvidedName, cpn);
+            }
 
-                ConnectionFactory cf1 = new ConnectionFactory();
-                using (IConnection conn = await cf1.CreateConnectionAsync(cpn, cts.Token))
-                {
-                    await conn.CloseAsync(cts.Token);
-                    Assert.True(conn.ClientProvidedName.Length <= InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
-                    Assert.Contains(conn.ClientProvidedName, cpn);
-                }
+            ConnectionFactory cf1 = new ConnectionFactory();
+            await using (IConnection conn = await cf1.CreateConnectionAsync(cpn, cts.Token))
+            {
+                await conn.CloseAsync(cts.Token);
+                Assert.True(conn.ClientProvidedName.Length <= InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
+                Assert.Contains(conn.ClientProvidedName, cpn);
             }
         }
     }

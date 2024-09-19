@@ -264,7 +264,9 @@ namespace RabbitMQ.Client.Framing
             return channel;
         }
 
-        public void Dispose()
+        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+
+        public async ValueTask DisposeAsync()
         {
             if (_disposed)
             {
@@ -273,7 +275,8 @@ namespace RabbitMQ.Client.Framing
 
             try
             {
-                _innerConnection.Dispose();
+                await _innerConnection.DisposeAsync()
+                    .ConfigureAwait(false);
             }
             catch (OperationInterruptedException)
             {

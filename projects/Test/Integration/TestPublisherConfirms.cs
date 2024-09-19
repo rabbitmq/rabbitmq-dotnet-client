@@ -63,10 +63,8 @@ namespace Test.Integration
         {
             return TestWaitForConfirmsAsync(200, async (ch) =>
             {
-                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
-                {
-                    Assert.True(await ch.WaitForConfirmsAsync(cts.Token));
-                }
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
+                Assert.True(await ch.WaitForConfirmsAsync(cts.Token));
             });
         }
 
@@ -78,16 +76,14 @@ namespace Test.Integration
 
             Task t = TestWaitForConfirmsAsync(10000, async (ch) =>
             {
-                using (var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1)))
+                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1));
+                try
                 {
-                    try
-                    {
-                        waitResult = await ch.WaitForConfirmsAsync(cts.Token);
-                    }
-                    catch
-                    {
-                        sawException = true;
-                    }
+                    waitResult = await ch.WaitForConfirmsAsync(cts.Token);
+                }
+                catch
+                {
+                    sawException = true;
                 }
             });
 
@@ -106,10 +102,8 @@ namespace Test.Integration
             {
                 RecoveryAwareChannel actualChannel = ((AutorecoveringChannel)ch).InnerChannel;
                 await actualChannel.HandleAckNack(10UL, false, true);
-                using (var cts = new CancellationTokenSource(ShortSpan))
-                {
-                    Assert.False(await ch.WaitForConfirmsAsync(cts.Token));
-                }
+                using var cts = new CancellationTokenSource(ShortSpan);
+                Assert.False(await ch.WaitForConfirmsAsync(cts.Token));
             });
         }
 
@@ -117,71 +111,67 @@ namespace Test.Integration
         public async Task TestWaitForConfirmsWithEventsAsync()
         {
             string queueName = GenerateQueueName();
-            using (IChannel ch = await _conn.CreateChannelAsync())
+            await using IChannel ch = await _conn.CreateChannelAsync();
+            await ch.ConfirmSelectAsync();
+            await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
+                exclusive: true, autoDelete: false, arguments: null);
+
+            int n = 200;
+            // number of event handler invocations
+            int c = 0;
+
+            ch.BasicAcksAsync += (_, args) =>
             {
-                await ch.ConfirmSelectAsync();
-                await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
-                    exclusive: true, autoDelete: false, arguments: null);
+                Interlocked.Increment(ref c);
+                return Task.CompletedTask;
+            };
 
-                int n = 200;
-                // number of event handler invocations
-                int c = 0;
-
-                ch.BasicAcksAsync += (_, args) =>
+            try
+            {
+                for (int i = 0; i < n; i++)
                 {
-                    Interlocked.Increment(ref c);
-                    return Task.CompletedTask;
-                };
-
-                try
-                {
-                    for (int i = 0; i < n; i++)
-                    {
-                        await ch.BasicPublishAsync("", queueName, _encoding.GetBytes("msg"));
-                    }
-
-                    await ch.WaitForConfirmsAsync();
-
-                    // Note: number of event invocations is not guaranteed
-                    // to be equal to N because acks can be batched,
-                    // so we primarily care about event handlers being invoked
-                    // in this test
-                    Assert.True(c >= 1);
+                    await ch.BasicPublishAsync("", queueName, _encoding.GetBytes("msg"));
                 }
-                finally
-                {
-                    await ch.QueueDeleteAsync(queue: queueName, ifUnused: false, ifEmpty: false);
-                    await ch.CloseAsync();
-                }
+
+                await ch.WaitForConfirmsAsync();
+
+                // Note: number of event invocations is not guaranteed
+                // to be equal to N because acks can be batched,
+                // so we primarily care about event handlers being invoked
+                // in this test
+                Assert.True(c >= 1);
+            }
+            finally
+            {
+                await ch.QueueDeleteAsync(queue: queueName, ifUnused: false, ifEmpty: false);
+                await ch.CloseAsync();
             }
         }
 
         private async Task TestWaitForConfirmsAsync(int numberOfMessagesToPublish, Func<IChannel, Task> fn)
         {
             string queueName = GenerateQueueName();
-            using (IChannel ch = await _conn.CreateChannelAsync())
+            await using IChannel ch = await _conn.CreateChannelAsync();
+            var props = new BasicProperties { Persistent = true };
+
+            await ch.ConfirmSelectAsync();
+            await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
+                exclusive: true, autoDelete: false, arguments: null);
+
+            for (int i = 0; i < numberOfMessagesToPublish; i++)
             {
-                var props = new BasicProperties { Persistent = true };
+                await ch.BasicPublishAsync(exchange: string.Empty, routingKey: queueName,
+                    body: _messageBody, mandatory: true, basicProperties: props);
+            }
 
-                await ch.ConfirmSelectAsync();
-                await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
-                    exclusive: true, autoDelete: false, arguments: null);
-
-                for (int i = 0; i < numberOfMessagesToPublish; i++)
-                {
-                    await ch.BasicPublishAsync(exchange: string.Empty, routingKey: queueName,
-                        body: _messageBody, mandatory: true, basicProperties: props);
-                }
-
-                try
-                {
-                    await fn(ch);
-                }
-                finally
-                {
-                    await ch.QueueDeleteAsync(queue: queueName, ifUnused: false, ifEmpty: false);
-                    await ch.CloseAsync();
-                }
+            try
+            {
+                await fn(ch);
+            }
+            finally
+            {
+                await ch.QueueDeleteAsync(queue: queueName, ifUnused: false, ifEmpty: false);
+                await ch.CloseAsync();
             }
         }
     }

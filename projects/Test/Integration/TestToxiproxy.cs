@@ -66,131 +66,125 @@ namespace Test.Integration
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
 
-            using (var pm = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows))
+            using var pm = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
+            await pm.InitializeAsync();
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Port = pm.ProxyPort;
+            cf.AutomaticRecoveryEnabled = true;
+            cf.NetworkRecoveryInterval = TimeSpan.FromSeconds(1);
+            cf.RequestedHeartbeat = TimeSpan.FromSeconds(1);
+
+            var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var recoverySucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var testSucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            Task pubTask = Task.Run(async () =>
             {
-                await pm.InitializeAsync();
-
-                ConnectionFactory cf = CreateConnectionFactory();
-                cf.Port = pm.ProxyPort;
-                cf.AutomaticRecoveryEnabled = true;
-                cf.NetworkRecoveryInterval = TimeSpan.FromSeconds(1);
-                cf.RequestedHeartbeat = TimeSpan.FromSeconds(1);
-
-                var messagePublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var recoverySucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var testSucceededTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-                Task pubTask = Task.Run(async () =>
+                await using IConnection conn = await cf.CreateConnectionAsync();
+                conn.CallbackExceptionAsync += (s, ea) =>
                 {
-                    using (IConnection conn = await cf.CreateConnectionAsync())
+                    _output.WriteLine($"[ERROR] unexpected callback exception {ea.Detail} {ea.Exception}");
+                    recoverySucceededTcs.SetResult(false);
+                    return Task.CompletedTask;
+                };
+
+                conn.ConnectionRecoveryErrorAsync += (s, ea) =>
+                {
+                    _output.WriteLine($"[ERROR] connection recovery error {ea.Exception}");
+                    recoverySucceededTcs.SetResult(false);
+                    return Task.CompletedTask;
+                };
+
+                conn.ConnectionShutdownAsync += (s, ea) =>
+                {
+                    if (IsVerbose)
                     {
-                        conn.CallbackExceptionAsync += (s, ea) =>
-                        {
-                            _output.WriteLine($"[ERROR] unexpected callback exception {ea.Detail} {ea.Exception}");
-                            recoverySucceededTcs.SetResult(false);
-                            return Task.CompletedTask;
-                        };
+                        _output.WriteLine($"[INFO] connection shutdown");
+                    }
 
-                        conn.ConnectionRecoveryErrorAsync += (s, ea) =>
-                        {
-                            _output.WriteLine($"[ERROR] connection recovery error {ea.Exception}");
-                            recoverySucceededTcs.SetResult(false);
-                            return Task.CompletedTask;
-                        };
-
-                        conn.ConnectionShutdownAsync += (s, ea) =>
-                        {
-                            if (IsVerbose)
-                            {
-                                _output.WriteLine($"[INFO] connection shutdown");
-                            }
-
-                            /*
+                    /*
                              * Note: using TrySetResult because this callback will be called when the
                              * test exits, and connectionShutdownTcs will have already been set
                              */
-                            connectionShutdownTcs.TrySetResult(true);
-                            return Task.CompletedTask;
-                        };
+                    connectionShutdownTcs.TrySetResult(true);
+                    return Task.CompletedTask;
+                };
 
-                        conn.RecoverySucceededAsync += (s, ea) =>
-                        {
-                            if (IsVerbose)
-                            {
-                                _output.WriteLine($"[INFO] connection recovery succeeded");
-                            }
+                conn.RecoverySucceededAsync += (s, ea) =>
+                {
+                    if (IsVerbose)
+                    {
+                        _output.WriteLine($"[INFO] connection recovery succeeded");
+                    }
 
-                            recoverySucceededTcs.SetResult(true);
-                            return Task.CompletedTask;
-                        };
+                    recoverySucceededTcs.SetResult(true);
+                    return Task.CompletedTask;
+                };
 
-                        async Task PublishLoop()
-                        {
-                            using (IChannel ch = await conn.CreateChannelAsync())
-                            {
-                                await ch.ConfirmSelectAsync();
-                                QueueDeclareOk q = await ch.QueueDeclareAsync();
-                                while (conn.IsOpen)
-                                {
-                                    await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                                    messagePublishedTcs.TrySetResult(true);
-                                    /*
+                async Task PublishLoop()
+                {
+                    await using IChannel ch = await conn.CreateChannelAsync();
+                    await ch.ConfirmSelectAsync();
+                    QueueDeclareOk q = await ch.QueueDeclareAsync();
+                    while (conn.IsOpen)
+                    {
+                        await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                        messagePublishedTcs.TrySetResult(true);
+                        /*
                                      * Note:
                                      * In this test, it is possible that the connection
                                      * will be closed before the ack is returned,
                                      * and this await will throw an exception
                                      */
-                                    try
-                                    {
-                                        await ch.WaitForConfirmsAsync();
-                                    }
-                                    catch (AlreadyClosedException ex)
-                                    {
-                                        if (IsVerbose)
-                                        {
-                                            _output.WriteLine($"[WARNING] WaitForConfirmsAsync ex: {ex}");
-                                        }
-                                    }
-                                }
-
-                                await ch.CloseAsync();
-                            }
-                        }
-
                         try
                         {
-                            await PublishLoop();
+                            await ch.WaitForConfirmsAsync();
                         }
-                        catch (Exception ex)
+                        catch (AlreadyClosedException ex)
                         {
                             if (IsVerbose)
                             {
-                                _output.WriteLine($"[WARNING] PublishLoop ex: {ex}");
+                                _output.WriteLine($"[WARNING] WaitForConfirmsAsync ex: {ex}");
                             }
                         }
-
-                        Assert.True(await testSucceededTcs.Task);
-                        await conn.CloseAsync();
                     }
-                });
 
-                Assert.True(await messagePublishedTcs.Task);
+                    await ch.CloseAsync();
+                }
 
-                Task disableProxyTask = pm.DisableAsync();
+                try
+                {
+                    await PublishLoop();
+                }
+                catch (Exception ex)
+                {
+                    if (IsVerbose)
+                    {
+                        _output.WriteLine($"[WARNING] PublishLoop ex: {ex}");
+                    }
+                }
 
-                await Task.WhenAll(disableProxyTask, connectionShutdownTcs.Task);
+                Assert.True(await testSucceededTcs.Task);
+                await conn.CloseAsync();
+            });
 
-                Task enableProxyTask = pm.EnableAsync();
+            Assert.True(await messagePublishedTcs.Task);
 
-                Task whenAllTask = Task.WhenAll(enableProxyTask, recoverySucceededTcs.Task);
-                await whenAllTask.WaitAsync(TimeSpan.FromSeconds(15));
+            Task disableProxyTask = pm.DisableAsync();
 
-                Assert.True(await recoverySucceededTcs.Task);
+            await Task.WhenAll(disableProxyTask, connectionShutdownTcs.Task);
 
-                testSucceededTcs.SetResult(true);
-                await pubTask;
-            }
+            Task enableProxyTask = pm.EnableAsync();
+
+            Task whenAllTask = Task.WhenAll(enableProxyTask, recoverySucceededTcs.Task);
+            await whenAllTask.WaitAsync(TimeSpan.FromSeconds(15));
+
+            Assert.True(await recoverySucceededTcs.Task);
+
+            testSucceededTcs.SetResult(true);
+            await pubTask;
         }
 
         [SkippableFact]
@@ -199,52 +193,46 @@ namespace Test.Integration
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
 
-            using (var pm = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows))
+            using var pm = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
+            await pm.InitializeAsync();
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Port = pm.ProxyPort;
+            cf.RequestedHeartbeat = _heartbeatTimeout;
+            cf.AutomaticRecoveryEnabled = false;
+
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            Task pubTask = Task.Run(async () =>
             {
-                await pm.InitializeAsync();
-
-                ConnectionFactory cf = CreateConnectionFactory();
-                cf.Port = pm.ProxyPort;
-                cf.RequestedHeartbeat = _heartbeatTimeout;
-                cf.AutomaticRecoveryEnabled = false;
-
-                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-                Task pubTask = Task.Run(async () =>
+                await using IConnection conn = await cf.CreateConnectionAsync();
+                await using IChannel ch = await conn.CreateChannelAsync();
+                await ch.ConfirmSelectAsync();
+                QueueDeclareOk q = await ch.QueueDeclareAsync();
+                while (conn.IsOpen)
                 {
-                    using (IConnection conn = await cf.CreateConnectionAsync())
-                    {
-                        using (IChannel ch = await conn.CreateChannelAsync())
-                        {
-                            await ch.ConfirmSelectAsync();
-                            QueueDeclareOk q = await ch.QueueDeclareAsync();
-                            while (conn.IsOpen)
-                            {
-                                await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                                await ch.WaitForConfirmsAsync();
-                                await Task.Delay(TimeSpan.FromSeconds(1));
-                                tcs.TrySetResult(true);
-                            }
+                    await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                    await ch.WaitForConfirmsAsync();
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    tcs.TrySetResult(true);
+                }
 
-                            await ch.CloseAsync();
-                            await conn.CloseAsync();
-                        }
-                    }
-                });
+                await ch.CloseAsync();
+                await conn.CloseAsync();
+            });
 
-                Assert.True(await tcs.Task);
+            Assert.True(await tcs.Task);
 
-                var timeoutToxic = new TimeoutToxic();
-                timeoutToxic.Attributes.Timeout = 0;
-                timeoutToxic.Toxicity = 1.0;
+            var timeoutToxic = new TimeoutToxic();
+            timeoutToxic.Attributes.Timeout = 0;
+            timeoutToxic.Toxicity = 1.0;
 
-                Task<TimeoutToxic> addToxicTask = pm.AddToxicAsync(timeoutToxic);
+            Task<TimeoutToxic> addToxicTask = pm.AddToxicAsync(timeoutToxic);
 
-                await Assert.ThrowsAsync<AlreadyClosedException>(() =>
-                {
-                    return Task.WhenAll(addToxicTask, pubTask);
-                });
-            }
+            await Assert.ThrowsAsync<AlreadyClosedException>(() =>
+            {
+                return Task.WhenAll(addToxicTask, pubTask);
+            });
         }
 
         [SkippableFact]
@@ -253,55 +241,51 @@ namespace Test.Integration
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
 
-            using (var pm = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows))
+            using var pm = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
+            await pm.InitializeAsync();
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), pm.ProxyPort);
+            cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
+            cf.AutomaticRecoveryEnabled = true;
+
+            var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            Task recoveryTask = Task.Run(async () =>
             {
-                await pm.InitializeAsync();
-
-                ConnectionFactory cf = CreateConnectionFactory();
-                cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), pm.ProxyPort);
-                cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
-                cf.AutomaticRecoveryEnabled = true;
-
-                var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var connectionShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-                Task recoveryTask = Task.Run(async () =>
+                await using IConnection conn = await cf.CreateConnectionAsync();
+                conn.ConnectionShutdownAsync += (o, ea) =>
                 {
-                    using (IConnection conn = await cf.CreateConnectionAsync())
-                    {
-                        conn.ConnectionShutdownAsync += (o, ea) =>
-                        {
-                            connectionShutdownTcs.SetResult(true);
-                            return Task.CompletedTask;
-                        };
+                    connectionShutdownTcs.SetResult(true);
+                    return Task.CompletedTask;
+                };
 
-                        using (IChannel ch = await conn.CreateChannelAsync())
-                        {
-                            channelCreatedTcs.SetResult(true);
-                            await WaitForRecoveryAsync(conn);
-                            await ch.CloseAsync();
-                        }
+                await using (IChannel ch = await conn.CreateChannelAsync())
+                {
+                    channelCreatedTcs.SetResult(true);
+                    await WaitForRecoveryAsync(conn);
+                    await ch.CloseAsync();
+                }
 
-                        await conn.CloseAsync();
-                    }
-                });
+                await conn.CloseAsync();
+            });
 
-                Assert.True(await channelCreatedTcs.Task);
+            Assert.True(await channelCreatedTcs.Task);
 
-                const string toxicName = "rmq-localhost-reset_peer";
-                var resetPeerToxic = new ResetPeerToxic();
-                resetPeerToxic.Name = toxicName;
-                resetPeerToxic.Attributes.Timeout = 500;
-                resetPeerToxic.Toxicity = 1.0;
+            const string toxicName = "rmq-localhost-reset_peer";
+            var resetPeerToxic = new ResetPeerToxic();
+            resetPeerToxic.Name = toxicName;
+            resetPeerToxic.Attributes.Timeout = 500;
+            resetPeerToxic.Toxicity = 1.0;
 
-                Task<ResetPeerToxic> addToxicTask = pm.AddToxicAsync(resetPeerToxic);
+            Task<ResetPeerToxic> addToxicTask = pm.AddToxicAsync(resetPeerToxic);
 
-                await Task.WhenAll(addToxicTask, connectionShutdownTcs.Task);
+            await Task.WhenAll(addToxicTask, connectionShutdownTcs.Task);
 
-                await pm.RemoveToxicAsync(toxicName);
+            await pm.RemoveToxicAsync(toxicName);
 
-                await recoveryTask;
-            }
+            await recoveryTask;
         }
 
         private bool AreToxiproxyTestsEnabled

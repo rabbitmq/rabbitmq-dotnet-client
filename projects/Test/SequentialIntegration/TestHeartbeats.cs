@@ -135,35 +135,33 @@ namespace Test.SequentialIntegration
 
         private async Task RunSingleConnectionTestAsync(ConnectionFactory cf)
         {
-            using (IConnection conn = await cf.CreateConnectionAsync(_testDisplayName))
+            await using IConnection conn = await cf.CreateConnectionAsync(_testDisplayName);
+            await using (IChannel ch = await conn.CreateChannelAsync())
             {
-                using (IChannel ch = await conn.CreateChannelAsync())
+                bool wasShutdown = false;
+
+                conn.ConnectionShutdownAsync += (sender, evt) =>
                 {
-                    bool wasShutdown = false;
-
-                    conn.ConnectionShutdownAsync += (sender, evt) =>
+                    lock (conn)
                     {
-                        lock (conn)
+                        if (InitiatedByPeerOrLibrary(evt))
                         {
-                            if (InitiatedByPeerOrLibrary(evt))
-                            {
-                                CheckInitiator(evt);
-                                wasShutdown = true;
-                            }
+                            CheckInitiator(evt);
+                            wasShutdown = true;
                         }
-                        return Task.CompletedTask;
-                    };
+                    }
+                    return Task.CompletedTask;
+                };
 
-                    await SleepFor(30);
+                await SleepFor(30);
 
-                    Assert.False(wasShutdown, "shutdown event should not have been fired");
-                    Assert.True(conn.IsOpen, "connection should be open");
+                Assert.False(wasShutdown, "shutdown event should not have been fired");
+                Assert.True(conn.IsOpen, "connection should be open");
 
-                    await ch.CloseAsync();
-                }
-
-                await conn.CloseAsync();
+                await ch.CloseAsync();
             }
+
+            await conn.CloseAsync();
         }
 
         private bool LongRunningTestsEnabled()

@@ -88,55 +88,53 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
             var exportedItems = new List<Activity>();
-            using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation()
-                       .AddInMemoryExporter(exportedItems)
-                       .Build())
+            using var tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+            string baggageGuid = Guid.NewGuid().ToString();
+            Baggage.SetBaggage("TestItem", baggageGuid);
+            Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
+            await _channel.ConfirmSelectAsync();
+
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            await Task.Delay(500);
+            string queueName = $"{Guid.NewGuid()}";
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+            byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+            byte[] consumeBody = null;
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            var consumerReceivedTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (o, a) =>
             {
-                string baggageGuid = Guid.NewGuid().ToString();
-                Baggage.SetBaggage("TestItem", baggageGuid);
-                Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-                await _channel.ConfirmSelectAsync();
-
-                RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                await Task.Delay(500);
-                string queueName = $"{Guid.NewGuid()}";
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
-                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
-                byte[] consumeBody = null;
-                var consumer = new AsyncEventingBasicConsumer(_channel);
-                var consumerReceivedTcs =
-                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                consumer.ReceivedAsync += (o, a) =>
+                consumeBody = a.Body.ToArray();
+                string baggageItem = Baggage.GetBaggage("TestItem");
+                if (baggageItem == baggageGuid)
                 {
-                    consumeBody = a.Body.ToArray();
-                    string baggageItem = Baggage.GetBaggage("TestItem");
-                    if (baggageItem == baggageGuid)
-                    {
-                        consumerReceivedTcs.SetResult(true);
-                    }
-                    else
-                    {
-                        consumerReceivedTcs.SetException(
-                            EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
-                    }
+                    consumerReceivedTcs.SetResult(true);
+                }
+                else
+                {
+                    consumerReceivedTcs.SetException(
+                        EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
+                }
 
-                    return Task.CompletedTask;
-                };
+                return Task.CompletedTask;
+            };
 
-                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-                await _channel.WaitForConfirmsOrDieAsync();
-                Baggage.ClearBaggage();
-                Assert.Null(Baggage.GetBaggage("TestItem"));
+            string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+            await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
+            await _channel.WaitForConfirmsOrDieAsync();
+            Baggage.ClearBaggage();
+            Assert.Null(Baggage.GetBaggage("TestItem"));
 
-                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.True(await consumerReceivedTcs.Task);
+            await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(await consumerReceivedTcs.Task);
 
-                await _channel.BasicCancelAsync(consumerTag);
-                await Task.Delay(500);
-                AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
-            }
+            await _channel.BasicCancelAsync(consumerTag);
+            await Task.Delay(500);
+            AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
         }
 
         [Theory]
@@ -145,56 +143,54 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
             var exportedItems = new List<Activity>();
-            using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation()
-                       .AddInMemoryExporter(exportedItems)
-                       .Build())
+            using var tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+            string baggageGuid = Guid.NewGuid().ToString();
+            Baggage.SetBaggage("TestItem", baggageGuid);
+            Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
+            await _channel.ConfirmSelectAsync();
+
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            await Task.Delay(500);
+
+            string queueName = $"{Guid.NewGuid()}";
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+            byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+            byte[] consumeBody = null;
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            var consumerReceivedTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (o, a) =>
             {
-                string baggageGuid = Guid.NewGuid().ToString();
-                Baggage.SetBaggage("TestItem", baggageGuid);
-                Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-                await _channel.ConfirmSelectAsync();
-
-                RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                await Task.Delay(500);
-
-                string queueName = $"{Guid.NewGuid()}";
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
-                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
-                byte[] consumeBody = null;
-                var consumer = new AsyncEventingBasicConsumer(_channel);
-                var consumerReceivedTcs =
-                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                consumer.ReceivedAsync += (o, a) =>
+                consumeBody = a.Body.ToArray();
+                string baggageItem = Baggage.GetBaggage("TestItem");
+                if (baggageItem == baggageGuid)
                 {
-                    consumeBody = a.Body.ToArray();
-                    string baggageItem = Baggage.GetBaggage("TestItem");
-                    if (baggageItem == baggageGuid)
-                    {
-                        consumerReceivedTcs.SetResult(true);
-                    }
-                    else
-                    {
-                        consumerReceivedTcs.SetException(
-                            EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
-                    }
+                    consumerReceivedTcs.SetResult(true);
+                }
+                else
+                {
+                    consumerReceivedTcs.SetException(
+                        EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
+                }
 
-                    return Task.CompletedTask;
-                };
+                return Task.CompletedTask;
+            };
 
-                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-                await _channel.WaitForConfirmsOrDieAsync();
-                Baggage.ClearBaggage();
-                Assert.Null(Baggage.GetBaggage("TestItem"));
+            string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+            await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
+            await _channel.WaitForConfirmsOrDieAsync();
+            Baggage.ClearBaggage();
+            Assert.Null(Baggage.GetBaggage("TestItem"));
 
-                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.True(await consumerReceivedTcs.Task);
+            await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(await consumerReceivedTcs.Task);
 
-                await _channel.BasicCancelAsync(consumerTag);
-                await Task.Delay(500);
-                AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
-            }
+            await _channel.BasicCancelAsync(consumerTag);
+            await Task.Delay(500);
+            AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
         }
 
         [Theory]
@@ -203,57 +199,55 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
             var exportedItems = new List<Activity>();
-            using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation()
-                       .AddInMemoryExporter(exportedItems)
-                       .Build())
+            using var tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+            string baggageGuid = Guid.NewGuid().ToString();
+            Baggage.SetBaggage("TestItem", baggageGuid);
+            Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
+            await _channel.ConfirmSelectAsync();
+
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            await Task.Delay(500);
+
+            string queueName = $"{Guid.NewGuid()}";
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+            byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+            byte[] consumeBody = null;
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            var consumerReceivedTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (o, a) =>
             {
-                string baggageGuid = Guid.NewGuid().ToString();
-                Baggage.SetBaggage("TestItem", baggageGuid);
-                Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-                await _channel.ConfirmSelectAsync();
-
-                RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                await Task.Delay(500);
-
-                string queueName = $"{Guid.NewGuid()}";
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
-                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
-                byte[] consumeBody = null;
-                var consumer = new AsyncEventingBasicConsumer(_channel);
-                var consumerReceivedTcs =
-                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                consumer.ReceivedAsync += (o, a) =>
+                consumeBody = a.Body.ToArray();
+                string baggageItem = Baggage.GetBaggage("TestItem");
+                if (baggageItem == baggageGuid)
                 {
-                    consumeBody = a.Body.ToArray();
-                    string baggageItem = Baggage.GetBaggage("TestItem");
-                    if (baggageItem == baggageGuid)
-                    {
-                        consumerReceivedTcs.SetResult(true);
-                    }
-                    else
-                    {
-                        consumerReceivedTcs.SetException(
-                            EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
-                    }
+                    consumerReceivedTcs.SetResult(true);
+                }
+                else
+                {
+                    consumerReceivedTcs.SetException(
+                        EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
+                }
 
-                    return Task.CompletedTask;
-                };
+                return Task.CompletedTask;
+            };
 
-                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", queueName);
-                await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
-                await _channel.WaitForConfirmsOrDieAsync();
-                Baggage.ClearBaggage();
-                Assert.Null(Baggage.GetBaggage("TestItem"));
+            string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+            var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", queueName);
+            await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
+            await _channel.WaitForConfirmsOrDieAsync();
+            Baggage.ClearBaggage();
+            Assert.Null(Baggage.GetBaggage("TestItem"));
 
-                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.True(await consumerReceivedTcs.Task);
+            await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(await consumerReceivedTcs.Task);
 
-                await _channel.BasicCancelAsync(consumerTag);
-                await Task.Delay(500);
-                AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
-            }
+            await _channel.BasicCancelAsync(consumerTag);
+            await Task.Delay(500);
+            AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
         }
 
         [Theory]
@@ -262,58 +256,56 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
             var exportedItems = new List<Activity>();
-            using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation()
-                       .AddInMemoryExporter(exportedItems)
-                       .Build())
+            using var tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+            string baggageGuid = Guid.NewGuid().ToString();
+            Baggage.SetBaggage("TestItem", baggageGuid);
+            Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
+            await _channel.ConfirmSelectAsync();
+
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            await Task.Delay(500);
+
+            string queueName = $"{Guid.NewGuid()}";
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
+            byte[] sendBody = Encoding.UTF8.GetBytes("hi");
+            byte[] consumeBody = null;
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            var consumerReceivedTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (o, a) =>
             {
-                string baggageGuid = Guid.NewGuid().ToString();
-                Baggage.SetBaggage("TestItem", baggageGuid);
-                Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-                await _channel.ConfirmSelectAsync();
-
-                RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                await Task.Delay(500);
-
-                string queueName = $"{Guid.NewGuid()}";
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
-                byte[] sendBody = Encoding.UTF8.GetBytes("hi");
-                byte[] consumeBody = null;
-                var consumer = new AsyncEventingBasicConsumer(_channel);
-                var consumerReceivedTcs =
-                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                consumer.ReceivedAsync += (o, a) =>
+                consumeBody = a.Body.ToArray();
+                string baggageItem = Baggage.GetBaggage("TestItem");
+                if (baggageItem == baggageGuid)
                 {
-                    consumeBody = a.Body.ToArray();
-                    string baggageItem = Baggage.GetBaggage("TestItem");
-                    if (baggageItem == baggageGuid)
-                    {
-                        consumerReceivedTcs.SetResult(true);
-                    }
-                    else
-                    {
-                        consumerReceivedTcs.SetException(
-                            EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
-                    }
+                    consumerReceivedTcs.SetResult(true);
+                }
+                else
+                {
+                    consumerReceivedTcs.SetException(
+                        EqualException.ForMismatchedStrings(baggageGuid, baggageItem, 0, 0));
+                }
 
-                    return Task.CompletedTask;
-                };
+                return Task.CompletedTask;
+            };
 
-                string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-                CachedString exchange = new CachedString("");
-                CachedString routingKey = new CachedString(queueName);
-                await _channel.BasicPublishAsync(exchange, routingKey, sendBody);
-                await _channel.WaitForConfirmsOrDieAsync();
-                Baggage.ClearBaggage();
-                Assert.Null(Baggage.GetBaggage("TestItem"));
+            string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+            CachedString exchange = new CachedString("");
+            CachedString routingKey = new CachedString(queueName);
+            await _channel.BasicPublishAsync(exchange, routingKey, sendBody);
+            await _channel.WaitForConfirmsOrDieAsync();
+            Baggage.ClearBaggage();
+            Assert.Null(Baggage.GetBaggage("TestItem"));
 
-                await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.True(await consumerReceivedTcs.Task);
+            await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(await consumerReceivedTcs.Task);
 
-                await _channel.BasicCancelAsync(consumerTag);
-                await Task.Delay(500);
-                AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
-            }
+            await _channel.BasicCancelAsync(consumerTag);
+            await Task.Delay(500);
+            AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
         }
 
         [Theory]
@@ -322,40 +314,38 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
             var exportedItems = new List<Activity>();
-            using (var tracer = Sdk.CreateTracerProviderBuilder()
-                       .AddRabbitMQInstrumentation()
-                       .AddInMemoryExporter(exportedItems)
-                       .Build())
-            {
-                string baggageGuid = Guid.NewGuid().ToString();
-                Baggage.SetBaggage("TestItem", baggageGuid);
-                Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-                await _channel.ConfirmSelectAsync();
-                RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                await Task.Delay(500);
-                string queue = $"queue-{Guid.NewGuid()}";
-                const string msg = "for basic.get";
+            using var tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+            string baggageGuid = Guid.NewGuid().ToString();
+            Baggage.SetBaggage("TestItem", baggageGuid);
+            Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
+            await _channel.ConfirmSelectAsync();
+            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+            await Task.Delay(500);
+            string queue = $"queue-{Guid.NewGuid()}";
+            const string msg = "for basic.get";
 
-                try
-                {
-                    await _channel.QueueDeclareAsync(queue, false, false, false, null);
-                    await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
-                    await _channel.WaitForConfirmsOrDieAsync();
-                    Baggage.ClearBaggage();
-                    Assert.Null(Baggage.GetBaggage("TestItem"));
-                    QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
-                    Assert.Equal(1u, ok.MessageCount);
-                    BasicGetResult res = await _channel.BasicGetAsync(queue, true);
-                    Assert.Equal(msg, Encoding.UTF8.GetString(res.Body.ToArray()));
-                    ok = await _channel.QueueDeclarePassiveAsync(queue);
-                    Assert.Equal(0u, ok.MessageCount);
-                    await Task.Delay(500);
-                    AssertActivityData(useRoutingKeyAsOperationName, queue, exportedItems, false);
-                }
-                finally
-                {
-                    await _channel.QueueDeleteAsync(queue);
-                }
+            try
+            {
+                await _channel.QueueDeclareAsync(queue, false, false, false, null);
+                await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
+                await _channel.WaitForConfirmsOrDieAsync();
+                Baggage.ClearBaggage();
+                Assert.Null(Baggage.GetBaggage("TestItem"));
+                QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
+                Assert.Equal(1u, ok.MessageCount);
+                BasicGetResult res = await _channel.BasicGetAsync(queue, true);
+                Assert.Equal(msg, Encoding.UTF8.GetString(res.Body.ToArray()));
+                ok = await _channel.QueueDeclarePassiveAsync(queue);
+                Assert.Equal(0u, ok.MessageCount);
+                await Task.Delay(500);
+                AssertActivityData(useRoutingKeyAsOperationName, queue, exportedItems, false);
+            }
+            finally
+            {
+                await _channel.QueueDeleteAsync(queue);
             }
         }
 

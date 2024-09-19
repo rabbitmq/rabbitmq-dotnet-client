@@ -568,6 +568,26 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore()
+                .ConfigureAwait(false);
+
+            Dispose(false);
+        }
+
+        protected virtual async ValueTask DisposeAsyncCore()
+        {
+            if (IsOpen)
+            {
+                await this.AbortAsync().ConfigureAwait(false);
+            }
+
+            ConsumerDispatcher.Dispose();
+            _rpcSemaphore.Dispose();
+            _confirmSemaphore?.Dispose();
+        }
+
         public Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
         {
             var method = new ConnectionTuneOk(channelMax, frameMax, heartbeat);

@@ -23,8 +23,8 @@ static async Task PublishMessagesIndividuallyAsync()
 {
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages individually and handling confirms all at once");
 
-    using IConnection connection = await CreateConnectionAsync();
-    using IChannel channel = await connection.CreateChannelAsync();
+    await using IConnection connection = await CreateConnectionAsync();
+    await using IChannel channel = await connection.CreateChannelAsync();
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
@@ -51,8 +51,8 @@ static async Task PublishMessagesInBatchAsync()
 {
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms in batches");
 
-    using IConnection connection = await CreateConnectionAsync();
-    using IChannel channel = await connection.CreateChannelAsync();
+    await using IConnection connection = await CreateConnectionAsync();
+    await using IChannel channel = await connection.CreateChannelAsync();
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
@@ -97,8 +97,8 @@ async Task HandlePublishConfirmsAsynchronously()
 {
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms asynchronously");
 
-    using IConnection connection = await CreateConnectionAsync();
-    using IChannel channel = await connection.CreateChannelAsync();
+    await using IConnection connection = await CreateConnectionAsync();
+    await using IChannel channel = await connection.CreateChannelAsync();
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();

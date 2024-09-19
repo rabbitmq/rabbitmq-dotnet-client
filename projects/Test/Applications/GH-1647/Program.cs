@@ -11,12 +11,12 @@ ConnectionFactory connectionFactory = new()
 
 var props = new BasicProperties();
 byte[] msg = Encoding.UTF8.GetBytes("test");
-using var connection = await connectionFactory.CreateConnectionAsync();
+await using var connection = await connectionFactory.CreateConnectionAsync();
 for (int i = 0; i < 300; i++)
 {
     try
     {
-        using var channel = await connection.CreateChannelAsync(); // New channel for each message
+        await using var channel = await connection.CreateChannelAsync(); // New channel for each message
         await Task.Delay(1000);
         await channel.BasicPublishAsync(exchange: string.Empty, routingKey: string.Empty,
             mandatory: false, basicProperties: props, body: msg);
