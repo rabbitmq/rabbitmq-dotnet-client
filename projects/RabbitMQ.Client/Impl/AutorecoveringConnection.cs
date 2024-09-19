@@ -265,7 +265,7 @@ namespace RabbitMQ.Client.Framing
         }
 
         public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
-        
+
         public async ValueTask DisposeAsync()
         {
             if (_disposed)
