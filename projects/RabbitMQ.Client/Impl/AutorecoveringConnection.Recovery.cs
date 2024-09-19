@@ -299,12 +299,14 @@ namespace RabbitMQ.Client.Framing
             {
                 try
                 {
-                    var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-                    await using var _ = channel.ConfigureAwait(false);
-                    await recordedExchange.RecoverAsync(channel, cancellationToken)
-                        .ConfigureAwait(false);
-                    await channel.CloseAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                    IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                    await using (channel.ConfigureAwait(false))
+                    {
+                        await recordedExchange.RecoverAsync(channel, cancellationToken)
+                            .ConfigureAwait(false);
+                        await channel.CloseAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -350,7 +352,7 @@ namespace RabbitMQ.Client.Framing
                 try
                 {
                     string newName = string.Empty;
-                    var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                    IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                     await using (channel.ConfigureAwait(false))
                     {
                         newName = await recordedQueue.RecoverAsync(channel, cancellationToken)
@@ -463,12 +465,14 @@ namespace RabbitMQ.Client.Framing
             {
                 try
                 {
-                    var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-                    await using var _ = channel.ConfigureAwait(false);
-                    await binding.RecoverAsync(channel, cancellationToken)
-                        .ConfigureAwait(false);
-                    await channel.CloseAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                    IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                    await using (channel.ConfigureAwait(false))
+                    {
+                        await binding.RecoverAsync(channel, cancellationToken)
+                            .ConfigureAwait(false);
+                        await channel.CloseAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
                 catch (Exception ex)
                 {
