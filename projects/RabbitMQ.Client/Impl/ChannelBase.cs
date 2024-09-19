@@ -563,7 +563,7 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 ConsumerDispatcher.Dispose();
-                _rpcSemaphore?.Dispose();
+                _rpcSemaphore.Dispose();
                 _confirmSemaphore?.Dispose();
             }
         }
