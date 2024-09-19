@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Threading;
 
 namespace RabbitMQ.Client.Events
@@ -38,11 +37,13 @@ namespace RabbitMQ.Client.Events
     ///from an AMQP broker within the Basic content-class.</summary>
     public class BasicAckEventArgs : AsyncEventArgs
     {
-        public BasicAckEventArgs(ulong deliveryTag, bool multiple, CancellationToken cancellationToken = default)
+        public BasicAckEventArgs(ulong deliveryTag, bool multiple, bool returned,
+            CancellationToken cancellationToken = default)
             : base(cancellationToken)
         {
             DeliveryTag = deliveryTag;
             Multiple = multiple;
+            Returned = returned;
         }
 
         ///<summary>The sequence number of the acknowledged message, or
@@ -53,5 +54,10 @@ namespace RabbitMQ.Client.Events
         ///<summary>Whether this acknowledgement applies to one message
         ///or multiple messages.</summary>
         public readonly bool Multiple;
+
+        ///<summary>
+        ///Whether this acknowledgement was due to a <c>basic.return</c>
+        ///</summary>
+        public readonly bool Returned;
     }
 }

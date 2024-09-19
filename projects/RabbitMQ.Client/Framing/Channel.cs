@@ -37,6 +37,8 @@ namespace RabbitMQ.Client.Framing
 {
     internal class Channel : ChannelBase
     {
+        private bool _processedBasicReturn = false;
+
         public Channel(ConnectionConfig config, ISession session, ushort? consumerDispatchConcurrency = null)
             : base(config, session, consumerDispatchConcurrency)
         {
@@ -88,7 +90,13 @@ namespace RabbitMQ.Client.Framing
                     }
                 case ProtocolCommandId.BasicAck:
                     {
-                        return HandleBasicAck(cmd, cancellationToken);
+                        bool returned = false;
+                        if (_processedBasicReturn)
+                        {
+                            returned = true;
+                            _processedBasicReturn = false;
+                        }
+                        return HandleBasicAck(cmd, returned, cancellationToken);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
@@ -96,6 +104,7 @@ namespace RabbitMQ.Client.Framing
                     }
                 case ProtocolCommandId.BasicReturn:
                     {
+                        _processedBasicReturn = true;
                         // Note: always returns true
                         return HandleBasicReturn(cmd, cancellationToken);
                     }

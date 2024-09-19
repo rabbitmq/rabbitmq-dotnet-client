@@ -594,12 +594,12 @@ namespace RabbitMQ.Client.Impl
             return ModelSendAsync(in method, cancellationToken).AsTask();
         }
 
-        protected async Task<bool> HandleBasicAck(IncomingCommand cmd, CancellationToken cancellationToken)
+        protected async Task<bool> HandleBasicAck(IncomingCommand cmd, bool returned, CancellationToken cancellationToken)
         {
             var ack = new BasicAck(cmd.MethodSpan);
             if (!_basicAcksAsyncWrapper.IsEmpty)
             {
-                var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple, cancellationToken);
+                var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple, returned, cancellationToken);
                 await _basicAcksAsyncWrapper.InvokeAsync(this, args)
                     .ConfigureAwait(false);
             }

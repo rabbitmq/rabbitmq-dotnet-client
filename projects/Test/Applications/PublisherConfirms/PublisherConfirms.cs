@@ -6,11 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 
-const int MESSAGE_COUNT = 50_000;
+// const int MESSAGE_COUNT = 50_000;
+const int MESSAGE_COUNT = 21;
 bool debug = false;
 
-await PublishMessagesIndividuallyAsync();
-await PublishMessagesInBatchAsync();
+// await PublishMessagesIndividuallyAsync();
+// await PublishMessagesInBatchAsync();
 await HandlePublishConfirmsAsynchronously();
 
 static Task<IConnection> CreateConnectionAsync()
@@ -19,6 +20,7 @@ static Task<IConnection> CreateConnectionAsync()
     return factory.CreateConnectionAsync();
 }
 
+#if FOO
 static async Task PublishMessagesIndividuallyAsync()
 {
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages individually and handling confirms all at once");
@@ -92,6 +94,7 @@ static async Task PublishMessagesInBatchAsync()
     sw.Stop();
     Console.WriteLine($"{DateTime.Now} [INFO] published {MESSAGE_COUNT:N0} messages in batch in {sw.ElapsedMilliseconds:N0} ms");
 }
+#endif
 
 async Task HandlePublishConfirmsAsynchronously()
 {
@@ -158,7 +161,28 @@ async Task HandlePublishConfirmsAsynchronously()
         }
     }
 
-    channel.BasicAcksAsync += (sender, ea) => CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
+    channel.BasicReturnAsync += (sender, ea) =>
+    {
+        ulong publishSeqNo = 0;
+        if (ea.BasicProperties.Headers is not null)
+        {
+            object? val = ea.BasicProperties.Headers["x-publish-seq-no"];
+            if (val is not null)
+            {
+                publishSeqNo = ulong.Parse(Encoding.ASCII.GetString((byte[])val));
+            }
+        }
+
+        Console.WriteLine($"{DateTime.Now} [WARNING] message has been basic.return-ed, seq no: {publishSeqNo}");
+        return Task.CompletedTask;
+    };
+
+    channel.BasicAcksAsync += (sender, ea) =>
+    {
+        Console.WriteLine($"{DateTime.Now} [INFO] message sequence number: {ea.DeliveryTag} has been acked (multiple: {ea.Multiple}, returned: {ea.Returned})");
+        return CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
+    };
+
     channel.BasicNacksAsync += (sender, ea) =>
     {
         Console.WriteLine($"{DateTime.Now} [WARNING] message sequence number: {ea.DeliveryTag} has been nacked (multiple: {ea.Multiple})");
@@ -168,7 +192,7 @@ async Task HandlePublishConfirmsAsynchronously()
     var sw = new Stopwatch();
     sw.Start();
 
-    var publishTasks = new List<Task>();
+    var publishTasks = new List<ValueTask>();
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         string msg = i.ToString();
@@ -187,11 +211,34 @@ async Task HandlePublishConfirmsAsynchronously()
         {
             semaphore.Release();
         }
-        publishTasks.Add(channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body).AsTask());
+
+        var headers = new Dictionary<string, object?>
+        {
+            ["x-publish-seq-no"] = nextPublishSeqNo.ToString()
+        };
+
+        var props = new BasicProperties
+        {
+            Headers = headers
+        };
+
+        string routingKey = queueName;
+        if (i % 2 == 0)
+        {
+            Console.WriteLine($"{DateTime.Now} [INFO] publishing message {nextPublishSeqNo} with random routing key so it should be returned");
+            routingKey = Guid.NewGuid().ToString();
+        }
+        ValueTask publishTask = channel.BasicPublishAsync(exchange: string.Empty, routingKey: routingKey,
+            mandatory: true, basicProperties: props, body: body);
+        publishTasks.Add(publishTask);
     }
 
     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-    await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
+    // await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
+    foreach (ValueTask vt in publishTasks)
+    {
+        await vt;
+    }
     publishingCompleted = true;
 
     try

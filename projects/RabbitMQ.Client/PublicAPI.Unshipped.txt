@@ -1,0 +1,2 @@
+RabbitMQ.Client.Events.BasicAckEventArgs.BasicAckEventArgs(ulong deliveryTag, bool multiple, bool returned, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+readonly RabbitMQ.Client.Events.BasicAckEventArgs.Returned -> bool
