@@ -50,12 +50,12 @@ namespace RabbitMQ.Client
     ///  Alternatively, an API tutorial can be found in the User Guide.
     /// </para>
     /// <para>
-    /// Extends the <see cref="IDisposable"/> interface, so that the "using"
+    /// Extends the <see cref="IDisposable"/> and the <see cref="IAsyncDisposable"/> interface, so that the "using"
     /// statement can be used to scope the lifetime of a connection when
     /// appropriate.
     /// </para>
     /// </remarks>
-    public interface IConnection : INetworkConnection, IDisposable
+    public interface IConnection : INetworkConnection, IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// The maximum channel number this connection supports (0 if unlimited).

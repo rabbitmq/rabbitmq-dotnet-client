@@ -485,7 +485,9 @@ namespace RabbitMQ.Client.Framing
             return _frameHandler.WriteAsync(frames, cancellationToken);
         }
 
-        public void Dispose()
+        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        
+        public async ValueTask DisposeAsync()
         {
             if (_disposed)
             {
@@ -496,7 +498,8 @@ namespace RabbitMQ.Client.Framing
             {
                 if (IsOpen)
                 {
-                    this.AbortAsync().GetAwaiter().GetResult();
+                    await this.AbortAsync()
+                        .ConfigureAwait(false);
                 }
 
                 _session0.Dispose();
