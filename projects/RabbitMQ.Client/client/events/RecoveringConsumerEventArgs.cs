@@ -30,13 +30,14 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
     /// <summary>
     /// Event related to consumer recovery, during automatic recovery.
     /// </summary>
-    public class RecoveringConsumerEventArgs
+    public class RecoveringConsumerEventArgs : AsyncEventArgs
     {
         /// <summary>
         /// Constructs an event containing the consumer arguments and consumer
@@ -44,7 +45,9 @@ namespace RabbitMQ.Client.Events
         /// </summary>
         /// <param name="consumerTag">Consumer arguments of the consumer for this event</param>
         /// <param name="consumerArguments">Consumer tag of the consumer for this event</param>
-        public RecoveringConsumerEventArgs(string consumerTag, IDictionary<string, object?>? consumerArguments)
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public RecoveringConsumerEventArgs(string consumerTag, IDictionary<string, object?>? consumerArguments, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             ConsumerTag = consumerTag;
             ConsumerArguments = consumerArguments;

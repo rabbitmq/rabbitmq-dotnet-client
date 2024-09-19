@@ -30,17 +30,20 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
-    public sealed class ConsumerTagChangedAfterRecoveryEventArgs : EventArgs
+    public sealed class ConsumerTagChangedAfterRecoveryEventArgs : AsyncEventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsumerTagChangedAfterRecoveryEventArgs"/> class.
         /// </summary>
         /// <param name="tagBefore">The tag before.</param>
         /// <param name="tagAfter">The tag after.</param>
-        public ConsumerTagChangedAfterRecoveryEventArgs(string tagBefore, string tagAfter)
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public ConsumerTagChangedAfterRecoveryEventArgs(string tagBefore, string tagAfter, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             TagBefore = tagBefore;
             TagAfter = tagAfter;

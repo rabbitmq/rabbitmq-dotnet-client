@@ -79,16 +79,16 @@ namespace RabbitMQ.Client.Impl
             ContinuationTimeout = config.ContinuationTimeout;
             ConsumerDispatcher = new AsyncConsumerDispatcher(this,
                 perChannelConsumerDispatchConcurrency.GetValueOrDefault(config.ConsumerDispatchConcurrency));
-            Func<Exception, string, Task> onExceptionAsync = (exception, context) =>
-                OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
+            Func<Exception, string, CancellationToken, Task> onExceptionAsync = (exception, context, cancellationToken) =>
+                OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
             _basicAcksAsyncWrapper = new AsyncEventingWrapper<BasicAckEventArgs>("OnBasicAck", onExceptionAsync);
             _basicNacksAsyncWrapper = new AsyncEventingWrapper<BasicNackEventArgs>("OnBasicNack", onExceptionAsync);
             _basicReturnAsyncWrapper = new AsyncEventingWrapper<BasicReturnEventArgs>("OnBasicReturn", onExceptionAsync);
             _callbackExceptionAsyncWrapper =
-                new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context) => Task.CompletedTask);
+                new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context, cancellationToken) => Task.CompletedTask);
             _flowControlAsyncWrapper = new AsyncEventingWrapper<FlowControlEventArgs>("OnFlowControl", onExceptionAsync);
             _channelShutdownAsyncWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnChannelShutdownAsync", onExceptionAsync);
-            _recoveryAsyncWrapper = new AsyncEventingWrapper<EventArgs>("OnChannelRecovery", onExceptionAsync);
+            _recoveryAsyncWrapper = new AsyncEventingWrapper<AsyncEventArgs>("OnChannelRecovery", onExceptionAsync);
             session.CommandReceived = HandleCommandAsync;
             session.SessionShutdownAsync += OnSessionShutdownAsync;
             Session = session;
@@ -155,17 +155,17 @@ namespace RabbitMQ.Client.Impl
 
         private AsyncEventingWrapper<ShutdownEventArgs> _channelShutdownAsyncWrapper;
 
-        public event AsyncEventHandler<EventArgs> RecoveryAsync
+        public event AsyncEventHandler<AsyncEventArgs> RecoveryAsync
         {
             add => _recoveryAsyncWrapper.AddHandler(value);
             remove => _recoveryAsyncWrapper.RemoveHandler(value);
         }
 
-        private AsyncEventingWrapper<EventArgs> _recoveryAsyncWrapper;
+        private AsyncEventingWrapper<AsyncEventArgs> _recoveryAsyncWrapper;
 
-        internal Task RunRecoveryEventHandlers(object sender)
+        internal Task RunRecoveryEventHandlers(object sender, CancellationToken cancellationToken)
         {
-            return _recoveryAsyncWrapper.InvokeAsync(sender, EventArgs.Empty);
+            return _recoveryAsyncWrapper.InvokeAsync(sender, AsyncEventArgs.CreateOrDefault(cancellationToken));
         }
 
         public int ChannelNumber => ((Session)Session).ChannelNumber;
@@ -408,7 +408,7 @@ namespace RabbitMQ.Client.Impl
             ShutdownEventArgs? reason = CloseReason;
             if (reason != null)
             {
-                await Session.CloseAsync(reason, cancellationToken)
+                await Session.CloseAsync(reason)
                     .ConfigureAwait(false);
             }
 
@@ -494,7 +494,7 @@ namespace RabbitMQ.Client.Impl
 
             if (ConfirmsAreEnabled)
             {
-                await _confirmSemaphore.WaitAsync()
+                await _confirmSemaphore.WaitAsync(reason.CancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
@@ -582,7 +582,7 @@ namespace RabbitMQ.Client.Impl
             var ack = new BasicAck(cmd.MethodSpan);
             if (!_basicAcksAsyncWrapper.IsEmpty)
             {
-                var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple);
+                var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple, cancellationToken);
                 await _basicAcksAsyncWrapper.InvokeAsync(this, args)
                     .ConfigureAwait(false);
             }
@@ -598,7 +598,7 @@ namespace RabbitMQ.Client.Impl
             if (!_basicNacksAsyncWrapper.IsEmpty)
             {
                 var args = new BasicNackEventArgs(
-                    nack._deliveryTag, nack._multiple, nack._requeue);
+                    nack._deliveryTag, nack._multiple, nack._requeue, cancellationToken);
                 await _basicNacksAsyncWrapper.InvokeAsync(this, args)
                     .ConfigureAwait(false);
             }
@@ -641,14 +641,14 @@ namespace RabbitMQ.Client.Impl
             return deliveryTag;
         }
 
-        protected async Task<bool> HandleBasicReturn(IncomingCommand cmd)
+        protected async Task<bool> HandleBasicReturn(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             if (!_basicReturnAsyncWrapper.IsEmpty)
             {
                 var basicReturn = new BasicReturn(cmd.MethodSpan);
                 var e = new BasicReturnEventArgs(basicReturn._replyCode, basicReturn._replyText,
                     basicReturn._exchange, basicReturn._routingKey,
-                    new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory);
+                    new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory, cancellationToken);
                 await _basicReturnAsyncWrapper.InvokeAsync(this, e)
                     .ConfigureAwait(false);
             }
@@ -664,7 +664,7 @@ namespace RabbitMQ.Client.Impl
                 channelClose._classId,
                 channelClose._methodId));
 
-            await Session.CloseAsync(_closeReason, false, cancellationToken)
+            await Session.CloseAsync(_closeReason, notify: false)
                 .ConfigureAwait(false);
 
             var method = new ChannelCloseOk();
@@ -713,7 +713,7 @@ namespace RabbitMQ.Client.Impl
 
             if (!_flowControlAsyncWrapper.IsEmpty)
             {
-                await _flowControlAsyncWrapper.InvokeAsync(this, new FlowControlEventArgs(active))
+                await _flowControlAsyncWrapper.InvokeAsync(this, new FlowControlEventArgs(active, cancellationToken))
                     .ConfigureAwait(false);
             }
 
@@ -723,7 +723,7 @@ namespace RabbitMQ.Client.Impl
         protected async Task<bool> HandleConnectionBlockedAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             string reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
-            await Session.Connection.HandleConnectionBlockedAsync(reason)
+            await Session.Connection.HandleConnectionBlockedAsync(reason, cancellationToken)
                 .ConfigureAwait(false);
             return true;
         }
@@ -801,7 +801,7 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleConnectionUnblockedAsync(CancellationToken cancellationToken)
         {
-            await Session.Connection.HandleConnectionUnblockedAsync()
+            await Session.Connection.HandleConnectionUnblockedAsync(cancellationToken)
                 .ConfigureAwait(false);
             return true;
         }

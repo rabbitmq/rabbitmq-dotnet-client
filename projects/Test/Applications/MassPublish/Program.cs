@@ -81,7 +81,7 @@ namespace MassPublish
                 passive: false, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
             var asyncListener = new AsyncEventingBasicConsumer(consumeChannel);
-            asyncListener.Received += AsyncListener_Received;
+            asyncListener.ReceivedAsync += AsyncListener_Received;
 
             await consumeChannel.QueueBindAsync(queue: QueueName, exchange: ExchangeName, routingKey: RoutingKey, arguments: null);
 

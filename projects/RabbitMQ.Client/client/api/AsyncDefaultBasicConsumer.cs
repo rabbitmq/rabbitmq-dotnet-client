@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
@@ -45,7 +46,7 @@ namespace RabbitMQ.Client
         /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
         ///  for use in acknowledging received messages, for instance.
         /// </summary>
-        public IChannel Channel { get; private set; }
+        public IChannel Channel { get; }
 
         /// <summary>
         ///  Called when the consumer is cancelled for reasons other than by a basicCancel:
@@ -53,25 +54,28 @@ namespace RabbitMQ.Client
         ///  See <see cref="HandleBasicCancelOkAsync"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicCancelAsync(string consumerTag)
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public virtual Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
-            return OnCancel(consumerTag);
+            return OnCancelAsync(new[] { consumerTag }, cancellationToken);
         }
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicCancelOkAsync(string consumerTag)
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public virtual Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
-            return OnCancel(consumerTag);
+            return OnCancelAsync(new[] { consumerTag }, cancellationToken);
         }
 
         /// <summary>
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        public virtual Task HandleBasicConsumeOkAsync(string consumerTag)
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public virtual Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
             _consumerTags.Add(consumerTag);
             IsRunning = true;
@@ -94,7 +98,8 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             IReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body)
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default)
         {
             // Nothing to do here.
             return Task.CompletedTask;
@@ -108,18 +113,20 @@ namespace RabbitMQ.Client
         public virtual Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
         {
             ShutdownReason = reason;
-            return OnCancel(_consumerTags.ToArray());
+            return OnCancelAsync(ConsumerTags, reason.CancellationToken);
         }
 
         /// <summary>
         /// Default implementation - overridable in subclasses.</summary>
-        /// <param name="consumerTags">The set of consumer tags that where cancelled</param>
+        /// <param name="consumerTags">The set of consumer tags that were cancelled</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <remarks>
         /// This default implementation simply sets the <see cref="IsRunning"/> property to false, and takes no further action.
         /// </remarks>
-        public virtual Task OnCancel(params string[] consumerTags)
+        protected virtual Task OnCancelAsync(string[] consumerTags, CancellationToken cancellationToken = default)
         {
             IsRunning = false;
+
             foreach (string consumerTag in consumerTags)
             {
                 _consumerTags.Remove(consumerTag);

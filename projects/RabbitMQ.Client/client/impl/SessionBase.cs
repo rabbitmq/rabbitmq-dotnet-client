@@ -92,12 +92,7 @@ namespace RabbitMQ.Client.Impl
             return $"{GetType().Name}#{ChannelNumber}:{Connection}";
         }
 
-        public Task CloseAsync(ShutdownEventArgs reason, CancellationToken cancellationToken)
-        {
-            return CloseAsync(reason, true, cancellationToken);
-        }
-
-        public Task CloseAsync(ShutdownEventArgs reason, bool notify, CancellationToken cancellationToken)
+        public Task CloseAsync(ShutdownEventArgs reason, bool notify = true)
         {
             if (Interlocked.CompareExchange(ref _closeReason, reason, null) is null)
             {
@@ -155,7 +150,7 @@ namespace RabbitMQ.Client.Impl
 
         private Task OnConnectionShutdownAsync(object? conn, ShutdownEventArgs reason)
         {
-            return CloseAsync(reason, CancellationToken.None);
+            return CloseAsync(reason);
         }
 
         private Task OnSessionShutdownAsync(ShutdownEventArgs reason)

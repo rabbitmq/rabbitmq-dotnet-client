@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -62,7 +63,8 @@ namespace Test.Integration
                 string exchange,
                 string routingKey,
                 IReadOnlyBasicProperties properties,
-                ReadOnlyMemory<byte> body)
+                ReadOnlyMemory<byte> body,
+                CancellationToken cancellationToken = default)
             {
                 throw new Exception("I am a bad consumer");
             }

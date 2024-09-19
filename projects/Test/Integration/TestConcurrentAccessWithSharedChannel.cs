@@ -82,7 +82,7 @@ namespace Test.Integration
 
                 var consumer = new AsyncEventingBasicConsumer(_channel);
 
-                consumer.Received += async (object sender, BasicDeliverEventArgs ea) =>
+                consumer.ReceivedAsync += async (object sender, BasicDeliverEventArgs ea) =>
                 {
                     try
                     {

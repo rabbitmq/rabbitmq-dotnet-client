@@ -93,7 +93,7 @@ namespace Test.Integration.ConnectionRecovery
             await _channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: routingKey);
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += MessageReceived;
+            consumer.ReceivedAsync += MessageReceived;
             await _channel.BasicConsumeAsync(queueName, true, consumer);
 
             using (IChannel pubCh = await _conn.CreateChannelAsync())

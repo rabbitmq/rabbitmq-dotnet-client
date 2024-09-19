@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Framing.Impl
             ConnectionShutdownAsync += HandleConnectionShutdownAsync;
 
             _recoverySucceededAsyncWrapper =
-                new AsyncEventingWrapper<EventArgs>("OnConnectionRecovery", onExceptionAsync);
+                new AsyncEventingWrapper<AsyncEventArgs>("OnConnectionRecovery", onExceptionAsync);
 
             _connectionRecoveryErrorAsyncWrapper =
                 new AsyncEventingWrapper<ConnectionRecoveryErrorEventArgs>("OnConnectionRecoveryError", onExceptionAsync);
@@ -83,8 +83,8 @@ namespace RabbitMQ.Client.Framing.Impl
             _recoveringConsumerAsyncWrapper =
                 new AsyncEventingWrapper<RecoveringConsumerEventArgs>("OnRecoveringConsumer", onExceptionAsync);
 
-            Task onExceptionAsync(Exception exception, string context) =>
-                _innerConnection.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context));
+            Task onExceptionAsync(Exception exception, string context, CancellationToken cancellationToken) =>
+                _innerConnection.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
         }
 
         internal static async ValueTask<AutorecoveringConnection> CreateAsync(ConnectionConfig config, IEndpointResolver endpoints,
@@ -99,12 +99,12 @@ namespace RabbitMQ.Client.Framing.Impl
             return connection;
         }
 
-        public event AsyncEventHandler<EventArgs> RecoverySucceededAsync
+        public event AsyncEventHandler<AsyncEventArgs> RecoverySucceededAsync
         {
             add => _recoverySucceededAsyncWrapper.AddHandler(value);
             remove => _recoverySucceededAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<EventArgs> _recoverySucceededAsyncWrapper;
+        private AsyncEventingWrapper<AsyncEventArgs> _recoverySucceededAsyncWrapper;
 
         public event AsyncEventHandler<ConnectionRecoveryErrorEventArgs> ConnectionRecoveryErrorAsync
         {
@@ -131,7 +131,7 @@ namespace RabbitMQ.Client.Framing.Impl
             remove => InnerConnection.ConnectionShutdownAsync -= value;
         }
 
-        public event AsyncEventHandler<EventArgs> ConnectionUnblockedAsync
+        public event AsyncEventHandler<AsyncEventArgs> ConnectionUnblockedAsync
         {
             add => InnerConnection.ConnectionUnblockedAsync += value;
             remove => InnerConnection.ConnectionUnblockedAsync -= value;

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Impl;
 
@@ -19,69 +20,69 @@ namespace RabbitMQ.Client.Events
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.
         /// </remarks>
-        public event AsyncEventHandler<BasicDeliverEventArgs> Received
+        public event AsyncEventHandler<BasicDeliverEventArgs> ReceivedAsync
         {
-            add => _receivedWrapper.AddHandler(value);
-            remove => _receivedWrapper.RemoveHandler(value);
+            add => _receivedAsyncWrapper.AddHandler(value);
+            remove => _receivedAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<BasicDeliverEventArgs> _receivedWrapper;
+        private AsyncEventingWrapper<BasicDeliverEventArgs> _receivedAsyncWrapper;
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public event AsyncEventHandler<ConsumerEventArgs> Registered
+        public event AsyncEventHandler<ConsumerEventArgs> RegisteredAsync
         {
-            add => _registeredWrapper.AddHandler(value);
-            remove => _registeredWrapper.RemoveHandler(value);
+            add => _registeredAsyncWrapper.AddHandler(value);
+            remove => _registeredAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<ConsumerEventArgs> _registeredWrapper;
+        private AsyncEventingWrapper<ConsumerEventArgs> _registeredAsyncWrapper;
 
         ///<summary>Fires on channel shutdown, both client and server initiated.</summary>
-        public event AsyncEventHandler<ShutdownEventArgs> Shutdown
+        public event AsyncEventHandler<ShutdownEventArgs> ShutdownAsync
         {
-            add => _shutdownWrapper.AddHandler(value);
-            remove => _shutdownWrapper.RemoveHandler(value);
+            add => _shutdownAsyncWrapper.AddHandler(value);
+            remove => _shutdownAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<ShutdownEventArgs> _shutdownWrapper;
+        private AsyncEventingWrapper<ShutdownEventArgs> _shutdownAsyncWrapper;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public event AsyncEventHandler<ConsumerEventArgs> Unregistered
+        public event AsyncEventHandler<ConsumerEventArgs> UnregisteredAsync
         {
-            add => _unregisteredWrapper.AddHandler(value);
-            remove => _unregisteredWrapper.RemoveHandler(value);
+            add => _unregisteredAsyncWrapper.AddHandler(value);
+            remove => _unregisteredAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<ConsumerEventArgs> _unregisteredWrapper;
+        private AsyncEventingWrapper<ConsumerEventArgs> _unregisteredAsyncWrapper;
 
         ///<summary>Fires when the server confirms successful consumer cancellation.</summary>
-        public override async Task OnCancel(params string[] consumerTags)
+        protected override async Task OnCancelAsync(string[] consumerTags, CancellationToken cancellationToken = default)
         {
-            await base.OnCancel(consumerTags)
+            await base.OnCancelAsync(consumerTags, cancellationToken)
                 .ConfigureAwait(false);
-            if (!_unregisteredWrapper.IsEmpty)
+            if (!_unregisteredAsyncWrapper.IsEmpty)
             {
-                await _unregisteredWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags))
+                await _unregisteredAsyncWrapper.InvokeAsync(this, new ConsumerEventArgs(consumerTags, cancellationToken))
                     .ConfigureAwait(false);
             }
         }
 
         ///<summary>Fires when the server confirms successful consumer registration.</summary>
-        public override async Task HandleBasicConsumeOkAsync(string consumerTag)
+        public override async Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
-            await base.HandleBasicConsumeOkAsync(consumerTag)
+            await base.HandleBasicConsumeOkAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
-            if (!_registeredWrapper.IsEmpty)
+            if (!_registeredAsyncWrapper.IsEmpty)
             {
-                await _registeredWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }))
+                await _registeredAsyncWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }, cancellationToken))
                     .ConfigureAwait(false);
             }
         }
 
         ///<summary>Fires the Received event.</summary>
         public override Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+            IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
         {
-            var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+            var deliverEventArgs = new BasicDeliverEventArgs(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body, cancellationToken);
 
             // No need to call base, it's empty.
-            return _receivedWrapper.InvokeAsync(this, deliverEventArgs);
+            return _receivedAsyncWrapper.InvokeAsync(this, deliverEventArgs);
         }
 
         ///<summary>Fires the Shutdown event.</summary>
@@ -89,9 +90,9 @@ namespace RabbitMQ.Client.Events
         {
             await base.HandleChannelShutdownAsync(channel, reason)
                 .ConfigureAwait(false);
-            if (!_shutdownWrapper.IsEmpty)
+            if (!_shutdownAsyncWrapper.IsEmpty)
             {
-                await _shutdownWrapper.InvokeAsync(this, reason)
+                await _shutdownAsyncWrapper.InvokeAsync(this, reason)
                     .ConfigureAwait(false);
             }
         }

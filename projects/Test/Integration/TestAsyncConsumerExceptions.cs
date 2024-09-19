@@ -136,7 +136,8 @@ namespace Test.Integration
                 string exchange,
                 string routingKey,
                 IReadOnlyBasicProperties properties,
-                ReadOnlyMemory<byte> body)
+                ReadOnlyMemory<byte> body,
+                CancellationToken cancellationToken = default)
             {
                 return Task.FromException(TestException);
             }
@@ -148,7 +149,8 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicCancelAsync(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 return Task.FromException(TestException);
             }
@@ -172,7 +174,8 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicConsumeOkAsync(string consumerTag)
+            public override Task HandleBasicConsumeOkAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 return Task.FromException(TestException);
             }
@@ -184,7 +187,8 @@ namespace Test.Integration
             {
             }
 
-            public override Task HandleBasicCancelOkAsync(string consumerTag)
+            public override Task HandleBasicCancelOkAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 return Task.FromException(TestException);
             }

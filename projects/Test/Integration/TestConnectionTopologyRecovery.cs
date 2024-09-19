@@ -71,7 +71,7 @@ namespace Test.Integration
             await AssertConsumerCountAsync(_channel, q, 1);
 
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            cons.Received += (s, args) =>
+            cons.ReceivedAsync += (s, args) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;
@@ -285,7 +285,7 @@ namespace Test.Integration
 
                 var consumerReceivedTcs1 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var consumer1 = new AsyncEventingBasicConsumer(ch);
-                consumer1.Received += (source, ea) =>
+                consumer1.ReceivedAsync += (source, ea) =>
                 {
                     consumerReceivedTcs1.SetResult(true);
                     return Task.CompletedTask;
@@ -294,7 +294,7 @@ namespace Test.Integration
 
                 var consumerReceivedTcs2 = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var consumer2 = new AsyncEventingBasicConsumer(ch);
-                consumer2.Received += (source, ea) =>
+                consumer2.ReceivedAsync += (source, ea) =>
                 {
                     consumerReceivedTcs2.SetResult(true);
                     return Task.CompletedTask;
@@ -569,7 +569,7 @@ namespace Test.Integration
 
                 var recoveredConsumerReceivedTcs = new ManualResetEventSlim(false);
                 var consumerToRecover = new AsyncEventingBasicConsumer(ch);
-                consumerToRecover.Received += (source, ea) =>
+                consumerToRecover.ReceivedAsync += (source, ea) =>
                 {
                     recoveredConsumerReceivedTcs.Set();
                     return Task.CompletedTask;

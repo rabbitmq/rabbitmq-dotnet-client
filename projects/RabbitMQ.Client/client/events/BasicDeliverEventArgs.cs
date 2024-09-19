@@ -30,12 +30,13 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
     ///<summary>Contains all the information about a message delivered
     ///from an AMQP broker within the Basic content-class.</summary>
-    public class BasicDeliverEventArgs : EventArgs
+    public class BasicDeliverEventArgs : AsyncEventArgs
     {
         ///<summary>Constructor that fills the event's properties from
         ///its arguments.</summary>
@@ -45,7 +46,8 @@ namespace RabbitMQ.Client.Events
             string exchange,
             string routingKey,
             IReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body) : base()
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default) : base(cancellationToken)
         {
             ConsumerTag = consumerTag;
             DeliveryTag = deliveryTag;
@@ -65,7 +67,7 @@ namespace RabbitMQ.Client.Events
         /// </para>
         /// <para>
         ///   NOTE: Using this memory outside of
-        ///   <c><seealso cref="AsyncEventingBasicConsumer.Received"/></c>
+        ///   <c><seealso cref="AsyncEventingBasicConsumer.ReceivedAsync"/></c>
         ///   requires that it be copied!
         ///   <example>
         ///   This shows how to copy the data for use:

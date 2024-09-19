@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 case ProtocolCommandId.BasicReturn:
                     {
                         // Note: always returns true
-                        return HandleBasicReturn(cmd);
+                        return HandleBasicReturn(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ChannelClose:
                     {

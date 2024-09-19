@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client
 {
@@ -39,7 +41,8 @@ namespace RabbitMQ.Client
     /// <remarks>
     /// The <see cref="ClassId"/> and <see cref="Initiator"/> properties should be used to determine the originator of the shutdown event.
     /// </remarks>
-    public class ShutdownEventArgs : EventArgs
+    /// TODO: Should this be moved to the events folder and the namespace be adjusted?
+    public class ShutdownEventArgs : AsyncEventArgs
     {
         private readonly Exception? _exception;
 
@@ -48,8 +51,8 @@ namespace RabbitMQ.Client
         ///  0 for <see cref="ClassId"/> and <see cref="MethodId"/>.
         /// </summary>
         public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText,
-            object? cause = null)
-            : this(initiator, replyCode, replyText, 0, 0, cause)
+            object? cause = null, CancellationToken cancellationToken = default)
+            : this(initiator, replyCode, replyText, 0, 0, cause, cancellationToken: cancellationToken)
         {
         }
 
@@ -57,7 +60,8 @@ namespace RabbitMQ.Client
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters.
         /// </summary>
         public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText,
-            ushort classId, ushort methodId, object? cause = null)
+            ushort classId, ushort methodId, object? cause = null, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             Initiator = initiator;
             ReplyCode = replyCode;
@@ -70,8 +74,8 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters.
         /// </summary>
-        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, Exception exception)
-            : this(initiator, replyCode, replyText, 0, 0)
+        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, Exception exception, CancellationToken cancellationToken = default)
+            : this(initiator, replyCode, replyText, 0, 0, cancellationToken: cancellationToken)
         {
             _exception = exception ?? throw new ArgumentNullException(nameof(exception));
         }

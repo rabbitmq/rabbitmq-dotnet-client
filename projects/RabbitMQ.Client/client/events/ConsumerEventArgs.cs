@@ -30,16 +30,18 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
     ///<summary>Event relating to a successful consumer registration
     ///or cancellation.</summary>
-    public class ConsumerEventArgs : EventArgs
+    public class ConsumerEventArgs : AsyncEventArgs
     {
         ///<summary>Construct an event containing the consumer-tags of
         ///the consumer the event relates to.</summary>
-        public ConsumerEventArgs(string[] consumerTags)
+        public ConsumerEventArgs(string[] consumerTags, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             ConsumerTags = consumerTags;
         }

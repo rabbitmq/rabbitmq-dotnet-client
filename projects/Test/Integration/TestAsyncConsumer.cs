@@ -105,7 +105,7 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     if (ByteArraysEqual(a.Body.Span, body1))
                     {
@@ -274,7 +274,7 @@ namespace Test.Integration
                                     };
 
                                     var consumer = new AsyncEventingBasicConsumer(consumeChannel);
-                                    consumer.Received += (o, a) =>
+                                    consumer.ReceivedAsync += (o, a) =>
                                     {
                                         if (ByteArraysEqual(a.Body.ToArray(), body1))
                                         {
@@ -370,7 +370,7 @@ namespace Test.Integration
                 };
 
                 var consumer = new AsyncEventingBasicConsumer(_channel);
-                consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+                consumer.ReceivedAsync += async (object sender, BasicDeliverEventArgs args) =>
                 {
                     var c = sender as AsyncEventingBasicConsumer;
                     Assert.Same(c, consumer);
@@ -470,7 +470,7 @@ namespace Test.Integration
             await _channel.ConfirmSelectAsync();
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+            consumer.ReceivedAsync += async (object sender, BasicDeliverEventArgs args) =>
             {
                 var c = sender as AsyncEventingBasicConsumer;
                 Assert.NotNull(c);
@@ -534,7 +534,7 @@ namespace Test.Integration
             };
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += async (object sender, BasicDeliverEventArgs args) =>
+            consumer.ReceivedAsync += async (object sender, BasicDeliverEventArgs args) =>
             {
                 var c = sender as AsyncEventingBasicConsumer;
                 Assert.NotNull(c);
@@ -651,7 +651,7 @@ namespace Test.Integration
             await _channel.QueueBindAsync(queue2Name, exchangeName, queue2Name);
 
             var consumer1 = new AsyncEventingBasicConsumer(_channel);
-            consumer1.Received += async (sender, args) =>
+            consumer1.ReceivedAsync += async (sender, args) =>
             {
                 using (IChannel innerChannel = await _conn.CreateChannelAsync())
                 {
@@ -666,7 +666,7 @@ namespace Test.Integration
             await _channel.BasicConsumeAsync(queue1Name, autoAck: true, consumer1);
 
             var consumer2 = new AsyncEventingBasicConsumer(_channel);
-            consumer2.Received += async (sender, args) =>
+            consumer2.ReceivedAsync += async (sender, args) =>
             {
                 tcs.TrySetResult(true);
                 await Task.Yield();
@@ -691,7 +691,7 @@ namespace Test.Integration
             string queueName = q.QueueName;
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += async (_, eventArgs) =>
+            consumer.ReceivedAsync += async (_, eventArgs) =>
             {
                 await _channel.BasicCancelAsync(eventArgs.ConsumerTag);
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -780,29 +780,35 @@ namespace Test.Integration
                 _output = output;
             }
 
-            public override Task HandleBasicCancelAsync(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicCancelAsync {1}", _logPrefix, consumerTag);
-                return base.HandleBasicCancelAsync(consumerTag);
+                return base.HandleBasicCancelAsync(consumerTag, cancellationToken);
             }
 
-            public override Task HandleBasicCancelOkAsync(string consumerTag)
+            public override Task HandleBasicCancelOkAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicCancelOkAsync {1}", _logPrefix, consumerTag);
-                return base.HandleBasicCancelOkAsync(consumerTag);
+                return base.HandleBasicCancelOkAsync(consumerTag, cancellationToken);
             }
 
-            public override Task HandleBasicConsumeOkAsync(string consumerTag)
+            public override Task HandleBasicConsumeOkAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicConsumeOkAsync {1}", _logPrefix, consumerTag);
-                return base.HandleBasicConsumeOkAsync(consumerTag);
+                return base.HandleBasicConsumeOkAsync(consumerTag, cancellationToken);
             }
 
             public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+                string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicDeliverAsync {1}", _logPrefix, consumerTag);
-                await base.HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+                await base.HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered,
+                    exchange, routingKey, properties, body,
+                    cancellationToken);
             }
 
             public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
@@ -811,10 +817,11 @@ namespace Test.Integration
                 return base.HandleChannelShutdownAsync(channel, reason);
             }
 
-            public override Task OnCancel(params string[] consumerTags)
+            protected override Task OnCancelAsync(string[] consumerTags,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} OnCancel {1}", _logPrefix, consumerTags[0]);
-                return base.OnCancel(consumerTags);
+                return base.OnCancelAsync(consumerTags, cancellationToken);
             }
         }
     }

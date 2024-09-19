@@ -30,12 +30,14 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
-    public sealed class ConnectionRecoveryErrorEventArgs : EventArgs
+    public sealed class ConnectionRecoveryErrorEventArgs : AsyncEventArgs
     {
-        public ConnectionRecoveryErrorEventArgs(Exception ex)
+        public ConnectionRecoveryErrorEventArgs(Exception ex, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             Exception = ex;
         }

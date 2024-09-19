@@ -30,12 +30,13 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
     ///<summary>Contains all the information about a message returned
     ///from an AMQP broker within the Basic content-class.</summary>
-    public class BasicReturnEventArgs : EventArgs
+    public class BasicReturnEventArgs : AsyncEventArgs
     {
         public BasicReturnEventArgs(
             ushort replyCode,
@@ -43,7 +44,8 @@ namespace RabbitMQ.Client.Events
             string exchange,
             string routingKey,
             IReadOnlyBasicProperties basicProperties,
-            ReadOnlyMemory<byte> body) : base()
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default) : base(cancellationToken)
         {
             ReplyCode = replyCode;
             ReplyText = replyText;

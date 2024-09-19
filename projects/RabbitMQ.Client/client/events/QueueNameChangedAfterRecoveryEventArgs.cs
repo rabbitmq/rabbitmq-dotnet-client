@@ -30,17 +30,20 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 
 namespace RabbitMQ.Client.Events
 {
-    public sealed class QueueNameChangedAfterRecoveryEventArgs : EventArgs
+    public sealed class QueueNameChangedAfterRecoveryEventArgs : AsyncEventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueNameChangedAfterRecoveryEventArgs"/> class.
         /// </summary>
         /// <param name="nameBefore">The name before.</param>
         /// <param name="nameAfter">The name after.</param>
-        public QueueNameChangedAfterRecoveryEventArgs(string nameBefore, string nameAfter)
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public QueueNameChangedAfterRecoveryEventArgs(string nameBefore, string nameAfter, CancellationToken cancellationToken = default)
+            : base(cancellationToken)
         {
             NameBefore = nameBefore;
             NameAfter = nameAfter;

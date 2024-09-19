@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
@@ -20,19 +21,22 @@ namespace RabbitMQ.Client
         /// See <see cref="HandleBasicCancelOkAsync"/> for notification of consumer cancellation due to basicCancel
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicCancelAsync(string consumerTag);
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Called upon successful deregistration of the consumer from the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicCancelOkAsync(string consumerTag);
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        Task HandleBasicConsumeOkAsync(string consumerTag);
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Called each time a message arrives for this consumer.
@@ -44,7 +48,7 @@ namespace RabbitMQ.Client
         ///  </para>
         ///  <para>
         ///    NOTE: Using the <c>body</c> outside of
-        ///    <c><seealso cref="IAsyncBasicConsumer.HandleBasicDeliverAsync(string, ulong, bool, string, string, IReadOnlyBasicProperties, ReadOnlyMemory{byte})"/></c>
+        ///    <c><seealso cref="IAsyncBasicConsumer.HandleBasicDeliverAsync(string, ulong, bool, string, string, IReadOnlyBasicProperties, ReadOnlyMemory{byte}, CancellationToken)"/></c>
         ///    requires that it be copied!
         ///  </para>
         /// </remarks>
@@ -55,7 +59,8 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             IReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body);
+            ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Called when the channel shuts down.

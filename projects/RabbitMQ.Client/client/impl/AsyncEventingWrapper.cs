@@ -1,45 +1,46 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal struct AsyncEventingWrapper<T>
+    internal struct AsyncEventingWrapper<TEvent> where TEvent : AsyncEventArgs
     {
-        private event AsyncEventHandler<T>? _event;
+        private event AsyncEventHandler<TEvent>? _eventHandler;
         private Delegate[]? _handlers;
         private string? _context;
-        private Func<Exception, string, Task>? _onException;
+        private Func<Exception, string, CancellationToken, Task>? _onException;
 
-        public readonly bool IsEmpty => _event is null;
+        public bool IsEmpty => _eventHandler is null;
 
-        public AsyncEventingWrapper(string context, Func<Exception, string, Task> onException)
+        public AsyncEventingWrapper(string context, Func<Exception, string, CancellationToken, Task> onException)
         {
-            _event = null;
+            _eventHandler = null;
             _handlers = null;
             _context = context;
             _onException = onException;
         }
 
-        public void AddHandler(AsyncEventHandler<T>? handler)
+        public void AddHandler(AsyncEventHandler<TEvent>? handler)
         {
-            _event += handler;
+            _eventHandler += handler;
             _handlers = null;
         }
 
-        public void RemoveHandler(AsyncEventHandler<T>? handler)
+        public void RemoveHandler(AsyncEventHandler<TEvent>? handler)
         {
-            _event -= handler;
+            _eventHandler -= handler;
             _handlers = null;
         }
 
         // Do not make this function async! (This type is a struct that gets copied at the start of an async method => empty _handlers is copied)
-        public Task InvokeAsync(object sender, T parameter)
+        public Task InvokeAsync(object sender, TEvent parameter)
         {
             Delegate[]? handlers = _handlers;
             if (handlers is null)
             {
-                handlers = _event?.GetInvocationList();
+                handlers = _eventHandler?.GetInvocationList();
                 if (handlers is null)
                 {
                     return Task.CompletedTask;
@@ -51,20 +52,20 @@ namespace RabbitMQ.Client.Impl
             return InternalInvoke(handlers, sender, parameter);
         }
 
-        private readonly async Task InternalInvoke(Delegate[] handlers, object sender, T parameter)
+        private readonly async Task InternalInvoke(Delegate[] handlers, object sender, TEvent @event)
         {
-            foreach (AsyncEventHandler<T> action in handlers)
+            foreach (AsyncEventHandler<TEvent> action in handlers)
             {
                 try
                 {
-                    await action(sender, parameter)
+                    await action(sender, @event)
                         .ConfigureAwait(false);
                 }
                 catch (Exception exception)
                 {
                     if (_onException != null)
                     {
-                        await _onException(exception, _context!)
+                        await _onException(exception, _context!, @event.CancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
@@ -75,9 +76,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void Takeover(in AsyncEventingWrapper<T> other)
+        public void Takeover(in AsyncEventingWrapper<TEvent> other)
         {
-            _event = other._event;
+            _eventHandler = other._eventHandler;
             _handlers = other._handlers;
             _context = other._context;
             _onException = other._onException;

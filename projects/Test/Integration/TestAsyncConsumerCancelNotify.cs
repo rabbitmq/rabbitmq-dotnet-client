@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -73,7 +74,7 @@ namespace Test.Integration
             string consumerTag2 = await _channel.BasicConsumeAsync(q2, true, consumer);
 
             string notifiedConsumerTag = null;
-            consumer.Unregistered += (sender, args) =>
+            consumer.UnregisteredAsync += (sender, args) =>
             {
                 notifiedConsumerTag = args.ConsumerTags.First();
                 _tcs.TrySetResult(true);
@@ -110,11 +111,12 @@ namespace Test.Integration
                 _eventMode = eventMode;
                 if (eventMode)
                 {
-                    Unregistered += CancelledAsync;
+                    UnregisteredAsync += CancelledAsync;
                 }
             }
 
-            public override Task HandleBasicCancelAsync(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 if (!_eventMode)
                 {
@@ -122,7 +124,7 @@ namespace Test.Integration
                     _testClass._tcs.SetResult(true);
                 }
 
-                return base.HandleBasicCancelAsync(consumerTag);
+                return base.HandleBasicCancelAsync(consumerTag, cancellationToken);
             }
 
             private Task CancelledAsync(object sender, ConsumerEventArgs arg)

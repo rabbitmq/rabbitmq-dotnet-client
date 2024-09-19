@@ -107,7 +107,7 @@ namespace Test.SequentialIntegration
                 var consumer = new AsyncEventingBasicConsumer(_channel);
                 var consumerReceivedTcs =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     consumeBody = a.Body.ToArray();
                     string baggageItem = Baggage.GetBaggage("TestItem");
@@ -165,7 +165,7 @@ namespace Test.SequentialIntegration
                 var consumer = new AsyncEventingBasicConsumer(_channel);
                 var consumerReceivedTcs =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     consumeBody = a.Body.ToArray();
                     string baggageItem = Baggage.GetBaggage("TestItem");
@@ -223,7 +223,7 @@ namespace Test.SequentialIntegration
                 var consumer = new AsyncEventingBasicConsumer(_channel);
                 var consumerReceivedTcs =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     consumeBody = a.Body.ToArray();
                     string baggageItem = Baggage.GetBaggage("TestItem");
@@ -282,7 +282,7 @@ namespace Test.SequentialIntegration
                 var consumer = new AsyncEventingBasicConsumer(_channel);
                 var consumerReceivedTcs =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     consumeBody = a.Body.ToArray();
                     string baggageItem = Baggage.GetBaggage("TestItem");
