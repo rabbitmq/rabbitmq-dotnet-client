@@ -16,7 +16,7 @@
     <AssemblyOriginatorKeyFile>../../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <IsTestProject>true</IsTestProject>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
