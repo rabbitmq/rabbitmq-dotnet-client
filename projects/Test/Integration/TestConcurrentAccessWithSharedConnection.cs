@@ -60,10 +60,8 @@ namespace Test.Integration
         {
             await TestConcurrentOperationsAsync(async () =>
             {
-                using (IChannel ch = await _conn.CreateChannelAsync())
-                {
-                    await ch.CloseAsync();
-                }
+                await using IChannel ch = await _conn.CreateChannelAsync();
+                await ch.CloseAsync();
             }, 50);
         }
 
@@ -110,47 +108,45 @@ namespace Test.Integration
 
                 try
                 {
-                    using (IChannel ch = await _conn.CreateChannelAsync())
+                    await using IChannel ch = await _conn.CreateChannelAsync();
+                    ch.ChannelShutdownAsync += (o, ea) =>
                     {
-                        ch.ChannelShutdownAsync += (o, ea) =>
+                        HandleChannelShutdown(ch, ea, (args) =>
                         {
-                            HandleChannelShutdown(ch, ea, (args) =>
+                            if (args.Initiator != ShutdownInitiator.Application)
                             {
-                                if (args.Initiator != ShutdownInitiator.Application)
-                                {
-                                    tcs.TrySetException(args.Exception);
-                                }
-                            });
-                            return Task.CompletedTask;
-                        };
-
-                        await ch.ConfirmSelectAsync(trackConfirmations: false);
-
-                        ch.BasicAcksAsync += (object sender, BasicAckEventArgs e) =>
-                        {
-                            if (e.DeliveryTag >= _messageCount)
-                            {
-                                tcs.SetResult(true);
+                                tcs.TrySetException(args.Exception);
                             }
-                            return Task.CompletedTask;
-                        };
+                        });
+                        return Task.CompletedTask;
+                    };
 
-                        ch.BasicNacksAsync += (object sender, BasicNackEventArgs e) =>
-                        {
-                            tcs.SetResult(false);
-                            _output.WriteLine($"channel #{ch.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
-                            return Task.CompletedTask;
-                        };
+                    await ch.ConfirmSelectAsync(trackConfirmations: false);
 
-                        QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
-                        for (ushort j = 0; j < _messageCount; j++)
+                    ch.BasicAcksAsync += (object sender, BasicAckEventArgs e) =>
+                    {
+                        if (e.DeliveryTag >= _messageCount)
                         {
-                            await ch.BasicPublishAsync("", q.QueueName, mandatory: true, body: body);
+                            tcs.SetResult(true);
                         }
+                        return Task.CompletedTask;
+                    };
 
-                        Assert.True(await tcs.Task);
-                        await ch.CloseAsync();
+                    ch.BasicNacksAsync += (object sender, BasicNackEventArgs e) =>
+                    {
+                        tcs.SetResult(false);
+                        _output.WriteLine($"channel #{ch.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
+                        return Task.CompletedTask;
+                    };
+
+                    QueueDeclareOk q = await ch.QueueDeclareAsync(queue: string.Empty, passive: false, durable: false, exclusive: true, autoDelete: true, arguments: null);
+                    for (ushort j = 0; j < _messageCount; j++)
+                    {
+                        await ch.BasicPublishAsync("", q.QueueName, mandatory: true, body: body);
                     }
+
+                    Assert.True(await tcs.Task);
+                    await ch.CloseAsync();
                 }
                 finally
                 {

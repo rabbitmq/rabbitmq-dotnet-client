@@ -203,110 +203,106 @@ namespace Test.Integration
                 Assert.Equal(queueName, q.QueueName);
 
                 Task publishTask = Task.Run(async () =>
+                {
+                    await using IConnection publishConn = await _connFactory.CreateConnectionAsync();
+                    publishConn.ConnectionShutdownAsync += (o, ea) =>
+                    {
+                        HandleConnectionShutdown(publishConn, ea, (args) =>
                         {
-                            using (IConnection publishConn = await _connFactory.CreateConnectionAsync())
-                            {
-                                publishConn.ConnectionShutdownAsync += (o, ea) =>
-                                {
-                                    HandleConnectionShutdown(publishConn, ea, (args) =>
-                                    {
-                                        MaybeSetException(args, publish1SyncSource, publish2SyncSource);
-                                    });
-                                    return Task.CompletedTask;
-                                };
-                                using (IChannel publishChannel = await publishConn.CreateChannelAsync())
-                                {
-                                    AddCallbackExceptionHandlers(publishConn, publishChannel);
-                                    publishChannel.DefaultConsumer = new DefaultAsyncConsumer(publishChannel,
-                                        "publishChannel,", _output);
-                                    publishChannel.ChannelShutdownAsync += (o, ea) =>
-                                    {
-                                        HandleChannelShutdown(publishChannel, ea, (args) =>
-                                        {
-                                            MaybeSetException(args, publish1SyncSource, publish2SyncSource);
-                                        });
-                                        return Task.CompletedTask;
-                                    };
-                                    await publishChannel.ConfirmSelectAsync();
-
-                                    for (int i = 0; i < publish_total; i++)
-                                    {
-                                        await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
-                                        await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
-                                        await publishChannel.WaitForConfirmsOrDieAsync();
-                                    }
-
-                                    await publishChannel.CloseAsync();
-                                }
-
-                                await publishConn.CloseAsync();
-                            }
+                            MaybeSetException(args, publish1SyncSource, publish2SyncSource);
                         });
+                        return Task.CompletedTask;
+                    };
+                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync())
+                    {
+                        AddCallbackExceptionHandlers(publishConn, publishChannel);
+                        publishChannel.DefaultConsumer = new DefaultAsyncConsumer(publishChannel,
+                            "publishChannel,", _output);
+                        publishChannel.ChannelShutdownAsync += (o, ea) =>
+                        {
+                            HandleChannelShutdown(publishChannel, ea, (args) =>
+                            {
+                                MaybeSetException(args, publish1SyncSource, publish2SyncSource);
+                            });
+                            return Task.CompletedTask;
+                        };
+                        await publishChannel.ConfirmSelectAsync();
+
+                        for (int i = 0; i < publish_total; i++)
+                        {
+                            await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
+                            await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
+                            await publishChannel.WaitForConfirmsOrDieAsync();
+                        }
+
+                        await publishChannel.CloseAsync();
+                    }
+
+                    await publishConn.CloseAsync();
+                });
 
 
                 int publish1_count = 0;
                 int publish2_count = 0;
 
                 Task consumeTask = Task.Run(async () =>
+                {
+                    await using IConnection consumeConn = await _connFactory.CreateConnectionAsync();
+                    consumeConn.ConnectionShutdownAsync += (o, ea) =>
+                    {
+                        HandleConnectionShutdown(consumeConn, ea, (args) =>
                         {
-                            using (IConnection consumeConn = await _connFactory.CreateConnectionAsync())
-                            {
-                                consumeConn.ConnectionShutdownAsync += (o, ea) =>
-                                {
-                                    HandleConnectionShutdown(consumeConn, ea, (args) =>
-                                    {
-                                        MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                                    });
-                                    return Task.CompletedTask;
-                                };
-                                using (IChannel consumeChannel = await consumeConn.CreateChannelAsync())
-                                {
-                                    AddCallbackExceptionHandlers(consumeConn, consumeChannel);
-                                    consumeChannel.DefaultConsumer = new DefaultAsyncConsumer(consumeChannel,
-                                        "consumeChannel,", _output);
-                                    consumeChannel.ChannelShutdownAsync += (o, ea) =>
-                                    {
-                                        HandleChannelShutdown(consumeChannel, ea, (args) =>
-                                        {
-                                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
-                                        });
-                                        return Task.CompletedTask;
-                                    };
-
-                                    var consumer = new AsyncEventingBasicConsumer(consumeChannel);
-                                    consumer.ReceivedAsync += (o, a) =>
-                                    {
-                                        if (ByteArraysEqual(a.Body.ToArray(), body1))
-                                        {
-                                            if (Interlocked.Increment(ref publish1_count) >= publish_total)
-                                            {
-                                                publish1SyncSource.TrySetResult(true);
-                                            }
-                                        }
-                                        else if (ByteArraysEqual(a.Body.ToArray(), body2))
-                                        {
-                                            if (Interlocked.Increment(ref publish2_count) >= publish_total)
-                                            {
-                                                publish2SyncSource.TrySetResult(true);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            var ex = new InvalidOperationException("incorrect message - should never happen!");
-                                            SetException(ex, publish1SyncSource, publish2SyncSource);
-                                        }
-                                        return Task.CompletedTask;
-                                    };
-
-                                    await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
-                                    await consumerSyncSource.Task;
-
-                                    await consumeChannel.CloseAsync();
-                                }
-
-                                await consumeConn.CloseAsync();
-                            }
+                            MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
                         });
+                        return Task.CompletedTask;
+                    };
+                    await using (IChannel consumeChannel = await consumeConn.CreateChannelAsync())
+                    {
+                        AddCallbackExceptionHandlers(consumeConn, consumeChannel);
+                        consumeChannel.DefaultConsumer = new DefaultAsyncConsumer(consumeChannel,
+                            "consumeChannel,", _output);
+                        consumeChannel.ChannelShutdownAsync += (o, ea) =>
+                        {
+                            HandleChannelShutdown(consumeChannel, ea, (args) =>
+                            {
+                                MaybeSetException(ea, publish1SyncSource, publish2SyncSource);
+                            });
+                            return Task.CompletedTask;
+                        };
+
+                        var consumer = new AsyncEventingBasicConsumer(consumeChannel);
+                        consumer.ReceivedAsync += (o, a) =>
+                        {
+                            if (ByteArraysEqual(a.Body.ToArray(), body1))
+                            {
+                                if (Interlocked.Increment(ref publish1_count) >= publish_total)
+                                {
+                                    publish1SyncSource.TrySetResult(true);
+                                }
+                            }
+                            else if (ByteArraysEqual(a.Body.ToArray(), body2))
+                            {
+                                if (Interlocked.Increment(ref publish2_count) >= publish_total)
+                                {
+                                    publish2SyncSource.TrySetResult(true);
+                                }
+                            }
+                            else
+                            {
+                                var ex = new InvalidOperationException("incorrect message - should never happen!");
+                                SetException(ex, publish1SyncSource, publish2SyncSource);
+                            }
+                            return Task.CompletedTask;
+                        };
+
+                        await consumeChannel.BasicConsumeAsync(queueName, true, string.Empty, false, false, null, consumer);
+                        await consumerSyncSource.Task;
+
+                        await consumeChannel.CloseAsync();
+                    }
+
+                    await consumeConn.CloseAsync();
+                });
 
                 try
                 {
@@ -653,15 +649,13 @@ namespace Test.Integration
             var consumer1 = new AsyncEventingBasicConsumer(_channel);
             consumer1.ReceivedAsync += async (sender, args) =>
             {
-                using (IChannel innerChannel = await _conn.CreateChannelAsync())
-                {
-                    await innerChannel.ConfirmSelectAsync();
-                    await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
-                        mandatory: true,
-                        body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));
-                    await innerChannel.WaitForConfirmsOrDieAsync();
-                    await innerChannel.CloseAsync();
-                }
+                await using IChannel innerChannel = await _conn.CreateChannelAsync();
+                await innerChannel.ConfirmSelectAsync();
+                await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
+                    mandatory: true,
+                    body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));
+                await innerChannel.WaitForConfirmsOrDieAsync();
+                await innerChannel.CloseAsync();
             };
             await _channel.BasicConsumeAsync(queue1Name, autoAck: true, consumer1);
 
@@ -720,12 +714,10 @@ namespace Test.Integration
             AutorecoveringChannel autorecoveringChannel = (AutorecoveringChannel)_channel;
             Assert.Equal(ConsumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
             Assert.Equal(_consumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
-            using (IChannel ch = await _conn.CreateChannelAsync(
-                consumerDispatchConcurrency: expectedConsumerDispatchConcurrency))
-            {
-                AutorecoveringChannel ach = (AutorecoveringChannel)ch;
-                Assert.Equal(expectedConsumerDispatchConcurrency, ach.ConsumerDispatcher.Concurrency);
-            }
+            await using IChannel ch = await _conn.CreateChannelAsync(
+                consumerDispatchConcurrency: expectedConsumerDispatchConcurrency);
+            AutorecoveringChannel ach = (AutorecoveringChannel)ch;
+            Assert.Equal(expectedConsumerDispatchConcurrency, ach.ConsumerDispatcher.Concurrency);
         }
 
         private static void SetException(Exception ex, params TaskCompletionSource<bool>[] tcsAry)

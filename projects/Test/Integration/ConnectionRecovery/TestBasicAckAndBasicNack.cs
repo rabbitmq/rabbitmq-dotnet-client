@@ -52,9 +52,9 @@ namespace Test.Integration.ConnectionRecovery
         {
             ConnectionFactory cf = CreateConnectionFactory();
             cf.ClientProvidedName += "-TearDown";
-            using (IConnection conn = await cf.CreateConnectionAsync())
+            await using (IConnection conn = await cf.CreateConnectionAsync())
             {
-                using (IChannel ch = await conn.CreateChannelAsync())
+                await using (IChannel ch = await conn.CreateChannelAsync())
                 {
                     await ch.QueueDeleteAsync(_queueName);
                     await ch.CloseAsync();

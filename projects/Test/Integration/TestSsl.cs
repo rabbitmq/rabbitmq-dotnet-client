@@ -125,29 +125,25 @@ namespace Test.Integration
 
         private async Task SendReceiveAsync(ConnectionFactory connectionFactory)
         {
-            using (IConnection conn = await CreateConnectionAsyncWithRetries(connectionFactory))
-            {
-                using (IChannel ch = await conn.CreateChannelAsync())
-                {
-                    await ch.ExchangeDeclareAsync("Exchange_TestSslEndPoint", ExchangeType.Direct);
+            await using IConnection conn = await CreateConnectionAsyncWithRetries(connectionFactory);
+            await using IChannel ch = await conn.CreateChannelAsync();
+            await ch.ExchangeDeclareAsync("Exchange_TestSslEndPoint", ExchangeType.Direct);
 
-                    string qName = await ch.QueueDeclareAsync();
-                    await ch.QueueBindAsync(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint");
+            string qName = await ch.QueueDeclareAsync();
+            await ch.QueueBindAsync(qName, "Exchange_TestSslEndPoint", "Key_TestSslEndpoint");
 
-                    string message = "Hello C# SSL Client World";
-                    byte[] msgBytes = _encoding.GetBytes(message);
-                    await ch.BasicPublishAsync("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", msgBytes);
+            string message = "Hello C# SSL Client World";
+            byte[] msgBytes = _encoding.GetBytes(message);
+            await ch.BasicPublishAsync("Exchange_TestSslEndPoint", "Key_TestSslEndpoint", msgBytes);
 
-                    bool autoAck = false;
-                    BasicGetResult result = await ch.BasicGetAsync(qName, autoAck);
-                    byte[] body = result.Body.ToArray();
-                    string resultMessage = _encoding.GetString(body);
+            bool autoAck = false;
+            BasicGetResult result = await ch.BasicGetAsync(qName, autoAck);
+            byte[] body = result.Body.ToArray();
+            string resultMessage = _encoding.GetString(body);
 
-                    Assert.Equal(message, resultMessage);
+            Assert.Equal(message, resultMessage);
 
-                    await ch.CloseAsync();
-                }
-            }
+            await ch.CloseAsync();
         }
     }
 }

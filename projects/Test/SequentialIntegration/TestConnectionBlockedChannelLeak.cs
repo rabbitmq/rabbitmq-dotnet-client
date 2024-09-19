@@ -96,12 +96,10 @@ namespace Test.SequentialIntegration
 
             async Task ExchangeDeclareAndPublish()
             {
-                using (IChannel publishChannel = await _conn.CreateChannelAsync())
-                {
-                    await publishChannel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
-                    await publishChannel.BasicPublishAsync(exchangeName, exchangeName, true, GetRandomBody());
-                    await publishChannel.CloseAsync();
-                }
+                await using IChannel publishChannel = await _conn.CreateChannelAsync();
+                await publishChannel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
+                await publishChannel.BasicPublishAsync(exchangeName, exchangeName, true, GetRandomBody());
+                await publishChannel.CloseAsync();
             }
             await Assert.ThrowsAnyAsync<OperationCanceledException>(ExchangeDeclareAndPublish);
 

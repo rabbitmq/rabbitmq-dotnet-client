@@ -58,21 +58,17 @@ namespace Test.Integration
         [Fact]
         public async Task TestWithHostnameList()
         {
-            using (AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "127.0.0.1", "localhost" }))
-            {
-                Assert.True(c.IsOpen);
-                await c.CloseAsync();
-            }
+            await using AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "127.0.0.1", "localhost" });
+            Assert.True(c.IsOpen);
+            await c.CloseAsync();
         }
 
         [Fact]
         public async Task TestWithHostnameListAndUnreachableHosts()
         {
-            using (AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" }))
-            {
-                Assert.True(c.IsOpen);
-                await c.CloseAsync();
-            }
+            await using AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync(new List<string>() { "191.72.44.22", "127.0.0.1", "localhost" });
+            Assert.True(c.IsOpen);
+            await c.CloseAsync();
         }
 
         [Fact]

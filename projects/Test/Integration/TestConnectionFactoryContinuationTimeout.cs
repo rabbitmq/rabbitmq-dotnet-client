@@ -57,32 +57,28 @@ namespace Test.Integration
         public async Task TestConnectionFactoryContinuationTimeoutOnRecoveringConnection()
         {
             var continuationTimeout = TimeSpan.FromSeconds(777);
-            using (IConnection c = await CreateConnectionWithContinuationTimeoutAsync(true, continuationTimeout))
+            await using IConnection c = await CreateConnectionWithContinuationTimeoutAsync(true, continuationTimeout);
+            await using (IChannel ch = await c.CreateChannelAsync())
             {
-                using (IChannel ch = await c.CreateChannelAsync())
-                {
-                    Assert.Equal(continuationTimeout, ch.ContinuationTimeout);
-                    await ch.CloseAsync();
-                }
-
-                await c.CloseAsync();
+                Assert.Equal(continuationTimeout, ch.ContinuationTimeout);
+                await ch.CloseAsync();
             }
+
+            await c.CloseAsync();
         }
 
         [Fact]
         public async Task TestConnectionFactoryContinuationTimeoutOnNonRecoveringConnection()
         {
             var continuationTimeout = TimeSpan.FromSeconds(777);
-            using (IConnection c = await CreateConnectionWithContinuationTimeoutAsync(false, continuationTimeout))
+            await using IConnection c = await CreateConnectionWithContinuationTimeoutAsync(false, continuationTimeout);
+            await using (IChannel ch = await c.CreateChannelAsync())
             {
-                using (IChannel ch = await c.CreateChannelAsync())
-                {
-                    Assert.Equal(continuationTimeout, ch.ContinuationTimeout);
-                    await ch.CloseAsync();
-                }
-
-                await c.CloseAsync();
+                Assert.Equal(continuationTimeout, ch.ContinuationTimeout);
+                await ch.CloseAsync();
             }
+
+            await c.CloseAsync();
         }
 
         private Task<IConnection> CreateConnectionWithContinuationTimeoutAsync(bool automaticRecoveryEnabled, TimeSpan continuationTimeout)

@@ -98,10 +98,10 @@ namespace MassPublish
 
         static async Task Main()
         {
-            using IConnection consumeConnection = await s_consumeConnectionFactory.CreateConnectionAsync();
+            await using IConnection consumeConnection = await s_consumeConnectionFactory.CreateConnectionAsync();
             consumeConnection.ConnectionShutdownAsync += ConnectionShutdownAsync;
 
-            using IChannel consumeChannel = await consumeConnection.CreateChannelAsync();
+            await using IChannel consumeChannel = await consumeConnection.CreateChannelAsync();
             consumeChannel.ChannelShutdownAsync += Channel_ChannelShutdownAsync;
             await consumeChannel.BasicQosAsync(prefetchSize: 0, prefetchCount: 128, global: false);
 

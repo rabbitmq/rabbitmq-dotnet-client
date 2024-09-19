@@ -167,49 +167,47 @@ namespace Test.Integration
             Task pub = Task.Run(async () =>
             {
                 bool stop = false;
-                using (IConnection publishConnection = await _connFactory.CreateConnectionAsync())
+                await using IConnection publishConnection = await _connFactory.CreateConnectionAsync();
+                publishConnection.ConnectionShutdownAsync += (o, ea) =>
                 {
-                    publishConnection.ConnectionShutdownAsync += (o, ea) =>
+                    HandleConnectionShutdown(_conn, ea, (args) =>
                     {
-                        HandleConnectionShutdown(_conn, ea, (args) =>
+                        if (args.Initiator != ShutdownInitiator.Application)
+                        {
+                            receivedCount = -1;
+                            allMessagesSeenTcs.TrySetException(args.Exception);
+                        }
+                    });
+                    return Task.CompletedTask;
+                };
+
+                await using (IChannel publishChannel = await publishConnection.CreateChannelAsync())
+                {
+                    await publishChannel.ConfirmSelectAsync();
+
+                    publishChannel.ChannelShutdownAsync += (o, ea) =>
+                    {
+                        HandleChannelShutdown(publishChannel, ea, (args) =>
                         {
                             if (args.Initiator != ShutdownInitiator.Application)
                             {
-                                receivedCount = -1;
+                                stop = true;
                                 allMessagesSeenTcs.TrySetException(args.Exception);
                             }
                         });
                         return Task.CompletedTask;
                     };
 
-                    using (IChannel publishChannel = await publishConnection.CreateChannelAsync())
+                    for (int i = 0; i < publishCount && false == stop; i++)
                     {
-                        await publishChannel.ConfirmSelectAsync();
-
-                        publishChannel.ChannelShutdownAsync += (o, ea) =>
-                        {
-                            HandleChannelShutdown(publishChannel, ea, (args) =>
-                            {
-                                if (args.Initiator != ShutdownInitiator.Application)
-                                {
-                                    stop = true;
-                                    allMessagesSeenTcs.TrySetException(args.Exception);
-                                }
-                            });
-                            return Task.CompletedTask;
-                        };
-
-                        for (int i = 0; i < publishCount && false == stop; i++)
-                        {
-                            await publishChannel.BasicPublishAsync(string.Empty, queueName, true, sendBody);
-                        }
-
-                        await publishChannel.WaitForConfirmsOrDieAsync();
-                        await publishChannel.CloseAsync();
+                        await publishChannel.BasicPublishAsync(string.Empty, queueName, true, sendBody);
                     }
 
-                    await publishConnection.CloseAsync();
+                    await publishChannel.WaitForConfirmsOrDieAsync();
+                    await publishChannel.CloseAsync();
                 }
+
+                await publishConnection.CloseAsync();
             });
 
             var cts = new CancellationTokenSource(WaitSpan);
@@ -220,7 +218,7 @@ namespace Test.Integration
 
             try
             {
-                using (IConnection consumeConnection = await _connFactory.CreateConnectionAsync())
+                await using (IConnection consumeConnection = await _connFactory.CreateConnectionAsync())
                 {
                     consumeConnection.ConnectionShutdownAsync += (o, ea) =>
                     {
@@ -235,7 +233,7 @@ namespace Test.Integration
                         return Task.CompletedTask;
                     };
 
-                    using (IChannel consumeChannel = await consumeConnection.CreateChannelAsync())
+                    await using (IChannel consumeChannel = await consumeConnection.CreateChannelAsync())
                     {
                         consumeChannel.ChannelShutdownAsync += (o, ea) =>
                         {

@@ -73,39 +73,37 @@ namespace Test.Integration
             var cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
 
-            using (IConnection conn = await cf.CreateConnectionAsync())
+            await using (IConnection conn = await cf.CreateConnectionAsync())
             {
                 try
                 {
                     Assert.IsNotType<RabbitMQ.Client.Framing.AutorecoveringConnection>(conn);
                     conn.ConnectionShutdownAsync += HandleConnectionShutdownAsync;
 
-                    using (IChannel channel = await conn.CreateChannelAsync())
+                    await using IChannel channel = await conn.CreateChannelAsync();
+                    try
                     {
-                        try
-                        {
-                            channel.ChannelShutdownAsync += HandleChannelShutdownAsync;
-                            await channel.ExchangeDeclareAsync(ExchangeName.Value, ExchangeType.Topic, passive: false, durable: false, autoDelete: true,
-                                noWait: false, arguments: null);
-                            await channel.QueueDeclareAsync(QueueName, exclusive: false, autoDelete: true);
-                            await channel.QueueBindAsync(QueueName, ExchangeName.Value, PublishKey.Value);
+                        channel.ChannelShutdownAsync += HandleChannelShutdownAsync;
+                        await channel.ExchangeDeclareAsync(ExchangeName.Value, ExchangeType.Topic, passive: false, durable: false, autoDelete: true,
+                            noWait: false, arguments: null);
+                        await channel.QueueDeclareAsync(QueueName, exclusive: false, autoDelete: true);
+                        await channel.QueueBindAsync(QueueName, ExchangeName.Value, PublishKey.Value);
 
-                            for (int i = 0; i < Loops; i++)
+                        for (int i = 0; i < Loops; i++)
+                        {
+                            for (int j = 0; j < Repeats; j++)
                             {
-                                for (int j = 0; j < Repeats; j++)
-                                {
-                                    await channel.BasicPublishAsync(ExchangeName, PublishKey, false, _body);
-                                }
+                                await channel.BasicPublishAsync(ExchangeName, PublishKey, false, _body);
                             }
                         }
-                        catch (Exception e)
-                        {
-                            _raisedException = e;
-                        }
-                        finally
-                        {
-                            await channel.CloseAsync();
-                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _raisedException = e;
+                    }
+                    finally
+                    {
+                        await channel.CloseAsync();
                     }
                 }
                 finally
