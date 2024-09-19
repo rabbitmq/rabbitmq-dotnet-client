@@ -408,7 +408,7 @@ namespace RabbitMQ.Client.Impl
             ShutdownEventArgs? reason = CloseReason;
             if (reason != null)
             {
-                await Session.CloseAsync(reason, cancellationToken)
+                await Session.CloseAsync(reason)
                     .ConfigureAwait(false);
             }
 
@@ -664,7 +664,7 @@ namespace RabbitMQ.Client.Impl
                 channelClose._classId,
                 channelClose._methodId));
 
-            await Session.CloseAsync(_closeReason, false, cancellationToken)
+            await Session.CloseAsync(_closeReason, notify: false)
                 .ConfigureAwait(false);
 
             var method = new ChannelCloseOk();

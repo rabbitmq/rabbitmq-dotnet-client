@@ -41,39 +41,19 @@ namespace RabbitMQ.Client.Impl
 
     internal interface ISession
     {
-        /// <summary>
-        /// Gets the channel number.
-        /// </summary>
         ushort ChannelNumber { get; }
 
-        /// <summary>
-        /// Gets the close reason.
-        /// </summary>
         ShutdownEventArgs? CloseReason { get; }
 
-        ///<summary>
-        /// Single recipient - no need for multiple handlers to be informed of arriving commands.
-        ///</summary>
         CommandReceivedAction? CommandReceived { get; set; }
 
-        /// <summary>
-        /// Gets the connection.
-        /// </summary>
         Connection Connection { get; }
 
-        /// <summary>
-        /// Gets a value indicating whether this session is open.
-        /// </summary>
         bool IsOpen { get; }
 
-        ///<summary>
-        /// Multicast session shutdown event.
-        ///</summary>
         event AsyncEventHandler<ShutdownEventArgs> SessionShutdownAsync;
 
-        Task CloseAsync(ShutdownEventArgs reason, CancellationToken cancellationToken);
-
-        Task CloseAsync(ShutdownEventArgs reason, bool notify, CancellationToken cancellationToken);
+        Task CloseAsync(ShutdownEventArgs reason, bool notify = true);
 
         Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken);
 
