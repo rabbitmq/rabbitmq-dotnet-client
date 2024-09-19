@@ -257,21 +257,7 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
             => InnerChannel.ToString();
 
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (IsOpen)
-            {
-                this.AbortAsync().GetAwaiter().GetResult();
-            }
-
-            _recordedConsumerTags.Clear();
-            _disposed = true;
-        }
+        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
 
         public async ValueTask DisposeAsync()
         {
