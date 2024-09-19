@@ -42,10 +42,10 @@ namespace RabbitMQ.Client
     /// functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.
     /// </summary>
     /// <remarks>
-    /// Extends the <see cref="IDisposable"/> interface, so that the "using"
+    /// Extends the <see cref="IDisposable"/> interface and the <see cref="IAsyncDisposable"/> interface, so that the "using"
     /// statement can be used to scope the lifetime of a channel when appropriate.
     /// </remarks>
-    public interface IChannel : IDisposable
+    public interface IChannel : IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// Channel number, unique per connections.

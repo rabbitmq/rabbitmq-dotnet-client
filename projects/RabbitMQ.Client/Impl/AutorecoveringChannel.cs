@@ -273,6 +273,23 @@ namespace RabbitMQ.Client.Impl
             _disposed = true;
         }
 
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (IsOpen)
+            {
+                await this.AbortAsync()
+                    .ConfigureAwait(false);
+            }
+
+            _recordedConsumerTags.Clear();
+            _disposed = true;
+        }
+
         public ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default) => InnerChannel.GetNextPublishSequenceNumberAsync(cancellationToken);
 
         public ValueTask BasicAckAsync(ulong deliveryTag, bool multiple, CancellationToken cancellationToken)
