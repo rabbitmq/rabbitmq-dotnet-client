@@ -169,7 +169,7 @@ namespace Test.Integration
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             await ch1.BasicConsumeAsync(q1, true, new AsyncEventingBasicConsumer(ch1));
             var c2 = new AsyncEventingBasicConsumer(ch2);
-            c2.Received += (object sender, BasicDeliverEventArgs e) =>
+            c2.ReceivedAsync += (object sender, BasicDeliverEventArgs e) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;

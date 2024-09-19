@@ -37,8 +37,6 @@ namespace RabbitMQ.Benchmarks
 
         public Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason) => Task.CompletedTask;
 
-        public Task OnCancelAsync(string[] consumerTags, CancellationToken cancellationToken = default) => Task.CompletedTask;
-
         public IChannel Channel { get; }
     }
 }

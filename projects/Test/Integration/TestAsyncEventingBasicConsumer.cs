@@ -101,7 +101,7 @@ namespace Test.Integration
 
             //async subscriber
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += AsyncConsumerOnReceived;
+            consumer.ReceivedAsync += AsyncConsumerOnReceived;
             await _channel.BasicConsumeAsync(queueName, false, consumer);
 
             //publisher

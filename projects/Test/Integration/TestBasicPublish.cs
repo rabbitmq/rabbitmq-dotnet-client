@@ -68,7 +68,7 @@ namespace Test.Integration
             var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
@@ -98,7 +98,7 @@ namespace Test.Integration
             var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
@@ -127,7 +127,7 @@ namespace Test.Integration
             var consumer = new AsyncEventingBasicConsumer(_channel);
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     consumeBody = a.Body.ToArray();
                     consumerReceivedSemaphore.Release();
@@ -156,7 +156,7 @@ namespace Test.Integration
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
                 bool modified = true;
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     if (a.Body.Span.IndexOf((byte)1) < 0)
                     {
@@ -229,25 +229,25 @@ namespace Test.Integration
 
                     var consumer = new AsyncEventingBasicConsumer(channel);
 
-                    consumer.Shutdown += (o, a) =>
+                    consumer.ShutdownAsync += (o, a) =>
                     {
                         tcs.SetResult(true);
                         return Task.CompletedTask;
                     };
 
-                    consumer.Registered += (o, a) =>
+                    consumer.RegisteredAsync += (o, a) =>
                     {
                         sawConsumerRegistered = true;
                         return Task.CompletedTask;
                     };
 
-                    consumer.Unregistered += (o, a) =>
+                    consumer.UnregisteredAsync += (o, a) =>
                     {
                         sawConsumerUnregistered = true;
                         return Task.CompletedTask;
                     };
 
-                    consumer.Received += (o, a) =>
+                    consumer.ReceivedAsync += (o, a) =>
                     {
                         Interlocked.Increment(ref count);
                         return Task.CompletedTask;
@@ -312,7 +312,7 @@ namespace Test.Integration
             using (var consumerReceivedSemaphore = new SemaphoreSlim(0, 1))
             {
                 string response = null;
-                consumer.Received += (o, a) =>
+                consumer.ReceivedAsync += (o, a) =>
                 {
                     response = _encoding.GetString(a.BasicProperties.Headers["Hello"] as byte[]);
                     consumeBody = a.Body.ToArray();

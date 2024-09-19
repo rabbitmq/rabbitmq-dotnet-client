@@ -246,10 +246,6 @@ RabbitMQ.Client.EndpointResolverExtensions
 RabbitMQ.Client.Events.AsyncEventHandler<TEvent>
 RabbitMQ.Client.Events.AsyncEventingBasicConsumer
 RabbitMQ.Client.Events.AsyncEventingBasicConsumer.AsyncEventingBasicConsumer(RabbitMQ.Client.IChannel channel) -> void
-RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Received -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.BasicDeliverEventArgs>
-RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Registered -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs>
-RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Shutdown -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.ShutdownEventArgs>
-RabbitMQ.Client.Events.AsyncEventingBasicConsumer.Unregistered -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs>
 RabbitMQ.Client.Events.BaseExceptionEventArgs
 RabbitMQ.Client.Events.BasicAckEventArgs
 RabbitMQ.Client.Events.BasicDeliverEventArgs
@@ -900,3 +896,7 @@ virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicCancelOkAsync(strin
 virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicConsumeOkAsync(string! consumerTag, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.HandleBasicDeliverAsync(string! consumerTag, ulong deliveryTag, bool redelivered, string! exchange, string! routingKey, RabbitMQ.Client.IReadOnlyBasicProperties! properties, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 virtual RabbitMQ.Client.AsyncDefaultBasicConsumer.OnCancelAsync(string![]! consumerTags, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+RabbitMQ.Client.Events.AsyncEventingBasicConsumer.ShutdownAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.ShutdownEventArgs!>!
+RabbitMQ.Client.Events.AsyncEventingBasicConsumer.UnregisteredAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs!>!
+RabbitMQ.Client.Events.AsyncEventingBasicConsumer.RegisteredAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.ConsumerEventArgs!>!
+RabbitMQ.Client.Events.AsyncEventingBasicConsumer.ReceivedAsync -> RabbitMQ.Client.Events.AsyncEventHandler<RabbitMQ.Client.Events.BasicDeliverEventArgs!>!

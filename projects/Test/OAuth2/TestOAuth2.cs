@@ -265,7 +265,7 @@ namespace OAuth2Test
         private async Task ConsumeAsync(IChannel consumeChannel)
         {
             var asyncListener = new AsyncEventingBasicConsumer(consumeChannel);
-            asyncListener.Received += AsyncListener_Received;
+            asyncListener.ReceivedAsync += AsyncListener_Received;
             string consumerTag = await consumeChannel.BasicConsumeAsync("testqueue", true, "testconsumer", asyncListener);
             await _doneEvent.WaitAsync(TimeSpan.FromSeconds(5));
             _testOutputHelper.WriteLine("Received message");

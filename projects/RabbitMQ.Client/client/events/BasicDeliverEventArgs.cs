@@ -67,7 +67,7 @@ namespace RabbitMQ.Client.Events
         /// </para>
         /// <para>
         ///   NOTE: Using this memory outside of
-        ///   <c><seealso cref="AsyncEventingBasicConsumer.Received"/></c>
+        ///   <c><seealso cref="AsyncEventingBasicConsumer.ReceivedAsync"/></c>
         ///   requires that it be copied!
         ///   <example>
         ///   This shows how to copy the data for use:

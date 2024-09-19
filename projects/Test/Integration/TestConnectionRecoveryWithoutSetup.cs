@@ -133,7 +133,7 @@ namespace Test.Integration
 
                     Assert.True(ch.IsOpen);
                     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    cons.Received += (s, args) =>
+                    cons.ReceivedAsync += (s, args) =>
                     {
                         tcs.SetResult(true);
                         return Task.CompletedTask;
@@ -189,7 +189,7 @@ namespace Test.Integration
                     Assert.False(queueNameChangeAfterRecoveryCalled);
 
                     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    cons.Received += (s, args) =>
+                    cons.ReceivedAsync += (s, args) =>
                     {
                         tcs.SetResult(true);
                         return Task.CompletedTask;
@@ -320,7 +320,7 @@ namespace Test.Integration
 
                     var consumerRecoveryTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     var consumerToRecover = new AsyncEventingBasicConsumer(ch);
-                    consumerToRecover.Received += (source, ea) =>
+                    consumerToRecover.ReceivedAsync += (source, ea) =>
                     {
                         consumerRecoveryTcs.SetResult(true);
                         return Task.CompletedTask;
@@ -329,7 +329,7 @@ namespace Test.Integration
 
                     var ignoredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     var consumerToIgnore = new AsyncEventingBasicConsumer(ch);
-                    consumerToIgnore.Received += (source, ea) =>
+                    consumerToIgnore.ReceivedAsync += (source, ea) =>
                     {
                         ignoredTcs.SetResult(true);
                         return Task.CompletedTask;

@@ -74,7 +74,7 @@ namespace Test.Integration
             string consumerTag2 = await _channel.BasicConsumeAsync(q2, true, consumer);
 
             string notifiedConsumerTag = null;
-            consumer.Unregistered += (sender, args) =>
+            consumer.UnregisteredAsync += (sender, args) =>
             {
                 notifiedConsumerTag = args.ConsumerTags.First();
                 _tcs.TrySetResult(true);
@@ -111,7 +111,7 @@ namespace Test.Integration
                 _eventMode = eventMode;
                 if (eventMode)
                 {
-                    Unregistered += CancelledAsync;
+                    UnregisteredAsync += CancelledAsync;
                 }
             }
 
