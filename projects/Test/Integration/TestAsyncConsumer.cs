@@ -780,29 +780,35 @@ namespace Test.Integration
                 _output = output;
             }
 
-            public override Task HandleBasicCancelAsync(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicCancelAsync {1}", _logPrefix, consumerTag);
-                return base.HandleBasicCancelAsync(consumerTag);
+                return base.HandleBasicCancelAsync(consumerTag, cancellationToken);
             }
 
-            public override Task HandleBasicCancelOkAsync(string consumerTag)
+            public override Task HandleBasicCancelOkAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicCancelOkAsync {1}", _logPrefix, consumerTag);
-                return base.HandleBasicCancelOkAsync(consumerTag);
+                return base.HandleBasicCancelOkAsync(consumerTag, cancellationToken);
             }
 
-            public override Task HandleBasicConsumeOkAsync(string consumerTag)
+            public override Task HandleBasicConsumeOkAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicConsumeOkAsync {1}", _logPrefix, consumerTag);
-                return base.HandleBasicConsumeOkAsync(consumerTag);
+                return base.HandleBasicConsumeOkAsync(consumerTag, cancellationToken);
             }
 
             public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+                string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} HandleBasicDeliverAsync {1}", _logPrefix, consumerTag);
-                await base.HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered, exchange, routingKey, properties, body);
+                await base.HandleBasicDeliverAsync(consumerTag, deliveryTag, redelivered,
+                    exchange, routingKey, properties, body,
+                    cancellationToken);
             }
 
             public override Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
@@ -811,10 +817,11 @@ namespace Test.Integration
                 return base.HandleChannelShutdownAsync(channel, reason);
             }
 
-            public override Task OnCancelAsync(params string[] consumerTags)
+            protected override Task OnCancelAsync(string[] consumerTags,
+                CancellationToken cancellationToken = default)
             {
                 _output.WriteLine("[ERROR] {0} OnCancel {1}", _logPrefix, consumerTags[0]);
-                return base.OnCancelAsync(consumerTags);
+                return base.OnCancelAsync(consumerTags, cancellationToken);
             }
         }
     }

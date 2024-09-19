@@ -278,9 +278,10 @@ namespace Test
             {
             }
 
-            public override Task PostHandleDeliveryAsync(ulong deliveryTag)
+            public override Task PostHandleDeliveryAsync(ulong deliveryTag,
+                CancellationToken cancellationToken = default)
             {
-                return Channel.BasicAckAsync(deliveryTag, false).AsTask();
+                return Channel.BasicAckAsync(deliveryTag, false, cancellationToken).AsTask();
             }
         }
 
@@ -291,9 +292,10 @@ namespace Test
             {
             }
 
-            public override Task PostHandleDeliveryAsync(ulong deliveryTag)
+            public override Task PostHandleDeliveryAsync(ulong deliveryTag,
+                CancellationToken cancellationToken = default)
             {
-                return Channel.BasicNackAsync(deliveryTag, false, false).AsTask();
+                return Channel.BasicNackAsync(deliveryTag, false, false, cancellationToken).AsTask();
             }
         }
 
@@ -304,9 +306,10 @@ namespace Test
             {
             }
 
-            public override Task PostHandleDeliveryAsync(ulong deliveryTag)
+            public override Task PostHandleDeliveryAsync(ulong deliveryTag,
+                CancellationToken cancellationToken = default)
             {
-                return Channel.BasicRejectAsync(deliveryTag, false).AsTask();
+                return Channel.BasicRejectAsync(deliveryTag, false, cancellationToken).AsTask();
             }
         }
 
@@ -329,11 +332,12 @@ namespace Test
                 string exchange,
                 string routingKey,
                 IReadOnlyBasicProperties properties,
-                ReadOnlyMemory<byte> body)
+                ReadOnlyMemory<byte> body,
+                CancellationToken cancellationToken = default)
             {
                 try
                 {
-                    return PostHandleDeliveryAsync(deliveryTag);
+                    return PostHandleDeliveryAsync(deliveryTag, cancellationToken);
                 }
                 finally
                 {
@@ -345,7 +349,8 @@ namespace Test
                 }
             }
 
-            public virtual Task PostHandleDeliveryAsync(ulong deliveryTag)
+            public virtual Task PostHandleDeliveryAsync(ulong deliveryTag,
+                CancellationToken cancellationToken = default)
             {
                 return Task.CompletedTask;
             }

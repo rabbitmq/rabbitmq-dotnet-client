@@ -42,7 +42,9 @@ namespace Benchmarks.Networking
         }
 
         /// <inheritdoc />
-        public override Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+        public override Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
+            string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default)
         {
             if (Interlocked.Decrement(ref _remainingCount) == 0)
             {

@@ -57,7 +57,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         public virtual Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
-            return OnCancelAsync(new []{ consumerTag }, cancellationToken);
+            return OnCancelAsync(new[] { consumerTag }, cancellationToken);
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         public virtual Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
-            return OnCancelAsync(new []{ consumerTag }, cancellationToken);
+            return OnCancelAsync(new[] { consumerTag }, cancellationToken);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             IReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body, 
+            ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
         {
             // Nothing to do here.
@@ -118,7 +118,7 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Default implementation - overridable in subclasses.</summary>
-        /// <param name="consumerTags">The set of consumer tags that where cancelled</param>
+        /// <param name="consumerTags">The set of consumer tags that were cancelled</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <remarks>
         /// This default implementation simply sets the <see cref="IsRunning"/> property to false, and takes no further action.
@@ -126,6 +126,7 @@ namespace RabbitMQ.Client
         protected virtual Task OnCancelAsync(string[] consumerTags, CancellationToken cancellationToken = default)
         {
             IsRunning = false;
+
             foreach (string consumerTag in consumerTags)
             {
                 _consumerTags.Remove(consumerTag);

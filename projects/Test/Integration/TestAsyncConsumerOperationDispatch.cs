@@ -86,7 +86,8 @@ namespace Test.Integration
 
             public override Task HandleBasicDeliverAsync(string consumerTag,
                 ulong deliveryTag, bool redelivered, string exchange, string routingKey,
-                IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body)
+                IReadOnlyBasicProperties properties, ReadOnlyMemory<byte> body,
+                CancellationToken cancellationToken = default)
             {
                 // we test concurrent dispatch from the moment basic.delivery is returned.
                 // delivery tags have guaranteed ordering and we verify that it is preserved
@@ -98,7 +99,8 @@ namespace Test.Integration
                     s_counter.Signal();
                 }
 
-                return Channel.BasicAckAsync(deliveryTag: deliveryTag, multiple: false).AsTask();
+                return Channel.BasicAckAsync(deliveryTag: deliveryTag, multiple: false,
+                    cancellationToken: cancellationToken).AsTask();
             }
         }
 

@@ -66,7 +66,7 @@ namespace Test.SequentialIntegration
                 await UnblockAsync();
             };
 
-            _conn.ConnectionUnblockedAsync += (object sender, EventArgs ea) =>
+            _conn.ConnectionUnblockedAsync += (object sender, AsyncEventArgs ea) =>
             {
                 tcs.SetResult(true);
                 return Task.CompletedTask;

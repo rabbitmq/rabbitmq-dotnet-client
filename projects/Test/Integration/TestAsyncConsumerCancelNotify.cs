@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -114,7 +115,8 @@ namespace Test.Integration
                 }
             }
 
-            public override Task HandleBasicCancelAsync(string consumerTag)
+            public override Task HandleBasicCancelAsync(string consumerTag,
+                CancellationToken cancellationToken = default)
             {
                 if (!_eventMode)
                 {
@@ -122,7 +124,7 @@ namespace Test.Integration
                     _testClass._tcs.SetResult(true);
                 }
 
-                return base.HandleBasicCancelAsync(consumerTag);
+                return base.HandleBasicCancelAsync(consumerTag, cancellationToken);
             }
 
             private Task CancelledAsync(object sender, ConsumerEventArgs arg)
