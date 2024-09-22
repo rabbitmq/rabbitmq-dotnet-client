@@ -125,19 +125,18 @@ namespace Test.Integration
 
                 async Task PublishLoop()
                 {
-                    await using IChannel ch = await conn.CreateChannelAsync();
-                    await ch.ConfirmSelectAsync();
+                    await using IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
                     QueueDeclareOk q = await ch.QueueDeclareAsync();
                     while (conn.IsOpen)
                     {
                         await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
                         messagePublishedTcs.TrySetResult(true);
                         /*
-                                     * Note:
-                                     * In this test, it is possible that the connection
-                                     * will be closed before the ack is returned,
-                                     * and this await will throw an exception
-                                     */
+                         * Note:
+                         * In this test, it is possible that the connection
+                         * will be closed before the ack is returned,
+                         * and this await will throw an exception
+                         */
                         try
                         {
                             await ch.WaitForConfirmsAsync();
@@ -206,8 +205,7 @@ namespace Test.Integration
             Task pubTask = Task.Run(async () =>
             {
                 await using IConnection conn = await cf.CreateConnectionAsync();
-                await using IChannel ch = await conn.CreateChannelAsync();
-                await ch.ConfirmSelectAsync();
+                await using IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
                 QueueDeclareOk q = await ch.QueueDeclareAsync();
                 while (conn.IsOpen)
                 {

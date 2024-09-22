@@ -32,6 +32,7 @@
 using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,7 +47,11 @@ namespace Test.Integration
         [Fact]
         public async Task TestConfirmBarrier()
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             for (int i = 0; i < 10; i++)
             {
                 await _channel.BasicPublishAsync(string.Empty, string.Empty, Array.Empty<byte>());
@@ -63,7 +68,10 @@ namespace Test.Integration
         [Fact]
         public async Task TestExchangeBinding()
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
 
             await _channel.ExchangeDeclareAsync("src", ExchangeType.Direct, false, false);
             await _channel.ExchangeDeclareAsync("dest", ExchangeType.Direct, false, false);

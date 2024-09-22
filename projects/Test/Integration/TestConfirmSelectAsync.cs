@@ -32,6 +32,7 @@
 using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -48,14 +49,17 @@ namespace Test.Integration
         [Fact]
         public async Task TestConfirmSelectIdempotency()
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             Assert.Equal(1ul, await _channel.GetNextPublishSequenceNumberAsync());
             await Publish();
             Assert.Equal(2ul, await _channel.GetNextPublishSequenceNumberAsync());
             await Publish();
             Assert.Equal(3ul, await _channel.GetNextPublishSequenceNumberAsync());
 
-            await _channel.ConfirmSelectAsync();
             await Publish();
             Assert.Equal(4ul, await _channel.GetNextPublishSequenceNumberAsync());
             await Publish();

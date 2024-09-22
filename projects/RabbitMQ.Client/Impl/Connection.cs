@@ -264,13 +264,30 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        public Task<IChannel> CreateChannelAsync(ushort? consumerDispatchConcurrency = null,
-            CancellationToken cancellationToken = default)
+        public async Task<IChannel> CreateChannelAsync(bool publisherConfirmations = false, bool publisherConfirmationTracking = false,
+            ushort? consumerDispatchConcurrency = null, CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
             ISession session = CreateSession();
             var channel = new Channel(_config, session, consumerDispatchConcurrency);
-            return channel.OpenAsync(cancellationToken);
+            IChannel ch = await channel.OpenAsync(cancellationToken)
+                .ConfigureAwait(false);
+            if (publisherConfirmations)
+            {
+                // TODO yes this is ugly but will be fixed as part of rabbitmq/rabbitmq-dotnet-client#1682
+                if (ch is not AutorecoveringChannel ac)
+                {
+                    ChannelBase chb = (ChannelBase)ch;
+                    await chb.ConfirmSelectAsync(publisherConfirmationTracking, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await ac.ConfirmSelectAsync(publisherConfirmationTracking, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            return ch;
         }
 
         internal ISession CreateSession()

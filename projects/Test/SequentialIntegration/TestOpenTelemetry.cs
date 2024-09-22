@@ -40,6 +40,7 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -87,6 +88,11 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -95,7 +101,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
@@ -142,6 +147,11 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -150,7 +160,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
@@ -198,6 +207,11 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -206,7 +220,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
@@ -255,6 +268,11 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -263,7 +281,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
@@ -313,6 +330,11 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -321,7 +343,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
             string queue = $"queue-{Guid.NewGuid()}";

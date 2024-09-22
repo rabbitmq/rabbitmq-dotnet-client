@@ -38,6 +38,7 @@ using System.Threading.Tasks;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -80,7 +81,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var _activities = new List<Activity>();
@@ -117,7 +121,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var _activities = new List<Activity>();
@@ -156,7 +163,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var _activities = new List<Activity>();
@@ -194,7 +204,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
@@ -232,7 +245,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
@@ -272,7 +288,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
@@ -311,7 +330,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
@@ -344,7 +366,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithCachedStringsAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
@@ -379,7 +404,10 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithPublicationAddressAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
-            await _channel.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);

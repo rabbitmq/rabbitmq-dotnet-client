@@ -37,6 +37,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -155,7 +156,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync();
+            IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
             try
             {
                 await ch.ExchangeDeclareAsync(exchangeToRecover, "topic", false, true);
@@ -270,10 +271,9 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            IChannel ch = await conn.CreateChannelAsync();
+            IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
             try
             {
-                await ch.ConfirmSelectAsync();
 
                 await ch.ExchangeDeclareAsync(exchange, "direct");
                 await ch.QueueDeclareAsync(queue1, false, false, false);
@@ -399,6 +399,11 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryExchangeExceptionHandler()
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             string exchangeToRecoverWithException = GenerateExchangeName() + "-recovery.exception.exchange";
             string exchangeToRecoverSuccessfully = GenerateExchangeName() + "-successfully.recovered.exchange";
 
@@ -554,7 +559,8 @@ namespace Test.Integration
             IChannel ch = await conn.CreateChannelAsync();
             try
             {
-                await ch.ConfirmSelectAsync();
+                // Note: no need to enable publisher confirmations as they are
+                // automatically enabled for channels
 
                 await _channel.QueueDeclareAsync(queueWithExceptionConsumer, false, false, false);
                 await _channel.QueuePurgeAsync(queueWithExceptionConsumer);

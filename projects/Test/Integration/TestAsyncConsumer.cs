@@ -213,7 +213,7 @@ namespace Test.Integration
                         });
                         return Task.CompletedTask;
                     };
-                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync())
+                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true))
                     {
                         AddCallbackExceptionHandlers(publishConn, publishChannel);
                         publishChannel.DefaultConsumer = new DefaultAsyncConsumer(publishChannel,
@@ -226,7 +226,6 @@ namespace Test.Integration
                             });
                             return Task.CompletedTask;
                         };
-                        await publishChannel.ConfirmSelectAsync();
 
                         for (int i = 0; i < publish_total; i++)
                         {
@@ -436,6 +435,11 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicAckAsync()
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             await ValidateConsumerDispatchConcurrency();
 
             string queueName = GenerateQueueName();
@@ -462,8 +466,6 @@ namespace Test.Integration
                 });
                 return Task.CompletedTask;
             };
-
-            await _channel.ConfirmSelectAsync();
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
             consumer.ReceivedAsync += async (object sender, BasicDeliverEventArgs args) =>
@@ -649,8 +651,7 @@ namespace Test.Integration
             var consumer1 = new AsyncEventingBasicConsumer(_channel);
             consumer1.ReceivedAsync += async (sender, args) =>
             {
-                await using IChannel innerChannel = await _conn.CreateChannelAsync();
-                await innerChannel.ConfirmSelectAsync();
+                await using IChannel innerChannel = await _conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
                 await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
                     mandatory: true,
                     body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));
@@ -667,7 +668,8 @@ namespace Test.Integration
             };
             await _channel.BasicConsumeAsync(queue2Name, autoAck: true, consumer2);
 
-            await _channel.ConfirmSelectAsync();
+            // Note: no need to enable publisher confirmations as they are
+            // automatically enabled for channels
             await _channel.BasicPublishAsync(exchangeName, queue1Name, body: GetRandomBody(1024));
             await _channel.WaitForConfirmsOrDieAsync();
 

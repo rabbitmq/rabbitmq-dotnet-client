@@ -265,14 +265,6 @@ namespace RabbitMQ.Client
         Task CloseAsync(ShutdownEventArgs reason, bool abort,
             CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Asynchronously enable publisher confirmations.
-        /// </summary>
-        /// <param name="trackConfirmations">Set to <c>false</c> if tracking via <see cref="BasicAcksAsync"/> and <see cref="BasicNacksAsync"/> yourself.</param>
-        /// <param name="cancellationToken">CancellationToken for this operation.</param>
-        Task ConfirmSelectAsync(bool trackConfirmations = true,
-            CancellationToken cancellationToken = default);
-
         /// <summary>Asynchronously declare an exchange.</summary>
         /// <param name="exchange">The name of the exchange.</param>
         /// <param name="type">The type of the exchange.</param>

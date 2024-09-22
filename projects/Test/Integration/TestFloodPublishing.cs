@@ -181,9 +181,8 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                await using (IChannel publishChannel = await publishConnection.CreateChannelAsync())
+                await using (IChannel publishChannel = await publishConnection.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true))
                 {
-                    await publishChannel.ConfirmSelectAsync();
 
                     publishChannel.ChannelShutdownAsync += (o, ea) =>
                     {
