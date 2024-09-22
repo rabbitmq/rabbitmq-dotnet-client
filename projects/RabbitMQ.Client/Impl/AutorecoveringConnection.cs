@@ -251,16 +251,26 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync(ushort? consumerDispatchConcurrency = null,
-            CancellationToken cancellationToken = default)
+        public async Task<IChannel> CreateChannelAsync(bool publisherConfirmations = false, bool publisherConfirmationTracking = false,
+            ushort? consumerDispatchConcurrency = null, CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
+
             ushort cdc = consumerDispatchConcurrency.GetValueOrDefault(_config.ConsumerDispatchConcurrency);
+
             RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(cdc, cancellationToken)
                 .ConfigureAwait(false);
+
             AutorecoveringChannel channel = new AutorecoveringChannel(this, recoveryAwareChannel, cdc);
+            if (publisherConfirmations)
+            {
+                await channel.ConfirmSelectAsync(trackConfirmations: publisherConfirmationTracking,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+
             await RecordChannelAsync(channel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
+
             return channel;
         }
 

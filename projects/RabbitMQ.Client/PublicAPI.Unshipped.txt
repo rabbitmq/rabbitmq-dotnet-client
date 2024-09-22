@@ -1,0 +1,1 @@
+RabbitMQ.Client.IConnection.CreateChannelAsync(bool publisherConfirmations = false, bool publisherConfirmationTracking = false, ushort? consumerDispatchConcurrency = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!

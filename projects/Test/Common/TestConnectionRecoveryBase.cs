@@ -35,6 +35,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -71,17 +72,16 @@ namespace Test
             Assert.Equal(count, ok.ConsumerCount);
         }
 
-        protected async Task AssertExchangeRecoveryAsync(IChannel m, string x)
+        protected async Task AssertExchangeRecoveryAsync(IChannel ch, string x)
         {
-            await m.ConfirmSelectAsync();
-            await WithTemporaryNonExclusiveQueueAsync(m, async (_, q) =>
+            await WithTemporaryNonExclusiveQueueAsync(ch, async (_, q) =>
             {
                 string rk = "routing-key";
-                await m.QueueBindAsync(q, x, rk);
-                await m.BasicPublishAsync(x, rk, _messageBody);
+                await ch.QueueBindAsync(q, x, rk);
+                await ch.BasicPublishAsync(x, rk, _messageBody);
 
-                Assert.True(await WaitForConfirmsWithCancellationAsync(m));
-                await m.ExchangeDeclarePassiveAsync(x);
+                Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
+                await ch.ExchangeDeclarePassiveAsync(x);
             });
         }
 
@@ -92,7 +92,13 @@ namespace Test
 
         protected async Task AssertQueueRecoveryAsync(IChannel ch, string q, bool exclusive, IDictionary<string, object> arguments = null)
         {
-            await ch.ConfirmSelectAsync();
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)ch;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
+            // Note: no need to enable publisher confirmations as they are
+            // automatically enabled for channels
             await ch.QueueDeclareAsync(queue: q, passive: true, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
             RabbitMQ.Client.QueueDeclareOk ok1 = await ch.QueueDeclareAsync(queue: q, passive: false,
@@ -204,9 +210,10 @@ namespace Test
         {
             using (AutorecoveringConnection publishingConn = await CreateAutorecoveringConnectionAsync())
             {
-                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync())
+                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true))
                 {
-                    await publishingChannel.ConfirmSelectAsync();
+                    // Note: no need to enable publisher confirmations as they are
+                    // automatically enabled for channels
 
                     for (ushort i = 0; i < TotalMessageCount; i++)
                     {
@@ -358,10 +365,8 @@ namespace Test
 
         protected static async Task<bool> SendAndConsumeMessageAsync(IConnection conn, string queue, string exchange, string routingKey)
         {
-            using (IChannel ch = await conn.CreateChannelAsync())
+            using (IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true))
             {
-                await ch.ConfirmSelectAsync();
-
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 var consumer = new AckingBasicConsumer(ch, 1, tcs);

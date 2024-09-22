@@ -111,8 +111,7 @@ namespace Test.Integration
         public async Task TestWaitForConfirmsWithEventsAsync()
         {
             string queueName = GenerateQueueName();
-            await using IChannel ch = await _conn.CreateChannelAsync();
-            await ch.ConfirmSelectAsync();
+            await using IChannel ch = await _conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
             await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
                 exclusive: true, autoDelete: false, arguments: null);
 
@@ -151,10 +150,9 @@ namespace Test.Integration
         private async Task TestWaitForConfirmsAsync(int numberOfMessagesToPublish, Func<IChannel, Task> fn)
         {
             string queueName = GenerateQueueName();
-            await using IChannel ch = await _conn.CreateChannelAsync();
+            await using IChannel ch = await _conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
             var props = new BasicProperties { Persistent = true };
 
-            await ch.ConfirmSelectAsync();
             await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
                 exclusive: true, autoDelete: false, arguments: null);
 

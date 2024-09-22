@@ -32,6 +32,7 @@
 using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,20 +47,23 @@ namespace Test.Integration
         [Fact]
         public async Task TestConfirmSelectIdempotency()
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             ValueTask PublishAsync()
             {
                 return _channel.BasicPublishAsync(exchange: "",
                     routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
             }
 
-            await _channel.ConfirmSelectAsync();
             Assert.Equal(1ul, await _channel.GetNextPublishSequenceNumberAsync());
             await PublishAsync();
             Assert.Equal(2ul, await _channel.GetNextPublishSequenceNumberAsync());
             await PublishAsync();
             Assert.Equal(3ul, await _channel.GetNextPublishSequenceNumberAsync());
 
-            await _channel.ConfirmSelectAsync();
             await PublishAsync();
             Assert.Equal(4ul, await _channel.GetNextPublishSequenceNumberAsync());
             await PublishAsync();
@@ -73,11 +77,15 @@ namespace Test.Integration
         [InlineData(256)]
         public async Task TestDeliveryTagDiverged_GH1043(ushort correlationIdLength)
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             byte[] body = GetRandomBody(16);
 
             await _channel.ExchangeDeclareAsync("sample", "fanout", autoDelete: true);
             // _channel.BasicAcks += (s, e) => _output.WriteLine("Acked {0}", e.DeliveryTag);
-            await _channel.ConfirmSelectAsync();
 
             var properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());

@@ -24,12 +24,12 @@ static async Task PublishMessagesIndividuallyAsync()
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages individually and handling confirms all at once");
 
     await using IConnection connection = await CreateConnectionAsync();
-    await using IChannel channel = await connection.CreateChannelAsync();
+    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmations: true,
+        publisherConfirmationTracking: true);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
-    await channel.ConfirmSelectAsync();
 
     var sw = new Stopwatch();
     sw.Start();
@@ -57,7 +57,6 @@ static async Task PublishMessagesInBatchAsync()
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
-    await channel.ConfirmSelectAsync();
 
     int batchSize = 100;
     int outstandingMessageCount = 0;
@@ -98,15 +97,14 @@ async Task HandlePublishConfirmsAsynchronously()
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms asynchronously");
 
     await using IConnection connection = await CreateConnectionAsync();
-    await using IChannel channel = await connection.CreateChannelAsync();
+
+    // NOTE: setting trackConfirmations to false because this program
+    // is tracking them itself.
+    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationTracking: false);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
-
-    // NOTE: setting trackConfirmations to false because this program
-    // is tracking them itself.
-    await channel.ConfirmSelectAsync(trackConfirmations: false);
 
     bool publishingCompleted = false;
     var allMessagesConfirmedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
