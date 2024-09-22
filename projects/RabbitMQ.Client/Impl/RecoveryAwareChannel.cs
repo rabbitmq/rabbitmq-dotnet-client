@@ -37,7 +37,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class RecoveryAwareChannel : Channel
     {
-        public RecoveryAwareChannel(ConnectionConfig config, ISession session, ushort consumerDispatchConcurrency)
+        public RecoveryAwareChannel(ConnectionConfig config, ISession session, ushort? consumerDispatchConcurrency = null)
             : base(config, session, consumerDispatchConcurrency)
         {
             ActiveDeliveryTagOffset = 0;
@@ -50,7 +50,6 @@ namespace RabbitMQ.Client.Impl
         internal void TakeOver(RecoveryAwareChannel other)
         {
             base.TakeOver(other);
-
             ActiveDeliveryTagOffset = other.ActiveDeliveryTagOffset + other.MaxSeenDeliveryTag;
             MaxSeenDeliveryTag = 0;
         }

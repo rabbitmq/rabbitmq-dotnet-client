@@ -60,10 +60,10 @@ namespace Test.SequentialIntegration
         public async Task TestConnectionBlockedNotification()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _conn.ConnectionBlockedAsync += async (object sender, ConnectionBlockedEventArgs args) =>
+            _conn.ConnectionBlockedAsync += (object sender, ConnectionBlockedEventArgs args) =>
             {
-                // TODO should this continue to be doing fire and forget?
-                await UnblockAsync();
+                UnblockAsync();
+                return Task.CompletedTask;
             };
 
             _conn.ConnectionUnblockedAsync += (object sender, AsyncEventArgs ea) =>
@@ -72,7 +72,7 @@ namespace Test.SequentialIntegration
                 return Task.CompletedTask;
             };
 
-            await BlockAsync(_channel);
+            await BlockAndPublishAsync();
             await tcs.Task.WaitAsync(TimeSpan.FromSeconds(15));
             Assert.True(await tcs.Task, "Unblock notification not received.");
         }
@@ -82,14 +82,14 @@ namespace Test.SequentialIntegration
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            await BlockAsync(_channel);
+            await BlockAndPublishAsync();
 
             Task disposeTask = Task.Run(async () =>
             {
                 try
                 {
                     await _conn.AbortAsync();
-                    _conn.Dispose();
+                    await _conn.DisposeAsync();
                     tcs.SetResult(true);
                 }
                 catch (Exception)

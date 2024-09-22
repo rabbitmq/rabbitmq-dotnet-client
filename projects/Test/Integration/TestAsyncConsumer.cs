@@ -213,7 +213,7 @@ namespace Test.Integration
                         });
                         return Task.CompletedTask;
                     };
-                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync())
+                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
                     {
                         AddCallbackExceptionHandlers(publishConn, publishChannel);
                         publishChannel.DefaultConsumer = new DefaultAsyncConsumer(publishChannel,
@@ -226,15 +226,15 @@ namespace Test.Integration
                             });
                             return Task.CompletedTask;
                         };
-                        await publishChannel.ConfirmSelectAsync();
 
+                        var publishTasks = new List<Task>();
                         for (int i = 0; i < publish_total; i++)
                         {
-                            await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
-                            await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
-                            await publishChannel.WaitForConfirmsOrDieAsync();
+                            publishTasks.Add(publishChannel.BasicPublishAsync(string.Empty, queueName, body1).AsTask());
+                            publishTasks.Add(publishChannel.BasicPublishAsync(string.Empty, queueName, body2).AsTask());
                         }
 
+                        await Task.WhenAll(publishTasks).WaitAsync(WaitSpan);
                         await publishChannel.CloseAsync();
                     }
 
@@ -463,8 +463,6 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            await _channel.ConfirmSelectAsync();
-
             var consumer = new AsyncEventingBasicConsumer(_channel);
             consumer.ReceivedAsync += async (object sender, BasicDeliverEventArgs args) =>
             {
@@ -491,7 +489,6 @@ namespace Test.Integration
                 {
                     byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
                     await _channel.BasicPublishAsync(string.Empty, queueName, _body);
-                    await _channel.WaitForConfirmsOrDieAsync();
                 }
 
                 return true;
@@ -649,12 +646,10 @@ namespace Test.Integration
             var consumer1 = new AsyncEventingBasicConsumer(_channel);
             consumer1.ReceivedAsync += async (sender, args) =>
             {
-                await using IChannel innerChannel = await _conn.CreateChannelAsync();
-                await innerChannel.ConfirmSelectAsync();
+                await using IChannel innerChannel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
                 await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
                     mandatory: true,
                     body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));
-                await innerChannel.WaitForConfirmsOrDieAsync();
                 await innerChannel.CloseAsync();
             };
             await _channel.BasicConsumeAsync(queue1Name, autoAck: true, consumer1);
@@ -667,9 +662,7 @@ namespace Test.Integration
             };
             await _channel.BasicConsumeAsync(queue2Name, autoAck: true, consumer2);
 
-            await _channel.ConfirmSelectAsync();
             await _channel.BasicPublishAsync(exchangeName, queue1Name, body: GetRandomBody(1024));
-            await _channel.WaitForConfirmsOrDieAsync();
 
             Assert.True(await tcs.Task);
         }
@@ -689,9 +682,9 @@ namespace Test.Integration
             {
                 await _channel.BasicCancelAsync(eventArgs.ConsumerTag);
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                _channel.CloseAsync().ContinueWith((_) =>
+                _channel.CloseAsync().ContinueWith(async (_) =>
                 {
-                    _channel.Dispose();
+                    await _channel.DisposeAsync();
                     _channel = null;
                 });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -715,7 +708,7 @@ namespace Test.Integration
             Assert.Equal(ConsumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
             Assert.Equal(_consumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
             await using IChannel ch = await _conn.CreateChannelAsync(
-                consumerDispatchConcurrency: expectedConsumerDispatchConcurrency);
+                new CreateChannelOptions { ConsumerDispatchConcurrency = expectedConsumerDispatchConcurrency });
             AutorecoveringChannel ach = (AutorecoveringChannel)ch;
             Assert.Equal(expectedConsumerDispatchConcurrency, ach.ConsumerDispatcher.Concurrency);
         }

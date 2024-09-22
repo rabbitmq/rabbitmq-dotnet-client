@@ -289,10 +289,8 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            await using (IChannel ch = await conn.CreateChannelAsync())
+            await using (IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
             {
-                await ch.ConfirmSelectAsync();
-
                 await ch.ExchangeDeclareAsync(exchange, "direct");
                 await ch.QueueDeclareAsync(queueWithRecoveredConsumer, false, false, false);
                 await ch.QueueDeclareAsync(queueWithIgnoredConsumer, false, false, false);
@@ -327,7 +325,6 @@ namespace Test.Integration
                     Assert.True(ch.IsOpen);
                     await ch.BasicPublishAsync(exchange, binding1, _encoding.GetBytes("test message"));
                     await ch.BasicPublishAsync(exchange, binding2, _encoding.GetBytes("test message"));
-                    await WaitForConfirmsWithCancellationAsync(ch);
 
                     await consumerRecoveryTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
                     Assert.True(await consumerRecoveryTcs.Task);

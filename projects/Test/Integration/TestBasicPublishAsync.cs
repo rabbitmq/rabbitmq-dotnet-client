@@ -49,7 +49,6 @@ namespace Test.Integration
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            await _channel.ConfirmSelectAsync();
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
 
@@ -60,7 +59,6 @@ namespace Test.Integration
                 {
                     await _channel.BasicPublishAsync(string.Empty, q, body);
                 }
-                await _channel.WaitForConfirmsOrDieAsync();
                 publishSyncSource.SetResult(true);
             });
 

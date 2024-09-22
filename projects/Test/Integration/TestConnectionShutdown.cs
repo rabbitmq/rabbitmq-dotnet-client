@@ -107,7 +107,7 @@ namespace Test.Integration
 
             try
             {
-                _conn.Dispose();
+                await _conn.DisposeAsync();
                 await WaitAsync(tcs, WaitSpan, "channel shutdown");
                 await frameHandlerCloseTask.AsTask().WaitAsync(WaitSpan);
             }
@@ -145,7 +145,7 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            _conn.Dispose();
+            await _conn.DisposeAsync();
             _conn = null;
 
             await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
@@ -172,7 +172,7 @@ namespace Test.Integration
         public async Task TestDisposeAfterAbort_GH825()
         {
             await _channel.AbortAsync();
-            _channel.Dispose();
+            await _channel.DisposeAsync();
         }
     }
 }

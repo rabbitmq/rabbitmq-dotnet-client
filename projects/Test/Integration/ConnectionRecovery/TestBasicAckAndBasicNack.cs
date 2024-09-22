@@ -154,7 +154,6 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestBasicAckEventHandlerRecovery()
         {
-            await _channel.ConfirmSelectAsync();
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             ((AutorecoveringChannel)_channel).BasicAcksAsync += (m, args) =>
             {

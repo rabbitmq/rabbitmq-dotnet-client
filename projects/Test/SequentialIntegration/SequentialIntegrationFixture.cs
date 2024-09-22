@@ -48,10 +48,12 @@ namespace Test.SequentialIntegration
             await Task.Delay(TimeSpan.FromSeconds(1));
         }
 
-        public async Task BlockAsync(IChannel channel)
+        public async Task BlockAndPublishAsync()
         {
+            // TODO fix publisher confirmation tracking to time out so this test succeeds
+            await using IChannel ch = await _conn.CreateChannelAsync();
             await BlockAsync();
-            await channel.BasicPublishAsync(exchange: "amq.direct",
+            await ch.BasicPublishAsync(exchange: "amq.direct",
                 routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
         }
 

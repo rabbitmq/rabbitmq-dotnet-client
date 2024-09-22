@@ -135,7 +135,7 @@ namespace Test.SequentialIntegration
             Assert.False(_channel.IsClosed);
 
             await _channel.CloseAsync();
-            _channel.Dispose();
+            await _channel.DisposeAsync();
             Assert.True(_channel.IsClosed);
             _channel = null;
 
@@ -155,11 +155,12 @@ namespace Test.SequentialIntegration
                 };
                 await CloseAndWaitForRecoveryAsync();
                 await CloseAndWaitForRecoveryAsync();
-                await BlockAsync(_channel);
+                await BlockAndPublishAsync();
                 await WaitAsync(tcs, "connection blocked");
             }
             finally
             {
+                // NOTE: must unblock so that close succeeeds on test tear-down
                 await UnblockAsync();
             }
         }
@@ -194,14 +195,11 @@ namespace Test.SequentialIntegration
                 await RestartServerAndWaitForRecoveryAsync();
                 Assert.True(_channel.IsOpen);
 
-                await _channel.ConfirmSelectAsync();
                 QueueDeclareOk ok0 = await _channel.QueueDeclarePassiveAsync(queue: queueName);
                 Assert.Equal(queueName, ok0.QueueName);
                 await _channel.QueuePurgeAsync(queueName);
                 await _channel.ExchangeDeclarePassiveAsync(exchange: exchangeName);
                 await _channel.BasicPublishAsync(exchange: exchangeName, routingKey: "", body: _encoding.GetBytes("msg"));
-
-                await WaitForConfirmsWithCancellationAsync(_channel);
 
                 QueueDeclareOk ok1 = await _channel.QueueDeclarePassiveAsync(queue: queueName);
                 Assert.Equal(1u, ok1.MessageCount);
@@ -240,10 +238,8 @@ namespace Test.SequentialIntegration
             Assert.True(_channel.IsOpen);
             Assert.NotEqual(nameBefore, nameAfter);
 
-            await _channel.ConfirmSelectAsync();
             await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout");
             await _channel.BasicPublishAsync(exchange: x, routingKey: "", body: _encoding.GetBytes("msg"));
-            await WaitForConfirmsWithCancellationAsync(_channel);
 
             QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(nameAfter);
             Assert.Equal(1u, ok.MessageCount);
@@ -345,7 +341,7 @@ namespace Test.SequentialIntegration
             };
             await CloseAndWaitForRecoveryAsync();
             await CloseAndWaitForRecoveryAsync();
-            await BlockAsync(_channel);
+            await BlockAndPublishAsync();
             await UnblockAsync();
             await WaitAsync(tcs, "connection unblocked");
         }

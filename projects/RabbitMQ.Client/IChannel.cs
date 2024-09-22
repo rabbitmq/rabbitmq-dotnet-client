@@ -204,6 +204,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
@@ -221,6 +222,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
@@ -263,14 +265,6 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <returns></returns>
         Task CloseAsync(ShutdownEventArgs reason, bool abort,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously enable publisher confirmations.
-        /// </summary>
-        /// <param name="trackConfirmations">Set to <c>false</c> if tracking via <see cref="BasicAcksAsync"/> and <see cref="BasicNacksAsync"/> yourself.</param>
-        /// <param name="cancellationToken">CancellationToken for this operation.</param>
-        Task ConfirmSelectAsync(bool trackConfirmations = true,
             CancellationToken cancellationToken = default);
 
         /// <summary>Asynchronously declare an exchange.</summary>
@@ -450,32 +444,6 @@ namespace RabbitMQ.Client
         /// <summary>Asynchronously enable TX mode for this session.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         Task TxSelectAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Asynchronously wait until all published messages on this channel have been confirmed.
-        /// </summary>
-        /// <returns>True if no nacks were received within the timeout, otherwise false.</returns>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <remarks>
-        /// Waits until all messages published on this channel since the last call have
-        /// been either ack'd or nack'd by the server. Returns whether
-        /// all the messages were ack'd (and none were nack'd).
-        /// Throws an exception when called on a channel
-        /// that does not have publisher confirms enabled.
-        /// </remarks>
-        Task<bool> WaitForConfirmsAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Wait until all published messages on this channel have been confirmed.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <remarks>
-        /// Waits until all messages published on this channel since the last call have
-        /// been ack'd by the server. If a nack is received or the timeout
-        /// elapses, throws an IOException exception immediately and closes
-        /// the channel.
-        /// </remarks>
-        Task WaitForConfirmsOrDieAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before

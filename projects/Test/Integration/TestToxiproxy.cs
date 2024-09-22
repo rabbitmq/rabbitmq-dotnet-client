@@ -125,28 +125,26 @@ namespace Test.Integration
 
                 async Task PublishLoop()
                 {
-                    await using IChannel ch = await conn.CreateChannelAsync();
-                    await ch.ConfirmSelectAsync();
+                    await using IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
                     QueueDeclareOk q = await ch.QueueDeclareAsync();
                     while (conn.IsOpen)
                     {
-                        await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                        messagePublishedTcs.TrySetResult(true);
                         /*
-                                     * Note:
-                                     * In this test, it is possible that the connection
-                                     * will be closed before the ack is returned,
-                                     * and this await will throw an exception
-                                     */
+                         * Note:
+                         * In this test, it is possible that the connection
+                         * will be closed before the ack is returned,
+                         * and this await will throw an exception
+                         */
                         try
                         {
-                            await ch.WaitForConfirmsAsync();
+                            await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                            messagePublishedTcs.TrySetResult(true);
                         }
                         catch (AlreadyClosedException ex)
                         {
                             if (IsVerbose)
                             {
-                                _output.WriteLine($"[WARNING] WaitForConfirmsAsync ex: {ex}");
+                                _output.WriteLine($"[WARNING] BasicPublishAsync ex: {ex}");
                             }
                         }
                     }
@@ -206,13 +204,11 @@ namespace Test.Integration
             Task pubTask = Task.Run(async () =>
             {
                 await using IConnection conn = await cf.CreateConnectionAsync();
-                await using IChannel ch = await conn.CreateChannelAsync();
-                await ch.ConfirmSelectAsync();
+                await using IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
                 QueueDeclareOk q = await ch.QueueDeclareAsync();
                 while (conn.IsOpen)
                 {
                     await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                    await ch.WaitForConfirmsAsync();
                     await Task.Delay(TimeSpan.FromSeconds(1));
                     tcs.TrySetResult(true);
                 }

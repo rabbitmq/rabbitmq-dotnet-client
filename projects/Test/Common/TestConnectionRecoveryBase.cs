@@ -71,17 +71,14 @@ namespace Test
             Assert.Equal(count, ok.ConsumerCount);
         }
 
-        protected async Task AssertExchangeRecoveryAsync(IChannel m, string x)
+        protected async Task AssertExchangeRecoveryAsync(IChannel ch, string x)
         {
-            await m.ConfirmSelectAsync();
-            await WithTemporaryNonExclusiveQueueAsync(m, async (_, q) =>
+            await WithTemporaryNonExclusiveQueueAsync(ch, async (_, q) =>
             {
                 string rk = "routing-key";
-                await m.QueueBindAsync(q, x, rk);
-                await m.BasicPublishAsync(x, rk, _messageBody);
-
-                Assert.True(await WaitForConfirmsWithCancellationAsync(m));
-                await m.ExchangeDeclarePassiveAsync(x);
+                await ch.QueueBindAsync(q, x, rk);
+                await ch.BasicPublishAsync(x, rk, _messageBody);
+                await ch.ExchangeDeclarePassiveAsync(x);
             });
         }
 
@@ -92,15 +89,13 @@ namespace Test
 
         protected async Task AssertQueueRecoveryAsync(IChannel ch, string q, bool exclusive, IDictionary<string, object> arguments = null)
         {
-            await ch.ConfirmSelectAsync();
-            await ch.QueueDeclareAsync(queue: q, passive: true, durable: false, exclusive: false, autoDelete: false, arguments: null);
+            await ch.QueueDeclarePassiveAsync(q);
 
             RabbitMQ.Client.QueueDeclareOk ok1 = await ch.QueueDeclareAsync(queue: q, passive: false,
                 durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
             Assert.Equal(0u, ok1.MessageCount);
 
             await ch.BasicPublishAsync("", q, _messageBody);
-            Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
 
             RabbitMQ.Client.QueueDeclareOk ok2 = await ch.QueueDeclareAsync(queue: q, passive: false,
                 durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
@@ -204,10 +199,8 @@ namespace Test
         {
             using (AutorecoveringConnection publishingConn = await CreateAutorecoveringConnectionAsync())
             {
-                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync())
+                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
                 {
-                    await publishingChannel.ConfirmSelectAsync();
-
                     for (ushort i = 0; i < TotalMessageCount; i++)
                     {
                         if (i == CloseAtCount)
@@ -216,7 +209,6 @@ namespace Test
                         }
 
                         await publishingChannel.BasicPublishAsync(string.Empty, queueName, _messageBody);
-                        await publishingChannel.WaitForConfirmsOrDieAsync();
                     }
 
                     await publishingChannel.CloseAsync();
@@ -236,14 +228,6 @@ namespace Test
             };
 
             return tcs;
-        }
-
-        protected static Task<bool> WaitForConfirmsWithCancellationAsync(IChannel channel)
-        {
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
-            {
-                return channel.WaitForConfirmsAsync(cts.Token);
-            }
         }
 
         protected Task WaitForShutdownAsync()
@@ -358,10 +342,8 @@ namespace Test
 
         protected static async Task<bool> SendAndConsumeMessageAsync(IConnection conn, string queue, string exchange, string routingKey)
         {
-            using (IChannel ch = await conn.CreateChannelAsync())
+            using (IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
             {
-                await ch.ConfirmSelectAsync();
-
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 var consumer = new AckingBasicConsumer(ch, 1, tcs);
@@ -370,8 +352,6 @@ namespace Test
 
                 await ch.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                     body: _encoding.GetBytes("test message"), mandatory: true);
-
-                await ch.WaitForConfirmsOrDieAsync();
 
                 try
                 {

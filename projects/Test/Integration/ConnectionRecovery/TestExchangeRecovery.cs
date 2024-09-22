@@ -55,8 +55,6 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestExchangeToExchangeBindingRecovery()
         {
-            await _channel.ConfirmSelectAsync();
-
             string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
 
             string ex_source = GenerateExchangeName();
@@ -73,7 +71,6 @@ namespace Test.Integration.ConnectionRecovery
                 await CloseAndWaitForRecoveryAsync();
                 Assert.True(_channel.IsOpen);
                 await _channel.BasicPublishAsync(ex_source, "", body: _encoding.GetBytes("msg"), mandatory: true);
-                await _channel.WaitForConfirmsOrDieAsync();
                 await AssertMessageCountAsync(q, 1);
             }
             finally

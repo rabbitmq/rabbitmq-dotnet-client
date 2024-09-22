@@ -49,8 +49,8 @@ namespace RabbitMQ.Client.Impl
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
-        private bool _usesPublisherConfirms;
-        private bool _tracksPublisherConfirmations;
+        private bool _publisherConfirmationsEnabled = false;
+        private bool _publisherConfirmationTrackingEnabled = false;
         private bool _usesTransactions;
         private ushort _consumerDispatchConcurrency;
 
@@ -72,11 +72,13 @@ namespace RabbitMQ.Client.Impl
         }
 
         public AutorecoveringChannel(AutorecoveringConnection conn, RecoveryAwareChannel innerChannel,
-            ushort consumerDispatchConcurrency)
+            ushort consumerDispatchConcurrency, bool publisherConfirmationsEnabled, bool publisherConfirmationTrackingEnabled)
         {
             _connection = conn;
             _innerChannel = innerChannel;
             _consumerDispatchConcurrency = consumerDispatchConcurrency;
+            _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
+            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
         }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -161,8 +163,9 @@ namespace RabbitMQ.Client.Impl
 
             _connection = conn;
 
-            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(_consumerDispatchConcurrency,
-                cancellationToken: cancellationToken)
+            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(
+                _publisherConfirmationsEnabled, _publisherConfirmationTrackingEnabled,
+                _consumerDispatchConcurrency, cancellationToken)
                 .ConfigureAwait(false);
             newChannel.TakeOver(_innerChannel);
 
@@ -175,12 +178,6 @@ namespace RabbitMQ.Client.Impl
             if (_prefetchCountGlobal != 0)
             {
                 await newChannel.BasicQosAsync(0, _prefetchCountGlobal, true, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            if (_usesPublisherConfirms)
-            {
-                await newChannel.ConfirmSelectAsync(_tracksPublisherConfirmations, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -347,14 +344,6 @@ namespace RabbitMQ.Client.Impl
             return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global, cancellationToken);
         }
 
-        public async Task ConfirmSelectAsync(bool trackConfirmations = true, CancellationToken cancellationToken = default)
-        {
-            await InnerChannel.ConfirmSelectAsync(trackConfirmations, cancellationToken)
-                .ConfigureAwait(false);
-            _usesPublisherConfirms = true;
-            _tracksPublisherConfirmations = trackConfirmations;
-        }
-
         public async Task ExchangeBindAsync(string destination, string source, string routingKey,
             IDictionary<string, object?>? arguments, bool noWait,
             CancellationToken cancellationToken)
@@ -486,12 +475,6 @@ namespace RabbitMQ.Client.Impl
             _usesTransactions = true;
             return InnerChannel.TxSelectAsync(cancellationToken);
         }
-
-        public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
-            => InnerChannel.WaitForConfirmsAsync(token);
-
-        public Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
-            => InnerChannel.WaitForConfirmsOrDieAsync(token);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()

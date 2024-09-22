@@ -137,19 +137,23 @@ namespace MassPublish
 
                 publishTasks.Add(Task.Run(async () =>
                 {
-                    using IChannel publishChannel = await publishConnection.CreateChannelAsync();
+                    using IChannel publishChannel = await publishConnection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
                     publishChannel.ChannelShutdownAsync += Channel_ChannelShutdownAsync;
-
-                    await publishChannel.ConfirmSelectAsync();
 
                     for (int i = 0; i < ItemsPerBatch; i++)
                     {
-                        await publishChannel.BasicPublishAsync(exchange: ExchangeName, routingKey: RoutingKey,
-                            basicProperties: s_properties, body: s_payload, mandatory: true);
-                        Interlocked.Increment(ref s_messagesSent);
+                        try
+                        {
+                            await publishChannel.BasicPublishAsync(exchange: ExchangeName, routingKey: RoutingKey,
+                                basicProperties: s_properties, body: s_payload, mandatory: true);
+                            Interlocked.Increment(ref s_messagesSent);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteLine("[ERROR] channel {0} saw nack, ex: {1}",
+                                publishChannel.ChannelNumber, ex);
+                        }
                     }
-
-                    await publishChannel.WaitForConfirmsOrDieAsync();
 
                     if (s_debug)
                     {
