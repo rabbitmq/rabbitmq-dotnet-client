@@ -49,7 +49,7 @@ namespace Test.Integration.ConnectionRecovery
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             string x = "dotnet-client.test.recovery.x1";
             await DeclareNonDurableExchangeAsync(_channel, x);
@@ -64,7 +64,7 @@ namespace Test.Integration.ConnectionRecovery
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
 

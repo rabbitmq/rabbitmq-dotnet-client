@@ -213,7 +213,7 @@ namespace Test.Integration
                         });
                         return Task.CompletedTask;
                     };
-                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true))
+                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true))
                     {
                         AddCallbackExceptionHandlers(publishConn, publishChannel);
                         publishChannel.DefaultConsumer = new DefaultAsyncConsumer(publishChannel,
@@ -438,7 +438,7 @@ namespace Test.Integration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             await ValidateConsumerDispatchConcurrency();
 
@@ -611,7 +611,7 @@ namespace Test.Integration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             await ValidateConsumerDispatchConcurrency();
 
@@ -656,7 +656,7 @@ namespace Test.Integration
             var consumer1 = new AsyncEventingBasicConsumer(_channel);
             consumer1.ReceivedAsync += async (sender, args) =>
             {
-                await using IChannel innerChannel = await _conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
+                await using IChannel innerChannel = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
                 await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
                     mandatory: true,
                     body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));

@@ -49,8 +49,8 @@ namespace RabbitMQ.Client.Impl
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
-        private bool _usesPublisherConfirms;
-        private bool _tracksPublisherConfirmations;
+        private bool _publisherConfirmationsEnabled = false;
+        private bool _publisherConfirmationTrackingEnabled = false;
         private bool _usesTransactions;
         private ushort _consumerDispatchConcurrency;
 
@@ -161,8 +161,9 @@ namespace RabbitMQ.Client.Impl
 
             _connection = conn;
 
-            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(_consumerDispatchConcurrency,
-                cancellationToken: cancellationToken)
+            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(
+                _publisherConfirmationsEnabled, _publisherConfirmationTrackingEnabled,
+                _consumerDispatchConcurrency, cancellationToken)
                 .ConfigureAwait(false);
             newChannel.TakeOver(_innerChannel);
 
@@ -178,9 +179,9 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            if (_usesPublisherConfirms)
+            if (_publisherConfirmationsEnabled)
             {
-                await newChannel.ConfirmSelectAsync(_tracksPublisherConfirmations, cancellationToken)
+                await newChannel.ConfirmSelectAsync(_publisherConfirmationTrackingEnabled, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -347,12 +348,12 @@ namespace RabbitMQ.Client.Impl
             return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global, cancellationToken);
         }
 
-        public async Task ConfirmSelectAsync(bool trackConfirmations = true, CancellationToken cancellationToken = default)
+        public async Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnabled = false, CancellationToken cancellationToken = default)
         {
-            await InnerChannel.ConfirmSelectAsync(trackConfirmations, cancellationToken)
+            _publisherConfirmationsEnabled = true;
+            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+            await InnerChannel.ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
                 .ConfigureAwait(false);
-            _usesPublisherConfirms = true;
-            _tracksPublisherConfirmations = trackConfirmations;
         }
 
         public async Task ExchangeBindAsync(string destination, string source, string routingKey,

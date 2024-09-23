@@ -58,7 +58,7 @@ namespace Test.Integration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: false);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: false);
 
             int publishAckCount = 0;
 

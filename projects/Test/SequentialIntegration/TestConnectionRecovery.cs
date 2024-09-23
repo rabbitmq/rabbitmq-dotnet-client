@@ -184,7 +184,7 @@ namespace Test.SequentialIntegration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             string queueName = GenerateQueueName();
             string exchangeName = GenerateExchangeName();
@@ -225,7 +225,7 @@ namespace Test.SequentialIntegration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             string x = "tmp-fanout";
             await _channel.ExchangeDeleteAsync(x);

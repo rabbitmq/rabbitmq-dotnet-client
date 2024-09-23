@@ -289,7 +289,7 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            await using (IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true))
+            await using (IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true))
             {
 
                 await ch.ExchangeDeclareAsync(exchange, "direct");

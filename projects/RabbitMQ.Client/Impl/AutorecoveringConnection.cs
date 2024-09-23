@@ -184,12 +184,17 @@ namespace RabbitMQ.Client.Framing
 
         public IProtocol Protocol => Endpoint.Protocol;
 
-        public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(ushort consumerDispatchConcurrency,
+        public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(
+            bool publisherConfirmationsEnabled = false,
+            bool publisherConfirmationTrackingEnabled = false,
+            ushort? consumerDispatchConcurrency = null,
             CancellationToken cancellationToken = default)
         {
             ISession session = InnerConnection.CreateSession();
             var result = new RecoveryAwareChannel(_config, session, consumerDispatchConcurrency);
-            return (RecoveryAwareChannel)await result.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return (RecoveryAwareChannel)await result.OpenAsync(
+                publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public override string ToString()
@@ -251,27 +256,29 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync(bool publisherConfirmations = false, bool publisherConfirmationTracking = false,
-            ushort? consumerDispatchConcurrency = null, CancellationToken cancellationToken = default)
+        public async Task<IChannel> CreateChannelAsync(bool publisherConfirmationsEnabled = false,
+            bool publisherConfirmationTrackingEnabled = false,
+            ushort? consumerDispatchConcurrency = null,
+            CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
 
             ushort cdc = consumerDispatchConcurrency.GetValueOrDefault(_config.ConsumerDispatchConcurrency);
 
-            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(cdc, cancellationToken)
+            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(
+                publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled, cdc, cancellationToken)
                 .ConfigureAwait(false);
 
-            AutorecoveringChannel channel = new AutorecoveringChannel(this, recoveryAwareChannel, cdc);
-            if (publisherConfirmations)
+            var autorecoveringChannel = new AutorecoveringChannel(this, recoveryAwareChannel, cdc);
+            if (publisherConfirmationsEnabled)
             {
-                await channel.ConfirmSelectAsync(trackConfirmations: publisherConfirmationTracking,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                // TODO yes, this is necessary, not sure why
+                await autorecoveringChannel.ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
+                    .ConfigureAwait(false);
             }
-
-            await RecordChannelAsync(channel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
+            await RecordChannelAsync(autorecoveringChannel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
-
-            return channel;
+            return autorecoveringChannel;
         }
 
         public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
