@@ -50,7 +50,7 @@ namespace Test.Integration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             ValueTask PublishAsync()
             {
@@ -80,7 +80,7 @@ namespace Test.Integration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             byte[] body = GetRandomBody(16);
 

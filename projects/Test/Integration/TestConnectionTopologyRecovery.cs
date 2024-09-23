@@ -156,7 +156,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
+            IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
             try
             {
                 await ch.ExchangeDeclareAsync(exchangeToRecover, "topic", false, true);
@@ -271,7 +271,7 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
+            IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
             try
             {
 
@@ -402,7 +402,7 @@ namespace Test.Integration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             string exchangeToRecoverWithException = GenerateExchangeName() + "-recovery.exception.exchange";
             string exchangeToRecoverSuccessfully = GenerateExchangeName() + "-successfully.recovered.exchange";

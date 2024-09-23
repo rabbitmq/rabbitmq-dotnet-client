@@ -50,7 +50,7 @@ namespace Test.Integration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             for (int i = 0; i < 10; i++)
             {
@@ -71,7 +71,7 @@ namespace Test.Integration
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             await _channel.ExchangeDeclareAsync("src", ExchangeType.Direct, false, false);
             await _channel.ExchangeDeclareAsync("dest", ExchangeType.Direct, false, false);

@@ -95,7 +95,7 @@ namespace Test
             // TODO
             // Hack for rabbitmq/rabbitmq-dotnet-client#1682
             AutorecoveringChannel ach = (AutorecoveringChannel)ch;
-            await ach.ConfirmSelectAsync(trackConfirmations: true);
+            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
 
             // Note: no need to enable publisher confirmations as they are
             // automatically enabled for channels
@@ -210,7 +210,7 @@ namespace Test
         {
             using (AutorecoveringConnection publishingConn = await CreateAutorecoveringConnectionAsync())
             {
-                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true))
+                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true))
                 {
                     // Note: no need to enable publisher confirmations as they are
                     // automatically enabled for channels
@@ -365,7 +365,7 @@ namespace Test
 
         protected static async Task<bool> SendAndConsumeMessageAsync(IConnection conn, string queue, string exchange, string routingKey)
         {
-            using (IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true))
+            using (IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true))
             {
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 

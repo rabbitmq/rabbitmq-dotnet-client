@@ -24,8 +24,8 @@ static async Task PublishMessagesIndividuallyAsync()
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages individually and handling confirms all at once");
 
     await using IConnection connection = await CreateConnectionAsync();
-    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmations: true,
-        publisherConfirmationTracking: true);
+    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationsEnabled: true,
+        publisherConfirmationTrackingEnabled: true);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
@@ -100,7 +100,7 @@ async Task HandlePublishConfirmsAsynchronously()
 
     // NOTE: setting trackConfirmations to false because this program
     // is tracking them itself.
-    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationTracking: false);
+    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationTrackingEnabled: false);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();

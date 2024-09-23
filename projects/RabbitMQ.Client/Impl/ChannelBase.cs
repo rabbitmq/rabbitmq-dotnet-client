@@ -57,11 +57,12 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly AsyncManualResetEvent _flowControlBlock = new AsyncManualResetEvent(true);
 
-        private ulong _nextPublishSeqNo;
-        private SemaphoreSlim? _confirmSemaphore;
-        private bool _trackConfirmations;
-        private LinkedList<ulong>? _pendingDeliveryTags;
-        private List<TaskCompletionSource<bool>>? _confirmsTaskCompletionSources;
+        private bool _publisherConfirmationsEnabled = false;
+        private bool _publisherConfirmationTrackingEnabled = false;
+        private ulong _nextPublishSeqNo = 0;
+        private SemaphoreSlim _confirmSemaphore = new(1, 1);
+        private LinkedList<ulong> _pendingDeliveryTags = new();
+        private List<TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
 
         private bool _onlyAcksReceived = true;
 
@@ -70,8 +71,7 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
-        protected ChannelBase(ConnectionConfig config, ISession session,
-            ushort? perChannelConsumerDispatchConcurrency = null)
+        protected ChannelBase(ConnectionConfig config, ISession session, ushort? perChannelConsumerDispatchConcurrency = null)
         {
             ContinuationTimeout = config.ContinuationTimeout;
             ConsumerDispatcher = new AsyncConsumerDispatcher(this,
@@ -371,8 +371,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal async Task<IChannel> OpenAsync(CancellationToken cancellationToken)
+        internal async Task<IChannel> OpenAsync(bool publisherConfirmationsEnabled = false,
+            bool publisherConfirmationTrackingEnabled = false,
+            CancellationToken cancellationToken = default)
         {
+            _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
+            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
@@ -388,7 +393,6 @@ namespace RabbitMQ.Client.Impl
 
                 bool result = await k;
                 Debug.Assert(result);
-                return this;
             }
             finally
             {
@@ -398,6 +402,15 @@ namespace RabbitMQ.Client.Impl
                 }
                 _rpcSemaphore.Release();
             }
+
+            if (_publisherConfirmationsEnabled)
+            {
+                // TODO bring this back within RPC semaphore
+                await ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return this;
         }
 
         internal async Task FinishCloseAsync(CancellationToken cancellationToken)
@@ -411,9 +424,6 @@ namespace RabbitMQ.Client.Impl
 
             m_connectionStartCell?.TrySetResult(null);
         }
-
-        [MemberNotNullWhen(true, nameof(_confirmSemaphore))]
-        private bool ConfirmsAreEnabled => _confirmSemaphore != null;
 
         private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
@@ -489,7 +499,7 @@ namespace RabbitMQ.Client.Impl
             await _channelShutdownAsyncWrapper.InvokeAsync(this, reason)
                 .ConfigureAwait(false);
 
-            if (ConfirmsAreEnabled)
+            if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(reason.CancellationToken)
                     .ConfigureAwait(false);
@@ -825,7 +835,7 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default)
         {
-            if (ConfirmsAreEnabled)
+            if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
@@ -973,13 +983,13 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            if (ConfirmsAreEnabled)
+            if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
-                    if (_trackConfirmations)
+                    if (_publisherConfirmationTrackingEnabled)
                     {
                         if (_pendingDeliveryTags is null)
                         {
@@ -1031,14 +1041,14 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
-                if (ConfirmsAreEnabled)
+                if (_publisherConfirmationsEnabled)
                 {
                     await _confirmSemaphore.WaitAsync(cancellationToken)
                         .ConfigureAwait(false);
                     try
                     {
                         _nextPublishSeqNo--;
-                        if (_trackConfirmations && _pendingDeliveryTags is not null)
+                        if (_publisherConfirmationTrackingEnabled && _pendingDeliveryTags is not null)
                         {
                             _pendingDeliveryTags.RemoveLast();
                         }
@@ -1058,13 +1068,13 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            if (ConfirmsAreEnabled)
+            if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
-                    if (_trackConfirmations)
+                    if (_publisherConfirmationTrackingEnabled)
                     {
                         if (_pendingDeliveryTags is null)
                         {
@@ -1116,14 +1126,14 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
-                if (ConfirmsAreEnabled)
+                if (_publisherConfirmationsEnabled)
                 {
                     await _confirmSemaphore.WaitAsync(cancellationToken)
                         .ConfigureAwait(false);
                     try
                     {
                         _nextPublishSeqNo--;
-                        if (_trackConfirmations && _pendingDeliveryTags is not null)
+                        if (_publisherConfirmationTrackingEnabled && _pendingDeliveryTags is not null)
                         {
                             _pendingDeliveryTags.RemoveLast();
                         }
@@ -1210,9 +1220,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task ConfirmSelectAsync(bool trackConfirmations = true, CancellationToken cancellationToken = default)
+        // TODO internal
+        // TODO rpc semaphore held
+        public async Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnablefd = false,
+            CancellationToken cancellationToken = default)
         {
-            _trackConfirmations = trackConfirmations;
+            _publisherConfirmationsEnabled = true;
+            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnablefd;
+
             bool enqueued = false;
             var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
@@ -1222,10 +1237,10 @@ namespace RabbitMQ.Client.Impl
             {
                 if (_nextPublishSeqNo == 0UL)
                 {
-                    if (_trackConfirmations)
+                    if (_publisherConfirmationTrackingEnabled)
                     {
-                        _pendingDeliveryTags = new LinkedList<ulong>();
-                        _confirmsTaskCompletionSources = new List<TaskCompletionSource<bool>>();
+                        _pendingDeliveryTags.Clear();
+                        _confirmsTaskCompletionSources.Clear();
                     }
                     _nextPublishSeqNo = 1;
                 }
@@ -1741,12 +1756,12 @@ namespace RabbitMQ.Client.Impl
 
         public async Task<bool> WaitForConfirmsAsync(CancellationToken cancellationToken = default)
         {
-            if (false == ConfirmsAreEnabled)
+            if (false == _publisherConfirmationsEnabled)
             {
                 throw new InvalidOperationException("Confirms not selected");
             }
 
-            if (false == _trackConfirmations)
+            if (false == _publisherConfirmationTrackingEnabled)
             {
                 throw new InvalidOperationException("Confirmation tracking is not enabled");
             }
@@ -1773,7 +1788,7 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                _confirmsTaskCompletionSources!.Add(tcs);
+                _confirmsTaskCompletionSources.Add(tcs);
             }
             finally
             {
@@ -1797,12 +1812,12 @@ namespace RabbitMQ.Client.Impl
 
         public async Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
         {
-            if (false == ConfirmsAreEnabled)
+            if (false == _publisherConfirmationsEnabled)
             {
                 throw new InvalidOperationException("Confirms not selected");
             }
 
-            if (false == _trackConfirmations)
+            if (false == _publisherConfirmationTrackingEnabled)
             {
                 throw new InvalidOperationException("Confirmation tracking is not enabled");
             }
@@ -1839,24 +1854,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private async Task<bool> WaitForConfirmsWithTokenAsync(TaskCompletionSource<bool> tcs,
+        private static async Task<bool> WaitForConfirmsWithTokenAsync(TaskCompletionSource<bool> tcs,
             CancellationToken cancellationToken)
         {
-            if (false == ConfirmsAreEnabled)
-            {
-                throw new InvalidOperationException("Confirms not selected");
-            }
-
-            if (false == _trackConfirmations)
-            {
-                throw new InvalidOperationException("Confirmation tracking is not enabled");
-            }
-
-            if (_pendingDeliveryTags is null)
-            {
-                throw new InvalidOperationException(InternalConstants.BugFound);
-            }
-
             CancellationTokenRegistration tokenRegistration =
 #if NET6_0_OR_GREATER
                 cancellationToken.UnsafeRegister(
@@ -1886,7 +1886,7 @@ namespace RabbitMQ.Client.Impl
         internal async Task HandleAckNack(ulong deliveryTag, bool multiple, bool isNack, CancellationToken cancellationToken = default)
         {
             // Only do this if confirms are enabled *and* the library is tracking confirmations
-            if (ConfirmsAreEnabled && _trackConfirmations)
+            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
             {
                 if (_pendingDeliveryTags is null)
                 {
@@ -1923,9 +1923,9 @@ namespace RabbitMQ.Client.Impl
                     if (_pendingDeliveryTags.Count == 0 && _confirmsTaskCompletionSources!.Count > 0)
                     {
                         // Done, mark tasks
-                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                        foreach (TaskCompletionSource<bool> tcs in _confirmsTaskCompletionSources)
                         {
-                            confirmsTaskCompletionSource.TrySetResult(_onlyAcksReceived);
+                            tcs.TrySetResult(_onlyAcksReceived);
                         }
 
                         _confirmsTaskCompletionSources.Clear();

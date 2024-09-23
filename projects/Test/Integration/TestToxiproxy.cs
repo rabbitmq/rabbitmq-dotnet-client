@@ -125,7 +125,7 @@ namespace Test.Integration
 
                 async Task PublishLoop()
                 {
-                    await using IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
+                    await using IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
                     QueueDeclareOk q = await ch.QueueDeclareAsync();
                     while (conn.IsOpen)
                     {
@@ -205,7 +205,7 @@ namespace Test.Integration
             Task pubTask = Task.Run(async () =>
             {
                 await using IConnection conn = await cf.CreateConnectionAsync();
-                await using IChannel ch = await conn.CreateChannelAsync(publisherConfirmations: true, publisherConfirmationTracking: true);
+                await using IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
                 QueueDeclareOk q = await ch.QueueDeclareAsync();
                 while (conn.IsOpen)
                 {

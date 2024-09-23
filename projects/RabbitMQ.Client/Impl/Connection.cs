@@ -264,29 +264,18 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync(bool publisherConfirmations = false, bool publisherConfirmationTracking = false,
-            ushort? consumerDispatchConcurrency = null, CancellationToken cancellationToken = default)
+        public async Task<IChannel> CreateChannelAsync(bool publisherConfirmationsEnabled = false,
+            bool publisherConfirmationTrackingEnabled = false,
+            ushort? consumerDispatchConcurrency = null,
+            CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
             ISession session = CreateSession();
+
+            // TODO channel CreateChannelAsync() to combine ctor and OpenAsync
             var channel = new Channel(_config, session, consumerDispatchConcurrency);
-            IChannel ch = await channel.OpenAsync(cancellationToken)
+            IChannel ch = await channel.OpenAsync(publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled, cancellationToken)
                 .ConfigureAwait(false);
-            if (publisherConfirmations)
-            {
-                // TODO yes this is ugly but will be fixed as part of rabbitmq/rabbitmq-dotnet-client#1682
-                if (ch is not AutorecoveringChannel ac)
-                {
-                    ChannelBase chb = (ChannelBase)ch;
-                    await chb.ConfirmSelectAsync(publisherConfirmationTracking, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await ac.ConfirmSelectAsync(publisherConfirmationTracking, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
             return ch;
         }
 
