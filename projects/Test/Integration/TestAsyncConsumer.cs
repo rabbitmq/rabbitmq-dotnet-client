@@ -608,6 +608,11 @@ namespace Test.Integration
         [Fact]
         public async Task TestCreateChannelWithinAsyncConsumerCallback_GH650()
         {
+            // TODO
+            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
+            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
+            await ach.ConfirmSelectAsync(trackConfirmations: true);
+
             await ValidateConsumerDispatchConcurrency();
 
             string exchangeName = GenerateExchangeName();
