@@ -40,7 +40,6 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -88,11 +87,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -130,7 +124,7 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
             Baggage.ClearBaggage();
             Assert.Null(Baggage.GetBaggage("TestItem"));
 
@@ -147,11 +141,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -190,7 +179,7 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
             Baggage.ClearBaggage();
             Assert.Null(Baggage.GetBaggage("TestItem"));
 
@@ -207,11 +196,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -251,7 +235,7 @@ namespace Test.SequentialIntegration
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", queueName);
             await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
             Baggage.ClearBaggage();
             Assert.Null(Baggage.GetBaggage("TestItem"));
 
@@ -268,11 +252,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -313,7 +292,7 @@ namespace Test.SequentialIntegration
             CachedString exchange = new CachedString("");
             CachedString routingKey = new CachedString(queueName);
             await _channel.BasicPublishAsync(exchange, routingKey, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
             Baggage.ClearBaggage();
             Assert.Null(Baggage.GetBaggage("TestItem"));
 
@@ -330,11 +309,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -352,7 +326,7 @@ namespace Test.SequentialIntegration
             {
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
                 await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
-                await _channel.WaitForConfirmsOrDieAsync();
+                // await _channel.WaitForConfirmsOrDieAsync();
                 Baggage.ClearBaggage();
                 Assert.Null(Baggage.GetBaggage("TestItem"));
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);

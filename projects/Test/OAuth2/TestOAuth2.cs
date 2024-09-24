@@ -246,10 +246,9 @@ namespace OAuth2Test
             };
 
             await publishChannel.BasicPublishAsync(exchange: Exchange, routingKey: "hello", false, basicProperties: properties, body: body);
-            _testOutputHelper.WriteLine("Sent message");
-
-            await publishChannel.WaitForConfirmsOrDieAsync();
-            _testOutputHelper.WriteLine("Confirmed Sent message");
+            _testOutputHelper.WriteLine("Sent and confirmed message");
+            // await publishChannel.WaitForConfirmsOrDieAsync();
+            // _testOutputHelper.WriteLine("Confirmed Sent message");
         }
 
         private async ValueTask<IChannel> DeclareConsumeChannelAsync()

@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+#if REMOVING_WAIT_FOR_CONFIRMS
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -174,3 +175,4 @@ namespace Test.Integration
         }
     }
 }
+#endif

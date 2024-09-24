@@ -31,7 +31,6 @@
 
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,17 +45,12 @@ namespace Test.Integration
         [Fact]
         public async Task TestMessageCountMethod()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             string q = GenerateQueueName();
             await _channel.QueueDeclareAsync(queue: q, passive: false, durable: false, exclusive: true, autoDelete: false, arguments: null);
             Assert.Equal(0u, await _channel.MessageCountAsync(q));
 
             await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
-            await _channel.WaitForConfirmsAsync();
+            // await _channel.WaitForConfirmsAsync();
             Assert.Equal(1u, await _channel.MessageCountAsync(q));
         }
     }

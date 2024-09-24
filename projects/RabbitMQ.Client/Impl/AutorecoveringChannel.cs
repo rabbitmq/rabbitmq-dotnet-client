@@ -488,11 +488,13 @@ namespace RabbitMQ.Client.Impl
             return InnerChannel.TxSelectAsync(cancellationToken);
         }
 
+#if REMOVING_WAIT_FOR_CONFIRMS
         public Task<bool> WaitForConfirmsAsync(CancellationToken token = default)
             => InnerChannel.WaitForConfirmsAsync(token);
 
         public Task WaitForConfirmsOrDieAsync(CancellationToken token = default)
             => InnerChannel.WaitForConfirmsOrDieAsync(token);
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()

@@ -1754,6 +1754,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+#if REMOVING_WAIT_FOR_CONFIRMS
         public async Task<bool> WaitForConfirmsAsync(CancellationToken cancellationToken = default)
         {
             if (false == _publisherConfirmationsEnabled)
@@ -1880,6 +1881,7 @@ namespace RabbitMQ.Client.Impl
 #endif
             }
         }
+#endif
 
         // NOTE: this method is internal for its use in this test:
         // TestWaitForConfirmsWithTimeoutAsync_MessageNacked_WaitingHasTimedout_ReturnFalse

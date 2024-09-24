@@ -32,7 +32,6 @@
 using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -47,11 +46,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestConfirmSelectIdempotency()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             ValueTask PublishAsync()
             {
                 return _channel.BasicPublishAsync(exchange: "",
@@ -77,11 +71,6 @@ namespace Test.Integration
         [InlineData(256)]
         public async Task TestDeliveryTagDiverged_GH1043(ushort correlationIdLength)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             byte[] body = GetRandomBody(16);
 
             await _channel.ExchangeDeclareAsync("sample", "fanout", autoDelete: true);
@@ -91,7 +80,7 @@ namespace Test.Integration
             // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
             await _channel.BasicPublishAsync(exchange: "sample", routingKey: string.Empty,
                 mandatory: false, basicProperties: properties, body: body);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
 
             try
             {
@@ -101,7 +90,7 @@ namespace Test.Integration
                 };
                 // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
                 await _channel.BasicPublishAsync("sample", string.Empty, false, properties, body);
-                await _channel.WaitForConfirmsOrDieAsync();
+                // await _channel.WaitForConfirmsOrDieAsync();
             }
             catch
             {
@@ -111,7 +100,7 @@ namespace Test.Integration
             properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
             await _channel.BasicPublishAsync("sample", string.Empty, false, properties, body);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
             // _output.WriteLine("I'm done...");
         }
     }

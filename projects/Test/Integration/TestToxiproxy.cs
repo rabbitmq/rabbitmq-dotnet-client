@@ -129,8 +129,6 @@ namespace Test.Integration
                     QueueDeclareOk q = await ch.QueueDeclareAsync();
                     while (conn.IsOpen)
                     {
-                        await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                        messagePublishedTcs.TrySetResult(true);
                         /*
                          * Note:
                          * In this test, it is possible that the connection
@@ -139,13 +137,15 @@ namespace Test.Integration
                          */
                         try
                         {
-                            await ch.WaitForConfirmsAsync();
+                            await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
+                            messagePublishedTcs.TrySetResult(true);
+                            // await ch.WaitForConfirmsAsync();
                         }
                         catch (AlreadyClosedException ex)
                         {
                             if (IsVerbose)
                             {
-                                _output.WriteLine($"[WARNING] WaitForConfirmsAsync ex: {ex}");
+                                _output.WriteLine($"[WARNING] BasicPublishAsync ex: {ex}");
                             }
                         }
                     }
@@ -210,7 +210,7 @@ namespace Test.Integration
                 while (conn.IsOpen)
                 {
                     await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                    await ch.WaitForConfirmsAsync();
+                    // await ch.WaitForConfirmsAsync();
                     await Task.Delay(TimeSpan.FromSeconds(1));
                     tcs.TrySetResult(true);
                 }

@@ -40,7 +40,7 @@ static async Task PublishMessagesIndividuallyAsync()
         await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
     }
 
-    await channel.WaitForConfirmsOrDieAsync();
+    // await channel.WaitForConfirmsOrDieAsync();
 
     sw.Stop();
 
@@ -77,15 +77,15 @@ static async Task PublishMessagesInBatchAsync()
             await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
             publishTasks.Clear();
 
-            await channel.WaitForConfirmsOrDieAsync(cts.Token);
+            // await channel.WaitForConfirmsOrDieAsync(cts.Token);
             outstandingMessageCount = 0;
         }
     }
 
     if (outstandingMessageCount > 0)
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        await channel.WaitForConfirmsOrDieAsync(cts.Token);
+        // using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        // await channel.WaitForConfirmsOrDieAsync(cts.Token);
     }
 
     sw.Stop();

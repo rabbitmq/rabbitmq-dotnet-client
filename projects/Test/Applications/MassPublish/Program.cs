@@ -149,7 +149,7 @@ namespace MassPublish
                         Interlocked.Increment(ref s_messagesSent);
                     }
 
-                    await publishChannel.WaitForConfirmsOrDieAsync();
+                    // await publishChannel.WaitForConfirmsOrDieAsync();
 
                     if (s_debug)
                     {

@@ -202,7 +202,7 @@ namespace Test.Integration
                         await publishChannel.BasicPublishAsync(string.Empty, queueName, true, sendBody);
                     }
 
-                    await publishChannel.WaitForConfirmsOrDieAsync();
+                    // await publishChannel.WaitForConfirmsOrDieAsync();
                     await publishChannel.CloseAsync();
                 }
 

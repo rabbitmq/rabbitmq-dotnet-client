@@ -154,11 +154,6 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestBasicAckEventHandlerRecovery()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: false);
-
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             ((AutorecoveringChannel)_channel).BasicAcksAsync += (m, args) =>
             {

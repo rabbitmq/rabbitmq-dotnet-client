@@ -38,7 +38,6 @@ using System.Threading.Tasks;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -81,11 +80,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var _activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(_activities);
@@ -106,7 +100,7 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -121,11 +115,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var _activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(_activities);
@@ -148,7 +137,7 @@ namespace Test.SequentialIntegration
             CachedString exchange = new CachedString("");
             CachedString routingKey = new CachedString(q.QueueName);
             await _channel.BasicPublishAsync(exchange, routingKey, true, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -163,11 +152,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var _activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(_activities);
@@ -189,7 +173,7 @@ namespace Test.SequentialIntegration
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             PublicationAddress publicationAddress = new PublicationAddress(ExchangeType.Direct, "", q.QueueName);
             await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -204,11 +188,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
@@ -230,7 +209,7 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -245,11 +224,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
@@ -273,7 +247,7 @@ namespace Test.SequentialIntegration
             CachedString exchange = new CachedString("");
             CachedString routingKey = new CachedString(q.QueueName);
             await _channel.BasicPublishAsync(exchange, routingKey, true, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -288,11 +262,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
@@ -315,7 +284,7 @@ namespace Test.SequentialIntegration
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", q.QueueName);
             await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -330,10 +299,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
@@ -345,7 +310,7 @@ namespace Test.SequentialIntegration
             {
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
                 await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
-                await _channel.WaitForConfirmsOrDieAsync();
+                // await _channel.WaitForConfirmsOrDieAsync();
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(1u, ok.MessageCount);
                 BasicGetResult res = await _channel.BasicGetAsync(queue, true);
@@ -366,10 +331,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithCachedStringsAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
@@ -383,7 +344,7 @@ namespace Test.SequentialIntegration
                 CachedString routingKey = new CachedString(queue);
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
                 await _channel.BasicPublishAsync(exchange, routingKey, true, Encoding.UTF8.GetBytes(msg));
-                await _channel.WaitForConfirmsOrDieAsync();
+                // await _channel.WaitForConfirmsOrDieAsync();
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(1u, ok.MessageCount);
                 BasicGetResult res = await _channel.BasicGetAsync(queue, true);
@@ -404,10 +365,6 @@ namespace Test.SequentialIntegration
         [InlineData(false)]
         public async Task TestPublisherWithPublicationAddressAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
@@ -421,7 +378,7 @@ namespace Test.SequentialIntegration
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
                 await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(),
                     Encoding.UTF8.GetBytes(msg));
-                await _channel.WaitForConfirmsOrDieAsync();
+                // await _channel.WaitForConfirmsOrDieAsync();
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(1u, ok.MessageCount);
                 BasicGetResult res = await _channel.BasicGetAsync(queue, true);

@@ -35,7 +35,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -79,8 +78,7 @@ namespace Test
                 string rk = "routing-key";
                 await ch.QueueBindAsync(q, x, rk);
                 await ch.BasicPublishAsync(x, rk, _messageBody);
-
-                Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
+                // Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
                 await ch.ExchangeDeclarePassiveAsync(x);
             });
         }
@@ -92,11 +90,6 @@ namespace Test
 
         protected async Task AssertQueueRecoveryAsync(IChannel ch, string q, bool exclusive, IDictionary<string, object> arguments = null)
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)ch;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             // Note: no need to enable publisher confirmations as they are
             // automatically enabled for channels
             await ch.QueueDeclareAsync(queue: q, passive: true, durable: false, exclusive: false, autoDelete: false, arguments: null);
@@ -106,7 +99,7 @@ namespace Test
             Assert.Equal(0u, ok1.MessageCount);
 
             await ch.BasicPublishAsync("", q, _messageBody);
-            Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
+            // Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
 
             RabbitMQ.Client.QueueDeclareOk ok2 = await ch.QueueDeclareAsync(queue: q, passive: false,
                 durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
@@ -223,7 +216,7 @@ namespace Test
                         }
 
                         await publishingChannel.BasicPublishAsync(string.Empty, queueName, _messageBody);
-                        await publishingChannel.WaitForConfirmsOrDieAsync();
+                        // await publishingChannel.WaitForConfirmsOrDieAsync();
                     }
 
                     await publishingChannel.CloseAsync();
@@ -245,6 +238,7 @@ namespace Test
             return tcs;
         }
 
+#if REMOVING_WAIT_FOR_CONFIRMS
         protected static Task<bool> WaitForConfirmsWithCancellationAsync(IChannel channel)
         {
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
@@ -252,6 +246,7 @@ namespace Test
                 return channel.WaitForConfirmsAsync(cts.Token);
             }
         }
+#endif
 
         protected Task WaitForShutdownAsync()
         {
@@ -376,7 +371,7 @@ namespace Test
                 await ch.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                     body: _encoding.GetBytes("test message"), mandatory: true);
 
-                await ch.WaitForConfirmsOrDieAsync();
+                // await ch.WaitForConfirmsOrDieAsync();
 
                 try
                 {

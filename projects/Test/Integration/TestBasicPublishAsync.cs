@@ -31,7 +31,6 @@
 
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,11 +45,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestQueuePurgeAsync()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             const int messageCount = 1024;
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -65,7 +59,7 @@ namespace Test.Integration
                 {
                     await _channel.BasicPublishAsync(string.Empty, q, body);
                 }
-                await _channel.WaitForConfirmsOrDieAsync();
+                // await _channel.WaitForConfirmsOrDieAsync();
                 publishSyncSource.SetResult(true);
             });
 

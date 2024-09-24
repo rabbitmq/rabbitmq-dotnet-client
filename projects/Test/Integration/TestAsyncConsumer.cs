@@ -231,7 +231,7 @@ namespace Test.Integration
                         {
                             await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
                             await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
-                            await publishChannel.WaitForConfirmsOrDieAsync();
+                            // await publishChannel.WaitForConfirmsOrDieAsync();
                         }
 
                         await publishChannel.CloseAsync();
@@ -435,11 +435,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicAckAsync()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             await ValidateConsumerDispatchConcurrency();
 
             string queueName = GenerateQueueName();
@@ -493,7 +488,7 @@ namespace Test.Integration
                 {
                     byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
                     await _channel.BasicPublishAsync(string.Empty, queueName, _body);
-                    await _channel.WaitForConfirmsOrDieAsync();
+                    // await _channel.WaitForConfirmsOrDieAsync();
                 }
 
                 return true;
@@ -608,11 +603,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestCreateChannelWithinAsyncConsumerCallback_GH650()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             await ValidateConsumerDispatchConcurrency();
 
             string exchangeName = GenerateExchangeName();
@@ -660,7 +650,7 @@ namespace Test.Integration
                 await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
                     mandatory: true,
                     body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));
-                await innerChannel.WaitForConfirmsOrDieAsync();
+                // await innerChannel.WaitForConfirmsOrDieAsync();
                 await innerChannel.CloseAsync();
             };
             await _channel.BasicConsumeAsync(queue1Name, autoAck: true, consumer1);
@@ -676,7 +666,7 @@ namespace Test.Integration
             // Note: no need to enable publisher confirmations as they are
             // automatically enabled for channels
             await _channel.BasicPublishAsync(exchangeName, queue1Name, body: GetRandomBody(1024));
-            await _channel.WaitForConfirmsOrDieAsync();
+            // await _channel.WaitForConfirmsOrDieAsync();
 
             Assert.True(await tcs.Task);
         }
