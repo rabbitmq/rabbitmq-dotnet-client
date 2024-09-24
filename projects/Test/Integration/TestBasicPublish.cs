@@ -59,7 +59,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripArray()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             var bp = new BasicProperties();
@@ -87,7 +87,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripCachedString()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
 
             CachedString exchangeName = new CachedString(string.Empty);
             CachedString queueName = new CachedString((await _channel.QueueDeclareAsync()).QueueName);
@@ -115,7 +115,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripReadOnlyMemory()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             byte[] sendBody = _encoding.GetBytes("hi");
@@ -142,7 +142,7 @@ namespace Test.Integration
         public async Task CanNotModifyPayloadAfterPublish()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             byte[] sendBody = new byte[1000];
@@ -203,7 +203,7 @@ namespace Test.Integration
             Assert.Equal(maxMsgSize, cf.Endpoint.MaxInboundMessageBodySize);
             Assert.Equal(maxMsgSize, conn.Endpoint.MaxInboundMessageBodySize);
 
-            await using (IChannel channel = await conn.CreateChannelAsync())
+            await using (IChannel channel = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true))
             {
                 channel.ChannelShutdownAsync += (o, a) =>
                 {
@@ -286,7 +286,7 @@ namespace Test.Integration
         public async Task TestPropertiesRoundtrip_Headers()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
 
             var subject = new BasicProperties
             {

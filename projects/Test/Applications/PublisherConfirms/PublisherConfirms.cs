@@ -1,4 +1,35 @@
-﻿using System;
+﻿// This source code is dual-licensed under the Apache License, version
+// 2.0, and the Mozilla Public License, version 2.0.
+//
+// The APL v2.0:
+//
+//---------------------------------------------------------------------------
+//   Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       https://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//---------------------------------------------------------------------------
+//
+// The MPL v2.0:
+//
+//---------------------------------------------------------------------------
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+//  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
+//---------------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -8,6 +39,8 @@ using RabbitMQ.Client;
 
 const int MESSAGE_COUNT = 50_000;
 bool debug = false;
+
+#pragma warning disable CS8321 // Local function is declared but never used
 
 await PublishMessagesIndividuallyAsync();
 await PublishMessagesInBatchAsync();
@@ -40,8 +73,6 @@ static async Task PublishMessagesIndividuallyAsync()
         await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
     }
 
-    // await channel.WaitForConfirmsOrDieAsync();
-
     sw.Stop();
 
     Console.WriteLine($"{DateTime.Now} [INFO] published {MESSAGE_COUNT:N0} messages individually in {sw.ElapsedMilliseconds:N0} ms");
@@ -52,7 +83,8 @@ static async Task PublishMessagesInBatchAsync()
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms in batches");
 
     await using IConnection connection = await CreateConnectionAsync();
-    await using IChannel channel = await connection.CreateChannelAsync();
+    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationsEnabled: true,
+        publisherConfirmationTrackingEnabled: true);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
@@ -76,8 +108,6 @@ static async Task PublishMessagesInBatchAsync()
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
             publishTasks.Clear();
-
-            // await channel.WaitForConfirmsOrDieAsync(cts.Token);
             outstandingMessageCount = 0;
         }
     }
@@ -100,7 +130,8 @@ async Task HandlePublishConfirmsAsynchronously()
 
     // NOTE: setting trackConfirmations to false because this program
     // is tracking them itself.
-    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationTrackingEnabled: false);
+    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationsEnabled: true,
+        publisherConfirmationTrackingEnabled: false);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
@@ -185,7 +216,9 @@ async Task HandlePublishConfirmsAsynchronously()
         {
             semaphore.Release();
         }
-        publishTasks.Add(channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body).AsTask());
+
+        ValueTask pt = channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
+        publishTasks.Add(pt.AsTask());
     }
 
     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));

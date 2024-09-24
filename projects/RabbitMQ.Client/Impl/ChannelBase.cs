@@ -60,9 +60,9 @@ namespace RabbitMQ.Client.Impl
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
         private ulong _nextPublishSeqNo = 0;
-        private SemaphoreSlim _confirmSemaphore = new(1, 1);
-        private LinkedList<ulong> _pendingDeliveryTags = new();
-        private List<TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
+        private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
+        private readonly LinkedList<ulong> _pendingDeliveryTags = new();
+        private readonly Dictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
 
         private bool _onlyAcksReceived = true;
 
@@ -508,7 +508,7 @@ namespace RabbitMQ.Client.Impl
                     if (_confirmsTaskCompletionSources?.Count > 0)
                     {
                         var exception = new AlreadyClosedException(reason);
-                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources)
+                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources.Values)
                         {
                             confirmsTaskCompletionSource.TrySetException(exception);
                         }
@@ -983,6 +983,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
+            TaskCompletionSource<bool>? publisherConfirmationTcs = null;
             if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(cancellationToken)
@@ -991,11 +992,9 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_publisherConfirmationTrackingEnabled)
                     {
-                        if (_pendingDeliveryTags is null)
-                        {
-                            throw new InvalidOperationException(InternalConstants.BugFound);
-                        }
                         _pendingDeliveryTags.AddLast(_nextPublishSeqNo);
+                        publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                        _confirmsTaskCompletionSources[_nextPublishSeqNo] = publisherConfirmationTcs;
                     }
 
                     _nextPublishSeqNo++;
@@ -1039,7 +1038,7 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 if (_publisherConfirmationsEnabled)
                 {
@@ -1059,7 +1058,21 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
 
-                throw;
+                if (publisherConfirmationTcs is not null)
+                {
+                    publisherConfirmationTcs.SetException(ex);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            if (publisherConfirmationTcs is not null)
+            {
+                // TODO timeout?
+                await publisherConfirmationTcs.Task
+                    .ConfigureAwait(false);
             }
         }
 
@@ -1068,6 +1081,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
+            TaskCompletionSource<bool>? publisherConfirmationTcs = null;
             if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(cancellationToken)
@@ -1076,11 +1090,9 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_publisherConfirmationTrackingEnabled)
                     {
-                        if (_pendingDeliveryTags is null)
-                        {
-                            throw new InvalidOperationException(InternalConstants.BugFound);
-                        }
                         _pendingDeliveryTags.AddLast(_nextPublishSeqNo);
+                        publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                        _confirmsTaskCompletionSources[_nextPublishSeqNo] = publisherConfirmationTcs;
                     }
 
                     _nextPublishSeqNo++;
@@ -1124,7 +1136,7 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 if (_publisherConfirmationsEnabled)
                 {
@@ -1144,7 +1156,21 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
 
-                throw;
+                if (publisherConfirmationTcs is not null)
+                {
+                    publisherConfirmationTcs.SetException(ex);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            if (publisherConfirmationTcs is not null)
+            {
+                // TODO timeout?
+                await publisherConfirmationTcs.Task
+                    .ConfigureAwait(false);
             }
         }
 
@@ -1253,11 +1279,6 @@ namespace RabbitMQ.Client.Impl
 
                 bool result = await k;
                 Debug.Assert(result);
-
-                // Note:
-                // Non-null means confirms are enabled
-                _confirmSemaphore = new SemaphoreSlim(1, 1);
-
                 return;
             }
             finally
@@ -1890,10 +1911,6 @@ namespace RabbitMQ.Client.Impl
             // Only do this if confirms are enabled *and* the library is tracking confirmations
             if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
             {
-                if (_pendingDeliveryTags is null)
-                {
-                    throw new InvalidOperationException(InternalConstants.BugFound);
-                }
                 // let's take a lock so we can assume that deliveryTags are unique, never duplicated and always sorted
                 await _confirmSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
@@ -1904,28 +1921,45 @@ namespace RabbitMQ.Client.Impl
                     {
                         if (multiple)
                         {
-                            while (_pendingDeliveryTags.First!.Value < deliveryTag)
+                            do
                             {
-                                _pendingDeliveryTags.RemoveFirst();
+                                if (_pendingDeliveryTags.First is null)
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    ulong pendingDeliveryTag = _pendingDeliveryTags.First.Value;
+                                    if (pendingDeliveryTag > deliveryTag)
+                                    {
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        TaskCompletionSource<bool> tcs = _confirmsTaskCompletionSources[pendingDeliveryTag];
+                                        tcs.SetResult(true);
+                                        _confirmsTaskCompletionSources.Remove(pendingDeliveryTag);
+                                        _pendingDeliveryTags.RemoveFirst();
+                                    }
+                                }
                             }
-
-                            if (_pendingDeliveryTags.First.Value == deliveryTag)
-                            {
-                                _pendingDeliveryTags.RemoveFirst();
-                            }
+                            while (true);
                         }
                         else
                         {
+                            TaskCompletionSource<bool> tcs = _confirmsTaskCompletionSources[deliveryTag];
+                            tcs.SetResult(true);
+                            _confirmsTaskCompletionSources.Remove(deliveryTag);
                             _pendingDeliveryTags.Remove(deliveryTag);
                         }
                     }
 
-                    _onlyAcksReceived = _onlyAcksReceived && !isNack;
+                    _onlyAcksReceived = _onlyAcksReceived && false == isNack;
 
-                    if (_pendingDeliveryTags.Count == 0 && _confirmsTaskCompletionSources!.Count > 0)
+                    if (_pendingDeliveryTags.Count == 0 && _confirmsTaskCompletionSources.Count > 0)
                     {
                         // Done, mark tasks
-                        foreach (TaskCompletionSource<bool> tcs in _confirmsTaskCompletionSources)
+                        foreach (TaskCompletionSource<bool> tcs in _confirmsTaskCompletionSources.Values)
                         {
                             tcs.TrySetResult(_onlyAcksReceived);
                         }
