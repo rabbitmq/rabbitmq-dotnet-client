@@ -105,7 +105,7 @@ namespace Test.Integration
             await _channel.BasicConsumeAsync(queueName, false, consumer);
 
             //publisher
-            await using IChannel publisherChannel = await _conn.CreateChannelAsync();
+            await using IChannel publisherChannel = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
             byte[] messageBodyBytes = System.Text.Encoding.UTF8.GetBytes("Hello, world!");
             var props = new BasicProperties();
             await publisherChannel.BasicPublishAsync(exchange: exchangeName, routingKey: string.Empty,

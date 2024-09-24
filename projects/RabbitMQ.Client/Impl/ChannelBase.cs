@@ -1777,7 +1777,7 @@ namespace RabbitMQ.Client.Impl
 
         // NOTE: this method is internal for its use in this test:
         // TestWaitForConfirmsWithTimeoutAsync_MessageNacked_WaitingHasTimedout_ReturnFalse
-        internal async Task HandleAckNack(ulong deliveryTag, bool multiple, bool isNack, CancellationToken cancellationToken = default)
+        private async Task HandleAckNack(ulong deliveryTag, bool multiple, bool isNack, CancellationToken cancellationToken = default)
         {
             // Only do this if confirms are enabled *and* the library is tracking confirmations
             if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
