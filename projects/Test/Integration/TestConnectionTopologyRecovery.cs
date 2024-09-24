@@ -365,7 +365,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync();
+            IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
 
             await ch.QueueDeclareAsync(queueToRecoverWithException, false, false, false);
             await ch.QueueDeclareAsync(queueToRecoverSuccessfully, false, false, false);
