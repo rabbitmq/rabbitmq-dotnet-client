@@ -59,7 +59,6 @@ namespace Test.Integration
                 {
                     await _channel.BasicPublishAsync(string.Empty, q, body);
                 }
-                // await _channel.WaitForConfirmsOrDieAsync();
                 publishSyncSource.SetResult(true);
             });
 

@@ -29,12 +29,11 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-#if REMOVING_WAIT_FOR_CONFIRMS
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -50,52 +49,8 @@ namespace Test.Integration
             _messageBody = GetRandomBody(4096);
         }
 
-        [Fact]
-        public Task TestWaitForConfirmsWithoutTimeoutAsync()
-        {
-            return TestWaitForConfirmsAsync(200, async (ch) =>
-            {
-                Assert.True(await ch.WaitForConfirmsAsync());
-            });
-        }
-
-        [Fact]
-        public Task TestWaitForConfirmsWithTimeout()
-        {
-            return TestWaitForConfirmsAsync(200, async (ch) =>
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-                Assert.True(await ch.WaitForConfirmsAsync(cts.Token));
-            });
-        }
-
-        [Fact]
-        public async Task TestWaitForConfirmsWithTimeoutAsync_MightThrowTaskCanceledException()
-        {
-            bool waitResult = false;
-            bool sawException = false;
-
-            Task t = TestWaitForConfirmsAsync(10000, async (ch) =>
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1));
-                try
-                {
-                    waitResult = await ch.WaitForConfirmsAsync(cts.Token);
-                }
-                catch
-                {
-                    sawException = true;
-                }
-            });
-
-            await t;
-
-            if (waitResult == false && sawException == false)
-            {
-                Assert.Fail("test failed, both waitResult and sawException are still false");
-            }
-        }
-
+        /*
+         * TODO figure out how to actually test basic.nack and basic.return
         [Fact]
         public Task TestWaitForConfirmsWithTimeoutAsync_MessageNacked_WaitingHasTimedout_ReturnFalse()
         {
@@ -107,6 +62,7 @@ namespace Test.Integration
                 Assert.False(await ch.WaitForConfirmsAsync(cts.Token));
             });
         }
+        */
 
         [Fact]
         public async Task TestWaitForConfirmsWithEventsAsync()
@@ -128,12 +84,12 @@ namespace Test.Integration
 
             try
             {
+                var publishTasks = new List<Task>();
                 for (int i = 0; i < n; i++)
                 {
-                    await ch.BasicPublishAsync("", queueName, _encoding.GetBytes("msg"));
+                    publishTasks.Add(ch.BasicPublishAsync("", queueName, _encoding.GetBytes("msg")).AsTask());
                 }
-
-                await ch.WaitForConfirmsAsync();
+                await Task.WhenAll(publishTasks).WaitAsync(ShortSpan);
 
                 // Note: number of event invocations is not guaranteed
                 // to be equal to N because acks can be batched,
@@ -175,4 +131,3 @@ namespace Test.Integration
         }
     }
 }
-#endif

@@ -64,12 +64,10 @@ namespace Test.Integration
             await _channel.QueueBindAsync(queue, "dest", string.Empty);
 
             await _channel.BasicPublishAsync("src", string.Empty, Array.Empty<byte>());
-            // await _channel.WaitForConfirmsAsync();
             Assert.NotNull(await _channel.BasicGetAsync(queue, true));
 
             await _channel.ExchangeUnbindAsync("dest", "src", string.Empty);
             await _channel.BasicPublishAsync("src", string.Empty, Array.Empty<byte>());
-            // await _channel.WaitForConfirmsAsync();
 
             Assert.Null(await _channel.BasicGetAsync(queue, true));
 

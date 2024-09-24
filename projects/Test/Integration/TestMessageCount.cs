@@ -50,7 +50,6 @@ namespace Test.Integration
             Assert.Equal(0u, await _channel.MessageCountAsync(q));
 
             await _channel.BasicPublishAsync("", q, _encoding.GetBytes("msg"));
-            // await _channel.WaitForConfirmsAsync();
             Assert.Equal(1u, await _channel.MessageCountAsync(q));
         }
     }

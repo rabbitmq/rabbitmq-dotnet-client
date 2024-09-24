@@ -100,7 +100,6 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -137,7 +136,6 @@ namespace Test.SequentialIntegration
             CachedString exchange = new CachedString("");
             CachedString routingKey = new CachedString(q.QueueName);
             await _channel.BasicPublishAsync(exchange, routingKey, true, sendBody);
-            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -173,7 +171,6 @@ namespace Test.SequentialIntegration
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             PublicationAddress publicationAddress = new PublicationAddress(ExchangeType.Direct, "", q.QueueName);
             await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
-            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -209,7 +206,6 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -247,7 +243,6 @@ namespace Test.SequentialIntegration
             CachedString exchange = new CachedString("");
             CachedString routingKey = new CachedString(q.QueueName);
             await _channel.BasicPublishAsync(exchange, routingKey, true, sendBody);
-            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -284,7 +279,6 @@ namespace Test.SequentialIntegration
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", q.QueueName);
             await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
-            // await _channel.WaitForConfirmsOrDieAsync();
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);
@@ -310,7 +304,6 @@ namespace Test.SequentialIntegration
             {
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
                 await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
-                // await _channel.WaitForConfirmsOrDieAsync();
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(1u, ok.MessageCount);
                 BasicGetResult res = await _channel.BasicGetAsync(queue, true);
@@ -344,7 +337,6 @@ namespace Test.SequentialIntegration
                 CachedString routingKey = new CachedString(queue);
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
                 await _channel.BasicPublishAsync(exchange, routingKey, true, Encoding.UTF8.GetBytes(msg));
-                // await _channel.WaitForConfirmsOrDieAsync();
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(1u, ok.MessageCount);
                 BasicGetResult res = await _channel.BasicGetAsync(queue, true);
@@ -378,7 +370,6 @@ namespace Test.SequentialIntegration
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
                 await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(),
                     Encoding.UTF8.GetBytes(msg));
-                // await _channel.WaitForConfirmsOrDieAsync();
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(1u, ok.MessageCount);
                 BasicGetResult res = await _channel.BasicGetAsync(queue, true);

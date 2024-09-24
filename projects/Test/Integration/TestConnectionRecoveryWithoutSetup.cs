@@ -325,7 +325,6 @@ namespace Test.Integration
                     Assert.True(ch.IsOpen);
                     await ch.BasicPublishAsync(exchange, binding1, _encoding.GetBytes("test message"));
                     await ch.BasicPublishAsync(exchange, binding2, _encoding.GetBytes("test message"));
-                    // await WaitForConfirmsWithCancellationAsync(ch);
 
                     await consumerRecoveryTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
                     Assert.True(await consumerRecoveryTcs.Task);
