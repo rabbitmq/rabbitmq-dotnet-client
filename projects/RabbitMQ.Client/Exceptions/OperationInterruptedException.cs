@@ -45,35 +45,30 @@ namespace RabbitMQ.Client.Exceptions
     public class OperationInterruptedException
         : RabbitMQClientException
     {
-        ///<summary>Construct an OperationInterruptedException with
-        ///the passed-in explanation, if any.</summary>
-        public OperationInterruptedException(ShutdownEventArgs? reason)
-            : base(reason is null ? "The AMQP operation was interrupted" :
-                $"The AMQP operation was interrupted: {reason}")
+        ///<summary>
+        ///Construct an OperationInterruptedException
+        ///</summary>
+        public OperationInterruptedException() : base("The AMQP operation was interrupted")
+        {
+
+        }
+        ///<summary>
+        ///Construct an OperationInterruptedException with
+        ///the passed-in explanation, if any.
+        ///</summary>
+        public OperationInterruptedException(ShutdownEventArgs reason)
+            : base($"The AMQP operation was interrupted: {reason}", reason.Exception)
         {
             ShutdownReason = reason;
         }
+
 
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation and prefix, if any.</summary>
-        public OperationInterruptedException(ShutdownEventArgs? reason, string prefix)
-            : base(reason is null ? $"{prefix}: The AMQP operation was interrupted" :
-                $"{prefix}: The AMQP operation was interrupted: {reason}")
+        public OperationInterruptedException(ShutdownEventArgs reason, string prefix)
+            : base($"{prefix}: The AMQP operation was interrupted: {reason}", reason.Exception)
         {
             ShutdownReason = reason;
-        }
-
-        protected OperationInterruptedException()
-        {
-        }
-
-        protected OperationInterruptedException(string message) : base(message)
-        {
-        }
-
-        protected OperationInterruptedException(string message, Exception inner)
-            : base(message, inner)
-        {
         }
 
         ///<summary>Retrieves the explanation for the shutdown. May

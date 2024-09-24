@@ -1,1 +1,5 @@
+RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(RabbitMQ.Client.Events.ShutdownEventArgs! reason) -> void
+RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(RabbitMQ.Client.Events.ShutdownEventArgs! reason, string! prefix) -> void
+RabbitMQ.Client.Exceptions.ProtocolViolationException.ProtocolViolationException() -> void
+RabbitMQ.Client.Exceptions.RabbitMQClientException.RabbitMQClientException() -> void
 RabbitMQ.Client.IConnection.CreateChannelAsync(bool publisherConfirmationsEnabled = false, bool publisherConfirmationTrackingEnabled = false, ushort? consumerDispatchConcurrency = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!

@@ -54,7 +54,7 @@ static Task<IConnection> CreateConnectionAsync()
 
 static async Task PublishMessagesIndividuallyAsync()
 {
-    Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages individually and handling confirms all at once");
+    Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms per-message");
 
     await using IConnection connection = await CreateConnectionAsync();
     await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationsEnabled: true,
@@ -90,32 +90,38 @@ static async Task PublishMessagesInBatchAsync()
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
 
-    int batchSize = 100;
+    int batchSize = 500;
     int outstandingMessageCount = 0;
 
     var sw = new Stopwatch();
     sw.Start();
 
-    var publishTasks = new List<Task>();
+    var publishTasks = new List<ValueTask>();
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         byte[] body = Encoding.UTF8.GetBytes(i.ToString());
-        publishTasks.Add(channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body).AsTask());
+        publishTasks.Add(channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body));
         outstandingMessageCount++;
 
         if (outstandingMessageCount == batchSize)
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
+            foreach (ValueTask vt in publishTasks)
+            {
+                await vt;
+            }
             publishTasks.Clear();
             outstandingMessageCount = 0;
         }
     }
 
-    if (outstandingMessageCount > 0)
+    if (publishTasks.Count > 0)
     {
-        // using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        // await channel.WaitForConfirmsOrDieAsync(cts.Token);
+        foreach (ValueTask vt in publishTasks)
+        {
+            await vt;
+        }
+        publishTasks.Clear();
+        outstandingMessageCount = 0;
     }
 
     sw.Stop();
