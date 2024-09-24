@@ -149,8 +149,6 @@ namespace MassPublish
                         Interlocked.Increment(ref s_messagesSent);
                     }
 
-                    // await publishChannel.WaitForConfirmsOrDieAsync();
-
                     if (s_debug)
                     {
                         Console.WriteLine("[DEBUG] channel {0} done publishing and waiting for confirms", publishChannel.ChannelNumber);

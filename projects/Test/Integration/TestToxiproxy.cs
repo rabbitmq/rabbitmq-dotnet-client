@@ -139,7 +139,6 @@ namespace Test.Integration
                         {
                             await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
                             messagePublishedTcs.TrySetResult(true);
-                            // await ch.WaitForConfirmsAsync();
                         }
                         catch (AlreadyClosedException ex)
                         {
@@ -210,7 +209,6 @@ namespace Test.Integration
                 while (conn.IsOpen)
                 {
                     await ch.BasicPublishAsync("", q.QueueName, GetRandomBody());
-                    // await ch.WaitForConfirmsAsync();
                     await Task.Delay(TimeSpan.FromSeconds(1));
                     tcs.TrySetResult(true);
                 }

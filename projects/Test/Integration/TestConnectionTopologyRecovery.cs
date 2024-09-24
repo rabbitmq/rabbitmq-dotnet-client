@@ -314,7 +314,6 @@ namespace Test.Integration
 
                 var pt1 = ch.BasicPublishAsync(exchange, binding1, true, _encoding.GetBytes("test message"));
                 var pt2 = ch.BasicPublishAsync(exchange, binding2, true, _encoding.GetBytes("test message"));
-                // await WaitForConfirmsWithCancellationAsync(ch);
                 await Task.WhenAll(pt1.AsTask(), pt2.AsTask()).WaitAsync(WaitSpan);
 
                 await Task.WhenAll(consumerReceivedTcs1.Task, consumerReceivedTcs2.Task).WaitAsync(WaitSpan);

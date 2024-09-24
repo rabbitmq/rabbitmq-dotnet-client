@@ -200,8 +200,6 @@ namespace Test.SequentialIntegration
                 await _channel.ExchangeDeclarePassiveAsync(exchange: exchangeName);
                 await _channel.BasicPublishAsync(exchange: exchangeName, routingKey: "", body: _encoding.GetBytes("msg"));
 
-                // await WaitForConfirmsWithCancellationAsync(_channel);
-
                 QueueDeclareOk ok1 = await _channel.QueueDeclarePassiveAsync(queue: queueName);
                 Assert.Equal(1u, ok1.MessageCount);
             }
@@ -241,7 +239,6 @@ namespace Test.SequentialIntegration
 
             await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout");
             await _channel.BasicPublishAsync(exchange: x, routingKey: "", body: _encoding.GetBytes("msg"));
-            // await WaitForConfirmsWithCancellationAsync(_channel);
 
             QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(nameAfter);
             Assert.Equal(1u, ok.MessageCount);

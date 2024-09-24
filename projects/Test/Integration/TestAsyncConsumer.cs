@@ -227,13 +227,14 @@ namespace Test.Integration
                             return Task.CompletedTask;
                         };
 
+                        var publishTasks = new List<Task>();
                         for (int i = 0; i < publish_total; i++)
                         {
-                            await publishChannel.BasicPublishAsync(string.Empty, queueName, body1);
-                            await publishChannel.BasicPublishAsync(string.Empty, queueName, body2);
-                            // await publishChannel.WaitForConfirmsOrDieAsync();
+                            publishTasks.Add(publishChannel.BasicPublishAsync(string.Empty, queueName, body1).AsTask());
+                            publishTasks.Add(publishChannel.BasicPublishAsync(string.Empty, queueName, body2).AsTask());
                         }
 
+                        await Task.WhenAll(publishTasks).WaitAsync(WaitSpan);
                         await publishChannel.CloseAsync();
                     }
 
@@ -488,7 +489,6 @@ namespace Test.Integration
                 {
                     byte[] _body = _encoding.GetBytes(Guid.NewGuid().ToString());
                     await _channel.BasicPublishAsync(string.Empty, queueName, _body);
-                    // await _channel.WaitForConfirmsOrDieAsync();
                 }
 
                 return true;
@@ -650,7 +650,6 @@ namespace Test.Integration
                 await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
                     mandatory: true,
                     body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));
-                // await innerChannel.WaitForConfirmsOrDieAsync();
                 await innerChannel.CloseAsync();
             };
             await _channel.BasicConsumeAsync(queue1Name, autoAck: true, consumer1);
@@ -663,10 +662,7 @@ namespace Test.Integration
             };
             await _channel.BasicConsumeAsync(queue2Name, autoAck: true, consumer2);
 
-            // Note: no need to enable publisher confirmations as they are
-            // automatically enabled for channels
             await _channel.BasicPublishAsync(exchangeName, queue1Name, body: GetRandomBody(1024));
-            // await _channel.WaitForConfirmsOrDieAsync();
 
             Assert.True(await tcs.Task);
         }

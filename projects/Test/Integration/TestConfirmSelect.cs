@@ -80,7 +80,6 @@ namespace Test.Integration
             // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
             await _channel.BasicPublishAsync(exchange: "sample", routingKey: string.Empty,
                 mandatory: false, basicProperties: properties, body: body);
-            // await _channel.WaitForConfirmsOrDieAsync();
 
             try
             {
@@ -90,7 +89,6 @@ namespace Test.Integration
                 };
                 // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
                 await _channel.BasicPublishAsync("sample", string.Empty, false, properties, body);
-                // await _channel.WaitForConfirmsOrDieAsync();
             }
             catch
             {
@@ -100,7 +98,6 @@ namespace Test.Integration
             properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
             await _channel.BasicPublishAsync("sample", string.Empty, false, properties, body);
-            // await _channel.WaitForConfirmsOrDieAsync();
             // _output.WriteLine("I'm done...");
         }
     }

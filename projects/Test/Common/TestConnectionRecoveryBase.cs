@@ -205,9 +205,6 @@ namespace Test
             {
                 using (IChannel publishingChannel = await publishingConn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true))
                 {
-                    // Note: no need to enable publisher confirmations as they are
-                    // automatically enabled for channels
-
                     for (ushort i = 0; i < TotalMessageCount; i++)
                     {
                         if (i == CloseAtCount)
@@ -216,7 +213,6 @@ namespace Test
                         }
 
                         await publishingChannel.BasicPublishAsync(string.Empty, queueName, _messageBody);
-                        // await publishingChannel.WaitForConfirmsOrDieAsync();
                     }
 
                     await publishingChannel.CloseAsync();
@@ -237,16 +233,6 @@ namespace Test
 
             return tcs;
         }
-
-#if REMOVING_WAIT_FOR_CONFIRMS
-        protected static Task<bool> WaitForConfirmsWithCancellationAsync(IChannel channel)
-        {
-            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)))
-            {
-                return channel.WaitForConfirmsAsync(cts.Token);
-            }
-        }
-#endif
 
         protected Task WaitForShutdownAsync()
         {
@@ -370,8 +356,6 @@ namespace Test
 
                 await ch.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                     body: _encoding.GetBytes("test message"), mandatory: true);
-
-                // await ch.WaitForConfirmsOrDieAsync();
 
                 try
                 {
