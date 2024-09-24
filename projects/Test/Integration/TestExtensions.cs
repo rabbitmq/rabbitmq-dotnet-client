@@ -44,16 +44,6 @@ namespace Test.Integration
         }
 
         [Fact]
-        public async Task TestConfirmBarrier()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                await _channel.BasicPublishAsync(string.Empty, string.Empty, Array.Empty<byte>());
-            }
-            // Assert.True(await _channel.WaitForConfirmsAsync());
-        }
-
-        [Fact]
         public async Task TestExchangeBinding()
         {
             await _channel.ExchangeDeclareAsync("src", ExchangeType.Direct, false, false);

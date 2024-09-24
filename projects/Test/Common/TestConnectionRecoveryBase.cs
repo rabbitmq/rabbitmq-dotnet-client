@@ -78,7 +78,6 @@ namespace Test
                 string rk = "routing-key";
                 await ch.QueueBindAsync(q, x, rk);
                 await ch.BasicPublishAsync(x, rk, _messageBody);
-                // Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
                 await ch.ExchangeDeclarePassiveAsync(x);
             });
         }
@@ -90,16 +89,13 @@ namespace Test
 
         protected async Task AssertQueueRecoveryAsync(IChannel ch, string q, bool exclusive, IDictionary<string, object> arguments = null)
         {
-            // Note: no need to enable publisher confirmations as they are
-            // automatically enabled for channels
-            await ch.QueueDeclareAsync(queue: q, passive: true, durable: false, exclusive: false, autoDelete: false, arguments: null);
+            await ch.QueueDeclarePassiveAsync(q);
 
             RabbitMQ.Client.QueueDeclareOk ok1 = await ch.QueueDeclareAsync(queue: q, passive: false,
                 durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
             Assert.Equal(0u, ok1.MessageCount);
 
             await ch.BasicPublishAsync("", q, _messageBody);
-            // Assert.True(await WaitForConfirmsWithCancellationAsync(ch));
 
             RabbitMQ.Client.QueueDeclareOk ok2 = await ch.QueueDeclareAsync(queue: q, passive: false,
                 durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);

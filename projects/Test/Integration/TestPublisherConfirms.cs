@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,32 +95,6 @@ namespace Test.Integration
                 // so we primarily care about event handlers being invoked
                 // in this test
                 Assert.True(c >= 1);
-            }
-            finally
-            {
-                await ch.QueueDeleteAsync(queue: queueName, ifUnused: false, ifEmpty: false);
-                await ch.CloseAsync();
-            }
-        }
-
-        private async Task TestWaitForConfirmsAsync(int numberOfMessagesToPublish, Func<IChannel, Task> fn)
-        {
-            string queueName = GenerateQueueName();
-            await using IChannel ch = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
-            var props = new BasicProperties { Persistent = true };
-
-            await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
-                exclusive: true, autoDelete: false, arguments: null);
-
-            for (int i = 0; i < numberOfMessagesToPublish; i++)
-            {
-                await ch.BasicPublishAsync(exchange: string.Empty, routingKey: queueName,
-                    body: _messageBody, mandatory: true, basicProperties: props);
-            }
-
-            try
-            {
-                await fn(ch);
             }
             finally
             {
