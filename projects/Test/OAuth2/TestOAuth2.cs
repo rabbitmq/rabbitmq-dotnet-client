@@ -116,13 +116,13 @@ namespace OAuth2Test
                 if (_connection != null)
                 {
                     await _connection.CloseAsync();
+                    await _connection.DisposeAsync();
                 }
             }
             finally
             {
                 _doneEvent.Dispose();
                 _producerCredentialsProvider?.Dispose();
-                _connection?.Dispose();
                 _cancellationTokenSource.Dispose();
             }
         }
@@ -224,7 +224,7 @@ namespace OAuth2Test
             Assert.NotNull(_connectionFactory);
             // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429
             IConnection secondConnection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
-            secondConnection.Dispose();
+            await secondConnection.DisposeAsync();
         }
 
         private async Task<IChannel> DeclarePublishChannelAsync()

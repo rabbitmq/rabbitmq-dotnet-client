@@ -241,7 +241,7 @@ namespace Test.Integration
 
             IConnection conn = await cf.CreateConnectionAsync(new List<string> { "localhost" });
             await conn.CloseAsync();
-            conn.Dispose();
+            await conn.DisposeAsync();
             Assert.Equal("not_localhost", cf.HostName);
             Assert.Equal("localhost", conn.Endpoint.HostName);
         }

@@ -135,7 +135,7 @@ namespace Test.SequentialIntegration
             Assert.False(_channel.IsClosed);
 
             await _channel.CloseAsync();
-            _channel.Dispose();
+            await _channel.DisposeAsync();
             Assert.True(_channel.IsClosed);
             _channel = null;
 
