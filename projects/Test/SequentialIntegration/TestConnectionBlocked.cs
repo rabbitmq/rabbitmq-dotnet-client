@@ -89,7 +89,7 @@ namespace Test.SequentialIntegration
                 try
                 {
                     await _conn.AbortAsync();
-                    _conn.Dispose();
+                    await _conn.DisposeAsync();
                     tcs.SetResult(true);
                 }
                 catch (Exception)

@@ -75,7 +75,7 @@ namespace Test.Integration.ConnectionRecovery
             await _channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: routingKey);
 
             await _channel.CloseAsync();
-            _channel.Dispose();
+            await _channel.DisposeAsync();
             _channel = null;
 
             _channel = await _conn.CreateChannelAsync();

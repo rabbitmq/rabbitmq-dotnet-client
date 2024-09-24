@@ -686,9 +686,9 @@ namespace Test.Integration
             {
                 await _channel.BasicCancelAsync(eventArgs.ConsumerTag);
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                _channel.CloseAsync().ContinueWith((_) =>
+                _channel.CloseAsync().ContinueWith(async (_) =>
                 {
-                    _channel.Dispose();
+                    await _channel.DisposeAsync();
                     _channel = null;
                 });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed

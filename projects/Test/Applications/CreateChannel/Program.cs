@@ -36,7 +36,7 @@ namespace CreateChannel
 
                     for (int j = 0; j < channels.Length; j++)
                     {
-                        channels[j].Dispose();
+                        await channels[j].DisposeAsync();
                     }
                 }
 

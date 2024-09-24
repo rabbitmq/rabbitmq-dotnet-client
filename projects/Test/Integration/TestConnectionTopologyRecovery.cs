@@ -131,8 +131,8 @@ namespace Test.Integration
             {
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -180,8 +180,8 @@ namespace Test.Integration
             {
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -237,8 +237,8 @@ namespace Test.Integration
                 await ch.QueueDeleteAsync(queueWithIgnoredBinding);
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -325,8 +325,8 @@ namespace Test.Integration
             {
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -390,8 +390,8 @@ namespace Test.Integration
                 await _channel.QueueDeleteAsync(queueToRecoverWithException);
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -449,8 +449,8 @@ namespace Test.Integration
 
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -513,8 +513,8 @@ namespace Test.Integration
 
             await ch.CloseAsync();
             await conn.CloseAsync();
-            ch.Dispose();
-            conn.Dispose();
+            await ch.DisposeAsync();
+            await conn.DisposeAsync();
         }
 
         [Fact]
@@ -590,8 +590,8 @@ namespace Test.Integration
             {
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
     }
