@@ -72,7 +72,8 @@ namespace RabbitMQ.Client.Events
         /// <summary>
         /// Construct a <see cref="ShutdownEventArgs"/> with the given parameters.
         /// </summary>
-        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, Exception exception, CancellationToken cancellationToken = default)
+        public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText,
+            Exception exception, CancellationToken cancellationToken = default)
             : this(initiator, replyCode, replyText, 0, 0, cancellationToken: cancellationToken)
         {
             _exception = exception ?? throw new ArgumentNullException(nameof(exception));

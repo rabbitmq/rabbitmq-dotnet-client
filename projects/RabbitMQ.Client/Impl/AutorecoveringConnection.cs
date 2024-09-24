@@ -269,13 +269,8 @@ namespace RabbitMQ.Client.Framing
                 publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled, cdc, cancellationToken)
                 .ConfigureAwait(false);
 
-            var autorecoveringChannel = new AutorecoveringChannel(this, recoveryAwareChannel, cdc);
-            if (publisherConfirmationsEnabled)
-            {
-                // TODO yes, this is necessary, not sure why
-                await autorecoveringChannel.ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            var autorecoveringChannel = new AutorecoveringChannel(this, recoveryAwareChannel, cdc,
+                publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled);
             await RecordChannelAsync(autorecoveringChannel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
             return autorecoveringChannel;

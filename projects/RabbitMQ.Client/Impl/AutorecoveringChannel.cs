@@ -72,11 +72,13 @@ namespace RabbitMQ.Client.Impl
         }
 
         public AutorecoveringChannel(AutorecoveringConnection conn, RecoveryAwareChannel innerChannel,
-            ushort consumerDispatchConcurrency)
+            ushort consumerDispatchConcurrency, bool publisherConfirmationsEnabled, bool publisherConfirmationTrackingEnabled)
         {
             _connection = conn;
             _innerChannel = innerChannel;
             _consumerDispatchConcurrency = consumerDispatchConcurrency;
+            _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
+            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
         }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -348,12 +350,16 @@ namespace RabbitMQ.Client.Impl
             return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global, cancellationToken);
         }
 
-        public async Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnabled = false, CancellationToken cancellationToken = default)
+        public Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnabled = false, CancellationToken cancellationToken = default)
         {
+            /*
+             * Note:
+             * No need to pass this on to InnerChannel, as confirms will have already
+             * been enabled
+             */
             _publisherConfirmationsEnabled = true;
             _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
-            await InnerChannel.ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
-                .ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         public async Task ExchangeBindAsync(string destination, string source, string routingKey,

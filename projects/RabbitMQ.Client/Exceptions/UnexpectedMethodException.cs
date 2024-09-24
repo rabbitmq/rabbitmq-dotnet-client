@@ -35,6 +35,7 @@ using RabbitMQ.Client.Framing;
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary>
+    /// TODO WHY IS THIS UNREFERENCED?
     /// Thrown when the channel receives an RPC reply that it wasn't expecting.
     /// </summary>
     [Serializable]

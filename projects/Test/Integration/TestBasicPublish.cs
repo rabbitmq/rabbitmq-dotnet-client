@@ -35,6 +35,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -247,7 +248,9 @@ namespace Test.Integration
                 string tag = await channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
                 await channel.BasicPublishAsync("", q.QueueName, msg0);
-                await channel.BasicPublishAsync("", q.QueueName, msg1);
+                AlreadyClosedException ex = await Assert.ThrowsAsync<AlreadyClosedException>(() =>
+                    channel.BasicPublishAsync("", q.QueueName, msg1).AsTask());
+                Assert.IsType<MalformedFrameException>(ex.InnerException);
                 Assert.True(await tcs.Task);
 
                 Assert.Equal(1, count);
@@ -259,6 +262,7 @@ namespace Test.Integration
                 try
                 {
                     await channel.CloseAsync();
+                    await channel.DisposeAsync();
                 }
                 catch (Exception chex)
                 {
@@ -272,6 +276,7 @@ namespace Test.Integration
             try
             {
                 await conn.CloseAsync();
+                await conn.DisposeAsync();
             }
             catch (Exception connex)
             {
