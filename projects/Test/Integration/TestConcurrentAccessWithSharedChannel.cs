@@ -37,7 +37,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -55,11 +54,6 @@ namespace Test.Integration
         [Fact]
         public async Task ConcurrentPublishSingleChannel()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: false);
-
             int publishAckCount = 0;
 
             _channel.BasicAcksAsync += (object sender, BasicAckEventArgs e) =>

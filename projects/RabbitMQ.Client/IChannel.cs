@@ -443,6 +443,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         Task TxSelectAsync(CancellationToken cancellationToken = default);
 
+#if REMOVING_WAIT_FOR_CONFIRMS
         /// <summary>
         /// Asynchronously wait until all published messages on this channel have been confirmed.
         /// </summary>
@@ -468,6 +469,7 @@ namespace RabbitMQ.Client
         /// the channel.
         /// </remarks>
         Task WaitForConfirmsOrDieAsync(CancellationToken cancellationToken = default);
+#endif
 
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before

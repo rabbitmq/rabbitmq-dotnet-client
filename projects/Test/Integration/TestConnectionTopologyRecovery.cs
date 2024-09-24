@@ -37,7 +37,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -315,7 +314,7 @@ namespace Test.Integration
 
                 var pt1 = ch.BasicPublishAsync(exchange, binding1, true, _encoding.GetBytes("test message"));
                 var pt2 = ch.BasicPublishAsync(exchange, binding2, true, _encoding.GetBytes("test message"));
-                await WaitForConfirmsWithCancellationAsync(ch);
+                // await WaitForConfirmsWithCancellationAsync(ch);
                 await Task.WhenAll(pt1.AsTask(), pt2.AsTask()).WaitAsync(WaitSpan);
 
                 await Task.WhenAll(consumerReceivedTcs1.Task, consumerReceivedTcs2.Task).WaitAsync(WaitSpan);
@@ -399,11 +398,6 @@ namespace Test.Integration
         [Fact]
         public async Task TestTopologyRecoveryExchangeExceptionHandler()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             string exchangeToRecoverWithException = GenerateExchangeName() + "-recovery.exception.exchange";
             string exchangeToRecoverSuccessfully = GenerateExchangeName() + "-successfully.recovered.exchange";
 

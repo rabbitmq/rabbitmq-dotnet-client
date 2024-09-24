@@ -35,7 +35,6 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 using QueueDeclareOk = RabbitMQ.Client.QueueDeclareOk;
@@ -181,11 +180,6 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestClientNamedTransientAutoDeleteQueueAndBindingRecovery()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             string queueName = GenerateQueueName();
             string exchangeName = GenerateExchangeName();
             try
@@ -206,7 +200,7 @@ namespace Test.SequentialIntegration
                 await _channel.ExchangeDeclarePassiveAsync(exchange: exchangeName);
                 await _channel.BasicPublishAsync(exchange: exchangeName, routingKey: "", body: _encoding.GetBytes("msg"));
 
-                await WaitForConfirmsWithCancellationAsync(_channel);
+                // await WaitForConfirmsWithCancellationAsync(_channel);
 
                 QueueDeclareOk ok1 = await _channel.QueueDeclarePassiveAsync(queue: queueName);
                 Assert.Equal(1u, ok1.MessageCount);
@@ -222,11 +216,6 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestServerNamedTransientAutoDeleteQueueAndBindingRecovery()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             string x = "tmp-fanout";
             await _channel.ExchangeDeleteAsync(x);
             await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout");
@@ -252,7 +241,7 @@ namespace Test.SequentialIntegration
 
             await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout");
             await _channel.BasicPublishAsync(exchange: x, routingKey: "", body: _encoding.GetBytes("msg"));
-            await WaitForConfirmsWithCancellationAsync(_channel);
+            // await WaitForConfirmsWithCancellationAsync(_channel);
 
             QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(nameAfter);
             Assert.Equal(1u, ok.MessageCount);

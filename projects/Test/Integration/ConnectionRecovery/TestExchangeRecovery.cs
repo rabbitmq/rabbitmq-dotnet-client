@@ -31,7 +31,6 @@
 
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,11 +45,6 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestExchangeRecoveryTest()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             string x = "dotnet-client.test.recovery.x1";
             await DeclareNonDurableExchangeAsync(_channel, x);
             await CloseAndWaitForRecoveryAsync();
@@ -61,11 +55,6 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestExchangeToExchangeBindingRecovery()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
 
             string ex_source = GenerateExchangeName();
@@ -82,7 +71,7 @@ namespace Test.Integration.ConnectionRecovery
                 await CloseAndWaitForRecoveryAsync();
                 Assert.True(_channel.IsOpen);
                 await _channel.BasicPublishAsync(ex_source, "", body: _encoding.GetBytes("msg"), mandatory: true);
-                await _channel.WaitForConfirmsOrDieAsync();
+                // await _channel.WaitForConfirmsOrDieAsync();
                 await AssertMessageCountAsync(q, 1);
             }
             finally

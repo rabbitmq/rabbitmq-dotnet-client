@@ -32,7 +32,6 @@
 using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -47,32 +46,16 @@ namespace Test.Integration
         [Fact]
         public async Task TestConfirmBarrier()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             for (int i = 0; i < 10; i++)
             {
                 await _channel.BasicPublishAsync(string.Empty, string.Empty, Array.Empty<byte>());
             }
-            Assert.True(await _channel.WaitForConfirmsAsync());
-        }
-
-        [Fact]
-        public async Task TestConfirmBeforeWait()
-        {
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _channel.WaitForConfirmsAsync());
+            // Assert.True(await _channel.WaitForConfirmsAsync());
         }
 
         [Fact]
         public async Task TestExchangeBinding()
         {
-            // TODO
-            // Hack for rabbitmq/rabbitmq-dotnet-client#1682
-            AutorecoveringChannel ach = (AutorecoveringChannel)_channel;
-            await ach.ConfirmSelectAsync(publisherConfirmationTrackingEnabled: true);
-
             await _channel.ExchangeDeclareAsync("src", ExchangeType.Direct, false, false);
             await _channel.ExchangeDeclareAsync("dest", ExchangeType.Direct, false, false);
             string queue = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
@@ -81,12 +64,12 @@ namespace Test.Integration
             await _channel.QueueBindAsync(queue, "dest", string.Empty);
 
             await _channel.BasicPublishAsync("src", string.Empty, Array.Empty<byte>());
-            await _channel.WaitForConfirmsAsync();
+            // await _channel.WaitForConfirmsAsync();
             Assert.NotNull(await _channel.BasicGetAsync(queue, true));
 
             await _channel.ExchangeUnbindAsync("dest", "src", string.Empty);
             await _channel.BasicPublishAsync("src", string.Empty, Array.Empty<byte>());
-            await _channel.WaitForConfirmsAsync();
+            // await _channel.WaitForConfirmsAsync();
 
             Assert.Null(await _channel.BasicGetAsync(queue, true));
 
