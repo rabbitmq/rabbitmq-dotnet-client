@@ -145,16 +145,24 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestBlockedListenersRecovery()
         {
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _conn.ConnectionBlockedAsync += (c, reason) =>
+            try
             {
-                tcs.SetResult(true);
-                return Task.CompletedTask;
-            };
-            await CloseAndWaitForRecoveryAsync();
-            await CloseAndWaitForRecoveryAsync();
-            await BlockAndPublishAsync();
-            await WaitAsync(tcs, "connection blocked");
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _conn.ConnectionBlockedAsync += (c, reason) =>
+                {
+                    tcs.SetResult(true);
+                    return Task.CompletedTask;
+                };
+                await CloseAndWaitForRecoveryAsync();
+                await CloseAndWaitForRecoveryAsync();
+                await BlockAndPublishAsync();
+                await WaitAsync(tcs, "connection blocked");
+            }
+            finally
+            {
+                // NOTE: must unblock so that close succeeeds on test tear-down
+                await UnblockAsync();
+            }
         }
 
         [Fact]
