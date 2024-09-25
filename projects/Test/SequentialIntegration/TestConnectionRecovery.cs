@@ -145,23 +145,16 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestBlockedListenersRecovery()
         {
-            try
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _conn.ConnectionBlockedAsync += (c, reason) =>
             {
-                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                _conn.ConnectionBlockedAsync += (c, reason) =>
-                {
-                    tcs.SetResult(true);
-                    return Task.CompletedTask;
-                };
-                await CloseAndWaitForRecoveryAsync();
-                await CloseAndWaitForRecoveryAsync();
-                await BlockAsync(_channel);
-                await WaitAsync(tcs, "connection blocked");
-            }
-            finally
-            {
-                await UnblockAsync();
-            }
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
+            await CloseAndWaitForRecoveryAsync();
+            await CloseAndWaitForRecoveryAsync();
+            await BlockAndPublishAsync();
+            await WaitAsync(tcs, "connection blocked");
         }
 
         [Fact]
@@ -340,7 +333,7 @@ namespace Test.SequentialIntegration
             };
             await CloseAndWaitForRecoveryAsync();
             await CloseAndWaitForRecoveryAsync();
-            await BlockAsync(_channel);
+            await BlockAndPublishAsync();
             await UnblockAsync();
             await WaitAsync(tcs, "connection unblocked");
         }
