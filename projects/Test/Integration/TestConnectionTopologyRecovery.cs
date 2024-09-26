@@ -104,7 +104,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             await ch.QueueDeclareAsync(queueToRecover, false, false, false);
             await ch.QueueDeclareAsync(queueToIgnore, false, false, false);
@@ -155,7 +155,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
             try
             {
                 await ch.ExchangeDeclareAsync(exchangeToRecover, "topic", false, true);
@@ -270,7 +270,7 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
             try
             {
 
@@ -365,7 +365,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             await ch.QueueDeclareAsync(queueToRecoverWithException, false, false, false);
             await ch.QueueDeclareAsync(queueToRecoverSuccessfully, false, false, false);

@@ -240,26 +240,10 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously create and return a fresh channel, session, and channel.
         /// </summary>
-        /// <param name="publisherConfirmationsEnabled">
-        /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
-        /// </param>
-        /// <param name="publisherConfirmationTrackingEnabled">
-        /// Should this library track publisher confirmations for you? Defaults to <c>false</c>
-        /// </param>
-        /// <param name="consumerDispatchConcurrency">
-        /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
-        /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
-        /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
-        ///
-        /// Defaults to <c>null</c>, which will use the value from <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>
-        /// 
-        /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
-        /// In addition to that consumers need to be thread/concurrency safe.
+        /// <param name="options">
+        /// The channel creation options.
         /// </param>
         /// <param name="cancellationToken">Cancellation token</param>
-        Task<IChannel> CreateChannelAsync(bool publisherConfirmationsEnabled = false,
-            bool publisherConfirmationTrackingEnabled = false,
-            ushort? consumerDispatchConcurrency = null,
-            CancellationToken cancellationToken = default);
+        Task<IChannel> CreateChannelAsync(CreateChannelOptions? options = default, CancellationToken cancellationToken = default);
     }
 }

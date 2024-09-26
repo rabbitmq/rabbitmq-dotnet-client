@@ -230,7 +230,7 @@ namespace OAuth2Test
         private async Task<IChannel> DeclarePublishChannelAsync()
         {
             Assert.NotNull(_connection);
-            IChannel publishChannel = await _connection.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+            IChannel publishChannel = await _connection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
             await publishChannel.ExchangeDeclareAsync("test_direct", ExchangeType.Direct, true, false);
             return publishChannel;
         }

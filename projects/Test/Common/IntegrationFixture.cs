@@ -153,8 +153,7 @@ namespace Test
 
                 if (_openChannel)
                 {
-                    _channel = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true,
-                        publisherConfirmationTrackingEnabled: true);
+                    _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
                 }
 
                 if (IsVerbose)

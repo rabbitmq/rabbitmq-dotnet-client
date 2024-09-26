@@ -1,5 +1,14 @@
+RabbitMQ.Client.CreateChannelOptions
+RabbitMQ.Client.CreateChannelOptions.ConsumerDispatchConcurrency.get -> ushort?
+RabbitMQ.Client.CreateChannelOptions.ConsumerDispatchConcurrency.set -> void
+RabbitMQ.Client.CreateChannelOptions.CreateChannelOptions() -> void
+RabbitMQ.Client.CreateChannelOptions.PublisherConfirmationsEnabled.get -> bool
+RabbitMQ.Client.CreateChannelOptions.PublisherConfirmationsEnabled.set -> void
+RabbitMQ.Client.CreateChannelOptions.PublisherConfirmationTrackingEnabled.get -> bool
+RabbitMQ.Client.CreateChannelOptions.PublisherConfirmationTrackingEnabled.set -> void
 RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(RabbitMQ.Client.Events.ShutdownEventArgs! reason) -> void
 RabbitMQ.Client.Exceptions.OperationInterruptedException.OperationInterruptedException(RabbitMQ.Client.Events.ShutdownEventArgs! reason, string! prefix) -> void
 RabbitMQ.Client.Exceptions.ProtocolViolationException.ProtocolViolationException() -> void
 RabbitMQ.Client.Exceptions.RabbitMQClientException.RabbitMQClientException() -> void
-RabbitMQ.Client.IConnection.CreateChannelAsync(bool publisherConfirmationsEnabled = false, bool publisherConfirmationTrackingEnabled = false, ushort? consumerDispatchConcurrency = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!
+RabbitMQ.Client.IConnection.CreateChannelAsync(RabbitMQ.Client.CreateChannelOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!
+static RabbitMQ.Client.CreateChannelOptions.Default.get -> RabbitMQ.Client.CreateChannelOptions!
