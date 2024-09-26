@@ -67,7 +67,7 @@ namespace Test.Integration
         public async Task TestWaitForConfirmsWithEventsAsync()
         {
             string queueName = GenerateQueueName();
-            await using IChannel ch = await _conn.CreateChannelAsync(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+            await using IChannel ch = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
             await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
                 exclusive: true, autoDelete: false, arguments: null);
 

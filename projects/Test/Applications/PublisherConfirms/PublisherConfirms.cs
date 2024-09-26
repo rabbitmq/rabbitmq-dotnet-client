@@ -57,8 +57,7 @@ static async Task PublishMessagesIndividuallyAsync()
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms per-message");
 
     await using IConnection connection = await CreateConnectionAsync();
-    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationsEnabled: true,
-        publisherConfirmationTrackingEnabled: true);
+    await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
@@ -83,8 +82,7 @@ static async Task PublishMessagesInBatchAsync()
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms in batches");
 
     await using IConnection connection = await CreateConnectionAsync();
-    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationsEnabled: true,
-        publisherConfirmationTrackingEnabled: true);
+    await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
@@ -136,8 +134,7 @@ async Task HandlePublishConfirmsAsynchronously()
 
     // NOTE: setting trackConfirmations to false because this program
     // is tracking them itself.
-    await using IChannel channel = await connection.CreateChannelAsync(publisherConfirmationsEnabled: true,
-        publisherConfirmationTrackingEnabled: false);
+    await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = false });
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();

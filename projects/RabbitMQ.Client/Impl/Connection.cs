@@ -264,17 +264,17 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync(bool publisherConfirmationsEnabled = false,
-            bool publisherConfirmationTrackingEnabled = false,
-            ushort? consumerDispatchConcurrency = null,
+        public async Task<IChannel> CreateChannelAsync(CreateChannelOptions? options = default,
             CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
+
+            options ??= CreateChannelOptions.Default;
             ISession session = CreateSession();
 
             // TODO channel CreateChannelAsync() to combine ctor and OpenAsync
-            var channel = new Channel(_config, session, consumerDispatchConcurrency);
-            IChannel ch = await channel.OpenAsync(publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled, cancellationToken)
+            var channel = new Channel(_config, session, options.ConsumerDispatchConcurrency);
+            IChannel ch = await channel.OpenAsync(options.PublisherConfirmationsEnabled, options.PublisherConfirmationTrackingEnabled, cancellationToken)
                 .ConfigureAwait(false);
             return ch;
         }

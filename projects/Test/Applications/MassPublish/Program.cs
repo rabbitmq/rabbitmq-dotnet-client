@@ -137,8 +137,7 @@ namespace MassPublish
 
                 publishTasks.Add(Task.Run(async () =>
                 {
-                    using IChannel publishChannel = await publishConnection.CreateChannelAsync(publisherConfirmationsEnabled: true,
-                        publisherConfirmationTrackingEnabled: true);
+                    using IChannel publishChannel = await publishConnection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
                     publishChannel.ChannelShutdownAsync += Channel_ChannelShutdownAsync;
 
 
