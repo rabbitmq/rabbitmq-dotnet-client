@@ -181,12 +181,6 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            if (_publisherConfirmationsEnabled)
-            {
-                await newChannel.ConfirmSelectAsync(_publisherConfirmationTrackingEnabled, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
             if (_usesTransactions)
             {
                 await newChannel.TxSelectAsync(cancellationToken)
@@ -348,18 +342,6 @@ namespace RabbitMQ.Client.Impl
             }
 
             return _innerChannel.BasicQosAsync(prefetchSize, prefetchCount, global, cancellationToken);
-        }
-
-        public Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnabled = false, CancellationToken cancellationToken = default)
-        {
-            /*
-             * Note:
-             * No need to pass this on to InnerChannel, as confirms will have already
-             * been enabled
-             */
-            _publisherConfirmationsEnabled = true;
-            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
-            return Task.CompletedTask;
         }
 
         public async Task ExchangeBindAsync(string destination, string source, string routingKey,

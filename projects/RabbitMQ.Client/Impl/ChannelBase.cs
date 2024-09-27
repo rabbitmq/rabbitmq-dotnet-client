@@ -386,13 +386,21 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new ChannelOpen();
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new ChannelOpen();
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
+                    bool result = await k;
+                    Debug.Assert(result);
 
-                bool result = await k;
-                Debug.Assert(result);
+                    if (_publisherConfirmationsEnabled)
+                    {
+                        await ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                }
             }
             finally
             {
@@ -401,13 +409,6 @@ namespace RabbitMQ.Client.Impl
                     k.Dispose();
                 }
                 _rpcSemaphore.Release();
-            }
-
-            if (_publisherConfirmationsEnabled)
-            {
-                // TODO bring this back within RPC semaphore
-                await ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
-                    .ConfigureAwait(false);
             }
 
             return this;
@@ -1244,51 +1245,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        // TODO internal
-        // TODO rpc semaphore held
-        public async Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnablefd = false,
-            CancellationToken cancellationToken = default)
-        {
-            _publisherConfirmationsEnabled = true;
-            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnablefd;
-
-            bool enqueued = false;
-            var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            await _rpcSemaphore.WaitAsync(k.CancellationToken)
-                .ConfigureAwait(false);
-            try
-            {
-                if (_nextPublishSeqNo == 0UL)
-                {
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        _pendingDeliveryTags.Clear();
-                        _confirmsTaskCompletionSources.Clear();
-                    }
-                    _nextPublishSeqNo = 1;
-                }
-
-                enqueued = Enqueue(k);
-
-                var method = new ConfirmSelect(false);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
-
-                bool result = await k;
-                Debug.Assert(result);
-                return;
-            }
-            finally
-            {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-                _rpcSemaphore.Release();
-            }
-        }
-
         public async Task ExchangeBindAsync(string destination, string source, string routingKey,
             IDictionary<string, object?>? arguments, bool noWait,
             CancellationToken cancellationToken)
@@ -1770,6 +1726,50 @@ namespace RabbitMQ.Client.Impl
                     k.Dispose();
                 }
                 _rpcSemaphore.Release();
+            }
+        }
+
+        // NOTE: _rpcSemaphore is held
+        private async Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnablefd = false,
+            CancellationToken cancellationToken = default)
+        {
+            _publisherConfirmationsEnabled = true;
+            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnablefd;
+
+            bool enqueued = false;
+            var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+
+            try
+            {
+                if (_nextPublishSeqNo == 0UL)
+                {
+                    if (_publisherConfirmationTrackingEnabled)
+                    {
+                        _pendingDeliveryTags.Clear();
+                        _confirmsTaskCompletionSources.Clear();
+                    }
+                    _nextPublishSeqNo = 1;
+                }
+
+                enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new ConfirmSelect(false);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+
+                    bool result = await k;
+                    Debug.Assert(result);
+                }
+
+                return;
+            }
+            finally
+            {
+                if (false == enqueued)
+                {
+                    k.Dispose();
+                }
             }
         }
 
