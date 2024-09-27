@@ -381,13 +381,15 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new ChannelOpen();
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new ChannelOpen();
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
-
-                bool result = await k;
-                Debug.Assert(result);
+                    bool result = await k;
+                    Debug.Assert(result);
+                }
                 return this;
             }
             finally
@@ -877,12 +879,13 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     enqueued = Enqueue(k);
-
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
+                    if (enqueued)
+                    {
+                        await ModelSendAsync(in method, k.CancellationToken)
+                            .ConfigureAwait(false);
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
                 }
 
                 return;
@@ -912,12 +915,17 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
-
-                var method = new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
-
-                return await k;
+                if (enqueued)
+                {
+                    var method = new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+                    return await k;
+                }
+                else
+                {
+                    return string.Empty;
+                }
             }
             finally
             {
@@ -1632,14 +1640,16 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             try
             {
-                Enqueue(k);
+                enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new QueueUnbind(queue, exchange, routingKey, arguments);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new QueueUnbind(queue, exchange, routingKey, arguments);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
-
-                bool result = await k;
-                Debug.Assert(result);
+                    bool result = await k;
+                    Debug.Assert(result);
+                }
                 return;
             }
             finally
@@ -1719,14 +1729,16 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             try
             {
-                Enqueue(k);
+                enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new TxSelect();
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new TxSelect();
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
-
-                bool result = await k;
-                Debug.Assert(result);
+                    bool result = await k;
+                    Debug.Assert(result);
+                }
                 return;
             }
             finally
