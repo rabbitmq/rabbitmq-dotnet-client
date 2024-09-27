@@ -1070,8 +1070,7 @@ namespace RabbitMQ.Client.Impl
 
             if (publisherConfirmationTcs is not null)
             {
-                // TODO timeout?
-                await publisherConfirmationTcs.Task
+                await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
         }
@@ -1168,8 +1167,7 @@ namespace RabbitMQ.Client.Impl
 
             if (publisherConfirmationTcs is not null)
             {
-                // TODO timeout?
-                await publisherConfirmationTcs.Task
+                await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
         }

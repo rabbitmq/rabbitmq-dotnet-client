@@ -708,7 +708,7 @@ namespace Test.Integration
             Assert.Equal(ConsumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
             Assert.Equal(_consumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
             await using IChannel ch = await _conn.CreateChannelAsync(
-                new CreateChannelOptions { ConsumerDispatchConcurrency = expectedConsumerDispatchConcurrency});
+                new CreateChannelOptions { ConsumerDispatchConcurrency = expectedConsumerDispatchConcurrency });
             AutorecoveringChannel ach = (AutorecoveringChannel)ch;
             Assert.Equal(expectedConsumerDispatchConcurrency, ach.ConsumerDispatcher.Concurrency);
         }
