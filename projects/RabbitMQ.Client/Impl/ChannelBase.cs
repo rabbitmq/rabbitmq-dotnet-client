@@ -1632,7 +1632,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             try
             {
-                Enqueue(k);
+                enqueued = Enqueue(k);
 
                 var method = new QueueUnbind(queue, exchange, routingKey, arguments);
                 await ModelSendAsync(in method, k.CancellationToken)
@@ -1719,7 +1719,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
             try
             {
-                Enqueue(k);
+                enqueued = Enqueue(k);
 
                 var method = new TxSelect();
                 await ModelSendAsync(in method, k.CancellationToken)
