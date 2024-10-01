@@ -949,22 +949,27 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new BasicGet(queue, autoAck);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new BasicGet(queue, autoAck);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
+                    BasicGetResult? result = await k;
 
-                BasicGetResult? result = await k;
+                    using Activity? activity = result != null
+                        ? RabbitMQActivitySource.Receive(result.RoutingKey,
+                            result.Exchange,
+                            result.DeliveryTag, result.BasicProperties, result.Body.Length)
+                        : RabbitMQActivitySource.ReceiveEmpty(queue);
 
-                using Activity? activity = result != null
-                    ? RabbitMQActivitySource.Receive(result.RoutingKey,
-                        result.Exchange,
-                        result.DeliveryTag, result.BasicProperties, result.Body.Length)
-                    : RabbitMQActivitySource.ReceiveEmpty(queue);
-
-                activity?.SetStartTime(k.StartTime);
-
-                return result;
+                    activity?.SetStartTime(k.StartTime);
+                    return result;
+                }
+                else
+                {
+                    return null;
+                }
             }
             finally
             {
@@ -1168,14 +1173,17 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    byte[] newSecretBytes = Encoding.UTF8.GetBytes(newSecret);
+                    var method = new ConnectionUpdateSecret(newSecretBytes, reason);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                byte[] newSecretBytes = Encoding.UTF8.GetBytes(newSecret);
-                var method = new ConnectionUpdateSecret(newSecretBytes, reason);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
+                    bool result = await k;
+                    Debug.Assert(result);
+                }
 
-                bool result = await k;
-                Debug.Assert(result);
                 return;
             }
             finally
@@ -1199,13 +1207,16 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new BasicQos(prefetchSize, prefetchCount, global);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new BasicQos(prefetchSize, prefetchCount, global);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
+                    bool result = await k;
+                    Debug.Assert(result);
+                }
 
-                bool result = await k;
-                Debug.Assert(result);
                 return;
             }
             finally
@@ -1239,17 +1250,19 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new ConfirmSelect(false);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new ConfirmSelect(false);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
+                    bool result = await k;
+                    Debug.Assert(result);
 
-                bool result = await k;
-                Debug.Assert(result);
-
-                // Note:
-                // Non-null means confirms are enabled
-                _confirmSemaphore = new SemaphoreSlim(1, 1);
+                    // Note:
+                    // Non-null means confirms are enabled
+                    _confirmSemaphore = new SemaphoreSlim(1, 1);
+                }
 
                 return;
             }
@@ -1284,12 +1297,14 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     enqueued = Enqueue(k);
+                    if (enqueued)
+                    {
+                        await ModelSendAsync(in method, k.CancellationToken)
+                            .ConfigureAwait(false);
 
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
                 }
 
                 return;
@@ -1331,12 +1346,14 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     enqueued = Enqueue(k);
+                    if (enqueued)
+                    {
+                        await ModelSendAsync(in method, k.CancellationToken)
+                            .ConfigureAwait(false);
 
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
                 }
 
                 return;
@@ -1371,12 +1388,14 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     enqueued = Enqueue(k);
+                    if (enqueued)
+                    {
+                        await ModelSendAsync(in method, k.CancellationToken)
+                            .ConfigureAwait(false);
 
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
                 }
 
                 return;
@@ -1412,12 +1431,14 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     enqueued = Enqueue(k);
+                    if (enqueued)
+                    {
+                        await ModelSendAsync(in method, k.CancellationToken)
+                            .ConfigureAwait(false);
 
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
                 }
 
                 return;
@@ -1481,6 +1502,8 @@ namespace RabbitMQ.Client.Impl
                 }
                 else
                 {
+                    // Note: since this method must return something
+                    // we don't check enqueued here
                     enqueued = Enqueue(k);
 
                     await ModelSendAsync(in method, k.CancellationToken)
@@ -1526,12 +1549,14 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     enqueued = Enqueue(k);
+                    if (enqueued)
+                    {
+                        await ModelSendAsync(in method, k.CancellationToken)
+                            .ConfigureAwait(false);
 
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
                 }
 
                 return;
@@ -1672,13 +1697,16 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new TxCommit();
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new TxCommit();
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
+                    bool result = await k;
+                    Debug.Assert(result);
+                }
 
-                bool result = await k;
-                Debug.Assert(result);
                 return;
             }
             finally
@@ -1701,13 +1729,16 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
+                if (enqueued)
+                {
+                    var method = new TxRollback();
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
 
-                var method = new TxRollback();
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
+                    bool result = await k;
+                    Debug.Assert(result);
+                }
 
-                bool result = await k;
-                Debug.Assert(result);
                 return;
             }
             finally
