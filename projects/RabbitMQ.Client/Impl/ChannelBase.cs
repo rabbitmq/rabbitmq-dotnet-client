@@ -386,20 +386,18 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 enqueued = Enqueue(k);
-                if (enqueued)
+
+                var method = new ChannelOpen();
+                await ModelSendAsync(in method, k.CancellationToken)
+                    .ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+
+                if (_publisherConfirmationsEnabled)
                 {
-                    var method = new ChannelOpen();
-                    await ModelSendAsync(in method, k.CancellationToken)
+                    await ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
                         .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
-
-                    if (_publisherConfirmationsEnabled)
-                    {
-                        await ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
-                            .ConfigureAwait(false);
-                    }
                 }
             }
             finally
@@ -1752,15 +1750,13 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 enqueued = Enqueue(k);
-                if (enqueued)
-                {
-                    var method = new ConfirmSelect(false);
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
-                }
+                var method = new ConfirmSelect(false);
+                await ModelSendAsync(in method, k.CancellationToken)
+                    .ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
 
                 return;
             }
