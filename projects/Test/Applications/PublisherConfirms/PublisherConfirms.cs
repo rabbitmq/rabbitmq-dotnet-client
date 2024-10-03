@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -95,7 +96,7 @@ static async Task PublishMessagesInBatchAsync()
     var sw = new Stopwatch();
     sw.Start();
 
-    var publishTasks = new List<ValueTask>();
+    var publishTasks = new List<ValueTask<bool>>();
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         byte[] body = Encoding.UTF8.GetBytes(i.ToString());
@@ -104,7 +105,7 @@ static async Task PublishMessagesInBatchAsync()
 
         if (outstandingMessageCount == batchSize)
         {
-            foreach (ValueTask vt in publishTasks)
+            foreach (ValueTask<bool> vt in publishTasks)
             {
                 await vt;
             }
@@ -115,7 +116,7 @@ static async Task PublishMessagesInBatchAsync()
 
     if (publishTasks.Count > 0)
     {
-        foreach (ValueTask vt in publishTasks)
+        foreach (ValueTask<bool> vt in publishTasks)
         {
             await vt;
         }
@@ -135,13 +136,20 @@ async Task HandlePublishConfirmsAsynchronously()
 
     // NOTE: setting trackConfirmations to false because this program
     // is tracking them itself.
-    await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = false });
+    var channelOptions = new CreateChannelOptions
+    {
+        PublisherConfirmationsEnabled = true,
+        PublisherConfirmationTrackingEnabled = true
+    };
+    await using IChannel channel = await connection.CreateChannelAsync(channelOptions);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
 
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
     bool publishingCompleted = false;
+#pragma warning restore CS0219 // Variable is assigned but its value is never used
     var allMessagesConfirmedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
     var outstandingConfirms = new LinkedList<ulong>();
     var semaphore = new SemaphoreSlim(1, 1);
@@ -185,7 +193,8 @@ async Task HandlePublishConfirmsAsynchronously()
             semaphore.Release();
         }
 
-        if (publishingCompleted && outstandingConfirms.Count == 0)
+        // if (publishingCompleted && outstandingConfirms.Count == 0)
+        if (outstandingConfirms.Count == 0)
         {
             allMessagesConfirmedTcs.SetResult(true);
         }
@@ -193,20 +202,20 @@ async Task HandlePublishConfirmsAsynchronously()
 
     channel.BasicReturnAsync += (sender, ea) =>
     {
-        long sequenceNumber = 0;
+        ulong sequenceNumber = 0;
 
         IReadOnlyBasicProperties props = ea.BasicProperties;
         if (props.Headers is not null)
         {
-            object? maybeSeqNum = props.Headers["x-sequence-number"];
+            object? maybeSeqNum = props.Headers[Constants.PublishSequenceNumberHeader];
             if (maybeSeqNum is not null)
             {
-                sequenceNumber = (long)maybeSeqNum;
+                sequenceNumber = BinaryPrimitives.ReadUInt64BigEndian((byte[])maybeSeqNum);
             }
         }
 
         Console.WriteLine($"{DateTime.Now} [WARNING] message sequence number {sequenceNumber} has been basic.return-ed");
-        return CleanOutstandingConfirms((ulong)sequenceNumber, false);
+        return CleanOutstandingConfirms(sequenceNumber, false);
     };
 
     channel.BasicAcksAsync += (sender, ea) => CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
@@ -219,7 +228,7 @@ async Task HandlePublishConfirmsAsynchronously()
     var sw = new Stopwatch();
     sw.Start();
 
-    var publishTasks = new List<Task>();
+    var publishTasks = new List<ValueTask<bool>>();
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         string msg = i.ToString();
@@ -239,24 +248,19 @@ async Task HandlePublishConfirmsAsynchronously()
             semaphore.Release();
         }
 
-        var props = new BasicProperties
-        {
-            Headers = new Dictionary<string, object?>()
-            {
-                ["x-sequence-number"] = (long)nextPublishSeqNo
-            }
-        };
-
         // string rk = queueName;
         string rk = Guid.NewGuid().ToString();
-        ValueTask pt = channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body,
-            mandatory: true, basicProperties: props);
-
-        publishTasks.Add(pt.AsTask());
+        ValueTask<bool> pt = channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true);
+        publishTasks.Add(pt);
     }
 
     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-    await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
+    // await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
+    foreach (ValueTask<bool> pt in publishTasks)
+    {
+        bool ack = await pt;
+        Console.WriteLine($"{DateTime.Now} [INFO] saw ack '{ack}'");
+    }
     publishingCompleted = true;
 
     try

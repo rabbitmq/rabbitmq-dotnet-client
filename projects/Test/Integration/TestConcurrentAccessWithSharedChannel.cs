@@ -114,7 +114,7 @@ namespace Test.Integration
 
                 await _channel.BasicConsumeAsync(queue: q.QueueName, autoAck: false, consumer);
 
-                var publishTasks = new List<ValueTask>();
+                var publishTasks = new List<ValueTask<bool>>();
                 for (ushort i = 0; i < _messageCount; i++)
                 {
                     msgTracker[i] = false;
@@ -122,9 +122,9 @@ namespace Test.Integration
                     publishTasks.Add(_channel.BasicPublishAsync("", q.QueueName, mandatory: true, body: body));
                 }
 
-                foreach (ValueTask pt in publishTasks)
+                foreach (ValueTask<bool> pt in publishTasks)
                 {
-                    await pt;
+                    Assert.True(await pt);
                 }
 
                 Assert.True(await tcs.Task);

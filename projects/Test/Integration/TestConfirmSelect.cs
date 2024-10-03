@@ -46,23 +46,23 @@ namespace Test.Integration
         [Fact]
         public async Task TestConfirmSelectIdempotency()
         {
-            ValueTask PublishAsync()
+            ValueTask<bool> PublishAsync()
             {
                 return _channel.BasicPublishAsync(exchange: "",
                     routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
             }
 
             Assert.Equal(1ul, await _channel.GetNextPublishSequenceNumberAsync());
-            await PublishAsync();
+            Assert.True(await PublishAsync());
             Assert.Equal(2ul, await _channel.GetNextPublishSequenceNumberAsync());
-            await PublishAsync();
+            Assert.True(await PublishAsync());
             Assert.Equal(3ul, await _channel.GetNextPublishSequenceNumberAsync());
 
-            await PublishAsync();
+            Assert.True(await PublishAsync());
             Assert.Equal(4ul, await _channel.GetNextPublishSequenceNumberAsync());
-            await PublishAsync();
+            Assert.True(await PublishAsync());
             Assert.Equal(5ul, await _channel.GetNextPublishSequenceNumberAsync());
-            await PublishAsync();
+            Assert.True(await PublishAsync());
             Assert.Equal(6ul, await _channel.GetNextPublishSequenceNumberAsync());
         }
 
