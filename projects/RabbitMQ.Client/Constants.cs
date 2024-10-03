@@ -91,5 +91,11 @@ namespace RabbitMQ.Client
         /// for setting this value for a particular channel.
         /// </summary>
         public const ushort DefaultConsumerDispatchConcurrency = 1;
+
+        /// <summary>
+        /// The message header used to track publish sequence numbers, to allow correlation when
+        /// <c>basic.return</c> is sent via the broker.
+        /// </summary>
+        public const string PublishSequenceNumberHeader = "x-dotnet-pub-seq-no";
     }
 }

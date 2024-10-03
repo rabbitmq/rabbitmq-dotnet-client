@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -603,7 +604,8 @@ namespace RabbitMQ.Client.Impl
             return ModelSendAsync(in method, cancellationToken).AsTask();
         }
 
-        protected async Task<bool> HandleBasicAck(IncomingCommand cmd, CancellationToken cancellationToken)
+        protected async Task<bool> HandleBasicAck(IncomingCommand cmd,
+            CancellationToken cancellationToken = default)
         {
             var ack = new BasicAck(cmd.MethodSpan);
             if (!_basicAcksAsyncWrapper.IsEmpty)
@@ -615,10 +617,12 @@ namespace RabbitMQ.Client.Impl
 
             await HandleAckNack(ack._deliveryTag, ack._multiple, false, cancellationToken)
                 .ConfigureAwait(false);
+
             return true;
         }
 
-        protected async Task<bool> HandleBasicNack(IncomingCommand cmd, CancellationToken cancellationToken)
+        protected async Task<bool> HandleBasicNack(IncomingCommand cmd,
+            CancellationToken cancellationToken = default)
         {
             var nack = new BasicNack(cmd.MethodSpan);
             if (!_basicNacksAsyncWrapper.IsEmpty)
@@ -631,6 +635,44 @@ namespace RabbitMQ.Client.Impl
 
             await HandleAckNack(nack._deliveryTag, nack._multiple, true, cancellationToken)
                 .ConfigureAwait(false);
+
+            return true;
+        }
+
+        protected async Task<bool> HandleBasicReturn(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            var basicReturn = new BasicReturn(cmd.MethodSpan);
+
+            var e = new BasicReturnEventArgs(basicReturn._replyCode, basicReturn._replyText,
+                basicReturn._exchange, basicReturn._routingKey,
+                new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory, cancellationToken);
+
+            if (!_basicReturnAsyncWrapper.IsEmpty)
+            {
+                await _basicReturnAsyncWrapper.InvokeAsync(this, e)
+                    .ConfigureAwait(false);
+            }
+
+            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
+            {
+                ulong publishSequenceNumber = 0;
+                IReadOnlyBasicProperties props = e.BasicProperties;
+                if (props.Headers is not null)
+                {
+                    object? maybeSeqNum = props.Headers[Constants.PublishSequenceNumberHeader];
+                    if (maybeSeqNum is not null)
+                    {
+                        publishSequenceNumber = BinaryPrimitives.ReadUInt64BigEndian((byte[])maybeSeqNum);
+                    }
+                }
+
+                if (publishSequenceNumber != 0)
+                {
+                    await HandleAckNack(publishSequenceNumber, false, true, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+
             return true;
         }
 
@@ -665,20 +707,6 @@ namespace RabbitMQ.Client.Impl
         protected virtual ulong AdjustDeliveryTag(ulong deliveryTag)
         {
             return deliveryTag;
-        }
-
-        protected async Task<bool> HandleBasicReturn(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            if (!_basicReturnAsyncWrapper.IsEmpty)
-            {
-                var basicReturn = new BasicReturn(cmd.MethodSpan);
-                var e = new BasicReturnEventArgs(basicReturn._replyCode, basicReturn._replyText,
-                    basicReturn._exchange, basicReturn._routingKey,
-                    new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory, cancellationToken);
-                await _basicReturnAsyncWrapper.InvokeAsync(this, e)
-                    .ConfigureAwait(false);
-            }
-            return true;
         }
 
         protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
@@ -977,12 +1005,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+        public async ValueTask<bool> BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             TaskCompletionSource<bool>? publisherConfirmationTcs = null;
+            ulong publishSequenceNumber = 0;
             if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(cancellationToken)
@@ -991,9 +1020,11 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_publisherConfirmationTrackingEnabled)
                     {
-                        _pendingDeliveryTags.AddLast(_nextPublishSeqNo);
+                        publishSequenceNumber = _nextPublishSeqNo;
+
+                        _pendingDeliveryTags.AddLast(publishSequenceNumber);
                         publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                        _confirmsTaskCompletionSources[_nextPublishSeqNo] = publisherConfirmationTcs;
+                        _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
                     }
 
                     _nextPublishSeqNo++;
@@ -1007,33 +1038,24 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+
                 using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
                     ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length)
                     : default;
 
-                if (sendActivity != null)
+                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
+                if (props is null)
                 {
-                    BasicProperties? props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    if (props is null)
-                    {
-                        await EnforceFlowControlAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                        await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
-                            .ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await EnforceFlowControlAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                        await ModelSendAsync(in cmd, in props, body, cancellationToken)
-                            .ConfigureAwait(false);
-                    }
+                    await EnforceFlowControlAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
                     await EnforceFlowControlAsync(cancellationToken)
                         .ConfigureAwait(false);
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
@@ -1071,15 +1093,22 @@ namespace RabbitMQ.Client.Impl
             {
                 await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
+                return await publisherConfirmationTcs.Task
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                return true;
             }
         }
 
-        public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+        public async ValueTask<bool> BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             TaskCompletionSource<bool>? publisherConfirmationTcs = null;
+            ulong publishSequenceNumber = 0;
             if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(cancellationToken)
@@ -1088,9 +1117,11 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_publisherConfirmationTrackingEnabled)
                     {
-                        _pendingDeliveryTags.AddLast(_nextPublishSeqNo);
+                        publishSequenceNumber = _nextPublishSeqNo;
+
+                        _pendingDeliveryTags.AddLast(publishSequenceNumber);
                         publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                        _confirmsTaskCompletionSources[_nextPublishSeqNo] = publisherConfirmationTcs;
+                        _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
                     }
 
                     _nextPublishSeqNo++;
@@ -1108,29 +1139,19 @@ namespace RabbitMQ.Client.Impl
                     ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length)
                     : default;
 
-                if (sendActivity != null)
+                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
+                if (props is null)
                 {
-                    BasicProperties? props = PopulateActivityAndPropagateTraceId(basicProperties, sendActivity);
-                    if (props is null)
-                    {
-                        await EnforceFlowControlAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                        await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
-                            .ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await EnforceFlowControlAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                        await ModelSendAsync(in cmd, in props, body, cancellationToken)
-                            .ConfigureAwait(false);
-                    }
+                    await EnforceFlowControlAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
                     await EnforceFlowControlAsync(cancellationToken)
                         .ConfigureAwait(false);
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
@@ -1168,6 +1189,12 @@ namespace RabbitMQ.Client.Impl
             {
                 await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
+                return await publisherConfirmationTcs.Task
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                return true;
             }
         }
 
@@ -1769,10 +1796,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        // NOTE: this method is internal for its use in this test:
+        // TODO NOTE: this method used to be internal for its use in this test:
         // TestWaitForConfirmsWithTimeoutAsync_MessageNacked_WaitingHasTimedout_ReturnFalse
         private async Task HandleAckNack(ulong deliveryTag, bool multiple, bool isNack, CancellationToken cancellationToken = default)
         {
+            bool isAck = false == isNack;
+
             // Only do this if confirms are enabled *and* the library is tracking confirmations
             if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
             {
@@ -1802,7 +1831,7 @@ namespace RabbitMQ.Client.Impl
                                     else
                                     {
                                         TaskCompletionSource<bool> tcs = _confirmsTaskCompletionSources[pendingDeliveryTag];
-                                        tcs.SetResult(true);
+                                        tcs.SetResult(isAck);
                                         _confirmsTaskCompletionSources.Remove(pendingDeliveryTag);
                                         _pendingDeliveryTags.RemoveFirst();
                                     }
@@ -1812,14 +1841,16 @@ namespace RabbitMQ.Client.Impl
                         }
                         else
                         {
-                            TaskCompletionSource<bool> tcs = _confirmsTaskCompletionSources[deliveryTag];
-                            tcs.SetResult(true);
-                            _confirmsTaskCompletionSources.Remove(deliveryTag);
-                            _pendingDeliveryTags.Remove(deliveryTag);
+                            if (_confirmsTaskCompletionSources.TryGetValue(deliveryTag, out TaskCompletionSource<bool>? tcs))
+                            {
+                                tcs.SetResult(isAck);
+                                _confirmsTaskCompletionSources.Remove(deliveryTag);
+                                _pendingDeliveryTags.Remove(deliveryTag);
+                            }
                         }
                     }
 
-                    _onlyAcksReceived = _onlyAcksReceived && false == isNack;
+                    _onlyAcksReceived = _onlyAcksReceived && isAck;
 
                     if (_pendingDeliveryTags.Count == 0 && _confirmsTaskCompletionSources.Count > 0)
                     {
@@ -1840,29 +1871,67 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private static BasicProperties? PopulateActivityAndPropagateTraceId<TProperties>(TProperties basicProperties,
-            Activity sendActivity) where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        private BasicProperties? PopulateBasicPropertiesHeaders<TProperties>(TProperties basicProperties,
+            Activity? sendActivity, ulong publishSequenceNumber)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            // This activity is marked as recorded, so let's propagate the trace and span ids.
-            if (sendActivity.IsAllDataRequested)
+            if (sendActivity is null && false == _publisherConfirmationTrackingEnabled)
             {
-                if (!string.IsNullOrEmpty(basicProperties.CorrelationId))
+                return null;
+            }
+
+            BasicProperties? rv = null;
+            if (sendActivity is not null)
+            {
+                // This activity is marked as recorded, so let's propagate the trace and span ids.
+                if (sendActivity.IsAllDataRequested)
                 {
-                    sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, basicProperties.CorrelationId);
+                    if (!string.IsNullOrEmpty(basicProperties.CorrelationId))
+                    {
+                        sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, basicProperties.CorrelationId);
+                    }
+                }
+
+                IDictionary<string, object?>? headers = basicProperties.Headers;
+                if (headers is null)
+                {
+                    rv = AddActivityHeaders(basicProperties, sendActivity);
+                }
+                else
+                {
+                    // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
+                    RabbitMQActivitySource.ContextInjector(sendActivity, headers);
+                    rv = null;
                 }
             }
 
-            IDictionary<string, object?>? headers = basicProperties.Headers;
-            if (headers is null)
+            if (_publisherConfirmationTrackingEnabled)
             {
-                return AddHeaders(basicProperties, sendActivity);
+                byte[] publishSequenceNumberBytes;
+                if (BitConverter.IsLittleEndian)
+                {
+                    publishSequenceNumberBytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(publishSequenceNumber));
+                }
+                else
+                {
+                    publishSequenceNumberBytes = BitConverter.GetBytes(publishSequenceNumber);
+                }
+
+                IDictionary<string, object?>? headers = basicProperties.Headers;
+                if (headers is null)
+                {
+                    rv = AddPublishSequenceNumberHeader(basicProperties, publishSequenceNumberBytes);
+                }
+                else
+                {
+                    headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
+                    rv = null;
+                }
             }
 
-            // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-            RabbitMQActivitySource.ContextInjector(sendActivity, headers);
-            return null;
+            return rv;
 
-            static BasicProperties? AddHeaders(TProperties basicProperties, Activity sendActivity)
+            static BasicProperties? AddActivityHeaders(TProperties basicProperties, Activity sendActivity)
             {
                 var headers = new Dictionary<string, object?>();
 
@@ -1878,6 +1947,26 @@ namespace RabbitMQ.Client.Impl
                         return new BasicProperties { Headers = headers };
                     default:
                         return new BasicProperties(basicProperties) { Headers = headers };
+                }
+            }
+
+            static BasicProperties? AddPublishSequenceNumberHeader(TProperties basicProperties, byte[] publishSequenceNumberBytes)
+            {
+                var headers = new Dictionary<string, object?>()
+                {
+                    [Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes
+                };
+
+                switch (basicProperties)
+                {
+                    case BasicProperties writableProperties:
+                        writableProperties.Headers = headers;
+                        return null;
+                    case EmptyBasicProperty:
+                        return new BasicProperties { Headers = headers };
+                    default:
+                        return new BasicProperties(basicProperties) { Headers = headers };
+
                 }
             }
         }

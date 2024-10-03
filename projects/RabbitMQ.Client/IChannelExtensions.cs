@@ -78,7 +78,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false.
         /// </remarks>
-        public static ValueTask BasicPublishAsync<T>(this IChannel channel,
+        public static ValueTask<bool> BasicPublishAsync<T>(this IChannel channel,
             PublicationAddress addr,
             T basicProperties,
             ReadOnlyMemory<byte> body,
@@ -94,7 +94,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and empty BasicProperties
         /// </remarks>
-        public static ValueTask BasicPublishAsync(this IChannel channel,
+        public static ValueTask<bool> BasicPublishAsync(this IChannel channel,
             string exchange,
             string routingKey,
             ReadOnlyMemory<byte> body,
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with mandatory=false and empty BasicProperties
         /// </remarks>
-        public static ValueTask BasicPublishAsync(this IChannel channel,
+        public static ValueTask<bool> BasicPublishAsync(this IChannel channel,
             CachedString exchange,
             CachedString routingKey,
             ReadOnlyMemory<byte> body,
@@ -124,7 +124,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with empty BasicProperties
         /// </remarks>
-        public static ValueTask BasicPublishAsync(this IChannel channel,
+        public static ValueTask<bool> BasicPublishAsync(this IChannel channel,
             string exchange,
             string routingKey,
             bool mandatory,
@@ -140,7 +140,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// The publication occurs with empty BasicProperties
         /// </remarks>
-        public static ValueTask BasicPublishAsync(this IChannel channel,
+        public static ValueTask<bool> BasicPublishAsync(this IChannel channel,
             CachedString exchange,
             CachedString routingKey,
             bool mandatory,

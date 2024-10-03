@@ -202,10 +202,11 @@ namespace RabbitMQ.Client
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <returns>Returns <c>true</c> if publisher confirmations enabled and the message was ack-ed</returns>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+        ValueTask<bool> BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
@@ -219,10 +220,11 @@ namespace RabbitMQ.Client
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <returns>Returns <c>true</c> if publisher confirmations enabled and the message was ack-ed</returns>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// </remarks>
-        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+        ValueTask<bool> BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
