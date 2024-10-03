@@ -38,14 +38,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 
-// const int MESSAGE_COUNT = 50_000;
-const int MESSAGE_COUNT = 5;
+const int MESSAGE_COUNT = 50_000;
 bool debug = false;
 
 #pragma warning disable CS8321 // Local function is declared but never used
 
-// await PublishMessagesIndividuallyAsync();
-// await PublishMessagesInBatchAsync();
+await PublishMessagesIndividuallyAsync();
+await PublishMessagesInBatchAsync();
 await HandlePublishConfirmsAsynchronously();
 
 static Task<IConnection> CreateConnectionAsync()
@@ -68,10 +67,15 @@ static async Task PublishMessagesIndividuallyAsync()
     var sw = new Stopwatch();
     sw.Start();
 
+    bool ack = false;
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         byte[] body = Encoding.UTF8.GetBytes(i.ToString());
-        await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
+        ack = await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
+        if (false == ack)
+        {
+            Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack '{ack}'");
+        }
     }
 
     sw.Stop();
@@ -90,7 +94,7 @@ static async Task PublishMessagesInBatchAsync()
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
 
-    int batchSize = 500;
+    int batchSize = 1000;
     int outstandingMessageCount = 0;
 
     var sw = new Stopwatch();
@@ -105,9 +109,13 @@ static async Task PublishMessagesInBatchAsync()
 
         if (outstandingMessageCount == batchSize)
         {
-            foreach (ValueTask<bool> vt in publishTasks)
+            foreach (ValueTask<bool> pt in publishTasks)
             {
-                await vt;
+                bool ack = await pt;
+                if (false == ack)
+                {
+                    Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack '{ack}'");
+                }
             }
             publishTasks.Clear();
             outstandingMessageCount = 0;
@@ -116,9 +124,13 @@ static async Task PublishMessagesInBatchAsync()
 
     if (publishTasks.Count > 0)
     {
-        foreach (ValueTask<bool> vt in publishTasks)
+        foreach (ValueTask<bool> pt in publishTasks)
         {
-            await vt;
+            bool ack = await pt;
+            if (false == ack)
+            {
+                Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack '{ack}'");
+            }
         }
         publishTasks.Clear();
         outstandingMessageCount = 0;
@@ -134,12 +146,10 @@ async Task HandlePublishConfirmsAsynchronously()
 
     await using IConnection connection = await CreateConnectionAsync();
 
-    // NOTE: setting trackConfirmations to false because this program
-    // is tracking them itself.
     var channelOptions = new CreateChannelOptions
     {
         PublisherConfirmationsEnabled = true,
-        PublisherConfirmationTrackingEnabled = true
+        PublisherConfirmationTrackingEnabled = false
     };
     await using IChannel channel = await connection.CreateChannelAsync(channelOptions);
 
@@ -147,12 +157,10 @@ async Task HandlePublishConfirmsAsynchronously()
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
 
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
-    bool publishingCompleted = false;
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
     var allMessagesConfirmedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
     var outstandingConfirms = new LinkedList<ulong>();
     var semaphore = new SemaphoreSlim(1, 1);
+    int confirmedCount = 0;
     async Task CleanOutstandingConfirms(ulong deliveryTag, bool multiple)
     {
         if (debug)
@@ -181,10 +189,13 @@ async Task HandlePublishConfirmsAsynchronously()
                     {
                         break;
                     }
+
+                    confirmedCount++;
                 } while (true);
             }
             else
             {
+                confirmedCount++;
                 outstandingConfirms.Remove(deliveryTag);
             }
         }
@@ -193,8 +204,7 @@ async Task HandlePublishConfirmsAsynchronously()
             semaphore.Release();
         }
 
-        // if (publishingCompleted && outstandingConfirms.Count == 0)
-        if (outstandingConfirms.Count == 0)
+        if (outstandingConfirms.Count == 0 || confirmedCount == MESSAGE_COUNT)
         {
             allMessagesConfirmedTcs.SetResult(true);
         }
@@ -248,8 +258,12 @@ async Task HandlePublishConfirmsAsynchronously()
             semaphore.Release();
         }
 
-        // string rk = queueName;
-        string rk = Guid.NewGuid().ToString();
+        string rk = queueName;
+        if (i % 1000 == 0)
+        {
+            // This will cause a basic.return, for fun
+            rk = Guid.NewGuid().ToString();
+        }
         ValueTask<bool> pt = channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true);
         publishTasks.Add(pt);
     }
@@ -259,9 +273,11 @@ async Task HandlePublishConfirmsAsynchronously()
     foreach (ValueTask<bool> pt in publishTasks)
     {
         bool ack = await pt;
-        Console.WriteLine($"{DateTime.Now} [INFO] saw ack '{ack}'");
+        if (false == ack)
+        {
+            Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack '{ack}'");
+        }
     }
-    publishingCompleted = true;
 
     try
     {
