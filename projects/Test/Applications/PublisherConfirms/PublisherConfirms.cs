@@ -37,13 +37,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 
-const int MESSAGE_COUNT = 50_000;
+// const int MESSAGE_COUNT = 50_000;
+const int MESSAGE_COUNT = 5;
 bool debug = false;
 
 #pragma warning disable CS8321 // Local function is declared but never used
 
-await PublishMessagesIndividuallyAsync();
-await PublishMessagesInBatchAsync();
+// await PublishMessagesIndividuallyAsync();
+// await PublishMessagesInBatchAsync();
 await HandlePublishConfirmsAsynchronously();
 
 static Task<IConnection> CreateConnectionAsync()
@@ -190,6 +191,24 @@ async Task HandlePublishConfirmsAsynchronously()
         }
     }
 
+    channel.BasicReturnAsync += (sender, ea) =>
+    {
+        long sequenceNumber = 0;
+
+        IReadOnlyBasicProperties props = ea.BasicProperties;
+        if (props.Headers is not null)
+        {
+            object? maybeSeqNum = props.Headers["x-sequence-number"];
+            if (maybeSeqNum is not null)
+            {
+                sequenceNumber = (long)maybeSeqNum;
+            }
+        }
+
+        Console.WriteLine($"{DateTime.Now} [WARNING] message sequence number {sequenceNumber} has been basic.return-ed");
+        return CleanOutstandingConfirms((ulong)sequenceNumber, false);
+    };
+
     channel.BasicAcksAsync += (sender, ea) => CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
     channel.BasicNacksAsync += (sender, ea) =>
     {
@@ -220,7 +239,19 @@ async Task HandlePublishConfirmsAsynchronously()
             semaphore.Release();
         }
 
-        ValueTask pt = channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
+        var props = new BasicProperties
+        {
+            Headers = new Dictionary<string, object?>()
+            {
+                ["x-sequence-number"] = (long)nextPublishSeqNo
+            }
+        };
+
+        // string rk = queueName;
+        string rk = Guid.NewGuid().ToString();
+        ValueTask pt = channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body,
+            mandatory: true, basicProperties: props);
+
         publishTasks.Add(pt.AsTask());
     }
 
