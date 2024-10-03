@@ -245,7 +245,7 @@ namespace OAuth2Test
                 AppId = "oauth2",
             };
 
-            await publishChannel.BasicPublishAsync(exchange: Exchange, routingKey: "hello", false, basicProperties: properties, body: body);
+            Assert.True(await publishChannel.BasicPublishAsync(exchange: Exchange, routingKey: "hello", false, basicProperties: properties, body: body));
             _testOutputHelper.WriteLine("Sent and confirmed message");
         }
 

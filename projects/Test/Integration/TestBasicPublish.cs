@@ -76,7 +76,7 @@ namespace Test.Integration
             };
             string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-            await _channel.BasicPublishAsync("", q.QueueName, true, bp, sendBody);
+            Assert.True(await _channel.BasicPublishAsync("", q.QueueName, true, bp, sendBody));
             bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
             await _channel.BasicCancelAsync(tag);
 
@@ -131,7 +131,7 @@ namespace Test.Integration
             };
             string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-            await _channel.BasicPublishAsync("", q.QueueName, new ReadOnlyMemory<byte>(sendBody));
+            Assert.True(await _channel.BasicPublishAsync("", q.QueueName, new ReadOnlyMemory<byte>(sendBody)));
             bool waitRes = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(2));
             await _channel.BasicCancelAsync(tag);
 
@@ -161,7 +161,7 @@ namespace Test.Integration
             };
             string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-            await _channel.BasicPublishAsync("", q.QueueName, sendBody);
+            Assert.True(await _channel.BasicPublishAsync("", q.QueueName, sendBody));
             sendBody.AsSpan().Fill(1);
 
             Assert.True(await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5)));
@@ -247,7 +247,7 @@ namespace Test.Integration
 
                 string tag = await channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
-                await channel.BasicPublishAsync("", q.QueueName, msg0);
+                Assert.True(await channel.BasicPublishAsync("", q.QueueName, msg0));
                 AlreadyClosedException ex = await Assert.ThrowsAsync<AlreadyClosedException>(() =>
                     channel.BasicPublishAsync("", q.QueueName, msg1).AsTask());
                 Assert.IsType<MalformedFrameException>(ex.InnerException);
@@ -315,7 +315,7 @@ namespace Test.Integration
             };
 
             string tag = await _channel.BasicConsumeAsync(q.QueueName, true, consumer);
-            await _channel.BasicPublishAsync("", q.QueueName, false, bp, sendBody);
+            Assert.True(await _channel.BasicPublishAsync("", q.QueueName, false, bp, sendBody));
             bool waitResFalse = await consumerReceivedSemaphore.WaitAsync(TimeSpan.FromSeconds(5));
             await _channel.BasicCancelAsync(tag);
             Assert.True(waitResFalse);
