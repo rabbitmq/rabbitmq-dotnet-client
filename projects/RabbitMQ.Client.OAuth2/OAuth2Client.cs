@@ -248,10 +248,6 @@ namespace RabbitMQ.Client.OAuth2
             var dict = buildRequestParameters();
             dict.Remove(GRANT_TYPE);
             dict.Add(GRANT_TYPE, REFRESH_TOKEN);
-            if (_scope != null)
-            {
-                dict.Add(SCOPE, _scope);
-            }
             dict.Add(REFRESH_TOKEN, token.RefreshToken);
             return dict;
         }
