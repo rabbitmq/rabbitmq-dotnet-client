@@ -309,11 +309,6 @@ namespace RabbitMQ.Client.OAuth2
             Dictionary<string, string> dict = BuildRequestParameters();
             dict[GRANT_TYPE] = REFRESH_TOKEN;
 
-            if (_scope != null)
-            {
-                dict.Add(SCOPE, _scope);
-            }
-
             if (token.RefreshToken != null)
             {
                 dict.Add(REFRESH_TOKEN, token.RefreshToken);
