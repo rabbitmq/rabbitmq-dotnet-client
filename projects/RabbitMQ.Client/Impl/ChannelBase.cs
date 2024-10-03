@@ -653,7 +653,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
+            if (_publisherConfirmationsEnabled)
             {
                 ulong publishSequenceNumber = 0;
                 IReadOnlyBasicProperties props = e.BasicProperties;
@@ -666,7 +666,7 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
 
-                if (publishSequenceNumber != 0)
+                if (publishSequenceNumber != 0 && _publisherConfirmationTrackingEnabled)
                 {
                     await HandleAckNack(publishSequenceNumber, false, true, cancellationToken)
                         .ConfigureAwait(false);
@@ -1018,10 +1018,10 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
                 try
                 {
+                    publishSequenceNumber = _nextPublishSeqNo;
+
                     if (_publisherConfirmationTrackingEnabled)
                     {
-                        publishSequenceNumber = _nextPublishSeqNo;
-
                         _pendingDeliveryTags.AddLast(publishSequenceNumber);
                         publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
                         _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
@@ -1115,10 +1115,10 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
                 try
                 {
+                    publishSequenceNumber = _nextPublishSeqNo;
+
                     if (_publisherConfirmationTrackingEnabled)
                     {
-                        publishSequenceNumber = _nextPublishSeqNo;
-
                         _pendingDeliveryTags.AddLast(publishSequenceNumber);
                         publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
                         _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
@@ -1880,7 +1880,7 @@ namespace RabbitMQ.Client.Impl
             Activity? sendActivity, ulong publishSequenceNumber)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            if (sendActivity is null && false == _publisherConfirmationTrackingEnabled)
+            if (sendActivity is null && false == _publisherConfirmationsEnabled)
             {
                 return null;
             }
@@ -1936,7 +1936,7 @@ namespace RabbitMQ.Client.Impl
 
             void MaybeAddPublishSequenceNumberToHeaders(IDictionary<string, object?> headers)
             {
-                if (_publisherConfirmationTrackingEnabled)
+                if (_publisherConfirmationsEnabled)
                 {
                     byte[] publishSequenceNumberBytes;
                     if (BitConverter.IsLittleEndian)
