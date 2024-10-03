@@ -1841,6 +1841,11 @@ namespace RabbitMQ.Client.Impl
                         }
                         else
                         {
+                            /*
+                             * Note:
+                             * In the case of `basic.return`, the TCS will have been handled and removed by HandleBasicReturn()
+                             * RabbitMQ still sends `basic.ack`, so the TCS will not be in the dict, hence, TryGetValue here
+                             */
                             if (_confirmsTaskCompletionSources.TryGetValue(deliveryTag, out TaskCompletionSource<bool>? tcs))
                             {
                                 tcs.SetResult(isAck);
