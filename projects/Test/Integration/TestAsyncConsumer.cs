@@ -695,8 +695,8 @@ namespace Test.Integration
 
             var bp = new BasicProperties();
 
-            await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName,
-                basicProperties: bp, mandatory: true, body: GetRandomBody(64));
+            Assert.True(await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName,
+                basicProperties: bp, mandatory: true, body: GetRandomBody(64)));
 
             Assert.True(await tcs.Task);
         }
