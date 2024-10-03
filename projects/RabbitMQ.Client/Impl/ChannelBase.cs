@@ -1885,93 +1885,70 @@ namespace RabbitMQ.Client.Impl
                 return null;
             }
 
-            BasicProperties? rv = null;
-            if (sendActivity is not null)
+            var newHeaders = new Dictionary<string, object?>();
+            MaybeAddActivityToHeaders(newHeaders, basicProperties.CorrelationId, sendActivity);
+            MaybeAddPublishSequenceNumberToHeaders(newHeaders);
+
+            switch (basicProperties)
             {
-                // This activity is marked as recorded, so let's propagate the trace and span ids.
-                if (sendActivity.IsAllDataRequested)
+                case BasicProperties writableProperties:
+                    MergeHeaders(newHeaders, writableProperties);
+                    return null;
+                case EmptyBasicProperty:
+                    return new BasicProperties { Headers = newHeaders };
+                default:
+                    return new BasicProperties(basicProperties) { Headers = newHeaders };
+            }
+
+            static void MergeHeaders(IDictionary<string, object?> newHeaders, BasicProperties props)
+            {
+                if (props.Headers is null)
                 {
-                    if (!string.IsNullOrEmpty(basicProperties.CorrelationId))
+                    props.Headers = newHeaders;
+                }
+                else
+                {
+                    foreach (KeyValuePair<string, object?> val in newHeaders)
                     {
-                        sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, basicProperties.CorrelationId);
+                        props.Headers[val.Key] = val.Value;
                     }
                 }
+            }
 
-                IDictionary<string, object?>? headers = basicProperties.Headers;
-                if (headers is null)
+            void MaybeAddActivityToHeaders(IDictionary<string, object?> headers,
+                string? correlationId, Activity? sendActivity)
+            {
+                if (sendActivity is not null)
                 {
-                    rv = AddActivityHeaders(basicProperties, sendActivity);
-                }
-                else
-                {
+                    // This activity is marked as recorded, so let's propagate the trace and span ids.
+                    if (sendActivity.IsAllDataRequested)
+                    {
+                        if (!string.IsNullOrEmpty(correlationId))
+                        {
+                            sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, correlationId);
+                        }
+                    }
+
                     // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
                     RabbitMQActivitySource.ContextInjector(sendActivity, headers);
-                    rv = null;
                 }
             }
 
-            if (_publisherConfirmationTrackingEnabled)
+            void MaybeAddPublishSequenceNumberToHeaders(IDictionary<string, object?> headers)
             {
-                byte[] publishSequenceNumberBytes;
-                if (BitConverter.IsLittleEndian)
+                if (_publisherConfirmationTrackingEnabled)
                 {
-                    publishSequenceNumberBytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(publishSequenceNumber));
-                }
-                else
-                {
-                    publishSequenceNumberBytes = BitConverter.GetBytes(publishSequenceNumber);
-                }
+                    byte[] publishSequenceNumberBytes;
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        publishSequenceNumberBytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(publishSequenceNumber));
+                    }
+                    else
+                    {
+                        publishSequenceNumberBytes = BitConverter.GetBytes(publishSequenceNumber);
+                    }
 
-                IDictionary<string, object?>? headers = basicProperties.Headers;
-                if (headers is null)
-                {
-                    rv = AddPublishSequenceNumberHeader(basicProperties, publishSequenceNumberBytes);
-                }
-                else
-                {
                     headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
-                    rv = null;
-                }
-            }
-
-            return rv;
-
-            static BasicProperties? AddActivityHeaders(TProperties basicProperties, Activity sendActivity)
-            {
-                var headers = new Dictionary<string, object?>();
-
-                // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-                RabbitMQActivitySource.ContextInjector(sendActivity, headers);
-
-                switch (basicProperties)
-                {
-                    case BasicProperties writableProperties:
-                        writableProperties.Headers = headers;
-                        return null;
-                    case EmptyBasicProperty:
-                        return new BasicProperties { Headers = headers };
-                    default:
-                        return new BasicProperties(basicProperties) { Headers = headers };
-                }
-            }
-
-            static BasicProperties? AddPublishSequenceNumberHeader(TProperties basicProperties, byte[] publishSequenceNumberBytes)
-            {
-                var headers = new Dictionary<string, object?>()
-                {
-                    [Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes
-                };
-
-                switch (basicProperties)
-                {
-                    case BasicProperties writableProperties:
-                        writableProperties.Headers = headers;
-                        return null;
-                    case EmptyBasicProperty:
-                        return new BasicProperties { Headers = headers };
-                    default:
-                        return new BasicProperties(basicProperties) { Headers = headers };
-
                 }
             }
         }
