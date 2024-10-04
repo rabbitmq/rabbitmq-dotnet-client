@@ -1005,12 +1005,13 @@ namespace RabbitMQ.Client.Impl
         {
             TaskCompletionSource<bool>? publisherConfirmationTcs = null;
             ulong publishSequenceNumber = 0;
-            if (_publisherConfirmationsEnabled)
+            try
             {
-                await _confirmSemaphore.WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
-                try
+                if (_publisherConfirmationsEnabled)
                 {
+                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+
                     publishSequenceNumber = _nextPublishSeqNo;
 
                     if (_publisherConfirmationTrackingEnabled)
@@ -1021,14 +1022,7 @@ namespace RabbitMQ.Client.Impl
 
                     _nextPublishSeqNo++;
                 }
-                finally
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
 
-            try
-            {
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
 
                 using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
@@ -1055,19 +1049,10 @@ namespace RabbitMQ.Client.Impl
             {
                 if (_publisherConfirmationsEnabled)
                 {
-                    await _confirmSemaphore.WaitAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                    try
+                    _nextPublishSeqNo--;
+                    if (_publisherConfirmationTrackingEnabled)
                     {
-                        _nextPublishSeqNo--;
-                        if (_publisherConfirmationTrackingEnabled)
-                        {
-                            _confirmsTaskCompletionSources.TryRemove(publishSequenceNumber, out _);
-                        }
-                    }
-                    finally
-                    {
-                        _confirmSemaphore.Release();
+                        _confirmsTaskCompletionSources.TryRemove(publishSequenceNumber, out _);
                     }
                 }
 
@@ -1078,6 +1063,13 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     throw;
+                }
+            }
+            finally
+            {
+                if (_publisherConfirmationsEnabled)
+                {
+                    _confirmSemaphore.Release();
                 }
             }
 
@@ -1101,12 +1093,13 @@ namespace RabbitMQ.Client.Impl
         {
             TaskCompletionSource<bool>? publisherConfirmationTcs = null;
             ulong publishSequenceNumber = 0;
-            if (_publisherConfirmationsEnabled)
+            try
             {
-                await _confirmSemaphore.WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
-                try
+                if (_publisherConfirmationsEnabled)
                 {
+                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+
                     publishSequenceNumber = _nextPublishSeqNo;
 
                     if (_publisherConfirmationTrackingEnabled)
@@ -1117,14 +1110,7 @@ namespace RabbitMQ.Client.Impl
 
                     _nextPublishSeqNo++;
                 }
-                finally
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
 
-            try
-            {
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
                 using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
                     ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length)
@@ -1150,19 +1136,10 @@ namespace RabbitMQ.Client.Impl
             {
                 if (_publisherConfirmationsEnabled)
                 {
-                    await _confirmSemaphore.WaitAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                    try
+                    _nextPublishSeqNo--;
+                    if (_publisherConfirmationTrackingEnabled)
                     {
-                        _nextPublishSeqNo--;
-                        if (_publisherConfirmationTrackingEnabled)
-                        {
-                            _confirmsTaskCompletionSources.TryRemove(publishSequenceNumber, out _);
-                        }
-                    }
-                    finally
-                    {
-                        _confirmSemaphore.Release();
+                        _confirmsTaskCompletionSources.TryRemove(publishSequenceNumber, out _);
                     }
                 }
 
@@ -1173,6 +1150,13 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     throw;
+                }
+            }
+            finally
+            {
+                if (_publisherConfirmationsEnabled)
+                {
+                    _confirmSemaphore.Release();
                 }
             }
 
@@ -1793,7 +1777,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (multiple)
                 {
-                    foreach (var pair in _confirmsTaskCompletionSources)
+                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
                     {
                         if (pair.Key <= deliveryTag)
                         {
@@ -1810,6 +1794,7 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
             }
+
             return Task.CompletedTask;
         }
 
@@ -1819,11 +1804,11 @@ namespace RabbitMQ.Client.Impl
             {
                 if (multiple)
                 {
-                    foreach (var pair in _confirmsTaskCompletionSources)
+                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
                     {
                         if (pair.Key <= deliveryTag)
                         {
-                            pair.Value.SetException(new Exception("TBD"));
+                            pair.Value.SetException(new Exception("TODO"));
                             _confirmsTaskCompletionSources.Remove(pair.Key, out _);
                         }
                     }
@@ -1832,7 +1817,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
                     {
-                        tcs.SetException(new Exception("TBD"));
+                        tcs.SetException(new Exception("TODO"));
                     }
                 }
             }
@@ -1844,39 +1829,31 @@ namespace RabbitMQ.Client.Impl
             Activity? sendActivity, ulong publishSequenceNumber)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            if (sendActivity is null && false == _publisherConfirmationsEnabled)
+            /*
+             * Note: there is nothing to do in this method if *both* of these
+             * conditions are true:
+             *
+             * sendActivity is null - there is no activity to add as a header
+             * publisher confirmations are NOT enabled
+             */
+            if (sendActivity is null && !_publisherConfirmationsEnabled)
             {
                 return null;
             }
 
-            var newHeaders = new Dictionary<string, object?>();
-            MaybeAddActivityToHeaders(newHeaders, basicProperties.CorrelationId, sendActivity);
-            MaybeAddPublishSequenceNumberToHeaders(newHeaders);
+            IDictionary<string, object?>? headers = basicProperties.Headers;
+            headers ??= new Dictionary<string, object?>();
+            MaybeAddActivityToHeaders(headers, basicProperties.CorrelationId, sendActivity);
+            MaybeAddPublishSequenceNumberToHeaders(headers);
 
             switch (basicProperties)
             {
                 case BasicProperties writableProperties:
-                    MergeHeaders(newHeaders, writableProperties);
                     return null;
                 case EmptyBasicProperty:
-                    return new BasicProperties { Headers = newHeaders };
+                    return new BasicProperties { Headers = headers };
                 default:
-                    return new BasicProperties(basicProperties) { Headers = newHeaders };
-            }
-
-            static void MergeHeaders(IDictionary<string, object?> newHeaders, BasicProperties props)
-            {
-                if (props.Headers is null)
-                {
-                    props.Headers = newHeaders;
-                }
-                else
-                {
-                    foreach (KeyValuePair<string, object?> val in newHeaders)
-                    {
-                        props.Headers[val.Key] = val.Value;
-                    }
-                }
+                    return new BasicProperties(basicProperties) { Headers = headers };
             }
 
             void MaybeAddActivityToHeaders(IDictionary<string, object?> headers,
@@ -1902,9 +1879,9 @@ namespace RabbitMQ.Client.Impl
             {
                 if (_publisherConfirmationsEnabled)
                 {
-                    var publishSequenceNumberBytes = new byte[8];
-                    NetworkOrderSerializer.WriteUInt64(ref publishSequenceNumberBytes.AsSpan().GetStart(), publishSequenceNumber);
-                    headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
+                    Span<byte> publishSequenceNumberBytes = stackalloc byte[8];
+                    NetworkOrderSerializer.WriteUInt64(ref publishSequenceNumberBytes.GetStart(), publishSequenceNumber);
+                    headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes.ToArray();
                 }
             }
         }
