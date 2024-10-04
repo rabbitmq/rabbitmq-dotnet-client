@@ -15,6 +15,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public bool PublisherConfirmationTrackingEnabled { get; set; } = false;
 
+        /// <summary>
         /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
@@ -23,6 +24,7 @@ namespace RabbitMQ.Client
         ///
         /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
         /// In addition to that consumers need to be thread/concurrency safe.
+        /// </summary>
         public ushort? ConsumerDispatchConcurrency { get; set; } = null;
 
         /// <summary>
