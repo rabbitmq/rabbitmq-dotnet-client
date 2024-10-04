@@ -1841,14 +1841,23 @@ namespace RabbitMQ.Client.Impl
                 return null;
             }
 
+            bool newHeaders = false;
             IDictionary<string, object?>? headers = basicProperties.Headers;
-            headers ??= new Dictionary<string, object?>();
+            if (headers is null)
+            {
+                headers = new Dictionary<string, object?>();
+                newHeaders = true;
+            }
             MaybeAddActivityToHeaders(headers, basicProperties.CorrelationId, sendActivity);
             MaybeAddPublishSequenceNumberToHeaders(headers);
 
             switch (basicProperties)
             {
                 case BasicProperties writableProperties:
+                    if (newHeaders)
+                    {
+                        writableProperties.Headers = headers;
+                    }
                     return null;
                 case EmptyBasicProperty:
                     return new BasicProperties { Headers = headers };
