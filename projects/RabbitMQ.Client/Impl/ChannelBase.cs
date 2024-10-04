@@ -1879,9 +1879,9 @@ namespace RabbitMQ.Client.Impl
             {
                 if (_publisherConfirmationsEnabled)
                 {
-                    Span<byte> publishSequenceNumberBytes = stackalloc byte[8];
+                    byte[] publishSequenceNumberBytes = new byte[8];
                     NetworkOrderSerializer.WriteUInt64(ref publishSequenceNumberBytes.GetStart(), publishSequenceNumber);
-                    headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes.ToArray();
+                    headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
                 }
             }
         }

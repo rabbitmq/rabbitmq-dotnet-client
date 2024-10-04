@@ -228,7 +228,8 @@ namespace Test.Integration
 
                 Assert.True(ch.IsOpen);
                 Assert.True(await SendAndConsumeMessageAsync(_conn, queueWithRecoveredBinding, exchange, bindingToRecover));
-                Assert.False(await SendAndConsumeMessageAsync(_conn, queueWithIgnoredBinding, exchange, bindingToIgnore));
+                // TODO use real exception being thrown
+                await Assert.ThrowsAnyAsync<Exception>(() => SendAndConsumeMessageAsync(_conn, queueWithIgnoredBinding, exchange, bindingToIgnore));
             }
             finally
             {
