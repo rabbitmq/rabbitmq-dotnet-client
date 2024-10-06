@@ -55,14 +55,15 @@ for (int i = 0; i < 300; i++)
     {
         await using var channel = await connection.CreateChannelAsync(channelOptions); // New channel for each message
         await Task.Delay(1000);
-        if (await channel.BasicPublishAsync(exchange: string.Empty, routingKey: string.Empty,
-            mandatory: false, basicProperties: props, body: msg))
+        try
         {
+            await channel.BasicPublishAsync(exchange: string.Empty, routingKey: string.Empty,
+                mandatory: false, basicProperties: props, body: msg);
             Console.WriteLine($"Sent message {i}");
         }
-        else
+        catch (Exception ex)
         {
-            Console.Error.WriteLine($"[ERROR] message {i} not acked!");
+            Console.Error.WriteLine($"[ERROR] message {i} not acked: {ex}");
         }
     }
     catch (Exception ex)

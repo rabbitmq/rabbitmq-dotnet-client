@@ -46,23 +46,23 @@ namespace Test.Integration
         [Fact]
         public async Task TestConfirmSelectIdempotency()
         {
-            ValueTask<bool> PublishAsync()
+            ValueTask PublishAsync()
             {
                 return _channel.BasicPublishAsync(exchange: "",
                     routingKey: Guid.NewGuid().ToString(), _encoding.GetBytes("message"));
             }
 
             Assert.Equal(1ul, await _channel.GetNextPublishSequenceNumberAsync());
-            Assert.True(await PublishAsync());
+            await PublishAsync();
             Assert.Equal(2ul, await _channel.GetNextPublishSequenceNumberAsync());
-            Assert.True(await PublishAsync());
+            await PublishAsync();
             Assert.Equal(3ul, await _channel.GetNextPublishSequenceNumberAsync());
 
-            Assert.True(await PublishAsync());
+            await PublishAsync();
             Assert.Equal(4ul, await _channel.GetNextPublishSequenceNumberAsync());
-            Assert.True(await PublishAsync());
+            await PublishAsync();
             Assert.Equal(5ul, await _channel.GetNextPublishSequenceNumberAsync());
-            Assert.True(await PublishAsync());
+            await PublishAsync();
             Assert.Equal(6ul, await _channel.GetNextPublishSequenceNumberAsync());
         }
 
@@ -78,8 +78,8 @@ namespace Test.Integration
 
             var properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
-            Assert.True(await _channel.BasicPublishAsync(exchange: "sample", routingKey: string.Empty,
-                mandatory: false, basicProperties: properties, body: body));
+            await _channel.BasicPublishAsync(exchange: "sample", routingKey: string.Empty,
+                mandatory: false, basicProperties: properties, body: body);
 
             try
             {
@@ -88,7 +88,7 @@ namespace Test.Integration
                     CorrelationId = new string('o', correlationIdLength)
                 };
                 // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
-                Assert.True(await _channel.BasicPublishAsync("sample", string.Empty, false, properties, body));
+                await _channel.BasicPublishAsync("sample", string.Empty, false, properties, body);
             }
             catch
             {
@@ -97,7 +97,7 @@ namespace Test.Integration
 
             properties = new BasicProperties();
             // _output.WriteLine("Client delivery tag {0}", await _channel.GetNextPublishSequenceNumberAsync());
-            Assert.True(await _channel.BasicPublishAsync("sample", string.Empty, false, properties, body));
+            await _channel.BasicPublishAsync("sample", string.Empty, false, properties, body);
             // _output.WriteLine("I'm done...");
         }
     }

@@ -67,14 +67,16 @@ static async Task PublishMessagesIndividuallyAsync()
     var sw = new Stopwatch();
     sw.Start();
 
-    bool ack = false;
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         byte[] body = Encoding.UTF8.GetBytes(i.ToString());
-        ack = await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
-        if (false == ack)
+        try
         {
-            Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack '{ack}'");
+            await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack or return, ex: {ex}");
         }
     }
 
@@ -100,7 +102,7 @@ static async Task PublishMessagesInBatchAsync()
     var sw = new Stopwatch();
     sw.Start();
 
-    var publishTasks = new List<ValueTask<bool>>();
+    var publishTasks = new List<ValueTask>();
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         byte[] body = Encoding.UTF8.GetBytes(i.ToString());
@@ -109,12 +111,15 @@ static async Task PublishMessagesInBatchAsync()
 
         if (outstandingMessageCount == batchSize)
         {
-            foreach (ValueTask<bool> pt in publishTasks)
+            foreach (ValueTask pt in publishTasks)
             {
-                bool ack = await pt;
-                if (false == ack)
+                try
                 {
-                    Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack '{ack}'");
+                    await pt;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack or return, ex: '{ex}'");
                 }
             }
             publishTasks.Clear();
@@ -124,12 +129,15 @@ static async Task PublishMessagesInBatchAsync()
 
     if (publishTasks.Count > 0)
     {
-        foreach (ValueTask<bool> pt in publishTasks)
+        foreach (ValueTask pt in publishTasks)
         {
-            bool ack = await pt;
-            if (false == ack)
+            try
             {
-                Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack '{ack}'");
+                await pt;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack or return, ex: '{ex}'");
             }
         }
         publishTasks.Clear();
@@ -238,7 +246,7 @@ async Task HandlePublishConfirmsAsynchronously()
     var sw = new Stopwatch();
     sw.Start();
 
-    var publishTasks = new List<ValueTask<bool>>();
+    var publishTasks = new List<ValueTuple<ulong, ValueTask>>();
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         string msg = i.ToString();
@@ -264,18 +272,22 @@ async Task HandlePublishConfirmsAsynchronously()
             // This will cause a basic.return, for fun
             rk = Guid.NewGuid().ToString();
         }
-        ValueTask<bool> pt = channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true);
-        publishTasks.Add(pt);
+        (ulong, ValueTask) data =
+            (nextPublishSeqNo, channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true));
+        publishTasks.Add(data);
     }
 
     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
     // await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
-    foreach (ValueTask<bool> pt in publishTasks)
+    foreach ((ulong SeqNo, ValueTask PublishTask) datum in publishTasks)
     {
-        bool ack = await pt;
-        if (false == ack)
+        try
         {
-            Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack '{ack}'");
+            await datum.PublishTask;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack, seqNo: '{datum.SeqNo}', ex: '{ex}'");
         }
     }
 

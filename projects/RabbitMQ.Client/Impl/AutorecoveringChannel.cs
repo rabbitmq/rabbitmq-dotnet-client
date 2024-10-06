@@ -311,7 +311,7 @@ namespace RabbitMQ.Client.Impl
         public Task<BasicGetResult?> BasicGetAsync(string queue, bool autoAck, CancellationToken cancellationToken)
             => InnerChannel.BasicGetAsync(queue, autoAck, cancellationToken);
 
-        public ValueTask<bool> BasicPublishAsync<TProperties>(string exchange, string routingKey,
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory,
             TProperties basicProperties,
             ReadOnlyMemory<byte> body,
@@ -319,7 +319,7 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, cancellationToken);
 
-        public ValueTask<bool> BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory,
             TProperties basicProperties,
             ReadOnlyMemory<byte> body,

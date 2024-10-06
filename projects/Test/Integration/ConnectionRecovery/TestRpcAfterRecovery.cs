@@ -77,8 +77,8 @@ namespace Test.Integration.ConnectionRecovery
 
                 try
                 {
-                    Assert.True(await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: testQueueName,
-                        mandatory: false, basicProperties: properties, body: _messageBody));
+                    await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: testQueueName,
+                        mandatory: false, basicProperties: properties, body: _messageBody);
                 }
                 catch (Exception e)
                 {

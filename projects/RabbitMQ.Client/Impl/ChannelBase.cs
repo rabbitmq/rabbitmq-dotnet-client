@@ -998,7 +998,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async ValueTask<bool> BasicPublishAsync<TProperties>(string exchange, string routingKey,
+        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -1077,16 +1077,10 @@ namespace RabbitMQ.Client.Impl
             {
                 await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
-                return await publisherConfirmationTcs.Task
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                return true;
             }
         }
 
-        public async ValueTask<bool> BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+        public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -1164,13 +1158,6 @@ namespace RabbitMQ.Client.Impl
             {
                 await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
-
-                return await publisherConfirmationTcs.Task
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                return true;
             }
         }
 

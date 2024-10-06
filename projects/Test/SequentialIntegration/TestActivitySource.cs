@@ -99,7 +99,7 @@ namespace Test.SequentialIntegration
             };
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
-            Assert.True(await _channel.BasicPublishAsync("", q.QueueName, true, sendBody));
+            await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
 
             await consumerReceivedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(await consumerReceivedTcs.Task);

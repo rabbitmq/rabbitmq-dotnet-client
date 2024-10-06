@@ -140,15 +140,18 @@ namespace MassPublish
                     using IChannel publishChannel = await publishConnection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
                     publishChannel.ChannelShutdownAsync += Channel_ChannelShutdownAsync;
 
-                    bool ack = false;
                     for (int i = 0; i < ItemsPerBatch; i++)
                     {
-                        ack = await publishChannel.BasicPublishAsync(exchange: ExchangeName, routingKey: RoutingKey,
-                            basicProperties: s_properties, body: s_payload, mandatory: true);
-                        Interlocked.Increment(ref s_messagesSent);
-                        if (false == ack)
+                        try
                         {
-                            Console.Error.WriteLine("[ERROR] channel {0} saw nack!", publishChannel.ChannelNumber);
+                            await publishChannel.BasicPublishAsync(exchange: ExchangeName, routingKey: RoutingKey,
+                                basicProperties: s_properties, body: s_payload, mandatory: true);
+                            Interlocked.Increment(ref s_messagesSent);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteLine("[ERROR] channel {0} saw nack, ex: {1}",
+                                publishChannel.ChannelNumber, ex);
                         }
                     }
 
