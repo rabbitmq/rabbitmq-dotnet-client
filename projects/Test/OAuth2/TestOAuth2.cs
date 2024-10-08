@@ -116,13 +116,13 @@ namespace OAuth2Test
                 if (_connection != null)
                 {
                     await _connection.CloseAsync();
+                    await _connection.DisposeAsync();
                 }
             }
             finally
             {
                 _doneEvent.Dispose();
                 _producerCredentialsProvider?.Dispose();
-                _connection?.Dispose();
                 _cancellationTokenSource.Dispose();
             }
         }
@@ -224,14 +224,13 @@ namespace OAuth2Test
             Assert.NotNull(_connectionFactory);
             // https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429
             IConnection secondConnection = await _connectionFactory.CreateConnectionAsync(CancellationToken.None);
-            secondConnection.Dispose();
+            await secondConnection.DisposeAsync();
         }
 
         private async Task<IChannel> DeclarePublishChannelAsync()
         {
             Assert.NotNull(_connection);
-            IChannel publishChannel = await _connection.CreateChannelAsync();
-            await publishChannel.ConfirmSelectAsync();
+            IChannel publishChannel = await _connection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
             await publishChannel.ExchangeDeclareAsync("test_direct", ExchangeType.Direct, true, false);
             return publishChannel;
         }
@@ -246,11 +245,9 @@ namespace OAuth2Test
                 AppId = "oauth2",
             };
 
-            await publishChannel.BasicPublishAsync(exchange: Exchange, routingKey: "hello", false, basicProperties: properties, body: body);
-            _testOutputHelper.WriteLine("Sent message");
-
-            await publishChannel.WaitForConfirmsOrDieAsync();
-            _testOutputHelper.WriteLine("Confirmed Sent message");
+            await publishChannel.BasicPublishAsync(exchange: Exchange, routingKey: "hello", false,
+                basicProperties: properties, body: body);
+            _testOutputHelper.WriteLine("Sent and confirmed message");
         }
 
         private async ValueTask<IChannel> DeclareConsumeChannelAsync()

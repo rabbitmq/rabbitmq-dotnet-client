@@ -29,11 +29,10 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -49,52 +48,8 @@ namespace Test.Integration
             _messageBody = GetRandomBody(4096);
         }
 
-        [Fact]
-        public Task TestWaitForConfirmsWithoutTimeoutAsync()
-        {
-            return TestWaitForConfirmsAsync(200, async (ch) =>
-            {
-                Assert.True(await ch.WaitForConfirmsAsync());
-            });
-        }
-
-        [Fact]
-        public Task TestWaitForConfirmsWithTimeout()
-        {
-            return TestWaitForConfirmsAsync(200, async (ch) =>
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-                Assert.True(await ch.WaitForConfirmsAsync(cts.Token));
-            });
-        }
-
-        [Fact]
-        public async Task TestWaitForConfirmsWithTimeoutAsync_MightThrowTaskCanceledException()
-        {
-            bool waitResult = false;
-            bool sawException = false;
-
-            Task t = TestWaitForConfirmsAsync(10000, async (ch) =>
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1));
-                try
-                {
-                    waitResult = await ch.WaitForConfirmsAsync(cts.Token);
-                }
-                catch
-                {
-                    sawException = true;
-                }
-            });
-
-            await t;
-
-            if (waitResult == false && sawException == false)
-            {
-                Assert.Fail("test failed, both waitResult and sawException are still false");
-            }
-        }
-
+        /*
+         * TODO figure out how to actually test basic.nack and basic.return
         [Fact]
         public Task TestWaitForConfirmsWithTimeoutAsync_MessageNacked_WaitingHasTimedout_ReturnFalse()
         {
@@ -106,13 +61,13 @@ namespace Test.Integration
                 Assert.False(await ch.WaitForConfirmsAsync(cts.Token));
             });
         }
+        */
 
         [Fact]
         public async Task TestWaitForConfirmsWithEventsAsync()
         {
             string queueName = GenerateQueueName();
-            await using IChannel ch = await _conn.CreateChannelAsync();
-            await ch.ConfirmSelectAsync();
+            await using IChannel ch = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
             await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
                 exclusive: true, autoDelete: false, arguments: null);
 
@@ -128,45 +83,18 @@ namespace Test.Integration
 
             try
             {
+                var publishTasks = new List<Task>();
                 for (int i = 0; i < n; i++)
                 {
-                    await ch.BasicPublishAsync("", queueName, _encoding.GetBytes("msg"));
+                    publishTasks.Add(ch.BasicPublishAsync("", queueName, _encoding.GetBytes("msg")).AsTask());
                 }
-
-                await ch.WaitForConfirmsAsync();
+                await Task.WhenAll(publishTasks).WaitAsync(ShortSpan);
 
                 // Note: number of event invocations is not guaranteed
                 // to be equal to N because acks can be batched,
                 // so we primarily care about event handlers being invoked
                 // in this test
                 Assert.True(c >= 1);
-            }
-            finally
-            {
-                await ch.QueueDeleteAsync(queue: queueName, ifUnused: false, ifEmpty: false);
-                await ch.CloseAsync();
-            }
-        }
-
-        private async Task TestWaitForConfirmsAsync(int numberOfMessagesToPublish, Func<IChannel, Task> fn)
-        {
-            string queueName = GenerateQueueName();
-            await using IChannel ch = await _conn.CreateChannelAsync();
-            var props = new BasicProperties { Persistent = true };
-
-            await ch.ConfirmSelectAsync();
-            await ch.QueueDeclareAsync(queue: queueName, passive: false, durable: false,
-                exclusive: true, autoDelete: false, arguments: null);
-
-            for (int i = 0; i < numberOfMessagesToPublish; i++)
-            {
-                await ch.BasicPublishAsync(exchange: string.Empty, routingKey: queueName,
-                    body: _messageBody, mandatory: true, basicProperties: props);
-            }
-
-            try
-            {
-                await fn(ch);
             }
             finally
             {

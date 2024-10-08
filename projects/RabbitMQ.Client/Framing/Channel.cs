@@ -35,6 +35,7 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing
 {
+    // TODO merge into ChannelBase
     internal class Channel : ChannelBase
     {
         public Channel(ConnectionConfig config, ISession session, ushort? consumerDispatchConcurrency = null)

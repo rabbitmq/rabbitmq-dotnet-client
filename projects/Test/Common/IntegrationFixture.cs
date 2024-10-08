@@ -153,7 +153,7 @@ namespace Test
 
                 if (_openChannel)
                 {
-                    _channel = await _conn.CreateChannelAsync();
+                    _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
                 }
 
                 if (IsVerbose)
@@ -190,8 +190,14 @@ namespace Test
             finally
             {
                 _eventListener?.Dispose();
-                _channel?.Dispose();
-                _conn?.Dispose();
+                if (_channel is not null)
+                {
+                    await _channel.DisposeAsync();
+                }
+                if (_conn is not null)
+                {
+                    await _conn.DisposeAsync();
+                }
                 _channel = null;
                 _conn = null;
             }

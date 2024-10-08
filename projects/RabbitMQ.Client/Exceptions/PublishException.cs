@@ -30,42 +30,37 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
-using RabbitMQ.Client;
-using Xunit;
-using Xunit.Abstractions;
 
-namespace Test.Integration
+namespace RabbitMQ.Client.Exceptions
 {
-    public class TestConfirmSelectAsync : IntegrationFixture
+    /// <summary>
+    /// Class for exceptions related to publisher confirmations
+    /// or the <c>mandatory</c> flag.
+    /// </summary>
+    public class PublishException : RabbitMQClientException
     {
-        readonly byte[] _message = GetRandomBody(64);
+        private bool _isReturn = false;
+        private ulong _publishSequenceNumber = ulong.MinValue;
 
-        public TestConfirmSelectAsync(ITestOutputHelper output) : base(output)
+        public PublishException(ulong publishSequenceNumber, bool isReturn) : base()
         {
+            if (publishSequenceNumber == ulong.MinValue)
+            {
+                throw new ArgumentException($"{nameof(publishSequenceNumber)} must not be 0");
+            }
+
+            _isReturn = isReturn;
+            _publishSequenceNumber = publishSequenceNumber;
         }
 
-        [Fact]
-        public async Task TestConfirmSelectIdempotency()
-        {
-            Assert.Equal(1ul, await _channel.GetNextPublishSequenceNumberAsync());
-            await PublishAsync();
-            Assert.Equal(2ul, await _channel.GetNextPublishSequenceNumberAsync());
-            await PublishAsync();
-            Assert.Equal(3ul, await _channel.GetNextPublishSequenceNumberAsync());
+        /// <summary>
+        /// <c>true</c> if this exception is due to a <c>basic.return</c>
+        /// </summary>
+        public bool IsReturn => _isReturn;
 
-            await PublishAsync();
-            Assert.Equal(4ul, await _channel.GetNextPublishSequenceNumberAsync());
-            await PublishAsync();
-            Assert.Equal(5ul, await _channel.GetNextPublishSequenceNumberAsync());
-            await PublishAsync();
-            Assert.Equal(6ul, await _channel.GetNextPublishSequenceNumberAsync());
-        }
-
-        private ValueTask PublishAsync()
-        {
-            return _channel.BasicPublishAsync(exchange: "",
-                routingKey: Guid.NewGuid().ToString(), _message);
-        }
+        /// <summary>
+        /// Retrieve the publish sequence number.
+        /// </summary>
+        public ulong PublishSequenceNumber => _publishSequenceNumber;
     }
 }

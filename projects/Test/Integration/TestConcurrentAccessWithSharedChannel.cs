@@ -37,6 +37,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -54,25 +55,21 @@ namespace Test.Integration
         [Fact]
         public async Task ConcurrentPublishSingleChannel()
         {
-            int publishAckCount = 0;
+            int expectedTotalMessageCount = 0;
+            int expectedTotalReturnCount = 0;
+            int totalNackCount = 0;
+            int totalReturnCount = 0;
+            int totalReceivedCount = 0;
 
             _channel.BasicAcksAsync += (object sender, BasicAckEventArgs e) =>
             {
-                Interlocked.Increment(ref publishAckCount);
                 return Task.CompletedTask;
             };
-
-            _channel.BasicNacksAsync += (object sender, BasicNackEventArgs e) =>
-            {
-                _output.WriteLine($"channel #{_channel.ChannelNumber} saw a nack, deliveryTag: {e.DeliveryTag}, multiple: {e.Multiple}");
-                return Task.CompletedTask;
-            };
-
-            await _channel.ConfirmSelectAsync(trackConfirmations: false);
 
             await TestConcurrentOperationsAsync(async () =>
             {
-                long receivedCount = 0;
+                long thisBatchReceivedCount = 0;
+                long thisBatchReturnedCount = 0;
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 var msgTracker = new ConcurrentDictionary<ushort, bool>();
@@ -84,6 +81,7 @@ namespace Test.Integration
 
                 consumer.ReceivedAsync += async (object sender, BasicDeliverEventArgs ea) =>
                 {
+                    Interlocked.Increment(ref totalReceivedCount);
                     try
                     {
                         System.Diagnostics.Debug.Assert(object.ReferenceEquals(sender, consumer));
@@ -95,7 +93,9 @@ namespace Test.Integration
                         IChannel ch = cons.Channel;
                         await ch.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
 
-                        if (Interlocked.Increment(ref receivedCount) == _messageCount)
+                        long receivedCountSoFar = Interlocked.Increment(ref thisBatchReceivedCount);
+
+                        if ((receivedCountSoFar + thisBatchReturnedCount) == _messageCount)
                         {
                             if (msgTracker.Values.Any(v => v == false))
                             {
@@ -118,18 +118,59 @@ namespace Test.Integration
                 var publishTasks = new List<ValueTask>();
                 for (ushort i = 0; i < _messageCount; i++)
                 {
-                    msgTracker[i] = false;
+                    Interlocked.Increment(ref expectedTotalMessageCount);
+
                     byte[] body = _encoding.GetBytes(i.ToString());
-                    publishTasks.Add(_channel.BasicPublishAsync("", q.QueueName, mandatory: true, body: body));
+
+                    string routingKey = q.QueueName;
+                    if (i % 5 == 0)
+                    {
+                        routingKey = Guid.NewGuid().ToString();
+                        Interlocked.Increment(ref thisBatchReturnedCount);
+                        Interlocked.Increment(ref expectedTotalReturnCount);
+                    }
+                    else
+                    {
+                        msgTracker[i] = false;
+                    }
+
+                    publishTasks.Add(_channel.BasicPublishAsync("", routingKey, mandatory: true, body: body));
                 }
 
                 foreach (ValueTask pt in publishTasks)
                 {
-                    await pt;
+                    try
+                    {
+                        await pt;
+                    }
+                    catch (PublishException ex)
+                    {
+                        if (ex.IsReturn)
+                        {
+                            Interlocked.Increment(ref totalReturnCount);
+                        }
+                        else
+                        {
+                            Interlocked.Increment(ref totalNackCount);
+                        }
+                    }
                 }
 
                 Assert.True(await tcs.Task);
             }, Iterations);
+
+            if (IsVerbose)
+            {
+                _output.WriteLine("expectedTotalMessageCount: {0}", expectedTotalMessageCount);
+                _output.WriteLine("expectedTotalReturnCount: {0}", expectedTotalReturnCount);
+                _output.WriteLine("totalReceivedCount: {0}", totalReceivedCount);
+                _output.WriteLine("totalReturnCount: {0}", totalReturnCount);
+                _output.WriteLine("totalNackCount: {0}", totalNackCount);
+            }
+
+            Assert.Equal(expectedTotalReturnCount, totalReturnCount);
+            Assert.Equal(expectedTotalMessageCount, (totalReceivedCount + totalReturnCount));
+            Assert.Equal(0, totalNackCount);
         }
     }
 }

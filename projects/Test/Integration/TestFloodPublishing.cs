@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace Test.Integration
 {
     public class TestFloodPublishing : IntegrationFixture
     {
-        private static readonly TimeSpan TenSeconds = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan FiveSeconds = TimeSpan.FromSeconds(5);
         private readonly byte[] _body = GetRandomBody(2048);
 
         public TestFloodPublishing(ITestOutputHelper output) : base(output)
@@ -64,7 +65,7 @@ namespace Test.Integration
             _connFactory.AutomaticRecoveryEnabled = false;
             _conn = await _connFactory.CreateConnectionAsync();
             Assert.IsNotType<RabbitMQ.Client.Framing.AutorecoveringConnection>(_conn);
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             _conn.ConnectionShutdownAsync += (_, ea) =>
             {
@@ -91,21 +92,30 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
+            var publishTasks = new List<Task>();
             var stopwatch = Stopwatch.StartNew();
             int i = 0;
+            int publishCount = 0;
             try
             {
                 for (i = 0; i < 65535 * 64; i++)
                 {
                     if (i % 65536 == 0)
                     {
-                        if (stopwatch.Elapsed > TenSeconds)
+                        if (stopwatch.Elapsed > FiveSeconds)
                         {
                             break;
                         }
                     }
 
-                    await _channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body);
+                    publishCount++;
+                    publishTasks.Add(_channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body).AsTask());
+
+                    if (i % 500 == 0)
+                    {
+                        await Task.WhenAll(publishTasks).WaitAsync(ShortSpan);
+                        publishTasks.Clear();
+                    }
                 }
             }
             finally
@@ -115,6 +125,7 @@ namespace Test.Integration
 
             Assert.True(_conn.IsOpen);
             Assert.False(sawUnexpectedShutdown);
+            _output.WriteLine("[INFO] published {0} messages in {1}", publishCount, stopwatch.Elapsed);
         }
 
         [Fact]
@@ -181,9 +192,8 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                await using (IChannel publishChannel = await publishConnection.CreateChannelAsync())
+                await using (IChannel publishChannel = await publishConnection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
                 {
-                    await publishChannel.ConfirmSelectAsync();
 
                     publishChannel.ChannelShutdownAsync += (o, ea) =>
                     {
@@ -198,12 +208,13 @@ namespace Test.Integration
                         return Task.CompletedTask;
                     };
 
+                    var publishTasks = new List<Task>();
                     for (int i = 0; i < publishCount && false == stop; i++)
                     {
-                        await publishChannel.BasicPublishAsync(string.Empty, queueName, true, sendBody);
+                        publishTasks.Add(publishChannel.BasicPublishAsync(string.Empty, queueName, true, sendBody).AsTask());
                     }
 
-                    await publishChannel.WaitForConfirmsOrDieAsync();
+                    await Task.WhenAll(publishTasks).WaitAsync(ShortSpan);
                     await publishChannel.CloseAsync();
                 }
 

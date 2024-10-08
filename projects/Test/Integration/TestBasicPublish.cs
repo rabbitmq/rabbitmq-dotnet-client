@@ -35,6 +35,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -59,7 +60,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripArray()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             var bp = new BasicProperties();
@@ -87,7 +88,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripCachedString()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             CachedString exchangeName = new CachedString(string.Empty);
             CachedString queueName = new CachedString((await _channel.QueueDeclareAsync()).QueueName);
@@ -115,7 +116,7 @@ namespace Test.Integration
         public async Task TestBasicRoundtripReadOnlyMemory()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             byte[] sendBody = _encoding.GetBytes("hi");
@@ -142,7 +143,7 @@ namespace Test.Integration
         public async Task CanNotModifyPayloadAfterPublish()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync();
             byte[] sendBody = new byte[1000];
@@ -203,7 +204,7 @@ namespace Test.Integration
             Assert.Equal(maxMsgSize, cf.Endpoint.MaxInboundMessageBodySize);
             Assert.Equal(maxMsgSize, conn.Endpoint.MaxInboundMessageBodySize);
 
-            await using (IChannel channel = await conn.CreateChannelAsync())
+            await using (IChannel channel = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
             {
                 channel.ChannelShutdownAsync += (o, a) =>
                 {
@@ -247,7 +248,9 @@ namespace Test.Integration
                 string tag = await channel.BasicConsumeAsync(q.QueueName, true, consumer);
 
                 await channel.BasicPublishAsync("", q.QueueName, msg0);
-                await channel.BasicPublishAsync("", q.QueueName, msg1);
+                AlreadyClosedException ex = await Assert.ThrowsAsync<AlreadyClosedException>(() =>
+                    channel.BasicPublishAsync("", q.QueueName, msg1).AsTask());
+                Assert.IsType<MalformedFrameException>(ex.InnerException);
                 Assert.True(await tcs.Task);
 
                 Assert.Equal(1, count);
@@ -259,6 +262,7 @@ namespace Test.Integration
                 try
                 {
                     await channel.CloseAsync();
+                    await channel.DisposeAsync();
                 }
                 catch (Exception chex)
                 {
@@ -272,6 +276,7 @@ namespace Test.Integration
             try
             {
                 await conn.CloseAsync();
+                await conn.DisposeAsync();
             }
             catch (Exception connex)
             {
@@ -286,7 +291,7 @@ namespace Test.Integration
         public async Task TestPropertiesRoundtrip_Headers()
         {
             _conn = await _connFactory.CreateConnectionAsync();
-            _channel = await _conn.CreateChannelAsync();
+            _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             var subject = new BasicProperties
             {

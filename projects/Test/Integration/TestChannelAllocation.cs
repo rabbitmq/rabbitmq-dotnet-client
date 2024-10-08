@@ -73,7 +73,7 @@ namespace Test.Integration
             foreach (IChannel channel in channels)
             {
                 await channel.CloseAsync();
-                channel.Dispose();
+                await channel.DisposeAsync();
             }
         }
 
@@ -90,7 +90,7 @@ namespace Test.Integration
 
             foreach (IChannel channel in channels)
             {
-                channel.Dispose();
+                await channel.DisposeAsync();
             }
         }
 
@@ -100,12 +100,12 @@ namespace Test.Integration
             IChannel ch0 = await _c.CreateChannelAsync();
             Assert.Equal(1, ChannelNumber(ch0));
             await ch0.CloseAsync();
-            ch0.Dispose();
+            await ch0.DisposeAsync();
 
             IChannel ch1 = await _c.CreateChannelAsync();
             Assert.Equal(1, ChannelNumber(ch1));
             await ch1.CloseAsync();
-            ch1.Dispose();
+            await ch1.DisposeAsync();
         }
 
         [Fact]
@@ -121,6 +121,7 @@ namespace Test.Integration
             foreach (IChannel channel in channels)
             {
                 await channel.CloseAsync();
+                await channel.DisposeAsync();
             }
 
             channels.Clear();
@@ -139,6 +140,7 @@ namespace Test.Integration
             {
                 Assert.Equal(k++, ChannelNumber(channel));
                 await channel.CloseAsync();
+                await channel.DisposeAsync();
             }
         }
 

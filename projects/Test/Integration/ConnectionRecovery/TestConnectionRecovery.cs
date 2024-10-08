@@ -75,7 +75,7 @@ namespace Test.Integration.ConnectionRecovery
             await _channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: routingKey);
 
             await _channel.CloseAsync();
-            _channel.Dispose();
+            await _channel.DisposeAsync();
             _channel = null;
 
             _channel = await _conn.CreateChannelAsync();
@@ -96,7 +96,7 @@ namespace Test.Integration.ConnectionRecovery
             consumer.ReceivedAsync += MessageReceived;
             await _channel.BasicConsumeAsync(queueName, true, consumer);
 
-            await using (IChannel pubCh = await _conn.CreateChannelAsync())
+            await using (IChannel pubCh = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
             {
                 await pubCh.BasicPublishAsync(exchange: exchangeName, routingKey: routingKey, body: body);
                 await pubCh.CloseAsync();
@@ -106,7 +106,7 @@ namespace Test.Integration.ConnectionRecovery
 
             await CloseAndWaitForRecoveryAsync();
 
-            await using (IChannel pubCh = await _conn.CreateChannelAsync())
+            await using (IChannel pubCh = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
             {
                 await pubCh.BasicPublishAsync(exchange: exchangeName, routingKey: "unused", body: body);
                 await pubCh.CloseAsync();

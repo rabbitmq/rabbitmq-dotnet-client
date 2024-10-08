@@ -95,7 +95,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
@@ -125,7 +124,6 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
             Baggage.ClearBaggage();
             Assert.Null(Baggage.GetBaggage("TestItem"));
 
@@ -150,7 +148,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
@@ -181,7 +178,6 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await _channel.BasicPublishAsync("", q.QueueName, true, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
             Baggage.ClearBaggage();
             Assert.Null(Baggage.GetBaggage("TestItem"));
 
@@ -206,7 +202,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
@@ -238,7 +233,6 @@ namespace Test.SequentialIntegration
             string consumerTag = await _channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             var publicationAddress = new PublicationAddress(ExchangeType.Direct, "", queueName);
             await _channel.BasicPublishAsync(publicationAddress, new BasicProperties(), sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
             Baggage.ClearBaggage();
             Assert.Null(Baggage.GetBaggage("TestItem"));
 
@@ -263,7 +257,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
 
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
@@ -296,7 +289,6 @@ namespace Test.SequentialIntegration
             CachedString exchange = new CachedString("");
             CachedString routingKey = new CachedString(queueName);
             await _channel.BasicPublishAsync(exchange, routingKey, sendBody);
-            await _channel.WaitForConfirmsOrDieAsync();
             Baggage.ClearBaggage();
             Assert.Null(Baggage.GetBaggage("TestItem"));
 
@@ -321,7 +313,6 @@ namespace Test.SequentialIntegration
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            await _channel.ConfirmSelectAsync();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
             string queue = $"queue-{Guid.NewGuid()}";
@@ -331,7 +322,6 @@ namespace Test.SequentialIntegration
             {
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
                 await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
-                await _channel.WaitForConfirmsOrDieAsync();
                 Baggage.ClearBaggage();
                 Assert.Null(Baggage.GetBaggage("TestItem"));
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);

@@ -104,7 +104,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync();
+            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             await ch.QueueDeclareAsync(queueToRecover, false, false, false);
             await ch.QueueDeclareAsync(queueToIgnore, false, false, false);
@@ -131,8 +131,8 @@ namespace Test.Integration
             {
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -155,7 +155,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync();
+            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
             try
             {
                 await ch.ExchangeDeclareAsync(exchangeToRecover, "topic", false, true);
@@ -180,8 +180,8 @@ namespace Test.Integration
             {
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -228,7 +228,9 @@ namespace Test.Integration
 
                 Assert.True(ch.IsOpen);
                 Assert.True(await SendAndConsumeMessageAsync(_conn, queueWithRecoveredBinding, exchange, bindingToRecover));
-                Assert.False(await SendAndConsumeMessageAsync(_conn, queueWithIgnoredBinding, exchange, bindingToIgnore));
+                PublishException ex = await Assert.ThrowsAnyAsync<PublishException>(() =>
+                    SendAndConsumeMessageAsync(_conn, queueWithIgnoredBinding, exchange, bindingToIgnore));
+                Assert.Equal((ulong)1, ex.PublishSequenceNumber);
             }
             finally
             {
@@ -237,8 +239,8 @@ namespace Test.Integration
                 await ch.QueueDeleteAsync(queueWithIgnoredBinding);
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -270,10 +272,9 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            IChannel ch = await conn.CreateChannelAsync();
+            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
             try
             {
-                await ch.ConfirmSelectAsync();
 
                 await ch.ExchangeDeclareAsync(exchange, "direct");
                 await ch.QueueDeclareAsync(queue1, false, false, false);
@@ -315,7 +316,6 @@ namespace Test.Integration
 
                 var pt1 = ch.BasicPublishAsync(exchange, binding1, true, _encoding.GetBytes("test message"));
                 var pt2 = ch.BasicPublishAsync(exchange, binding2, true, _encoding.GetBytes("test message"));
-                await WaitForConfirmsWithCancellationAsync(ch);
                 await Task.WhenAll(pt1.AsTask(), pt2.AsTask()).WaitAsync(WaitSpan);
 
                 await Task.WhenAll(consumerReceivedTcs1.Task, consumerReceivedTcs2.Task).WaitAsync(WaitSpan);
@@ -326,8 +326,8 @@ namespace Test.Integration
             {
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -367,7 +367,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync();
+            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
 
             await ch.QueueDeclareAsync(queueToRecoverWithException, false, false, false);
             await ch.QueueDeclareAsync(queueToRecoverSuccessfully, false, false, false);
@@ -391,8 +391,8 @@ namespace Test.Integration
                 await _channel.QueueDeleteAsync(queueToRecoverWithException);
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -450,8 +450,8 @@ namespace Test.Integration
 
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
 
@@ -514,8 +514,8 @@ namespace Test.Integration
 
             await ch.CloseAsync();
             await conn.CloseAsync();
-            ch.Dispose();
-            conn.Dispose();
+            await ch.DisposeAsync();
+            await conn.DisposeAsync();
         }
 
         [Fact]
@@ -554,7 +554,8 @@ namespace Test.Integration
             IChannel ch = await conn.CreateChannelAsync();
             try
             {
-                await ch.ConfirmSelectAsync();
+                // Note: no need to enable publisher confirmations as they are
+                // automatically enabled for channels
 
                 await _channel.QueueDeclareAsync(queueWithExceptionConsumer, false, false, false);
                 await _channel.QueuePurgeAsync(queueWithExceptionConsumer);
@@ -590,8 +591,8 @@ namespace Test.Integration
             {
                 await ch.CloseAsync();
                 await conn.CloseAsync();
-                ch.Dispose();
-                conn.Dispose();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
             }
         }
     }

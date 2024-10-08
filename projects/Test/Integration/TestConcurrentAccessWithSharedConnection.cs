@@ -108,7 +108,7 @@ namespace Test.Integration
 
                 try
                 {
-                    await using IChannel ch = await _conn.CreateChannelAsync();
+                    await using IChannel ch = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true });
                     ch.ChannelShutdownAsync += (o, ea) =>
                     {
                         HandleChannelShutdown(ch, ea, (args) =>
@@ -121,7 +121,6 @@ namespace Test.Integration
                         return Task.CompletedTask;
                     };
 
-                    await ch.ConfirmSelectAsync(trackConfirmations: false);
 
                     ch.BasicAcksAsync += (object sender, BasicAckEventArgs e) =>
                     {
