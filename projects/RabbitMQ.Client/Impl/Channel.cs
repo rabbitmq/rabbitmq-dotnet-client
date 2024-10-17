@@ -48,7 +48,7 @@ using RabbitMQ.Client.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class ChannelBase : IChannel, IRecoverable
+    internal class Channel : IChannel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.OpenAsync"/> </summary>
@@ -71,7 +71,7 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
-        protected ChannelBase(ConnectionConfig config, ISession session, ushort? perChannelConsumerDispatchConcurrency = null)
+        public Channel(ConnectionConfig config, ISession session, ushort? perChannelConsumerDispatchConcurrency = null)
         {
             ContinuationTimeout = config.ContinuationTimeout;
             ConsumerDispatcher = new AsyncConsumerDispatcher(this,
@@ -92,6 +92,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
         public TimeSpan ContinuationTimeout { get; set; }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -192,7 +193,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected void TakeOver(ChannelBase other)
+        protected void TakeOver(Channel other)
         {
             _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
             _basicNacksAsyncWrapper.Takeover(other._basicNacksAsyncWrapper);
@@ -354,8 +355,6 @@ namespace RabbitMQ.Client.Impl
                 _rpcSemaphore.Release();
             }
         }
-
-        protected abstract Task<bool> DispatchCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken);
 
         protected bool Enqueue(IRpcContinuation k)
         {
@@ -873,14 +872,26 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public abstract ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
-            CancellationToken cancellationToken);
+        public virtual ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
+            CancellationToken cancellationToken)
+        {
+            var method = new BasicAck(deliveryTag, multiple);
+            return ModelSendAsync(in method, cancellationToken);
+        }
 
-        public abstract ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
-            CancellationToken cancellationToken);
+        public virtual ValueTask BasicNackAsync(ulong deliveryTag, bool multiple, bool requeue,
+            CancellationToken cancellationToken)
+        {
+            var method = new BasicNack(deliveryTag, multiple, requeue);
+            return ModelSendAsync(in method, cancellationToken);
+        }
 
-        public abstract ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue,
-            CancellationToken cancellationToken);
+        public virtual ValueTask BasicRejectAsync(ulong deliveryTag, bool requeue,
+            CancellationToken cancellationToken)
+        {
+            var method = new BasicReject(deliveryTag, requeue);
+            return ModelSendAsync(in method, cancellationToken);
+        }
 
         public async Task BasicCancelAsync(string consumerTag, bool noWait,
             CancellationToken cancellationToken)
@@ -1879,6 +1890,94 @@ namespace RabbitMQ.Client.Impl
                     NetworkOrderSerializer.WriteUInt64(ref publishSequenceNumberBytes.GetStart(), publishSequenceNumber);
                     headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Returning <c>true</c> from this method means that the command was server-originated,
+        /// and handled already.
+        /// Returning <c>false</c> (the default) means that the incoming command is the response to
+        /// a client-initiated RPC call, and must be handled.
+        /// </summary>
+        /// <param name="cmd">The incoming command from the AMQP server</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        /// <returns></returns>
+        private Task<bool> DispatchCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            switch (cmd.CommandId)
+            {
+                case ProtocolCommandId.BasicCancel:
+                    {
+                        // Note: always returns true
+                        return HandleBasicCancelAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.BasicDeliver:
+                    {
+                        // Note: always returns true
+                        return HandleBasicDeliverAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.BasicAck:
+                    {
+                        return HandleBasicAck(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.BasicNack:
+                    {
+                        return HandleBasicNack(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.BasicReturn:
+                    {
+                        // Note: always returns true
+                        return HandleBasicReturn(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ChannelClose:
+                    {
+                        // Note: always returns true
+                        return HandleChannelCloseAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ChannelCloseOk:
+                    {
+                        // Note: always returns true
+                        return HandleChannelCloseOkAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ChannelFlow:
+                    {
+                        // Note: always returns true
+                        return HandleChannelFlowAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ConnectionBlocked:
+                    {
+                        // Note: always returns true
+                        return HandleConnectionBlockedAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ConnectionClose:
+                    {
+                        // Note: always returns true
+                        return HandleConnectionCloseAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ConnectionSecure:
+                    {
+                        // Note: always returns true
+                        return HandleConnectionSecureAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ConnectionStart:
+                    {
+                        // Note: always returns true
+                        return HandleConnectionStartAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ConnectionTune:
+                    {
+                        // Note: always returns true
+                        return HandleConnectionTuneAsync(cmd, cancellationToken);
+                    }
+                case ProtocolCommandId.ConnectionUnblocked:
+                    {
+                        // Note: always returns true
+                        return HandleConnectionUnblockedAsync(cancellationToken);
+                    }
+                default:
+                    {
+                        return Task.FromResult(false);
+                    }
             }
         }
     }

@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Impl
             _socket = socket;
             _stream = stream;
 
-            var channel = Channel.CreateBounded<RentedMemory>(
+            var channel = System.Threading.Channels.Channel.CreateBounded<RentedMemory>(
                 new BoundedChannelOptions(128)
                 {
                     AllowSynchronousContinuations = false,

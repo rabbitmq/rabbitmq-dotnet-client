@@ -35,7 +35,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -50,7 +49,7 @@ namespace RabbitMQ.Client.Framing
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
-        private readonly ChannelBase _channel0; // FUTURE Note: this is not disposed
+        private readonly Channel _channel0;
         private readonly MainSession _session0;
 
         private Guid _id = Guid.NewGuid();
@@ -351,7 +350,7 @@ namespace RabbitMQ.Client.Framing
                             .ConfigureAwait(false);
                     }
                 }
-                catch (ChannelClosedException)
+                catch (System.Threading.Channels.ChannelClosedException)
                 {
                     if (false == abort)
                     {
@@ -510,6 +509,9 @@ namespace RabbitMQ.Client.Framing
 
                 _session0.Dispose();
                 _mainLoopCts.Dispose();
+
+                await _channel0.DisposeAsync()
+                    .ConfigureAwait(false);
             }
             catch (OperationInterruptedException)
             {
