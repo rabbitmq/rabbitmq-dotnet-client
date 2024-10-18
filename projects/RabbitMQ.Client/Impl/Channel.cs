@@ -31,7 +31,6 @@
 
 using System;
 using System.Buffers.Binary;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -48,7 +47,7 @@ using RabbitMQ.Client.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class Channel : IChannel, IRecoverable
+    internal partial class Channel : IChannel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.OpenAsync"/> </summary>
@@ -59,12 +58,6 @@ namespace RabbitMQ.Client.Impl
         protected readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly AsyncManualResetEvent _flowControlBlock = new AsyncManualResetEvent(true);
-
-        private bool _publisherConfirmationsEnabled = false;
-        private bool _publisherConfirmationTrackingEnabled = false;
-        private ulong _nextPublishSeqNo = 0;
-        private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
-        private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
 
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
