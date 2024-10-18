@@ -56,7 +56,10 @@ namespace RabbitMQ.Client.Impl
                     await MaybeStartPublisherConfirmationTracking(cancellationToken)
                         .ConfigureAwait(false);
 
-                await EnforceFlowControlAsync(cancellationToken)
+                await MaybeEnforceFlowControlAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                await MaybeEnforceOutstandingPublisherConfirmationsAsync(cancellationToken)
                     .ConfigureAwait(false);
 
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
@@ -111,7 +114,10 @@ namespace RabbitMQ.Client.Impl
                     await MaybeStartPublisherConfirmationTracking(cancellationToken)
                         .ConfigureAwait(false);
 
-                await EnforceFlowControlAsync(cancellationToken)
+                await MaybeEnforceFlowControlAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                await MaybeEnforceOutstandingPublisherConfirmationsAsync(cancellationToken)
                     .ConfigureAwait(false);
 
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
@@ -225,7 +231,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ValueTask EnforceFlowControlAsync(CancellationToken cancellationToken)
+        private ValueTask MaybeEnforceFlowControlAsync(CancellationToken cancellationToken)
         {
             if (_flowControlBlock.IsSet)
             {
