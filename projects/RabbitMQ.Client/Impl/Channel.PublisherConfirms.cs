@@ -239,6 +239,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async Task MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync(ShutdownEventArgs reason)
         {
             if (_publisherConfirmationsEnabled)
@@ -265,6 +266,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async Task<PublisherConfirmationInfo?> MaybeStartPublisherConfirmationTracking(CancellationToken cancellationToken)
         {
             if (_publisherConfirmationsEnabled)
@@ -291,6 +293,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool MaybeHandleExceptionWithEnabledPublisherConfirmations(PublisherConfirmationInfo? publisherConfirmationInfo,
             Exception ex)
         {
@@ -312,6 +315,7 @@ namespace RabbitMQ.Client.Impl
             return exceptionWasHandled;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async Task MaybeEndPublisherConfirmationTracking(PublisherConfirmationInfo? publisherConfirmationInfo,
             CancellationToken cancellationToken)
         {
