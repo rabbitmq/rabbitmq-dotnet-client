@@ -450,17 +450,6 @@ namespace RabbitMQ.Client.Impl
             return Session.TransmitAsync(in method, in header, body, cancellationToken);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask EnforceFlowControlAsync(CancellationToken cancellationToken)
-        {
-            if (_flowControlBlock.IsSet)
-            {
-                return default;
-            }
-
-            return _flowControlBlock.WaitAsync(cancellationToken);
-        }
-
         internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
         {
             return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);

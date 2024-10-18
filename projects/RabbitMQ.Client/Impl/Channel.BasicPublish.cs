@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Framing;
@@ -219,6 +220,17 @@ namespace RabbitMQ.Client.Impl
                     headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ValueTask EnforceFlowControlAsync(CancellationToken cancellationToken)
+        {
+            if (_flowControlBlock.IsSet)
+            {
+                return default;
+            }
+
+            return _flowControlBlock.WaitAsync(cancellationToken);
         }
     }
 }
