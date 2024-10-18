@@ -30,8 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers.Binary;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -44,11 +42,10 @@ using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal class Channel : IChannel, IRecoverable
+    internal partial class Channel : IChannel, IRecoverable
     {
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.OpenAsync"/> </summary>
@@ -59,12 +56,6 @@ namespace RabbitMQ.Client.Impl
         protected readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
         private readonly AsyncManualResetEvent _flowControlBlock = new AsyncManualResetEvent(true);
-
-        private bool _publisherConfirmationsEnabled = false;
-        private bool _publisherConfirmationTrackingEnabled = false;
-        private ulong _nextPublishSeqNo = 0;
-        private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
-        private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
 
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
@@ -374,8 +365,7 @@ namespace RabbitMQ.Client.Impl
             bool publisherConfirmationTrackingEnabled = false,
             CancellationToken cancellationToken = default)
         {
-            _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
-            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+            ConfigurePublisherConfirmations(publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled);
 
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
@@ -393,11 +383,8 @@ namespace RabbitMQ.Client.Impl
                 bool result = await k;
                 Debug.Assert(result);
 
-                if (_publisherConfirmationsEnabled)
-                {
-                    await ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
-                        .ConfigureAwait(false);
-                }
+                await MaybeConfirmSelect(cancellationToken)
+                    .ConfigureAwait(false);
             }
             finally
             {
@@ -494,31 +481,12 @@ namespace RabbitMQ.Client.Impl
         private async Task OnChannelShutdownAsync(ShutdownEventArgs reason)
         {
             _continuationQueue.HandleChannelShutdown(reason);
+
             await _channelShutdownAsyncWrapper.InvokeAsync(this, reason)
                 .ConfigureAwait(false);
 
-            if (_publisherConfirmationsEnabled)
-            {
-                await _confirmSemaphore.WaitAsync(reason.CancellationToken)
-                    .ConfigureAwait(false);
-                try
-                {
-                    if (!_confirmsTaskCompletionSources.IsEmpty)
-                    {
-                        var exception = new AlreadyClosedException(reason);
-                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources.Values)
-                        {
-                            confirmsTaskCompletionSource.TrySetException(exception);
-                        }
-
-                        _confirmsTaskCompletionSources.Clear();
-                    }
-                }
-                finally
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
+            await MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync(reason)
+                .ConfigureAwait(false);
 
             _flowControlBlock.Set();
         }
@@ -613,8 +581,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            await HandleAck(ack._deliveryTag, ack._multiple, cancellationToken)
-                .ConfigureAwait(false);
+            HandleAck(ack._deliveryTag, ack._multiple);
 
             return true;
         }
@@ -631,8 +598,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            await HandleNack(nack._deliveryTag, nack._multiple, false, cancellationToken)
-                .ConfigureAwait(false);
+            HandleNack(nack._deliveryTag, nack._multiple, false);
 
             return true;
         }
@@ -651,19 +617,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            if (_publisherConfirmationsEnabled)
-            {
-                ulong publishSequenceNumber = 0;
-                IReadOnlyBasicProperties props = e.BasicProperties;
-                object? maybeSeqNum = props.Headers?[Constants.PublishSequenceNumberHeader];
-                if (maybeSeqNum != null)
-                {
-                    publishSequenceNumber = BinaryPrimitives.ReadUInt64BigEndian((byte[])maybeSeqNum);
-                }
-
-                await HandleNack(publishSequenceNumber, multiple: false, isReturn: true, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            HandleReturn(e);
 
             return true;
         }
@@ -852,26 +806,6 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        public async ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default)
-        {
-            if (_publisherConfirmationsEnabled)
-            {
-                await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-                try
-                {
-                    return _nextPublishSeqNo;
-                }
-                finally
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
-            else
-            {
-                return _nextPublishSeqNo;
-            }
-        }
-
         public virtual ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
             CancellationToken cancellationToken)
         {
@@ -1006,168 +940,6 @@ namespace RabbitMQ.Client.Impl
                     k.Dispose();
                 }
                 _rpcSemaphore.Release();
-            }
-        }
-
-        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
-            CancellationToken cancellationToken = default)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            TaskCompletionSource<bool>? publisherConfirmationTcs = null;
-            ulong publishSequenceNumber = 0;
-            try
-            {
-                if (_publisherConfirmationsEnabled)
-                {
-                    await _confirmSemaphore.WaitAsync(cancellationToken)
-                        .ConfigureAwait(false);
-
-                    publishSequenceNumber = _nextPublishSeqNo;
-
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                        _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
-                    }
-
-                    _nextPublishSeqNo++;
-                }
-
-                await EnforceFlowControlAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length)
-                    : default;
-
-                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
-                if (props is null)
-                {
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (_publisherConfirmationsEnabled)
-                {
-                    _nextPublishSeqNo--;
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        _confirmsTaskCompletionSources.TryRemove(publishSequenceNumber, out _);
-                    }
-                }
-
-                if (publisherConfirmationTcs is not null)
-                {
-                    publisherConfirmationTcs.SetException(ex);
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            finally
-            {
-                if (_publisherConfirmationsEnabled)
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
-
-            if (publisherConfirmationTcs is not null)
-            {
-                await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
-            CancellationToken cancellationToken = default)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            TaskCompletionSource<bool>? publisherConfirmationTcs = null;
-            ulong publishSequenceNumber = 0;
-            try
-            {
-                if (_publisherConfirmationsEnabled)
-                {
-                    await _confirmSemaphore.WaitAsync(cancellationToken)
-                        .ConfigureAwait(false);
-
-                    publishSequenceNumber = _nextPublishSeqNo;
-
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                        _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
-                    }
-
-                    _nextPublishSeqNo++;
-                }
-
-                await EnforceFlowControlAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.Send(routingKey.Value, exchange.Value, body.Length)
-                    : default;
-
-                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
-                if (props is null)
-                {
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (_publisherConfirmationsEnabled)
-                {
-                    _nextPublishSeqNo--;
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        _confirmsTaskCompletionSources.TryRemove(publishSequenceNumber, out _);
-                    }
-                }
-
-                if (publisherConfirmationTcs is not null)
-                {
-                    publisherConfirmationTcs.SetException(ex);
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            finally
-            {
-                if (_publisherConfirmationsEnabled)
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
-
-            if (publisherConfirmationTcs is not null)
-            {
-                await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
             }
         }
 
@@ -1724,172 +1496,6 @@ namespace RabbitMQ.Client.Impl
                     k.Dispose();
                 }
                 _rpcSemaphore.Release();
-            }
-        }
-
-        // NOTE: _rpcSemaphore is held
-        private async Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnablefd = false,
-            CancellationToken cancellationToken = default)
-        {
-            _publisherConfirmationsEnabled = true;
-            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnablefd;
-
-            bool enqueued = false;
-            var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            try
-            {
-                if (_nextPublishSeqNo == 0UL)
-                {
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        _confirmsTaskCompletionSources.Clear();
-                    }
-                    _nextPublishSeqNo = 1;
-                }
-
-                enqueued = Enqueue(k);
-
-                var method = new ConfirmSelect(false);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
-
-                bool result = await k;
-                Debug.Assert(result);
-
-                return;
-            }
-            finally
-            {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-            }
-        }
-
-        private Task HandleAck(ulong deliveryTag, bool multiple, CancellationToken cancellationToken = default)
-        {
-            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled && deliveryTag > 0 && !_confirmsTaskCompletionSources.IsEmpty)
-            {
-                if (multiple)
-                {
-                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
-                    {
-                        if (pair.Key <= deliveryTag)
-                        {
-                            pair.Value.SetResult(true);
-                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
-                        }
-                    }
-                }
-                else
-                {
-                    if (_confirmsTaskCompletionSources.TryRemove(deliveryTag, out TaskCompletionSource<bool>? tcs))
-                    {
-                        tcs.SetResult(true);
-                    }
-                }
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private Task HandleNack(ulong deliveryTag, bool multiple, bool isReturn,
-            CancellationToken cancellationToken = default)
-        {
-            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled && deliveryTag > 0 && !_confirmsTaskCompletionSources.IsEmpty)
-            {
-                if (multiple)
-                {
-                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
-                    {
-                        if (pair.Key <= deliveryTag)
-                        {
-                            pair.Value.SetException(new PublishException(pair.Key, isReturn));
-                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
-                        }
-                    }
-                }
-                else
-                {
-                    if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
-                    {
-                        tcs.SetException(new PublishException(deliveryTag, isReturn));
-                    }
-                }
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private BasicProperties? PopulateBasicPropertiesHeaders<TProperties>(TProperties basicProperties,
-            Activity? sendActivity, ulong publishSequenceNumber)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            /*
-             * Note: there is nothing to do in this method if *both* of these
-             * conditions are true:
-             *
-             * sendActivity is null - there is no activity to add as a header
-             * publisher confirmations are NOT enabled
-             */
-            if (sendActivity is null && !_publisherConfirmationsEnabled)
-            {
-                return null;
-            }
-
-            bool newHeaders = false;
-            IDictionary<string, object?>? headers = basicProperties.Headers;
-            if (headers is null)
-            {
-                headers = new Dictionary<string, object?>();
-                newHeaders = true;
-            }
-            MaybeAddActivityToHeaders(headers, basicProperties.CorrelationId, sendActivity);
-            MaybeAddPublishSequenceNumberToHeaders(headers);
-
-            switch (basicProperties)
-            {
-                case BasicProperties writableProperties:
-                    if (newHeaders)
-                    {
-                        writableProperties.Headers = headers;
-                    }
-                    return null;
-                case EmptyBasicProperty:
-                    return new BasicProperties { Headers = headers };
-                default:
-                    return new BasicProperties(basicProperties) { Headers = headers };
-            }
-
-            void MaybeAddActivityToHeaders(IDictionary<string, object?> headers,
-                string? correlationId, Activity? sendActivity)
-            {
-                if (sendActivity is not null)
-                {
-                    // This activity is marked as recorded, so let's propagate the trace and span ids.
-                    if (sendActivity.IsAllDataRequested)
-                    {
-                        if (!string.IsNullOrEmpty(correlationId))
-                        {
-                            sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, correlationId);
-                        }
-                    }
-
-                    // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-                    RabbitMQActivitySource.ContextInjector(sendActivity, headers);
-                }
-            }
-
-            void MaybeAddPublishSequenceNumberToHeaders(IDictionary<string, object?> headers)
-            {
-                if (_publisherConfirmationsEnabled)
-                {
-                    byte[] publishSequenceNumberBytes = new byte[8];
-                    NetworkOrderSerializer.WriteUInt64(ref publishSequenceNumberBytes.GetStart(), publishSequenceNumber);
-                    headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
-                }
             }
         }
 
