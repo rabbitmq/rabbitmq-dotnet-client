@@ -29,10 +29,15 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
@@ -90,6 +95,75 @@ namespace RabbitMQ.Client.Impl
                         k.Dispose();
                     }
                 }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void HandleAck(ulong deliveryTag, bool multiple)
+        {
+            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled && deliveryTag > 0 && !_confirmsTaskCompletionSources.IsEmpty)
+            {
+                if (multiple)
+                {
+                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
+                    {
+                        if (pair.Key <= deliveryTag)
+                        {
+                            pair.Value.SetResult(true);
+                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
+                        }
+                    }
+                }
+                else
+                {
+                    if (_confirmsTaskCompletionSources.TryRemove(deliveryTag, out TaskCompletionSource<bool>? tcs))
+                    {
+                        tcs.SetResult(true);
+                    }
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void HandleNack(ulong deliveryTag, bool multiple, bool isReturn)
+        {
+            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled && deliveryTag > 0 && !_confirmsTaskCompletionSources.IsEmpty)
+            {
+                if (multiple)
+                {
+                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
+                    {
+                        if (pair.Key <= deliveryTag)
+                        {
+                            pair.Value.SetException(new PublishException(pair.Key, isReturn));
+                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
+                        }
+                    }
+                }
+                else
+                {
+                    if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
+                    {
+                        tcs.SetException(new PublishException(deliveryTag, isReturn));
+                    }
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void HandleReturn(BasicReturnEventArgs basicReturnEvent)
+        {
+            if (_publisherConfirmationsEnabled)
+            {
+                ulong publishSequenceNumber = 0;
+                IReadOnlyBasicProperties props = basicReturnEvent.BasicProperties;
+                object? maybeSeqNum = props.Headers?[Constants.PublishSequenceNumberHeader];
+                if (maybeSeqNum != null)
+                {
+                    publishSequenceNumber = BinaryPrimitives.ReadUInt64BigEndian((byte[])maybeSeqNum);
+                }
+
+                HandleNack(publishSequenceNumber, multiple: false, isReturn: true);
             }
         }
     }

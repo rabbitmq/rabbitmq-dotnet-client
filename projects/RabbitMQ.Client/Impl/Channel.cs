@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -602,8 +601,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            await HandleAck(ack._deliveryTag, ack._multiple, cancellationToken)
-                .ConfigureAwait(false);
+            HandleAck(ack._deliveryTag, ack._multiple);
 
             return true;
         }
@@ -620,8 +618,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            await HandleNack(nack._deliveryTag, nack._multiple, false, cancellationToken)
-                .ConfigureAwait(false);
+            HandleNack(nack._deliveryTag, nack._multiple, false);
 
             return true;
         }
@@ -640,19 +637,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
             }
 
-            if (_publisherConfirmationsEnabled)
-            {
-                ulong publishSequenceNumber = 0;
-                IReadOnlyBasicProperties props = e.BasicProperties;
-                object? maybeSeqNum = props.Headers?[Constants.PublishSequenceNumberHeader];
-                if (maybeSeqNum != null)
-                {
-                    publishSequenceNumber = BinaryPrimitives.ReadUInt64BigEndian((byte[])maybeSeqNum);
-                }
-
-                await HandleNack(publishSequenceNumber, multiple: false, isReturn: true, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            HandleReturn(e);
 
             return true;
         }
@@ -1714,61 +1699,6 @@ namespace RabbitMQ.Client.Impl
                 }
                 _rpcSemaphore.Release();
             }
-        }
-
-        private Task HandleAck(ulong deliveryTag, bool multiple, CancellationToken cancellationToken = default)
-        {
-            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled && deliveryTag > 0 && !_confirmsTaskCompletionSources.IsEmpty)
-            {
-                if (multiple)
-                {
-                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
-                    {
-                        if (pair.Key <= deliveryTag)
-                        {
-                            pair.Value.SetResult(true);
-                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
-                        }
-                    }
-                }
-                else
-                {
-                    if (_confirmsTaskCompletionSources.TryRemove(deliveryTag, out TaskCompletionSource<bool>? tcs))
-                    {
-                        tcs.SetResult(true);
-                    }
-                }
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private Task HandleNack(ulong deliveryTag, bool multiple, bool isReturn,
-            CancellationToken cancellationToken = default)
-        {
-            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled && deliveryTag > 0 && !_confirmsTaskCompletionSources.IsEmpty)
-            {
-                if (multiple)
-                {
-                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
-                    {
-                        if (pair.Key <= deliveryTag)
-                        {
-                            pair.Value.SetException(new PublishException(pair.Key, isReturn));
-                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
-                        }
-                    }
-                }
-                else
-                {
-                    if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
-                    {
-                        tcs.SetException(new PublishException(deliveryTag, isReturn));
-                    }
-                }
-            }
-
-            return Task.CompletedTask;
         }
 
         private BasicProperties? PopulateBasicPropertiesHeaders<TProperties>(TProperties basicProperties,
