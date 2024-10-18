@@ -42,6 +42,8 @@ namespace RabbitMQ.Client.Impl
 {
     internal partial class Channel : IChannel, IRecoverable
     {
+        private readonly AsyncManualResetEvent _flowControlBlock = new(true);
+
         public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)

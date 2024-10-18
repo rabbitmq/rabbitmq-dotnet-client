@@ -47,9 +47,11 @@ namespace RabbitMQ.Client.Impl
     {
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
+        private ushort? _maxOutstandingPublisherConfirmations = null;
         private ulong _nextPublishSeqNo = 0;
         private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
+        private readonly AsyncManualResetEvent _maxOutstandingPublisherConfirmsReached = new(true);
 
         private class PublisherConfirmationInfo
         {
@@ -115,10 +117,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void ConfigurePublisherConfirmations(bool publisherConfirmationsEnabled, bool publisherConfirmationTrackingEnabled)
+        private void ConfigurePublisherConfirmations(bool publisherConfirmationsEnabled,
+            bool publisherConfirmationTrackingEnabled,
+            ushort? maxOutstandingPublisherConfirmations)
         {
             _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
             _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+            _maxOutstandingPublisherConfirmations = maxOutstandingPublisherConfirmations;
         }
 
         private async Task MaybeConfirmSelect(CancellationToken cancellationToken)

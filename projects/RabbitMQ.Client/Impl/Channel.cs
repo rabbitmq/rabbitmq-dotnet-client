@@ -55,7 +55,6 @@ namespace RabbitMQ.Client.Impl
         // AMQP only allows one RPC operation to be active at a time.
         protected readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
-        private readonly AsyncManualResetEvent _flowControlBlock = new AsyncManualResetEvent(true);
 
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
@@ -361,11 +360,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal async Task<IChannel> OpenAsync(bool publisherConfirmationsEnabled = false,
-            bool publisherConfirmationTrackingEnabled = false,
-            CancellationToken cancellationToken = default)
+        internal async Task<IChannel> OpenAsync(bool publisherConfirmationsEnabled,
+            bool publisherConfirmationTrackingEnabled,
+            ushort? maxOutstandingPublisherConfirmations,
+            CancellationToken cancellationToken)
         {
-            ConfigurePublisherConfirmations(publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled);
+            ConfigurePublisherConfirmations(publisherConfirmationsEnabled,
+                publisherConfirmationTrackingEnabled,
+                maxOutstandingPublisherConfirmations);
 
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);

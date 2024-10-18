@@ -273,7 +273,11 @@ namespace RabbitMQ.Client.Framing
 
             // TODO channel CreateChannelAsync() to combine ctor and OpenAsync
             var channel = new Channel(_config, session, options.ConsumerDispatchConcurrency);
-            IChannel ch = await channel.OpenAsync(options.PublisherConfirmationsEnabled, options.PublisherConfirmationTrackingEnabled, cancellationToken)
+            IChannel ch = await channel.OpenAsync(
+                options.PublisherConfirmationsEnabled,
+                options.PublisherConfirmationTrackingEnabled,
+                options.MaxOutstandingPublisherConfirmations,
+                cancellationToken)
                 .ConfigureAwait(false);
             return ch;
         }

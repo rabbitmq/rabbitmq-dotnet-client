@@ -51,6 +51,7 @@ namespace RabbitMQ.Client.Impl
         private ushort _prefetchCountGlobal;
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
+        private ushort? _maxOutstandingPublisherConfirmations = null;
         private bool _usesTransactions;
         private ushort _consumerDispatchConcurrency;
 
@@ -71,14 +72,20 @@ namespace RabbitMQ.Client.Impl
             set => InnerChannel.ContinuationTimeout = value;
         }
 
-        public AutorecoveringChannel(AutorecoveringConnection conn, RecoveryAwareChannel innerChannel,
-            ushort consumerDispatchConcurrency, bool publisherConfirmationsEnabled, bool publisherConfirmationTrackingEnabled)
+        // TODO just pass create channel options
+        public AutorecoveringChannel(AutorecoveringConnection conn,
+            RecoveryAwareChannel innerChannel,
+            ushort consumerDispatchConcurrency,
+            bool publisherConfirmationsEnabled,
+            bool publisherConfirmationTrackingEnabled,
+            ushort? maxOutstandingPublisherConfirmations)
         {
             _connection = conn;
             _innerChannel = innerChannel;
             _consumerDispatchConcurrency = consumerDispatchConcurrency;
             _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
             _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+            _maxOutstandingPublisherConfirmations = maxOutstandingPublisherConfirmations;
         }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -164,8 +171,11 @@ namespace RabbitMQ.Client.Impl
             _connection = conn;
 
             RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(
-                _publisherConfirmationsEnabled, _publisherConfirmationTrackingEnabled,
-                _consumerDispatchConcurrency, cancellationToken)
+                _publisherConfirmationsEnabled,
+                _publisherConfirmationTrackingEnabled,
+                _maxOutstandingPublisherConfirmations,
+                _consumerDispatchConcurrency,
+                cancellationToken)
                 .ConfigureAwait(false);
             newChannel.TakeOver(_innerChannel);
 
