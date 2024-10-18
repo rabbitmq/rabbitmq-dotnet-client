@@ -807,26 +807,6 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        public async ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default)
-        {
-            if (_publisherConfirmationsEnabled)
-            {
-                await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-                try
-                {
-                    return _nextPublishSeqNo;
-                }
-                finally
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
-            else
-            {
-                return _nextPublishSeqNo;
-            }
-        }
-
         public virtual ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
             CancellationToken cancellationToken)
         {
@@ -969,25 +949,12 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            TaskCompletionSource<bool>? publisherConfirmationTcs = null;
-            ulong publishSequenceNumber = 0;
+            PublisherConfirmationInfo? publisherConfirmationInfo = null;
             try
             {
-                if (_publisherConfirmationsEnabled)
-                {
-                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                publisherConfirmationInfo =
+                    await MaybeStartPublisherConfirmationTracking(cancellationToken)
                         .ConfigureAwait(false);
-
-                    publishSequenceNumber = _nextPublishSeqNo;
-
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        publisherConfirmationTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                        _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
-                    }
-
-                    _nextPublishSeqNo++;
-                }
 
                 await EnforceFlowControlAsync(cancellationToken)
                     .ConfigureAwait(false);
@@ -997,6 +964,12 @@ namespace RabbitMQ.Client.Impl
                 using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
                     ? RabbitMQActivitySource.Send(routingKey, exchange, body.Length)
                     : default;
+
+                ulong publishSequenceNumber = 0;
+                if (publisherConfirmationInfo is not null)
+                {
+                    publishSequenceNumber = publisherConfirmationInfo.PublishSequenceNumber;
+                }
 
                 BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
                 if (props is null)
@@ -1012,35 +985,16 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception ex)
             {
-                if (_publisherConfirmationsEnabled)
-                {
-                    _nextPublishSeqNo--;
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        _confirmsTaskCompletionSources.TryRemove(publishSequenceNumber, out _);
-                    }
-                }
-
-                if (publisherConfirmationTcs is not null)
-                {
-                    publisherConfirmationTcs.SetException(ex);
-                }
-                else
+                bool exceptionWasHandled =
+                    MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
+                if (!exceptionWasHandled)
                 {
                     throw;
                 }
             }
             finally
             {
-                if (_publisherConfirmationsEnabled)
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
-
-            if (publisherConfirmationTcs is not null)
-            {
-                await publisherConfirmationTcs.Task.WaitAsync(cancellationToken)
+                await MaybeEndPublisherConfirmationTracking(publisherConfirmationInfo, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
