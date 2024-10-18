@@ -482,31 +482,12 @@ namespace RabbitMQ.Client.Impl
         private async Task OnChannelShutdownAsync(ShutdownEventArgs reason)
         {
             _continuationQueue.HandleChannelShutdown(reason);
+
             await _channelShutdownAsyncWrapper.InvokeAsync(this, reason)
                 .ConfigureAwait(false);
 
-            if (_publisherConfirmationsEnabled)
-            {
-                await _confirmSemaphore.WaitAsync(reason.CancellationToken)
-                    .ConfigureAwait(false);
-                try
-                {
-                    if (!_confirmsTaskCompletionSources.IsEmpty)
-                    {
-                        var exception = new AlreadyClosedException(reason);
-                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources.Values)
-                        {
-                            confirmsTaskCompletionSource.TrySetException(exception);
-                        }
-
-                        _confirmsTaskCompletionSources.Clear();
-                    }
-                }
-                finally
-                {
-                    _confirmSemaphore.Release();
-                }
-            }
+            await MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync(reason)
+                .ConfigureAwait(false);
 
             _flowControlBlock.Set();
         }

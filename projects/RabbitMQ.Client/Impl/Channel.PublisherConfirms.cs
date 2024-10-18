@@ -166,5 +166,31 @@ namespace RabbitMQ.Client.Impl
                 HandleNack(publishSequenceNumber, multiple: false, isReturn: true);
             }
         }
+
+        private async Task MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync(ShutdownEventArgs reason)
+        {
+            if (_publisherConfirmationsEnabled)
+            {
+                await _confirmSemaphore.WaitAsync(reason.CancellationToken)
+                    .ConfigureAwait(false);
+                try
+                {
+                    if (!_confirmsTaskCompletionSources.IsEmpty)
+                    {
+                        var exception = new AlreadyClosedException(reason);
+                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources.Values)
+                        {
+                            confirmsTaskCompletionSource.TrySetException(exception);
+                        }
+
+                        _confirmsTaskCompletionSources.Clear();
+                    }
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
+                }
+            }
+        }
     }
 }
