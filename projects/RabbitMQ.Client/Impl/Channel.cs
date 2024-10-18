@@ -1716,47 +1716,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        // NOTE: _rpcSemaphore is held
-        private async Task ConfirmSelectAsync(bool publisherConfirmationTrackingEnablefd = false,
-            CancellationToken cancellationToken = default)
-        {
-            _publisherConfirmationsEnabled = true;
-            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnablefd;
-
-            bool enqueued = false;
-            var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            try
-            {
-                if (_nextPublishSeqNo == 0UL)
-                {
-                    if (_publisherConfirmationTrackingEnabled)
-                    {
-                        _confirmsTaskCompletionSources.Clear();
-                    }
-                    _nextPublishSeqNo = 1;
-                }
-
-                enqueued = Enqueue(k);
-
-                var method = new ConfirmSelect(false);
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
-
-                bool result = await k;
-                Debug.Assert(result);
-
-                return;
-            }
-            finally
-            {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-            }
-        }
-
         private Task HandleAck(ulong deliveryTag, bool multiple, CancellationToken cancellationToken = default)
         {
             if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled && deliveryTag > 0 && !_confirmsTaskCompletionSources.IsEmpty)

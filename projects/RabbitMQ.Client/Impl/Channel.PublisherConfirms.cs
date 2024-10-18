@@ -30,8 +30,10 @@
 //---------------------------------------------------------------------------
 
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -55,8 +57,39 @@ namespace RabbitMQ.Client.Impl
         {
             if (_publisherConfirmationsEnabled)
             {
-                await ConfirmSelectAsync(_publisherConfirmationTrackingEnabled, cancellationToken)
-                    .ConfigureAwait(false);
+                // NOTE: _rpcSemaphore is held
+                bool enqueued = false;
+                var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+
+                try
+                {
+                    if (_nextPublishSeqNo == 0UL)
+                    {
+                        if (_publisherConfirmationTrackingEnabled)
+                        {
+                            _confirmsTaskCompletionSources.Clear();
+                        }
+                        _nextPublishSeqNo = 1;
+                    }
+
+                    enqueued = Enqueue(k);
+
+                    var method = new ConfirmSelect(false);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+
+                    bool result = await k;
+                    Debug.Assert(result);
+
+                    return;
+                }
+                finally
+                {
+                    if (false == enqueued)
+                    {
+                        k.Dispose();
+                    }
+                }
             }
         }
     }
