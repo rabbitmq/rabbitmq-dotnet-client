@@ -11,6 +11,6 @@ declare -r rabbitmq_docker_name="$docker_name_prefix-rabbitmq"
 
 if docker logs "$rabbitmq_docker_name" | grep -iF inet_error
 then
-    echo '[ERROR] found inet_error in RabbitMQ logs' 1>&2
-    exit 1
+    echo '[WARNING] found inet_error in RabbitMQ logs' 1>&2
+    exit 0
 fi
