@@ -31,34 +31,35 @@
 
 using System;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Impl;
 using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
     internal abstract class ConsumerDispatcherChannelBase : ConsumerDispatcherBase, IConsumerDispatcher
     {
-        protected readonly ChannelBase _channel;
-        protected readonly ChannelReader<WorkStruct> _reader;
-        private readonly ChannelWriter<WorkStruct> _writer;
+        protected readonly Impl.Channel _channel;
+        protected readonly System.Threading.Channels.ChannelReader<WorkStruct> _reader;
+        private readonly System.Threading.Channels.ChannelWriter<WorkStruct> _writer;
         private readonly Task _worker;
         private readonly ushort _concurrency;
         private bool _quiesce = false;
         private bool _disposed;
 
-        internal ConsumerDispatcherChannelBase(ChannelBase channel, ushort concurrency)
+        internal ConsumerDispatcherChannelBase(Impl.Channel channel, ushort concurrency)
         {
             _channel = channel;
             _concurrency = concurrency;
-            var workChannel = Channel.CreateUnbounded<WorkStruct>(new UnboundedChannelOptions
+
+            var channelOpts = new System.Threading.Channels.UnboundedChannelOptions
             {
                 SingleReader = _concurrency == 1,
                 SingleWriter = false,
                 AllowSynchronousContinuations = false
-            });
+            };
+
+            var workChannel = System.Threading.Channels.Channel.CreateUnbounded<WorkStruct>(channelOpts);
             _reader = workChannel.Reader;
             _writer = workChannel.Writer;
 
