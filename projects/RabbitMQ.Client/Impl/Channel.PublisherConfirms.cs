@@ -44,5 +44,20 @@ namespace RabbitMQ.Client.Impl
         private ulong _nextPublishSeqNo = 0;
         private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
+
+        private void ConfigurePublisherConfirmations(bool publisherConfirmationsEnabled, bool publisherConfirmationTrackingEnabled)
+        {
+            _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
+            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+        }
+
+        private async Task MaybeConfirmSelect(CancellationToken cancellationToken)
+        {
+            if (_publisherConfirmationsEnabled)
+            {
+                await ConfirmSelectAsync(_publisherConfirmationTrackingEnabled, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
     }
 }

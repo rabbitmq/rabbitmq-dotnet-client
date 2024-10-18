@@ -367,8 +367,7 @@ namespace RabbitMQ.Client.Impl
             bool publisherConfirmationTrackingEnabled = false,
             CancellationToken cancellationToken = default)
         {
-            _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
-            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+            ConfigurePublisherConfirmations(publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled);
 
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
@@ -386,11 +385,8 @@ namespace RabbitMQ.Client.Impl
                 bool result = await k;
                 Debug.Assert(result);
 
-                if (_publisherConfirmationsEnabled)
-                {
-                    await ConfirmSelectAsync(publisherConfirmationTrackingEnabled, cancellationToken)
-                        .ConfigureAwait(false);
-                }
+                await MaybeConfirmSelect(cancellationToken)
+                    .ConfigureAwait(false);
             }
             finally
             {
