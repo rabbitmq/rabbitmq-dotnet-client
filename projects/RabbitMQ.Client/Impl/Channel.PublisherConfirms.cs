@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,13 +39,12 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Util;
 
 namespace RabbitMQ.Client.Impl
 {
     internal partial class Channel : IChannel, IRecoverable
     {
-        // private readonly AsyncManualResetEvent _flowControlBlock = new AsyncManualResetEvent(true);
-
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
         private ulong _nextPublishSeqNo = 0;
@@ -230,9 +228,10 @@ namespace RabbitMQ.Client.Impl
                 ulong publishSequenceNumber = 0;
                 IReadOnlyBasicProperties props = basicReturnEvent.BasicProperties;
                 object? maybeSeqNum = props.Headers?[Constants.PublishSequenceNumberHeader];
-                if (maybeSeqNum != null)
+                if (maybeSeqNum != null &&
+                    maybeSeqNum is byte[] seqNumBytes)
                 {
-                    publishSequenceNumber = BinaryPrimitives.ReadUInt64BigEndian((byte[])maybeSeqNum);
+                    publishSequenceNumber = NetworkOrderDeserializer.ReadUInt64(seqNumBytes);
                 }
 
                 HandleNack(publishSequenceNumber, multiple: false, isReturn: true);

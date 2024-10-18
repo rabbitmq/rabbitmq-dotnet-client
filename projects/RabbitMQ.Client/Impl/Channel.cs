@@ -42,7 +42,6 @@ using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -1497,76 +1496,6 @@ namespace RabbitMQ.Client.Impl
                     k.Dispose();
                 }
                 _rpcSemaphore.Release();
-            }
-        }
-
-        private BasicProperties? PopulateBasicPropertiesHeaders<TProperties>(TProperties basicProperties,
-            Activity? sendActivity, ulong publishSequenceNumber)
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            /*
-             * Note: there is nothing to do in this method if *both* of these
-             * conditions are true:
-             *
-             * sendActivity is null - there is no activity to add as a header
-             * publisher confirmations are NOT enabled
-             */
-            if (sendActivity is null && !_publisherConfirmationsEnabled)
-            {
-                return null;
-            }
-
-            bool newHeaders = false;
-            IDictionary<string, object?>? headers = basicProperties.Headers;
-            if (headers is null)
-            {
-                headers = new Dictionary<string, object?>();
-                newHeaders = true;
-            }
-            MaybeAddActivityToHeaders(headers, basicProperties.CorrelationId, sendActivity);
-            MaybeAddPublishSequenceNumberToHeaders(headers);
-
-            switch (basicProperties)
-            {
-                case BasicProperties writableProperties:
-                    if (newHeaders)
-                    {
-                        writableProperties.Headers = headers;
-                    }
-                    return null;
-                case EmptyBasicProperty:
-                    return new BasicProperties { Headers = headers };
-                default:
-                    return new BasicProperties(basicProperties) { Headers = headers };
-            }
-
-            void MaybeAddActivityToHeaders(IDictionary<string, object?> headers,
-                string? correlationId, Activity? sendActivity)
-            {
-                if (sendActivity is not null)
-                {
-                    // This activity is marked as recorded, so let's propagate the trace and span ids.
-                    if (sendActivity.IsAllDataRequested)
-                    {
-                        if (!string.IsNullOrEmpty(correlationId))
-                        {
-                            sendActivity.SetTag(RabbitMQActivitySource.MessageConversationId, correlationId);
-                        }
-                    }
-
-                    // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-                    RabbitMQActivitySource.ContextInjector(sendActivity, headers);
-                }
-            }
-
-            void MaybeAddPublishSequenceNumberToHeaders(IDictionary<string, object?> headers)
-            {
-                if (_publisherConfirmationsEnabled)
-                {
-                    byte[] publishSequenceNumberBytes = new byte[8];
-                    NetworkOrderSerializer.WriteUInt64(ref publishSequenceNumberBytes.GetStart(), publishSequenceNumber);
-                    headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
-                }
             }
         }
 
