@@ -16,7 +16,8 @@ namespace RabbitMQ.Client
         public bool PublisherConfirmationTrackingEnabled { get; set; } = false;
 
         /// <summary>
-        /// The number of allowed outstanding publisher confirmations before publishing is blocked.
+        /// If publisher confirmation tracking is enabled, this represents the number of allowed
+        /// outstanding publisher confirmations before publishing is blocked.
         ///
         /// Defaults to <c>128</c>
         ///

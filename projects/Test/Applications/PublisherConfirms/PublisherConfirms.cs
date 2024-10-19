@@ -38,8 +38,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 
+const ushort MAX_OUTSTANDING_CONFIRMS = 256;
+
 const int MESSAGE_COUNT = 50_000;
 bool debug = false;
+
+var channelOpts = new CreateChannelOptions
+{
+    PublisherConfirmationsEnabled = true,
+    PublisherConfirmationTrackingEnabled = true,
+    MaxOutstandingPublisherConfirmations = MAX_OUTSTANDING_CONFIRMS
+};
 
 #pragma warning disable CS8321 // Local function is declared but never used
 
@@ -53,12 +62,12 @@ static Task<IConnection> CreateConnectionAsync()
     return factory.CreateConnectionAsync();
 }
 
-static async Task PublishMessagesIndividuallyAsync()
+async Task PublishMessagesIndividuallyAsync()
 {
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms per-message");
 
     await using IConnection connection = await CreateConnectionAsync();
-    await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+    await using IChannel channel = await connection.CreateChannelAsync(channelOpts);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
@@ -85,18 +94,18 @@ static async Task PublishMessagesIndividuallyAsync()
     Console.WriteLine($"{DateTime.Now} [INFO] published {MESSAGE_COUNT:N0} messages individually in {sw.ElapsedMilliseconds:N0} ms");
 }
 
-static async Task PublishMessagesInBatchAsync()
+async Task PublishMessagesInBatchAsync()
 {
     Console.WriteLine($"{DateTime.Now} [INFO] publishing {MESSAGE_COUNT:N0} messages and handling confirms in batches");
 
     await using IConnection connection = await CreateConnectionAsync();
-    await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+    await using IChannel channel = await connection.CreateChannelAsync(channelOpts);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
 
-    int batchSize = 1000;
+    int batchSize = MAX_OUTSTANDING_CONFIRMS;
     int outstandingMessageCount = 0;
 
     var sw = new Stopwatch();
@@ -154,12 +163,8 @@ async Task HandlePublishConfirmsAsynchronously()
 
     await using IConnection connection = await CreateConnectionAsync();
 
-    var channelOptions = new CreateChannelOptions
-    {
-        PublisherConfirmationsEnabled = true,
-        PublisherConfirmationTrackingEnabled = false
-    };
-    await using IChannel channel = await connection.CreateChannelAsync(channelOptions);
+    channelOpts.PublisherConfirmationTrackingEnabled = false;
+    await using IChannel channel = await connection.CreateChannelAsync(channelOpts);
 
     // declare a server-named queue
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
