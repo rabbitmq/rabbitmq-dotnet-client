@@ -48,10 +48,10 @@ namespace RabbitMQ.Client.Impl
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
         private ushort? _maxOutstandingPublisherConfirmations = null;
+        private SemaphoreSlim? _maxOutstandingConfirmationsSemaphore;
         private ulong _nextPublishSeqNo = 0;
         private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
-        private readonly AsyncManualResetEvent _maxOutstandingPublisherConfirmsReached = new(true);
 
         private class PublisherConfirmationInfo
         {
@@ -124,6 +124,13 @@ namespace RabbitMQ.Client.Impl
             _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
             _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
             _maxOutstandingPublisherConfirmations = maxOutstandingPublisherConfirmations;
+
+            if (_maxOutstandingPublisherConfirmations is not null)
+            {
+                _maxOutstandingConfirmationsSemaphore = new SemaphoreSlim(
+                    (int)_maxOutstandingPublisherConfirmations,
+                    (int)_maxOutstandingPublisherConfirmations);
+            }
         }
 
         private async Task MaybeConfirmSelect(CancellationToken cancellationToken)
@@ -141,7 +148,6 @@ namespace RabbitMQ.Client.Impl
                         if (_publisherConfirmationTrackingEnabled)
                         {
                             _confirmsTaskCompletionSources.Clear();
-                            MaybeUnblockPublishers();
                         }
                         _nextPublishSeqNo = 1;
                     }
@@ -187,7 +193,6 @@ namespace RabbitMQ.Client.Impl
                         {
                             pair.Value.SetResult(true);
                             _confirmsTaskCompletionSources.Remove(pair.Key, out _);
-                            MaybeUnblockPublishers();
                         }
                     }
                 }
@@ -195,7 +200,6 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_confirmsTaskCompletionSources.TryRemove(deliveryTag, out TaskCompletionSource<bool>? tcs))
                     {
-                        MaybeUnblockPublishers();
                         tcs.SetResult(true);
                     }
                 }
@@ -215,7 +219,6 @@ namespace RabbitMQ.Client.Impl
                         {
                             pair.Value.SetException(new PublishException(pair.Key, isReturn));
                             _confirmsTaskCompletionSources.Remove(pair.Key, out _);
-                            MaybeUnblockPublishers();
                         }
                     }
                 }
@@ -223,7 +226,6 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
                     {
-                        MaybeUnblockPublishers();
                         tcs.SetException(new PublishException(deliveryTag, isReturn));
                     }
                 }
@@ -266,7 +268,6 @@ namespace RabbitMQ.Client.Impl
                         }
 
                         _confirmsTaskCompletionSources.Clear();
-                        MaybeUnblockPublishers();
                     }
                 }
                 finally
@@ -291,7 +292,12 @@ namespace RabbitMQ.Client.Impl
                 {
                     publisherConfirmationTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
-                    MaybeBlockPublishers();
+                }
+
+                if (_maxOutstandingConfirmationsSemaphore is not null)
+                {
+                    await _maxOutstandingConfirmationsSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
 
                 _nextPublishSeqNo++;
@@ -318,7 +324,6 @@ namespace RabbitMQ.Client.Impl
                 if (_publisherConfirmationTrackingEnabled)
                 {
                     _confirmsTaskCompletionSources.TryRemove(publisherConfirmationInfo.PublishSequenceNumber, out _);
-                    MaybeUnblockPublishers();
                 }
 
                 exceptionWasHandled = publisherConfirmationInfo.MaybeHandleException(ex);
@@ -340,49 +345,10 @@ namespace RabbitMQ.Client.Impl
                     await publisherConfirmationInfo.MaybeWaitForConfirmationAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
-            }
-        }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ValueTask MaybeEnforceOutstandingPublisherConfirmationsAsync(CancellationToken cancellationToken)
-        {
-            if (_publisherConfirmationTrackingEnabled)
-            {
-                if (_maxOutstandingPublisherConfirmsReached.IsSet)
+                if (_maxOutstandingConfirmationsSemaphore is not null)
                 {
-                    return default;
-                }
-                else
-                {
-                    return _maxOutstandingPublisherConfirmsReached.WaitAsync(cancellationToken);
-                }
-            }
-
-            return default;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MaybeBlockPublishers()
-        {
-            if (_publisherConfirmationTrackingEnabled)
-            {
-                if (_maxOutstandingPublisherConfirmations is not null
-                    && _confirmsTaskCompletionSources.Count >= _maxOutstandingPublisherConfirmations)
-                {
-                    _maxOutstandingPublisherConfirmsReached.Reset();
-                }
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MaybeUnblockPublishers()
-        {
-            if (_publisherConfirmationTrackingEnabled)
-            {
-                if (_maxOutstandingPublisherConfirmations is not null
-                    && _confirmsTaskCompletionSources.Count < _maxOutstandingPublisherConfirmations)
-                {
-                    _maxOutstandingPublisherConfirmsReached.Set();
+                    _maxOutstandingConfirmationsSemaphore.Release();
                 }
             }
         }

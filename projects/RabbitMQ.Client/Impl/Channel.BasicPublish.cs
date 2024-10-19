@@ -59,9 +59,6 @@ namespace RabbitMQ.Client.Impl
                 await MaybeEnforceFlowControlAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                await MaybeEnforceOutstandingPublisherConfirmationsAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
 
                 using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
@@ -115,9 +112,6 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
 
                 await MaybeEnforceFlowControlAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                await MaybeEnforceOutstandingPublisherConfirmationsAsync(cancellationToken)
                     .ConfigureAwait(false);
 
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);

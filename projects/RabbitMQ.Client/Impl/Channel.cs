@@ -531,7 +531,8 @@ namespace RabbitMQ.Client.Impl
 
                 ConsumerDispatcher.Dispose();
                 _rpcSemaphore.Dispose();
-                _confirmSemaphore?.Dispose();
+                _confirmSemaphore.Dispose();
+                _maxOutstandingConfirmationsSemaphore?.Dispose();
             }
         }
 
@@ -552,7 +553,8 @@ namespace RabbitMQ.Client.Impl
 
             ConsumerDispatcher.Dispose();
             _rpcSemaphore.Dispose();
-            _confirmSemaphore?.Dispose();
+            _confirmSemaphore.Dispose();
+            _maxOutstandingConfirmationsSemaphore?.Dispose();
         }
 
         public Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
