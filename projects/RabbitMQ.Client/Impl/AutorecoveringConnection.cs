@@ -33,6 +33,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -188,7 +189,7 @@ namespace RabbitMQ.Client.Framing
         public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(
             bool publisherConfirmationsEnabled = false,
             bool publisherConfirmationTrackingEnabled = false,
-            ushort? maxOutstandingPublisherConfirmations = null,
+            RateLimiter? outstandingPublisherConfirmationsRateLimiter = null,
             ushort? consumerDispatchConcurrency = null,
             CancellationToken cancellationToken = default)
         {
@@ -197,7 +198,7 @@ namespace RabbitMQ.Client.Framing
             return (RecoveryAwareChannel)await result.OpenAsync(
                 publisherConfirmationsEnabled,
                 publisherConfirmationTrackingEnabled,
-                maxOutstandingPublisherConfirmations,
+                outstandingPublisherConfirmationsRateLimiter,
                 cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -273,7 +274,7 @@ namespace RabbitMQ.Client.Framing
             RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(
                     options.PublisherConfirmationsEnabled,
                     options.PublisherConfirmationTrackingEnabled,
-                    options.MaxOutstandingPublisherConfirmations,
+                    options.OutstandingPublisherConfirmationsRateLimiter,
                     cdc,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -284,7 +285,7 @@ namespace RabbitMQ.Client.Framing
                 cdc,
                 options.PublisherConfirmationsEnabled,
                 options.PublisherConfirmationTrackingEnabled,
-                options.MaxOutstandingPublisherConfirmations);
+                options.OutstandingPublisherConfirmationsRateLimiter);
             await RecordChannelAsync(autorecoveringChannel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
             return autorecoveringChannel;

@@ -1,10 +1,15 @@
 const RabbitMQ.Client.Constants.PublishSequenceNumberHeader = "x-dotnet-pub-seq-no" -> string!
+override RabbitMQ.Client.Impl.ThrottlingRateLimiter.AcquireAsyncCore(int permitCount, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Threading.RateLimiting.RateLimitLease!>
+override RabbitMQ.Client.Impl.ThrottlingRateLimiter.AttemptAcquireCore(int permitCount) -> System.Threading.RateLimiting.RateLimitLease!
+override RabbitMQ.Client.Impl.ThrottlingRateLimiter.Dispose(bool disposing) -> void
+override RabbitMQ.Client.Impl.ThrottlingRateLimiter.GetStatistics() -> System.Threading.RateLimiting.RateLimiterStatistics?
+override RabbitMQ.Client.Impl.ThrottlingRateLimiter.IdleDuration.get -> System.TimeSpan?
 RabbitMQ.Client.CreateChannelOptions
 RabbitMQ.Client.CreateChannelOptions.ConsumerDispatchConcurrency.get -> ushort?
 RabbitMQ.Client.CreateChannelOptions.ConsumerDispatchConcurrency.set -> void
 RabbitMQ.Client.CreateChannelOptions.CreateChannelOptions() -> void
-RabbitMQ.Client.CreateChannelOptions.MaxOutstandingPublisherConfirmations.get -> ushort?
-RabbitMQ.Client.CreateChannelOptions.MaxOutstandingPublisherConfirmations.set -> void
+RabbitMQ.Client.CreateChannelOptions.OutstandingPublisherConfirmationsRateLimiter.get -> System.Threading.RateLimiting.RateLimiter?
+RabbitMQ.Client.CreateChannelOptions.OutstandingPublisherConfirmationsRateLimiter.set -> void
 RabbitMQ.Client.CreateChannelOptions.PublisherConfirmationsEnabled.get -> bool
 RabbitMQ.Client.CreateChannelOptions.PublisherConfirmationsEnabled.set -> void
 RabbitMQ.Client.CreateChannelOptions.PublisherConfirmationTrackingEnabled.get -> bool
@@ -20,6 +25,8 @@ RabbitMQ.Client.Exceptions.RabbitMQClientException.RabbitMQClientException() -> 
 RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, bool mandatory, TProperties basicProperties, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(string! exchange, string! routingKey, bool mandatory, TProperties basicProperties, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IConnection.CreateChannelAsync(RabbitMQ.Client.CreateChannelOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<RabbitMQ.Client.IChannel!>!
+RabbitMQ.Client.Impl.ThrottlingRateLimiter
+RabbitMQ.Client.Impl.ThrottlingRateLimiter.ThrottlingRateLimiter(int maxConcurrentCalls, int? throttlingPercentage = 50) -> void
 static RabbitMQ.Client.CreateChannelOptions.Default.get -> RabbitMQ.Client.CreateChannelOptions!
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, bool mandatory, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, System.ReadOnlyMemory<byte> body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
