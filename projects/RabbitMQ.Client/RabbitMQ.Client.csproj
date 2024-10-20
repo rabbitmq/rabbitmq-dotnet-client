@@ -64,6 +64,7 @@
       See https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
     -->
     <PackageReference Include="System.IO.Pipelines" />
+    <PackageReference Include="System.Threading.RateLimiting" />
     <PackageReference Include="Nullable" PrivateAssets="all" />
   </ItemGroup>
 

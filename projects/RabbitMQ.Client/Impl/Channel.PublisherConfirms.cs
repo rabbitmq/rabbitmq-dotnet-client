@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -47,32 +48,31 @@ namespace RabbitMQ.Client.Impl
     {
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
-        private ushort? _maxOutstandingPublisherConfirmations = null;
-        private SemaphoreSlim? _maxOutstandingConfirmationsSemaphore;
         private ulong _nextPublishSeqNo = 0;
         private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
+        private RateLimiter? _outstandingPublisherConfirmationsRateLimiter;
 
-        private class PublisherConfirmationInfo
+        private sealed class PublisherConfirmationInfo : IDisposable
         {
-            private ulong _publishSequenceNumber;
             private TaskCompletionSource<bool>? _publisherConfirmationTcs;
+            private readonly IDisposable? _lease;
 
             internal PublisherConfirmationInfo()
             {
-                _publishSequenceNumber = 0;
+                PublishSequenceNumber = 0;
                 _publisherConfirmationTcs = null;
+                _lease = null;
             }
 
-            internal PublisherConfirmationInfo(ulong publishSequenceNumber, TaskCompletionSource<bool>? publisherConfirmationTcs)
+            internal PublisherConfirmationInfo(ulong publishSequenceNumber, TaskCompletionSource<bool>? publisherConfirmationTcs, IDisposable? lease)
             {
-                _publishSequenceNumber = publishSequenceNumber;
+                PublishSequenceNumber = publishSequenceNumber;
                 _publisherConfirmationTcs = publisherConfirmationTcs;
+                _lease = lease;
             }
 
-            internal ulong PublishSequenceNumber => _publishSequenceNumber;
-
-            internal TaskCompletionSource<bool>? PublisherConfirmationTcs => _publisherConfirmationTcs;
+            internal ulong PublishSequenceNumber { get; }
 
             internal async Task MaybeWaitForConfirmationAsync(CancellationToken cancellationToken)
             {
@@ -94,6 +94,11 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 return exceptionWasHandled;
+            }
+
+            public void Dispose()
+            {
+                _lease?.Dispose();
             }
         }
 
@@ -119,18 +124,11 @@ namespace RabbitMQ.Client.Impl
 
         private void ConfigurePublisherConfirmations(bool publisherConfirmationsEnabled,
             bool publisherConfirmationTrackingEnabled,
-            ushort? maxOutstandingPublisherConfirmations)
+            RateLimiter? outstandingPublisherConfirmationsRateLimiter)
         {
             _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
             _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
-            _maxOutstandingPublisherConfirmations = maxOutstandingPublisherConfirmations;
-
-            if (_publisherConfirmationTrackingEnabled && _maxOutstandingPublisherConfirmations is not null)
-            {
-                _maxOutstandingConfirmationsSemaphore = new SemaphoreSlim(
-                    (int)_maxOutstandingPublisherConfirmations,
-                    (int)_maxOutstandingPublisherConfirmations);
-            }
+            _outstandingPublisherConfirmationsRateLimiter = outstandingPublisherConfirmationsRateLimiter;
         }
 
         private async Task MaybeConfirmSelect(CancellationToken cancellationToken)
@@ -282,15 +280,14 @@ namespace RabbitMQ.Client.Impl
         {
             if (_publisherConfirmationsEnabled)
             {
+                RateLimitLease? lease = null;
                 if (_publisherConfirmationTrackingEnabled)
                 {
-                    if (_maxOutstandingPublisherConfirmations is not null)
+                    if (_outstandingPublisherConfirmationsRateLimiter is not null)
                     {
-                        int percentOfMax = _confirmsTaskCompletionSources.Count / (int)_maxOutstandingPublisherConfirmations;
-                        if (percentOfMax > 0.5)
-                        {
-                            await Task.Delay(1000 * percentOfMax).ConfigureAwait(false);
-                        }
+                        lease = await _outstandingPublisherConfirmationsRateLimiter.AcquireAsync(
+                            cancellationToken: cancellationToken)
+                            .ConfigureAwait(false);
                     }
                 }
 
@@ -304,17 +301,11 @@ namespace RabbitMQ.Client.Impl
                 {
                     publisherConfirmationTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
-
-                    if (_maxOutstandingConfirmationsSemaphore is not null)
-                    {
-                        await _maxOutstandingConfirmationsSemaphore.WaitAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                    }
                 }
 
                 _nextPublishSeqNo++;
 
-                return new PublisherConfirmationInfo(publishSequenceNumber, publisherConfirmationTcs);
+                return new PublisherConfirmationInfo(publishSequenceNumber, publisherConfirmationTcs, lease);
             }
             else
             {
@@ -354,14 +345,15 @@ namespace RabbitMQ.Client.Impl
 
                 if (publisherConfirmationInfo is not null)
                 {
-                    await publisherConfirmationInfo.MaybeWaitForConfirmationAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                }
-
-                if (_publisherConfirmationTrackingEnabled &&
-                    _maxOutstandingConfirmationsSemaphore is not null)
-                {
-                    _maxOutstandingConfirmationsSemaphore.Release();
+                    try
+                    {
+                        await publisherConfirmationInfo.MaybeWaitForConfirmationAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        publisherConfirmationInfo.Dispose();
+                    }
                 }
             }
         }

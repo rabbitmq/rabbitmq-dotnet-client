@@ -37,6 +37,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
@@ -362,12 +363,12 @@ namespace RabbitMQ.Client.Impl
 
         internal async Task<IChannel> OpenAsync(bool publisherConfirmationsEnabled,
             bool publisherConfirmationTrackingEnabled,
-            ushort? maxOutstandingPublisherConfirmations,
+            RateLimiter? outstandingPublisherConfirmationsRateLimiter,
             CancellationToken cancellationToken)
         {
             ConfigurePublisherConfirmations(publisherConfirmationsEnabled,
                 publisherConfirmationTrackingEnabled,
-                maxOutstandingPublisherConfirmations);
+                outstandingPublisherConfirmationsRateLimiter);
 
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
@@ -532,7 +533,7 @@ namespace RabbitMQ.Client.Impl
                 ConsumerDispatcher.Dispose();
                 _rpcSemaphore.Dispose();
                 _confirmSemaphore.Dispose();
-                _maxOutstandingConfirmationsSemaphore?.Dispose();
+                _outstandingPublisherConfirmationsRateLimiter?.Dispose();
             }
         }
 
@@ -554,7 +555,11 @@ namespace RabbitMQ.Client.Impl
             ConsumerDispatcher.Dispose();
             _rpcSemaphore.Dispose();
             _confirmSemaphore.Dispose();
-            _maxOutstandingConfirmationsSemaphore?.Dispose();
+            if(_outstandingPublisherConfirmationsRateLimiter is not null)
+            {
+                await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
+                    .ConfigureAwait(false);
+            }
         }
 
         public Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
