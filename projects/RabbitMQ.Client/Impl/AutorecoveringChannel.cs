@@ -33,6 +33,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
@@ -51,7 +52,7 @@ namespace RabbitMQ.Client.Impl
         private ushort _prefetchCountGlobal;
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
-        private ushort? _maxOutstandingPublisherConfirmations = null;
+        private RateLimiter? _outstandingPublisherConfirmationsRateLimiter = null;
         private bool _usesTransactions;
         private ushort _consumerDispatchConcurrency;
 
@@ -78,14 +79,14 @@ namespace RabbitMQ.Client.Impl
             ushort consumerDispatchConcurrency,
             bool publisherConfirmationsEnabled,
             bool publisherConfirmationTrackingEnabled,
-            ushort? maxOutstandingPublisherConfirmations)
+            RateLimiter? outstandingPublisherConfirmationsRateLimiter)
         {
             _connection = conn;
             _innerChannel = innerChannel;
             _consumerDispatchConcurrency = consumerDispatchConcurrency;
             _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
             _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
-            _maxOutstandingPublisherConfirmations = maxOutstandingPublisherConfirmations;
+            _outstandingPublisherConfirmationsRateLimiter = outstandingPublisherConfirmationsRateLimiter;
         }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -173,7 +174,7 @@ namespace RabbitMQ.Client.Impl
             RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(
                 _publisherConfirmationsEnabled,
                 _publisherConfirmationTrackingEnabled,
-                _maxOutstandingPublisherConfirmations,
+                _outstandingPublisherConfirmationsRateLimiter,
                 _consumerDispatchConcurrency,
                 cancellationToken)
                 .ConfigureAwait(false);

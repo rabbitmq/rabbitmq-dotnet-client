@@ -8,6 +8,6 @@ Write-Host "[INFO] looking for errors in '$rabbitmq_log_dir'"
 
 If (Get-ChildItem $rabbitmq_log_dir\*.log | Select-String -Quiet -SimpleMatch -Pattern inet_error)
 {
-    Write-Error "[WARNING] found inet_error in '$rabbitmq_log_dir'"
+    Write-Host -ForegroundColor Yellow "[WARNING] found inet_error in '$rabbitmq_log_dir'"
     exit 0
 }

@@ -30,7 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Integration;
 using RabbitMQ.Client;
@@ -105,9 +107,9 @@ namespace Test.Integration
                     }
 
                     /*
-                             * Note: using TrySetResult because this callback will be called when the
-                             * test exits, and connectionShutdownTcs will have already been set
-                             */
+                     * Note: using TrySetResult because this callback will be called when the
+                     * test exits, and connectionShutdownTcs will have already been set
+                     */
                     connectionShutdownTcs.TrySetResult(true);
                     return Task.CompletedTask;
                 };
@@ -282,6 +284,108 @@ namespace Test.Integration
             await pm.RemoveToxicAsync(toxicName);
 
             await recoveryTask;
+        }
+
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestPublisherConfirmationThrottling()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            const int TotalMessageCount = 64;
+            const int MaxOutstandingConfirms = 8;
+            const int BatchSize = MaxOutstandingConfirms * 2;
+
+            using var pm = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
+            await pm.InitializeAsync();
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), pm.ProxyPort);
+            cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
+            cf.AutomaticRecoveryEnabled = true;
+
+            var channelOpts = new CreateChannelOptions
+            {
+                PublisherConfirmationsEnabled = true,
+                PublisherConfirmationTrackingEnabled = true,
+                OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(MaxOutstandingConfirms)
+            };
+
+            var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var messagesPublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            long publishCount = 0;
+            Task publishTask = Task.Run(async () =>
+            {
+                await using (IConnection conn = await cf.CreateConnectionAsync())
+                {
+                    await using (IChannel ch = await conn.CreateChannelAsync(channelOpts))
+                    {
+                        QueueDeclareOk q = await ch.QueueDeclareAsync();
+
+                        channelCreatedTcs.SetResult(true);
+
+                        try
+                        {
+                            var publishBatch = new List<ValueTask>();
+                            while (publishCount < TotalMessageCount)
+                            {
+                                for (int i = 0; i < BatchSize; i++)
+                                {
+                                    publishBatch.Add(ch.BasicPublishAsync("", q.QueueName, GetRandomBody()));
+                                }
+
+                                foreach (ValueTask pt in publishBatch)
+                                {
+                                    await pt;
+                                    Interlocked.Increment(ref publishCount);
+                                }
+
+                                publishBatch.Clear();
+                            }
+
+                            messagesPublishedTcs.SetResult(true);
+                        }
+                        catch (Exception ex)
+                        {
+                            messagesPublishedTcs.SetException(ex);
+                        }
+                    }
+                }
+            });
+
+            await channelCreatedTcs.Task;
+
+            const string toxicName = "rmq-localhost-bandwidth";
+            var bandwidthToxic = new BandwidthToxic();
+            bandwidthToxic.Name = toxicName;
+            bandwidthToxic.Attributes.Rate = 0;
+            bandwidthToxic.Toxicity = 1.0;
+            bandwidthToxic.Stream = ToxicDirection.DownStream;
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            Task<BandwidthToxic> addToxicTask = pm.AddToxicAsync(bandwidthToxic);
+
+            while (true)
+            {
+                long publishCount0 = Interlocked.Read(ref publishCount);
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                long publishCount1 = Interlocked.Read(ref publishCount);
+
+                if (publishCount0 == publishCount1)
+                {
+                    // Publishing has "settled" due to being blocked
+                    break;
+                }
+            }
+
+            await addToxicTask.WaitAsync(WaitSpan);
+            await pm.RemoveToxicAsync(toxicName).WaitAsync(WaitSpan);
+
+            await messagesPublishedTcs.Task.WaitAsync(WaitSpan);
+            await publishTask.WaitAsync(WaitSpan);
+
+            Assert.Equal(TotalMessageCount, publishCount);
         }
 
         private bool AreToxiproxyTestsEnabled
