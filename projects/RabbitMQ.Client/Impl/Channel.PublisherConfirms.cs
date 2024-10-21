@@ -282,16 +282,12 @@ namespace RabbitMQ.Client.Impl
         {
             if (_publisherConfirmationsEnabled)
             {
-                /*
-                if (_publisherConfirmationTrackingEnabled)
+                if (_publisherConfirmationTrackingEnabled &&
+                    _maxOutstandingConfirmationsSemaphore is not null)
                 {
-                    if (_maxOutstandingConfirmationsSemaphore is not null)
-                    {
-                        await _maxOutstandingConfirmationsSemaphore.WaitAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                    }
+                    await _maxOutstandingConfirmationsSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
-                */
 
                 await _confirmSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
@@ -343,18 +339,18 @@ namespace RabbitMQ.Client.Impl
         {
             if (_publisherConfirmationsEnabled)
             {
+                if (_publisherConfirmationTrackingEnabled &&
+                    _maxOutstandingConfirmationsSemaphore is not null)
+                {
+                    _maxOutstandingConfirmationsSemaphore.Release();
+                }
+
                 _confirmSemaphore.Release();
 
                 if (publisherConfirmationInfo is not null)
                 {
                     await publisherConfirmationInfo.MaybeWaitForConfirmationAsync(cancellationToken)
                         .ConfigureAwait(false);
-                }
-
-                if (_publisherConfirmationTrackingEnabled &&
-                    _maxOutstandingConfirmationsSemaphore is not null)
-                {
-                    // _maxOutstandingConfirmationsSemaphore.Release();
                 }
             }
         }
