@@ -218,7 +218,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 6.x
+          dotnet-version: 8.x
       - name: Download Build (Debug)
         uses: actions/download-artifact@v4
         with:
