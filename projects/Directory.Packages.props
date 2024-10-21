@@ -36,6 +36,12 @@
     <PackageVersion Include="System.Net.Http.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
   </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework)=='net472'">
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <GlobalPackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" />
+  </ItemGroup>
   <ItemGroup Condition="'$(IsPackable)'=='true'">
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
     <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
