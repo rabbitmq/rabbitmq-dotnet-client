@@ -46,7 +46,7 @@ namespace RabbitMQ.Client
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref byte GetStart(this byte[] array)
         {
-            return ref Unsafe.AsRef(array[0]);
+            return ref Unsafe.AsRef(in array[0]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
