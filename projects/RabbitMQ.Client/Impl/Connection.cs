@@ -276,7 +276,7 @@ namespace RabbitMQ.Client.Framing
             IChannel ch = await channel.OpenAsync(
                 options.PublisherConfirmationsEnabled,
                 options.PublisherConfirmationTrackingEnabled,
-                options.MaxOutstandingPublisherConfirmations,
+                options.OutstandingPublisherConfirmationsRateLimiter,
                 cancellationToken)
                 .ConfigureAwait(false);
             return ch;

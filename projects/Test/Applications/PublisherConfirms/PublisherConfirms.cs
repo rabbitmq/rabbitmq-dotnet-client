@@ -37,6 +37,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
 
 const ushort MAX_OUTSTANDING_CONFIRMS = 256;
 
@@ -47,7 +48,7 @@ var channelOpts = new CreateChannelOptions
 {
     PublisherConfirmationsEnabled = true,
     PublisherConfirmationTrackingEnabled = true,
-    MaxOutstandingPublisherConfirmations = MAX_OUTSTANDING_CONFIRMS
+    OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(MAX_OUTSTANDING_CONFIRMS)
 };
 
 #pragma warning disable CS8321 // Local function is declared but never used
