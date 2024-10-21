@@ -55,7 +55,6 @@ namespace RabbitMQ.Client.Impl
         // AMQP only allows one RPC operation to be active at a time.
         protected readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
-        private readonly AsyncManualResetEvent _flowControlBlock = new AsyncManualResetEvent(true);
 
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
@@ -361,11 +360,14 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal async Task<IChannel> OpenAsync(bool publisherConfirmationsEnabled = false,
-            bool publisherConfirmationTrackingEnabled = false,
-            CancellationToken cancellationToken = default)
+        internal async Task<IChannel> OpenAsync(bool publisherConfirmationsEnabled,
+            bool publisherConfirmationTrackingEnabled,
+            ushort? maxOutstandingPublisherConfirmations,
+            CancellationToken cancellationToken)
         {
-            ConfigurePublisherConfirmations(publisherConfirmationsEnabled, publisherConfirmationTrackingEnabled);
+            ConfigurePublisherConfirmations(publisherConfirmationsEnabled,
+                publisherConfirmationTrackingEnabled,
+                maxOutstandingPublisherConfirmations);
 
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
@@ -450,17 +452,6 @@ namespace RabbitMQ.Client.Impl
             return Session.TransmitAsync(in method, in header, body, cancellationToken);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask EnforceFlowControlAsync(CancellationToken cancellationToken)
-        {
-            if (_flowControlBlock.IsSet)
-            {
-                return default;
-            }
-
-            return _flowControlBlock.WaitAsync(cancellationToken);
-        }
-
         internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
         {
             return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
@@ -540,7 +531,8 @@ namespace RabbitMQ.Client.Impl
 
                 ConsumerDispatcher.Dispose();
                 _rpcSemaphore.Dispose();
-                _confirmSemaphore?.Dispose();
+                _confirmSemaphore.Dispose();
+                _maxOutstandingConfirmationsSemaphore?.Dispose();
             }
         }
 
@@ -561,7 +553,8 @@ namespace RabbitMQ.Client.Impl
 
             ConsumerDispatcher.Dispose();
             _rpcSemaphore.Dispose();
-            _confirmSemaphore?.Dispose();
+            _confirmSemaphore.Dispose();
+            _maxOutstandingConfirmationsSemaphore?.Dispose();
         }
 
         public Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)

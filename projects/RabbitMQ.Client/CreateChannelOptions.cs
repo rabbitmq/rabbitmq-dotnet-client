@@ -16,6 +16,17 @@ namespace RabbitMQ.Client
         public bool PublisherConfirmationTrackingEnabled { get; set; } = false;
 
         /// <summary>
+        /// If publisher confirmation tracking is enabled, this represents the number of allowed
+        /// outstanding publisher confirmations before publishing is blocked.
+        ///
+        /// Defaults to <c>128</c>
+        ///
+        /// Set to <c>null</c>, to allow an unlimited number of outstanding confirmations.
+        ///
+        /// </summary>
+        public ushort? MaxOutstandingPublisherConfirmations { get; set; } = 128;
+
+        /// <summary>
         /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.

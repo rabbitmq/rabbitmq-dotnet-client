@@ -47,6 +47,8 @@ namespace RabbitMQ.Client.Impl
     {
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
+        private ushort? _maxOutstandingPublisherConfirmations = null;
+        private SemaphoreSlim? _maxOutstandingConfirmationsSemaphore;
         private ulong _nextPublishSeqNo = 0;
         private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
@@ -115,10 +117,20 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private void ConfigurePublisherConfirmations(bool publisherConfirmationsEnabled, bool publisherConfirmationTrackingEnabled)
+        private void ConfigurePublisherConfirmations(bool publisherConfirmationsEnabled,
+            bool publisherConfirmationTrackingEnabled,
+            ushort? maxOutstandingPublisherConfirmations)
         {
             _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
             _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+            _maxOutstandingPublisherConfirmations = maxOutstandingPublisherConfirmations;
+
+            if (_publisherConfirmationTrackingEnabled && _maxOutstandingPublisherConfirmations is not null)
+            {
+                _maxOutstandingConfirmationsSemaphore = new SemaphoreSlim(
+                    (int)_maxOutstandingPublisherConfirmations,
+                    (int)_maxOutstandingPublisherConfirmations);
+            }
         }
 
         private async Task MaybeConfirmSelect(CancellationToken cancellationToken)
@@ -270,6 +282,13 @@ namespace RabbitMQ.Client.Impl
         {
             if (_publisherConfirmationsEnabled)
             {
+                if (_publisherConfirmationTrackingEnabled &&
+                    _maxOutstandingConfirmationsSemaphore is not null)
+                {
+                    await _maxOutstandingConfirmationsSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
                 await _confirmSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
 
@@ -320,6 +339,12 @@ namespace RabbitMQ.Client.Impl
         {
             if (_publisherConfirmationsEnabled)
             {
+                if (_publisherConfirmationTrackingEnabled &&
+                    _maxOutstandingConfirmationsSemaphore is not null)
+                {
+                    _maxOutstandingConfirmationsSemaphore.Release();
+                }
+
                 _confirmSemaphore.Release();
 
                 if (publisherConfirmationInfo is not null)

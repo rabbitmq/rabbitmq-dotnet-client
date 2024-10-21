@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Framing;
@@ -41,6 +42,8 @@ namespace RabbitMQ.Client.Impl
 {
     internal partial class Channel : IChannel, IRecoverable
     {
+        private readonly AsyncManualResetEvent _flowControlBlock = new(true);
+
         public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
@@ -53,7 +56,7 @@ namespace RabbitMQ.Client.Impl
                     await MaybeStartPublisherConfirmationTracking(cancellationToken)
                         .ConfigureAwait(false);
 
-                await EnforceFlowControlAsync(cancellationToken)
+                await MaybeEnforceFlowControlAsync(cancellationToken)
                     .ConfigureAwait(false);
 
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
@@ -108,7 +111,7 @@ namespace RabbitMQ.Client.Impl
                     await MaybeStartPublisherConfirmationTracking(cancellationToken)
                         .ConfigureAwait(false);
 
-                await EnforceFlowControlAsync(cancellationToken)
+                await MaybeEnforceFlowControlAsync(cancellationToken)
                     .ConfigureAwait(false);
 
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
@@ -219,6 +222,17 @@ namespace RabbitMQ.Client.Impl
                     headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ValueTask MaybeEnforceFlowControlAsync(CancellationToken cancellationToken)
+        {
+            if (_flowControlBlock.IsSet)
+            {
+                return default;
+            }
+
+            return _flowControlBlock.WaitAsync(cancellationToken);
         }
     }
 }
