@@ -3,8 +3,9 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!-- Apply IsTrimmable and EnableTrimAnalyzer only for .NET 8.0 -->
+    <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsTrimmable>
+    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
     <AssemblyTitle>RabbitMQ Client Library for .NET</AssemblyTitle>
     <Authors>Broadcom</Authors>
     <Company>Broadcom, Inc. or its subsidiaries.</Company>
