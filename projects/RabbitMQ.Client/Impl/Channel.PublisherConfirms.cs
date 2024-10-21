@@ -56,16 +56,11 @@ namespace RabbitMQ.Client.Impl
         private sealed class PublisherConfirmationInfo : IDisposable
         {
             private TaskCompletionSource<bool>? _publisherConfirmationTcs;
-            private readonly IDisposable? _lease;
+            private readonly RateLimitLease? _lease;
 
-            internal PublisherConfirmationInfo()
-            {
-                PublishSequenceNumber = 0;
-                _publisherConfirmationTcs = null;
-                _lease = null;
-            }
-
-            internal PublisherConfirmationInfo(ulong publishSequenceNumber, TaskCompletionSource<bool>? publisherConfirmationTcs, IDisposable? lease)
+            internal PublisherConfirmationInfo(ulong publishSequenceNumber,
+                TaskCompletionSource<bool>? publisherConfirmationTcs,
+                RateLimitLease? lease)
             {
                 PublishSequenceNumber = publishSequenceNumber;
                 _publisherConfirmationTcs = publisherConfirmationTcs;

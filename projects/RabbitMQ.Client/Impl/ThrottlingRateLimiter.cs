@@ -38,14 +38,16 @@ namespace RabbitMQ.Client.Impl
 {
     public class ThrottlingRateLimiter : RateLimiter
     {
+        public const int DefaultThrottlingPercentage = 50;
+
         private readonly ConcurrencyLimiter _concurrencyLimiter;
         private readonly int _maxConcurrency;
         private readonly int _throttlingThreshold;
 
-        public ThrottlingRateLimiter(int maxConcurrentCalls, int? throttlingPercentage = 50)
+        public ThrottlingRateLimiter(int maxConcurrentCalls, int? throttlingPercentage = DefaultThrottlingPercentage)
         {
             _maxConcurrency = maxConcurrentCalls;
-            _throttlingThreshold = _maxConcurrency * throttlingPercentage.GetValueOrDefault(50) / 100;
+            _throttlingThreshold = _maxConcurrency * throttlingPercentage.GetValueOrDefault(DefaultThrottlingPercentage) / 100;
 
             ConcurrencyLimiterOptions limiterOptions = new()
             {
@@ -97,7 +99,6 @@ namespace RabbitMQ.Client.Impl
             }
 
             int delay = (int)((1.0 - availablePermits / (double)_maxConcurrency) * 1000);
-
             return Task.Delay(delay, cancellationToken);
         }
 
