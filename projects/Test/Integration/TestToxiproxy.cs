@@ -105,9 +105,9 @@ namespace Test.Integration
                     }
 
                     /*
-                             * Note: using TrySetResult because this callback will be called when the
-                             * test exits, and connectionShutdownTcs will have already been set
-                             */
+                     * Note: using TrySetResult because this callback will be called when the
+                     * test exits, and connectionShutdownTcs will have already been set
+                     */
                     connectionShutdownTcs.TrySetResult(true);
                     return Task.CompletedTask;
                 };

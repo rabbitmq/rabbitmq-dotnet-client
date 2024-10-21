@@ -322,5 +322,73 @@ namespace Test.Integration
             Assert.Equal(sendBody, consumeBody);
             Assert.Equal("World", response);
         }
+
+        [Fact]
+        public async Task TestPublisherConfirmationThrottling()
+        {
+            const int MaxOutstandingConfirms = 4;
+
+            var channelOpts = new CreateChannelOptions
+            {
+                PublisherConfirmationsEnabled = true,
+                PublisherConfirmationTrackingEnabled = true,
+                OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(MaxOutstandingConfirms)
+            };
+
+            var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var messagesPublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Task publishTask = Task.Run(async () =>
+            {
+                ConnectionFactory cf = CreateConnectionFactory();
+
+                await using (IConnection conn = await cf.CreateConnectionAsync())
+                {
+                    await using (IChannel ch = await conn.CreateChannelAsync(channelOpts))
+                    {
+                        QueueDeclareOk q = await ch.QueueDeclareAsync();
+
+                        channelCreatedTcs.SetResult(true);
+
+                        int publishCount = 0;
+                        /*
+                         * Note: if batchSize equals MaxOutstandingConfirms,
+                         * a delay is added per-publish and this test takes much longer
+                         * to run. TODO figure out how the heck to test that
+                         */
+                        int batchSize = MaxOutstandingConfirms / 2;
+                        try
+                        {
+                            while (publishCount < 128)
+                            {
+                                var publishBatch = new List<ValueTask>();
+                                for (int i = 0; i < batchSize; i++)
+                                {
+                                    publishBatch.Add(ch.BasicPublishAsync("", q.QueueName, GetRandomBody()));
+                                }
+
+                                foreach (ValueTask pt in publishBatch)
+                                {
+                                    await pt;
+                                    publishCount++;
+                                }
+
+                                publishBatch.Clear();
+                                publishBatch = null;
+                            }
+
+                            messagesPublishedTcs.SetResult(true);
+                        }
+                        catch (Exception ex)
+                        {
+                            messagesPublishedTcs.SetException(ex);
+                        }
+                    }
+                }
+            });
+
+            await channelCreatedTcs.Task.WaitAsync(WaitSpan);
+            await messagesPublishedTcs.Task.WaitAsync(WaitSpan);
+            await publishTask.WaitAsync(WaitSpan);
+        }
     }
 }

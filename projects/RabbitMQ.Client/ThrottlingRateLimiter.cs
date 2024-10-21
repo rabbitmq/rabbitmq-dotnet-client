@@ -34,7 +34,7 @@ using System.Threading;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Client.Impl
+namespace RabbitMQ.Client
 {
     public class ThrottlingRateLimiter : RateLimiter
     {
