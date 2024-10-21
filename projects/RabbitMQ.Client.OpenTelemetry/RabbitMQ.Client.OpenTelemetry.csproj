@@ -27,7 +27,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>../../packages</PackageOutputPath>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(CI)' == 'true'">
