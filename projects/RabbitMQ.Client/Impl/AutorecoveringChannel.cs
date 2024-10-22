@@ -33,7 +33,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
@@ -43,18 +42,17 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class AutorecoveringChannel : IChannel, IRecoverable
     {
+        private readonly ChannelOptions _channelOptions;
+        private readonly List<string> _recordedConsumerTags = new List<string>();
+
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
-        private readonly List<string> _recordedConsumerTags = new List<string>();
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
-        private bool _publisherConfirmationsEnabled = false;
-        private bool _publisherConfirmationTrackingEnabled = false;
-        private RateLimiter? _outstandingPublisherConfirmationsRateLimiter = null;
+
         private bool _usesTransactions;
-        private ushort _consumerDispatchConcurrency;
 
         internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
 
@@ -73,20 +71,13 @@ namespace RabbitMQ.Client.Impl
             set => InnerChannel.ContinuationTimeout = value;
         }
 
-        // TODO just pass create channel options
         public AutorecoveringChannel(AutorecoveringConnection conn,
             RecoveryAwareChannel innerChannel,
-            ushort consumerDispatchConcurrency,
-            bool publisherConfirmationsEnabled,
-            bool publisherConfirmationTrackingEnabled,
-            RateLimiter? outstandingPublisherConfirmationsRateLimiter)
+            ChannelOptions channelOptions)
         {
             _connection = conn;
             _innerChannel = innerChannel;
-            _consumerDispatchConcurrency = consumerDispatchConcurrency;
-            _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
-            _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
-            _outstandingPublisherConfirmationsRateLimiter = outstandingPublisherConfirmationsRateLimiter;
+            _channelOptions = channelOptions;
         }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -171,13 +162,9 @@ namespace RabbitMQ.Client.Impl
 
             _connection = conn;
 
-            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(
-                _publisherConfirmationsEnabled,
-                _publisherConfirmationTrackingEnabled,
-                _outstandingPublisherConfirmationsRateLimiter,
-                _consumerDispatchConcurrency,
-                cancellationToken)
+            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(_channelOptions, cancellationToken)
                 .ConfigureAwait(false);
+
             newChannel.TakeOver(_innerChannel);
 
             if (_prefetchCountConsumer != 0)

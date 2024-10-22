@@ -31,14 +31,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
     internal sealed class RecoveryAwareChannel : Channel
     {
-        public RecoveryAwareChannel(ConnectionConfig config, ISession session, ushort? consumerDispatchConcurrency = null)
-            : base(config, session, consumerDispatchConcurrency)
+        public RecoveryAwareChannel(ISession session, ChannelOptions channelOptions)
+            : base(session, channelOptions)
         {
             ActiveDeliveryTagOffset = 0;
             MaxSeenDeliveryTag = 0;
@@ -103,6 +102,14 @@ namespace RabbitMQ.Client.Impl
             {
                 return default;
             }
+        }
+
+        internal static async ValueTask<RecoveryAwareChannel> CreateAndOpenAsync(ISession session, ChannelOptions channelOptions,
+            CancellationToken cancellationToken)
+        {
+            var result = new RecoveryAwareChannel(session, channelOptions);
+            return (RecoveryAwareChannel)await result.OpenAsync(channelOptions, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

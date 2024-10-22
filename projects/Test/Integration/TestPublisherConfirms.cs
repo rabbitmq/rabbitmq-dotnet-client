@@ -48,21 +48,6 @@ namespace Test.Integration
             _messageBody = GetRandomBody(4096);
         }
 
-        /*
-         * TODO figure out how to actually test basic.nack and basic.return
-        [Fact]
-        public Task TestWaitForConfirmsWithTimeoutAsync_MessageNacked_WaitingHasTimedout_ReturnFalse()
-        {
-            return TestWaitForConfirmsAsync(2000, async (ch) =>
-            {
-                RecoveryAwareChannel actualChannel = ((AutorecoveringChannel)ch).InnerChannel;
-                await actualChannel.HandleAckNack(10UL, false, true);
-                using var cts = new CancellationTokenSource(ShortSpan);
-                Assert.False(await ch.WaitForConfirmsAsync(cts.Token));
-            });
-        }
-        */
-
         [Fact]
         public async Task TestWaitForConfirmsWithEventsAsync()
         {
