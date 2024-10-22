@@ -245,7 +245,6 @@ namespace RabbitMQ.Client.OAuth2
 
             if (token is null)
             {
-                // TODO specific exception?
                 throw new InvalidOperationException("token is null");
             }
 
@@ -274,7 +273,6 @@ namespace RabbitMQ.Client.OAuth2
 
             if (refreshedToken is null)
             {
-                // TODO specific exception?
                 throw new InvalidOperationException("refreshed token is null");
             }
 

@@ -33,7 +33,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -185,22 +184,12 @@ namespace RabbitMQ.Client.Framing
 
         public IProtocol Protocol => Endpoint.Protocol;
 
-        // TODO pass channel creation options?
-        public async ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(
-            bool publisherConfirmationsEnabled = false,
-            bool publisherConfirmationTrackingEnabled = false,
-            RateLimiter? outstandingPublisherConfirmationsRateLimiter = null,
-            ushort? consumerDispatchConcurrency = null,
+        public ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(
+            ChannelOptions channelOptions,
             CancellationToken cancellationToken = default)
         {
             ISession session = InnerConnection.CreateSession();
-            var result = new RecoveryAwareChannel(_config, session, consumerDispatchConcurrency);
-            return (RecoveryAwareChannel)await result.OpenAsync(
-                publisherConfirmationsEnabled,
-                publisherConfirmationTrackingEnabled,
-                outstandingPublisherConfirmationsRateLimiter,
-                cancellationToken)
-                .ConfigureAwait(false);
+            return RecoveryAwareChannel.CreateAndOpenAsync(session, channelOptions, cancellationToken);
         }
 
         public override string ToString()
@@ -271,23 +260,16 @@ namespace RabbitMQ.Client.Framing
 
             ushort cdc = options.ConsumerDispatchConcurrency.GetValueOrDefault(_config.ConsumerDispatchConcurrency);
 
-            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(
-                    options.PublisherConfirmationsEnabled,
-                    options.PublisherConfirmationTrackingEnabled,
-                    options.OutstandingPublisherConfirmationsRateLimiter,
-                    cdc,
-                    cancellationToken)
+            var channelOptions = ChannelOptions.From(options, _config);
+
+            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(channelOptions, cancellationToken)
                 .ConfigureAwait(false);
 
-            // TODO just pass create channel options
-            var autorecoveringChannel = new AutorecoveringChannel(this,
-                recoveryAwareChannel,
-                cdc,
-                options.PublisherConfirmationsEnabled,
-                options.PublisherConfirmationTrackingEnabled,
-                options.OutstandingPublisherConfirmationsRateLimiter);
+            var autorecoveringChannel = new AutorecoveringChannel(this, recoveryAwareChannel, channelOptions);
+
             await RecordChannelAsync(autorecoveringChannel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
+
             return autorecoveringChannel;
         }
 

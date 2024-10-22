@@ -50,7 +50,6 @@ namespace Test.SequentialIntegration
 
         public async Task BlockAndPublishAsync()
         {
-            // TODO fix publisher confirmation tracking to time out so this test succeeds
             await using IChannel ch = await _conn.CreateChannelAsync();
             await BlockAsync();
             await ch.BasicPublishAsync(exchange: "amq.direct",

@@ -37,7 +37,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
@@ -62,11 +61,10 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
-        public Channel(ConnectionConfig config, ISession session, ushort? perChannelConsumerDispatchConcurrency = null)
+        public Channel(ISession session, ChannelOptions channelOptions)
         {
-            ContinuationTimeout = config.ContinuationTimeout;
-            ConsumerDispatcher = new AsyncConsumerDispatcher(this,
-                perChannelConsumerDispatchConcurrency.GetValueOrDefault(config.ConsumerDispatchConcurrency));
+            ContinuationTimeout = channelOptions.ContinuationTimeout;
+            ConsumerDispatcher = new AsyncConsumerDispatcher(this, channelOptions.ConsumerDispatchConcurrency);
             Func<Exception, string, CancellationToken, Task> onExceptionAsync = (exception, context, cancellationToken) =>
                 OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
             _basicAcksAsyncWrapper = new AsyncEventingWrapper<BasicAckEventArgs>("OnBasicAck", onExceptionAsync);
@@ -361,14 +359,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal async Task<IChannel> OpenAsync(bool publisherConfirmationsEnabled,
-            bool publisherConfirmationTrackingEnabled,
-            RateLimiter? outstandingPublisherConfirmationsRateLimiter,
+        internal async Task<IChannel> OpenAsync(ChannelOptions channelOptions,
             CancellationToken cancellationToken)
         {
-            ConfigurePublisherConfirmations(publisherConfirmationsEnabled,
-                publisherConfirmationTrackingEnabled,
-                outstandingPublisherConfirmationsRateLimiter);
+            ConfigurePublisherConfirmations(channelOptions.PublisherConfirmationsEnabled,
+                channelOptions.PublisherConfirmationTrackingEnabled,
+                channelOptions.OutstandingPublisherConfirmationsRateLimiter);
 
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
@@ -1495,6 +1491,15 @@ namespace RabbitMQ.Client.Impl
                 }
                 _rpcSemaphore.Release();
             }
+        }
+
+        internal static Task<IChannel> CreateAndOpenAsync(CreateChannelOptions createChannelOptions,
+            ConnectionConfig connectionConfig, ISession session,
+            CancellationToken cancellationToken)
+        {
+            ChannelOptions channelOptions = ChannelOptions.From(createChannelOptions, connectionConfig);
+            var channel = new Channel(session, channelOptions);
+            return channel.OpenAsync(channelOptions, cancellationToken);
         }
 
         /// <summary>

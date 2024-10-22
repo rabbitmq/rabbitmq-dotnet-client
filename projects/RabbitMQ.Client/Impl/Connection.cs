@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Framing
 
             _sessionManager = new SessionManager(this, 0, config.MaxInboundMessageBodySize);
             _session0 = new MainSession(this, config.MaxInboundMessageBodySize);
-            _channel0 = new Channel(_config, _session0);
+            _channel0 = new Channel(_session0, ChannelOptions.From(config));
 
             ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)
             {
@@ -263,23 +263,15 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync(CreateChannelOptions? options = default,
+        public Task<IChannel> CreateChannelAsync(CreateChannelOptions? createChannelOptions = default,
             CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
 
-            options ??= CreateChannelOptions.Default;
+            createChannelOptions ??= CreateChannelOptions.Default;
             ISession session = CreateSession();
 
-            // TODO channel CreateChannelAsync() to combine ctor and OpenAsync
-            var channel = new Channel(_config, session, options.ConsumerDispatchConcurrency);
-            IChannel ch = await channel.OpenAsync(
-                options.PublisherConfirmationsEnabled,
-                options.PublisherConfirmationTrackingEnabled,
-                options.OutstandingPublisherConfirmationsRateLimiter,
-                cancellationToken)
-                .ConfigureAwait(false);
-            return ch;
+            return Channel.CreateAndOpenAsync(createChannelOptions, _config, session, cancellationToken);
         }
 
         internal ISession CreateSession()
