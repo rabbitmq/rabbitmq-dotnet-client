@@ -12,9 +12,9 @@
     <ProjectReference Include="projects/RabbitMQ.Client.OpenTelemetry/RabbitMQ.Client.OpenTelemetry.csproj" />
     <ProjectReference Include="projects/toxiproxy-netcore/src/ToxiproxyNetCore/ToxiproxyNetCore.csproj" />
     <ProjectReference Include="projects/Test/Common/Common.csproj" />
-    <ProjectReference Include="projects/Test/Applications/CreateChannel/CreateChannel.csproj" />
-    <ProjectReference Include="projects/Test/Applications/MassPublish/MassPublish.csproj" />
-    <ProjectReference Include="projects/Test/Applications/PublisherConfirms/PublisherConfirms.csproj" />
+    <ProjectReference Include="projects/Applications/CreateChannel/CreateChannel.csproj" />
+    <ProjectReference Include="projects/Applications/MassPublish/MassPublish.csproj" />
+    <ProjectReference Include="projects/Applications/PublisherConfirms/PublisherConfirms.csproj" />
     <ProjectReference Include="projects/Test/Integration/Integration.csproj" />
     <ProjectReference Include="projects/Test/SequentialIntegration/SequentialIntegration.csproj" />
     <ProjectReference Include="projects/Test/Unit/Unit.csproj" />

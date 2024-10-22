@@ -37,7 +37,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 
 const ushort MAX_OUTSTANDING_CONFIRMS = 256;
 
@@ -49,6 +48,11 @@ var channelOpts = new CreateChannelOptions
     PublisherConfirmationsEnabled = true,
     PublisherConfirmationTrackingEnabled = true,
     OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(MAX_OUTSTANDING_CONFIRMS)
+};
+
+var props = new BasicProperties
+{
+    Persistent = true
 };
 
 #pragma warning disable CS8321 // Local function is declared but never used
@@ -82,7 +86,7 @@ async Task PublishMessagesIndividuallyAsync()
         byte[] body = Encoding.UTF8.GetBytes(i.ToString());
         try
         {
-            await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body);
+            await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body, basicProperties: props, mandatory: true);
         }
         catch (Exception ex)
         {
@@ -106,7 +110,7 @@ async Task PublishMessagesInBatchAsync()
     QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
     string queueName = queueDeclareResult.QueueName;
 
-    int batchSize = MAX_OUTSTANDING_CONFIRMS;
+    int batchSize = MAX_OUTSTANDING_CONFIRMS / 2;
     int outstandingMessageCount = 0;
 
     var sw = new Stopwatch();
@@ -116,7 +120,7 @@ async Task PublishMessagesInBatchAsync()
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
         byte[] body = Encoding.UTF8.GetBytes(i.ToString());
-        publishTasks.Add(channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body));
+        publishTasks.Add(channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body, mandatory: true, basicProperties: props));
         outstandingMessageCount++;
 
         if (outstandingMessageCount == batchSize)
@@ -279,7 +283,7 @@ async Task HandlePublishConfirmsAsynchronously()
             rk = Guid.NewGuid().ToString();
         }
         (ulong, ValueTask) data =
-            (nextPublishSeqNo, channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true));
+            (nextPublishSeqNo, channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true, basicProperties: props));
         publishTasks.Add(data);
     }
 

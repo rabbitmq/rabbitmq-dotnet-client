@@ -14,11 +14,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unit", "projects\Test\Unit\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "projects\Benchmarks\Benchmarks.csproj", "{38D72C9A-68E9-4653-B0CE-C7BA9FFD91D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassPublish", "projects\Test\Applications\MassPublish\MassPublish.csproj", "{0E3C4FBE-9976-40A3-9F57-DC0D9B7A39A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MassPublish", "projects\Applications\MassPublish\MassPublish.csproj", "{0E3C4FBE-9976-40A3-9F57-DC0D9B7A39A6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Applications", "{D21B282C-49E6-4A30-887B-9626D94B8D69}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateChannel", "projects\Test\Applications\CreateChannel\CreateChannel.csproj", "{4A589408-F3A3-40E1-A6DF-F5E620F7CA31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateChannel", "projects\Applications\CreateChannel\CreateChannel.csproj", "{4A589408-F3A3-40E1-A6DF-F5E620F7CA31}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client.OAuth2", "projects\RabbitMQ.Client.OAuth2\RabbitMQ.Client.OAuth2.csproj", "{794C7B31-0E9A-44A4-B285-0F3CAF6209F1}"
 EndProject
@@ -42,9 +42,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToxiproxyNetCore", "project
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMQ.Client.OpenTelemetry", "projects\RabbitMQ.Client.OpenTelemetry\RabbitMQ.Client.OpenTelemetry.csproj", "{16BF2086-AC7D-4EC3-8660-CC16E663ACB1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GH-1647", "projects\Test\Applications\GH-1647\GH-1647.csproj", "{64ED07BF-4D77-47CD-AF4F-5B4525686FA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GH-1647", "projects\Applications\GH-1647\GH-1647.csproj", "{64ED07BF-4D77-47CD-AF4F-5B4525686FA1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PublisherConfirms", "projects\Test\Applications\PublisherConfirms\PublisherConfirms.csproj", "{13149F73-2CDB-4ECF-BF2C-403860045751}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PublisherConfirms", "projects\Applications\PublisherConfirms\PublisherConfirms.csproj", "{13149F73-2CDB-4ECF-BF2C-403860045751}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,7 +115,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{B8FAC024-CC03-4067-9FFC-02846FB8AE48} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 		{0E3C4FBE-9976-40A3-9F57-DC0D9B7A39A6} = {D21B282C-49E6-4A30-887B-9626D94B8D69}
-		{D21B282C-49E6-4A30-887B-9626D94B8D69} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 		{4A589408-F3A3-40E1-A6DF-F5E620F7CA31} = {D21B282C-49E6-4A30-887B-9626D94B8D69}
 		{897D13F0-AF06-444A-9072-CF7E809A4A2C} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
 		{B01347D8-C327-471B-A1FE-7B86F7684A27} = {EFD4BED5-13A5-4D9C-AADF-CAB7E1573704}
