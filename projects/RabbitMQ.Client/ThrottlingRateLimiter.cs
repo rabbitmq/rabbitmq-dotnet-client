@@ -58,6 +58,8 @@ namespace RabbitMQ.Client
             _concurrencyLimiter = new ConcurrencyLimiter(limiterOptions);
         }
 
+        public override TimeSpan? IdleDuration => null;
+
         public override RateLimiterStatistics? GetStatistics() => _concurrencyLimiter.GetStatistics();
 
         protected override RateLimitLease AttemptAcquireCore(int permitCount)
@@ -80,26 +82,24 @@ namespace RabbitMQ.Client
 
         private void ThrottleIfNeeded()
         {
-            long? availablePermits = _concurrencyLimiter.GetStatistics()?.CurrentAvailablePermits;
-            if (!(availablePermits < _throttlingThreshold))
+            int delay = CalculateDelay();
+            if (delay > 0)
             {
-                return;
+                Thread.Sleep(delay);
             }
-
-            int delay = (int)((1.0 - availablePermits / (double)_maxConcurrency) * 1000);
-            Thread.Sleep(delay);
         }
 
         private Task ThrottleIfNeededAsync(CancellationToken cancellationToken = default)
         {
-            long? availablePermits = _concurrencyLimiter.GetStatistics()?.CurrentAvailablePermits;
-            if (!(availablePermits < _throttlingThreshold))
+            int delay = CalculateDelay();
+            if (delay > 0)
+            {
+                return Task.Delay(delay, cancellationToken);
+            }
+            else
             {
                 return Task.CompletedTask;
             }
-
-            int delay = (int)((1.0 - availablePermits / (double)_maxConcurrency) * 1000);
-            return Task.Delay(delay, cancellationToken);
         }
 
         protected override void Dispose(bool disposing)
@@ -112,6 +112,15 @@ namespace RabbitMQ.Client
             base.Dispose(disposing);
         }
 
-        public override TimeSpan? IdleDuration => null;
+        private int CalculateDelay()
+        {
+            long? availablePermits = _concurrencyLimiter.GetStatistics()?.CurrentAvailablePermits;
+            if (!(availablePermits < _throttlingThreshold))
+            {
+                return 0;
+            }
+
+            return (int)((1.0 - availablePermits / (double)_maxConcurrency) * 1000);
+        }
     }
 }
