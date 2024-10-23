@@ -40,6 +40,14 @@ namespace RabbitMQ.Client
     {
         /// <summary>
         /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
+        ///
+        /// Note that, if this is enabled, and <see cref="PublisherConfirmationTrackingEnabled"/> is <b>not</b>
+        /// enabled, the broker may send a <c>basic.return</c> response if a message is published with <c>mandatory: true</c>
+        /// and the broker can't route the message. This response will not, however, contain the publish sequence number
+        /// for the message, so it is difficult to correlate the response to the correct message. Users of this library
+        /// could add the <see cref="Constants.PublishSequenceNumberHeader"/> header with the value returned by
+        /// <see cref="IChannel.GetNextPublishSequenceNumberAsync(System.Threading.CancellationToken)"/> to allow correlation
+        /// of the response with the correct message.
         /// </summary>
         public bool PublisherConfirmationsEnabled { get; set; } = false;
 
