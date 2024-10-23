@@ -340,7 +340,7 @@ namespace Test
             }
         }
 
-        protected static async Task<bool> SendAndConsumeMessageAsync(IConnection conn, string queue, string exchange, string routingKey)
+        protected async Task<bool> SendAndConsumeMessageAsync(IConnection conn, string queue, string exchange, string routingKey)
         {
             using (IChannel ch = await conn.CreateChannelAsync(_createChannelOptions))
             {

@@ -64,10 +64,10 @@ namespace Test
 
         protected ConnectionFactory _connFactory;
         protected IConnection _conn;
-        protected IChannel _channel;
 
-        protected static readonly CreateChannelOptions _createChannelOptions = new(publisherConfirmationsEnabled: true,
+        protected CreateChannelOptions _createChannelOptions = new(publisherConfirmationsEnabled: true,
             publisherConfirmationTrackingEnabled: true);
+        protected IChannel _channel;
 
         protected static readonly Encoding _encoding = new UTF8Encoding();
         protected static readonly int _processorCount = Environment.ProcessorCount;
@@ -156,6 +156,8 @@ namespace Test
 
                 if (_openChannel)
                 {
+                    _createChannelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true,
+                        publisherConfirmationTrackingEnabled: true, consumerDispatchConcurrency: _consumerDispatchConcurrency);
                     _channel = await _conn.CreateChannelAsync(_createChannelOptions);
                 }
 
