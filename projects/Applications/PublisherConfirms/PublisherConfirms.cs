@@ -55,15 +55,24 @@ var props = new BasicProperties
     Persistent = true
 };
 
+string hostname = "localhost";
+if (args.Length > 0)
+{
+    if (false == string.IsNullOrWhiteSpace(args[0]))
+    {
+        hostname = args[0];
+    }
+}
+
 #pragma warning disable CS8321 // Local function is declared but never used
 
 await PublishMessagesIndividuallyAsync();
 await PublishMessagesInBatchAsync();
 await HandlePublishConfirmsAsynchronously();
 
-static Task<IConnection> CreateConnectionAsync()
+Task<IConnection> CreateConnectionAsync()
 {
-    var factory = new ConnectionFactory { HostName = "localhost" };
+    var factory = new ConnectionFactory { HostName = hostname };
     return factory.CreateConnectionAsync();
 }
 
