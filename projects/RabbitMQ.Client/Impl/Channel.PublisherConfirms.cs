@@ -228,7 +228,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void HandleReturn(BasicReturnEventArgs basicReturnEvent)
         {
-            if (_publisherConfirmationsEnabled)
+            if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
             {
                 ulong publishSequenceNumber = 0;
                 IReadOnlyBasicProperties props = basicReturnEvent.BasicProperties;

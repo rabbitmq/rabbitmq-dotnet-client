@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.RateLimiting;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -41,11 +40,24 @@ namespace RabbitMQ.Client
     {
         /// <summary>
         /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
+        ///
+        /// Note that, if this is enabled, and <see cref="PublisherConfirmationTrackingEnabled"/> is <b>not</b>
+        /// enabled, the broker may send a <c>basic.return</c> response if a message is published with <c>mandatory: true</c>
+        /// and the broker can't route the message. This response will not, however, contain the publish sequence number
+        /// for the message, so it is difficult to correlate the response to the correct message. Users of this library
+        /// could add the <see cref="Constants.PublishSequenceNumberHeader"/> header with the value returned by
+        /// <see cref="IChannel.GetNextPublishSequenceNumberAsync(System.Threading.CancellationToken)"/> to allow correlation
+        /// of the response with the correct message.
         /// </summary>
         public bool PublisherConfirmationsEnabled { get; set; } = false;
 
         /// <summary>
         /// Should this library track publisher confirmations for you? Defaults to <c>false</c>
+        ///
+        /// When enabled, the <see cref="Constants.PublishSequenceNumberHeader" /> header will be
+        /// added to every published message, and will contain the message's publish sequence number.
+        /// If the broker then sends a <c>basic.return</c> response for the message, this library can
+        /// then correctly handle the message.
         /// </summary>
         public bool PublisherConfirmationTrackingEnabled { get; set; } = false;
 

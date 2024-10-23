@@ -215,7 +215,7 @@ namespace RabbitMQ.Client.Impl
 
             void MaybeAddPublishSequenceNumberToHeaders(IDictionary<string, object?> headers)
             {
-                if (_publisherConfirmationsEnabled)
+                if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
                 {
                     byte[] publishSequenceNumberBytes = new byte[8];
                     NetworkOrderSerializer.WriteUInt64(ref publishSequenceNumberBytes.GetStart(), publishSequenceNumber);
