@@ -52,7 +52,10 @@ namespace RabbitMQ.Client
         /// <summary>
         /// If the publisher confirmation tracking is enabled, this represents the rate limiter used to
         /// throttle additional attempts to publish once the threshold is reached.
+        ///
+        /// Defaults to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling percentage of 50% with a delay during throttling.
         /// </summary>
+        /// <remarks>Setting the rate limiter to <c>null</c> disables the rate limiting entirely.</remarks>
         public RateLimiter? OutstandingPublisherConfirmationsRateLimiter { get; set; } = new ThrottlingRateLimiter(128);
 
         /// <summary>
