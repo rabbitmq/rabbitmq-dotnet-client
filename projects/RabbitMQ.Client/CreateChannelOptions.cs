@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Threading.RateLimiting;
 
 namespace RabbitMQ.Client
@@ -38,6 +39,9 @@ namespace RabbitMQ.Client
     /// </summary>
     public sealed class CreateChannelOptions
     {
+        private ushort? _connectionConfigConsumerDispatchConcurrency;
+        private TimeSpan _connectionConfigContinuationTimeout;
+
         /// <summary>
         /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
         ///
@@ -82,9 +86,53 @@ namespace RabbitMQ.Client
         /// </summary>
         public ushort? ConsumerDispatchConcurrency { get; set; } = null;
 
-        /// <summary>
-        /// The default channel options.
-        /// </summary>
-        public static CreateChannelOptions Default { get; } = new CreateChannelOptions();
+        public CreateChannelOptions()
+        {
+        }
+
+        internal ushort InternalConsumerDispatchConcurrency
+        {
+            get
+            {
+                if (ConsumerDispatchConcurrency is not null)
+                {
+                    return ConsumerDispatchConcurrency.Value;
+                }
+
+                if (_connectionConfigConsumerDispatchConcurrency is not null)
+                {
+                    return _connectionConfigConsumerDispatchConcurrency.Value;
+                }
+
+                return Constants.DefaultConsumerDispatchConcurrency;
+            }
+        }
+
+        internal TimeSpan ContinuationTimeout => _connectionConfigContinuationTimeout;
+
+        internal CreateChannelOptions(ConnectionConfig connectionConfig)
+        {
+            _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
+            _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+        }
+
+        private void WithConnectionConfig(ConnectionConfig connectionConfig)
+        {
+            _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
+            _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+        }
+
+        internal static CreateChannelOptions CreateOrUpdate(CreateChannelOptions? createChannelOptions, ConnectionConfig config)
+        {
+            if (createChannelOptions is not null)
+            {
+                createChannelOptions.WithConnectionConfig(config);
+                return createChannelOptions;
+            }
+            else
+            {
+                return new CreateChannelOptions(config);
+            }
+        }
     }
 }
