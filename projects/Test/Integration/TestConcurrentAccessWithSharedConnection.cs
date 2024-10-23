@@ -108,7 +108,8 @@ namespace Test.Integration
 
                 try
                 {
-                    await using IChannel ch = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true });
+                    var createChannelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: false);
+                    await using IChannel ch = await _conn.CreateChannelAsync(createChannelOptions);
                     ch.ChannelShutdownAsync += (o, ea) =>
                     {
                         HandleChannelShutdown(ch, ea, (args) =>

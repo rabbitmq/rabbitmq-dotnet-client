@@ -199,7 +199,7 @@ namespace Test
         {
             using (AutorecoveringConnection publishingConn = await CreateAutorecoveringConnectionAsync())
             {
-                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
+                using (IChannel publishingChannel = await publishingConn.CreateChannelAsync(_createChannelOptions))
                 {
                     for (ushort i = 0; i < TotalMessageCount; i++)
                     {
@@ -342,7 +342,7 @@ namespace Test
 
         protected static async Task<bool> SendAndConsumeMessageAsync(IConnection conn, string queue, string exchange, string routingKey)
         {
-            using (IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
+            using (IChannel ch = await conn.CreateChannelAsync(_createChannelOptions))
             {
                 var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 

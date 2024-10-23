@@ -65,7 +65,7 @@ namespace Test.Integration
             _connFactory.AutomaticRecoveryEnabled = false;
             _conn = await _connFactory.CreateConnectionAsync();
             Assert.IsNotType<RabbitMQ.Client.Framing.AutorecoveringConnection>(_conn);
-            _channel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+            _channel = await _conn.CreateChannelAsync(_createChannelOptions);
 
             _conn.ConnectionShutdownAsync += (_, ea) =>
             {
@@ -192,7 +192,7 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                await using (IChannel publishChannel = await publishConnection.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
+                await using (IChannel publishChannel = await publishConnection.CreateChannelAsync(_createChannelOptions))
                 {
 
                     publishChannel.ChannelShutdownAsync += (o, ea) =>

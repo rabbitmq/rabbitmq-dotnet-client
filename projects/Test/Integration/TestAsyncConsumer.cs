@@ -213,7 +213,7 @@ namespace Test.Integration
                         });
                         return Task.CompletedTask;
                     };
-                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true }))
+                    await using (IChannel publishChannel = await publishConn.CreateChannelAsync(_createChannelOptions))
                     {
                         AddCallbackExceptionHandlers(publishConn, publishChannel);
                         publishChannel.DefaultConsumer = new DefaultAsyncConsumer(publishChannel,
@@ -646,7 +646,7 @@ namespace Test.Integration
             var consumer1 = new AsyncEventingBasicConsumer(_channel);
             consumer1.ReceivedAsync += async (sender, args) =>
             {
-                await using IChannel innerChannel = await _conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+                await using IChannel innerChannel = await _conn.CreateChannelAsync(_createChannelOptions);
                 await innerChannel.BasicPublishAsync(exchangeName, queue2Name,
                     mandatory: true,
                     body: Encoding.ASCII.GetBytes(nameof(TestCreateChannelWithinAsyncConsumerCallback_GH650)));
@@ -707,9 +707,15 @@ namespace Test.Integration
             AutorecoveringChannel autorecoveringChannel = (AutorecoveringChannel)_channel;
             Assert.Equal(ConsumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
             Assert.Equal(_consumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
-            await using IChannel ch = await _conn.CreateChannelAsync(
-                new CreateChannelOptions { ConsumerDispatchConcurrency = expectedConsumerDispatchConcurrency });
+
+            var createChannelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: false,
+                publisherConfirmationTrackingEnabled: false,
+                outstandingPublisherConfirmationsRateLimiter: null,
+                consumerDispatchConcurrency: expectedConsumerDispatchConcurrency);
+
+            await using IChannel ch = await _conn.CreateChannelAsync(createChannelOptions);
             AutorecoveringChannel ach = (AutorecoveringChannel)ch;
+
             Assert.Equal(expectedConsumerDispatchConcurrency, ach.ConsumerDispatcher.Concurrency);
         }
 

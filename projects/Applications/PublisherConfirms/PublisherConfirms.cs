@@ -43,12 +43,11 @@ const ushort MAX_OUTSTANDING_CONFIRMS = 256;
 const int MESSAGE_COUNT = 50_000;
 bool debug = false;
 
-var channelOpts = new CreateChannelOptions
-{
-    PublisherConfirmationsEnabled = true,
-    PublisherConfirmationTrackingEnabled = true,
-    OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(MAX_OUTSTANDING_CONFIRMS)
-};
+var channelOpts = new CreateChannelOptions(
+    publisherConfirmationsEnabled: true,
+    publisherConfirmationTrackingEnabled: true,
+    outstandingPublisherConfirmationsRateLimiter: new ThrottlingRateLimiter(MAX_OUTSTANDING_CONFIRMS)
+);
 
 var props = new BasicProperties
 {
@@ -177,7 +176,7 @@ async Task HandlePublishConfirmsAsynchronously()
 
     await using IConnection connection = await CreateConnectionAsync();
 
-    channelOpts.PublisherConfirmationTrackingEnabled = false;
+    channelOpts = new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: false);
     await using IChannel channel = await connection.CreateChannelAsync(channelOpts);
 
     // declare a server-named queue

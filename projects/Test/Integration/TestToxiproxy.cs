@@ -127,7 +127,7 @@ namespace Test.Integration
 
                 async Task PublishLoop()
                 {
-                    await using IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+                    await using IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
                     QueueDeclareOk q = await ch.QueueDeclareAsync();
                     while (conn.IsOpen)
                     {
@@ -206,7 +206,7 @@ namespace Test.Integration
             Task pubTask = Task.Run(async () =>
             {
                 await using IConnection conn = await cf.CreateConnectionAsync();
-                await using IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+                await using IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
                 QueueDeclareOk q = await ch.QueueDeclareAsync();
                 while (conn.IsOpen)
                 {
@@ -304,12 +304,11 @@ namespace Test.Integration
             cf.RequestedHeartbeat = TimeSpan.FromSeconds(5);
             cf.AutomaticRecoveryEnabled = true;
 
-            var channelOpts = new CreateChannelOptions
-            {
-                PublisherConfirmationsEnabled = true,
-                PublisherConfirmationTrackingEnabled = true,
-                OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(MaxOutstandingConfirms)
-            };
+            var channelOpts = new CreateChannelOptions(
+                publisherConfirmationsEnabled: true,
+                publisherConfirmationTrackingEnabled: true,
+                outstandingPublisherConfirmationsRateLimiter: new ThrottlingRateLimiter(MaxOutstandingConfirms)
+            );
 
             var channelCreatedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var messagesPublishedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);

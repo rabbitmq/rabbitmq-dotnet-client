@@ -40,11 +40,7 @@ ConnectionFactory connectionFactory = new()
     Password = "guest"
 };
 
-var channelOptions = new CreateChannelOptions
-{
-    PublisherConfirmationsEnabled = true,
-    PublisherConfirmationTrackingEnabled = true
-};
+var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
 
 var props = new BasicProperties();
 byte[] msg = Encoding.UTF8.GetBytes("test");
