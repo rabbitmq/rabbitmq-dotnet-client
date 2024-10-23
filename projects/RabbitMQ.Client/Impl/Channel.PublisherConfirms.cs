@@ -295,7 +295,10 @@ namespace RabbitMQ.Client.Impl
                 if (_publisherConfirmationTrackingEnabled)
                 {
                     publisherConfirmationTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    _confirmsTaskCompletionSources[publishSequenceNumber] = publisherConfirmationTcs;
+                    if (!_confirmsTaskCompletionSources.TryAdd(publishSequenceNumber, publisherConfirmationTcs))
+                    {
+                        throw new InvalidOperationException($"Failed to track the publisher confirmation for sequence number '{publishSequenceNumber}' because it already exists.");
+                    }
                 }
 
                 _nextPublishSeqNo++;
