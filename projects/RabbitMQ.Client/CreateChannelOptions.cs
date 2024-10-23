@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System.Threading.RateLimiting;
-using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client
 {
@@ -46,6 +45,11 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Should this library track publisher confirmations for you? Defaults to <c>false</c>
+        ///
+        /// When enabled, the <see cref="Constants.PublishSequenceNumberHeader" /> header will be
+        /// added to every published message, and will contain the message's publish sequence number.
+        /// If the broker then sends a <c>basic.return</c> response for the message, this library can
+        /// then correctly handle the message.
         /// </summary>
         public bool PublisherConfirmationTrackingEnabled { get; set; } = false;
 
