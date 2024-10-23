@@ -36,14 +36,34 @@ using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
+    /// <summary>
+    /// A rate limiter that controls the rate of operations by limiting concurrency and applying delays 
+    /// when a specified threshold of concurrency usage is reached.
+    ///
+    /// The delay algorithm checks the current available permits from the concurrency limiter. If the available permits are greater than or equal
+    /// to the throttling threshold, no delay is applied.  Otherwise, it calculates a delay based on the percentage of permits used,
+    /// scaling it up to a maximum of 1000 milliseconds.
+    /// </summary>
     public class ThrottlingRateLimiter : RateLimiter
     {
+        /// <summary>
+        /// The default throttling percentage, which defines the threshold for applying throttling, set to 50%.
+        /// </summary>
         public const int DefaultThrottlingPercentage = 50;
 
         private readonly ConcurrencyLimiter _concurrencyLimiter;
         private readonly int _maxConcurrency;
         private readonly int _throttlingThreshold;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ThrottlingRateLimiter"/> class with the specified
+        /// maximum number of concurrent calls and an optional throttling percentage.
+        /// </summary>
+        /// <param name="maxConcurrentCalls">The maximum number of concurrent operations allowed.</param>
+        /// <param name="throttlingPercentage">
+        /// The percentage of <paramref name="maxConcurrentCalls"/> at which throttling is triggered. 
+        /// Defaults to 50% if not specified.
+        /// </param>
         public ThrottlingRateLimiter(int maxConcurrentCalls, int? throttlingPercentage = DefaultThrottlingPercentage)
         {
             _maxConcurrency = maxConcurrentCalls;
