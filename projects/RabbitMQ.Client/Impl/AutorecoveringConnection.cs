@@ -185,11 +185,11 @@ namespace RabbitMQ.Client.Framing
         public IProtocol Protocol => Endpoint.Protocol;
 
         public ValueTask<RecoveryAwareChannel> CreateNonRecoveringChannelAsync(
-            ChannelOptions channelOptions,
+            CreateChannelOptions createChannelOptions,
             CancellationToken cancellationToken = default)
         {
             ISession session = InnerConnection.CreateSession();
-            return RecoveryAwareChannel.CreateAndOpenAsync(session, channelOptions, cancellationToken);
+            return RecoveryAwareChannel.CreateAndOpenAsync(session, createChannelOptions, cancellationToken);
         }
 
         public override string ToString()
@@ -251,21 +251,16 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync(CreateChannelOptions? options = default,
+        public async Task<IChannel> CreateChannelAsync(CreateChannelOptions? createChannelOptions = default,
             CancellationToken cancellationToken = default)
         {
             EnsureIsOpen();
 
-            options ??= CreateChannelOptions.Default;
-
-            ushort cdc = options.ConsumerDispatchConcurrency.GetValueOrDefault(_config.ConsumerDispatchConcurrency);
-
-            var channelOptions = ChannelOptions.From(options, _config);
-
-            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(channelOptions, cancellationToken)
+            createChannelOptions = CreateChannelOptions.CreateOrUpdate(createChannelOptions, _config);
+            RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(createChannelOptions, cancellationToken)
                 .ConfigureAwait(false);
 
-            var autorecoveringChannel = new AutorecoveringChannel(this, recoveryAwareChannel, channelOptions);
+            var autorecoveringChannel = new AutorecoveringChannel(this, recoveryAwareChannel, createChannelOptions);
 
             await RecordChannelAsync(autorecoveringChannel, channelsSemaphoreHeld: false, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);

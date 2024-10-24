@@ -185,8 +185,8 @@ namespace RabbitMQ.Client
         /// </summary>
         public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
 
-        private TimeSpan _handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
-        private TimeSpan _continuationTimeout = TimeSpan.FromSeconds(20);
+        private TimeSpan _handshakeContinuationTimeout = Constants.DefaultHandshakeContinuationTimeout;
+        private TimeSpan _continuationTimeout = Constants.DefaultContinuationTimeout;
 
         // just here to hold the value that was set through the setter
         private string? _clientProvidedName;

@@ -42,7 +42,7 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class AutorecoveringChannel : IChannel, IRecoverable
     {
-        private readonly ChannelOptions _channelOptions;
+        private readonly CreateChannelOptions _createChannelOptions;
         private readonly List<string> _recordedConsumerTags = new List<string>();
 
         private AutorecoveringConnection _connection;
@@ -73,11 +73,11 @@ namespace RabbitMQ.Client.Impl
 
         public AutorecoveringChannel(AutorecoveringConnection conn,
             RecoveryAwareChannel innerChannel,
-            ChannelOptions channelOptions)
+            CreateChannelOptions createChannelOptions)
         {
             _connection = conn;
             _innerChannel = innerChannel;
-            _channelOptions = channelOptions;
+            _createChannelOptions = createChannelOptions;
         }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -162,7 +162,7 @@ namespace RabbitMQ.Client.Impl
 
             _connection = conn;
 
-            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(_channelOptions, cancellationToken)
+            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(_createChannelOptions, cancellationToken)
                 .ConfigureAwait(false);
 
             newChannel.TakeOver(_innerChannel);

@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Framing
 
             _sessionManager = new SessionManager(this, 0, config.MaxInboundMessageBodySize);
             _session0 = new MainSession(this, config.MaxInboundMessageBodySize);
-            _channel0 = new Channel(_session0, ChannelOptions.From(config));
+            _channel0 = new Channel(_session0, new CreateChannelOptions(config));
 
             ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)
             {
@@ -268,10 +268,9 @@ namespace RabbitMQ.Client.Framing
         {
             EnsureIsOpen();
 
-            createChannelOptions ??= CreateChannelOptions.Default;
+            createChannelOptions = CreateChannelOptions.CreateOrUpdate(createChannelOptions, _config);
             ISession session = CreateSession();
-
-            return Channel.CreateAndOpenAsync(createChannelOptions, _config, session, cancellationToken);
+            return Channel.CreateAndOpenAsync(createChannelOptions, session, cancellationToken);
         }
 
         internal ISession CreateSession()

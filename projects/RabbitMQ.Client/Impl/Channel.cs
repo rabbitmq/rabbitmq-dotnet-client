@@ -61,10 +61,10 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
-        public Channel(ISession session, ChannelOptions channelOptions)
+        public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
-            ContinuationTimeout = channelOptions.ContinuationTimeout;
-            ConsumerDispatcher = new AsyncConsumerDispatcher(this, channelOptions.ConsumerDispatchConcurrency);
+            ContinuationTimeout = createChannelOptions.ContinuationTimeout;
+            ConsumerDispatcher = new AsyncConsumerDispatcher(this, createChannelOptions.InternalConsumerDispatchConcurrency);
             Func<Exception, string, CancellationToken, Task> onExceptionAsync = (exception, context, cancellationToken) =>
                 OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
             _basicAcksAsyncWrapper = new AsyncEventingWrapper<BasicAckEventArgs>("OnBasicAck", onExceptionAsync);
@@ -359,12 +359,12 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal async Task<IChannel> OpenAsync(ChannelOptions channelOptions,
+        internal async Task<IChannel> OpenAsync(CreateChannelOptions createChannelOptions,
             CancellationToken cancellationToken)
         {
-            ConfigurePublisherConfirmations(channelOptions.PublisherConfirmationsEnabled,
-                channelOptions.PublisherConfirmationTrackingEnabled,
-                channelOptions.OutstandingPublisherConfirmationsRateLimiter);
+            ConfigurePublisherConfirmations(createChannelOptions.PublisherConfirmationsEnabled,
+                createChannelOptions.PublisherConfirmationTrackingEnabled,
+                createChannelOptions.OutstandingPublisherConfirmationsRateLimiter);
 
             bool enqueued = false;
             var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
@@ -1493,13 +1493,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static Task<IChannel> CreateAndOpenAsync(CreateChannelOptions createChannelOptions,
-            ConnectionConfig connectionConfig, ISession session,
+        internal static Task<IChannel> CreateAndOpenAsync(CreateChannelOptions createChannelOptions, ISession session,
             CancellationToken cancellationToken)
         {
-            ChannelOptions channelOptions = ChannelOptions.From(createChannelOptions, connectionConfig);
-            var channel = new Channel(session, channelOptions);
-            return channel.OpenAsync(channelOptions, cancellationToken);
+            var channel = new Channel(session, createChannelOptions);
+            return channel.OpenAsync(createChannelOptions, cancellationToken);
         }
 
         /// <summary>

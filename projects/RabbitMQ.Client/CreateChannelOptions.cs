@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Threading.RateLimiting;
 
 namespace RabbitMQ.Client
@@ -38,6 +39,9 @@ namespace RabbitMQ.Client
     /// </summary>
     public sealed class CreateChannelOptions
     {
+        private ushort? _connectionConfigConsumerDispatchConcurrency;
+        private TimeSpan _connectionConfigContinuationTimeout;
+
         /// <summary>
         /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
         ///
@@ -49,7 +53,7 @@ namespace RabbitMQ.Client
         /// <see cref="IChannel.GetNextPublishSequenceNumberAsync(System.Threading.CancellationToken)"/> to allow correlation
         /// of the response with the correct message.
         /// </summary>
-        public bool PublisherConfirmationsEnabled { get; set; } = false;
+        public readonly bool PublisherConfirmationsEnabled = false;
 
         /// <summary>
         /// Should this library track publisher confirmations for you? Defaults to <c>false</c>
@@ -59,7 +63,7 @@ namespace RabbitMQ.Client
         /// If the broker then sends a <c>basic.return</c> response for the message, this library can
         /// then correctly handle the message.
         /// </summary>
-        public bool PublisherConfirmationTrackingEnabled { get; set; } = false;
+        public readonly bool PublisherConfirmationTrackingEnabled = false;
 
         /// <summary>
         /// If the publisher confirmation tracking is enabled, this represents the rate limiter used to
@@ -68,7 +72,7 @@ namespace RabbitMQ.Client
         /// Defaults to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling percentage of 50% with a delay during throttling.
         /// </summary>
         /// <remarks>Setting the rate limiter to <c>null</c> disables the rate limiting entirely.</remarks>
-        public RateLimiter? OutstandingPublisherConfirmationsRateLimiter { get; set; } = new ThrottlingRateLimiter(128);
+        public readonly RateLimiter? OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(128);
 
         /// <summary>
         /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
@@ -80,11 +84,62 @@ namespace RabbitMQ.Client
         /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
         /// In addition to that consumers need to be thread/concurrency safe.
         /// </summary>
-        public ushort? ConsumerDispatchConcurrency { get; set; } = null;
+        public readonly ushort? ConsumerDispatchConcurrency = null;
 
-        /// <summary>
-        /// The default channel options.
-        /// </summary>
-        public static CreateChannelOptions Default { get; } = new CreateChannelOptions();
+        public CreateChannelOptions(bool publisherConfirmationsEnabled,
+            bool publisherConfirmationTrackingEnabled,
+            RateLimiter? outstandingPublisherConfirmationsRateLimiter = null,
+            ushort? consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency)
+        {
+            PublisherConfirmationsEnabled = publisherConfirmationsEnabled;
+            PublisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
+            OutstandingPublisherConfirmationsRateLimiter = outstandingPublisherConfirmationsRateLimiter;
+            ConsumerDispatchConcurrency = consumerDispatchConcurrency;
+        }
+
+        internal ushort InternalConsumerDispatchConcurrency
+        {
+            get
+            {
+                if (ConsumerDispatchConcurrency is not null)
+                {
+                    return ConsumerDispatchConcurrency.Value;
+                }
+
+                if (_connectionConfigConsumerDispatchConcurrency is not null)
+                {
+                    return _connectionConfigConsumerDispatchConcurrency.Value;
+                }
+
+                return Constants.DefaultConsumerDispatchConcurrency;
+            }
+        }
+
+        internal TimeSpan ContinuationTimeout => _connectionConfigContinuationTimeout;
+
+        internal CreateChannelOptions(ConnectionConfig connectionConfig)
+        {
+            _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
+            _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+        }
+
+        private CreateChannelOptions WithConnectionConfig(ConnectionConfig connectionConfig)
+        {
+            _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
+            _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+            return this;
+        }
+
+        internal static CreateChannelOptions CreateOrUpdate(CreateChannelOptions? createChannelOptions, ConnectionConfig config)
+        {
+            if (createChannelOptions is null)
+            {
+                return new CreateChannelOptions(config);
+            }
+            else
+            {
+                return createChannelOptions.WithConnectionConfig(config);
+            }
+        }
     }
 }

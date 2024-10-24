@@ -104,7 +104,8 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+
+            IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
 
             await ch.QueueDeclareAsync(queueToRecover, false, false, false);
             await ch.QueueDeclareAsync(queueToIgnore, false, false, false);
@@ -155,7 +156,9 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+
+            IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
+
             try
             {
                 await ch.ExchangeDeclareAsync(exchangeToRecover, "topic", false, true);
@@ -272,7 +275,7 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+            IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
             try
             {
 
@@ -367,7 +370,7 @@ namespace Test.Integration
                 tcs.SetResult(true);
                 return Task.CompletedTask;
             };
-            IChannel ch = await conn.CreateChannelAsync(new CreateChannelOptions { PublisherConfirmationsEnabled = true, PublisherConfirmationTrackingEnabled = true });
+            IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
 
             await ch.QueueDeclareAsync(queueToRecoverWithException, false, false, false);
             await ch.QueueDeclareAsync(queueToRecoverSuccessfully, false, false, false);

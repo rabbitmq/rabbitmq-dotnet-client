@@ -36,8 +36,8 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed class RecoveryAwareChannel : Channel
     {
-        public RecoveryAwareChannel(ISession session, ChannelOptions channelOptions)
-            : base(session, channelOptions)
+        public RecoveryAwareChannel(ISession session, CreateChannelOptions createChannelOptions)
+            : base(session, createChannelOptions)
         {
             ActiveDeliveryTagOffset = 0;
             MaxSeenDeliveryTag = 0;
@@ -104,11 +104,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        internal static async ValueTask<RecoveryAwareChannel> CreateAndOpenAsync(ISession session, ChannelOptions channelOptions,
+        internal static async ValueTask<RecoveryAwareChannel> CreateAndOpenAsync(ISession session, CreateChannelOptions createChannelOptions,
             CancellationToken cancellationToken)
         {
-            var result = new RecoveryAwareChannel(session, channelOptions);
-            return (RecoveryAwareChannel)await result.OpenAsync(channelOptions, cancellationToken)
+            var result = new RecoveryAwareChannel(session, createChannelOptions);
+            return (RecoveryAwareChannel)await result.OpenAsync(createChannelOptions, cancellationToken)
                 .ConfigureAwait(false);
         }
     }

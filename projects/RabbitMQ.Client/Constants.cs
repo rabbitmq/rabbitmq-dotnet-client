@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     public static class Constants
@@ -97,5 +99,15 @@ namespace RabbitMQ.Client
         /// <c>basic.return</c> is sent via the broker.
         /// </summary>
         public const string PublishSequenceNumberHeader = "x-dotnet-pub-seq-no";
+
+        /// <summary>
+        /// The default timeout for initial AMQP handshake
+        /// </summary>
+        public static readonly TimeSpan DefaultHandshakeContinuationTimeout = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        /// The default timeout for RPC methods
+        /// </summary>
+        public static readonly TimeSpan DefaultContinuationTimeout = TimeSpan.FromSeconds(20);
     }
 }
