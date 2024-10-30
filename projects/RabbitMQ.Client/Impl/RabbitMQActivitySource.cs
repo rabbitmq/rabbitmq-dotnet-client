@@ -63,14 +63,14 @@ namespace RabbitMQ.Client
 
             Activity? activity = linkedContext == default
                 ? s_publisherSource.StartRabbitMQActivity(
-                    UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
+                    UseRoutingKeyAsOperationName ? $"{routingKey} send" : "send",
                     ActivityKind.Producer)
                 : s_publisherSource.StartLinkedRabbitMQActivity(
-                    UseRoutingKeyAsOperationName ? $"{routingKey} publish" : "publish",
+                    UseRoutingKeyAsOperationName ? $"{routingKey} send" : "send",
                     ActivityKind.Producer, linkedContext);
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags("publish", routingKey, exchange, 0, bodySize, activity);
+                PopulateMessagingTags("send", routingKey, exchange, 0, bodySize, activity);
             }
 
             return activity;
@@ -128,11 +128,11 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{routingKey} deliver" : "deliver",
+                UseRoutingKeyAsOperationName ? $"{routingKey} process" : "process",
                 ActivityKind.Consumer, ContextExtractor(basicProperties));
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags("deliver", routingKey, exchange,
+                PopulateMessagingTags("process", routingKey, exchange,
                     deliveryTag, basicProperties, bodySize, activity);
             }
 
