@@ -16,6 +16,9 @@ namespace RabbitMQ.Client
         internal const string MessageId = "messaging.message.id";
         internal const string MessageConversationId = "messaging.message.conversation_id";
         internal const string MessagingOperationType = "messaging.operation.type";
+        internal const string MessagingOperationTypeSend = "send";
+        internal const string MessagingOperationTypeProcess = "process";
+        internal const string MessagingOperationTypeReceive = "receive";
         internal const string MessagingSystem = "messaging.system";
         internal const string MessagingDestination = "messaging.destination.name";
         internal const string MessagingDestinationRoutingKey = "messaging.rabbitmq.destination.routing_key";
@@ -63,14 +66,14 @@ namespace RabbitMQ.Client
 
             Activity? activity = linkedContext == default
                 ? s_publisherSource.StartRabbitMQActivity(
-                    UseRoutingKeyAsOperationName ? $"{routingKey} send" : "send",
+                    UseRoutingKeyAsOperationName ? $"{routingKey} {MessagingOperationTypeSend}" : MessagingOperationTypeSend,
                     ActivityKind.Producer)
                 : s_publisherSource.StartLinkedRabbitMQActivity(
-                    UseRoutingKeyAsOperationName ? $"{routingKey} send" : "send",
+                    UseRoutingKeyAsOperationName ? $"{routingKey} {MessagingOperationTypeSend}" : MessagingOperationTypeSend,
                     ActivityKind.Producer, linkedContext);
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags("send", routingKey, exchange, 0, bodySize, activity);
+                PopulateMessagingTags(MessagingOperationTypeSend, routingKey, exchange, 0, bodySize, activity);
             }
 
             return activity;
@@ -85,12 +88,12 @@ namespace RabbitMQ.Client
             }
 
             Activity? activity = s_subscriberSource.StartRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{queue} receive" : "receive",
+                UseRoutingKeyAsOperationName ? $"{queue} {MessagingOperationTypeReceive}" : MessagingOperationTypeReceive,
                 ActivityKind.Consumer);
             if (activity != null && activity.IsAllDataRequested)
             {
                 activity
-                    .SetTag(MessagingOperationType, "receive")
+                    .SetTag(MessagingOperationType, MessagingOperationTypeReceive)
                     .SetTag(MessagingDestination, "amq.default");
             }
 
@@ -107,11 +110,11 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{routingKey} receive" : "receive", ActivityKind.Consumer,
+                UseRoutingKeyAsOperationName ? $"{routingKey} {MessagingOperationTypeReceive}" : MessagingOperationTypeReceive, ActivityKind.Consumer,
                 ContextExtractor(readOnlyBasicProperties));
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags("receive", routingKey, exchange, deliveryTag, readOnlyBasicProperties,
+                PopulateMessagingTags(MessagingOperationTypeReceive, routingKey, exchange, deliveryTag, readOnlyBasicProperties,
                     bodySize, activity);
             }
 
@@ -128,11 +131,11 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{routingKey} process" : "process",
+                UseRoutingKeyAsOperationName ? $"{routingKey} {MessagingOperationTypeProcess}" : MessagingOperationTypeProcess,
                 ActivityKind.Consumer, ContextExtractor(basicProperties));
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags("process", routingKey, exchange,
+                PopulateMessagingTags(MessagingOperationTypeProcess, routingKey, exchange,
                     deliveryTag, basicProperties, bodySize, activity);
             }
 
