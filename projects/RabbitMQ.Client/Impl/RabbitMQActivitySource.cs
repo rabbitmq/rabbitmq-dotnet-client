@@ -15,7 +15,7 @@ namespace RabbitMQ.Client
         // https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/#messaging-attributes
         internal const string MessageId = "messaging.message.id";
         internal const string MessageConversationId = "messaging.message.conversation_id";
-        internal const string MessagingOperation = "messaging.operation";
+        internal const string MessagingOperationType = "messaging.operation.type";
         internal const string MessagingSystem = "messaging.system";
         internal const string MessagingDestination = "messaging.destination.name";
         internal const string MessagingDestinationRoutingKey = "messaging.rabbitmq.destination.routing_key";
@@ -90,7 +90,7 @@ namespace RabbitMQ.Client
             if (activity != null && activity.IsAllDataRequested)
             {
                 activity
-                    .SetTag(MessagingOperation, "receive")
+                    .SetTag(MessagingOperationType, "receive")
                     .SetTag(MessagingDestination, "amq.default");
             }
 
@@ -174,7 +174,7 @@ namespace RabbitMQ.Client
             ulong deliveryTag, int bodySize, Activity activity)
         {
             activity
-                .SetTag(MessagingOperation, operation)
+                .SetTag(MessagingOperationType, operation)
                 .SetTag(MessagingDestination, string.IsNullOrEmpty(exchange) ? "amq.default" : exchange)
                 .SetTag(MessagingDestinationRoutingKey, routingKey)
                 .SetTag(MessagingBodySize, bodySize);
