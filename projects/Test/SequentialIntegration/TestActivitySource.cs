@@ -402,7 +402,7 @@ namespace Test.SequentialIntegration
         private void AssertActivityData(bool useRoutingKeyAsOperationName, string queueName,
             List<Activity> activityList, bool isDeliver = false)
         {
-            string childName = isDeliver ? "process" : "receive";
+            string childName = isDeliver ? "deliver" : "fetch";
             Activity[] activities = activityList.ToArray();
             Assert.NotEmpty(activities);
 
@@ -418,11 +418,11 @@ namespace Test.SequentialIntegration
             }
 
             Activity sendActivity = activities.First(x =>
-                x.OperationName == (useRoutingKeyAsOperationName ? $"{queueName} send" : "send") &&
+                x.OperationName == (useRoutingKeyAsOperationName ? $"publish {queueName}" : "publish") &&
                 x.GetTagItem(RabbitMQActivitySource.MessagingDestinationRoutingKey) is string routingKeyTag &&
                 routingKeyTag == $"{queueName}");
             Activity receiveActivity = activities.Single(x =>
-                x.OperationName == (useRoutingKeyAsOperationName ? $"{queueName} {childName}" : $"{childName}") &&
+                x.OperationName == (useRoutingKeyAsOperationName ? $"{childName} {queueName}" : childName) &&
                 x.Links.First().Context.TraceId == sendActivity.TraceId);
             Assert.Equal(ActivityKind.Producer, sendActivity.Kind);
             Assert.Equal(ActivityKind.Consumer, receiveActivity.Kind);
