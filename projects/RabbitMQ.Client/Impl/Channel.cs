@@ -918,10 +918,10 @@ namespace RabbitMQ.Client.Impl
                 BasicGetResult? result = await k;
 
                 using Activity? activity = result != null
-                    ? RabbitMQActivitySource.Receive(result.RoutingKey,
+                    ? RabbitMQActivitySource.BasicGet(result.RoutingKey,
                         result.Exchange,
                         result.DeliveryTag, result.BasicProperties, result.Body.Length)
-                    : RabbitMQActivitySource.ReceiveEmpty(queue);
+                    : RabbitMQActivitySource.BasicGetEmpty(queue);
 
                 activity?.SetStartTime(k.StartTime);
 
