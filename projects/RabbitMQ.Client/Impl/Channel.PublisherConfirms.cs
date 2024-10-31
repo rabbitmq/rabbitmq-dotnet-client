@@ -283,6 +283,11 @@ namespace RabbitMQ.Client.Impl
                         lease = await _outstandingPublisherConfirmationsRateLimiter.AcquireAsync(
                             cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
+
+                        if (!lease.IsAcquired)
+                        {
+                            throw new InvalidOperationException("Could not acquire a lease from the rate limiter.");
+                        }
                     }
                 }
 
