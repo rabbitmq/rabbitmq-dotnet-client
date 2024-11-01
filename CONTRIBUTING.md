@@ -76,6 +76,39 @@ Here's the recommended workflow:
 If what you are going to work on is a substantial change, please first
 ask the core team for their opinion on the [RabbitMQ users mailing list][rmq-users].
 
+### Building Source
+
+It is good practice to make sure you can build the project before making any
+changes to confirm that your development environment is set up correctly.
+Verifying that the tests pass is also a good practice (see
+[RUNNING_TESTS.md](/RUNNING_TESTS.md)).
+
+All together, this looks like:
+
+* Linux
+
+```shell
+git clone --recurse-submodules https://github.com/rabbitmq/rabbitmq-dotnet-client
+cd rabbitmq-dotnet-client
+
+# On any Linux distribution with Docker installed
+./.ci/ubuntu/gha-setup.sh toxiproxy pull
+
+make build
+make test
+```
+
+* Windows
+
+Note that this will _NOT_ run toxiproxy tests.
+
+```powershell
+git clone --recurse-submodules https://github.com/rabbitmq/rabbitmq-dotnet-client
+cd rabbitmq-dotnet-client
+.\.ci\windows\gha-setup.ps1 # On Windows. Note that this installs RabbitMQ
+.\build.ps1 -RunTests:$true
+```
+
 ### Running Tests
 
 See [RUNNING_TESTS.md](/RUNNING_TESTS.md).
