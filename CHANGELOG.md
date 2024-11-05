@@ -1,6 +1,105 @@
 # Changelog
 
-## [Unreleased](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/HEAD)
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.14...HEAD)
+
+**Merged pull requests:**
+
+- Fix build warnings in API [\#1718](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1718) ([lukebakken](https://github.com/lukebakken))
+- Change OTel attribute messaging.operation to messaging.operation.type [\#1716](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1716) ([iinuwa](https://github.com/iinuwa))
+- Throw when lease not acquired. This can happen then the rate limiter doesn't allow queuing or is generally wrongly configured [\#1714](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1714) ([danielmarbach](https://github.com/danielmarbach))
+
+## [v7.0.0-rc.14](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.14) (2024-10-24)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.13...v7.0.0-rc.14)
+
+**Implemented enhancements:**
+
+- Make handling of publisher confirmations transparent to the user [\#1682](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1682)
+
+**Merged pull requests:**
+
+- Remove `ChannelOptions` internal class [\#1712](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1712) ([lukebakken](https://github.com/lukebakken))
+- Xml doc updates for the rate limiting [\#1711](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1711) ([danielmarbach](https://github.com/danielmarbach))
+- Only add `x-dotnet-pub-seq-no` when tracking enabled [\#1710](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1710) ([lukebakken](https://github.com/lukebakken))
+- Safeguarding against duplicate sequence numbers [\#1709](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1709) ([danielmarbach](https://github.com/danielmarbach))
+
+## [v7.0.0-rc.13](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.13) (2024-10-22)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.12...v7.0.0-rc.13)
+
+**Merged pull requests:**
+
+- Address some more TODOs [\#1708](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1708) ([lukebakken](https://github.com/lukebakken))
+- Upgrade NET6.0 to NET8.0 since NET6.0 is soon EOL [\#1707](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1707) ([danielmarbach](https://github.com/danielmarbach))
+- Leverage `System.Threading.RateLimiting` [\#1706](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1706) ([lukebakken](https://github.com/lukebakken))
+- Enforce maximum outstanding publisher confirms, if set [\#1703](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1703) ([lukebakken](https://github.com/lukebakken))
+- Isolate publisher confirmation code [\#1702](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1702) ([lukebakken](https://github.com/lukebakken))
+- Integrate `Channel` into `ChannelBase` [\#1700](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1700) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-rc.12](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.12) (2024-10-08)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.11...v7.0.0-rc.12)
+
+**Implemented enhancements:**
+
+- Allow DateTime for Headers in IBasicProperties [\#1691](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1691)
+- Polyfill language gaps [\#1688](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1688)
+- DispatchConsumerConcurrency might be misplaced on the connection factory [\#1668](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1668)
+- Consider using `AsyncManualResetEvent` when handling flow state [\#1644](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1644)
+
+**Fixed bugs:**
+
+- Intermittent flakiness of v7.0 RC [\#1676](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1676)
+
+**Merged pull requests:**
+
+- Fix exception when refreshing oauth2 token [\#1690](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1690) ([BreakingBread0](https://github.com/BreakingBread0))
+- Track publisher confirmations automatically [\#1687](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1687) ([lukebakken](https://github.com/lukebakken))
+- Move code to appropriate directories that match namespace structure [\#1685](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1685) ([lukebakken](https://github.com/lukebakken))
+- AsyncDisposable [\#1684](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1684) ([danielmarbach](https://github.com/danielmarbach))
+- Event args cancellation [\#1683](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1683) ([danielmarbach](https://github.com/danielmarbach))
+- Async flow control [\#1681](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1681) ([danielmarbach](https://github.com/danielmarbach))
+- Make channel events async [\#1680](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1680) ([danielmarbach](https://github.com/danielmarbach))
+- Make session events async [\#1679](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1679) ([danielmarbach](https://github.com/danielmarbach))
+- Use unique queue and exchange names [\#1678](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1678) ([lukebakken](https://github.com/lukebakken))
+- Make connection events async [\#1677](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1677) ([danielmarbach](https://github.com/danielmarbach))
+- Sequence Number non-blocking [\#1675](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1675) ([danielmarbach](https://github.com/danielmarbach))
+- Try to address some test flakes [\#1672](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1672) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-rc.11](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.11) (2024-09-12)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.10...v7.0.0-rc.11)
+
+**Merged pull requests:**
+
+- Follow-up to \#1669 - per-channel dispatch concurrency [\#1671](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1671) ([lukebakken](https://github.com/lukebakken))
+- Minor cleanup in AutoRecovery classes [\#1670](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1670) ([danielmarbach](https://github.com/danielmarbach))
+- Allow the dispatcher concurrency to be overriden per channel [\#1669](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1669) ([danielmarbach](https://github.com/danielmarbach))
+
+## [v7.0.0-rc.10](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.10) (2024-09-10)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.9...v7.0.0-rc.10)
+
+**Merged pull requests:**
+
+- Require `IChannel` for `AsyncDefaultBasicConsumer` [\#1667](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1667) ([lukebakken](https://github.com/lukebakken))
+- Add test to demonstrate `IChannel` thread-safety [\#1665](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1665) ([lukebakken](https://github.com/lukebakken))
+
+## [v7.0.0-rc.9](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.9) (2024-09-06)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.8...v7.0.0-rc.9)
+
+**Closed issues:**
+
+- Re-review use of `Task` vs `ValueTask` in API [\#1645](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1645)
+
+**Merged pull requests:**
+
+- Clean up `IChannelExtensions` [\#1664](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1664) ([lukebakken](https://github.com/lukebakken))
+- Fix `NextPublishSeqNo` when retrieved concurrently [\#1662](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1662) ([lukebakken](https://github.com/lukebakken))
+- Finish up version 7 release [\#1661](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1661) ([lukebakken](https://github.com/lukebakken))
+- Added ability to use Issuer to receive Token Endpoint for the OAuth2ClientBuilder [\#1656](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1656) ([Lyphion](https://github.com/Lyphion))
+- Consistently use `Task` or `ValueTask` in APIs [\#1646](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1646) ([lukebakken](https://github.com/lukebakken))
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.8...HEAD)
 
