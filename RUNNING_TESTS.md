@@ -127,8 +127,8 @@ dotnet test projects/Test/Unit.csproj --filter "FullyQualifiedName~RabbitMQ.Clie
 
 ## Running Tests for a Specific .NET Target
 
-To run tests targeting .NET 6.0:
+To run tests targeting .NET 8.0:
 
 ``` shell
-dotnet test --framework net6.0 projects/Unit
+dotnet test --framework net8.0 projects/Unit
 ```

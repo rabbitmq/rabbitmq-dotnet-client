@@ -119,7 +119,7 @@ Benchmarks can be found under `./projects/Benchmarks`. On the command line, run 
 like so:
 
 ```
-dotnet run -c Release -f net6.0 --project ./projects/Benchmarks/ --filter Networking_BasicDeliver_LongLivedConnection
+dotnet run --configuration Release --project ./projects/Benchmarks/ --filter Networking_BasicDeliver_LongLivedConnection
 ```
 
 ## Code of Conduct
