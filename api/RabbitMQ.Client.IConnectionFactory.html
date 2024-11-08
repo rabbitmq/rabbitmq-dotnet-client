@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_IConnectionFactory" data-uid="RabbitMQ.Client.IConnectionFactory" class="text-break">
-Interface IConnectionFactory  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L39"><i class="bi bi-code-slash"></i></a>
+Interface IConnectionFactory  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L40"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -124,7 +124,7 @@ Interface IConnectionFactory  <a class="header-action link-secondary" title="Vie
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_ClientProperties" data-uid="RabbitMQ.Client.IConnectionFactory.ClientProperties">
   ClientProperties
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L44"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L45"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Dictionary of client properties to be sent to the server.</p>
@@ -132,7 +132,7 @@ Interface IConnectionFactory  <a class="header-action link-secondary" title="Vie
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IDictionary&lt;string, object&gt; ClientProperties { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">IDictionary&lt;string, object?&gt; ClientProperties { get; set; }</code></pre>
   </div>
 
 
@@ -156,7 +156,7 @@ Interface IConnectionFactory  <a class="header-action link-secondary" title="Vie
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_ClientProvidedName" data-uid="RabbitMQ.Client.IConnectionFactory.ClientProvidedName">
   ClientProvidedName
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L96"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L90"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Default client provided name to be used for connections.</p>
@@ -164,7 +164,7 @@ Interface IConnectionFactory  <a class="header-action link-secondary" title="Vie
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string ClientProvidedName { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? ClientProvidedName { get; set; }</code></pre>
   </div>
 
 
@@ -184,11 +184,50 @@ Interface IConnectionFactory  <a class="header-action link-secondary" title="Vie
 
 
 
+  <a id="RabbitMQ_Client_IConnectionFactory_ConsumerDispatchConcurrency_" data-uid="RabbitMQ.Client.IConnectionFactory.ConsumerDispatchConcurrency*"></a>
+
+  <h3 id="RabbitMQ_Client_IConnectionFactory_ConsumerDispatchConcurrency" data-uid="RabbitMQ.Client.IConnectionFactory.ConsumerDispatchConcurrency">
+  ConsumerDispatchConcurrency
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L197"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a>
+will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
+<a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
+Defaults to 1.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ushort ConsumerDispatchConcurrency { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IConnectionFactory_ConsumerDispatchConcurrency_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
+In addition to that consumers need to be thread/concurrency safe.</p>
+</div>
+
+
+
+
   <a id="RabbitMQ_Client_IConnectionFactory_ContinuationTimeout_" data-uid="RabbitMQ.Client.IConnectionFactory.ContinuationTimeout*"></a>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_ContinuationTimeout" data-uid="RabbitMQ.Client.IConnectionFactory.ContinuationTimeout">
   ContinuationTimeout
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L185"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L187"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Amount of time protocol  operations (e.g. <pre><code class="lang-csharp">queue.declare</code></pre>) are allowed to take before
@@ -221,16 +260,15 @@ timing out.
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_CredentialsProvider" data-uid="RabbitMQ.Client.IConnectionFactory.CredentialsProvider">
   CredentialsProvider
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L60"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L80"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Default CredentialsProvider implementation. If set, this
-overrides UserName / Password</p>
+  <div class="markdown level1 summary"><p>ICredentialsProvider used to obtain username and password.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">ICredentialsProvider CredentialsProvider { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">ICredentialsProvider? CredentialsProvider { get; set; }</code></pre>
   </div>
 
 
@@ -250,42 +288,11 @@ overrides UserName / Password</p>
 
 
 
-  <a id="RabbitMQ_Client_IConnectionFactory_CredentialsRefresher_" data-uid="RabbitMQ.Client.IConnectionFactory.CredentialsRefresher*"></a>
-
-  <h3 id="RabbitMQ_Client_IConnectionFactory_CredentialsRefresher" data-uid="RabbitMQ.Client.IConnectionFactory.CredentialsRefresher">
-  CredentialsRefresher
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L61"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">ICredentialsRefresher CredentialsRefresher { get; set; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.ICredentialsRefresher.html">ICredentialsRefresher</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
   <a id="RabbitMQ_Client_IConnectionFactory_HandshakeContinuationTimeout_" data-uid="RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout*"></a>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_HandshakeContinuationTimeout" data-uid="RabbitMQ.Client.IConnectionFactory.HandshakeContinuationTimeout">
   HandshakeContinuationTimeout
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L179"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L181"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Amount of time protocol handshake operations are allowed to take before
@@ -318,7 +325,7 @@ timing out.</p>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_Password" data-uid="RabbitMQ.Client.IConnectionFactory.Password">
   Password
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L54"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L50"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Password to use when authenticating to the server.</p>
@@ -350,7 +357,7 @@ timing out.</p>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_RequestedChannelMax" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedChannelMax">
   RequestedChannelMax
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L66"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L55"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Maximum channel number to ask for.</p>
@@ -382,7 +389,7 @@ timing out.</p>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_RequestedFrameMax" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedFrameMax">
   RequestedFrameMax
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L71"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L60"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Frame-max parameter to ask for (in bytes).</p>
@@ -414,7 +421,7 @@ timing out.</p>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_RequestedHeartbeat" data-uid="RabbitMQ.Client.IConnectionFactory.RequestedHeartbeat">
   RequestedHeartbeat
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L76"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L65"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Heartbeat setting to request.</p>
@@ -446,7 +453,7 @@ timing out.</p>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_Uri" data-uid="RabbitMQ.Client.IConnectionFactory.Uri">
   Uri
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L91"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L85"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Sets or gets the AMQP Uri to be used for connections.</p>
@@ -474,43 +481,11 @@ timing out.</p>
 
 
 
-  <a id="RabbitMQ_Client_IConnectionFactory_UseBackgroundThreadsForIO_" data-uid="RabbitMQ.Client.IConnectionFactory.UseBackgroundThreadsForIO*"></a>
-
-  <h3 id="RabbitMQ_Client_IConnectionFactory_UseBackgroundThreadsForIO" data-uid="RabbitMQ.Client.IConnectionFactory.UseBackgroundThreadsForIO">
-  UseBackgroundThreadsForIO
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L81"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>When set to true, background threads will be used for I/O and heartbeats.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool UseBackgroundThreadsForIO { get; set; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
   <a id="RabbitMQ_Client_IConnectionFactory_UserName_" data-uid="RabbitMQ.Client.IConnectionFactory.UserName*"></a>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_UserName" data-uid="RabbitMQ.Client.IConnectionFactory.UserName">
   UserName
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L70"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Username to use when authenticating to the server.</p>
@@ -542,7 +517,7 @@ timing out.</p>
 
   <h3 id="RabbitMQ_Client_IConnectionFactory_VirtualHost" data-uid="RabbitMQ.Client.IConnectionFactory.VirtualHost">
   VirtualHost
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L86"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L75"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Virtual host to access during this connection.</p>
@@ -576,9 +551,9 @@ timing out.</p>
 
   <a id="RabbitMQ_Client_IConnectionFactory_AuthMechanismFactory_" data-uid="RabbitMQ.Client.IConnectionFactory.AuthMechanismFactory*"></a>
 
-  <h3 id="RabbitMQ_Client_IConnectionFactory_AuthMechanismFactory_System_Collections_Generic_IList_System_String__" data-uid="RabbitMQ.Client.IConnectionFactory.AuthMechanismFactory(System.Collections.Generic.IList{System.String})">
-  AuthMechanismFactory(IList&lt;string&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L102"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_IConnectionFactory_AuthMechanismFactory_System_Collections_Generic_IEnumerable_System_String__" data-uid="RabbitMQ.Client.IConnectionFactory.AuthMechanismFactory(System.Collections.Generic.IEnumerable{System.String})">
+  AuthMechanismFactory(IEnumerable&lt;string&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L96"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Given a list of mechanism names supported by the server, select a preferred mechanism,
@@ -587,12 +562,12 @@ or null if we have none in common.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IAuthMechanismFactory AuthMechanismFactory(IList&lt;string&gt; mechanismNames)</code></pre>
+    <pre><code class="lang-csharp hljs">IAuthMechanismFactory? AuthMechanismFactory(IEnumerable&lt;string&gt; mechanismNames)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>mechanismNames</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1">IList</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dt><code>mechanismNames</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1">IEnumerable</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -612,252 +587,273 @@ or null if we have none in common.</p>
 
 
 
-  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
+  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnection" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection">
-  CreateConnection()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L107"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_System_Collections_Generic_IEnumerable_RabbitMQ_Client_AmqpTcpEndpoint__System_String_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable{RabbitMQ.Client.AmqpTcpEndpoint},System.String,System.Threading.CancellationToken)">
+  CreateConnectionAsync(IEnumerable&lt;AmqpTcpEndpoint&gt;, string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L174"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Create a connection to the specified endpoint.</p>
+  <div class="markdown level1 summary"><p>Asynchronously create a connection using a list of endpoints.
+The selection behaviour can be overridden by configuring the EndpointResolverFactory.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IConnection CreateConnection()</code></pre>
+    <pre><code class="lang-csharp hljs">Task&lt;IConnection&gt; CreateConnectionAsync(IEnumerable&lt;AmqpTcpEndpoint&gt; endpoints, string clientProvidedName, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>endpoints</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1">IEnumerable</a>&lt;<a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>&gt;</dt>
+    <dd><p>List of endpoints to use for the initial
+connection and recovery.</p>
+</dd>
+    <dt><code>clientProvidedName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Application-specific connection name, will be displayed in the management UI
+if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+be used as a connection identifier, e.g. in HTTP API requests.
+This value is supposed to be human-readable.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this connection</p>
+</dd>
+  </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dd><p>Open connection</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html">BrokerUnreachableException</a></dt>
+    <dd><p>When no hostname was reachable.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_System_Collections_Generic_IEnumerable_RabbitMQ_Client_AmqpTcpEndpoint__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable{RabbitMQ.Client.AmqpTcpEndpoint},System.Threading.CancellationToken)">
+  CreateConnectionAsync(IEnumerable&lt;AmqpTcpEndpoint&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L153"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously create a connection using a list of endpoints.
+The selection behaviour can be overridden by configuring the EndpointResolverFactory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IConnection&gt; CreateConnectionAsync(IEnumerable&lt;AmqpTcpEndpoint&gt; endpoints, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>endpoints</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1">IEnumerable</a>&lt;<a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>&gt;</dt>
+    <dd><p>List of endpoints to use for the initial
+connection and recovery.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this connection</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dd><p>Open connection</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html">BrokerUnreachableException</a></dt>
+    <dd><p>When no hostname was reachable.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_System_Collections_Generic_IEnumerable_System_String__System_String_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable{System.String},System.String,System.Threading.CancellationToken)">
+  CreateConnectionAsync(IEnumerable&lt;string&gt;, string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L137"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously connects to the first reachable hostname from the list.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IConnection&gt; CreateConnectionAsync(IEnumerable&lt;string&gt; hostnames, string clientProvidedName, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>hostnames</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1">IEnumerable</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd><p>List of host names to use</p>
+</dd>
+    <dt><code>clientProvidedName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Application-specific connection name, will be displayed in the management UI
+if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+be used as a connection identifier, e.g. in HTTP API requests.
+This value is supposed to be human-readable.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this connection</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dd><p>Open connection</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_System_Collections_Generic_IEnumerable_System_String__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Collections.Generic.IEnumerable{System.String},System.Threading.CancellationToken)">
+  CreateConnectionAsync(IEnumerable&lt;string&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L123"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously connects to the first reachable hostname from the list.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IConnection&gt; CreateConnectionAsync(IEnumerable&lt;string&gt; hostnames, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>hostnames</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1">IEnumerable</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd><p>List of host names to use</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this connection</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dd><p>Open connection</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_System_String_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.String,System.Threading.CancellationToken)">
+  CreateConnectionAsync(string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L115"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously create a connection to the specified endpoint.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IConnection&gt; CreateConnectionAsync(string clientProvidedName, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>clientProvidedName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Application-specific connection name, will be displayed in the management UI
+if RabbitMQ server supports it. This value doesn't have to be unique and cannot
+be used as a connection identifier, e.g. in HTTP API requests.
+This value is supposed to be human-readable.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this connection</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dd><p>Open connection</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnectionAsync_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnectionAsync(System.Threading.CancellationToken)">
+  CreateConnectionAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L102"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously create a connection to the specified endpoint.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IConnection&gt; CreateConnectionAsync(CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this connection</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
     <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
-
-  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList{RabbitMQ.Client.AmqpTcpEndpoint})">
-  CreateConnection(IList&lt;AmqpTcpEndpoint&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L153"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Create a connection using a list of endpoints.
-The selection behaviour can be overridden by configuring the EndpointResolverFactory.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IConnection CreateConnection(IList&lt;AmqpTcpEndpoint&gt; endpoints)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>endpoints</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1">IList</a>&lt;<a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>&gt;</dt>
-    <dd><p>List of endpoints to use for the initial
-connection and recovery.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></dt>
-    <dd><p>Open connection</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <h4 class="section">Exceptions</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html">BrokerUnreachableException</a></dt>
-    <dd><p>When no hostname was reachable.</p>
-</dd>
-  </dl>
-
-
-
-  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
-
-  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_RabbitMQ_Client_AmqpTcpEndpoint__System_String_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList{RabbitMQ.Client.AmqpTcpEndpoint},System.String)">
-  CreateConnection(IList&lt;AmqpTcpEndpoint&gt;, string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L173"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Create a connection using a list of endpoints.
-The selection behaviour can be overridden by configuring the EndpointResolverFactory.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IConnection CreateConnection(IList&lt;AmqpTcpEndpoint&gt; endpoints, string clientProvidedName)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>endpoints</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1">IList</a>&lt;<a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>&gt;</dt>
-    <dd><p>List of endpoints to use for the initial
-connection and recovery.</p>
-</dd>
-    <dt><code>clientProvidedName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd><p>Application-specific connection name, will be displayed in the management UI
-if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-be used as a connection identifier, e.g. in HTTP API requests.
-This value is supposed to be human-readable.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></dt>
-    <dd><p>Open connection</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <h4 class="section">Exceptions</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.Exceptions.BrokerUnreachableException.html">BrokerUnreachableException</a></dt>
-    <dd><p>When no hostname was reachable.</p>
-</dd>
-  </dl>
-
-
-
-  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
-
-  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_System_String__" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList{System.String})">
-  CreateConnection(IList&lt;string&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L126"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Connects to the first reachable hostname from the list.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IConnection CreateConnection(IList&lt;string&gt; hostnames)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>hostnames</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1">IList</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
-    <dd><p>List of host names to use</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></dt>
-    <dd><p>Open connection</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
-
-  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_Collections_Generic_IList_System_String__System_String_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.Collections.Generic.IList{System.String},System.String)">
-  CreateConnection(IList&lt;string&gt;, string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L139"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Connects to the first reachable hostname from the list.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IConnection CreateConnection(IList&lt;string&gt; hostnames, string clientProvidedName)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>hostnames</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1">IList</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
-    <dd><p>List of host names to use</p>
-</dd>
-    <dt><code>clientProvidedName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd><p>Application-specific connection name, will be displayed in the management UI
-if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-be used as a connection identifier, e.g. in HTTP API requests.
-This value is supposed to be human-readable.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></dt>
-    <dd><p>Open connection</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IConnectionFactory_CreateConnection_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection*"></a>
-
-  <h3 id="RabbitMQ_Client_IConnectionFactory_CreateConnection_System_String_" data-uid="RabbitMQ.Client.IConnectionFactory.CreateConnection(System.String)">
-  CreateConnection(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L119"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Create a connection to the specified endpoint.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IConnection CreateConnection(string clientProvidedName)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>clientProvidedName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd><p>Application-specific connection name, will be displayed in the management UI
-if RabbitMQ server supports it. This value doesn't have to be unique and cannot
-be used as a connection identifier, e.g. in HTTP API requests.
-This value is supposed to be human-readable.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></dt>
-    <dd><p>Open connection</p>
-</dd>
   </dl>
 
 
@@ -874,7 +870,7 @@ This value is supposed to be human-readable.</p>
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IConnectionFactory.cs/#L39" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IConnectionFactory.cs/#L40" class="edit-link">Edit this page</a>
         </div>
 
 

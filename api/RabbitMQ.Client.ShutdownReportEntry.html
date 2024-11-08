@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class ShutdownReportEntry ">
       
-      <meta name="description" content="Single entry object in the shutdown report that encapsulates description of the error which occured during shutdown.">
+      <meta name="description" content="Single entry object in the shutdown report that encapsulates description of the error which occurred during shutdown.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_ShutdownReportEntry" data-uid="RabbitMQ.Client.ShutdownReportEntry" class="text-break">
-Class ShutdownReportEntry  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/ShutdownReportEntry.cs/#L40"><i class="bi bi-code-slash"></i></a>
+Class ShutdownReportEntry  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/ShutdownReportEntry.cs/#L40"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -98,7 +98,7 @@ Class ShutdownReportEntry  <a class="header-action link-secondary" title="View s
   </div>
 
   <div class="markdown summary"><p>Single entry object in the shutdown report that encapsulates description
-of the error which occured during shutdown.</p>
+of the error which occurred during shutdown.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -129,9 +129,6 @@ of the error which occured during shutdown.</p>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
     </div>
     <div>
@@ -139,6 +136,9 @@ of the error which occured during shutdown.</p>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
   </dd></dl>
 
@@ -154,15 +154,15 @@ of the error which occured during shutdown.</p>
   <a id="RabbitMQ_Client_ShutdownReportEntry__ctor_" data-uid="RabbitMQ.Client.ShutdownReportEntry.#ctor*"></a>
 
   <h3 id="RabbitMQ_Client_ShutdownReportEntry__ctor_System_String_System_Exception_" data-uid="RabbitMQ.Client.ShutdownReportEntry.#ctor(System.String,System.Exception)">
-  ShutdownReportEntry(string, Exception)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/ShutdownReportEntry.cs/#L42"><i class="bi bi-code-slash"></i></a>
+  ShutdownReportEntry(string, Exception?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/ShutdownReportEntry.cs/#L42"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ShutdownReportEntry(string description, Exception exception)</code></pre>
+    <pre><code class="lang-csharp hljs">public ShutdownReportEntry(string description, Exception? exception)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -192,7 +192,7 @@ of the error which occured during shutdown.</p>
 
   <h3 id="RabbitMQ_Client_ShutdownReportEntry_Description" data-uid="RabbitMQ.Client.ShutdownReportEntry.Description">
   Description
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/ShutdownReportEntry.cs/#L51"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/ShutdownReportEntry.cs/#L51"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Description provided in the error.</p>
@@ -224,15 +224,15 @@ of the error which occured during shutdown.</p>
 
   <h3 id="RabbitMQ_Client_ShutdownReportEntry_Exception" data-uid="RabbitMQ.Client.ShutdownReportEntry.Exception">
   Exception
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/ShutdownReportEntry.cs/#L56"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/ShutdownReportEntry.cs/#L56"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p><a class="xref" href="RabbitMQ.Client.ShutdownReportEntry.html#RabbitMQ_Client_ShutdownReportEntry_Exception">Exception</a> object that occured during shutdown, or null if unspecified.</p>
+  <div class="markdown level1 summary"><p><a class="xref" href="RabbitMQ.Client.ShutdownReportEntry.html#RabbitMQ_Client_ShutdownReportEntry_Exception">Exception</a> object that occurred during shutdown, or null if unspecified.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Exception Exception { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public Exception? Exception { get; set; }</code></pre>
   </div>
 
 
@@ -260,7 +260,7 @@ of the error which occured during shutdown.</p>
 
   <h3 id="RabbitMQ_Client_ShutdownReportEntry_ToString" data-uid="RabbitMQ.Client.ShutdownReportEntry.ToString">
   ToString()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/ShutdownReportEntry.cs/#L58"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/ShutdownReportEntry.cs/#L58"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Returns a string that represents the current object.</p>
@@ -293,7 +293,7 @@ of the error which occured during shutdown.</p>
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/ShutdownReportEntry.cs/#L40" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/ShutdownReportEntry.cs/#L40" class="edit-link">Edit this page</a>
         </div>
 
 

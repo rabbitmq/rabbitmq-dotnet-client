@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_Logging_RabbitMqExceptionDetail" data-uid="RabbitMQ.Client.Logging.RabbitMqExceptionDetail" class="text-break">
-Class RabbitMqExceptionDetail  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L40"><i class="bi bi-code-slash"></i></a>
+Class RabbitMqExceptionDetail  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L38"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -128,9 +128,6 @@ public class RabbitMqExceptionDetail</code></pre>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
     </div>
     <div>
@@ -138,6 +135,9 @@ public class RabbitMqExceptionDetail</code></pre>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
   </dd></dl>
 
@@ -154,7 +154,7 @@ public class RabbitMqExceptionDetail</code></pre>
 
   <h3 id="RabbitMQ_Client_Logging_RabbitMqExceptionDetail__ctor_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.Logging.RabbitMqExceptionDetail.#ctor(System.Collections.Generic.IDictionary{System.String,System.Object})">
   RabbitMqExceptionDetail(IDictionary&lt;string, object&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L55"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L52"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -185,7 +185,7 @@ public class RabbitMqExceptionDetail</code></pre>
 
   <h3 id="RabbitMQ_Client_Logging_RabbitMqExceptionDetail__ctor_System_Exception_" data-uid="RabbitMQ.Client.Logging.RabbitMqExceptionDetail.#ctor(System.Exception)">
   RabbitMqExceptionDetail(Exception)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L44"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L41"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -220,14 +220,14 @@ public class RabbitMqExceptionDetail</code></pre>
 
   <h3 id="RabbitMQ_Client_Logging_RabbitMqExceptionDetail_InnerException" data-uid="RabbitMQ.Client.Logging.RabbitMqExceptionDetail.InnerException">
   InnerException
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L74"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L70"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string InnerException { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string? InnerException { get; }</code></pre>
   </div>
 
 
@@ -251,14 +251,14 @@ public class RabbitMqExceptionDetail</code></pre>
 
   <h3 id="RabbitMQ_Client_Logging_RabbitMqExceptionDetail_Message" data-uid="RabbitMQ.Client.Logging.RabbitMqExceptionDetail.Message">
   Message
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L72"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L68"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string Message { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string? Message { get; }</code></pre>
   </div>
 
 
@@ -282,14 +282,14 @@ public class RabbitMqExceptionDetail</code></pre>
 
   <h3 id="RabbitMQ_Client_Logging_RabbitMqExceptionDetail_StackTrace" data-uid="RabbitMQ.Client.Logging.RabbitMqExceptionDetail.StackTrace">
   StackTrace
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L73"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L69"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string StackTrace { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string? StackTrace { get; }</code></pre>
   </div>
 
 
@@ -313,14 +313,14 @@ public class RabbitMqExceptionDetail</code></pre>
 
   <h3 id="RabbitMQ_Client_Logging_RabbitMqExceptionDetail_Type" data-uid="RabbitMQ.Client.Logging.RabbitMqExceptionDetail.Type">
   Type
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L71"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L67"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string Type { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string? Type { get; }</code></pre>
   </div>
 
 
@@ -348,7 +348,7 @@ public class RabbitMqExceptionDetail</code></pre>
 
   <h3 id="RabbitMQ_Client_Logging_RabbitMqExceptionDetail_ToString" data-uid="RabbitMQ.Client.Logging.RabbitMqExceptionDetail.ToString">
   ToString()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L76"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L72"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Returns a string that represents the current object.</p>
@@ -381,7 +381,7 @@ public class RabbitMqExceptionDetail</code></pre>
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/logging/RabbitMqExceptionDetail.cs/#L40" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Logging/RabbitMqExceptionDetail.cs/#L38" class="edit-link">Edit this page</a>
         </div>
 
 

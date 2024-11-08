@@ -1,0 +1,580 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class ShutdownEventArgs </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class ShutdownEventArgs ">
+      
+      <meta name="description" content="Information about the reason why a particular channel, session, or connection was destroyed.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/gh-pages/api/new?filename=RabbitMQ_Client_Events_ShutdownEventArgs.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.Events.ShutdownEventArgs%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="RabbitMQ.Client.Events.ShutdownEventArgs">
+
+
+
+  <h1 id="RabbitMQ_Client_Events_ShutdownEventArgs" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs" class="text-break">
+Class ShutdownEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L43"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Events.html">Events</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Information about the reason why a particular channel, session, or connection was destroyed.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class ShutdownEventArgs : AsyncEventArgs</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html">AsyncEventArgs</a></div>
+      <div><span class="xref">ShutdownEventArgs</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CancellationToken">AsyncEventArgs.CancellationToken</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CreateOrDefault_System_Threading_CancellationToken_">AsyncEventArgs.CreateOrDefault(CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_Empty">AsyncEventArgs.Empty</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+  <h2 id="RabbitMQ_Client_Events_ShutdownEventArgs_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>The <a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html#RabbitMQ_Client_Events_ShutdownEventArgs_ClassId">ClassId</a> and <a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html#RabbitMQ_Client_Events_ShutdownEventArgs_Initiator">Initiator</a> properties should be used to determine the originator of the shutdown event.</p>
+</div>
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.#ctor*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs__ctor_RabbitMQ_Client_ShutdownInitiator_System_UInt16_System_String_System_Exception_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.#ctor(RabbitMQ.Client.ShutdownInitiator,System.UInt16,System.String,System.Exception,System.Threading.CancellationToken)">
+  ShutdownEventArgs(ShutdownInitiator, ushort, string, Exception, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L75"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Construct a <a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html">ShutdownEventArgs</a> with the given parameters.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, Exception exception, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>initiator</code> <a class="xref" href="RabbitMQ.Client.ShutdownInitiator.html">ShutdownInitiator</a></dt>
+    <dd></dd>
+    <dt><code>replyCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>replyText</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>exception</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.#ctor*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs__ctor_RabbitMQ_Client_ShutdownInitiator_System_UInt16_System_String_System_Object_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.#ctor(RabbitMQ.Client.ShutdownInitiator,System.UInt16,System.String,System.Object,System.Threading.CancellationToken)">
+  ShutdownEventArgs(ShutdownInitiator, ushort, string, object?, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L51"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Construct a <a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html">ShutdownEventArgs</a> with the given parameters and
+0 for <a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html#RabbitMQ_Client_Events_ShutdownEventArgs_ClassId">ClassId</a> and <a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html#RabbitMQ_Client_Events_ShutdownEventArgs_MethodId">MethodId</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, object? cause = null, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>initiator</code> <a class="xref" href="RabbitMQ.Client.ShutdownInitiator.html">ShutdownInitiator</a></dt>
+    <dd></dd>
+    <dt><code>replyCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>replyText</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>cause</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.#ctor*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs__ctor_RabbitMQ_Client_ShutdownInitiator_System_UInt16_System_String_System_UInt16_System_UInt16_System_Object_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.#ctor(RabbitMQ.Client.ShutdownInitiator,System.UInt16,System.String,System.UInt16,System.UInt16,System.Object,System.Threading.CancellationToken)">
+  ShutdownEventArgs(ShutdownInitiator, ushort, string, ushort, ushort, object?, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L60"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Construct a <a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html">ShutdownEventArgs</a> with the given parameters.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ShutdownEventArgs(ShutdownInitiator initiator, ushort replyCode, string replyText, ushort classId, ushort methodId, object? cause = null, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>initiator</code> <a class="xref" href="RabbitMQ.Client.ShutdownInitiator.html">ShutdownInitiator</a></dt>
+    <dd></dd>
+    <dt><code>replyCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>replyText</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>classId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>methodId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>cause</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs_Cause_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.Cause*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs_Cause" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.Cause">
+  Cause
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L96"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Object causing the shutdown, or null if none.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public object? Cause { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs_ClassId_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.ClassId*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs_ClassId" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.ClassId">
+  ClassId
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L101"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>AMQP content-class ID, or 0 if none.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort ClassId { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs_Exception_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.Exception*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs_Exception" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.Exception">
+  Exception
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L85"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Exception causing the shutdown, or null if none.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Exception? Exception { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs_Initiator_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.Initiator*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs_Initiator" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.Initiator">
+  Initiator
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L106"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the source of the shutdown event: either the application, the library, or the remote peer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ShutdownInitiator Initiator { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.ShutdownInitiator.html">ShutdownInitiator</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs_MethodId_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.MethodId*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs_MethodId" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.MethodId">
+  MethodId
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L111"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>AMQP method ID within a content-class, or 0 if none.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort MethodId { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs_ReplyCode_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.ReplyCode*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs_ReplyCode" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.ReplyCode">
+  ReplyCode
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L116"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>One of the standardised AMQP reason codes. See RabbitMQ.Client.Framing.*.Constants.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort ReplyCode { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs_ReplyText_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.ReplyText*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs_ReplyText" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.ReplyText">
+  ReplyText
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L121"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Informative human-readable reason text.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ReplyText { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="RabbitMQ_Client_Events_ShutdownEventArgs_ToString_" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.ToString*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_ShutdownEventArgs_ToString" data-uid="RabbitMQ.Client.Events.ShutdownEventArgs.ToString">
+  ToString()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L126"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Override ToString to be useful for debugging.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ShutdownEventArgs.cs/#L43" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

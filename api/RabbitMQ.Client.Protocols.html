@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_Protocols" data-uid="RabbitMQ.Client.Protocols" class="text-break">
-Class Protocols  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/Protocols.cs/#L37"><i class="bi bi-code-slash"></i></a>
+Class Protocols  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Protocols.cs/#L37"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -122,16 +122,10 @@ Class Protocols  <a class="header-action link-secondary" title="View source" hre
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
@@ -142,6 +136,12 @@ Class Protocols  <a class="header-action link-secondary" title="View source" hre
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
   </dd></dl>
 
 
@@ -149,15 +149,14 @@ Class Protocols  <a class="header-action link-secondary" title="View source" hre
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="fields">Fields
 </h2>
 
 
-  <a id="RabbitMQ_Client_Protocols_AMQP_0_9_1_" data-uid="RabbitMQ.Client.Protocols.AMQP_0_9_1*"></a>
 
   <h3 id="RabbitMQ_Client_Protocols_AMQP_0_9_1" data-uid="RabbitMQ.Client.Protocols.AMQP_0_9_1">
   AMQP_0_9_1
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/Protocols.cs/#L42"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Protocols.cs/#L42"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Protocol version 0-9-1 as modified by Pivotal.</p>
@@ -165,14 +164,13 @@ Class Protocols  <a class="header-action link-secondary" title="View source" hre
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static IProtocol AMQP_0_9_1 { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static readonly IProtocol AMQP_0_9_1</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="RabbitMQ.Client.IProtocol.html">IProtocol</a></dt>
     <dd></dd>
@@ -185,11 +183,11 @@ Class Protocols  <a class="header-action link-secondary" title="View source" hre
 
 
 
-  <a id="RabbitMQ_Client_Protocols_DefaultProtocol_" data-uid="RabbitMQ.Client.Protocols.DefaultProtocol*"></a>
+
 
   <h3 id="RabbitMQ_Client_Protocols_DefaultProtocol" data-uid="RabbitMQ.Client.Protocols.DefaultProtocol">
   DefaultProtocol
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/Protocols.cs/#L50"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Protocols.cs/#L47"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retrieve the current default protocol variant (currently AMQP_0_9_1).</p>
@@ -197,18 +195,18 @@ Class Protocols  <a class="header-action link-secondary" title="View source" hre
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static IProtocol DefaultProtocol { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static readonly IProtocol DefaultProtocol</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="RabbitMQ.Client.IProtocol.html">IProtocol</a></dt>
     <dd></dd>
   </dl>
+
 
 
 
@@ -221,7 +219,7 @@ Class Protocols  <a class="header-action link-secondary" title="View source" hre
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/Protocols.cs/#L37" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Protocols.cs/#L37" class="edit-link">Edit this page</a>
         </div>
 
 

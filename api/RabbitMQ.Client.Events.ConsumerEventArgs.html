@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,12 +89,12 @@
 
 
   <h1 id="RabbitMQ_Client_Events_ConsumerEventArgs" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs" class="text-break">
-Class ConsumerEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/ConsumerEventArgs.cs/#L38"><i class="bi bi-code-slash"></i></a>
+Class ConsumerEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ConsumerEventArgs.cs/#L39"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
     <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Events.html">Events</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Apigen.dll</dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
   <div class="markdown summary"><p>Event relating to a successful consumer registration
@@ -103,7 +103,7 @@ or cancellation.</p>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class ConsumerEventArgs : EventArgs</code></pre>
+    <pre><code class="lang-csharp hljs">public class ConsumerEventArgs : AsyncEventArgs</code></pre>
   </div>
 
 
@@ -113,7 +113,7 @@ or cancellation.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs">EventArgs</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html">AsyncEventArgs</a></div>
       <div><span class="xref">ConsumerEventArgs</span></div>
     </dd>
   </dl>
@@ -124,7 +124,13 @@ or cancellation.</p>
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs.empty">EventArgs.Empty</a>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CancellationToken">AsyncEventArgs.CancellationToken</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CreateOrDefault_System_Threading_CancellationToken_">AsyncEventArgs.CreateOrDefault(CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_Empty">AsyncEventArgs.Empty</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
@@ -160,9 +166,9 @@ or cancellation.</p>
 
   <a id="RabbitMQ_Client_Events_ConsumerEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.#ctor*"></a>
 
-  <h3 id="RabbitMQ_Client_Events_ConsumerEventArgs__ctor_System_String___" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.#ctor(System.String[])">
-  ConsumerEventArgs(string[])
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/ConsumerEventArgs.cs/#L42"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_Events_ConsumerEventArgs__ctor_System_String___System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.#ctor(System.String[],System.Threading.CancellationToken)">
+  ConsumerEventArgs(string[], CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ConsumerEventArgs.cs/#L43"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Construct an event containing the consumer-tags of
@@ -171,12 +177,14 @@ the consumer the event relates to.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ConsumerEventArgs(string[] consumerTags)</code></pre>
+    <pre><code class="lang-csharp hljs">public ConsumerEventArgs(string[] consumerTags, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>consumerTags</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>[]</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
     <dd></dd>
   </dl>
 
@@ -191,15 +199,14 @@ the consumer the event relates to.</p>
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="fields">Fields
 </h2>
 
 
-  <a id="RabbitMQ_Client_Events_ConsumerEventArgs_ConsumerTags_" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTags*"></a>
 
   <h3 id="RabbitMQ_Client_Events_ConsumerEventArgs_ConsumerTags" data-uid="RabbitMQ.Client.Events.ConsumerEventArgs.ConsumerTags">
   ConsumerTags
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/ConsumerEventArgs.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ConsumerEventArgs.cs/#L51"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Access the consumer-tags of the consumer the event
@@ -208,14 +215,13 @@ relates to.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string[] ConsumerTags { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly string[] ConsumerTags</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>[]</dt>
     <dd></dd>
@@ -229,10 +235,11 @@ relates to.</p>
 
 
 
+
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/ConsumerEventArgs.cs/#L38" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/ConsumerEventArgs.cs/#L39" class="edit-link">Edit this page</a>
         </div>
 
 

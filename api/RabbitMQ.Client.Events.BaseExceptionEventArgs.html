@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,19 +89,19 @@
 
 
   <h1 id="RabbitMQ_Client_Events_BaseExceptionEventArgs" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs" class="text-break">
-Class BaseExceptionEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/CallbackExceptionEventArgs.cs/#L37"><i class="bi bi-code-slash"></i></a>
+Class BaseExceptionEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/CallbackExceptionEventArgs.cs/#L38"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
     <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Events.html">Events</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Apigen.dll</dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
   <div class="markdown summary"></div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class BaseExceptionEventArgs : EventArgs</code></pre>
+    <pre><code class="lang-csharp hljs">public abstract class BaseExceptionEventArgs : AsyncEventArgs</code></pre>
   </div>
 
 
@@ -111,7 +111,7 @@ Class BaseExceptionEventArgs  <a class="header-action link-secondary" title="Vie
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs">EventArgs</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html">AsyncEventArgs</a></div>
       <div><span class="xref">BaseExceptionEventArgs</span></div>
     </dd>
   </dl>
@@ -121,7 +121,6 @@ Class BaseExceptionEventArgs  <a class="header-action link-secondary" title="Vie
     <dt>Derived</dt>
     <dd>
       <div><a class="xref" href="RabbitMQ.Client.Events.CallbackExceptionEventArgs.html">CallbackExceptionEventArgs</a></div>
-      <div><a class="xref" href="RabbitMQ.Client.Events.RecoveryExceptionEventArgs.html">RecoveryExceptionEventArgs</a></div>
     </dd>
   </dl>
 
@@ -129,7 +128,13 @@ Class BaseExceptionEventArgs  <a class="header-action link-secondary" title="Vie
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs.empty">EventArgs.Empty</a>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CancellationToken">AsyncEventArgs.CancellationToken</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CreateOrDefault_System_Threading_CancellationToken_">AsyncEventArgs.CreateOrDefault(CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_Empty">AsyncEventArgs.Empty</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
@@ -165,9 +170,9 @@ Class BaseExceptionEventArgs  <a class="header-action link-secondary" title="Vie
 
   <a id="RabbitMQ_Client_Events_BaseExceptionEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.#ctor*"></a>
 
-  <h3 id="RabbitMQ_Client_Events_BaseExceptionEventArgs__ctor_System_Exception_" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.#ctor(System.Exception)">
-  BaseExceptionEventArgs(Exception)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/CallbackExceptionEventArgs.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_Events_BaseExceptionEventArgs__ctor_System_Collections_Generic_IDictionary_System_String_System_Object__System_Exception_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.#ctor(System.Collections.Generic.IDictionary{System.String,System.Object},System.Exception,System.Threading.CancellationToken)">
+  BaseExceptionEventArgs(IDictionary&lt;string, object&gt;, Exception, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/CallbackExceptionEventArgs.cs/#L41"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Wrap an exception thrown by a callback.</p>
@@ -175,12 +180,16 @@ Class BaseExceptionEventArgs  <a class="header-action link-secondary" title="Vie
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public BaseExceptionEventArgs(Exception exception)</code></pre>
+    <pre><code class="lang-csharp hljs">protected BaseExceptionEventArgs(IDictionary&lt;string, object&gt; detail, Exception exception, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
+    <dt><code>detail</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
     <dt><code>exception</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
     <dd></dd>
   </dl>
 
@@ -195,15 +204,14 @@ Class BaseExceptionEventArgs  <a class="header-action link-secondary" title="Vie
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="fields">Fields
 </h2>
 
 
-  <a id="RabbitMQ_Client_Events_BaseExceptionEventArgs_Detail_" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.Detail*"></a>
 
   <h3 id="RabbitMQ_Client_Events_BaseExceptionEventArgs_Detail" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.Detail">
   Detail
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/CallbackExceptionEventArgs.cs/#L48"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/CallbackExceptionEventArgs.cs/#L50"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Access helpful information about the context in
@@ -212,14 +220,13 @@ which the wrapped exception was thrown.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IDictionary&lt;string, object&gt; Detail { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly IDictionary&lt;string, object&gt; Detail</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
     <dd></dd>
@@ -232,11 +239,11 @@ which the wrapped exception was thrown.</p>
 
 
 
-  <a id="RabbitMQ_Client_Events_BaseExceptionEventArgs_Exception_" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.Exception*"></a>
+
 
   <h3 id="RabbitMQ_Client_Events_BaseExceptionEventArgs_Exception" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.Exception">
   Exception
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/CallbackExceptionEventArgs.cs/#L51"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/CallbackExceptionEventArgs.cs/#L53"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Access the wrapped exception.</p>
@@ -244,57 +251,17 @@ which the wrapped exception was thrown.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Exception Exception { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly Exception Exception</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
     <dd></dd>
   </dl>
-
-
-
-
-
-
-
-
-  <h2 class="section" id="methods">Methods
-</h2>
-
-
-  <a id="RabbitMQ_Client_Events_BaseExceptionEventArgs_UpdateDetails_" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.UpdateDetails*"></a>
-
-  <h3 id="RabbitMQ_Client_Events_BaseExceptionEventArgs_UpdateDetails_System_Collections_Generic_IDictionary_System_String_System_Object__" data-uid="RabbitMQ.Client.Events.BaseExceptionEventArgs.UpdateDetails(System.Collections.Generic.IDictionary{System.String,System.Object})">
-  UpdateDetails(IDictionary&lt;string, object&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/CallbackExceptionEventArgs.cs/#L53"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IDictionary&lt;string, object&gt; UpdateDetails(IDictionary&lt;string, object&gt; other)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>other</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
-    <dd></dd>
-  </dl>
-
-
 
 
 
@@ -308,7 +275,7 @@ which the wrapped exception was thrown.</p>
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/CallbackExceptionEventArgs.cs/#L37" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/CallbackExceptionEventArgs.cs/#L38" class="edit-link">Edit this page</a>
         </div>
 
 

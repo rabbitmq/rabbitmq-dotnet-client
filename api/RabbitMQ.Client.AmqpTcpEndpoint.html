@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_AmqpTcpEndpoint" data-uid="RabbitMQ.Client.AmqpTcpEndpoint" class="text-break">
-Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L49"><i class="bi bi-code-slash"></i></a>
+Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L51"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -125,19 +125,29 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
   </dd></dl>
 
 
 
 
+  <h2 id="RabbitMQ_Client_AmqpTcpEndpoint_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>
+Some of the constructors take, as a convenience, a <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uri">Uri</a>
+instance representing an AMQP server address. The use of Uri
+here is not standardised - Uri is simply a convenient
+container for internet-address-like components. In particular,
+the Uri "Scheme" property is ignored: only the "Host" and
+"Port" properties are extracted.
+</p>
+</div>
 
 
   <h2 class="section" id="constructors">Constructors
@@ -148,7 +158,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor">
   AmqpTcpEndpoint()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L104"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L108"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Construct an AmqpTcpEndpoint with &quot;localhost&quot; as the hostname, and using the default port.</p>
@@ -175,7 +185,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32)">
   AmqpTcpEndpoint(string, int)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L96"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L100"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
@@ -211,7 +221,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_RabbitMQ_Client_SslOption_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32,RabbitMQ.Client.SslOption)">
   AmqpTcpEndpoint(string, int, SslOption)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L86"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L90"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
@@ -250,7 +260,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_String_System_Int32_RabbitMQ_Client_SslOption_System_UInt32_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.String,System.Int32,RabbitMQ.Client.SslOption,System.UInt32)">
   AmqpTcpEndpoint(string, int, SslOption, uint)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L72"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L74"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
@@ -258,7 +268,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl, uint maxMessageSize)</code></pre>
+    <pre><code class="lang-csharp hljs">public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl, uint maxInboundMessageBodySize)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -272,8 +282,8 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
     <dt><code>ssl</code> <a class="xref" href="RabbitMQ.Client.SslOption.html">SslOption</a></dt>
     <dd><p>Ssl option.</p>
 </dd>
-    <dt><code>maxMessageSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>Maximum message size from RabbitMQ. 0 means &quot;unlimited&quot;</p>
+    <dt><code>maxInboundMessageBodySize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Maximum message size from RabbitMQ.</p>
 </dd>
   </dl>
 
@@ -292,7 +302,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.Uri)">
   AmqpTcpEndpoint(Uri)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L124"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L128"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a> with the given Uri.</p>
@@ -327,7 +337,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint__ctor_System_Uri_RabbitMQ_Client_SslOption_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.#ctor(System.Uri,RabbitMQ.Client.SslOption)">
   AmqpTcpEndpoint(Uri, SslOption)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L114"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L118"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a> with the given Uri and ssl options.</p>
@@ -367,7 +377,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_DefaultAmqpSslPort" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.DefaultAmqpSslPort">
   DefaultAmqpSslPort
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L54"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L56"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Default Amqp ssl port.</p>
@@ -398,7 +408,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_UseDefaultPort" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.UseDefaultPort">
   UseDefaultPort
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L59"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L61"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Indicates that the default port for the protocol should be used.</p>
@@ -434,7 +444,7 @@ Class AmqpTcpEndpoint  <a class="header-action link-secondary" title="View sourc
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_AddressFamily" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.AddressFamily">
   AddressFamily
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L186"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L190"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Used to force the address family of the endpoint.
@@ -469,7 +479,7 @@ Or use <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.s
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_HostName" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.HostName">
   HostName
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L150"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L154"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retrieve or set the hostname of this <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
@@ -497,19 +507,20 @@ Or use <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.s
 
 
 
-  <a id="RabbitMQ_Client_AmqpTcpEndpoint_MaxMessageSize_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.MaxMessageSize*"></a>
+  <a id="RabbitMQ_Client_AmqpTcpEndpoint_MaxInboundMessageBodySize_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.MaxInboundMessageBodySize*"></a>
 
-  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_MaxMessageSize" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.MaxMessageSize">
-  MaxMessageSize
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L196"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_MaxInboundMessageBodySize" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.MaxInboundMessageBodySize">
+  MaxInboundMessageBodySize
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L201"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Get the maximum size for a message in bytes. The default value is 0 (unlimited)</p>
+  <div class="markdown level1 summary"><p>Get the maximum size for a message in bytes.
+The default value is defined in <a class="xref" href="RabbitMQ.Client.ConnectionFactory.html#RabbitMQ_Client_ConnectionFactory_DefaultMaxInboundMessageBodySize">DefaultMaxInboundMessageBodySize</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint MaxMessageSize { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public uint MaxInboundMessageBodySize { get; }</code></pre>
   </div>
 
 
@@ -533,7 +544,7 @@ Or use <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.s
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Port" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Port">
   Port
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L155"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L159"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retrieve or set the port number of this
@@ -567,7 +578,7 @@ port number.</p>
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Protocol" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Protocol">
   Protocol
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L175"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L179"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retrieve IProtocol of this <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html">AmqpTcpEndpoint</a>.</p>
@@ -599,7 +610,7 @@ port number.</p>
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Ssl" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Ssl">
   Ssl
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L191"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L195"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retrieve the TLS options for this AmqpTcpEndpoint. If not set, null is returned.</p>
@@ -635,7 +646,7 @@ port number.</p>
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Clone" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Clone">
   Clone()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L132"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L136"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clones the endpoint.</p>
@@ -668,7 +679,7 @@ port number.</p>
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_CloneWithHostname_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.CloneWithHostname(System.String)">
   CloneWithHostname(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L142"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L146"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clones the endpoint using the provided hostname.</p>
@@ -706,8 +717,8 @@ port number.</p>
   <a id="RabbitMQ_Client_AmqpTcpEndpoint_Equals_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Equals*"></a>
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Equals_System_Object_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Equals(System.Object)">
-  Equals(object)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L264"><i class="bi bi-code-slash"></i></a>
+  Equals(object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L269"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Compares this instance by value (protocol, hostname, port) against another instance.</p>
@@ -715,7 +726,7 @@ port number.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override bool Equals(object obj)</code></pre>
+    <pre><code class="lang-csharp hljs">public override bool Equals(object? obj)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -744,11 +755,11 @@ port number.</p>
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_GetHashCode" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.GetHashCode">
   GetHashCode()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L285"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L290"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Implementation of hash code depending on protocol, hostname and port,
-to line up with the implementation of <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html#RabbitMQ_Client_AmqpTcpEndpoint_Equals_System_Object_">Equals(object)</a>.</p>
+to line up with the implementation of <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html#RabbitMQ_Client_AmqpTcpEndpoint_Equals_System_Object_">Equals(object?)</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -777,7 +788,7 @@ to line up with the implementation of <a class="xref" href="RabbitMQ.Client.Amqp
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_Parse_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.Parse(System.String)">
   Parse(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L212"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L217"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Construct an instance from a protocol and an address in &quot;hostname:port&quot; format.</p>
@@ -822,7 +833,7 @@ Hostnames provided as IPv6 must appear in square brackets ([]).</p>
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_ParseMultiple_System_String_" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.ParseMultiple(System.String)">
   ParseMultiple(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L246"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L251"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Splits the passed-in string on &quot;,&quot;, and passes the substrings to <a class="xref" href="RabbitMQ.Client.AmqpTcpEndpoint.html#RabbitMQ_Client_AmqpTcpEndpoint_Parse_System_String_">Parse(string)</a>.</p>
@@ -864,7 +875,7 @@ optional, and returns a corresponding array of <a class="xref" href="RabbitMQ.Cl
 
   <h3 id="RabbitMQ_Client_AmqpTcpEndpoint_ToString" data-uid="RabbitMQ.Client.AmqpTcpEndpoint.ToString">
   ToString()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L296"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L301"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Returns a URI-like string of the form amqp-PROTOCOL://HOSTNAME:PORTNUMBER.</p>
@@ -899,7 +910,7 @@ optional, and returns a corresponding array of <a class="xref" href="RabbitMQ.Cl
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTcpEndpoint.cs/#L49" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTcpEndpoint.cs/#L51" class="edit-link">Edit this page</a>
         </div>
 
 

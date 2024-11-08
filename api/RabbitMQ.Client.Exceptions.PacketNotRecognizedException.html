@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_Exceptions_PacketNotRecognizedException" data-uid="RabbitMQ.Client.Exceptions.PacketNotRecognizedException" class="text-break">
-Class PacketNotRecognizedException  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/exceptions/PacketNotRecognizedException.cs/#L44"><i class="bi bi-code-slash"></i></a>
+Class PacketNotRecognizedException  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Exceptions/PacketNotRecognizedException.cs/#L44"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -105,7 +105,7 @@ describing protocol version it is using and transport parameters.</p>
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Serializable]
-public class PacketNotRecognizedException : RabbitMQClientException, ISerializable, _Exception</code></pre>
+public class PacketNotRecognizedException : RabbitMQClientException, ISerializable</code></pre>
   </div>
 
 
@@ -125,7 +125,6 @@ public class PacketNotRecognizedException : RabbitMQClientException, ISerializab
     <dt>Implements</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable">ISerializable</a></div>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.runtime.interopservices._exception">_Exception</a></div>
     </dd>
   </dl>
 
@@ -137,37 +136,34 @@ public class PacketNotRecognizedException : RabbitMQClientException, ISerializab
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.getbaseexception">Exception.GetBaseException()</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.tostring">Exception.ToString()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.getobjectdata">Exception.GetObjectData(SerializationInfo, StreamingContext)</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.gettype">Exception.GetType()</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.message">Exception.Message</a>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.tostring">Exception.ToString()</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.data">Exception.Data</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.helplink">Exception.HelpLink</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.hresult">Exception.HResult</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.innerexception">Exception.InnerException</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.targetsite">Exception.TargetSite</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.stacktrace">Exception.StackTrace</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.helplink">Exception.HelpLink</a>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.message">Exception.Message</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.source">Exception.Source</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.hresult">Exception.HResult</a>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.stacktrace">Exception.StackTrace</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.targetsite">Exception.TargetSite</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception.serializeobjectstate">Exception.SerializeObjectState</a>
@@ -179,13 +175,13 @@ public class PacketNotRecognizedException : RabbitMQClientException, ISerializab
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
   </dd></dl>
 
@@ -206,7 +202,7 @@ decoded into instances of this class.</p>
 
   <h3 id="RabbitMQ_Client_Exceptions_PacketNotRecognizedException__ctor_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
   PacketNotRecognizedException(int, int, int, int)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/exceptions/PacketNotRecognizedException.cs/#L48"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Exceptions/PacketNotRecognizedException.cs/#L48"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Fills the new instance's properties with the values passed in.</p>
@@ -248,7 +244,7 @@ decoded into instances of this class.</p>
 
   <h3 id="RabbitMQ_Client_Exceptions_PacketNotRecognizedException_ServerMajor" data-uid="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.ServerMajor">
   ServerMajor
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/exceptions/PacketNotRecognizedException.cs/#L61"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Exceptions/PacketNotRecognizedException.cs/#L61"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The peer's AMQP specification major version.</p>
@@ -280,7 +276,7 @@ decoded into instances of this class.</p>
 
   <h3 id="RabbitMQ_Client_Exceptions_PacketNotRecognizedException_ServerMinor" data-uid="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.ServerMinor">
   ServerMinor
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/exceptions/PacketNotRecognizedException.cs/#L64"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Exceptions/PacketNotRecognizedException.cs/#L64"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The peer's AMQP specification minor version.</p>
@@ -312,7 +308,7 @@ decoded into instances of this class.</p>
 
   <h3 id="RabbitMQ_Client_Exceptions_PacketNotRecognizedException_TransportHigh" data-uid="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.TransportHigh">
   TransportHigh
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/exceptions/PacketNotRecognizedException.cs/#L67"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Exceptions/PacketNotRecognizedException.cs/#L67"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The peer's high transport byte.</p>
@@ -344,7 +340,7 @@ decoded into instances of this class.</p>
 
   <h3 id="RabbitMQ_Client_Exceptions_PacketNotRecognizedException_TransportLow" data-uid="RabbitMQ.Client.Exceptions.PacketNotRecognizedException.TransportLow">
   TransportLow
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/exceptions/PacketNotRecognizedException.cs/#L70"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Exceptions/PacketNotRecognizedException.cs/#L70"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The peer's low transport byte.</p>
@@ -376,7 +372,7 @@ decoded into instances of this class.</p>
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/exceptions/PacketNotRecognizedException.cs/#L44" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Exceptions/PacketNotRecognizedException.cs/#L44" class="edit-link">Edit this page</a>
         </div>
 
 

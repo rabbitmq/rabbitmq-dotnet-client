@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -94,6 +94,12 @@
     <h3 id="classes">
 Classes
 </h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html">AsyncEventArgs</a></dt>
+      <dd><p>Provides data for <a class="xref" href="RabbitMQ.Client.Events.AsyncEventHandler-1.html">AsyncEventHandler&lt;TEvent&gt;</a>
+events that can be invoked asynchronously.</p>
+</dd>
+    </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.Events.AsyncEventingBasicConsumer.html">AsyncEventingBasicConsumer</a></dt>
       <dd></dd>
@@ -153,12 +159,6 @@ or cancellation.</p>
       <dd></dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.Events.EventingBasicConsumer.html">EventingBasicConsumer</a></dt>
-      <dd><p>Experimental class exposing an IBasicConsumer's
-methods as separate events.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.Events.FlowControlEventArgs.html">FlowControlEventArgs</a></dt>
       <dd><p>Event relating to flow control.</p>
 </dd>
@@ -173,9 +173,8 @@ methods as separate events.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.Events.RecoveryExceptionEventArgs.html">RecoveryExceptionEventArgs</a></dt>
-      <dd><p>Describes an exception that was thrown during
-automatic connection recovery performed by the library.</p>
+      <dt><a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html">ShutdownEventArgs</a></dt>
+      <dd><p>Information about the reason why a particular channel, session, or connection was destroyed.</p>
 </dd>
     </dl>
     <h3 id="delegates">

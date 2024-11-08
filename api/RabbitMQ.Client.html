@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -113,13 +113,24 @@ Classes
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.BasicPublishBatchExtensions.html">BasicPublishBatchExtensions</a></dt>
-      <dd></dd>
+      <dt><a class="xref" href="RabbitMQ.Client.BasicProperties.html">BasicProperties</a></dt>
+      <dd><p>AMQP specification content header properties for content class &quot;basic&quot;.</p>
+</dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.BinaryTableValue.html">BinaryTableValue</a></dt>
       <dd><p>Wrapper for a byte[]. May appear as values read from
 and written to AMQP field tables.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.CachedString.html">CachedString</a></dt>
+      <dd><p>Caches a string's byte representation to be used for certain methods like IChannel.BasicPublish/&gt;.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.ConnectionConfig.html">ConnectionConfig</a></dt>
+      <dd><p>The configuration of a connection.</p>
 </dd>
     </dl>
     <dl class="jumplist">
@@ -137,10 +148,13 @@ API. Constructs <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnect
       <dd></dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer.html">DefaultBasicConsumer</a></dt>
-      <dd><p>Useful default/base implementation of <a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a>.
-Subclass and override <a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer.html#RabbitMQ_Client_DefaultBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__">HandleBasicDeliver(string, ulong, bool, string, string, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)</a> in application code.</p>
+      <dt><a class="xref" href="RabbitMQ.Client.CreateChannelOptions.html">CreateChannelOptions</a></dt>
+      <dd><p>Channel creation options.</p>
 </dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.Credentials.html">Credentials</a></dt>
+      <dd></dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.DefaultEndpointResolver.html">DefaultEndpointResolver</a></dt>
@@ -169,7 +183,11 @@ Subclass and override <a class="xref" href="RabbitMQ.Client.DefaultBasicConsumer
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IModelExensions.html">IModelExensions</a></dt>
+      <dt><a class="xref" href="RabbitMQ.Client.IChannelExtensions.html">IChannelExtensions</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.IConnectionExtensions.html">IConnectionExtensions</a></dt>
       <dd></dd>
     </dl>
     <dl class="jumplist">
@@ -197,14 +215,18 @@ routing key, usable as the target address of a message to be published.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.ShutdownEventArgs.html">ShutdownEventArgs</a></dt>
-      <dd><p>Information about the reason why a particular model, session, or connection was destroyed.</p>
+      <dt><a class="xref" href="RabbitMQ.Client.RabbitMQActivitySource.html">RabbitMQActivitySource</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.ReadOnlyBasicProperties.html">ReadOnlyBasicProperties</a></dt>
+      <dd><p>AMQP specification content header properties for content class &quot;basic&quot;</p>
 </dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.ShutdownReportEntry.html">ShutdownReportEntry</a></dt>
       <dd><p>Single entry object in the shutdown report that encapsulates description
-of the error which occured during shutdown.</p>
+of the error which occurred during shutdown.</p>
 </dd>
     </dl>
     <dl class="jumplist">
@@ -221,12 +243,13 @@ and so on.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.TimerBasedCredentialRefresher.html">TimerBasedCredentialRefresher</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.TimerBasedCredentialRefresherEventSource.html">TimerBasedCredentialRefresherEventSource</a></dt>
-      <dd></dd>
+      <dt><a class="xref" href="RabbitMQ.Client.ThrottlingRateLimiter.html">ThrottlingRateLimiter</a></dt>
+      <dd><p>A rate limiter that controls the rate of operations by limiting concurrency and applying delays
+when a specified threshold of concurrency usage is reached.</p>
+<p>The delay algorithm checks the current available permits from the concurrency limiter. If the available permits are greater than or equal
+to the throttling threshold, no delay is applied.  Otherwise, it calculates a delay based on the percentage of permits used,
+scaling it up to a maximum of 1000 milliseconds.</p>
+</dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.TopologyRecoveryExceptionHandler.html">TopologyRecoveryExceptionHandler</a></dt>
@@ -251,12 +274,18 @@ Structs
 Interfaces
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a></dt>
-      <dd></dd>
+      <dt><a class="xref" href="RabbitMQ.Client.IAmqpHeader.html">IAmqpHeader</a></dt>
+      <dd><p>A AMQP header.</p>
+</dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IAsyncConnectionFactory.html">IAsyncConnectionFactory</a></dt>
-      <dd><p>Defines a connection factory capable of using an asynchronous consumer dispatcher which is compatible with <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a>.</p>
+      <dt><a class="xref" href="RabbitMQ.Client.IAmqpWriteable.html">IAmqpWriteable</a></dt>
+      <dd><p>A AMQP writeable.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a></dt>
+      <dd><p>Consumer interface. Used to receive messages from a queue by subscription.</p>
 </dd>
     </dl>
     <dl class="jumplist">
@@ -269,26 +298,17 @@ Interfaces
       <dd></dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IAutorecoveringConnection.html">IAutorecoveringConnection</a></dt>
-      <dd><p>Interface to an auto-recovering AMQP connection.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IBasicConsumer.html">IBasicConsumer</a></dt>
-      <dd><p>Consumer interface. Used to
-receive messages from a queue by subscription.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></dt>
-      <dd><p>Common AMQP Basic content-class headers interface,
+      <dd><p>The AMQP Basic headers class interface,
 spanning the union of the functionality offered by versions
 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IBasicPublishBatch.html">IBasicPublishBatch</a></dt>
-      <dd></dd>
+      <dt><a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+      <dd><p>Common AMQP model, spanning the union of the
+functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
+</dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a></dt>
@@ -300,32 +320,12 @@ spanning the union of the functionality offered by versions
       <dd></dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IContentHeader.html">IContentHeader</a></dt>
-      <dd><p>A decoded AMQP content header frame.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.ICredentialsProvider.html">ICredentialsProvider</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.ICredentialsRefresher.html">ICredentialsRefresher</a></dt>
       <dd></dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.IEndpointResolver.html">IEndpointResolver</a></dt>
       <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IMethod.html">IMethod</a></dt>
-      <dd><p>A decoded AMQP method frame.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
-      <dd><p>Common AMQP model, spanning the union of the
-functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
-</dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.INetworkConnection.html">INetworkConnection</a></dt>
@@ -336,6 +336,13 @@ functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
       <dt><a class="xref" href="RabbitMQ.Client.IProtocol.html">IProtocol</a></dt>
       <dd><p>Object describing various overarching parameters
 associated with a particular AMQP protocol variant.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html">IReadOnlyBasicProperties</a></dt>
+      <dd><p>The AMQP Basic headers class interface,
+spanning the union of the functionality offered by versions
+0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
 </dd>
     </dl>
     <dl class="jumplist">
@@ -360,12 +367,6 @@ associated with a particular AMQP protocol variant.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.IStreamProperties.html">IStreamProperties</a></dt>
-      <dd><p>Common AMQP Stream content-class headers interface,
-spanning the union of the functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.ITcpClient.html">ITcpClient</a></dt>
       <dd><p>Wrapper interface for <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.sockets.socket">Socket</a>.
 Provides the socket for socket frame handler class.</p>
@@ -375,16 +376,14 @@ Provides the socket for socket frame handler class.</p>
 Enums
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="RabbitMQ.Client.DeliveryModes.html">DeliveryModes</a></dt>
+      <dd><p>Convenience enum providing compile-time names for persistent modes.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="RabbitMQ.Client.ShutdownInitiator.html">ShutdownInitiator</a></dt>
       <dd><p>Describes the source of a shutdown event.</p>
 </dd>
-    </dl>
-    <h3 id="delegates">
-Delegates
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="RabbitMQ.Client.NotifyCredentialRefreshed.html">NotifyCredentialRefreshed</a></dt>
-      <dd></dd>
     </dl>
 
 

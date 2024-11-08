@@ -141,8 +141,40 @@ in each repository</li>
 </ul>
 <p>If what you are going to work on is a substantial change, please first
 ask the core team for their opinion on the <a href="https://groups.google.com/forum/#!forum/rabbitmq-users">RabbitMQ users mailing list</a>.</p>
+<h3 id="building-source">Building Source</h3>
+<p>It is good practice to make sure you can build the project before making any
+changes to confirm that your development environment is set up correctly.
+Verifying that the tests pass is also a good practice (see
+<a href="/RUNNING_TESTS.md">RUNNING_TESTS.md</a>).</p>
+<p>All together, this looks like:</p>
+<ul>
+<li>Linux</li>
+</ul>
+<pre><code class="lang-shell">git clone --recurse-submodules https://github.com/rabbitmq/rabbitmq-dotnet-client
+cd rabbitmq-dotnet-client
+
+# On any Linux distribution with Docker installed
+./.ci/ubuntu/gha-setup.sh toxiproxy pull
+
+make build
+make test
+</code></pre>
+<ul>
+<li>Windows</li>
+</ul>
+<p>Note that this will <em>NOT</em> run toxiproxy tests.</p>
+<pre><code class="lang-powershell">git clone --recurse-submodules https://github.com/rabbitmq/rabbitmq-dotnet-client
+cd rabbitmq-dotnet-client
+.\.ci\windows\gha-setup.ps1 # On Windows. Note that this installs RabbitMQ
+.\build.ps1 -RunTests:$true
+</code></pre>
 <h3 id="running-tests">Running Tests</h3>
 <p>See <a href="/RUNNING_TESTS.md">RUNNING_TESTS.md</a>.</p>
+<h3 id="running-benchmarks">Running Benchmarks</h3>
+<p>Benchmarks can be found under <code>./projects/Benchmarks</code>. On the command line, run them with <code>dotnet run</code>
+like so:</p>
+<pre><code>dotnet run -c Release -f net6.0 --project ./projects/Benchmarks/ --filter Networking_BasicDeliver_LongLivedConnection
+</code></pre>
 <h2 id="code-of-conduct">Code of Conduct</h2>
 <p>See <a href="CODE_OF_CONDUCT.html">CODE_OF_CONDUCT.md</a>.</p>
 <h2 id="contributor-agreement">Contributor Agreement</h2>

@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_OAuth2_IToken" data-uid="RabbitMQ.Client.OAuth2.IToken" class="text-break">
-Interface IToken  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L47"><i class="bi bi-code-slash"></i></a>
+Interface IToken  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/Token.cs/#L36"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -124,7 +124,7 @@ Interface IToken  <a class="header-action link-secondary" title="View source" hr
 
   <h3 id="RabbitMQ_Client_OAuth2_IToken_AccessToken" data-uid="RabbitMQ.Client.OAuth2.IToken.AccessToken">
   AccessToken
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/Token.cs/#L38"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -155,7 +155,7 @@ Interface IToken  <a class="header-action link-secondary" title="View source" hr
 
   <h3 id="RabbitMQ_Client_OAuth2_IToken_ExpiresIn" data-uid="RabbitMQ.Client.OAuth2.IToken.ExpiresIn">
   ExpiresIn
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L51"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/Token.cs/#L40"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -182,49 +182,18 @@ Interface IToken  <a class="header-action link-secondary" title="View source" hr
 
 
 
-  <a id="RabbitMQ_Client_OAuth2_IToken_RefreshToken_" data-uid="RabbitMQ.Client.OAuth2.IToken.RefreshToken*"></a>
+  <a id="RabbitMQ_Client_OAuth2_IToken_HasExpired_" data-uid="RabbitMQ.Client.OAuth2.IToken.HasExpired*"></a>
 
-  <h3 id="RabbitMQ_Client_OAuth2_IToken_RefreshToken" data-uid="RabbitMQ.Client.OAuth2.IToken.RefreshToken">
-  RefreshToken
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L50"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_OAuth2_IToken_HasExpired" data-uid="RabbitMQ.Client.OAuth2.IToken.HasExpired">
+  HasExpired
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/Token.cs/#L41"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string RefreshToken { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_OAuth2_IToken_hasExpired_" data-uid="RabbitMQ.Client.OAuth2.IToken.hasExpired*"></a>
-
-  <h3 id="RabbitMQ_Client_OAuth2_IToken_hasExpired" data-uid="RabbitMQ.Client.OAuth2.IToken.hasExpired">
-  hasExpired
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L52"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool hasExpired { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">bool HasExpired { get; }</code></pre>
   </div>
 
 
@@ -244,11 +213,42 @@ Interface IToken  <a class="header-action link-secondary" title="View source" hr
 
 
 
+  <a id="RabbitMQ_Client_OAuth2_IToken_RefreshToken_" data-uid="RabbitMQ.Client.OAuth2.IToken.RefreshToken*"></a>
+
+  <h3 id="RabbitMQ_Client_OAuth2_IToken_RefreshToken" data-uid="RabbitMQ.Client.OAuth2.IToken.RefreshToken">
+  RefreshToken
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/Token.cs/#L39"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string? RefreshToken { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L47" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/Token.cs/#L36" class="edit-link">Edit this page</a>
         </div>
 
 

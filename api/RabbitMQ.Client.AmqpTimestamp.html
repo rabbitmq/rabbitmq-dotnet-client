@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,12 +89,12 @@
 
 
   <h1 id="RabbitMQ_Client_AmqpTimestamp" data-uid="RabbitMQ.Client.AmqpTimestamp" class="text-break">
-Struct AmqpTimestamp  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTimestamp.cs/#L52"><i class="bi bi-code-slash"></i></a>
+Struct AmqpTimestamp  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L51"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
     <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Apigen.dll</dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
   <div class="markdown summary"><p>Structure holding an AMQP timestamp, a posix 64-bit time_t.</p>
@@ -102,24 +102,24 @@ Struct AmqpTimestamp  <a class="header-action link-secondary" title="View source
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct AmqpTimestamp</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly struct AmqpTimestamp : IEquatable&lt;AmqpTimestamp&gt;</code></pre>
   </div>
 
 
 
 
 
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a>&gt;</div>
+    </dd>
+  </dl>
 
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
-    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
     </div>
@@ -157,7 +157,7 @@ timestamps are signed or unsigned.
 
   <h3 id="RabbitMQ_Client_AmqpTimestamp__ctor_System_Int64_" data-uid="RabbitMQ.Client.AmqpTimestamp.#ctor(System.Int64)">
   AmqpTimestamp(long)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTimestamp.cs/#L58"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L57"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Construct an <a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a>.</p>
@@ -171,7 +171,7 @@ timestamps are signed or unsigned.
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>unixTime</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
-    <dd><p>Unix time.</p>
+    <dd><p>Unix time in seconds.</p>
 </dd>
   </dl>
 
@@ -186,30 +186,28 @@ timestamps are signed or unsigned.
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="fields">Fields
 </h2>
 
 
-  <a id="RabbitMQ_Client_AmqpTimestamp_UnixTime_" data-uid="RabbitMQ.Client.AmqpTimestamp.UnixTime*"></a>
 
   <h3 id="RabbitMQ_Client_AmqpTimestamp_UnixTime" data-uid="RabbitMQ.Client.AmqpTimestamp.UnixTime">
   UnixTime
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTimestamp.cs/#L66"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L65"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Unix time.</p>
+  <div class="markdown level1 summary"><p>Unix time in seconds.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly long UnixTime { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly long UnixTime</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
     <dd></dd>
@@ -222,15 +220,127 @@ timestamps are signed or unsigned.
 
 
 
+
   <h2 class="section" id="methods">Methods
 </h2>
+
+
+  <a id="RabbitMQ_Client_AmqpTimestamp_Equals_" data-uid="RabbitMQ.Client.AmqpTimestamp.Equals*"></a>
+
+  <h3 id="RabbitMQ_Client_AmqpTimestamp_Equals_RabbitMQ_Client_AmqpTimestamp_" data-uid="RabbitMQ.Client.AmqpTimestamp.Equals(RabbitMQ.Client.AmqpTimestamp)">
+  Equals(AmqpTimestamp)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L67"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Indicates whether the current object is equal to another object of the same type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Equals(AmqpTimestamp other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a></dt>
+    <dd><p>An object to compare with this object.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> if the current object is equal to the <code class="paramref">other</code> parameter; otherwise, <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_AmqpTimestamp_Equals_" data-uid="RabbitMQ.Client.AmqpTimestamp.Equals*"></a>
+
+  <h3 id="RabbitMQ_Client_AmqpTimestamp_Equals_System_Object_" data-uid="RabbitMQ.Client.AmqpTimestamp.Equals(System.Object)">
+  Equals(object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L69"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Indicates whether this instance and a specified object are equal.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object? obj)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>The object to compare with the current instance.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> if <code class="paramref">obj</code> and this instance are the same type and represent the same value; otherwise, <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_AmqpTimestamp_GetHashCode_" data-uid="RabbitMQ.Client.AmqpTimestamp.GetHashCode*"></a>
+
+  <h3 id="RabbitMQ_Client_AmqpTimestamp_GetHashCode" data-uid="RabbitMQ.Client.AmqpTimestamp.GetHashCode">
+  GetHashCode()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L71"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the hash code for this instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>A 32-bit signed integer that is the hash code for this instance.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
 
 
   <a id="RabbitMQ_Client_AmqpTimestamp_ToString_" data-uid="RabbitMQ.Client.AmqpTimestamp.ToString*"></a>
 
   <h3 id="RabbitMQ_Client_AmqpTimestamp_ToString" data-uid="RabbitMQ.Client.AmqpTimestamp.ToString">
   ToString()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTimestamp.cs/#L71"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L80"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Provides a debugger-friendly display.</p>
@@ -258,11 +368,91 @@ timestamps are signed or unsigned.
 
 
 
+  <h2 class="section" id="operators">Operators
+</h2>
+
+
+  <a id="RabbitMQ_Client_AmqpTimestamp_op_Equality_" data-uid="RabbitMQ.Client.AmqpTimestamp.op_Equality*"></a>
+
+  <h3 id="RabbitMQ_Client_AmqpTimestamp_op_Equality_RabbitMQ_Client_AmqpTimestamp_RabbitMQ_Client_AmqpTimestamp_" data-uid="RabbitMQ.Client.AmqpTimestamp.op_Equality(RabbitMQ.Client.AmqpTimestamp,RabbitMQ.Client.AmqpTimestamp)">
+  operator ==(AmqpTimestamp, AmqpTimestamp)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L73"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool operator ==(AmqpTimestamp left, AmqpTimestamp right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_AmqpTimestamp_op_Inequality_" data-uid="RabbitMQ.Client.AmqpTimestamp.op_Inequality*"></a>
+
+  <h3 id="RabbitMQ_Client_AmqpTimestamp_op_Inequality_RabbitMQ_Client_AmqpTimestamp_RabbitMQ_Client_AmqpTimestamp_" data-uid="RabbitMQ.Client.AmqpTimestamp.op_Inequality(RabbitMQ.Client.AmqpTimestamp,RabbitMQ.Client.AmqpTimestamp)">
+  operator !=(AmqpTimestamp, AmqpTimestamp)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L75"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool operator !=(AmqpTimestamp left, AmqpTimestamp right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="RabbitMQ.Client.AmqpTimestamp.html">AmqpTimestamp</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/AmqpTimestamp.cs/#L52" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/AmqpTimestamp.cs/#L51" class="edit-link">Edit this page</a>
         </div>
 
 

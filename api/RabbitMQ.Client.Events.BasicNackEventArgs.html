@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,12 +89,12 @@
 
 
   <h1 id="RabbitMQ_Client_Events_BasicNackEventArgs" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs" class="text-break">
-Class BasicNackEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicNackEventArgs.cs/#L38"><i class="bi bi-code-slash"></i></a>
+Class BasicNackEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicNackEventArgs.cs/#L39"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
     <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Events.html">Events</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Apigen.dll</dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
   <div class="markdown summary"><p>Contains all the information about a message nack'd
@@ -103,7 +103,7 @@ from an AMQP broker within the Basic content-class.</p>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class BasicNackEventArgs : EventArgs</code></pre>
+    <pre><code class="lang-csharp hljs">public class BasicNackEventArgs : AsyncEventArgs</code></pre>
   </div>
 
 
@@ -113,7 +113,7 @@ from an AMQP broker within the Basic content-class.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs">EventArgs</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html">AsyncEventArgs</a></div>
       <div><span class="xref">BasicNackEventArgs</span></div>
     </dd>
   </dl>
@@ -124,7 +124,13 @@ from an AMQP broker within the Basic content-class.</p>
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs.empty">EventArgs.Empty</a>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CancellationToken">AsyncEventArgs.CancellationToken</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CreateOrDefault_System_Threading_CancellationToken_">AsyncEventArgs.CreateOrDefault(CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_Empty">AsyncEventArgs.Empty</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
@@ -154,15 +160,55 @@ from an AMQP broker within the Basic content-class.</p>
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="constructors">Constructors
 </h2>
 
 
-  <a id="RabbitMQ_Client_Events_BasicNackEventArgs_DeliveryTag_" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs.DeliveryTag*"></a>
+  <a id="RabbitMQ_Client_Events_BasicNackEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs.#ctor*"></a>
+
+  <h3 id="RabbitMQ_Client_Events_BasicNackEventArgs__ctor_System_UInt64_System_Boolean_System_Boolean_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs.#ctor(System.UInt64,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+  BasicNackEventArgs(ulong, bool, bool, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicNackEventArgs.cs/#L41"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public BasicNackEventArgs(ulong deliveryTag, bool multiple, bool requeue, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>deliveryTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>multiple</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>requeue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
 
   <h3 id="RabbitMQ_Client_Events_BasicNackEventArgs_DeliveryTag" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs.DeliveryTag">
   DeliveryTag
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicNackEventArgs.cs/#L43"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicNackEventArgs.cs/#L52"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The sequence number of the nack'd message, or the
@@ -172,14 +218,13 @@ true.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong DeliveryTag { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly ulong DeliveryTag</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
@@ -192,11 +237,11 @@ true.</p>
 
 
 
-  <a id="RabbitMQ_Client_Events_BasicNackEventArgs_Multiple_" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs.Multiple*"></a>
+
 
   <h3 id="RabbitMQ_Client_Events_BasicNackEventArgs_Multiple" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs.Multiple">
   Multiple
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicNackEventArgs.cs/#L47"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicNackEventArgs.cs/#L56"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Whether this nack applies to one message or
@@ -205,14 +250,13 @@ multiple messages.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool Multiple { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly bool Multiple</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
@@ -225,11 +269,11 @@ multiple messages.</p>
 
 
 
-  <a id="RabbitMQ_Client_Events_BasicNackEventArgs_Requeue_" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs.Requeue*"></a>
+
 
   <h3 id="RabbitMQ_Client_Events_BasicNackEventArgs_Requeue" data-uid="RabbitMQ.Client.Events.BasicNackEventArgs.Requeue">
   Requeue
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicNackEventArgs.cs/#L51"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicNackEventArgs.cs/#L60"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Ignore</p>
@@ -237,18 +281,18 @@ multiple messages.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool Requeue { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly bool Requeue</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
   </dl>
+
 
 
 
@@ -264,7 +308,7 @@ multiple messages.</p>
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicNackEventArgs.cs/#L38" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicNackEventArgs.cs/#L39" class="edit-link">Edit this page</a>
         </div>
 
 

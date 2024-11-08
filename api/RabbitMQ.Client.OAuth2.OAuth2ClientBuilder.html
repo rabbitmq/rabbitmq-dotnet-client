@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder" class="text-break">
-Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L100"><i class="bi bi-code-slash"></i></a>
+Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L43"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -121,16 +121,10 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
@@ -140,6 +134,12 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
 
@@ -154,26 +154,33 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
 
   <a id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder__ctor_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.#ctor*"></a>
 
-  <h3 id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder__ctor_System_String_System_String_System_Uri_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.#ctor(System.String,System.String,System.Uri)">
-  OAuth2ClientBuilder(string, string, Uri)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L109"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder__ctor_System_String_System_String_System_Uri_System_Uri_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.#ctor(System.String,System.String,System.Uri,System.Uri)">
+  OAuth2ClientBuilder(string, string, Uri?, Uri?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L71"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Create a new builder for creating <a class="xref" href="RabbitMQ.Client.OAuth2.OAuth2Client.html">OAuth2Client</a>s.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public OAuth2ClientBuilder(string clientId, string clientSecret, Uri tokenEndpoint)</code></pre>
+    <pre><code class="lang-csharp hljs">public OAuth2ClientBuilder(string clientId, string clientSecret, Uri? tokenEndpoint = null, Uri? issuer = null)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>clientId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
+    <dd><p>Id of the client</p>
+</dd>
     <dt><code>clientSecret</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
+    <dd><p>Secret of the client</p>
+</dd>
     <dt><code>tokenEndpoint</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uri">Uri</a></dt>
-    <dd></dd>
+    <dd><p>Endpoint to receive the Access Token</p>
+</dd>
+    <dt><code>issuer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uri">Uri</a></dt>
+    <dd><p>Issuer of the Access Token. Used to automaticly receive the Token Endpoint while building</p>
+</dd>
   </dl>
 
 
@@ -183,6 +190,9 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
 
 
 
+  <h4 class="section" id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder__ctor_System_String_System_String_System_Uri_System_Uri__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>Either <code class="paramref">tokenEndpoint</code> or <code class="paramref">issuer</code> must be provided.</p>
+</div>
 
 
 
@@ -195,10 +205,11 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
 
   <h3 id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder_AddRequestParameter_System_String_System_String_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.AddRequestParameter(System.String,System.String)">
   AddRequestParameter(string, string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L129"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L110"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Add a additional request parameter to each HTTP request.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -208,9 +219,11 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>param</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
+    <dd><p>Name of the parameter</p>
+</dd>
     <dt><code>paramValue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
+    <dd><p>Value of the parameter</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
@@ -229,25 +242,33 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
 
 
 
-  <a id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder_Build_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.Build*"></a>
+  <a id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder_BuildAsync_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.BuildAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder_Build" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.Build">
-  Build()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L147"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder_BuildAsync_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.BuildAsync(System.Threading.CancellationToken)">
+  BuildAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L133"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Build the <a class="xref" href="RabbitMQ.Client.OAuth2.OAuth2Client.html">OAuth2Client</a> with the provided properties of the builder.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IOAuth2Client Build()</code></pre>
+    <pre><code class="lang-csharp hljs">public ValueTask&lt;IOAuth2Client&gt; BuildAsync(CancellationToken cancellationToken = default)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this method</p>
+</dd>
+  </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.OAuth2.IOAuth2Client.html">IOAuth2Client</a></dt>
-    <dd></dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.valuetask-1">ValueTask</a>&lt;<a class="xref" href="RabbitMQ.Client.OAuth2.IOAuth2Client.html">IOAuth2Client</a>&gt;</dt>
+    <dd><p>Configured OAuth2Client</p>
+</dd>
   </dl>
 
 
@@ -264,10 +285,11 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
 
   <h3 id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder_SetHttpClientHandler_System_Net_Http_HttpClientHandler_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.SetHttpClientHandler(System.Net.Http.HttpClientHandler)">
   SetHttpClientHandler(HttpClientHandler)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L123"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L99"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Set custom HTTP Client handler for requests of the OAuth2 client.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -277,7 +299,8 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>handler</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.http.httpclienthandler">HttpClientHandler</a></dt>
-    <dd></dd>
+    <dd><p>Custom handler for HTTP requests</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
@@ -300,10 +323,11 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
 
   <h3 id="RabbitMQ_Client_OAuth2_OAuth2ClientBuilder_SetScope_System_String_" data-uid="RabbitMQ.Client.OAuth2.OAuth2ClientBuilder.SetScope(System.String)">
   SetScope(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L117"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L89"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Set the requested scopes for the client.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -313,7 +337,8 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>scope</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
+    <dd><p>OAuth scopes to request from the Issuer</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
@@ -336,7 +361,7 @@ Class OAuth2ClientBuilder  <a class="header-action link-secondary" title="View s
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L100" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L43" class="edit-link">Edit this page</a>
         </div>
 
 

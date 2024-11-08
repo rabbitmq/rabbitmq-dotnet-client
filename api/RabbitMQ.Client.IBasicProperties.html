@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Interface IBasicProperties ">
       
-      <meta name="description" content="Common AMQP Basic content-class headers interface, spanning the union of the functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.">
+      <meta name="description" content="The AMQP Basic headers class interface, spanning the union of the functionality offered by versions 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,22 +89,22 @@
 
 
   <h1 id="RabbitMQ_Client_IBasicProperties" data-uid="RabbitMQ.Client.IBasicProperties" class="text-break">
-Interface IBasicProperties  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L52"><i class="bi bi-code-slash"></i></a>
+Interface IBasicProperties  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L208"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
     <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Apigen.dll</dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Common AMQP Basic content-class headers interface,
+  <div class="markdown summary"><p>The AMQP Basic headers class interface,
 spanning the union of the functionality offered by versions
 0-8, 0-8qpid, 0-9 and 0-9-1 of AMQP.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public interface IBasicProperties : IContentHeader</code></pre>
+    <pre><code class="lang-csharp hljs">public interface IBasicProperties : IReadOnlyBasicProperties</code></pre>
   </div>
 
 
@@ -117,10 +117,46 @@ spanning the union of the functionality offered by versions
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="RabbitMQ.Client.IContentHeader.html#RabbitMQ_Client_IContentHeader_ProtocolClassId">IContentHeader.ProtocolClassId</a>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsAppIdPresent">IReadOnlyBasicProperties.IsAppIdPresent()</a>
     </div>
     <div>
-      <a class="xref" href="RabbitMQ.Client.IContentHeader.html#RabbitMQ_Client_IContentHeader_ProtocolClassName">IContentHeader.ProtocolClassName</a>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsClusterIdPresent">IReadOnlyBasicProperties.IsClusterIdPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsContentEncodingPresent">IReadOnlyBasicProperties.IsContentEncodingPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsContentTypePresent">IReadOnlyBasicProperties.IsContentTypePresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsCorrelationIdPresent">IReadOnlyBasicProperties.IsCorrelationIdPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsDeliveryModePresent">IReadOnlyBasicProperties.IsDeliveryModePresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsExpirationPresent">IReadOnlyBasicProperties.IsExpirationPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsHeadersPresent">IReadOnlyBasicProperties.IsHeadersPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsMessageIdPresent">IReadOnlyBasicProperties.IsMessageIdPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsPriorityPresent">IReadOnlyBasicProperties.IsPriorityPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsReplyToPresent">IReadOnlyBasicProperties.IsReplyToPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsTimestampPresent">IReadOnlyBasicProperties.IsTimestampPresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsTypePresent">IReadOnlyBasicProperties.IsTypePresent()</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html#RabbitMQ_Client_IReadOnlyBasicProperties_IsUserIdPresent">IReadOnlyBasicProperties.IsUserIdPresent()</a>
     </div>
   </dd></dl>
 
@@ -129,12 +165,6 @@ spanning the union of the functionality offered by versions
 
   <h2 id="RabbitMQ_Client_IBasicProperties_remarks">Remarks</h2>
   <div class="markdown level0 remarks"><p>
-The specification code generator provides
-protocol-version-specific implementations of this interface. To
-obtain an implementation of this interface in a
-protocol-version-neutral way, use <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_CreateBasicProperties">CreateBasicProperties()</a>.
-</p>
-<p>
 Each property is readable, writable and clearable: a cleared
 property will not be transmitted over the wire. Properties on a
 fresh instance are clear by default.
@@ -150,7 +180,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_AppId" data-uid="RabbitMQ.Client.IBasicProperties.AppId">
   AppId
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L57"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L213"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Application Id.</p>
@@ -158,7 +188,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string AppId { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? AppId { get; set; }</code></pre>
   </div>
 
 
@@ -182,7 +212,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClusterId" data-uid="RabbitMQ.Client.IBasicProperties.ClusterId">
   ClusterId
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L62"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L218"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Intra-cluster routing identifier (cluster id is deprecated in AMQP 0-9-1).</p>
@@ -190,7 +220,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string ClusterId { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? ClusterId { get; set; }</code></pre>
   </div>
 
 
@@ -214,7 +244,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ContentEncoding" data-uid="RabbitMQ.Client.IBasicProperties.ContentEncoding">
   ContentEncoding
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L67"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L223"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>MIME content encoding.</p>
@@ -222,7 +252,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string ContentEncoding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? ContentEncoding { get; set; }</code></pre>
   </div>
 
 
@@ -246,7 +276,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ContentType" data-uid="RabbitMQ.Client.IBasicProperties.ContentType">
   ContentType
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L72"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L228"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>MIME content type.</p>
@@ -254,7 +284,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string ContentType { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? ContentType { get; set; }</code></pre>
   </div>
 
 
@@ -278,7 +308,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_CorrelationId" data-uid="RabbitMQ.Client.IBasicProperties.CorrelationId">
   CorrelationId
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L77"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L233"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Application correlation identifier.</p>
@@ -286,7 +316,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string CorrelationId { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? CorrelationId { get; set; }</code></pre>
   </div>
 
 
@@ -310,7 +340,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_DeliveryMode" data-uid="RabbitMQ.Client.IBasicProperties.DeliveryMode">
   DeliveryMode
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L82"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L238"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Non-persistent (1) or persistent (2).</p>
@@ -318,7 +348,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">byte DeliveryMode { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">DeliveryModes DeliveryMode { get; set; }</code></pre>
   </div>
 
 
@@ -327,7 +357,7 @@ fresh instance are clear by default.
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dt><a class="xref" href="RabbitMQ.Client.DeliveryModes.html">DeliveryModes</a></dt>
     <dd></dd>
   </dl>
 
@@ -342,7 +372,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_Expiration" data-uid="RabbitMQ.Client.IBasicProperties.Expiration">
   Expiration
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L87"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L243"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Message expiration specification.</p>
@@ -350,7 +380,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string Expiration { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? Expiration { get; set; }</code></pre>
   </div>
 
 
@@ -374,7 +404,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_Headers" data-uid="RabbitMQ.Client.IBasicProperties.Headers">
   Headers
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L92"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L248"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Message header field table. Is of type <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary&lt;TKey, TValue&gt;</a>.</p>
@@ -382,7 +412,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IDictionary&lt;string, object&gt; Headers { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">IDictionary&lt;string, object?&gt;? Headers { get; set; }</code></pre>
   </div>
 
 
@@ -406,7 +436,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_MessageId" data-uid="RabbitMQ.Client.IBasicProperties.MessageId">
   MessageId
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L97"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L253"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Application message Id.</p>
@@ -414,7 +444,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string MessageId { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? MessageId { get; set; }</code></pre>
   </div>
 
 
@@ -438,7 +468,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_Persistent" data-uid="RabbitMQ.Client.IBasicProperties.Persistent">
   Persistent
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L102"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L258"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Sets <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> to either persistent (2) or non-persistent (1).</p>
@@ -470,7 +500,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_Priority" data-uid="RabbitMQ.Client.IBasicProperties.Priority">
   Priority
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L107"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L263"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Message priority, 0 to 9.</p>
@@ -502,7 +532,7 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ReplyTo" data-uid="RabbitMQ.Client.IBasicProperties.ReplyTo">
   ReplyTo
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L112"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L268"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Destination to reply to.</p>
@@ -510,7 +540,7 @@ fresh instance are clear by default.
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string ReplyTo { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? ReplyTo { get; set; }</code></pre>
   </div>
 
 
@@ -534,17 +564,17 @@ fresh instance are clear by default.
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ReplyToAddress" data-uid="RabbitMQ.Client.IBasicProperties.ReplyToAddress">
   ReplyToAddress
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L119"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L275"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Convenience property; parses <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property using <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_TryParse_System_String_RabbitMQ_Client_PublicationAddress__">TryParse(string, out PublicationAddress)</a>,
+  <div class="markdown level1 summary"><p>Convenience property; parses <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property using <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_TryParse_System_String_RabbitMQ_Client_PublicationAddress__">TryParse(string?, out PublicationAddress?)</a>,
 and serializes it using <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_ToString">ToString()</a>.
-Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property cannot be parsed by <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_TryParse_System_String_RabbitMQ_Client_PublicationAddress__">TryParse(string, out PublicationAddress)</a>.</p>
+Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property cannot be parsed by <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ_Client_PublicationAddress_TryParse_System_String_RabbitMQ_Client_PublicationAddress__">TryParse(string?, out PublicationAddress?)</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">PublicationAddress ReplyToAddress { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">PublicationAddress? ReplyToAddress { get; set; }</code></pre>
   </div>
 
 
@@ -568,7 +598,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_Timestamp" data-uid="RabbitMQ.Client.IBasicProperties.Timestamp">
   Timestamp
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L124"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L280"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Message timestamp.</p>
@@ -600,7 +630,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_Type" data-uid="RabbitMQ.Client.IBasicProperties.Type">
   Type
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L129"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L285"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Message type name.</p>
@@ -608,7 +638,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string Type { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? Type { get; set; }</code></pre>
   </div>
 
 
@@ -632,7 +662,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_UserId" data-uid="RabbitMQ.Client.IBasicProperties.UserId">
   UserId
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L134"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L290"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>User Id.</p>
@@ -640,7 +670,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string UserId { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">string? UserId { get; set; }</code></pre>
   </div>
 
 
@@ -668,7 +698,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearAppId" data-uid="RabbitMQ.Client.IBasicProperties.ClearAppId">
   ClearAppId()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L139"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L295"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_AppId">AppId</a> property.</p>
@@ -695,7 +725,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearClusterId" data-uid="RabbitMQ.Client.IBasicProperties.ClearClusterId">
   ClearClusterId()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L144"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L300"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ClusterId">ClusterId</a> property (cluster id is deprecated in AMQP 0-9-1).</p>
@@ -722,7 +752,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearContentEncoding" data-uid="RabbitMQ.Client.IBasicProperties.ClearContentEncoding">
   ClearContentEncoding()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L149"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L305"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ContentEncoding">ContentEncoding</a> property.</p>
@@ -749,7 +779,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearContentType" data-uid="RabbitMQ.Client.IBasicProperties.ClearContentType">
   ClearContentType()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L154"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L310"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ContentType">ContentType</a> property.</p>
@@ -776,7 +806,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearCorrelationId" data-uid="RabbitMQ.Client.IBasicProperties.ClearCorrelationId">
   ClearCorrelationId()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L159"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L315"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_CorrelationId">CorrelationId</a> property.</p>
@@ -803,7 +833,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearDeliveryMode" data-uid="RabbitMQ.Client.IBasicProperties.ClearDeliveryMode">
   ClearDeliveryMode()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L164"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L320"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> property.</p>
@@ -830,7 +860,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearExpiration" data-uid="RabbitMQ.Client.IBasicProperties.ClearExpiration">
   ClearExpiration()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L169"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L325"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Expiration">Expiration</a> property.</p>
@@ -857,7 +887,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearHeaders" data-uid="RabbitMQ.Client.IBasicProperties.ClearHeaders">
   ClearHeaders()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L174"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L330"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Headers">Headers</a> property.</p>
@@ -884,7 +914,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearMessageId" data-uid="RabbitMQ.Client.IBasicProperties.ClearMessageId">
   ClearMessageId()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L179"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L335"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_MessageId">MessageId</a> property.</p>
@@ -911,7 +941,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearPriority" data-uid="RabbitMQ.Client.IBasicProperties.ClearPriority">
   ClearPriority()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L184"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L340"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Priority">Priority</a> property.</p>
@@ -938,7 +968,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearReplyTo" data-uid="RabbitMQ.Client.IBasicProperties.ClearReplyTo">
   ClearReplyTo()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L189"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L345"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property.</p>
@@ -965,7 +995,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearTimestamp" data-uid="RabbitMQ.Client.IBasicProperties.ClearTimestamp">
   ClearTimestamp()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L194"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L350"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Timestamp">Timestamp</a> property.</p>
@@ -992,10 +1022,10 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearType" data-uid="RabbitMQ.Client.IBasicProperties.ClearType">
   ClearType()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L199"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L355"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Clear the Type property.</p>
+  <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Type">Type</a> property.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -1019,7 +1049,7 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
   <h3 id="RabbitMQ_Client_IBasicProperties_ClearUserId" data-uid="RabbitMQ.Client.IBasicProperties.ClearUserId">
   ClearUserId()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L204"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L360"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Clear the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_UserId">UserId</a> property.</p>
@@ -1042,459 +1072,11 @@ Returns null if <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#Rabb
 
 
 
-  <a id="RabbitMQ_Client_IBasicProperties_IsAppIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsAppIdPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsAppIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsAppIdPresent">
-  IsAppIdPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L209"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_AppId">AppId</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsAppIdPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsClusterIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsClusterIdPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsClusterIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsClusterIdPresent">
-  IsClusterIdPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L214"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ClusterId">ClusterId</a> property is present (cluster id is deprecated in AMQP 0-9-1).</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsClusterIdPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsContentEncodingPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsContentEncodingPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsContentEncodingPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsContentEncodingPresent">
-  IsContentEncodingPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L219"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ContentEncoding">ContentEncoding</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsContentEncodingPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsContentTypePresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsContentTypePresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsContentTypePresent" data-uid="RabbitMQ.Client.IBasicProperties.IsContentTypePresent">
-  IsContentTypePresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L224"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ContentType">ContentType</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsContentTypePresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsCorrelationIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsCorrelationIdPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsCorrelationIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsCorrelationIdPresent">
-  IsCorrelationIdPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L229"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_CorrelationId">CorrelationId</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsCorrelationIdPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsDeliveryModePresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsDeliveryModePresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsDeliveryModePresent" data-uid="RabbitMQ.Client.IBasicProperties.IsDeliveryModePresent">
-  IsDeliveryModePresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L234"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_DeliveryMode">DeliveryMode</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsDeliveryModePresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsExpirationPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsExpirationPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsExpirationPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsExpirationPresent">
-  IsExpirationPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L239"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Expiration">Expiration</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsExpirationPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsHeadersPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsHeadersPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsHeadersPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsHeadersPresent">
-  IsHeadersPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L244"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Headers">Headers</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsHeadersPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsMessageIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsMessageIdPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsMessageIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsMessageIdPresent">
-  IsMessageIdPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L249"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_MessageId">MessageId</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsMessageIdPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsPriorityPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsPriorityPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsPriorityPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsPriorityPresent">
-  IsPriorityPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L254"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Priority">Priority</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsPriorityPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsReplyToPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsReplyToPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsReplyToPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsReplyToPresent">
-  IsReplyToPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L259"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_ReplyTo">ReplyTo</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsReplyToPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsTimestampPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsTimestampPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsTimestampPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsTimestampPresent">
-  IsTimestampPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L264"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_Timestamp">Timestamp</a> property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsTimestampPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsTypePresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsTypePresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsTypePresent" data-uid="RabbitMQ.Client.IBasicProperties.IsTypePresent">
-  IsTypePresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L269"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the Type property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsTypePresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_IBasicProperties_IsUserIdPresent_" data-uid="RabbitMQ.Client.IBasicProperties.IsUserIdPresent*"></a>
-
-  <h3 id="RabbitMQ_Client_IBasicProperties_IsUserIdPresent" data-uid="RabbitMQ.Client.IBasicProperties.IsUserIdPresent">
-  IsUserIdPresent()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L274"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Returns true if the <a class="xref" href="RabbitMQ.Client.IBasicProperties.html#RabbitMQ_Client_IBasicProperties_UserId">UserId</a> UserId property is present.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool IsUserIdPresent()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IBasicProperties.cs/#L52" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IBasicProperties.cs/#L208" class="edit-link">Edit this page</a>
         </div>
 
 

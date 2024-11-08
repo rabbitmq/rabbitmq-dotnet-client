@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_DefaultEndpointResolver" data-uid="RabbitMQ.Client.DefaultEndpointResolver" class="text-break">
-Class DefaultEndpointResolver  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/DefaultEndpointResolver.cs/#L38"><i class="bi bi-code-slash"></i></a>
+Class DefaultEndpointResolver  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/DefaultEndpointResolver.cs/#L38"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -127,16 +127,10 @@ Class DefaultEndpointResolver  <a class="header-action link-secondary" title="Vi
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
@@ -147,13 +141,19 @@ Class DefaultEndpointResolver  <a class="header-action link-secondary" title="Vi
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
   </dd></dl>
 
   <dl class="typelist extensionMethods">
     <dt>Extension Methods</dt>
     <dd>
   <div>
-      <a class="xref" href="RabbitMQ.Client.EndpointResolverExtensions.html#RabbitMQ_Client_EndpointResolverExtensions_SelectOne__1_RabbitMQ_Client_IEndpointResolver_System_Func_RabbitMQ_Client_AmqpTcpEndpoint___0__">EndpointResolverExtensions.SelectOne&lt;T&gt;(IEndpointResolver, Func&lt;AmqpTcpEndpoint, T&gt;)</a>
+      <a class="xref" href="RabbitMQ.Client.EndpointResolverExtensions.html#RabbitMQ_Client_EndpointResolverExtensions_SelectOneAsync__1_RabbitMQ_Client_IEndpointResolver_System_Func_RabbitMQ_Client_AmqpTcpEndpoint_System_Threading_CancellationToken_System_Threading_Tasks_Task___0___System_Threading_CancellationToken_">EndpointResolverExtensions.SelectOneAsync&lt;T&gt;(IEndpointResolver, Func&lt;AmqpTcpEndpoint, CancellationToken, Task&lt;T&gt;&gt;, CancellationToken)</a>
   </div>
   </dd></dl>
 
@@ -169,7 +169,7 @@ Class DefaultEndpointResolver  <a class="header-action link-secondary" title="Vi
 
   <h3 id="RabbitMQ_Client_DefaultEndpointResolver__ctor_System_Collections_Generic_IEnumerable_RabbitMQ_Client_AmqpTcpEndpoint__" data-uid="RabbitMQ.Client.DefaultEndpointResolver.#ctor(System.Collections.Generic.IEnumerable{RabbitMQ.Client.AmqpTcpEndpoint})">
   DefaultEndpointResolver(IEnumerable&lt;AmqpTcpEndpoint&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/DefaultEndpointResolver.cs/#L43"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/DefaultEndpointResolver.cs/#L45"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -204,7 +204,7 @@ Class DefaultEndpointResolver  <a class="header-action link-secondary" title="Vi
 
   <h3 id="RabbitMQ_Client_DefaultEndpointResolver_All" data-uid="RabbitMQ.Client.DefaultEndpointResolver.All">
   All()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/DefaultEndpointResolver.cs/#L48"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/DefaultEndpointResolver.cs/#L50"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Return all AmqpTcpEndpoints in the order they should be tried.</p>
@@ -236,7 +236,7 @@ Class DefaultEndpointResolver  <a class="header-action link-secondary" title="Vi
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/DefaultEndpointResolver.cs/#L38" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/DefaultEndpointResolver.cs/#L38" class="edit-link">Edit this page</a>
         </div>
 
 

@@ -72,6 +72,464 @@
 
         <article data-uid="">
 
+<h2 id="v700-rc1-2024-06-04"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.1">v7.0.0-rc.1</a> (2024-06-04)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.6...v7.0.0-rc.1">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>Ensure RabbitMQ.Client.OpenTelemetry is published to NuGet correctly <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1591">#1591</a></li>
+<li>Review TaskExtensions <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1425">#1425</a></li>
+<li>Support cancellation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1420">#1420</a></li>
+</ul>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>Calling channel.CloseAsync from within AsyncEventingBasicConsumer handler causes deadlock <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1567">#1567</a></li>
+<li>MaxMessageSize actually limits frame size <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1356">#1356</a></li>
+<li>Calling Dispose on AutorecoveringModel that has already shutdown throws NullRefException <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/825">#825</a></li>
+<li>Opening a channel inside a consumer interface callback times out waiting for continuation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/650">#650</a></li>
+</ul>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Incorrect comments in some public member documentation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1109">#1109</a></li>
+<li>CallbackException not raised for AsyncEventingBasicConsumer <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1038">#1038</a></li>
+<li>Unhelpful exception message when clientProvidedName is too long <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/980">#980</a></li>
+<li>Pool workers to handle incoming deliveries, ACKs etc. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/906">#906</a></li>
+<li>AutorecoveringConnection prevents AppDomain.Unload() of enclosing AppDomain <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/826">#826</a></li>
+<li>NullReferenceException when writing a frame on a connection being closed by the server <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/822">#822</a></li>
+<li>Log what TLS version(s) is enabled on the system <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/765">#765</a></li>
+</ul>
+<p><strong>Merged pull requests:</strong></p>
+<ul>
+<li>Ship PublicAPI <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1593">#1593</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Ensure OpenTelemetry project is set up like OAuth2 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1592">#1592</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add test to demonstrate that #825 is fixed <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1590">#1590</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Update copyright message <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1589">#1589</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Change test to match code provided by @neilgreatorex <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1588">#1588</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add test demonstrating that #1573 is fixed <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1587">#1587</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Demonstrate that #1038 is fixed <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1585">#1585</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Handle AppDomain unload <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1583">#1583</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Use ConcurrentDictionary <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1580">#1580</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix two flaky tests <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1579">#1579</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add test that creates <code>IChannel</code> within async consumer callback <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1578">#1578</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Remove two unnecessary <code>.Cast&lt;&gt;()</code> usages <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1577">#1577</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Truncate long client provided names <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1576">#1576</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Misc changes from lukebakken/amqp-string <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1575">#1575</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix ShutdownInitiator in <code>CloseAsync</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1574">#1574</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Can't close channel from consumer dispatcher <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1568">#1568</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Adding proper OpenTelemetry integration via. registration helpers and better context propagation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1528">#1528</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+</ul>
+<h2 id="v700-alpha6-2024-05-16"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.6">v7.0.0-alpha.6</a> (2024-05-16)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.5...v7.0.0-alpha.6">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>Using the wrong consumer dispatcher type should throw an exception <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1408">#1408</a></li>
+</ul>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>7.0.0-alpha.2 - Unexpected Exception: Unable to read data from the transport connection: Connection reset by peer <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1464">#1464</a></li>
+<li>Do not create exceptions just for logging <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1440">#1440</a></li>
+<li>Only throw <code>RabbitMQ.Client</code>-specific exceptions. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1439">#1439</a></li>
+</ul>
+<p><strong>Merged pull requests:</strong></p>
+<ul>
+<li>Enforce max message size with mutiple content frames <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1566">#1566</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Various editor suggestions <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1563">#1563</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Misc changes <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1560">#1560</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Enable <code>rabbitmq-client</code> event logging when tests are verbose <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1559">#1559</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>More <code>CancellationToken</code> todos <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1555">#1555</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix <code>TestThatDeletedQueueBindingsDontReappearOnRecovery</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1554">#1554</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li><code>TestPublishRpcRightAfterReconnect</code> improvements <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1553">#1553</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Better exception message when a continuation times out <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1552">#1552</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Separate out connection recovery tests <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1549">#1549</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+</ul>
+<h2 id="v700-alpha5-2024-04-22"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.5">v7.0.0-alpha.5</a> (2024-04-22)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.4...v7.0.0-alpha.5">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>add suport for wasm <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1518">#1518</a></li>
+<li>Optimise dependencies needed for v7 release <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1480">#1480</a></li>
+<li>Add net 6.0 so that conditional packages can be defined <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1479">#1479</a></li>
+<li>ClientArrayPool tracking is already supported by ArrayPool <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1421">#1421</a></li>
+</ul>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Remove sync API <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1472">#1472</a></li>
+</ul>
+<p><strong>Merged pull requests:</strong></p>
+<ul>
+<li>Replace <code>lock</code> with <code>SemaphoreSlim</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1539">#1539</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix the flaky <code>TestConsumerRecoveryOnClientNamedQueueWithOneRecovery</code> test <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1538">#1538</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add <code>CancellationToken</code> to <code>Async</code> members of <code>IChannel</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1535">#1535</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add build step to check for <code>inet_error</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1525">#1525</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add a test that closes a connection with Toxiproxy <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1522">#1522</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix small typos in ConnectionFactory <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1521">#1521</a> (<a href="https://github.com/markbosch">markbosch</a>)</li>
+<li>Remove a lot of unused code <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1517">#1517</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Remove TODO <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1516">#1516</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Remove <code>ClientArrayPool</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1515">#1515</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>#1480 Use conditional packages for v7 release <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481">#1481</a> (<a href="https://github.com/thompson-tomo">thompson-tomo</a>)</li>
+</ul>
+<h2 id="v700-alpha4-2024-03-05"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.4">v7.0.0-alpha.4</a> (2024-03-05)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.3...v7.0.0-alpha.4">Full Changelog</a></p>
+<p><strong>Merged pull requests:</strong></p>
+<ul>
+<li>Make handling of server-originated methods async <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1508">#1508</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Continue simplifying code <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1507">#1507</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Continue removing sync API <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1506">#1506</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Use RabbitMQ 3.13 on Windows GHA <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1505">#1505</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Remove more synchronous code <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1504">#1504</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+</ul>
+<h2 id="v700-alpha3-2024-02-20"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.3">v7.0.0-alpha.3</a> (2024-02-20)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.2...v7.0.0-alpha.3">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>Consider re-trying opening connections in a specific scenario <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1448">#1448</a></li>
+<li>Trimming and AOT compatibility of this library <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1410">#1410</a></li>
+<li>Reduce allocations by using pooled memory and recycling memory streams <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/694">#694</a></li>
+<li>Consider adding static analysis <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/444">#444</a></li>
+</ul>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>HandleMainLoopException puts exception StackTrace in the EventSource Message <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1493">#1493</a></li>
+</ul>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Async API - socket read timeout has no effect <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1492">#1492</a></li>
+<li>Deadlock when closing a channel in the Received Event <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1382">#1382</a></li>
+<li>Enable long-running tests on a cron schedule. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1157">#1157</a></li>
+<li>Heap size grows when publishing a very large batch of messages <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1106">#1106</a></li>
+<li>IModel.IsClosed set to false after dispose <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1086">#1086</a></li>
+<li>WaitForConfirmsOrDie won't return if DeliveryTag on the client is diverged from the server <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1043">#1043</a></li>
+<li>Bug in topology-auto-recovery functionality <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1035">#1035</a></li>
+<li>Model.Close does not await CloseAsync <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1011">#1011</a></li>
+<li>Discussion: Supported frameworks <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/867">#867</a></li>
+<li>Evaluating how to support tracing and OpenTelemetry <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/776">#776</a></li>
+</ul>
+<p><strong>Merged pull requests:</strong></p>
+<ul>
+<li>Remove more synchronous code. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1501">#1501</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Update codeql.yml <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1499">#1499</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Address lack of Socket read timeout for async reads <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1497">#1497</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Port #1494 to <code>main</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1495">#1495</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Re-organize test projects <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1491">#1491</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>InternalsVisibleTo enhancements <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1488">#1488</a> (<a href="https://github.com/WeihanLi">WeihanLi</a>)</li>
+<li>Remove synchronous API <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1473">#1473</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add more use of CancellationToken in Async methods. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1468">#1468</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add test code for issue #1464 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1466">#1466</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add test to prove bindings are restored by topology recovery <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1460">#1460</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Ensure delivery tag is decremented for client-side exception <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1453">#1453</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Enable long running tests <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1451">#1451</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add test that demonstrates the current behavior of a recovered channe… <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1450">#1450</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Retry more connections in test suite <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1449">#1449</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Use <code>Microsoft.CodeAnalysis.PublicApiAnalyzers</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1447">#1447</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Trimming and AOT compatibility <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1411">#1411</a> (<a href="https://github.com/eerhardt">eerhardt</a>)</li>
+<li>Add OpenTelemetry support via ActivitySource <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1261">#1261</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+</ul>
+<h2 id="v700-alpha2-2023-12-14"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.2">v7.0.0-alpha.2</a> (2023-12-14)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.1...v7.0.0-alpha.2">Full Changelog</a></p>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>7.0: Stack overflow &quot;ExchangeDeclareAsync&quot; <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1444">#1444</a></li>
+</ul>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Port #1438 to main <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1441">#1441</a></li>
+</ul>
+<p><strong>Merged pull requests:</strong></p>
+<ul>
+<li>Port #1434 to <code>main</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1442">#1442</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix #1429 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1431">#1431</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add cancellation to initial socket connection <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1428">#1428</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Ensure that the underlying timer for <code>Task.Delay</code> is canceled. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1426">#1426</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+</ul>
+<h2 id="v681-2023-12-11"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.1">v6.8.1</a> (2023-12-11)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.1-rc.1...v6.8.1">Full Changelog</a></p>
+<h2 id="v681-rc1-2023-12-11"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.1-rc.1">v6.8.1-rc.1</a> (2023-12-11)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.0...v6.8.1-rc.1">Full Changelog</a></p>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>When using assembly binding redirect a connection error is shown <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1434">#1434</a></li>
+<li>Queue Fails to Delete with Orphaned Binding <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1376">#1376</a></li>
+</ul>
+<h2 id="v680-2023-12-05"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.0">v6.8.0</a> (2023-12-05)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.8.0-rc.1...v6.8.0">Full Changelog</a></p>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>Opening multiple connections from a <code>ConnectionFactory</code> with <code>CredentialsRefresher</code> makes the second connection fail <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1429">#1429</a></li>
+</ul>
+<h2 id="v680-rc1-2023-12-01"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.8.0-rc.1">v6.8.0-rc.1</a> (2023-12-01)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.1...v6.8.0-rc.1">Full Changelog</a></p>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Should IModelExensions be named IModelExtensions (with a &quot;t&quot;)? <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1430">#1430</a></li>
+<li>Review async RPC continuations, await, and ConfigureAwait <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1427">#1427</a></li>
+</ul>
+<h2 id="v700-alpha1-2023-11-20"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.1">v7.0.0-alpha.1</a> (2023-11-20)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.7.0...v7.0.0-alpha.1">Full Changelog</a></p>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Xunit parallel test execution <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1412">#1412</a></li>
+<li>Port &quot;Implement Full Async Channel&quot; PR to <code>main</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1308">#1308</a></li>
+<li>ConnectionRecovery recovers models before consumers <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1076">#1076</a></li>
+<li>connection topology recover can miss restore consumers <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1047">#1047</a></li>
+<li>Proposal: Full async channel interface (IModel) <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/970">#970</a></li>
+<li>AMQP 0-9-1 Channel (IModel) API with async methods <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/843">#843</a></li>
+</ul>
+<p><strong>Merged pull requests:</strong></p>
+<ul>
+<li>Make TcpClientAdapter public <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1417">#1417</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Removed ReceiveBufferSize and SendBufferSize to improve message rates <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1415">#1415</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Clarify Unix Time units in AmqpTimestamp <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1407">#1407</a> (<a href="https://github.com/ngbrown">ngbrown</a>)</li>
+<li>Implement asynchronous methods. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1347">#1347</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+</ul>
+<h2 id="v670-2023-11-16"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0">v6.7.0</a> (2023-11-16)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.7.0-rc.2...v6.7.0">Full Changelog</a></p>
+<h2 id="v670-rc2-2023-11-16"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0-rc.2">v6.7.0-rc.2</a> (2023-11-16)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.7.0-rc.1...v6.7.0-rc.2">Full Changelog</a></p>
+<h2 id="v670-rc1-2023-11-15"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.7.0-rc.1">v6.7.0-rc.1</a> (2023-11-15)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.0...v6.7.0-rc.1">Full Changelog</a></p>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>6.5.0 can cause application freeze due to TaskScheduler change <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1357">#1357</a></li>
+</ul>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Consistent naming for methods that return Tasks <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1296">#1296</a></li>
+<li>Take advantage of immutable collections <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1171">#1171</a></li>
+</ul>
+<h2 id="v700-alpha0-2023-10-16"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-alpha.0">v7.0.0-alpha.0</a> (2023-10-16)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0...v7.0.0-alpha.0">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>Remove the use of Moq <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1369">#1369</a></li>
+<li>remove APIGen project <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/924">#924</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Ability to do concurrent dispatches both on the async as well as the sync consumer <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/866">#866</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>simplify missed heartbeat recognition <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/854">#854</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>eliminate allocations from InboundFrame <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/848">#848</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+</ul>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>If CreateConnection is called on a thread with a non-default TaskScheduler it will attempt to start the MainLoop on that scheduler. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1355">#1355</a></li>
+<li>Fix flaky connection recovery tests. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1148">#1148</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Typo in Extension class name <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/922">#922</a> (<a href="https://github.com/JeremyMahieu">JeremyMahieu</a>)</li>
+</ul>
+<p><strong>Merged pull requests:</strong></p>
+<ul>
+<li>Update GHA for NuGet publishing <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1406">#1406</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Update package dependencies <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1403">#1403</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Ensure tests that interact with RabbitMQ do not run in parallel <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1402">#1402</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add certs and rabbitmq.conf to enable TLS testing on GHA <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1398">#1398</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add workflow to test OAuth2 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1397">#1397</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Use latest CI resources on Windows <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1394">#1394</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Remove use of Moq <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1393">#1393</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Ensure that the order of arguments is <code>expected</code>, <code>actual</code>, take two! <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1386">#1386</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Ensure that the order of arguments is <code>expected</code>, <code>actual</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1385">#1385</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Update API documentation of MaxMessageSize <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1381">#1381</a> (<a href="https://github.com/MarcialRosales">MarcialRosales</a>)</li>
+<li>Fix #1378 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1380">#1380</a> (<a href="https://github.com/MarcialRosales">MarcialRosales</a>)</li>
+<li>fix typo <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1377">#1377</a> (<a href="https://github.com/WeihanLi">WeihanLi</a>)</li>
+<li>Update package references <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1372">#1372</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Misc Windows CI updates <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1366">#1366</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Support OAuth2 authentication <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1346">#1346</a> (<a href="https://github.com/MarcialRosales">MarcialRosales</a>)</li>
+<li>Implement QueueDeclareAsync <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1345">#1345</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Build using traversal project <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1344">#1344</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Follow-up to PR #1332 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1340">#1340</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add a missing constant for NO_ROUTE <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1332">#1332</a> (<a href="https://github.com/michaelklishin">michaelklishin</a>)</li>
+<li>Updates from the 6.x branch <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1328">#1328</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Misc updates <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1326">#1326</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix consumer recovery with server-named queues <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1325">#1325</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Port #1317 to main <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1323">#1323</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Ignore global.json <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1319">#1319</a> (<a href="https://github.com/michaelklishin">michaelklishin</a>)</li>
+<li>Add custom filtering and exception handling to topology recovery <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1312">#1312</a> (<a href="https://github.com/rosca-sabina">rosca-sabina</a>)</li>
+<li>Adding fully asynchronous versions of connect and publish. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1311">#1311</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Part 2 of #1308 - Port Interlocked.cs from #982 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1310">#1310</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Part 1 of #1308 - renaming IModel and related names <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1309">#1309</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix build warning <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1307">#1307</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Port #1304 - Add event for recovering consumer <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1305">#1305</a> (<a href="https://github.com/Zerpet">Zerpet</a>)</li>
+<li>Update package versions <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1295">#1295</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Remove unused StringExtension.cs <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1290">#1290</a> (<a href="https://github.com/Pliner">Pliner</a>)</li>
+<li>Address some test flakes <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1288">#1288</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Bump testing versions on Windows <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1285">#1285</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Removed an unnecessary comment <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1276">#1276</a> (<a href="https://github.com/3baaady07">3baaady07</a>)</li>
+<li>fix: add unsigned short support in table deserialisation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1270">#1270</a> (<a href="https://github.com/gytsen">gytsen</a>)</li>
+<li>Minimal System.IO.Pipelines integration to prepare for full-async work <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1264">#1264</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Add exception logging on WriteLoop <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1262">#1262</a> (<a href="https://github.com/Turnerj">Turnerj</a>)</li>
+<li>Fixing header parsing bug <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1260">#1260</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>CI updates <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1256">#1256</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>change ref to in and use Unsafe.AsRef <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1247">#1247</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Merge pull request #1224 from rabbitmq/rabbitmq-dotnet-client-1223-6.x <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1226">#1226</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add ability to specify maximum message size <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1218">#1218</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Misc updates <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1215">#1215</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>thread-safe Random generation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1207">#1207</a> (<a href="https://github.com/amiru3f">amiru3f</a>)</li>
+<li>Use new Task.WaitAsync() to cancel an await call <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1206">#1206</a> (<a href="https://github.com/ArminShoeibi">ArminShoeibi</a>)</li>
+<li>Fix perpetual auto-recovery problem <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1204">#1204</a> (<a href="https://github.com/mot256">mot256</a>)</li>
+<li>[REVERTED] Use file-scoped namesapces in RabbitMQ.Client project <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1202">#1202</a> (<a href="https://github.com/ArminShoeibi">ArminShoeibi</a>)</li>
+<li>Add related headers to streams feature in Headers.cs <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1201">#1201</a> (<a href="https://github.com/ArminShoeibi">ArminShoeibi</a>)</li>
+<li>Run &quot;dotnet format&quot; <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1197">#1197</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Reduce message body size to help fix flaky test <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1193">#1193</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Ensure target frameworks make sense for 7.0 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1189">#1189</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Restore readonly <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1188">#1188</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Update AsyncDefaultBasicConsumer.cs <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1186">#1186</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li><code>AutorecoveringModel.IsClosed</code> should return <code>true</code> if model is unusable <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1179">#1179</a> (<a href="https://github.com/onematchfox">onematchfox</a>)</li>
+<li>Reference <code>RUNNING_TESTS.md</code> from <code>CONTRIBUTING.md</code> <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1175">#1175</a> (<a href="https://github.com/onematchfox">onematchfox</a>)</li>
+<li>Add test to try and repro #1168 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1173">#1173</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix Concourse CI <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1169">#1169</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Port rabbitmq/rabbitmq-dotnet-client #950 to main <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1165">#1165</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add TimeOut to Abort call in dispose <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1164">#1164</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Port PR #1145 to main, manually <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1161">#1161</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Do not setup dotnet on Win runner <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1152">#1152</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Try different docker image <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1151">#1151</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Add Windows GitHub build <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1149">#1149</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Merge pull request #1141 from rabbitmq/lukebakken/fix-appveyor <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1143">#1143</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Clean-up the library's project file. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1124">#1124</a> (<a href="https://github.com/teo-tsirpanis">teo-tsirpanis</a>)</li>
+<li>simplify code around RabbitMQCtl <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1111">#1111</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>introduce Connection Config class <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1110">#1110</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>improve basic properties read / write <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1100">#1100</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Fix typo in comment for IConnection <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1099">#1099</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>use ref instead of in for generic T + interface <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1098">#1098</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Fix minor typo <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1097">#1097</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>introduce struct BasicProperties for basicPublish <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1096">#1096</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>fix a typo in comments of WaitForConfirmsOrDieAsync <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1095">#1095</a> (<a href="https://github.com/ArminShoeibi">ArminShoeibi</a>)</li>
+<li>Fix typo in RUNNING_TESTS.md <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1094">#1094</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>Remove unneeded comment <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1092">#1092</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>Fix XML doc for AmqpTcpEndpoint <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1091">#1091</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>Fix incorrect RemotePort <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1090">#1090</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>Add CodeQL code security analysis workflow <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1085">#1085</a> (<a href="https://github.com/MirahImage">MirahImage</a>)</li>
+<li>Fix comments in ConnectionFactory <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1084">#1084</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>Don't record consumers if topology recovery is off <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1082">#1082</a> (<a href="https://github.com/Pliner">Pliner</a>)</li>
+<li>Typos <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1080">#1080</a> (<a href="https://github.com/sungam3r">sungam3r</a>)</li>
+<li>Recover models together with consumers <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1077">#1077</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>add DeliveryModes convenience enum <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1063">#1063</a> (<a href="https://github.com/Jalalx">Jalalx</a>)</li>
+<li>Fix misspelling and add missing words in comments <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1053">#1053</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>Feature/recover topology if connection problem <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1051">#1051</a> (<a href="https://github.com/pierresetteskog">pierresetteskog</a>)</li>
+<li>Resolve #1039 Confirms Failure should use ShutdownInitiator.Library <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1040">#1040</a> (<a href="https://github.com/StevenBonePgh">StevenBonePgh</a>)</li>
+<li>Fix typo in ConnectionFactory.cs <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1034">#1034</a> (<a href="https://github.com/GitHubPang">GitHubPang</a>)</li>
+<li>Removing bounds checks when serializing commands/frames. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1030">#1030</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>split connection, enable nullable and remove SoftProtocolException <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1029">#1029</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Remove batch publishing as its optimizations are now performed for &quot;regular&quot; publishes/outgoing frames <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1028">#1028</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Performance counters (metrics) <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1027">#1027</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Workaround: Fixing analyzer build errors on VS2019 v16.9 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1026">#1026</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Replacing nUnit with xUnit and parallelizing tests where possible. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1025">#1025</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>remove unused classes <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1022">#1022</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>fix always throwing exception on session close <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1020">#1020</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>remove socket.poll <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1018">#1018</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Code cleanups and performance optimizations. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1017">#1017</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Framing benchmarks and optimizations <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1016">#1016</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Fix Semaphore Disposed Exception in AsyncConsumerWorkService <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1015">#1015</a> (<a href="https://github.com/ashneilson">ashneilson</a>)</li>
+<li>#1012 Fixed exception when consumer tag cannot be found in the consumers dictionary <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1013">#1013</a> (<a href="https://github.com/LamarLugli">LamarLugli</a>)</li>
+<li>Drop deprecated members of framing <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1010">#1010</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Various cleanups of Connection / Model <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1009">#1009</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Reduce close / abort methods in public API <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1008">#1008</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Simplify recordings in AutorecoveringConnection <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1007">#1007</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Update EventingBasicConsumer.cs <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1006">#1006</a> (<a href="https://github.com/riddletd">riddletd</a>)</li>
+<li>Simplify connection recovery <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1004">#1004</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>add two test applications <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1003">#1003</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>simplify CloseReason handling &amp; improve AutorecoveringConnection eventing <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1002">#1002</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Remove Experimental from EventingBasicConsumer doc <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1001">#1001</a> (<a href="https://github.com/kjnilsson">kjnilsson</a>)</li>
+<li>8.0: implement WaitForConfirmsAsync <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/999">#999</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Consumer dispatcher improvements <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/997">#997</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>reduce allocations <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/996">#996</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>minor cleanup of (unused / rarely used) classes <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/992">#992</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>8.0: implement BasicPublishMemory <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/990">#990</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>some more wire formatting improvements <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/989">#989</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>8.0: improve eventing <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/986">#986</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Speeding up shortstr/longstr (de)serialization. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/985">#985</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Speeding up decimal (de)serialization. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/984">#984</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Cleaning up and adding more benchmarks. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/983">#983</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>7.0: update target framework from net461 to netcoreapp3.1 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/971">#971</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Structify the Framing.Impl methods <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/962">#962</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Update IModel Documentation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/958">#958</a> (<a href="https://github.com/JKamsker">JKamsker</a>)</li>
+<li>Minor improvements to GitHub Actions CI build. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/954">#954</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Replace Travis with GitHub Actions <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/952">#952</a> (<a href="https://github.com/asbjornu">asbjornu</a>)</li>
+<li>Make sure OnCallbackException is executed for AsyncConsumers <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/946">#946</a> (<a href="https://github.com/BarShavit">BarShavit</a>)</li>
+<li>Breaking public API change: fold IAutorecoveringConnection [back] into IConnection <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/943">#943</a> (<a href="https://github.com/michaelklishin">michaelklishin</a>)</li>
+<li>Switch FxCop to PrivateAssets=&quot;All&quot; <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/941">#941</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Use span directly instead of reader / writer for methods &amp; properties <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/936">#936</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Expose events ConsumerTagChangeAfterRecovery and QueueNameChangeAfterRecovery <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/935">#935</a> (<a href="https://github.com/paulomf">paulomf</a>)</li>
+<li>Remove IAsyncConnectionFactory <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/933">#933</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Add FxCop with only ConfigureAwait rule enabled for now <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/932">#932</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Code cleanups <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/931">#931</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Update dependencies to latest versions <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/929">#929</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>change from Memory to ReadOnlyMemory <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/928">#928</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>change AmqpVersion to struct <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/927">#927</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Command Id instead of class &amp; method id <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/925">#925</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Running Tests docs: quotes for setting env vars in windows <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/921">#921</a> (<a href="https://github.com/JeremyMahieu">JeremyMahieu</a>)</li>
+<li>reduce the amount of times we rent / return from arraypool <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/919">#919</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Switch to Mozilla Public License 2.0 (MPL 2.0) <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/916">#916</a> (<a href="https://github.com/dcorbacho">dcorbacho</a>)</li>
+<li>simplify ack/nack handling <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/912">#912</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>cache the frameHeaderBuffer &amp; rentedArray <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/911">#911</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Reduce work allocations <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/910">#910</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>More descriptive exception in WriteShortstr <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/908">#908</a> (<a href="https://github.com/tmasternak">tmasternak</a>)</li>
+<li>Rename ProcessingConcurrency to ConsumerDispatchConcurrency <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/905">#905</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Getting rid of Command allocations <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/902">#902</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Pull ProcessingConcurrency into connection factory interface <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/899">#899</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Missing ConfigureAwait in TcpClientAdapter <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/897">#897</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Edit docs <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/896">#896</a> (<a href="https://github.com/JeremyMahieu">JeremyMahieu</a>)</li>
+<li>7.x: remove deprecated message publishing method overloads <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/895">#895</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Do DNS resolution before connection attempt <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/893">#893</a> (<a href="https://github.com/JeremyMahieu">JeremyMahieu</a>)</li>
+<li>precompute sizes and and simplify BasicProperties presence <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/890">#890</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>add size hint variable for PublishBatch creation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/888">#888</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>use cached empty BasicProperties when null <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/887">#887</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Refactor: extracted RabbitMQ node management functions from IntegrationFixture <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/884">#884</a> (<a href="https://github.com/pergh">pergh</a>)</li>
+<li>Switch WorkPool of ConsumerWorkService to channels <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/882">#882</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Move BinaryTableValue to public section <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/880">#880</a> (<a href="https://github.com/BenBorn">BenBorn</a>)</li>
+<li>fix issue 868 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/878">#878</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Fix AppVeyor build <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/871">#871</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Prep for 6.1.1 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/870">#870</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Implement BasicPublishBatch with ReadOnlyMemory <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/865">#865</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>Report a Uri scheme of &quot;amqps&quot; in AmqpTcpEndpoint.ToString() iff SslOption is enabled <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/864">#864</a> (<a href="https://github.com/ghost">ghost</a>)</li>
+<li>Re-merge pull request #855 from bollhals/remove.task.yield <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/863">#863</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Fix RabbitMQ version parsing <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/862">#862</a> (<a href="https://github.com/lukebakken">lukebakken</a>)</li>
+<li>Unify on IModel <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/858">#858</a> (<a href="https://github.com/danielmarbach">danielmarbach</a>)</li>
+<li>remove task yield <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/855">#855</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Delete AutoClose from SessionManager <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/852">#852</a> (<a href="https://github.com/Pliner">Pliner</a>)</li>
+<li>Adding BinaryPrimitives support for NETSTANDARD targets <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/851">#851</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Fixing rethrown exceptions to properly preserve stackframes. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/850">#850</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>throw ArgumentOutOfRangeException when table key is too long (&gt; 255) <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/849">#849</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Deletion of unreachable code <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/847">#847</a> (<a href="https://github.com/Pliner">Pliner</a>)</li>
+<li>Deletion of unused UseBackgroundThreadsForIO <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/846">#846</a> (<a href="https://github.com/Pliner">Pliner</a>)</li>
+<li>simplify WriteShortstr <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/845">#845</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+<li>Frame optimizations <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/844">#844</a> (<a href="https://github.com/stebet">stebet</a>)</li>
+<li>Minor improvements and optimizations <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/842">#842</a> (<a href="https://github.com/bollhals">bollhals</a>)</li>
+</ul>
+<h2 id="v660-2023-09-25"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0">v6.6.0</a> (2023-09-25)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.6.0-beta.0...v6.6.0">Full Changelog</a></p>
+<h2 id="v660-beta0-2023-09-25"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.6.0-beta.0">v6.6.0-beta.0</a> (2023-09-25)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.5.0...v6.6.0-beta.0">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>Allow update of RoutingKey during Nack <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1333">#1333</a></li>
+<li>Support credential refresh for OAuth 2/JWT authentication scenarios <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/956">#956</a></li>
+</ul>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>Configured <code>MaxMessageSize</code> is not honoured  <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1378">#1378</a></li>
+<li>ConnectionFactory Authmechanisms has incorrect sharing between instances <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1370">#1370</a></li>
+<li>Unknown reply code 312 <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1331">#1331</a></li>
+</ul>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Invalid parameter name in IManagementClient.DeleteExchangeBindingAsync <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1375">#1375</a></li>
+<li>Closing connection in EventingBasicConsumer.Received event handler freezes execution of event handler and connection is never closed <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1292">#1292</a></li>
+</ul>
+<h2 id="v650-2023-03-25"><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v6.5.0">v6.5.0</a> (2023-03-25)</h2>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v6.4.0...v6.5.0">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>Investigate the use of TaskCreationOptions.LongRunning <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1318">#1318</a></li>
+<li>Exception during recovery causes recovery failure <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/658">#658</a></li>
+</ul>
+<p><strong>Closed issues:</strong></p>
+<ul>
+<li>Consumer tags aren't cleaned on channel close causing memory leak. <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1302">#1302</a></li>
+<li>Impossible to use a ulong as a header value <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1298">#1298</a></li>
+<li>Recovery does not appear to save consumer arguments <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1293">#1293</a></li>
+<li>Timeout when opening a new channel after channel exception <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1246">#1246</a></li>
+<li>Autorecovery for server-named queues loops indefinitely when consumer listen this queue <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1238">#1238</a></li>
+<li>IModel.WaitForConfirmsOrDie* methods don't document that they close <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1234">#1234</a></li>
+<li>Port #1223 to main <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1225">#1225</a></li>
+<li>Better integrate max message size <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1223">#1223</a></li>
+<li>7.0 Release Checklist <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1191">#1191</a></li>
+<li>Missing IRecoveryable implementation <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/998">#998</a></li>
+<li>BasicGetResult body memory safety in 6.x+ <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/994">#994</a></li>
+</ul>
 <h2 id="changes-between-631-and-640">Changes Between 6.3.1 and 6.4.0</h2>
 <p>This release adds the ability to specify a maximum message size when receiving data. The default
 values are:</p>

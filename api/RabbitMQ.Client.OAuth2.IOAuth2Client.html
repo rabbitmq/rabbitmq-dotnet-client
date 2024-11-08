@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_OAuth2_IOAuth2Client" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client" class="text-break">
-Interface IOAuth2Client  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L41"><i class="bi bi-code-slash"></i></a>
+Interface IOAuth2Client  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/IOAuth2Client.cs/#L37"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -120,30 +120,36 @@ Interface IOAuth2Client  <a class="header-action link-secondary" title="View sou
 </h2>
 
 
-  <a id="RabbitMQ_Client_OAuth2_IOAuth2Client_RefreshToken_" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client.RefreshToken*"></a>
+  <a id="RabbitMQ_Client_OAuth2_IOAuth2Client_RefreshTokenAsync_" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client.RefreshTokenAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_OAuth2_IOAuth2Client_RefreshToken_RabbitMQ_Client_OAuth2_IToken_" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client.RefreshToken(RabbitMQ.Client.OAuth2.IToken)">
-  RefreshToken(IToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L44"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_OAuth2_IOAuth2Client_RefreshTokenAsync_RabbitMQ_Client_OAuth2_IToken_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client.RefreshTokenAsync(RabbitMQ.Client.OAuth2.IToken,System.Threading.CancellationToken)">
+  RefreshTokenAsync(IToken, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/IOAuth2Client.cs/#L52"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Request a new AccessToken using the Refresh Token from the Token Endpoint.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IToken RefreshToken(IToken token)</code></pre>
+    <pre><code class="lang-csharp hljs">Task&lt;IToken&gt; RefreshTokenAsync(IToken token, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>token</code> <a class="xref" href="RabbitMQ.Client.OAuth2.IToken.html">IToken</a></dt>
-    <dd></dd>
+    <dd><p>Token with the Refresh Token</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this request</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.OAuth2.IToken.html">IToken</a></dt>
-    <dd></dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.OAuth2.IToken.html">IToken</a>&gt;</dt>
+    <dd><p>Token with Access and Refresh Token</p>
+</dd>
   </dl>
 
 
@@ -156,25 +162,33 @@ Interface IOAuth2Client  <a class="header-action link-secondary" title="View sou
 
 
 
-  <a id="RabbitMQ_Client_OAuth2_IOAuth2Client_RequestToken_" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client.RequestToken*"></a>
+  <a id="RabbitMQ_Client_OAuth2_IOAuth2Client_RequestTokenAsync_" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client.RequestTokenAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_OAuth2_IOAuth2Client_RequestToken" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client.RequestToken">
-  RequestToken()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L43"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_OAuth2_IOAuth2Client_RequestTokenAsync_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.OAuth2.IOAuth2Client.RequestTokenAsync(System.Threading.CancellationToken)">
+  RequestTokenAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/IOAuth2Client.cs/#L44"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Request a new AccessToken from the Token Endpoint.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IToken RequestToken()</code></pre>
+    <pre><code class="lang-csharp hljs">Task&lt;IToken&gt; RequestTokenAsync(CancellationToken cancellationToken = default)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token for this request</p>
+</dd>
+  </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.OAuth2.IToken.html">IToken</a></dt>
-    <dd></dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.OAuth2.IToken.html">IToken</a>&gt;</dt>
+    <dd><p>Token with Access and Refresh Token</p>
+</dd>
   </dl>
 
 
@@ -191,7 +205,7 @@ Interface IOAuth2Client  <a class="header-action link-secondary" title="View sou
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client.OAuth2/OAuth2Client.cs/#L41" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client.OAuth2/IOAuth2Client.cs/#L37" class="edit-link">Edit this page</a>
         </div>
 
 

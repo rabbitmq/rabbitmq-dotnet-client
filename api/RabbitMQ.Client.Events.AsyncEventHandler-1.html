@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_Events_AsyncEventHandler_1" data-uid="RabbitMQ.Client.Events.AsyncEventHandler`1" class="text-break">
-Delegate AsyncEventHandler&lt;TEvent&gt;  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/AsyncEventHandler.cs/#L6"><i class="bi bi-code-slash"></i></a>
+Delegate AsyncEventHandler&lt;TEvent&gt;  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/AsyncEventHandler.cs/#L36"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -101,7 +101,7 @@ Delegate AsyncEventHandler&lt;TEvent&gt;  <a class="header-action link-secondary
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public delegate Task AsyncEventHandler&lt;in TEvent&gt;(object sender, TEvent @event) where TEvent : EventArgs</code></pre>
+    <pre><code class="lang-csharp hljs">public delegate Task AsyncEventHandler&lt;in TEvent&gt;(object sender, TEvent @event) where TEvent : AsyncEventArgs</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -137,7 +137,7 @@ Delegate AsyncEventHandler&lt;TEvent&gt;  <a class="header-action link-secondary
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/AsyncEventHandler.cs/#L6" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/AsyncEventHandler.cs/#L36" class="edit-link">Edit this page</a>
         </div>
 
 

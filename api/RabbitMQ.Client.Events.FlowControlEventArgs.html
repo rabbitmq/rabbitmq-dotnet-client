@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,12 +89,12 @@
 
 
   <h1 id="RabbitMQ_Client_Events_FlowControlEventArgs" data-uid="RabbitMQ.Client.Events.FlowControlEventArgs" class="text-break">
-Class FlowControlEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/FlowControlEventArgs.cs/#L39"><i class="bi bi-code-slash"></i></a>
+Class FlowControlEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/FlowControlEventArgs.cs/#L40"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
     <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Events.html">Events</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Apigen.dll</dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
   <div class="markdown summary"><p>Event relating to flow control.</p>
@@ -102,7 +102,7 @@ Class FlowControlEventArgs  <a class="header-action link-secondary" title="View 
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class FlowControlEventArgs : EventArgs</code></pre>
+    <pre><code class="lang-csharp hljs">public class FlowControlEventArgs : AsyncEventArgs</code></pre>
   </div>
 
 
@@ -112,7 +112,7 @@ Class FlowControlEventArgs  <a class="header-action link-secondary" title="View 
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs">EventArgs</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html">AsyncEventArgs</a></div>
       <div><span class="xref">FlowControlEventArgs</span></div>
     </dd>
   </dl>
@@ -123,7 +123,13 @@ Class FlowControlEventArgs  <a class="header-action link-secondary" title="View 
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs.empty">EventArgs.Empty</a>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CancellationToken">AsyncEventArgs.CancellationToken</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CreateOrDefault_System_Threading_CancellationToken_">AsyncEventArgs.CreateOrDefault(CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_Empty">AsyncEventArgs.Empty</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
@@ -159,21 +165,23 @@ Class FlowControlEventArgs  <a class="header-action link-secondary" title="View 
 
   <a id="RabbitMQ_Client_Events_FlowControlEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.FlowControlEventArgs.#ctor*"></a>
 
-  <h3 id="RabbitMQ_Client_Events_FlowControlEventArgs__ctor_System_Boolean_" data-uid="RabbitMQ.Client.Events.FlowControlEventArgs.#ctor(System.Boolean)">
-  FlowControlEventArgs(bool)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/FlowControlEventArgs.cs/#L41"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_Events_FlowControlEventArgs__ctor_System_Boolean_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.Events.FlowControlEventArgs.#ctor(System.Boolean,System.Threading.CancellationToken)">
+  FlowControlEventArgs(bool, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/FlowControlEventArgs.cs/#L42"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public FlowControlEventArgs(bool active)</code></pre>
+    <pre><code class="lang-csharp hljs">public FlowControlEventArgs(bool active, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>active</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
     <dd></dd>
   </dl>
 
@@ -188,15 +196,14 @@ Class FlowControlEventArgs  <a class="header-action link-secondary" title="View 
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="fields">Fields
 </h2>
 
 
-  <a id="RabbitMQ_Client_Events_FlowControlEventArgs_Active_" data-uid="RabbitMQ.Client.Events.FlowControlEventArgs.Active*"></a>
 
   <h3 id="RabbitMQ_Client_Events_FlowControlEventArgs_Active" data-uid="RabbitMQ.Client.Events.FlowControlEventArgs.Active">
   Active
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/FlowControlEventArgs.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/FlowControlEventArgs.cs/#L51"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Access the flow control setting.</p>
@@ -204,14 +211,13 @@ Class FlowControlEventArgs  <a class="header-action link-secondary" title="View 
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool Active { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly bool Active</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
@@ -225,10 +231,11 @@ Class FlowControlEventArgs  <a class="header-action link-secondary" title="View 
 
 
 
+
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/FlowControlEventArgs.cs/#L39" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/FlowControlEventArgs.cs/#L40" class="edit-link">Edit this page</a>
         </div>
 
 

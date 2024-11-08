@@ -1,0 +1,913 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class IChannelExtensions </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class IChannelExtensions ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rabbitmq/rabbitmq-dotnet-client/new/gh-pages/api/new?filename=RabbitMQ_Client_IChannelExtensions.md&amp;value=---%0Auid%3A%20RabbitMQ.Client.IChannelExtensions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../projects/RabbitMQ.Client/icon.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="RabbitMQ.Client.IChannelExtensions">
+
+
+
+  <h1 id="RabbitMQ_Client_IChannelExtensions" data-uid="RabbitMQ.Client.IChannelExtensions" class="text-break">
+Class IChannelExtensions  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"></div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class IChannelExtensions</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">IChannelExtensions</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_AbortAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.AbortAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_AbortAsync_RabbitMQ_Client_IChannel_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.AbortAsync(RabbitMQ.Client.IChannel,System.Threading.CancellationToken)">
+  AbortAsync(IChannel, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L216"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously abort this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task AbortAsync(this IChannel channel, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IChannelExtensions_AbortAsync_RabbitMQ_Client_IChannel_System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>If the session is already closed (or closing), then this
+method does nothing but wait for the in-progress close
+operation to complete. This method will not return to the
+caller until the shutdown is complete.
+In comparison to normal <a class="xref" href="RabbitMQ.Client.IChannelExtensions.html#RabbitMQ_Client_IChannelExtensions_CloseAsync_RabbitMQ_Client_IChannel_System_Threading_CancellationToken_">CloseAsync(IChannel, CancellationToken)</a> method, <a class="xref" href="RabbitMQ.Client.IChannelExtensions.html#RabbitMQ_Client_IChannelExtensions_AbortAsync_RabbitMQ_Client_IChannel_System_Threading_CancellationToken_">AbortAsync(IChannel, CancellationToken)</a> will not throw
+<a class="xref" href="RabbitMQ.Client.Exceptions.AlreadyClosedException.html">AlreadyClosedException</a> or <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.io.ioexception">IOException</a> or any other <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a> during closing channel.</p>
+</div>
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_BasicConsumeAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_BasicConsumeAsync_RabbitMQ_Client_IChannel_System_String_System_Boolean_RabbitMQ_Client_IAsyncBasicConsumer_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(RabbitMQ.Client.IChannel,System.String,System.Boolean,RabbitMQ.Client.IAsyncBasicConsumer,System.Threading.CancellationToken)">
+  BasicConsumeAsync(IChannel, string, bool, IAsyncBasicConsumer, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L43"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously start a Basic content-class consumer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task&lt;string&gt; BasicConsumeAsync(this IChannel channel, string queue, bool autoAck, IAsyncBasicConsumer consumer, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>autoAck</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>consumer</code> <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_BasicConsumeAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_BasicConsumeAsync_RabbitMQ_Client_IChannel_System_String_System_Boolean_System_String_RabbitMQ_Client_IAsyncBasicConsumer_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(RabbitMQ.Client.IChannel,System.String,System.Boolean,System.String,RabbitMQ.Client.IAsyncBasicConsumer,System.Threading.CancellationToken)">
+  BasicConsumeAsync(IChannel, string, bool, string, IAsyncBasicConsumer, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L53"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously start a Basic content-class consumer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task&lt;string&gt; BasicConsumeAsync(this IChannel channel, string queue, bool autoAck, string consumerTag, IAsyncBasicConsumer consumer, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>autoAck</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>consumerTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>consumer</code> <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_BasicConsumeAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_BasicConsumeAsync_RabbitMQ_Client_IChannel_System_String_System_Boolean_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__RabbitMQ_Client_IAsyncBasicConsumer_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicConsumeAsync(RabbitMQ.Client.IChannel,System.String,System.Boolean,System.String,System.Collections.Generic.IDictionary{System.String,System.Object},RabbitMQ.Client.IAsyncBasicConsumer,System.Threading.CancellationToken)">
+  BasicConsumeAsync(IChannel, string, bool, string, IDictionary&lt;string, object?&gt;?, IAsyncBasicConsumer, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L64"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously start a Basic content-class consumer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task&lt;string&gt; BasicConsumeAsync(this IChannel channel, string queue, bool autoAck, string consumerTag, IDictionary&lt;string, object?&gt;? arguments, IAsyncBasicConsumer consumer, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>autoAck</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>consumerTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>consumer</code> <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html">IAsyncBasicConsumer</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_RabbitMQ_Client_IChannel_RabbitMQ_Client_CachedString_RabbitMQ_Client_CachedString_System_Boolean_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(RabbitMQ.Client.IChannel,RabbitMQ.Client.CachedString,RabbitMQ.Client.CachedString,System.Boolean,System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+  BasicPublishAsync(IChannel, CachedString, CachedString, bool, ReadOnlyMemory&lt;byte&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L143"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>(Extension method) Convenience overload of <a class="xref" href="RabbitMQ.Client.IChannel.html#RabbitMQ_Client_IChannel_BasicPublishAsync__1_RabbitMQ_Client_CachedString_RabbitMQ_Client_CachedString_System_Boolean___0_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_">BasicPublishAsync&lt;TProperties&gt;(CachedString, CachedString, bool, TProperties, ReadOnlyMemory&lt;byte&gt;, CancellationToken)</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange, CachedString routingKey, bool mandatory, ReadOnlyMemory&lt;byte&gt; body, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="RabbitMQ.Client.CachedString.html">CachedString</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="RabbitMQ.Client.CachedString.html">CachedString</a></dt>
+    <dd></dd>
+    <dt><code>mandatory</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.valuetask">ValueTask</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_RabbitMQ_Client_IChannel_RabbitMQ_Client_CachedString_RabbitMQ_Client_CachedString_System_Boolean_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The publication occurs with empty BasicProperties</p>
+</div>
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_RabbitMQ_Client_IChannel_RabbitMQ_Client_CachedString_RabbitMQ_Client_CachedString_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(RabbitMQ.Client.IChannel,RabbitMQ.Client.CachedString,RabbitMQ.Client.CachedString,System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+  BasicPublishAsync(IChannel, CachedString, CachedString, ReadOnlyMemory&lt;byte&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L112"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>(Extension method) Convenience overload of <a class="xref" href="RabbitMQ.Client.IChannel.html#RabbitMQ_Client_IChannel_BasicPublishAsync__1_RabbitMQ_Client_CachedString_RabbitMQ_Client_CachedString_System_Boolean___0_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_">BasicPublishAsync&lt;TProperties&gt;(CachedString, CachedString, bool, TProperties, ReadOnlyMemory&lt;byte&gt;, CancellationToken)</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ValueTask BasicPublishAsync(this IChannel channel, CachedString exchange, CachedString routingKey, ReadOnlyMemory&lt;byte&gt; body, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="RabbitMQ.Client.CachedString.html">CachedString</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="RabbitMQ.Client.CachedString.html">CachedString</a></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.valuetask">ValueTask</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_RabbitMQ_Client_IChannel_RabbitMQ_Client_CachedString_RabbitMQ_Client_CachedString_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The publication occurs with mandatory=false and empty BasicProperties</p>
+</div>
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_RabbitMQ_Client_IChannel_System_String_System_String_System_Boolean_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(RabbitMQ.Client.IChannel,System.String,System.String,System.Boolean,System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+  BasicPublishAsync(IChannel, string, string, bool, ReadOnlyMemory&lt;byte&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L127"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>(Extension method) Convenience overload of <a class="xref" href="RabbitMQ.Client.IChannel.html#RabbitMQ_Client_IChannel_BasicPublishAsync__1_System_String_System_String_System_Boolean___0_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_">BasicPublishAsync&lt;TProperties&gt;(string, string, bool, TProperties, ReadOnlyMemory&lt;byte&gt;, CancellationToken)</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey, bool mandatory, ReadOnlyMemory&lt;byte&gt; body, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>mandatory</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.valuetask">ValueTask</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_RabbitMQ_Client_IChannel_System_String_System_String_System_Boolean_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The publication occurs with empty BasicProperties</p>
+</div>
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_RabbitMQ_Client_IChannel_System_String_System_String_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(RabbitMQ.Client.IChannel,System.String,System.String,System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+  BasicPublishAsync(IChannel, string, string, ReadOnlyMemory&lt;byte&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L97"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>(Extension method) Convenience overload of <a class="xref" href="RabbitMQ.Client.IChannel.html#RabbitMQ_Client_IChannel_BasicPublishAsync__1_System_String_System_String_System_Boolean___0_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_">BasicPublishAsync&lt;TProperties&gt;(string, string, bool, TProperties, ReadOnlyMemory&lt;byte&gt;, CancellationToken)</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ValueTask BasicPublishAsync(this IChannel channel, string exchange, string routingKey, ReadOnlyMemory&lt;byte&gt; body, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.valuetask">ValueTask</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_RabbitMQ_Client_IChannel_System_String_System_String_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The publication occurs with mandatory=false and empty BasicProperties</p>
+</div>
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync__1_RabbitMQ_Client_IChannel_RabbitMQ_Client_PublicationAddress___0_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.BasicPublishAsync``1(RabbitMQ.Client.IChannel,RabbitMQ.Client.PublicationAddress,``0,System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+  BasicPublishAsync&lt;T&gt;(IChannel, PublicationAddress, T, ReadOnlyMemory&lt;byte&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L81"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>(Extension method) Convenience overload of <a class="xref" href="RabbitMQ.Client.IChannel.html#RabbitMQ_Client_IChannel_BasicPublishAsync__1_System_String_System_String_System_Boolean___0_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_">BasicPublishAsync&lt;TProperties&gt;(string, string, bool, TProperties, ReadOnlyMemory&lt;byte&gt;, CancellationToken)</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ValueTask BasicPublishAsync&lt;T&gt;(this IChannel channel, PublicationAddress addr, T basicProperties, ReadOnlyMemory&lt;byte&gt; body, CancellationToken cancellationToken = default) where T : IReadOnlyBasicProperties, IAmqpHeader</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>addr</code> <a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a></dt>
+    <dd></dd>
+    <dt><code>basicProperties</code> <span class="xref">T</span></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.valuetask">ValueTask</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IChannelExtensions_BasicPublishAsync__1_RabbitMQ_Client_IChannel_RabbitMQ_Client_PublicationAddress___0_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The publication occurs with mandatory=false.</p>
+</div>
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_CloseAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.CloseAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_CloseAsync_RabbitMQ_Client_IChannel_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.CloseAsync(RabbitMQ.Client.IChannel,System.Threading.CancellationToken)">
+  CloseAsync(IChannel, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L228"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously close this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task CloseAsync(this IChannel channel, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IChannelExtensions_CloseAsync_RabbitMQ_Client_IChannel_System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>If the session is already closed (or closing), then this
+method does nothing but wait for the in-progress close
+operation to complete. This method will not return to the
+caller until the shutdown is complete.</p>
+</div>
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_CloseAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.CloseAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_CloseAsync_RabbitMQ_Client_IChannel_System_UInt16_System_String_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.CloseAsync(RabbitMQ.Client.IChannel,System.UInt16,System.String,System.Threading.CancellationToken)">
+  CloseAsync(IChannel, ushort, string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L250"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously close this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task CloseAsync(this IChannel channel, ushort replyCode, string replyText, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd><p>The channel.</p>
+</dd>
+    <dt><code>replyCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd><p>The reply code.</p>
+</dd>
+    <dt><code>replyText</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The reply text.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>The cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="RabbitMQ_Client_IChannelExtensions_CloseAsync_RabbitMQ_Client_IChannel_System_UInt16_System_String_System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The method behaves in the same way as CloseAsync(), with the only
+difference that the channel is closed with the given channel
+close code and message.</p>
+<p>
+The close code (See under "Reply Codes" in the AMQP specification)
+</p><p>
+A message indicating the reason for closing the channel
+</p>
+</div>
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_ExchangeDeclareAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.ExchangeDeclareAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_ExchangeDeclareAsync_RabbitMQ_Client_IChannel_System_String_System_String_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__System_Boolean_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.ExchangeDeclareAsync(RabbitMQ.Client.IChannel,System.String,System.String,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object},System.Boolean,System.Threading.CancellationToken)">
+  ExchangeDeclareAsync(IChannel, string, string, bool, bool, IDictionary&lt;string, object?&gt;?, bool, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L172"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously declare an exchange.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task ExchangeDeclareAsync(this IChannel channel, string exchange, string type, bool durable = false, bool autoDelete = false, IDictionary&lt;string, object?&gt;? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>type</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>durable</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>autoDelete</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>noWait</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_QueueDeclareAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.QueueDeclareAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_QueueDeclareAsync_RabbitMQ_Client_IChannel_System_String_System_Boolean_System_Boolean_System_Boolean_System_Collections_Generic_IDictionary_System_String_System_Object__System_Boolean_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.QueueDeclareAsync(RabbitMQ.Client.IChannel,System.String,System.Boolean,System.Boolean,System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Object},System.Boolean,System.Threading.CancellationToken)">
+  QueueDeclareAsync(IChannel, string, bool, bool, bool, IDictionary&lt;string, object?&gt;?, bool, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L156"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously declare a queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task&lt;QueueDeclareOk&gt; QueueDeclareAsync(this IChannel channel, string queue = &quot;&quot;, bool durable = false, bool exclusive = true, bool autoDelete = true, IDictionary&lt;string, object?&gt;? arguments = null, bool noWait = false, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>durable</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>exclusive</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>autoDelete</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>noWait</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="RabbitMQ.Client.QueueDeclareOk.html">QueueDeclareOk</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_QueueDeleteAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.QueueDeleteAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_QueueDeleteAsync_RabbitMQ_Client_IChannel_System_String_System_Boolean_System_Boolean_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.QueueDeleteAsync(RabbitMQ.Client.IChannel,System.String,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+  QueueDeleteAsync(IChannel, string, bool, bool, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L187"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously deletes a queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task&lt;uint&gt; QueueDeleteAsync(this IChannel channel, string queue, bool ifUnused = false, bool ifEmpty = false, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>ifUnused</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>ifEmpty</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="RabbitMQ_Client_IChannelExtensions_QueueUnbindAsync_" data-uid="RabbitMQ.Client.IChannelExtensions.QueueUnbindAsync*"></a>
+
+  <h3 id="RabbitMQ_Client_IChannelExtensions_QueueUnbindAsync_RabbitMQ_Client_IChannel_System_String_System_String_System_String_System_Collections_Generic_IDictionary_System_String_System_Object__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IChannelExtensions.QueueUnbindAsync(RabbitMQ.Client.IChannel,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object},System.Threading.CancellationToken)">
+  QueueUnbindAsync(IChannel, string, string, string, IDictionary&lt;string, object?&gt;?, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L197"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asynchronously unbinds a queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Task QueueUnbindAsync(this IChannel channel, string queue, string exchange, string routingKey, IDictionary&lt;string, object?&gt;? arguments = null, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>channel</code> <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>arguments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.idictionary-2">IDictionary</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IChannelExtensions.cs/#L40" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler" class="text-break">
-Class TopologyRecoveryExceptionHandler  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L8"><i class="bi bi-code-slash"></i></a>
+Class TopologyRecoveryExceptionHandler  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L9"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -122,16 +122,10 @@ Class TopologyRecoveryExceptionHandler  <a class="header-action link-secondary" 
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
-    </div>
-    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
@@ -141,6 +135,12 @@ Class TopologyRecoveryExceptionHandler  <a class="header-action link-secondary" 
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
 
@@ -157,7 +157,7 @@ Class TopologyRecoveryExceptionHandler  <a class="header-action link-secondary" 
 
   <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_BindingRecoveryExceptionCondition" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition">
   BindingRecoveryExceptionCondition
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L62"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L67"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Decides which binding recovery exceptions the custom exception handler is applied to.
@@ -186,11 +186,11 @@ Default condition applies the exception handler to all binding recovery exceptio
 
 
 
-  <a id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_BindingRecoveryExceptionHandler_" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler*"></a>
+  <a id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_BindingRecoveryExceptionHandlerAsync_" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_BindingRecoveryExceptionHandler" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandler">
-  BindingRecoveryExceptionHandler
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L127"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_BindingRecoveryExceptionHandlerAsync" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync">
+  BindingRecoveryExceptionHandlerAsync
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L140"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retries, or otherwise handles, an exception thrown when attempting to recover a binding.</p>
@@ -198,7 +198,7 @@ Default condition applies the exception handler to all binding recovery exceptio
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Action&lt;IRecordedBinding, Exception, IConnection&gt; BindingRecoveryExceptionHandler { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public Func&lt;IRecordedBinding, Exception, IConnection, Task&gt;? BindingRecoveryExceptionHandlerAsync { get; set; }</code></pre>
   </div>
 
 
@@ -207,7 +207,7 @@ Default condition applies the exception handler to all binding recovery exceptio
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-3">Action</a>&lt;<a class="xref" href="RabbitMQ.Client.IRecordedBinding.html">IRecordedBinding</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a>, <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.func-4">Func</a>&lt;<a class="xref" href="RabbitMQ.Client.IRecordedBinding.html">IRecordedBinding</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a>, <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -222,7 +222,7 @@ Default condition applies the exception handler to all binding recovery exceptio
 
   <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ConsumerRecoveryExceptionCondition" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition">
   ConsumerRecoveryExceptionCondition
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L79"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L86"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Decides which consumer recovery exceptions the custom exception handler is applied to.
@@ -251,11 +251,11 @@ Default condition applies the exception handler to all consumer recovery excepti
 
 
 
-  <a id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ConsumerRecoveryExceptionHandler_" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler*"></a>
+  <a id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ConsumerRecoveryExceptionHandlerAsync_" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ConsumerRecoveryExceptionHandler" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandler">
-  ConsumerRecoveryExceptionHandler
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L143"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ConsumerRecoveryExceptionHandlerAsync" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync">
+  ConsumerRecoveryExceptionHandlerAsync
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L158"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retries, or otherwise handles, an exception thrown when attempting to recover a consumer.</p>
@@ -263,7 +263,7 @@ Default condition applies the exception handler to all consumer recovery excepti
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Action&lt;IRecordedConsumer, Exception, IConnection&gt; ConsumerRecoveryExceptionHandler { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public Func&lt;IRecordedConsumer, Exception, IConnection, Task&gt;? ConsumerRecoveryExceptionHandlerAsync { get; set; }</code></pre>
   </div>
 
 
@@ -272,7 +272,7 @@ Default condition applies the exception handler to all consumer recovery excepti
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-3">Action</a>&lt;<a class="xref" href="RabbitMQ.Client.IRecordedConsumer.html">IRecordedConsumer</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a>, <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.func-4">Func</a>&lt;<a class="xref" href="RabbitMQ.Client.IRecordedConsumer.html">IRecordedConsumer</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a>, <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -287,7 +287,7 @@ Default condition applies the exception handler to all consumer recovery excepti
 
   <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ExchangeRecoveryExceptionCondition" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition">
   ExchangeRecoveryExceptionCondition
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L28"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L29"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Decides which exchange recovery exceptions the custom exception handler is applied to.
@@ -316,11 +316,11 @@ Default condition applies the exception handler to all exchange recovery excepti
 
 
 
-  <a id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ExchangeRecoveryExceptionHandler_" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler*"></a>
+  <a id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ExchangeRecoveryExceptionHandlerAsync_" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ExchangeRecoveryExceptionHandler" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandler">
-  ExchangeRecoveryExceptionHandler
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L95"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_ExchangeRecoveryExceptionHandlerAsync" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync">
+  ExchangeRecoveryExceptionHandlerAsync
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L104"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retries, or otherwise handles, an exception thrown when attempting to recover an exchange.</p>
@@ -328,7 +328,7 @@ Default condition applies the exception handler to all exchange recovery excepti
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Action&lt;IRecordedExchange, Exception, IConnection&gt; ExchangeRecoveryExceptionHandler { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public Func&lt;IRecordedExchange, Exception, IConnection, Task&gt;? ExchangeRecoveryExceptionHandlerAsync { get; set; }</code></pre>
   </div>
 
 
@@ -337,7 +337,7 @@ Default condition applies the exception handler to all exchange recovery excepti
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-3">Action</a>&lt;<a class="xref" href="RabbitMQ.Client.IRecordedExchange.html">IRecordedExchange</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a>, <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.func-4">Func</a>&lt;<a class="xref" href="RabbitMQ.Client.IRecordedExchange.html">IRecordedExchange</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a>, <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -352,7 +352,7 @@ Default condition applies the exception handler to all exchange recovery excepti
 
   <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_QueueRecoveryExceptionCondition" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition">
   QueueRecoveryExceptionCondition
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L45"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L48"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Decides which queue recovery exceptions the custom exception handler is applied to.
@@ -381,11 +381,11 @@ Default condition applies the exception handler to all queue recovery exceptions
 
 
 
-  <a id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_QueueRecoveryExceptionHandler_" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler*"></a>
+  <a id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_QueueRecoveryExceptionHandlerAsync_" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_QueueRecoveryExceptionHandler" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandler">
-  QueueRecoveryExceptionHandler
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L111"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_TopologyRecoveryExceptionHandler_QueueRecoveryExceptionHandlerAsync" data-uid="RabbitMQ.Client.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync">
+  QueueRecoveryExceptionHandlerAsync
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L122"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retries, or otherwise handles, an exception thrown when attempting to recover a queue.</p>
@@ -393,7 +393,7 @@ Default condition applies the exception handler to all queue recovery exceptions
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Action&lt;IRecordedQueue, Exception, IConnection&gt; QueueRecoveryExceptionHandler { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public Func&lt;IRecordedQueue, Exception, IConnection, Task&gt;? QueueRecoveryExceptionHandlerAsync { get; set; }</code></pre>
   </div>
 
 
@@ -402,7 +402,7 @@ Default condition applies the exception handler to all queue recovery exceptions
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-3">Action</a>&lt;<a class="xref" href="RabbitMQ.Client.IRecordedQueue.html">IRecordedQueue</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a>, <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.func-4">Func</a>&lt;<a class="xref" href="RabbitMQ.Client.IRecordedQueue.html">IRecordedQueue</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a>, <a class="xref" href="RabbitMQ.Client.IConnection.html">IConnection</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -417,7 +417,7 @@ Default condition applies the exception handler to all queue recovery exceptions
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/TopologyRecoveryExceptionHandler.cs/#L8" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/TopologyRecoveryExceptionHandler.cs/#L9" class="edit-link">Edit this page</a>
         </div>
 
 

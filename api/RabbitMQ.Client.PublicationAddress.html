@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,12 +89,12 @@
 
 
   <h1 id="RabbitMQ_Client_PublicationAddress" data-uid="RabbitMQ.Client.PublicationAddress" class="text-break">
-Class PublicationAddress  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L58"><i class="bi bi-code-slash"></i></a>
+Class PublicationAddress  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L59"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
     <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Apigen.dll</dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
   <div class="markdown summary"><p>Container for an exchange name, exchange type and
@@ -173,7 +173,7 @@ type, routing key) that could be used instead.
 
   <h3 id="RabbitMQ_Client_PublicationAddress__ctor_System_String_System_String_System_String_" data-uid="RabbitMQ.Client.PublicationAddress.#ctor(System.String,System.String,System.String)">
   PublicationAddress(string, string, string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L72"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L73"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Creates a new instance of the <a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a>.</p>
@@ -213,9 +213,71 @@ type, routing key) that could be used instead.
 
 
 
+  <h3 id="RabbitMQ_Client_PublicationAddress_ExchangeName" data-uid="RabbitMQ.Client.PublicationAddress.ExchangeName">
+  ExchangeName
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L83"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Retrieve the exchange name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly string ExchangeName</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="RabbitMQ_Client_PublicationAddress_ExchangeType" data-uid="RabbitMQ.Client.PublicationAddress.ExchangeType">
+  ExchangeType
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L88"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Retrieve the exchange type string.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly string ExchangeType</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
   <h3 id="RabbitMQ_Client_PublicationAddress_PSEUDO_URI_PARSER" data-uid="RabbitMQ.Client.PublicationAddress.PSEUDO_URI_PARSER">
   PSEUDO_URI_PARSER
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L64"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L65"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Regular expression used to extract the exchange-type,
@@ -244,79 +306,10 @@ exchange-name and routing-key from a string.</p>
 
 
 
-  <h2 class="section" id="properties">Properties
-</h2>
-
-
-  <a id="RabbitMQ_Client_PublicationAddress_ExchangeName_" data-uid="RabbitMQ.Client.PublicationAddress.ExchangeName*"></a>
-
-  <h3 id="RabbitMQ_Client_PublicationAddress_ExchangeName" data-uid="RabbitMQ.Client.PublicationAddress.ExchangeName">
-  ExchangeName
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L82"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Retrieve the exchange name.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string ExchangeName { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_PublicationAddress_ExchangeType_" data-uid="RabbitMQ.Client.PublicationAddress.ExchangeType*"></a>
-
-  <h3 id="RabbitMQ_Client_PublicationAddress_ExchangeType" data-uid="RabbitMQ.Client.PublicationAddress.ExchangeType">
-  ExchangeType
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L87"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Retrieve the exchange type string.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string ExchangeType { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="RabbitMQ_Client_PublicationAddress_RoutingKey_" data-uid="RabbitMQ.Client.PublicationAddress.RoutingKey*"></a>
 
   <h3 id="RabbitMQ_Client_PublicationAddress_RoutingKey" data-uid="RabbitMQ.Client.PublicationAddress.RoutingKey">
   RoutingKey
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L92"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L93"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Retrieve the routing key.</p>
@@ -324,18 +317,18 @@ exchange-name and routing-key from a string.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string RoutingKey { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly string RoutingKey</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
   </dl>
+
 
 
 
@@ -352,7 +345,7 @@ exchange-name and routing-key from a string.</p>
 
   <h3 id="RabbitMQ_Client_PublicationAddress_Parse_System_String_" data-uid="RabbitMQ.Client.PublicationAddress.Parse(System.String)">
   Parse(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L98"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L99"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Parse a <a class="xref" href="RabbitMQ.Client.PublicationAddress.html">PublicationAddress</a> out of the given string,
@@ -361,7 +354,7 @@ using the <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static PublicationAddress Parse(string uriLikeString)</code></pre>
+    <pre><code class="lang-csharp hljs">public static PublicationAddress? Parse(string uriLikeString)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -390,7 +383,7 @@ using the <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ
 
   <h3 id="RabbitMQ_Client_PublicationAddress_ToString" data-uid="RabbitMQ.Client.PublicationAddress.ToString">
   ToString()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L139"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L140"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Reconstruct the &quot;uri&quot; from its constituents.</p>
@@ -421,15 +414,15 @@ using the <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ
   <a id="RabbitMQ_Client_PublicationAddress_TryParse_" data-uid="RabbitMQ.Client.PublicationAddress.TryParse*"></a>
 
   <h3 id="RabbitMQ_Client_PublicationAddress_TryParse_System_String_RabbitMQ_Client_PublicationAddress__" data-uid="RabbitMQ.Client.PublicationAddress.TryParse(System.String,RabbitMQ.Client.PublicationAddress@)">
-  TryParse(string, out PublicationAddress)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L110"><i class="bi bi-code-slash"></i></a>
+  TryParse(string?, out PublicationAddress?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L111"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool TryParse(string uriLikeString, out PublicationAddress result)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool TryParse(string? uriLikeString, out PublicationAddress? result)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -460,7 +453,7 @@ using the <a class="xref" href="RabbitMQ.Client.PublicationAddress.html#RabbitMQ
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/PublicationAddress.cs/#L58" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/PublicationAddress.cs/#L59" class="edit-link">Edit this page</a>
         </div>
 
 

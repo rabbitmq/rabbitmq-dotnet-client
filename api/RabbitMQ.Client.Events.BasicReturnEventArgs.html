@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,12 +89,12 @@
 
 
   <h1 id="RabbitMQ_Client_Events_BasicReturnEventArgs" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs" class="text-break">
-Class BasicReturnEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicReturnEventArgs.cs/#L38"><i class="bi bi-code-slash"></i></a>
+Class BasicReturnEventArgs  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L39"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
     <dl><dt>Namespace</dt><dd><a class="xref" href="RabbitMQ.html">RabbitMQ</a>.<a class="xref" href="RabbitMQ.Client.html">Client</a>.<a class="xref" href="RabbitMQ.Client.Events.html">Events</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Apigen.dll</dd></dl>
+  <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
   <div class="markdown summary"><p>Contains all the information about a message returned
@@ -103,7 +103,7 @@ from an AMQP broker within the Basic content-class.</p>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class BasicReturnEventArgs : EventArgs</code></pre>
+    <pre><code class="lang-csharp hljs">public class BasicReturnEventArgs : AsyncEventArgs</code></pre>
   </div>
 
 
@@ -113,7 +113,7 @@ from an AMQP broker within the Basic content-class.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs">EventArgs</a></div>
+      <div><a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html">AsyncEventArgs</a></div>
       <div><span class="xref">BasicReturnEventArgs</span></div>
     </dd>
   </dl>
@@ -124,7 +124,13 @@ from an AMQP broker within the Basic content-class.</p>
     <dt>Inherited Members</dt>
     <dd>
     <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventargs.empty">EventArgs.Empty</a>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CancellationToken">AsyncEventArgs.CancellationToken</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_CreateOrDefault_System_Threading_CancellationToken_">AsyncEventArgs.CreateOrDefault(CancellationToken)</a>
+    </div>
+    <div>
+      <a class="xref" href="RabbitMQ.Client.Events.AsyncEventArgs.html#RabbitMQ_Client_Events_AsyncEventArgs_Empty">AsyncEventArgs.Empty</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
@@ -154,32 +160,39 @@ from an AMQP broker within the Basic content-class.</p>
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="constructors">Constructors
 </h2>
 
 
-  <a id="RabbitMQ_Client_Events_BasicReturnEventArgs_BasicProperties_" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.BasicProperties*"></a>
+  <a id="RabbitMQ_Client_Events_BasicReturnEventArgs__ctor_" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.#ctor*"></a>
 
-  <h3 id="RabbitMQ_Client_Events_BasicReturnEventArgs_BasicProperties" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.BasicProperties">
-  BasicProperties
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicReturnEventArgs.cs/#L41"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_Events_BasicReturnEventArgs__ctor_System_UInt16_System_String_System_String_System_String_RabbitMQ_Client_IReadOnlyBasicProperties_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.#ctor(System.UInt16,System.String,System.String,System.String,RabbitMQ.Client.IReadOnlyBasicProperties,System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+  BasicReturnEventArgs(ushort, string, string, string, IReadOnlyBasicProperties, ReadOnlyMemory&lt;byte&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L41"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>The content header of the message.</p>
-</div>
+  <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IBasicProperties BasicProperties { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public BasicReturnEventArgs(ushort replyCode, string replyText, string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, ReadOnlyMemory&lt;byte&gt; body, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
-
-
-
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></dt>
+    <dt><code>replyCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>replyText</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>exchange</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>basicProperties</code> <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html">IReadOnlyBasicProperties</a></dt>
+    <dd></dd>
+    <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
     <dd></dd>
   </dl>
 
@@ -190,11 +203,49 @@ from an AMQP broker within the Basic content-class.</p>
 
 
 
-  <a id="RabbitMQ_Client_Events_BasicReturnEventArgs_Body_" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.Body*"></a>
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="RabbitMQ_Client_Events_BasicReturnEventArgs_BasicProperties" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.BasicProperties">
+  BasicProperties
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L59"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The content header of the message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly IReadOnlyBasicProperties BasicProperties</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html">IReadOnlyBasicProperties</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
 
   <h3 id="RabbitMQ_Client_Events_BasicReturnEventArgs_Body" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.Body">
   Body
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicReturnEventArgs.cs/#L44"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L62"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The message body.</p>
@@ -202,14 +253,13 @@ from an AMQP broker within the Basic content-class.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ReadOnlyMemory&lt;byte&gt; Body { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly ReadOnlyMemory&lt;byte&gt; Body</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
     <dd></dd>
@@ -222,11 +272,11 @@ from an AMQP broker within the Basic content-class.</p>
 
 
 
-  <a id="RabbitMQ_Client_Events_BasicReturnEventArgs_Exchange_" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.Exchange*"></a>
+
 
   <h3 id="RabbitMQ_Client_Events_BasicReturnEventArgs_Exchange" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.Exchange">
   Exchange
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicReturnEventArgs.cs/#L48"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L66"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The exchange the returned message was originally
@@ -235,14 +285,13 @@ published to.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string Exchange { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly string Exchange</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
@@ -255,11 +304,11 @@ published to.</p>
 
 
 
-  <a id="RabbitMQ_Client_Events_BasicReturnEventArgs_ReplyCode_" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.ReplyCode*"></a>
+
 
   <h3 id="RabbitMQ_Client_Events_BasicReturnEventArgs_ReplyCode" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.ReplyCode">
   ReplyCode
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicReturnEventArgs.cs/#L52"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L70"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The AMQP reason code for the return. See
@@ -268,14 +317,13 @@ RabbitMQ.Client.Framing.*.Constants.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort ReplyCode { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly ushort ReplyCode</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd></dd>
@@ -288,11 +336,11 @@ RabbitMQ.Client.Framing.*.Constants.</p>
 
 
 
-  <a id="RabbitMQ_Client_Events_BasicReturnEventArgs_ReplyText_" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.ReplyText*"></a>
+
 
   <h3 id="RabbitMQ_Client_Events_BasicReturnEventArgs_ReplyText" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.ReplyText">
   ReplyText
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicReturnEventArgs.cs/#L56"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L74"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Human-readable text from the broker describing the
@@ -301,14 +349,13 @@ reason for the return.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string ReplyText { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly string ReplyText</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
@@ -321,11 +368,11 @@ reason for the return.</p>
 
 
 
-  <a id="RabbitMQ_Client_Events_BasicReturnEventArgs_RoutingKey_" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.RoutingKey*"></a>
+
 
   <h3 id="RabbitMQ_Client_Events_BasicReturnEventArgs_RoutingKey" data-uid="RabbitMQ.Client.Events.BasicReturnEventArgs.RoutingKey">
   RoutingKey
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicReturnEventArgs.cs/#L60"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L78"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>The routing key used when the message was
@@ -334,18 +381,18 @@ originally published.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string RoutingKey { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly string RoutingKey</code></pre>
   </div>
 
 
 
 
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
   </dl>
+
 
 
 
@@ -358,7 +405,7 @@ originally published.</p>
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/events/BasicReturnEventArgs.cs/#L38" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/Events/BasicReturnEventArgs.cs/#L39" class="edit-link">Edit this page</a>
         </div>
 
 

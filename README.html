@@ -73,24 +73,32 @@
         <article data-uid="">
 
 <h2 id="rabbitmq-net-client">RabbitMQ .NET Client</h2>
-<p><a href="https://ci.appveyor.com/project/rabbitmq/rabbitmq-dotnet-client"><img src="https://ci.appveyor.com/api/projects/status/33srpo7owl1h3y4e?svg=true" alt="AppVeyor Build status"></a></p>
+<p><a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/workflows/main.yaml"><img src="https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/workflows/main.yaml/badge.svg" alt="GitHub Actions rabbitmq-dotnet-client"></a>
+<a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/workflows/codeql.yml"><img src="https://github.com/rabbitmq/rabbitmq-dotnet-client/workflows/CodeQL/badge.svg" alt="CodeQL"></a></p>
 <p>This repository contains source code of the <a href="https://www.rabbitmq.com/dotnet.html">RabbitMQ .NET client</a>.
-The client is maintained by the <a href="https://github.com/rabbitmq/">RabbitMQ team at VMware</a>.</p>
+The client is maintained by the <a href="https://github.com/rabbitmq/">RabbitMQ team at Broadcom</a>.</p>
 <h2 id="dependency-nuget-artifact">Dependency (NuGet Artifact)</h2>
 <p>The client is <a href="https://www.nuget.org/packages/RabbitMQ.Client/">distributed via NuGet</a>.</p>
 <h2 id="tutorials-and-documentation">Tutorials and Documentation</h2>
 <ul>
-<li><a href="https://www.rabbitmq.com/getstarted.html">Tutorials</a></li>
-<li><a href="https://www.rabbitmq.com/dotnet.html">Documentation guide</a></li>
-<li><a href="https://rabbitmq.github.io/rabbitmq-dotnet-client/index.html">API Documentation</a></li>
+<li><a href="https://www.rabbitmq.com/tutorials">Tutorials</a></li>
+<li><a href="https://www.rabbitmq.com/client-libraries/dotnet">Documentation guide</a></li>
+<li><a href="https://rabbitmq.github.io/rabbitmq-dotnet-client/api/RabbitMQ.Client.html">API Documentation</a></li>
 </ul>
 <h2 id="supported-platforms-and-net-releases">Supported Platforms and .NET Releases</h2>
+<h3 id="7x">7.x</h3>
+<p><code>7.x</code> versions of the library require .NET framework 4.6.1 or any supported
+.NET version. They also introduce potentially breaking public API changes
+covered in the <a href="CHANGELOG.html">changelog</a> and <a href="v7-MIGRATION.html">migration
+guide</a>.</p>
 <h3 id="6x">6.x</h3>
-<p><code>6.x</code> versions of the library require .NET 4.6.1 or a .NET Core version implementing .NET Standard 2.0.
-They also introduce potentially breaking public API changes covered in the <a href="CHANGELOG.html">changelog</a>.</p>
+<p><code>6.x</code> versions of the library require .NET framework 4.6.1 or any supported
+.NET version. They also introduce potentially breaking public API changes
+covered in the <a href="CHANGELOG.html">changelog</a>.</p>
 <h3 id="5x-and-4x">5.x and 4.x</h3>
-<p><code>4.x</code> and <code>5.x</code> versions of the library require .NET 4.5.1 or later or .NET Core.
-For .NET Core users, 2.0 is the minimum supported version for <code>5.x</code> series.</p>
+<p><code>4.x</code> and <code>5.x</code> versions of the library require .NET 4.5.1 or later or .NET
+Core. For .NET Core users, 2.0 is the minimum supported version for <code>5.x</code>
+series.</p>
 <h2 id="change-log">Change Log</h2>
 <p>See <a href="CHANGELOG.html">CHANGELOG.md</a>.</p>
 <h2 id="building-from-source">Building from Source</h2>

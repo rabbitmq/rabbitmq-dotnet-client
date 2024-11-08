@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Interface IAsyncBasicConsumer ">
       
-      
+      <meta name="description" content="Consumer interface. Used to receive messages from a queue by subscription.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -77,7 +77,7 @@
 
       <div class="content">
         <div class="actionbar">
-          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
             <i class="bi bi-list"></i>
           </button>
 
@@ -89,7 +89,7 @@
 
 
   <h1 id="RabbitMQ_Client_IAsyncBasicConsumer" data-uid="RabbitMQ.Client.IAsyncBasicConsumer" class="text-break">
-Interface IAsyncBasicConsumer  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L8"><i class="bi bi-code-slash"></i></a>
+Interface IAsyncBasicConsumer  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IAsyncBasicConsumer.cs/#L42"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -97,7 +97,8 @@ Interface IAsyncBasicConsumer  <a class="header-action link-secondary" title="Vi
   <dl><dt>Assembly</dt><dd>RabbitMQ.Client.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Consumer interface. Used to receive messages from a queue by subscription.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
@@ -120,20 +121,20 @@ Interface IAsyncBasicConsumer  <a class="header-action link-secondary" title="Vi
 </h2>
 
 
-  <a id="RabbitMQ_Client_IAsyncBasicConsumer_Model_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.Model*"></a>
+  <a id="RabbitMQ_Client_IAsyncBasicConsumer_Channel_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.Channel*"></a>
 
-  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_Model" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.Model">
-  Model
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L14"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_Channel" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.Channel">
+  Channel
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IAsyncBasicConsumer.cs/#L48"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Retrieve the <a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a> this consumer is associated with,
+  <div class="markdown level1 summary"><p>Retrieve the <a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a> this consumer is associated with,
 for use in acknowledging received messages, for instance.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IModel Model { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">IChannel? Channel { get; }</code></pre>
   </div>
 
 
@@ -142,7 +143,7 @@ for use in acknowledging received messages, for instance.</p>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.IModel.html">IModel</a></dt>
+    <dt><a class="xref" href="RabbitMQ.Client.IChannel.html">IChannel</a></dt>
     <dd></dd>
   </dl>
 
@@ -157,27 +158,30 @@ for use in acknowledging received messages, for instance.</p>
 </h2>
 
 
-  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancel_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancel*"></a>
+  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancelAsync_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancel_System_String_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancel(System.String)">
-  HandleBasicCancel(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L27"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancelAsync_System_String_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelAsync(System.String,System.Threading.CancellationToken)">
+  HandleBasicCancelAsync(string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IAsyncBasicConsumer.cs/#L57"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Called when the consumer is cancelled for reasons other than by a basicCancel:
-e.g. the queue has been deleted (either by this channel or  by any other channel).
-See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancelOk_System_String_">HandleBasicCancelOk(string)</a> for notification of consumer cancellation due to basicCancel</p>
+e.g. the queue has been deleted (either by this channel or by any other channel).
+See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancelOkAsync_System_String_System_Threading_CancellationToken_">HandleBasicCancelOkAsync(string, CancellationToken)</a> for notification of consumer cancellation due to basicCancel</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">Task HandleBasicCancel(string consumerTag)</code></pre>
+    <pre><code class="lang-csharp hljs">Task HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>consumerTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd><p>Consumer tag this consumer is registered.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>The cancellation token.</p>
 </dd>
   </dl>
 
@@ -197,11 +201,11 @@ See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Clie
 
 
 
-  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancelOk_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelOk*"></a>
+  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancelOkAsync_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelOkAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancelOk_System_String_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelOk(System.String)">
-  HandleBasicCancelOk(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L33"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicCancelOkAsync_System_String_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicCancelOkAsync(System.String,System.Threading.CancellationToken)">
+  HandleBasicCancelOkAsync(string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IAsyncBasicConsumer.cs/#L64"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Called upon successful deregistration of the consumer from the broker.</p>
@@ -209,13 +213,16 @@ See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Clie
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">Task HandleBasicCancelOk(string consumerTag)</code></pre>
+    <pre><code class="lang-csharp hljs">Task HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>consumerTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd><p>Consumer tag this consumer is registered.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>The cancellation token.</p>
 </dd>
   </dl>
 
@@ -235,11 +242,11 @@ See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Clie
 
 
 
-  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicConsumeOk_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicConsumeOk*"></a>
+  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicConsumeOkAsync_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicConsumeOkAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicConsumeOk_System_String_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicConsumeOk(System.String)">
-  HandleBasicConsumeOk(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L39"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicConsumeOkAsync_System_String_System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicConsumeOkAsync(System.String,System.Threading.CancellationToken)">
+  HandleBasicConsumeOkAsync(string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IAsyncBasicConsumer.cs/#L71"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Called upon successful registration of the consumer with the broker.</p>
@@ -247,13 +254,16 @@ See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Clie
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">Task HandleBasicConsumeOk(string consumerTag)</code></pre>
+    <pre><code class="lang-csharp hljs">Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>consumerTag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd><p>Consumer tag this consumer is registered.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>The cancellation token.</p>
 </dd>
   </dl>
 
@@ -273,19 +283,28 @@ See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Clie
 
 
 
-  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicDeliver_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliver*"></a>
+  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicDeliverAsync_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliverAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte__" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliver(System.String,System.UInt64,System.Boolean,System.String,System.String,RabbitMQ.Client.IBasicProperties,System.ReadOnlyMemory{System.Byte})">
-  HandleBasicDeliver(string, ulong, bool, string, string, IBasicProperties, ReadOnlyMemory&lt;byte&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicDeliverAsync_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IReadOnlyBasicProperties_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleBasicDeliverAsync(System.String,System.UInt64,System.Boolean,System.String,System.String,RabbitMQ.Client.IReadOnlyBasicProperties,System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+  HandleBasicDeliverAsync(string, ulong, bool, string, string, IReadOnlyBasicProperties, ReadOnlyMemory&lt;byte&gt;, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IAsyncBasicConsumer.cs/#L88"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called each time a message arrives for this consumer.</p>
+  <div class="markdown level1 summary"><p>Called each time a message arrives for this consumer.
+<remarks><p>
+Does nothing with the passed in information.
+Note that in particular, some delivered messages may require acknowledgement via <a class="xref" href="RabbitMQ.Client.IChannel.html#RabbitMQ_Client_IChannel_BasicAckAsync_System_UInt64_System_Boolean_System_Threading_CancellationToken_">BasicAckAsync(ulong, bool, CancellationToken)</a>.
+The implementation of this method in this class does NOT acknowledge such messages.</p>
+ </remarks></p><p>
+   NOTE: Using the <code>body</code> outside of
+   <code><a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicDeliverAsync_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IReadOnlyBasicProperties_System_ReadOnlyMemory_System_Byte__System_Threading_CancellationToken_">HandleBasicDeliverAsync(string, ulong, bool, string, string, IReadOnlyBasicProperties, ReadOnlyMemory&lt;byte&gt;, CancellationToken)</a></code>
+   requires that it be copied!
+ </p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">Task HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory&lt;byte&gt; body)</code></pre>
+    <pre><code class="lang-csharp hljs">Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IReadOnlyBasicProperties properties, ReadOnlyMemory&lt;byte&gt; body, CancellationToken cancellationToken = default)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -300,9 +319,11 @@ See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Clie
     <dd></dd>
     <dt><code>routingKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
-    <dt><code>properties</code> <a class="xref" href="RabbitMQ.Client.IBasicProperties.html">IBasicProperties</a></dt>
+    <dt><code>properties</code> <a class="xref" href="RabbitMQ.Client.IReadOnlyBasicProperties.html">IReadOnlyBasicProperties</a></dt>
     <dd></dd>
     <dt><code>body</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlymemory-1">ReadOnlyMemory</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
     <dd></dd>
   </dl>
 
@@ -318,37 +339,32 @@ See <a class="xref" href="RabbitMQ.Client.IAsyncBasicConsumer.html#RabbitMQ_Clie
 
 
 
-  <h4 class="section" id="RabbitMQ_Client_IAsyncBasicConsumer_HandleBasicDeliver_System_String_System_UInt64_System_Boolean_System_String_System_String_RabbitMQ_Client_IBasicProperties_System_ReadOnlyMemory_System_Byte___remarks">Remarks</h4>
-  <div class="markdown level1 remarks"><p>Does nothing with the passed in information.
-Note that in particular, some delivered messages may require acknowledgement via <a class="xref" href="RabbitMQ.Client.IModel.html#RabbitMQ_Client_IModel_BasicAck_System_UInt64_System_Boolean_">BasicAck(ulong, bool)</a>.
-The implementation of this method in this class does NOT acknowledge such messages.</p>
-</div>
 
 
 
 
-  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleModelShutdown_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleModelShutdown*"></a>
+  <a id="RabbitMQ_Client_IAsyncBasicConsumer_HandleChannelShutdownAsync_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleChannelShutdownAsync*"></a>
 
-  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleModelShutdown_System_Object_RabbitMQ_Client_ShutdownEventArgs_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleModelShutdown(System.Object,RabbitMQ.Client.ShutdownEventArgs)">
-  HandleModelShutdown(object, ShutdownEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L62"><i class="bi bi-code-slash"></i></a>
+  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_HandleChannelShutdownAsync_System_Object_RabbitMQ_Client_Events_ShutdownEventArgs_" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.HandleChannelShutdownAsync(System.Object,RabbitMQ.Client.Events.ShutdownEventArgs)">
+  HandleChannelShutdownAsync(object, ShutdownEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IAsyncBasicConsumer.cs/#L102"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called when the model shuts down.</p>
+  <div class="markdown level1 summary"><p>Called when the channel shuts down.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">Task HandleModelShutdown(object model, ShutdownEventArgs reason)</code></pre>
+    <pre><code class="lang-csharp hljs">Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>model</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
-    <dd><p>Common AMQP model.</p>
+    <dt><code>channel</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>Common AMQP channel.</p>
 </dd>
-    <dt><code>reason</code> <a class="xref" href="RabbitMQ.Client.ShutdownEventArgs.html">ShutdownEventArgs</a></dt>
-    <dd><p>Information about the reason why a particular model, session, or connection was destroyed.</p>
+    <dt><code>reason</code> <a class="xref" href="RabbitMQ.Client.Events.ShutdownEventArgs.html">ShutdownEventArgs</a></dt>
+    <dd><p>Information about the reason why a particular channel, session, or connection was destroyed.</p>
 </dd>
   </dl>
 
@@ -361,41 +377,6 @@ The implementation of this method in this class does NOT acknowledge such messag
 
 
 
-
-
-
-
-
-
-
-  <h2 class="section" id="events">Events
-</h2>
-
-
-
-  <h3 id="RabbitMQ_Client_IAsyncBasicConsumer_ConsumerCancelled" data-uid="RabbitMQ.Client.IAsyncBasicConsumer.ConsumerCancelled">
-  ConsumerCancelled
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L19"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Signalled when the consumer gets cancelled.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">event AsyncEventHandler&lt;ConsumerEventArgs&gt; ConsumerCancelled</code></pre>
-  </div>
-
-
-
-
-
-
-  <h4 class="section">Event Type</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="RabbitMQ.Client.Events.AsyncEventHandler-1.html">AsyncEventHandler</a>&lt;<a class="xref" href="RabbitMQ.Client.Events.ConsumerEventArgs.html">ConsumerEventArgs</a>&gt;</dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -407,7 +388,7 @@ The implementation of this method in this class does NOT acknowledge such messag
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/6.x/projects/RabbitMQ.Client/client/api/IAsyncBasicConsumer.cs/#L8" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/projects/RabbitMQ.Client/IAsyncBasicConsumer.cs/#L42" class="edit-link">Edit this page</a>
         </div>
 
 
