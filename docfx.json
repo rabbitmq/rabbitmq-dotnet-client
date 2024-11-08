@@ -4,7 +4,9 @@
       "src": [
         {
           "files": [
-            "projects/**.csproj"
+            "projects/RabbitMQ.Client.OAuth2/RabbitMQ.Client.OAuth2.csproj",
+            "projects/RabbitMQ.Client.OpenTelemetry/RabbitMQ.Client.OpenTelemetry.csproj",
+            "projects/RabbitMQ.Client/RabbitMQ.Client.csproj"
           ],
           "exclude": [
             "**/obj/**",

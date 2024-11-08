@@ -1,6 +1,7 @@
 *.orig
 *.log
 _site/
+api/
 
 ###################
 ## Generated files
