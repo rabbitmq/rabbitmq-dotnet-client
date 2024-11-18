@@ -15,6 +15,11 @@ namespace RabbitMQ.Client
         // https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/#messaging-attributes
         internal const string MessageId = "messaging.message.id";
         internal const string MessageConversationId = "messaging.message.conversation_id";
+        internal const string MessagingOperationName = "messaging.operation.name";
+        internal const string MessagingOperationNameBasicDeliver = "deliver";
+        internal const string MessagingOperationNameBasicGet = "fetch";
+        internal const string MessagingOperationNameBasicGetEmpty = "fetch (empty)";
+        internal const string MessagingOperationNameBasicPublish = "publish";
         internal const string MessagingOperationType = "messaging.operation.type";
         internal const string MessagingOperationTypeSend = "send";
         internal const string MessagingOperationTypeProcess = "process";
@@ -56,7 +61,7 @@ namespace RabbitMQ.Client
             new KeyValuePair<string, object?>(ProtocolVersion, "0.9.1")
         };
 
-        internal static Activity? Send(string routingKey, string exchange, int bodySize,
+        internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize,
             ActivityContext linkedContext = default)
         {
             if (!s_publisherSource.HasListeners())
@@ -66,21 +71,21 @@ namespace RabbitMQ.Client
 
             Activity? activity = linkedContext == default
                 ? s_publisherSource.StartRabbitMQActivity(
-                    UseRoutingKeyAsOperationName ? $"{routingKey} {MessagingOperationTypeSend}" : MessagingOperationTypeSend,
+                    UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
                     ActivityKind.Producer)
                 : s_publisherSource.StartLinkedRabbitMQActivity(
-                    UseRoutingKeyAsOperationName ? $"{routingKey} {MessagingOperationTypeSend}" : MessagingOperationTypeSend,
+                    UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
                     ActivityKind.Producer, linkedContext);
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags(MessagingOperationTypeSend, routingKey, exchange, 0, bodySize, activity);
+                PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, exchange, 0, bodySize, activity);
             }
 
             return activity;
 
         }
 
-        internal static Activity? ReceiveEmpty(string queue)
+        internal static Activity? BasicGetEmpty(string queue)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -88,19 +93,20 @@ namespace RabbitMQ.Client
             }
 
             Activity? activity = s_subscriberSource.StartRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{queue} {MessagingOperationTypeReceive}" : MessagingOperationTypeReceive,
+                UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGetEmpty} {queue}" : MessagingOperationNameBasicGetEmpty,
                 ActivityKind.Consumer);
             if (activity != null && activity.IsAllDataRequested)
             {
                 activity
                     .SetTag(MessagingOperationType, MessagingOperationTypeReceive)
+                    .SetTag(MessagingOperationName, MessagingOperationNameBasicGetEmpty)
                     .SetTag(MessagingDestination, "amq.default");
             }
 
             return activity;
         }
 
-        internal static Activity? Receive(string routingKey, string exchange, ulong deliveryTag,
+        internal static Activity? BasicGet(string routingKey, string exchange, ulong deliveryTag,
             IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize)
         {
             if (!s_subscriberSource.HasListeners())
@@ -110,11 +116,11 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{routingKey} {MessagingOperationTypeReceive}" : MessagingOperationTypeReceive, ActivityKind.Consumer,
+                UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
                 ContextExtractor(readOnlyBasicProperties));
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags(MessagingOperationTypeReceive, routingKey, exchange, deliveryTag, readOnlyBasicProperties,
+                PopulateMessagingTags(MessagingOperationTypeReceive, MessagingOperationNameBasicGet, routingKey, exchange, deliveryTag, readOnlyBasicProperties,
                     bodySize, activity);
             }
 
@@ -131,11 +137,11 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{routingKey} {MessagingOperationTypeProcess}" : MessagingOperationTypeProcess,
+                UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,
                 ActivityKind.Consumer, ContextExtractor(basicProperties));
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags(MessagingOperationTypeProcess, routingKey, exchange,
+                PopulateMessagingTags(MessagingOperationTypeProcess, MessagingOperationNameBasicDeliver, routingKey, exchange,
                     deliveryTag, basicProperties, bodySize, activity);
             }
 
@@ -157,10 +163,10 @@ namespace RabbitMQ.Client
                 ?.Start();
         }
 
-        private static void PopulateMessagingTags(string operation, string routingKey, string exchange,
+        private static void PopulateMessagingTags(string operationType, string operationName, string routingKey, string exchange,
             ulong deliveryTag, IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, Activity activity)
         {
-            PopulateMessagingTags(operation, routingKey, exchange, deliveryTag, bodySize, activity);
+            PopulateMessagingTags(operationType, operationName, routingKey, exchange, deliveryTag, bodySize, activity);
 
             if (!string.IsNullOrEmpty(readOnlyBasicProperties.CorrelationId))
             {
@@ -173,11 +179,12 @@ namespace RabbitMQ.Client
             }
         }
 
-        private static void PopulateMessagingTags(string operation, string routingKey, string exchange,
+        private static void PopulateMessagingTags(string operationType, string operationName, string routingKey, string exchange,
             ulong deliveryTag, int bodySize, Activity activity)
         {
             activity
-                .SetTag(MessagingOperationType, operation)
+                .SetTag(MessagingOperationType, operationType)
+                .SetTag(MessagingOperationName, operationName)
                 .SetTag(MessagingDestination, string.IsNullOrEmpty(exchange) ? "amq.default" : exchange)
                 .SetTag(MessagingDestinationRoutingKey, routingKey)
                 .SetTag(MessagingBodySize, bodySize);
