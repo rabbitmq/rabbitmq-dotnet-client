@@ -11,6 +11,12 @@ namespace RabbitMQ.Client
 {
     public static class RabbitMQActivitySource
     {
+        private const string ExceptionEventName = "exception";
+        private const string ExceptionMessageTag = "exception.message";
+        private const string ExceptionStackTraceTag = "exception.stacktrace";
+
+        private const string ExceptionTypeTag = "exception.type";
+
         // These constants are defined in the OpenTelemetry specification:
         // https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/#messaging-attributes
         internal const string MessageId = "messaging.message.id";
@@ -67,6 +73,7 @@ namespace RabbitMQ.Client
             {
                 return null;
             }
+
             Activity? connectionActivity =
                 s_connectionSource.StartRabbitMQActivity("rabbitmq connect", ActivityKind.Client);
             connectionActivity?
@@ -170,14 +177,17 @@ namespace RabbitMQ.Client
             return activity;
         }
 
-        internal static void ReportException(this Activity? activity, Exception exception)
+        internal static void ReportException(this Activity activity, Exception exception)
         {
-            activity?.AddTag("exception.message", exception.Message);
-            activity?.AddTag("exception.stacktrace", exception.ToString());
-            activity?.AddTag("exception.type", exception.GetType().FullName);
-            activity?.SetStatus(ActivityStatusCode.Error);
+            ActivityTagsCollection exceptionTags = new();
+            exceptionTags.Add(new KeyValuePair<string, object?>(ExceptionMessageTag, exception.Message));
+            exceptionTags.Add(new KeyValuePair<string, object?>(ExceptionStackTraceTag, exception.ToString()));
+            exceptionTags.Add(new KeyValuePair<string, object?>(ExceptionTypeTag, exception.GetType().ToString()));
+            activity.AddEvent(new ActivityEvent(ExceptionEventName, default, exceptionTags));
+
+            activity.SetStatus(ActivityStatusCode.Error);
         }
-        
+
         private static Activity? StartRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
             ActivityContext parentContext = default)
         {
