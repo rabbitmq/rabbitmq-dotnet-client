@@ -5,3 +5,4 @@ RabbitMQ.Client.Exceptions.PublishReturnException.PublishReturnException(ulong p
 RabbitMQ.Client.Exceptions.PublishReturnException.ReplyCode.get -> ushort
 RabbitMQ.Client.Exceptions.PublishReturnException.ReplyText.get -> string!
 RabbitMQ.Client.Exceptions.PublishReturnException.RoutingKey.get -> string!
+const RabbitMQ.Client.RabbitMQActivitySource.ConnectionSourceName = "RabbitMQ.Client.Connection" -> string!
