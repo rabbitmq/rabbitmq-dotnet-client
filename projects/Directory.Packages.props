@@ -10,6 +10,7 @@
     <PackageVersion Include="OpenTelemetry.Api" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.9.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="9.0.4" />
     <!--
       Note: do NOT upgrade the System.IO.Pipelines dependency unless necessary
       See https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
