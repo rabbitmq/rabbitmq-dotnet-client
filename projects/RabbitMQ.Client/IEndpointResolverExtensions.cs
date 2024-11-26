@@ -41,49 +41,39 @@ namespace RabbitMQ.Client
         public static async Task<T> SelectOneAsync<T>(this IEndpointResolver resolver,
             Func<AmqpTcpEndpoint, CancellationToken, Task<T>> selector, CancellationToken cancellationToken)
         {
-            var t = default(T);
             var exceptions = new List<Exception>();
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                using var tcpConnection = RabbitMQActivitySource.OpenTcpConnection();
+                tcpConnection?.SetServerTags(ep);
                 try
                 {
-                    t = await selector(ep, cancellationToken).ConfigureAwait(false);
-                    if (t!.Equals(default(T)) == false)
-                    {
-                        return t;
-                    }
+                    return await selector(ep, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException ex)
                 {
+                    tcpConnection?.AddException(ex);
                     if (cancellationToken.IsCancellationRequested)
                     {
                         throw;
                     }
-                    else
-                    {
-                        exceptions.Add(ex);
-                    }
+
+                    exceptions.Add(ex);
                 }
                 catch (Exception e)
                 {
+                    tcpConnection?.AddException(e);
                     exceptions.Add(e);
                 }
             }
 
-            if (EqualityComparer<T>.Default.Equals(t!, default!))
+            if (exceptions.Count > 0)
             {
-                if (exceptions.Count > 0)
-                {
-                    throw new AggregateException(exceptions);
-                }
-                else
-                {
-                    throw new InvalidOperationException(InternalConstants.BugFound);
-                }
+                throw new AggregateException(exceptions);
             }
 
-            return t!;
+            throw new InvalidOperationException(InternalConstants.BugFound);
         }
     }
 }

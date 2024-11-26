@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Security;
@@ -546,17 +547,22 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default)
         {
             ConnectionConfig config = CreateConfig(clientProvidedName);
+            using Activity? connectionActivity = RabbitMQActivitySource.OpenConnection(false);
             try
             {
                 if (AutomaticRecoveryEnabled)
                 {
-                    return await AutorecoveringConnection.CreateAsync(config, endpointResolver, cancellationToken)
+                    connectionActivity?.SetTag("messaging.rabbitmq.connection.automatic_recovery", true);
+                    return await AutorecoveringConnection.CreateAsync(config, endpointResolver, connectionActivity, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
                 {
+
+                    connectionActivity?.SetTag("messaging.rabbitmq.connection.automatic_recovery", false);
                     IFrameHandler frameHandler = await endpointResolver.SelectOneAsync(CreateFrameHandlerAsync, cancellationToken)
                         .ConfigureAwait(false);
+                    connectionActivity.SetNetworkTags(frameHandler);
                     var c = new Connection(config, frameHandler);
                     return await c.OpenAsync(cancellationToken)
                         .ConfigureAwait(false);
@@ -564,6 +570,8 @@ namespace RabbitMQ.Client
             }
             catch (OperationCanceledException ex)
             {
+                connectionActivity?.SetStatus(ActivityStatusCode.Error);
+                connectionActivity?.AddException(ex);
                 if (cancellationToken.IsCancellationRequested)
                 {
                     throw;
@@ -575,7 +583,10 @@ namespace RabbitMQ.Client
             }
             catch (Exception ex)
             {
-                throw new BrokerUnreachableException(ex);
+                var brokerUnreachableException = new BrokerUnreachableException(ex);
+                connectionActivity?.SetStatus(ActivityStatusCode.Error);
+                connectionActivity?.AddException(brokerUnreachableException);
+                throw brokerUnreachableException;
             }
         }
 

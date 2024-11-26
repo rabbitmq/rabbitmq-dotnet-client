@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -253,13 +254,13 @@ namespace RabbitMQ.Client.Impl
         private async ValueTask<bool> TryRecoverConnectionDelegateAsync(CancellationToken cancellationToken)
         {
             Connection? maybeNewInnerConnection = null;
+            using Activity? connectionActivity = RabbitMQActivitySource.OpenConnection(true);
             try
             {
                 Connection defunctConnection = _innerConnection;
-
                 IFrameHandler fh = await _endpoints.SelectOneAsync(_config.FrameHandlerFactoryAsync, cancellationToken)
                     .ConfigureAwait(false);
-
+                connectionActivity?.SetNetworkTags(fh);
                 maybeNewInnerConnection = new Connection(_config, fh);
 
                 await maybeNewInnerConnection.OpenAsync(cancellationToken)
@@ -277,6 +278,8 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
+                connectionActivity?.AddException(e);
+                connectionActivity?.SetStatus(ActivityStatusCode.Error);
                 ESLog.Error("Connection recovery exception.", e);
                 // Trigger recovery error events
                 if (!_connectionRecoveryErrorAsyncWrapper.IsEmpty)

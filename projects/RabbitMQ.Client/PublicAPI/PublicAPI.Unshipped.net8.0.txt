@@ -2,6 +2,7 @@ const RabbitMQ.Client.ExchangeType.ConsistentHash = "x-consistent-hash" -> strin
 const RabbitMQ.Client.ExchangeType.LocalRandom = "x-local-random" -> string
 const RabbitMQ.Client.ExchangeType.ModulusHash = "x-modulus-hash" -> string
 const RabbitMQ.Client.ExchangeType.Random = "x-random" -> string
+const RabbitMQ.Client.RabbitMQActivitySource.ConnectionSourceName = "RabbitMQ.Client.Connection" -> string!
 RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, bool mandatory, TProperties basicProperties, System.ReadOnlyMemory<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(string! exchange, string! routingKey, bool mandatory, TProperties basicProperties, System.ReadOnlyMemory<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, bool mandatory, System.ReadOnlyMemory<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
