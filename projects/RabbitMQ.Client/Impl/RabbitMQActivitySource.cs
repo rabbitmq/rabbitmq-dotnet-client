@@ -75,7 +75,7 @@ namespace RabbitMQ.Client
             }
 
             Activity? connectionActivity =
-                s_connectionSource.StartRabbitMQActivity("connection open", ActivityKind.Client);
+                s_connectionSource.StartRabbitMQActivity("connection attempt", ActivityKind.Client);
             connectionActivity?
                 .SetNetworkTags(frameHandler);
             return connectionActivity;
