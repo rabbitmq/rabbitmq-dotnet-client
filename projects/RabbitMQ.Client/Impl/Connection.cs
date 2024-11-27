@@ -226,7 +226,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Activity? _connectionActivity = RabbitMQActivitySource.OpenConnection(_frameHandler);
+            Activity? connectionActivity = RabbitMQActivitySource.OpenConnection(_frameHandler);
             try
             {
                 RabbitMqClientEventSource.Log.ConnectionOpened();
@@ -249,7 +249,7 @@ namespace RabbitMQ.Client.Framing
             }
             catch(Exception ex)
             {
-                _connectionActivity?.ReportException(ex);
+                connectionActivity?.ReportException(ex);
                 try
                 {
                     var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen");
