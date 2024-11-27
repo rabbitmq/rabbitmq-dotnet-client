@@ -247,7 +247,7 @@ namespace RabbitMQ.Client.Framing
 
                 return this;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 connectionActivity?.ReportException(ex);
                 try
