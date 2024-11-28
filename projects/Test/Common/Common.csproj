@@ -26,6 +26,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="EasyNetQ.Management.Client" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.abstractions" />
