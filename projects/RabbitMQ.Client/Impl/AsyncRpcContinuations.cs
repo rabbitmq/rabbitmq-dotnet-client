@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Impl
 
         private bool _disposedValue;
 
-        public AsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+        protected AsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
         {
             /*
              * Note: we can't use an ObjectPool for these because the netstandard2.0

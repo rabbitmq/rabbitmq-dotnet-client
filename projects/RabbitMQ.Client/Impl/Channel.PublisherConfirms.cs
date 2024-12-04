@@ -131,38 +131,27 @@ namespace RabbitMQ.Client.Impl
             if (_publisherConfirmationsEnabled)
             {
                 // NOTE: _rpcSemaphore is held
-                bool enqueued = false;
-                var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+                using var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
-                try
+                if (_nextPublishSeqNo == 0UL)
                 {
-                    if (_nextPublishSeqNo == 0UL)
+                    if (_publisherConfirmationTrackingEnabled)
                     {
-                        if (_publisherConfirmationTrackingEnabled)
-                        {
-                            _confirmsTaskCompletionSources.Clear();
-                        }
-                        _nextPublishSeqNo = 1;
+                        _confirmsTaskCompletionSources.Clear();
                     }
-
-                    enqueued = Enqueue(k);
-
-                    var method = new ConfirmSelect(false);
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
-
-                    return;
+                    _nextPublishSeqNo = 1;
                 }
-                finally
-                {
-                    if (false == enqueued)
-                    {
-                        k.Dispose();
-                    }
-                }
+
+                Enqueue(k);
+
+                var method = new ConfirmSelect(false);
+                await ModelSendAsync(in method, k.CancellationToken)
+                    .ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+
+                return;
             }
         }
 
