@@ -17,6 +17,7 @@
     <SignAssembly>true</SignAssembly>
     <IsTestProject>true</IsTestProject>
     <LangVersion>12.0</LangVersion>
+    <TestTfmsInParallel>false</TestTfmsInParallel>
   </PropertyGroup>
 
   <ItemGroup>
