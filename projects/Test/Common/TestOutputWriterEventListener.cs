@@ -76,7 +76,7 @@ namespace Test
         {
             try
             {
-#if NET6_0_OR_GREATER
+#if NET
                 if (eventData.Payload.Count > 0)
                 {
                     string payloadName = eventData.PayloadNames[0];

@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Impl
         {
             IPAddress[] ipAddresses = await Dns.GetHostAddressesAsync(
                 amqpTcpEndpoint.HostName
-#if NET6_0_OR_GREATER
+#if NET
                 , cancellationToken
 #endif
             ).ConfigureAwait(false);

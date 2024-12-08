@@ -37,7 +37,7 @@ namespace RabbitMQ.Client
 {
     internal static class TaskExtensions
     {
-#if NET6_0_OR_GREATER
+#if NET
         public static bool IsCompletedSuccessfully(this Task task)
         {
             return task.IsCompletedSuccessfully;
@@ -49,7 +49,7 @@ namespace RabbitMQ.Client
         }
 #endif
 
-#if !NET6_0_OR_GREATER
+#if !NET
         private static readonly TaskContinuationOptions s_tco = TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously;
         private static void IgnoreTaskContinuation(Task t, object s) => t.Exception.Handle(e => true);
 
@@ -126,7 +126,7 @@ namespace RabbitMQ.Client
 
         public static Task WaitAsync(this Task task, TimeSpan timeout)
         {
-#if NET6_0_OR_GREATER
+#if NET
             if (task.IsCompletedSuccessfully)
             {
                 return task;
@@ -171,7 +171,7 @@ namespace RabbitMQ.Client
                 return;
             }
 
-#if NET6_0_OR_GREATER
+#if NET
             Task task = valueTask.AsTask();
             await task.WaitAsync(timeout)
                 .ConfigureAwait(false);
