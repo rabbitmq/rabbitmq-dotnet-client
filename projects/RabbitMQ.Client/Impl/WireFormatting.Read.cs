@@ -172,7 +172,7 @@ namespace RabbitMQ.Client.Impl
             // equals span.Length >= byteCount + 1
             if (span.Length > byteCount)
             {
-#if NETCOREAPP
+#if NET
                 value = UTF8.GetString(span.Slice(1, byteCount));
 #else
                 unsafe

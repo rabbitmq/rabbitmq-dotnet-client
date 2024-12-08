@@ -76,7 +76,7 @@ namespace RabbitMQ.Client.Framing
         {
             var connectionStartCell = new TaskCompletionSource<ConnectionStartDetails?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-#if NET6_0_OR_GREATER
+#if NET
             using CancellationTokenRegistration ctr = cancellationToken.UnsafeRegister((object? state) =>
             {
                 if (state != null)
@@ -197,7 +197,7 @@ namespace RabbitMQ.Client.Framing
             // Our list is in order of preference, the server one is not.
             foreach (IAuthMechanismFactory factory in _config.AuthMechanisms)
             {
-#if NET6_0_OR_GREATER
+#if NET
                 if (supportedMechanismNames.Contains(factory.Name, StringComparison.OrdinalIgnoreCase))
 #else
                 if (supportedMechanismNames.IndexOf(factory.Name, StringComparison.OrdinalIgnoreCase) >= 0)
