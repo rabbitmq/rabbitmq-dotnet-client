@@ -64,6 +64,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
         void Quiesce();
 
         Task ShutdownAsync(ShutdownEventArgs reason);
-        Task WaitForShutdownAsync();
+        Task WaitForShutdownAsync(CancellationToken cancellationToken);
     }
 }

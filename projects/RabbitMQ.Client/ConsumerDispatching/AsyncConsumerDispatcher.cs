@@ -34,20 +34,20 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                         {
                                             await work.Consumer.HandleBasicDeliverAsync(
                                                 work.ConsumerTag!, work.DeliveryTag, work.Redelivered,
-                                                work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory)
+                                                work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory, work.CancellationToken)
                                                 .ConfigureAwait(false);
                                         }
                                         break;
                                     case WorkType.Cancel:
-                                        await work.Consumer.HandleBasicCancelAsync(work.ConsumerTag!)
+                                        await work.Consumer.HandleBasicCancelAsync(work.ConsumerTag!, work.CancellationToken)
                                             .ConfigureAwait(false);
                                         break;
                                     case WorkType.CancelOk:
-                                        await work.Consumer.HandleBasicCancelOkAsync(work.ConsumerTag!)
+                                        await work.Consumer.HandleBasicCancelOkAsync(work.ConsumerTag!, work.CancellationToken)
                                             .ConfigureAwait(false);
                                         break;
                                     case WorkType.ConsumeOk:
-                                        await work.Consumer.HandleBasicConsumeOkAsync(work.ConsumerTag!)
+                                        await work.Consumer.HandleBasicConsumeOkAsync(work.ConsumerTag!, work.CancellationToken)
                                             .ConfigureAwait(false);
                                         break;
                                     case WorkType.Shutdown:

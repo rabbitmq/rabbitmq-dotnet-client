@@ -262,8 +262,17 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="reason">The <see cref="ShutdownEventArgs"/> instance containing the close data.</param>
         /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
+        /// <returns></returns>
+        Task CloseAsync(ShutdownEventArgs reason, bool abort);
+
+        /// <summary>
+        /// Asynchronously close this session.
+        /// </summary>
+        /// <param name="reason">The <see cref="ShutdownEventArgs"/> instance containing the close data.</param>
+        /// <param name="abort">Whether or not the close is an abort (ignoring certain exceptions).</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <returns></returns>
+        [Obsolete("7.2.0 - cancellationToken is ignored")]
         Task CloseAsync(ShutdownEventArgs reason, bool abort,
             CancellationToken cancellationToken = default);
 

@@ -254,10 +254,9 @@ namespace RabbitMQ.Client.Framing
             {
                 try
                 {
-                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen");
+                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen", cancellationToken: cancellationToken);
                     await CloseAsync(ea, true,
-                        InternalConstants.DefaultConnectionAbortTimeout,
-                        cancellationToken).ConfigureAwait(false);
+                        InternalConstants.DefaultConnectionAbortTimeout).ConfigureAwait(false);
                 }
                 catch { }
 
@@ -299,8 +298,8 @@ namespace RabbitMQ.Client.Framing
         public Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,
             CancellationToken cancellationToken = default)
         {
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText);
-            return CloseAsync(reason, abort, timeout, cancellationToken);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText, cancellationToken: cancellationToken);
+            return CloseAsync(reason, abort, timeout);
         }
 
         ///<summary>Asychronously try to close connection in a graceful way</summary>
@@ -318,9 +317,9 @@ namespace RabbitMQ.Client.Framing
         ///to complete.
         ///</para>
         ///</remarks>
-        internal async Task CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout, CancellationToken cancellationToken)
+        internal async Task CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout)
         {
-            CancellationToken argCancellationToken = cancellationToken;
+            CancellationToken cancellationToken = reason.CancellationToken;
 
             if (abort && timeout < InternalConstants.DefaultConnectionAbortTimeout)
             {
@@ -431,12 +430,11 @@ namespace RabbitMQ.Client.Framing
                     throw;
                 }
             }
-
-            argCancellationToken.ThrowIfCancellationRequested();
         }
 
-        internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason, CancellationToken cancellationToken)
+        internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason)
         {
+            CancellationToken cancellationToken = reason.CancellationToken;
             if (false == SetCloseReason(reason))
             {
                 if (_closed)

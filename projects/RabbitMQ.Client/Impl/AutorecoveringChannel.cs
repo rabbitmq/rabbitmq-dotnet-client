@@ -234,13 +234,18 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public async Task CloseAsync(ShutdownEventArgs args, bool abort,
+        public Task CloseAsync(ShutdownEventArgs args, bool abort,
             CancellationToken cancellationToken)
+        {
+            return CloseAsync(args, abort);
+        }
+
+        public async Task CloseAsync(ShutdownEventArgs args, bool abort)
         {
             ThrowIfDisposed();
             try
             {
-                await _innerChannel.CloseAsync(args, abort, cancellationToken)
+                await _innerChannel.CloseAsync(args, abort)
                     .ConfigureAwait(false);
             }
             finally

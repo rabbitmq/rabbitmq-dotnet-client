@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Framing
                     {
                         var eose = new EndOfStreamException($"Heartbeat missing with heartbeat == {_heartbeat} seconds");
                         LogCloseError(eose.Message, eose);
-                        await HandleMainLoopExceptionAsync(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose))
+                        await HandleMainLoopExceptionAsync(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose, _mainLoopCts.Token))
                             .ConfigureAwait(false);
                         shouldTerminate = true;
                     }

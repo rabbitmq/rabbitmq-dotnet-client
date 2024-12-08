@@ -61,6 +61,10 @@ namespace RabbitMQ.Client.Impl
                     await action(sender, @event)
                         .ConfigureAwait(false);
                 }
+                catch (OperationCanceledException)
+                {
+                    // Ignore cancellation exceptions
+                }
                 catch (Exception exception)
                 {
                     if (_onException != null)

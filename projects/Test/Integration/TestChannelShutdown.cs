@@ -65,6 +65,43 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task TestChannelClose()
+        {
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _channel.ChannelShutdownAsync += (channel, args) =>
+            {
+                tcs.SetResult(true);
+                return Task.CompletedTask;
+            };
+
+            await _channel.CloseAsync();
+            await WaitAsync(tcs, TimeSpan.FromSeconds(5), "channel shutdown");
+        }
+
+        [Fact]
+        public async Task TestChannelCloseWithCancellation()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _channel.ChannelShutdownAsync += async (channel, args) =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(1), args.CancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    tcs.SetResult(true);
+                }
+            };
+
+            await _channel.CloseAsync(cts.Token);
+            await WaitAsync(tcs, TimeSpan.FromSeconds(5), "channel shutdown");
+        }
+
+        [Fact]
         public async Task TestConcurrentDisposeAsync_GH1749()
         {
             bool sawCallbackException = false;

@@ -158,7 +158,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             SocketFrameHandler socketFrameHandler = new(amqpTcpEndpoint, socket, stream);
-            socketFrameHandler._writerTask = Task.Run(socketFrameHandler.WriteLoop, cancellationToken);
+            socketFrameHandler._writerTask = Task.Run(socketFrameHandler.WriteLoopAsync, cancellationToken);
             return socketFrameHandler;
         }
 
@@ -236,13 +236,11 @@ namespace RabbitMQ.Client.Impl
                 frames.Dispose();
                 return default;
             }
-            else
-            {
-                return _channelWriter.WriteAsync(frames, cancellationToken);
-            }
+
+            return _channelWriter.WriteAsync(frames, cancellationToken);
         }
 
-        private async Task WriteLoop()
+        private async Task WriteLoopAsync()
         {
             try
             {

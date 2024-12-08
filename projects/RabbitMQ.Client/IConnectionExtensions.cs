@@ -93,21 +93,36 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// Note that all active channels and sessions will be closed if this method is called.
-        /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection)"/> will not throw
+        /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection, CancellationToken)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
         ///This method waits infinitely for the in-progress close operation to complete.
         /// </remarks>
         public static Task AbortAsync(this IConnection connection)
         {
-            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced", InternalConstants.DefaultConnectionAbortTimeout, true,
-                CancellationToken.None);
+            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced",
+                InternalConstants.DefaultConnectionAbortTimeout, true, default);
         }
 
         /// <summary>
         /// Asynchronously abort this connection and all its channels.
         /// </summary>
         /// <remarks>
-        /// The method behaves in the same way as <see cref="AbortAsync(IConnection)"/>, with the only
+        /// Note that all active channels and sessions will be closed if this method is called.
+        /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection, CancellationToken)"/> will not throw
+        /// <see cref="IOException"/> during closing connection.
+        ///This method waits infinitely for the in-progress close operation to complete.
+        /// </remarks>
+        public static Task AbortAsync(this IConnection connection, CancellationToken cancellationToken = default)
+        {
+            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced",
+                InternalConstants.DefaultConnectionAbortTimeout, true, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously abort this connection and all its channels.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="AbortAsync(IConnection, CancellationToken)"/>, with the only
         /// difference that the connection is closed with the given connection close code and message.
         /// <para>
         /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification)
@@ -118,8 +133,27 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static Task AbortAsync(this IConnection connection, ushort reasonCode, string reasonText)
         {
-            return connection.CloseAsync(reasonCode, reasonText, InternalConstants.DefaultConnectionAbortTimeout, true,
-                CancellationToken.None);
+            return connection.CloseAsync(reasonCode, reasonText,
+                InternalConstants.DefaultConnectionAbortTimeout, true, default);
+        }
+
+        /// <summary>
+        /// Asynchronously abort this connection and all its channels.
+        /// </summary>
+        /// <remarks>
+        /// The method behaves in the same way as <see cref="AbortAsync(IConnection, CancellationToken)"/>, with the only
+        /// difference that the connection is closed with the given connection close code and message.
+        /// <para>
+        /// The close code (See under "Reply Codes" in the AMQP 0-9-1 specification)
+        /// </para>
+        /// <para>
+        /// A message indicating the reason for closing the connection
+        /// </para>
+        /// </remarks>
+        public static Task AbortAsync(this IConnection connection, ushort reasonCode, string reasonText, CancellationToken cancellationToken = default)
+        {
+            return connection.CloseAsync(reasonCode, reasonText,
+                InternalConstants.DefaultConnectionAbortTimeout, true, cancellationToken);
         }
 
         /// <summary>
@@ -127,7 +161,7 @@ namespace RabbitMQ.Client
         /// timeout for all the in-progress close operations to complete.
         /// </summary>
         /// <remarks>
-        /// This method, behaves in a similar way as method <see cref="AbortAsync(IConnection)"/> with the
+        /// This method, behaves in a similar way as method <see cref="AbortAsync(IConnection, CancellationToken)"/> with the
         /// only difference that it explicitly specifies a timeout given
         /// for all the in-progress close operations to complete.
         /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
