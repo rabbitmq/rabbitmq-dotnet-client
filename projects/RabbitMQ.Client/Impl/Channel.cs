@@ -196,7 +196,7 @@ namespace RabbitMQ.Client.Impl
         public Task CloseAsync(ushort replyCode, string replyText, bool abort,
             CancellationToken cancellationToken)
         {
-            var args = new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText);
+            var args = new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText, cancellationToken: cancellationToken);
             return CloseAsync(args, abort, cancellationToken);
         }
 
@@ -725,7 +725,7 @@ namespace RabbitMQ.Client.Impl
         protected async Task<bool> HandleConnectionCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             var method = new ConnectionClose(cmd.MethodSpan);
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId, cancellationToken: cancellationToken);
             try
             {
                 await Session.Connection.ClosedViaPeerAsync(reason, cancellationToken)
@@ -763,7 +763,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (m_connectionStartCell is null)
             {
-                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
+                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start", cancellationToken: cancellationToken);
                 await Session.Connection.CloseAsync(reason, false,
                     InternalConstants.DefaultConnectionCloseTimeout,
                     cancellationToken)
