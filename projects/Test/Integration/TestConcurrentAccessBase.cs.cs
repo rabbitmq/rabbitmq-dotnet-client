@@ -54,7 +54,7 @@ namespace Test.Integration
             {
                 for (int j = 0; j < iterations; j++)
                 {
-                    await Task.Delay(S_Random.Next(1, 10));
+                    await Task.Delay(RandomNext(1, 10));
                     tasks.Add(action());
                 }
             }

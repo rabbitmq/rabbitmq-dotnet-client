@@ -10,6 +10,13 @@ namespace Test
 {
     public class Util : IDisposable
     {
+#if NET
+        private static readonly Random s_random = Random.Shared;
+#else
+        [ThreadStatic]
+        private static Random s_random;
+#endif
+
         private readonly ITestOutputHelper _output;
         private readonly ManagementClient _managementClient;
         private static readonly bool s_isWindows = false;
@@ -40,6 +47,21 @@ namespace Test
             var managementUri = new Uri("http://localhost:15672");
             _managementClient = new ManagementClient(managementUri, managementUsername, managementPassword);
         }
+
+        public static Random S_Random
+        {
+            get
+            {
+#if NET
+                return s_random;
+#else
+                s_random ??= new Random();
+                return s_random;
+#endif
+            }
+        }
+
+        public static string GenerateShortUuid() => S_Random.Next().ToString("x");
 
         public static string Now => DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
 

@@ -103,7 +103,7 @@ namespace Test.Integration
                     {
                         // sleep for a random amount of time to increase the chances
                         // of thread interleaving. MK.
-                        await Task.Delay(S_Random.Next(5, 50));
+                        await Task.Delay(RandomNext(5, 50));
                         string queueName = GenerateQueueName();
                         QueueDeclareOk r = await _channel.QueueDeclareAsync(queue: queueName,
                             durable: false, exclusive: true, autoDelete: false);
@@ -136,7 +136,7 @@ namespace Test.Integration
                     string qname = q;
                     try
                     {
-                        await Task.Delay(S_Random.Next(5, 50));
+                        await Task.Delay(RandomNext(5, 50));
 
                         QueueDeclareOk r = await _channel.QueueDeclarePassiveAsync(qname);
                         Assert.Equal(qname, r.QueueName);
@@ -176,7 +176,7 @@ namespace Test.Integration
                             {
                                 // sleep for a random amount of time to increase the chances
                                 // of thread interleaving. MK.
-                                await Task.Delay(S_Random.Next(5, 50));
+                                await Task.Delay(RandomNext(5, 50));
                                 string q = GenerateQueueName();
                                 await _channel.QueueDeclareAsync(q, false, false, false);
                                 queueNames.Add(q);
@@ -201,7 +201,7 @@ namespace Test.Integration
                         {
                             try
                             {
-                                await Task.Delay(S_Random.Next(5, 50));
+                                await Task.Delay(RandomNext(5, 50));
                                 await _channel.QueueDeleteAsync(queueName);
                             }
                             catch (NotSupportedException e)

@@ -221,7 +221,11 @@ namespace Test.Integration
 
             Assert.True(await tcs.Task);
 
-            var timeoutToxic = new TimeoutToxic();
+            string toxicName = $"rmq-localhost-timeout-{Now}-{GenerateShortUuid()}";
+            var timeoutToxic = new TimeoutToxic
+            {
+                Name = toxicName
+            };
             timeoutToxic.Attributes.Timeout = 0;
             timeoutToxic.Toxicity = 1.0;
 
@@ -271,9 +275,11 @@ namespace Test.Integration
 
             Assert.True(await channelCreatedTcs.Task);
 
-            const string toxicName = "rmq-localhost-reset_peer";
-            var resetPeerToxic = new ResetPeerToxic();
-            resetPeerToxic.Name = toxicName;
+            string toxicName = $"rmq-localhost-reset_peer-{Now}-{GenerateShortUuid()}";
+            var resetPeerToxic = new ResetPeerToxic
+            {
+                Name = toxicName
+            };
             resetPeerToxic.Attributes.Timeout = 500;
             resetPeerToxic.Toxicity = 1.0;
 
@@ -354,9 +360,11 @@ namespace Test.Integration
 
             await channelCreatedTcs.Task;
 
-            const string toxicName = "rmq-localhost-bandwidth";
-            var bandwidthToxic = new BandwidthToxic();
-            bandwidthToxic.Name = toxicName;
+            string toxicName = $"rmq-localhost-bandwidth-{Now}-{GenerateShortUuid()}";
+            var bandwidthToxic = new BandwidthToxic
+            {
+                Name = toxicName
+            };
             bandwidthToxic.Attributes.Rate = 0;
             bandwidthToxic.Toxicity = 1.0;
             bandwidthToxic.Stream = ToxicDirection.DownStream;
