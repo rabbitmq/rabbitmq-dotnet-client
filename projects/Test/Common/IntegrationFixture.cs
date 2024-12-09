@@ -84,16 +84,9 @@ namespace Test
         public static readonly TimeSpan RecoveryInterval = TimeSpan.FromSeconds(2);
         public static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
         public static readonly TimeSpan RequestedConnectionTimeout = TimeSpan.FromSeconds(1);
-        public static readonly Random S_Random;
 
         static IntegrationFixture()
         {
-
-#if NET
-            S_Random = Random.Shared;
-#else
-            S_Random = new Random();
-#endif
             s_isRunningInCI = InitIsRunningInCI();
             s_isVerbose = InitIsVerbose();
 
@@ -450,12 +443,19 @@ namespace Test
 
         protected string GenerateExchangeName()
         {
-            return $"{_testDisplayName}-exchange-{Guid.NewGuid()}";
+            return $"{_testDisplayName}-exchange-{Now}-{GenerateShortUuid()}";
         }
 
-        protected string GenerateQueueName()
+        protected string GenerateQueueName(bool useGuid = false)
         {
-            return $"{_testDisplayName}-queue-{Guid.NewGuid()}";
+            if (useGuid)
+            {
+                return $"{_testDisplayName}-queue-{Now}-{Guid.NewGuid()}";
+            }
+            else
+            {
+                return $"{_testDisplayName}-queue-{Now}-{GenerateShortUuid()}";
+            }
         }
 
         protected Task WithTemporaryNonExclusiveQueueAsync(Func<IChannel, string, Task> action)
@@ -540,7 +540,7 @@ namespace Test
         {
             return new ConnectionFactory
             {
-                ClientProvidedName = $"{_testDisplayName}:{Util.Now}:{GetConnectionIdx()}",
+                ClientProvidedName = $"{_testDisplayName}:{Now}:{GetConnectionIdx()}",
                 ContinuationTimeout = WaitSpan,
                 HandshakeContinuationTimeout = WaitSpan,
                 ConsumerDispatchConcurrency = consumerDispatchConcurrency
@@ -631,9 +631,15 @@ namespace Test
         protected static byte[] GetRandomBody(ushort size = 1024)
         {
             byte[] body = new byte[size];
-            S_Random.NextBytes(body);
+            Util.S_Random.NextBytes(body);
             return body;
         }
+
+        protected static string Now => Util.Now;
+
+        protected static string GenerateShortUuid() => Util.GenerateShortUuid();
+
+        protected static int RandomNext(int min, int max) => Util.S_Random.Next(min, max);
 
         protected static Task WaitForRecoveryAsync(IConnection conn)
         {

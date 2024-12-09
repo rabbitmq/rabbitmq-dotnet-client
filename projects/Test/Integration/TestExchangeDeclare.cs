@@ -62,7 +62,7 @@ namespace Test.Integration
                 {
                     try
                     {
-                        await Task.Delay(S_Random.Next(5, 50));
+                        await Task.Delay(RandomNext(5, 50));
                         string exchangeName = GenerateExchangeName();
                         await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: "fanout", false, false);
                         await _channel.ExchangeBindAsync(destination: ex_destination, source: exchangeName, routingKey: "unused");
@@ -87,7 +87,7 @@ namespace Test.Integration
                 {
                     try
                     {
-                        await Task.Delay(S_Random.Next(5, 50));
+                        await Task.Delay(RandomNext(5, 50));
                         await _channel.ExchangeUnbindAsync(destination: ex_destination, source: exchangeName, routingKey: "unused",
                             noWait: false, arguments: null);
                         await _channel.ExchangeDeleteAsync(exchange: exchangeName, ifUnused: false);

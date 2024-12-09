@@ -125,7 +125,10 @@ namespace Test.Integration
 
             Assert.True(_conn.IsOpen);
             Assert.False(sawUnexpectedShutdown);
-            _output.WriteLine("[INFO] published {0} messages in {1}", publishCount, stopwatch.Elapsed);
+            if (IsVerbose)
+            {
+                _output.WriteLine("[INFO] published {0} messages in {1}", publishCount, stopwatch.Elapsed);
+            }
         }
 
         [Fact]
