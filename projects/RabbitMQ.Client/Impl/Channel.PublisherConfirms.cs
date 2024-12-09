@@ -126,43 +126,30 @@ namespace RabbitMQ.Client.Impl
             _outstandingPublisherConfirmationsRateLimiter = outstandingPublisherConfirmationsRateLimiter;
         }
 
-        private async Task MaybeConfirmSelect(CancellationToken cancellationToken)
+        private async Task MaybeConfirmSelect(RpcParentLease<ChannelOpenAsyncRpcContinuation> parentLease,
+            CancellationToken cancellationToken)
         {
             if (_publisherConfirmationsEnabled)
             {
-                // NOTE: _rpcSemaphore is held
-                bool enqueued = false;
-                var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+                using var lease = AcquireRpcChildLease(parentLease, new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken));
 
-                try
+                if (_nextPublishSeqNo == 0UL)
                 {
-                    if (_nextPublishSeqNo == 0UL)
+                    if (_publisherConfirmationTrackingEnabled)
                     {
-                        if (_publisherConfirmationTrackingEnabled)
-                        {
-                            _confirmsTaskCompletionSources.Clear();
-                        }
-                        _nextPublishSeqNo = 1;
+                        _confirmsTaskCompletionSources.Clear();
                     }
-
-                    enqueued = Enqueue(k);
-
-                    var method = new ConfirmSelect(false);
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    bool result = await k;
-                    Debug.Assert(result);
-
-                    return;
+                    _nextPublishSeqNo = 1;
                 }
-                finally
-                {
-                    if (false == enqueued)
-                    {
-                        k.Dispose();
-                    }
-                }
+
+                var method = new ConfirmSelect(false);
+                await ModelSendAsync(in method, lease.CancellationToken)
+                    .ConfigureAwait(false);
+
+                bool result = await lease.Continuation;
+                Debug.Assert(result);
+
+                return;
             }
         }
 
