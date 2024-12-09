@@ -41,7 +41,12 @@ using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal abstract class AsyncRpcContinuation<T> : IRpcContinuation
+    internal interface IAsyncRpcContinuation : IRpcContinuation
+    {
+        CancellationToken CancellationToken { get; }
+    }
+
+    internal abstract class AsyncRpcContinuation<T> : IAsyncRpcContinuation
     {
         private readonly CancellationTokenSource _continuationTimeoutCancellationTokenSource;
         private readonly CancellationTokenRegistration _continuationTimeoutCancellationTokenRegistration;
