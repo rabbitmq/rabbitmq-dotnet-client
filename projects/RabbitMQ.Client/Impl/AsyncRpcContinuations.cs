@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Impl
              */
             _continuationTimeoutCancellationTokenSource = new CancellationTokenSource(continuationTimeout);
 
-#if NET6_0_OR_GREATER
+#if NET
             _continuationTimeoutCancellationTokenRegistration = _continuationTimeoutCancellationTokenSource.Token.UnsafeRegister((object? state) =>
             {
                 var tcs = (TaskCompletionSource<T>)state!;

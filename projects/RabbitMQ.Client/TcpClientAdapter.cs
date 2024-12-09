@@ -20,7 +20,7 @@ namespace RabbitMQ.Client
             _sock = socket ?? throw new InvalidOperationException("socket must not be null");
         }
 
-#if NET6_0_OR_GREATER
+#if NET
         public virtual Task ConnectAsync(IPAddress ep, int port, CancellationToken cancellationToken = default)
         {
             return _sock.ConnectAsync(ep, port, cancellationToken).AsTask();

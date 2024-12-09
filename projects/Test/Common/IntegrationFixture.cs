@@ -89,7 +89,7 @@ namespace Test
         static IntegrationFixture()
         {
 
-#if NET6_0_OR_GREATER
+#if NET
             S_Random = Random.Shared;
 #else
             S_Random = new Random();

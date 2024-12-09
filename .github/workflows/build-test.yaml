@@ -20,9 +20,9 @@ jobs:
           path: |
             ~/.nuget/packages
             ~/AppData/Local/NuGet/v3-cache
-          key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
+          key: ${{ runner.os }}-v2-nuget-${{ hashFiles('**/*.csproj','projects/Directory.Packages.props') }}
           restore-keys: |
-            ${{ runner.os }}-v1-nuget-
+            ${{ runner.os }}-v2-nuget-
       - name: Build (Debug)
         run: dotnet build ${{ github.workspace }}\Build.csproj
       - name: Verify
@@ -142,9 +142,9 @@ jobs:
           path: |
             ~/.nuget/packages
             ~/.local/share/NuGet/v3-cache
-          key: ${{ runner.os }}-v1-nuget-${{ hashFiles('**/*.csproj') }}
+          key: ${{ runner.os }}-v2-nuget-${{ hashFiles('**/*.csproj','projects/Directory.Packages.props') }}
           restore-keys: |
-            ${{ runner.os }}-v1-nuget-
+            ${{ runner.os }}-v2-nuget-
       - name: Build (Debug)
         run: dotnet build ${{ github.workspace }}/Build.csproj
       - name: Verify

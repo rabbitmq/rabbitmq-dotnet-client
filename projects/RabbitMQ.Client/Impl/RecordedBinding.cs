@@ -106,7 +106,7 @@ namespace RabbitMQ.Client.Impl
 
         public override int GetHashCode()
         {
-#if NET6_0_OR_GREATER
+#if NET
             return HashCode.Combine(_isQueueBinding, _destination, _source, _routingKey, _arguments);
 #else
             unchecked

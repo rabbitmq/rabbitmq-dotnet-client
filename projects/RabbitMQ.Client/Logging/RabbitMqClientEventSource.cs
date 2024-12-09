@@ -40,7 +40,7 @@ namespace RabbitMQ.Client.Logging
     {
         public static readonly RabbitMqClientEventSource Log = new RabbitMqClientEventSource();
 
-#if NET6_0_OR_GREATER
+#if NET
         private readonly PollingCounter _connectionOpenedCounter;
         private readonly PollingCounter _openConnectionCounter;
         private readonly PollingCounter _channelOpenedCounter;
@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Logging
         public RabbitMqClientEventSource()
             : base("rabbitmq-client")
         {
-#if NET6_0_OR_GREATER
+#if NET
             _connectionOpenedCounter = new PollingCounter("total-connections-opened", this, () => s_connectionsOpened)
             {
                 DisplayName = "Total connections opened"
@@ -128,7 +128,7 @@ namespace RabbitMQ.Client.Logging
             }
         }
 
-#if NET6_0_OR_GREATER
+#if NET
         [Event(3, Keywords = Keywords.Log, Level = EventLevel.Error)]
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The properties are preserved with the DynamicallyAccessedMembers attribute.")]
         public void Error(string message, RabbitMqExceptionDetail ex)

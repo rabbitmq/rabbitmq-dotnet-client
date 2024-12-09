@@ -112,6 +112,7 @@ namespace Test.Integration
             var exchangeNames = new ConcurrentBag<string>();
             var tasks = new List<Task>();
             NotSupportedException nse = null;
+            Exception unexpectedException = null;
             for (int i = 0; i < 256; i++)
             {
                 var t = Task.Run(async () =>
@@ -129,13 +130,24 @@ namespace Test.Integration
                             {
                                 nse = e;
                             }
+                            catch (Exception ex)
+                            {
+                                unexpectedException = ex;
+                            }
                         });
                 tasks.Add(t);
             }
 
             await Task.WhenAll(tasks);
 
-            Assert.Null(nse);
+            if (nse is not null)
+            {
+                Assert.Fail($"got unexpected NotSupportedException: {nse}");
+            }
+            if (unexpectedException is not null)
+            {
+                Assert.Fail($"got unexpected Exception: {unexpectedException}");
+            }
             tasks.Clear();
 
             foreach (string exchangeName in exchangeNames)
@@ -154,13 +166,24 @@ namespace Test.Integration
                             {
                                 nse = e;
                             }
+                            catch (Exception ex)
+                            {
+                                unexpectedException = ex;
+                            }
                         });
                 tasks.Add(t);
             }
 
             await Task.WhenAll(tasks);
 
-            Assert.Null(nse);
+            if (nse is not null)
+            {
+                Assert.Fail($"got unexpected NotSupportedException: {nse}");
+            }
+            if (unexpectedException is not null)
+            {
+                Assert.Fail($"got unexpected Exception: {unexpectedException}");
+            }
         }
     }
 }

@@ -68,7 +68,7 @@ namespace RabbitMQ.Client.Impl
 
             Task TryAuthenticating(SslOption opts)
             {
-#if NET6_0_OR_GREATER
+#if NET
                 X509RevocationMode certificateRevocationCheckMode = X509RevocationMode.NoCheck;
                 if (opts.CheckCertificateRevocation)
                 {

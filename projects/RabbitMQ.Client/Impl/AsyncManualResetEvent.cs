@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
             cancellationToken.ThrowIfCancellationRequested();
 
             CancellationTokenRegistration tokenRegistration =
-#if NET6_0_OR_GREATER
+#if NET
                 cancellationToken.UnsafeRegister(
                     static state =>
                     {
@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-#if NET6_0_OR_GREATER
+#if NET
                 await tokenRegistration.DisposeAsync()
                     .ConfigureAwait(false);
 #else

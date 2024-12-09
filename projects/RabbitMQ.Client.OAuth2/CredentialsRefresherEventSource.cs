@@ -46,7 +46,7 @@ namespace RabbitMQ.Client.OAuth2
         public void Stopped(string name) => WriteEvent(2, "Stopped", name);
 
         [Event(3)]
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "Parameters to this method are primitive and are trimmer safe")]
 #endif
         public void RefreshedCredentials(string name) => WriteEvent(3, "RefreshedCredentials", name);
