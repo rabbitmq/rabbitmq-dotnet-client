@@ -203,26 +203,23 @@ namespace RabbitMQ.Client.Impl
         public async Task CloseAsync(ShutdownEventArgs args, bool abort,
             CancellationToken cancellationToken)
         {
-            bool enqueued = false;
-            var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            await _rpcSemaphore.WaitAsync(k.CancellationToken)
+            using var lease = await AcquireRpcLeaseAsync(new ChannelCloseAsyncRpcContinuation(ContinuationTimeout, cancellationToken))
                 .ConfigureAwait(false);
+
             try
             {
-                ChannelShutdownAsync += k.OnConnectionShutdownAsync;
-                enqueued = Enqueue(k);
+                ChannelShutdownAsync += lease.Continuation.OnConnectionShutdownAsync;
                 ConsumerDispatcher.Quiesce();
 
                 if (SetCloseReason(args))
                 {
                     var method = new ChannelClose(
                         args.ReplyCode, args.ReplyText, args.ClassId, args.MethodId);
-                    await ModelSendAsync(in method, k.CancellationToken)
+                    await ModelSendAsync(in method, lease.CancellationToken)
                         .ConfigureAwait(false);
                 }
 
-                bool result = await k;
+                bool result = await lease.Continuation;
                 Debug.Assert(result);
 
                 await ConsumerDispatcher.WaitForShutdownAsync()
@@ -251,12 +248,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-                _rpcSemaphore.Release();
-                ChannelShutdownAsync -= k.OnConnectionShutdownAsync;
+                ChannelShutdownAsync -= lease.Continuation.OnConnectionShutdownAsync;
             }
         }
 
@@ -272,38 +264,22 @@ namespace RabbitMQ.Client.Impl
         internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response,
             CancellationToken cancellationToken)
         {
-            bool enqueued = false;
-            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            await _rpcSemaphore.WaitAsync(k.CancellationToken)
+            using var lease = await AcquireRpcLeaseAsync(new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken))
                 .ConfigureAwait(false);
             try
             {
-                enqueued = Enqueue(k);
-
-                try
-                {
-                    var method = new ConnectionSecureOk(response);
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (AlreadyClosedException)
-                {
-                    // let continuation throw OperationInterruptedException,
-                    // which is a much more suitable exception before connection
-                    // negotiation finishes
-                }
-
-                return await k;
+                var method = new ConnectionSecureOk(response);
+                await ModelSendAsync(in method, lease.CancellationToken)
+                    .ConfigureAwait(false);
             }
-            finally
+            catch (AlreadyClosedException)
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-                _rpcSemaphore.Release();
+                // let continuation throw OperationInterruptedException,
+                // which is a much more suitable exception before connection
+                // negotiation finishes
             }
+
+            return await lease.Continuation;
         }
 
         internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(
@@ -359,6 +335,93 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        private RpcChildLease<TParent, TContinuation> AcquireRpcChildLease<TParent, TContinuation>(TParent parent, TContinuation k)
+            where TParent : struct
+            where TContinuation : IAsyncRpcContinuation
+        {
+            if (IsOpen)
+            {
+                _continuationQueue.Enqueue(k);
+                return new RpcChildLease<TParent, TContinuation>(parent, k, false);
+            }
+            else
+            {
+                k.HandleChannelShutdown(CloseReason);
+                return new RpcChildLease<TParent, TContinuation>(parent, k, true);
+            }
+        }
+
+        private async ValueTask<RpcParentLease<TContinuation>> AcquireRpcLeaseAsync<TContinuation>(TContinuation k)
+            where TContinuation : IAsyncRpcContinuation
+        {
+            await _rpcSemaphore.WaitAsync(k.CancellationToken)
+                .ConfigureAwait(false);
+            if (IsOpen)
+            {
+                _continuationQueue.Enqueue(k);
+                return new RpcParentLease<TContinuation>(_rpcSemaphore, k, false);
+            }
+            else
+            {
+                k.HandleChannelShutdown(CloseReason);
+                return new RpcParentLease<TContinuation>(_rpcSemaphore, k, true);
+            }
+        }
+
+        readonly struct RpcChildLease<TParent, TContinuation> : IDisposable
+            where TParent : struct
+            where TContinuation : IAsyncRpcContinuation
+        {
+
+            private readonly bool _ownsContinuation;
+
+            public RpcChildLease(TParent parent, TContinuation continuation, bool ownsContinuation)
+            {
+                Continuation = continuation;
+                _ownsContinuation = ownsContinuation;
+            }
+
+            public TContinuation Continuation { get; }
+
+            public CancellationToken CancellationToken => Continuation.CancellationToken;
+
+            public void Dispose()
+            {
+                if (_ownsContinuation)
+                {
+                    Continuation.Dispose();
+                }
+            }
+        }
+
+        readonly struct RpcParentLease<TContinuation> : IDisposable
+            where TContinuation : IAsyncRpcContinuation
+        {
+
+            private readonly bool _ownsContinuation;
+            private readonly SemaphoreSlim _semaphore;
+
+            public RpcParentLease(SemaphoreSlim semaphore, TContinuation continuation, bool ownsContinuation)
+            {
+                _semaphore = semaphore;
+                Continuation = continuation;
+                _ownsContinuation = ownsContinuation;
+            }
+
+            public TContinuation Continuation { get; }
+
+            public CancellationToken CancellationToken => Continuation.CancellationToken;
+
+            public void Dispose()
+            {
+                if (_ownsContinuation)
+                {
+                    Continuation.Dispose();
+                }
+                _semaphore.Release();
+            }
+        }
+
         internal async Task<IChannel> OpenAsync(CreateChannelOptions createChannelOptions,
             CancellationToken cancellationToken)
         {
@@ -366,33 +429,17 @@ namespace RabbitMQ.Client.Impl
                 createChannelOptions.PublisherConfirmationTrackingEnabled,
                 createChannelOptions.OutstandingPublisherConfirmationsRateLimiter);
 
-            bool enqueued = false;
-            var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            await _rpcSemaphore.WaitAsync(k.CancellationToken)
+            using var lease = await AcquireRpcLeaseAsync(new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken))
                 .ConfigureAwait(false);
-            try
-            {
-                enqueued = Enqueue(k);
+            var method = new ChannelOpen();
+            await ModelSendAsync(in method, lease.CancellationToken)
+                .ConfigureAwait(false);
 
-                var method = new ChannelOpen();
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
+            bool result = await lease.Continuation;
+            Debug.Assert(result);
 
-                bool result = await k;
-                Debug.Assert(result);
-
-                await MaybeConfirmSelect(cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            finally
-            {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-                _rpcSemaphore.Release();
-            }
+            await MaybeConfirmSelect(lease, cancellationToken)
+                .ConfigureAwait(false);
 
             return this;
         }
@@ -422,11 +469,9 @@ namespace RabbitMQ.Client.Impl
                 if (false == await DispatchCommandAsync(cmd, cancellationToken)
                     .ConfigureAwait(false))
                 {
-                    using (IRpcContinuation c = _continuationQueue.Next())
-                    {
-                        await c.HandleCommandAsync(cmd)
-                            .ConfigureAwait(false);
-                    }
+                    using IRpcContinuation c = _continuationQueue.Next();
+                    await c.HandleCommandAsync(cmd)
+                        .ConfigureAwait(false);
                 }
             }
             finally
