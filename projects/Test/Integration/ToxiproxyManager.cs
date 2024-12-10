@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Globalization;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Test;
 using Toxiproxy.Net;
 using Toxiproxy.Net.Toxics;
 
@@ -9,7 +11,7 @@ namespace Integration
 {
     public class ToxiproxyManager : IDisposable
     {
-        private const string ProxyNamePrefix = "rmq-";
+        private const string ProxyNamePrefix = "rmq";
         private const ushort ProxyPortStart = 55669;
         private static int s_proxyPort = ProxyPortStart;
 
@@ -68,7 +70,8 @@ namespace Integration
 
         public async Task InitializeAsync()
         {
-            _proxy.Name = $"{ProxyNamePrefix}{_testDisplayName}";
+            string proxyName = $"{ProxyNamePrefix}-{_testDisplayName}-{Util.Now}-{Util.GenerateShortUuid()}";
+            _proxy.Name = proxyName;
 
             try
             {
@@ -78,7 +81,29 @@ namespace Integration
             {
             }
 
-            await _proxyClient.AddAsync(_proxy);
+            ushort retryCount = 5;
+            do
+            {
+                try
+                {
+                    await _proxyClient.AddAsync(_proxy);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    if (retryCount == 0)
+                    {
+                        throw;
+                    }
+                    else
+                    {
+                        string now = DateTime.Now.ToString("o", CultureInfo.InvariantCulture);
+                        Console.Error.WriteLine("{0} [ERROR] error initializing proxy '{1}': {2}", now, proxyName, ex);
+                    }
+                }
+                --retryCount;
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            } while (retryCount >= 0);
         }
 
         public Task<T> AddToxicAsync<T>(T toxic) where T : ToxicBase

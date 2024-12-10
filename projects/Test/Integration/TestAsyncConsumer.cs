@@ -703,7 +703,7 @@ namespace Test.Integration
 
         private async Task ValidateConsumerDispatchConcurrency()
         {
-            ushort expectedConsumerDispatchConcurrency = (ushort)S_Random.Next(3, 10);
+            ushort expectedConsumerDispatchConcurrency = (ushort)RandomNext(3, 10);
             AutorecoveringChannel autorecoveringChannel = (AutorecoveringChannel)_channel;
             Assert.Equal(ConsumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);
             Assert.Equal(_consumerDispatchConcurrency, autorecoveringChannel.ConsumerDispatcher.Concurrency);

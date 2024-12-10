@@ -114,7 +114,7 @@ namespace Test.Integration
             await using AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync();
             await using (IChannel ch = await c.CreateChannelAsync())
             {
-                string q = (await ch.QueueDeclareAsync("dotnet-client.recovery.consumer_work_pool1",
+                string q = (await ch.QueueDeclareAsync(GenerateQueueName(),
                     false, false, false)).QueueName;
                 var cons = new AsyncEventingBasicConsumer(ch);
                 await ch.BasicConsumeAsync(q, true, cons);
@@ -143,7 +143,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestConsumerRecoveryOnClientNamedQueueWithOneRecovery()
         {
-            const string q0 = "dotnet-client.recovery.queue1";
+            string q0 = GenerateQueueName();
             // connection #1
             await using AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync();
             await using (IChannel ch = await c.CreateChannelAsync())
@@ -364,8 +364,7 @@ namespace Test.Integration
         [Fact]
         public async Task TestRecoveryWithTopologyDisabled()
         {
-            string queueName = GenerateQueueName() + "-dotnet-client.test.recovery.q2";
-
+            string queueName = GenerateQueueName();
             await using AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryDisabledAsync();
             await using (IChannel ch = await conn.CreateChannelAsync())
             {
