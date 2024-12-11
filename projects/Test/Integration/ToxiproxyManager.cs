@@ -9,7 +9,7 @@ using Toxiproxy.Net.Toxics;
 
 namespace Integration
 {
-    public class ToxiproxyManager : IDisposable
+    public class ToxiproxyManager : IAsyncDisposable
     {
         private const string ProxyNamePrefix = "rmq";
         private const ushort ProxyPortStart = 55669;
@@ -21,7 +21,7 @@ namespace Integration
         private readonly Client _proxyClient;
         private readonly Proxy _proxy;
 
-        private bool _disposedValue;
+        private bool _disposedValue = false;
 
         public ToxiproxyManager(string testDisplayName, bool isRunningInCI, bool isWindows)
         {
@@ -35,11 +35,11 @@ namespace Integration
             _proxyPort = Interlocked.Increment(ref s_proxyPort);
 
             /*
-            string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
-            Console.WriteLine("{0} [DEBUG] {1} _proxyPort {2}", now, testDisplayName, _proxyPort);
-            */
-
-            _proxyConnection = new Connection(resetAllToxicsAndProxiesOnClose: true);
+             * Note:
+             * Do NOT set resetAllToxicsAndProxiesOnClose to true, because it will
+             * clear proxies being used by parallel TFM test runs
+             */
+            _proxyConnection = new Connection(resetAllToxicsAndProxiesOnClose: false);
             _proxyClient = _proxyConnection.Client();
 
             // to start, assume everything is on localhost
@@ -70,16 +70,8 @@ namespace Integration
 
         public async Task InitializeAsync()
         {
-            string proxyName = $"{ProxyNamePrefix}-{_testDisplayName}-{Util.Now}-{Util.GenerateShortUuid()}";
+            string proxyName = $"{ProxyNamePrefix}-{_testDisplayName}-{Util.Now}-{Guid.NewGuid()}";
             _proxy.Name = proxyName;
-
-            try
-            {
-                await _proxyClient.DeleteAsync(_proxy);
-            }
-            catch
-            {
-            }
 
             ushort retryCount = 5;
             do
@@ -128,30 +120,24 @@ namespace Integration
             return _proxyClient.UpdateAsync(_proxy);
         }
 
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
+        public async ValueTask DisposeAsync()
         {
             if (!_disposedValue)
             {
-                if (disposing)
+                try
                 {
-                    try
-                    {
-                        _proxyClient.DeleteAsync(_proxy).GetAwaiter().GetResult();
-                        _proxyConnection.Dispose();
-                    }
-                    catch
-                    {
-                    }
+                    await _proxyClient.DeleteAsync(_proxy);
+                    _proxyConnection.Dispose();
                 }
-
-                _disposedValue = true;
+                catch (Exception ex)
+                {
+                    string now = DateTime.Now.ToString("o", CultureInfo.InvariantCulture);
+                    Console.Error.WriteLine("{0} [ERROR] error disposing proxy '{1}': {2}", now, _proxy.Name, ex);
+                }
+                finally
+                {
+                    _disposedValue = true;
+                }
             }
         }
     }
