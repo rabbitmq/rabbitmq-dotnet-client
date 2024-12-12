@@ -443,19 +443,12 @@ namespace Test
 
         protected string GenerateExchangeName()
         {
-            return $"{_testDisplayName}-exchange-{Now}-{GenerateShortUuid()}";
+            return $"{_testDisplayName}-exchange-{Now}-{Guid.NewGuid()}";
         }
 
-        protected string GenerateQueueName(bool useGuid = false)
+        protected string GenerateQueueName()
         {
-            if (useGuid)
-            {
-                return $"{_testDisplayName}-queue-{Now}-{Guid.NewGuid()}";
-            }
-            else
-            {
-                return $"{_testDisplayName}-queue-{Now}-{GenerateShortUuid()}";
-            }
+            return $"{_testDisplayName}-queue-{Now}-{Guid.NewGuid()}";
         }
 
         protected Task WithTemporaryNonExclusiveQueueAsync(Func<IChannel, string, Task> action)

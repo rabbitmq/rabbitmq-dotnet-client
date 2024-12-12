@@ -177,11 +177,11 @@ namespace Test.Integration
             using var cts = new CancellationTokenSource(WaitSpan);
             using CancellationTokenRegistration ctr = cts.Token.Register(() => tcs.SetCanceled());
 
-            const ushort maxMsgSize = 8192;
+            const ushort maxMsgSize = 768;
 
             int count = 0;
             byte[] msg0 = _encoding.GetBytes("hi");
-            byte[] msg1 = GetRandomBody(maxMsgSize * 2);
+            byte[] msg1 = GetRandomBody(maxMsgSize * 20);
 
             ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
