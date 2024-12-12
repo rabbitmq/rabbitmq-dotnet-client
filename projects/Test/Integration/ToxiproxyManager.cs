@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Test;
 using Toxiproxy.Net;
@@ -11,12 +10,10 @@ namespace Integration
 {
     public class ToxiproxyManager : IAsyncDisposable
     {
+        public const ushort ProxyPort = 55672;
         private const string ProxyNamePrefix = "rmq";
-        private const ushort ProxyPortStart = 55669;
-        private static int s_proxyPort = ProxyPortStart;
 
         private readonly string _testDisplayName;
-        private readonly int _proxyPort;
         private readonly Connection _proxyConnection;
         private readonly Client _proxyClient;
         private readonly Proxy _proxy;
@@ -32,8 +29,6 @@ namespace Integration
 
             _testDisplayName = testDisplayName;
 
-            _proxyPort = Interlocked.Increment(ref s_proxyPort);
-
             /*
              * Note:
              * Do NOT set resetAllToxicsAndProxiesOnClose to true, because it will
@@ -46,13 +41,13 @@ namespace Integration
             _proxy = new Proxy
             {
                 Enabled = true,
-                Listen = $"{IPAddress.Loopback}:{_proxyPort}",
+                Listen = $"{IPAddress.Loopback}:{ProxyPort}",
                 Upstream = $"{IPAddress.Loopback}:5672",
             };
 
             if (isRunningInCI)
             {
-                _proxy.Listen = $"0.0.0.0:{_proxyPort}";
+                _proxy.Listen = $"0.0.0.0:{ProxyPort}";
 
                 // GitHub Actions
                 if (false == isWindows)
@@ -66,11 +61,14 @@ namespace Integration
             }
         }
 
-        public int ProxyPort => _proxyPort;
-
         public async Task InitializeAsync()
         {
-            string proxyName = $"{ProxyNamePrefix}-{_testDisplayName}-{Util.Now}-{Guid.NewGuid()}";
+            /*
+             * Note: since all Toxiproxy tests are in the same test class, they will run sequentially,
+             * so we can use 55672 for the listen port. In addition, TestTfmsInParallel is set to false
+             * so we know only one set of integration tests are running at a time
+             */
+            string proxyName = $"{ProxyNamePrefix}-{_testDisplayName}-{Util.Now}";
             _proxy.Name = proxyName;
 
             ushort retryCount = 5;
