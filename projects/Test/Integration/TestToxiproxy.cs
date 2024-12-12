@@ -62,7 +62,7 @@ namespace Test.Integration
             Assert.Null(_channel);
 
             _toxiproxyManager = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
-            _proxyPort = _toxiproxyManager.ProxyPort;
+            _proxyPort = ToxiproxyManager.ProxyPort;
             return _toxiproxyManager.InitializeAsync();
         }
 
