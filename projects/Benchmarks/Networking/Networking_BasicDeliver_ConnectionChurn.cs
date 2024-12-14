@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using RabbitMQ.Client;
@@ -11,20 +10,7 @@ namespace Benchmarks.Networking
     {
         private const int messageCount = 10000;
 
-        private IDisposable _container;
         private static byte[] _body = Encoding.UTF8.GetBytes("hello world");
-
-        [GlobalSetup]
-        public void GlobalSetup()
-        {
-            _container = RabbitMQBroker.Start();
-        }
-
-        [GlobalCleanup]
-        public void GlobalCleanup()
-        {
-            _container.Dispose();
-        }
 
         [Benchmark(Baseline = true)]
         public async Task Publish_Hello_World()
