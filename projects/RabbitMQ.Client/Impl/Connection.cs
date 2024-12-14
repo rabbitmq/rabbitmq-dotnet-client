@@ -252,7 +252,7 @@ namespace RabbitMQ.Client.Framing
             {
                 try
                 {
-                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen");
+                    var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen", cancellationToken: cancellationToken);
                     await CloseAsync(ea, true,
                         InternalConstants.DefaultConnectionAbortTimeout,
                         cancellationToken).ConfigureAwait(false);
@@ -297,7 +297,7 @@ namespace RabbitMQ.Client.Framing
         public Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,
             CancellationToken cancellationToken = default)
         {
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText, cancellationToken: cancellationToken);
             return CloseAsync(reason, abort, timeout, cancellationToken);
         }
 
