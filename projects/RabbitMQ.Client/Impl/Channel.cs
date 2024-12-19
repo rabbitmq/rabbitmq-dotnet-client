@@ -61,6 +61,10 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
+        private bool _disposedValue;
+        private bool _isDisposing;
+        private readonly object _isDisposingLock = new();
+
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
@@ -514,47 +518,106 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
-            Dispose(true);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+            if (_disposedValue)
             {
-                if (IsOpen)
-                {
-                    this.AbortAsync().GetAwaiter().GetResult();
-                }
-
-                ConsumerDispatcher.Dispose();
-                _rpcSemaphore.Dispose();
-                _confirmSemaphore.Dispose();
-                _outstandingPublisherConfirmationsRateLimiter?.Dispose();
+                return;
             }
+
+            Dispose(true);
         }
 
         public async ValueTask DisposeAsync()
         {
-            await DisposeAsyncCore()
+            if (_disposedValue)
+            {
+                return;
+            }
+
+            await DisposeAsyncCore(true)
                 .ConfigureAwait(false);
 
             Dispose(false);
         }
 
-        protected virtual async ValueTask DisposeAsyncCore()
+        protected virtual void Dispose(bool disposing)
         {
-            if (IsOpen)
+            if (_disposedValue)
             {
-                await this.AbortAsync().ConfigureAwait(false);
+                return;
             }
 
-            ConsumerDispatcher.Dispose();
-            _rpcSemaphore.Dispose();
-            _confirmSemaphore.Dispose();
-            if (_outstandingPublisherConfirmationsRateLimiter is not null)
+            if (disposing)
             {
-                await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
-                    .ConfigureAwait(false);
+                lock (_isDisposingLock)
+                {
+                    if (_isDisposing)
+                    {
+                        return;
+                    }
+                    _isDisposing = true;
+                }
+
+                try
+                {
+                    if (IsOpen)
+                    {
+                        this.AbortAsync().GetAwaiter().GetResult();
+                    }
+
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+                    _outstandingPublisherConfirmationsRateLimiter?.Dispose();
+                }
+                finally
+                {
+                    _disposedValue = true;
+                    _isDisposing = false;
+                }
+            }
+        }
+
+        protected virtual async ValueTask DisposeAsyncCore(bool disposing)
+        {
+            if (_disposedValue)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                lock (_isDisposingLock)
+                {
+                    if (_isDisposing)
+                    {
+                        return;
+                    }
+                    _isDisposing = true;
+                }
+
+                try
+                {
+                    if (IsOpen)
+                    {
+                        await this.AbortAsync()
+                            .ConfigureAwait(false);
+                    }
+
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+
+                    if (_outstandingPublisherConfirmationsRateLimiter is not null)
+                    {
+                        await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
+                            .ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    _disposedValue = true;
+                    _isDisposing = false;
+                }
             }
         }
 
