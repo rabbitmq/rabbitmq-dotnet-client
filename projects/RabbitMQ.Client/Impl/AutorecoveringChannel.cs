@@ -48,6 +48,7 @@ namespace RabbitMQ.Client.Impl
 
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
+
         private bool _disposed;
         private int _isDisposing;
 
@@ -254,7 +255,15 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
             => InnerChannel.ToString();
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         public async ValueTask DisposeAsync()
         {

@@ -30,11 +30,12 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace CreateChannel
 {
@@ -44,49 +45,89 @@ namespace CreateChannel
         private const int ChannelsToOpen = 50;
 
         private static int channelsOpened;
-        private static AutoResetEvent doneEvent;
 
         public static async Task Main()
         {
-            doneEvent = new AutoResetEvent(false);
+            var doneTcs = new TaskCompletionSource<bool>();
 
             var connectionFactory = new ConnectionFactory { };
             await using IConnection connection = await connectionFactory.CreateConnectionAsync();
 
             var watch = Stopwatch.StartNew();
-            _ = Task.Run(async () =>
+            var workTask = Task.Run(async () =>
             {
-                var channels = new IChannel[ChannelsToOpen];
-                for (int i = 0; i < Repeats; i++)
+                try
                 {
-                    for (int j = 0; j < channels.Length; j++)
+                    var channelOpenTasks = new List<Task<IChannel>>();
+                    var channelDisposeTasks = new List<ValueTask>();
+                    var channels = new List<IChannel>();
+                    for (int i = 0; i < Repeats; i++)
                     {
-                        channels[j] = await connection.CreateChannelAsync();
-                        channelsOpened++;
+                        for (int j = 0; j < ChannelsToOpen; j++)
+                        {
+                            channelOpenTasks.Add(connection.CreateChannelAsync());
+                        }
+
+                        for (int j = 0; j < channelOpenTasks.Count; j++)
+                        {
+                            IChannel ch = await channelOpenTasks[j];
+                            if (j % 8 == 0)
+                            {
+                                try
+                                {
+                                    await ch.QueueDeclarePassiveAsync(Guid.NewGuid().ToString());
+                                }
+                                catch (OperationInterruptedException)
+                                {
+                                    await ch.DisposeAsync();
+                                }
+                                catch (Exception ex)
+                                {
+                                    _ = Console.Error.WriteLineAsync($"{DateTime.Now:s} [ERROR] {ex}");
+                                }
+                            }
+                            else
+                            {
+                                channels.Add(ch);
+                                channelsOpened++;
+                            }
+                        }
+                        channelOpenTasks.Clear();
+
+                        for (int j = 0; j < channels.Count; j++)
+                        {
+                            channelDisposeTasks.Add(channels[j].DisposeAsync());
+                        }
+
+                        for (int j = 0; j < channels.Count; j++)
+                        {
+                            await channelDisposeTasks[j];
+                        }
+                        channelDisposeTasks.Clear();
                     }
 
-                    for (int j = 0; j < channels.Length; j++)
-                    {
-                        await channels[j].DisposeAsync();
-                    }
+                    doneTcs.SetResult(true);
                 }
-
-                doneEvent.Set();
+                catch (Exception ex)
+                {
+                    doneTcs.SetException(ex);
+                }
             });
 
             Console.WriteLine($"{Repeats} times opening {ChannelsToOpen} channels on a connection. => Total channel open/close: {Repeats * ChannelsToOpen}");
             Console.WriteLine();
             Console.WriteLine("Opened");
-            while (!doneEvent.WaitOne(500))
+            while (false == doneTcs.Task.IsCompleted)
             {
                 Console.WriteLine($"{channelsOpened,5}");
+                await Task.Delay(150);
             }
             watch.Stop();
             Console.WriteLine($"{channelsOpened,5}");
             Console.WriteLine();
-            Console.WriteLine($"Took {watch.Elapsed.TotalMilliseconds} ms");
+            Console.WriteLine($"Took {watch.Elapsed}");
 
-            Console.ReadLine();
+            await workTask;
         }
     }
 }

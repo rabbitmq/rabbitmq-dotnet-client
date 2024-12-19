@@ -202,6 +202,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected abstract Task ProcessChannelAsync();
 
+        protected enum WorkType : byte
+        {
+            Shutdown,
+            Cancel,
+            CancelOk,
+            Deliver,
+            ConsumeOk
+        }
+
         protected readonly struct WorkStruct : IDisposable
         {
             public readonly IAsyncBasicConsumer Consumer;
@@ -276,42 +285,35 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public void Dispose() => Body.Dispose();
         }
 
-        protected enum WorkType : byte
-        {
-            Shutdown,
-            Cancel,
-            CancelOk,
-            Deliver,
-            ConsumeOk
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                try
-                {
-                    if (disposing)
-                    {
-                        Quiesce();
-                    }
-                }
-                catch
-                {
-                    // CHOMP
-                }
-                finally
-                {
-                    _disposed = true;
-                }
-            }
-        }
-
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            try
+            {
+                if (disposing)
+                {
+                    Quiesce();
+                }
+            }
+            catch
+            {
+                // CHOMP
+            }
+            finally
+            {
+                _disposed = true;
+            }
         }
     }
 }

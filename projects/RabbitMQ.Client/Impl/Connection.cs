@@ -436,13 +436,17 @@ namespace RabbitMQ.Client.Framing
         {
             _mainLoopCts.Cancel();
             _closed = true;
+
             MaybeStopHeartbeatTimers();
 
             await _frameHandler.CloseAsync(cancellationToken)
                 .ConfigureAwait(false);
+
             _channel0.SetCloseReason(CloseReason!);
+
             await _channel0.FinishCloseAsync(cancellationToken)
                 .ConfigureAwait(false);
+
             RabbitMqClientEventSource.Log.ConnectionClosed();
         }
 
@@ -487,10 +491,23 @@ namespace RabbitMQ.Client.Framing
             return _frameHandler.WriteAsync(frames, cancellationToken);
         }
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         public async ValueTask DisposeAsync()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (IsDisposing)
             {
                 return;

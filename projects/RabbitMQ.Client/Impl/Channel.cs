@@ -57,7 +57,6 @@ namespace RabbitMQ.Client.Impl
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
 
         private ShutdownEventArgs? _closeReason;
-        public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
         private TaskCompletionSource<bool>? _serverOriginatedChannelCloseTcs;
 
@@ -86,6 +85,8 @@ namespace RabbitMQ.Client.Impl
         }
 
         internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
+        public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
         public TimeSpan ContinuationTimeout { get; set; }
 
@@ -185,17 +186,6 @@ namespace RabbitMQ.Client.Impl
             {
                 m_connectionStartException = ex;
             }
-        }
-
-        protected void TakeOver(Channel other)
-        {
-            _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
-            _basicNacksAsyncWrapper.Takeover(other._basicNacksAsyncWrapper);
-            _basicReturnAsyncWrapper.Takeover(other._basicReturnAsyncWrapper);
-            _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
-            _flowControlAsyncWrapper.Takeover(other._flowControlAsyncWrapper);
-            _channelShutdownAsyncWrapper.Takeover(other._channelShutdownAsyncWrapper);
-            _recoveryAsyncWrapper.Takeover(other._recoveryAsyncWrapper);
         }
 
         public Task CloseAsync(ushort replyCode, string replyText, bool abort,
@@ -350,20 +340,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected bool Enqueue(IRpcContinuation k)
-        {
-            if (IsOpen)
-            {
-                _continuationQueue.Enqueue(k);
-                return true;
-            }
-            else
-            {
-                k.HandleChannelShutdown(CloseReason);
-                return false;
-            }
-        }
-
         internal async Task<IChannel> OpenAsync(CreateChannelOptions createChannelOptions,
             CancellationToken cancellationToken)
         {
@@ -414,30 +390,15 @@ namespace RabbitMQ.Client.Impl
             m_connectionStartCell?.TrySetResult(null);
         }
 
-        private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        protected void TakeOver(Channel other)
         {
-            /*
-             * If DispatchCommandAsync returns `true`, it means that the incoming command is server-originated, and has
-             * already been handled.
-             *
-             * Else, the incoming command is the return of an RPC call, and must be handled.
-             */
-            try
-            {
-                if (false == await DispatchCommandAsync(cmd, cancellationToken)
-                    .ConfigureAwait(false))
-                {
-                    using (IRpcContinuation c = _continuationQueue.Next())
-                    {
-                        await c.HandleCommandAsync(cmd)
-                            .ConfigureAwait(false);
-                    }
-                }
-            }
-            finally
-            {
-                cmd.ReturnBuffers();
-            }
+            _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
+            _basicNacksAsyncWrapper.Takeover(other._basicNacksAsyncWrapper);
+            _basicReturnAsyncWrapper.Takeover(other._basicReturnAsyncWrapper);
+            _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
+            _flowControlAsyncWrapper.Takeover(other._flowControlAsyncWrapper);
+            _channelShutdownAsyncWrapper.Takeover(other._channelShutdownAsyncWrapper);
+            _recoveryAsyncWrapper.Takeover(other._recoveryAsyncWrapper);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -457,6 +418,20 @@ namespace RabbitMQ.Client.Impl
         internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
         {
             return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
+        }
+
+        private bool Enqueue(IRpcContinuation k)
+        {
+            if (IsOpen)
+            {
+                _continuationQueue.Enqueue(k);
+                return true;
+            }
+            else
+            {
+                k.HandleChannelShutdown(CloseReason);
+                return false;
+            }
         }
 
         ///<summary>Broadcasts notification of the final shutdown of the channel.</summary>
@@ -527,46 +502,26 @@ namespace RabbitMQ.Client.Impl
             Dispose(true);
         }
 
-        protected virtual void Dispose(bool disposing)
+        public async ValueTask DisposeAsync()
         {
-            if (IsDisposing)
+            if (_disposed)
             {
                 return;
             }
 
-            if (disposing)
-            {
-                try
-                {
-                    if (IsOpen)
-                    {
-                        this.AbortAsync().GetAwaiter().GetResult();
-                    }
-
-                    _serverOriginatedChannelCloseTcs?.Task.Wait(TimeSpan.FromSeconds(5));
-
-                    ConsumerDispatcher.Dispose();
-                    _rpcSemaphore.Dispose();
-                    _confirmSemaphore.Dispose();
-                    _outstandingPublisherConfirmationsRateLimiter?.Dispose();
-                }
-                finally
-                {
-                    _disposed = true;
-                }
-            }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await DisposeAsyncCore()
+            await DisposeAsyncCore(true)
                 .ConfigureAwait(false);
 
             Dispose(false);
         }
 
-        protected virtual async ValueTask DisposeAsyncCore()
+        protected virtual void Dispose(bool disposing)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (IsDisposing)
             {
                 return;
@@ -574,30 +529,60 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                if (IsOpen)
-                {
-                    await this.AbortAsync().ConfigureAwait(false);
-                }
+                MaybeAbort();
 
-                if (_serverOriginatedChannelCloseTcs is not null)
-                {
-                    await _serverOriginatedChannelCloseTcs.Task.WaitAsync(TimeSpan.FromSeconds(5))
-                        .ConfigureAwait(false);
-                }
+                MaybeDisposeOutstandingPublisherConfirmationsRateLimiter();
 
-                ConsumerDispatcher.Dispose();
-                _rpcSemaphore.Dispose();
-                _confirmSemaphore.Dispose();
-
-                if (_outstandingPublisherConfirmationsRateLimiter is not null)
-                {
-                    await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
-                        .ConfigureAwait(false);
-                }
+                MaybeWaitForServerOriginatedClose();
             }
             finally
             {
+                try
+                {
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+                }
+                catch
+                {
+                }
                 _disposed = true;
+            }
+        }
+
+        protected virtual async ValueTask DisposeAsyncCore(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (IsDisposing)
+            {
+                try
+                {
+                    await MaybeAbortAsync()
+                        .ConfigureAwait(false);
+
+                    await MaybeDisposeOutstandingPublisherConfirmationsRateLimiterAsync()
+                        .ConfigureAwait(false);
+
+                    await MaybeWaitForServerOriginatedCloseAsync()
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    try
+                    {
+                        ConsumerDispatcher.Dispose();
+                        _rpcSemaphore.Dispose();
+                        _confirmSemaphore.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                    _disposed = true;
+                }
             }
         }
 
@@ -607,92 +592,12 @@ namespace RabbitMQ.Client.Impl
             return ModelSendAsync(in method, cancellationToken).AsTask();
         }
 
-        protected async Task<bool> HandleBasicAck(IncomingCommand cmd,
-            CancellationToken cancellationToken = default)
-        {
-            var ack = new BasicAck(cmd.MethodSpan);
-            if (!_basicAcksAsyncWrapper.IsEmpty)
-            {
-                var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple, cancellationToken);
-                await _basicAcksAsyncWrapper.InvokeAsync(this, args)
-                    .ConfigureAwait(false);
-            }
-
-            HandleAck(ack._deliveryTag, ack._multiple);
-
-            return true;
-        }
-
-        protected async Task<bool> HandleBasicNack(IncomingCommand cmd,
-            CancellationToken cancellationToken = default)
-        {
-            var nack = new BasicNack(cmd.MethodSpan);
-            if (!_basicNacksAsyncWrapper.IsEmpty)
-            {
-                var args = new BasicNackEventArgs(
-                    nack._deliveryTag, nack._multiple, nack._requeue, cancellationToken);
-                await _basicNacksAsyncWrapper.InvokeAsync(this, args)
-                    .ConfigureAwait(false);
-            }
-
-            HandleNack(nack._deliveryTag, nack._multiple, false);
-
-            return true;
-        }
-
-        protected async Task<bool> HandleBasicReturn(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            var basicReturn = new BasicReturn(cmd.MethodSpan);
-
-            var e = new BasicReturnEventArgs(basicReturn._replyCode, basicReturn._replyText,
-                basicReturn._exchange, basicReturn._routingKey,
-                new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory, cancellationToken);
-
-            if (!_basicReturnAsyncWrapper.IsEmpty)
-            {
-                await _basicReturnAsyncWrapper.InvokeAsync(this, e)
-                    .ConfigureAwait(false);
-            }
-
-            HandleReturn(e);
-
-            return true;
-        }
-
-        protected async Task<bool> HandleBasicCancelAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            string consumerTag = new BasicCancel(cmd.MethodSpan)._consumerTag;
-            await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
-                .ConfigureAwait(false);
-            return true;
-        }
-
-        protected async Task<bool> HandleBasicDeliverAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            var method = new BasicDeliver(cmd.MethodSpan);
-            var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
-            await ConsumerDispatcher.HandleBasicDeliverAsync(
-                    method._consumerTag,
-                    AdjustDeliveryTag(method._deliveryTag),
-                    method._redelivered,
-                    method._exchange,
-                    method._routingKey,
-                    header,
-                    /*
-                     * Takeover Body so it doesn't get returned as it is necessary
-                     * for handling the Basic.Deliver method by client code.
-                     */
-                    cmd.TakeoverBody(),
-                    cancellationToken).ConfigureAwait(false);
-            return true;
-        }
-
         protected virtual ulong AdjustDeliveryTag(ulong deliveryTag)
         {
             return deliveryTag;
         }
 
-        protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        private async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             TaskCompletionSource<bool>? serverOriginatedChannelCloseTcs = _serverOriginatedChannelCloseTcs;
             if (serverOriginatedChannelCloseTcs is null)
@@ -731,136 +636,6 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected async Task<bool> HandleChannelCloseOkAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            /*
-             * Note:
-             * This call _must_ come before completing the async continuation
-             */
-            await FinishCloseAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out ChannelCloseAsyncRpcContinuation? k))
-            {
-                _continuationQueue.Next();
-                await k.HandleCommandAsync(cmd)
-                    .ConfigureAwait(false);
-            }
-
-            return true;
-        }
-
-        protected async Task<bool> HandleChannelFlowAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            bool active = new ChannelFlow(cmd.MethodSpan)._active;
-            if (active)
-            {
-                _flowControlBlock.Set();
-            }
-            else
-            {
-                _flowControlBlock.Reset();
-            }
-
-            var method = new ChannelFlowOk(active);
-            await ModelSendAsync(in method, cancellationToken).
-                ConfigureAwait(false);
-
-            if (!_flowControlAsyncWrapper.IsEmpty)
-            {
-                await _flowControlAsyncWrapper.InvokeAsync(this, new FlowControlEventArgs(active, cancellationToken))
-                    .ConfigureAwait(false);
-            }
-
-            return true;
-        }
-
-        protected async Task<bool> HandleConnectionBlockedAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            string reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
-            await Session.Connection.HandleConnectionBlockedAsync(reason, cancellationToken)
-                .ConfigureAwait(false);
-            return true;
-        }
-
-        protected async Task<bool> HandleConnectionCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            var method = new ConnectionClose(cmd.MethodSpan);
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
-            try
-            {
-                await Session.Connection.ClosedViaPeerAsync(reason, cancellationToken)
-                    .ConfigureAwait(false);
-
-                var replyMethod = new ConnectionCloseOk();
-                await ModelSendAsync(in replyMethod, cancellationToken)
-                    .ConfigureAwait(false);
-
-                SetCloseReason(Session.Connection.CloseReason!);
-            }
-            catch (IOException)
-            {
-                // Ignored. We're only trying to be polite by sending
-                // the close-ok, after all.
-            }
-            catch (AlreadyClosedException)
-            {
-                // Ignored. We're only trying to be polite by sending
-                // the close-ok, after all.
-            }
-
-            return true;
-        }
-
-        protected async Task<bool> HandleConnectionSecureAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
-            await k.HandleCommandAsync(new IncomingCommand())
-                .ConfigureAwait(false); // release the continuation.
-            return true;
-        }
-
-        protected async Task<bool> HandleConnectionStartAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            if (m_connectionStartCell is null)
-            {
-                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
-                await Session.Connection.CloseAsync(reason, false,
-                    InternalConstants.DefaultConnectionCloseTimeout,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                var method = new ConnectionStart(cmd.MethodSpan);
-                var details = new ConnectionStartDetails(method._locales, method._mechanisms,
-                    method._serverProperties, method._versionMajor, method._versionMinor);
-                m_connectionStartCell.SetResult(details);
-                m_connectionStartCell = null;
-            }
-
-            return true;
-        }
-
-        protected async Task<bool> HandleConnectionTuneAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            // Note: `using` here to ensure instance is disposed
-            using var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
-
-            // Note: releases the continuation and returns the buffers
-            await k.HandleCommandAsync(cmd)
-                .ConfigureAwait(false);
-
-            return true;
-        }
-
-        protected async Task<bool> HandleConnectionUnblockedAsync(CancellationToken cancellationToken)
-        {
-            await Session.Connection.HandleConnectionUnblockedAsync(cancellationToken)
-                .ConfigureAwait(false);
-            return true;
-        }
-
         public virtual ValueTask BasicAckAsync(ulong deliveryTag, bool multiple,
             CancellationToken cancellationToken)
         {
@@ -886,8 +661,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            // NOTE:
-            // Maybe don't dispose these instances because the CancellationTokens must remain
+            // NOTE: DON'T dispose these instances because the CancellationTokens must remain
             // valid for processing the response.
             var k = new BasicCancelAsyncRpcContinuation(consumerTag, ConsumerDispatcher,
                 ContinuationTimeout, cancellationToken);
@@ -931,8 +705,7 @@ namespace RabbitMQ.Client.Impl
             IDictionary<string, object?>? arguments, IAsyncBasicConsumer consumer,
             CancellationToken cancellationToken)
         {
-            // NOTE:
-            // Maybe don't dispose this instance because the CancellationToken must remain
+            // NOTE: DON'T dispose this instance because the CancellationToken must remain
             // valid for processing the response.
             bool enqueued = false;
             var k = new BasicConsumeAsyncRpcContinuation(consumer, ConsumerDispatcher, ContinuationTimeout, cancellationToken);
@@ -1561,6 +1334,32 @@ namespace RabbitMQ.Client.Impl
             return channel.OpenAsync(createChannelOptions, cancellationToken);
         }
 
+        private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            /*
+             * If DispatchCommandAsync returns `true`, it means that the incoming command is server-originated, and has
+             * already been handled.
+             *
+             * Else, the incoming command is the return of an RPC call, and must be handled.
+             */
+            try
+            {
+                if (false == await DispatchCommandAsync(cmd, cancellationToken)
+                    .ConfigureAwait(false))
+                {
+                    using (IRpcContinuation c = _continuationQueue.Next())
+                    {
+                        await c.HandleCommandAsync(cmd)
+                            .ConfigureAwait(false);
+                    }
+                }
+            }
+            finally
+            {
+                cmd.ReturnBuffers();
+            }
+        }
+
         /// <summary>
         /// Returning <c>true</c> from this method means that the command was server-originated,
         /// and handled already.
@@ -1659,6 +1458,294 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 return false;
+            }
+        }
+
+        private async Task<bool> HandleBasicAck(IncomingCommand cmd,
+            CancellationToken cancellationToken = default)
+        {
+            var ack = new BasicAck(cmd.MethodSpan);
+            if (!_basicAcksAsyncWrapper.IsEmpty)
+            {
+                var args = new BasicAckEventArgs(ack._deliveryTag, ack._multiple, cancellationToken);
+                await _basicAcksAsyncWrapper.InvokeAsync(this, args)
+                    .ConfigureAwait(false);
+            }
+
+            HandleAck(ack._deliveryTag, ack._multiple);
+
+            return true;
+        }
+
+        private async Task<bool> HandleBasicNack(IncomingCommand cmd,
+            CancellationToken cancellationToken = default)
+        {
+            var nack = new BasicNack(cmd.MethodSpan);
+            if (!_basicNacksAsyncWrapper.IsEmpty)
+            {
+                var args = new BasicNackEventArgs(
+                    nack._deliveryTag, nack._multiple, nack._requeue, cancellationToken);
+                await _basicNacksAsyncWrapper.InvokeAsync(this, args)
+                    .ConfigureAwait(false);
+            }
+
+            HandleNack(nack._deliveryTag, nack._multiple, false);
+
+            return true;
+        }
+
+        private async Task<bool> HandleBasicReturn(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            var basicReturn = new BasicReturn(cmd.MethodSpan);
+
+            var e = new BasicReturnEventArgs(basicReturn._replyCode, basicReturn._replyText,
+                basicReturn._exchange, basicReturn._routingKey,
+                new ReadOnlyBasicProperties(cmd.HeaderSpan), cmd.Body.Memory, cancellationToken);
+
+            if (!_basicReturnAsyncWrapper.IsEmpty)
+            {
+                await _basicReturnAsyncWrapper.InvokeAsync(this, e)
+                    .ConfigureAwait(false);
+            }
+
+            HandleReturn(e);
+
+            return true;
+        }
+
+        private async Task<bool> HandleBasicCancelAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            string consumerTag = new BasicCancel(cmd.MethodSpan)._consumerTag;
+            await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
+                .ConfigureAwait(false);
+            return true;
+        }
+
+        private async Task<bool> HandleBasicDeliverAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            var method = new BasicDeliver(cmd.MethodSpan);
+            var header = new ReadOnlyBasicProperties(cmd.HeaderSpan);
+            await ConsumerDispatcher.HandleBasicDeliverAsync(
+                    method._consumerTag,
+                    AdjustDeliveryTag(method._deliveryTag),
+                    method._redelivered,
+                    method._exchange,
+                    method._routingKey,
+                    header,
+                    /*
+                     * Takeover Body so it doesn't get returned as it is necessary
+                     * for handling the Basic.Deliver method by client code.
+                     */
+                    cmd.TakeoverBody(),
+                    cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+
+        private async Task<bool> HandleChannelCloseOkAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            /*
+             * Note:
+             * This call _must_ come before completing the async continuation
+             */
+            await FinishCloseAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out ChannelCloseAsyncRpcContinuation? k))
+            {
+                _continuationQueue.Next();
+                await k.HandleCommandAsync(cmd)
+                    .ConfigureAwait(false);
+            }
+
+            return true;
+        }
+
+        private async Task<bool> HandleChannelFlowAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            bool active = new ChannelFlow(cmd.MethodSpan)._active;
+            if (active)
+            {
+                _flowControlBlock.Set();
+            }
+            else
+            {
+                _flowControlBlock.Reset();
+            }
+
+            var method = new ChannelFlowOk(active);
+            await ModelSendAsync(in method, cancellationToken).
+                ConfigureAwait(false);
+
+            if (!_flowControlAsyncWrapper.IsEmpty)
+            {
+                await _flowControlAsyncWrapper.InvokeAsync(this, new FlowControlEventArgs(active, cancellationToken))
+                    .ConfigureAwait(false);
+            }
+
+            return true;
+        }
+
+        private async Task<bool> HandleConnectionBlockedAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            string reason = new ConnectionBlocked(cmd.MethodSpan)._reason;
+            await Session.Connection.HandleConnectionBlockedAsync(reason, cancellationToken)
+                .ConfigureAwait(false);
+            return true;
+        }
+
+        private async Task<bool> HandleConnectionCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            var method = new ConnectionClose(cmd.MethodSpan);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
+            try
+            {
+                await Session.Connection.ClosedViaPeerAsync(reason, cancellationToken)
+                    .ConfigureAwait(false);
+
+                var replyMethod = new ConnectionCloseOk();
+                await ModelSendAsync(in replyMethod, cancellationToken)
+                    .ConfigureAwait(false);
+
+                SetCloseReason(Session.Connection.CloseReason!);
+            }
+            catch (IOException)
+            {
+                // Ignored. We're only trying to be polite by sending
+                // the close-ok, after all.
+            }
+            catch (AlreadyClosedException)
+            {
+                // Ignored. We're only trying to be polite by sending
+                // the close-ok, after all.
+            }
+
+            return true;
+        }
+
+        private async Task<bool> HandleConnectionSecureAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
+            await k.HandleCommandAsync(new IncomingCommand())
+                .ConfigureAwait(false); // release the continuation.
+            return true;
+        }
+
+        private async Task<bool> HandleConnectionStartAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            if (m_connectionStartCell is null)
+            {
+                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
+                await Session.Connection.CloseAsync(reason, false,
+                    InternalConstants.DefaultConnectionCloseTimeout,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                var method = new ConnectionStart(cmd.MethodSpan);
+                var details = new ConnectionStartDetails(method._locales, method._mechanisms,
+                    method._serverProperties, method._versionMajor, method._versionMinor);
+                m_connectionStartCell.SetResult(details);
+                m_connectionStartCell = null;
+            }
+
+            return true;
+        }
+
+        private async Task<bool> HandleConnectionTuneAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            // Note: `using` here to ensure instance is disposed
+            using var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
+
+            // Note: releases the continuation and returns the buffers
+            await k.HandleCommandAsync(cmd)
+                .ConfigureAwait(false);
+
+            return true;
+        }
+
+        private async Task<bool> HandleConnectionUnblockedAsync(CancellationToken cancellationToken)
+        {
+            await Session.Connection.HandleConnectionUnblockedAsync(cancellationToken)
+                .ConfigureAwait(false);
+            return true;
+        }
+
+        private void MaybeAbort()
+        {
+            if (IsOpen)
+            {
+                this.AbortAsync().GetAwaiter().GetResult();
+            }
+        }
+
+        private Task MaybeAbortAsync()
+        {
+            if (IsOpen)
+            {
+                return this.AbortAsync();
+            }
+            else
+            {
+                return Task.CompletedTask;
+            }
+        }
+
+        private void MaybeDisposeOutstandingPublisherConfirmationsRateLimiter()
+        {
+            if (_outstandingPublisherConfirmationsRateLimiter is not null)
+            {
+                try
+                {
+                    _outstandingPublisherConfirmationsRateLimiter.Dispose();
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private async Task MaybeDisposeOutstandingPublisherConfirmationsRateLimiterAsync()
+        {
+            if (_outstandingPublisherConfirmationsRateLimiter is not null)
+            {
+                try
+                {
+                    await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private void MaybeWaitForServerOriginatedClose()
+        {
+            if (_serverOriginatedChannelCloseTcs is not null)
+            {
+                try
+                {
+                    _serverOriginatedChannelCloseTcs.Task.Wait(TimeSpan.FromSeconds(5));
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private async Task MaybeWaitForServerOriginatedCloseAsync()
+        {
+            if (_serverOriginatedChannelCloseTcs is not null)
+            {
+                try
+                {
+                    await _serverOriginatedChannelCloseTcs.Task.WaitAsync(TimeSpan.FromSeconds(5))
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                }
             }
         }
     }
