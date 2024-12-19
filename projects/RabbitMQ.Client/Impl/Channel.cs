@@ -61,6 +61,8 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
+        private bool _disposedValue = false;
+
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
@@ -517,44 +519,63 @@ namespace RabbitMQ.Client.Impl
             Dispose(true);
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (IsOpen)
-                {
-                    this.AbortAsync().GetAwaiter().GetResult();
-                }
-
-                ConsumerDispatcher.Dispose();
-                _rpcSemaphore.Dispose();
-                _confirmSemaphore.Dispose();
-                _outstandingPublisherConfirmationsRateLimiter?.Dispose();
-            }
-        }
-
         public async ValueTask DisposeAsync()
         {
-            await DisposeAsyncCore()
+            await DisposeAsyncCore(true)
                 .ConfigureAwait(false);
 
             Dispose(false);
         }
 
-        protected virtual async ValueTask DisposeAsyncCore()
+        protected virtual void Dispose(bool disposing)
         {
-            if (IsOpen)
+            if (disposing)
             {
-                await this.AbortAsync().ConfigureAwait(false);
-            }
+                try
+                {
+                    if (IsOpen)
+                    {
+                        this.AbortAsync().GetAwaiter().GetResult();
+                    }
 
-            ConsumerDispatcher.Dispose();
-            _rpcSemaphore.Dispose();
-            _confirmSemaphore.Dispose();
-            if (_outstandingPublisherConfirmationsRateLimiter is not null)
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+                    _outstandingPublisherConfirmationsRateLimiter?.Dispose();
+                }
+                finally
+                {
+                    _disposedValue = true;
+                }
+            }
+        }
+
+        protected virtual async ValueTask DisposeAsyncCore(bool disposing)
+        {
+            if (disposing)
             {
-                await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
-                    .ConfigureAwait(false);
+                try
+                {
+                    if (IsOpen)
+                    {
+                        await this.AbortAsync()
+                            .ConfigureAwait(false);
+                    }
+
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+
+                    if (_outstandingPublisherConfirmationsRateLimiter is not null)
+                    {
+                        await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
+                            .ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    _disposedValue = true;
+                }
             }
         }
 
