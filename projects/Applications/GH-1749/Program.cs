@@ -31,6 +31,7 @@
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 
+using System.Runtime.ExceptionServices;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -55,6 +56,8 @@ namespace GH_1749
     {
         static async Task Main(string[] args)
         {
+            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+
             ConnectionFactory connectionFactory = new()
             {
                 AutomaticRecoveryEnabled = true,
@@ -89,6 +92,11 @@ namespace GH_1749
 
             Console.WriteLine("{0} [INFO] consumer is running", Now);
             Console.ReadLine();
+        }
+
+        private static void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
+        {
+            Console.WriteLine("{0} [INFO] saw FirstChanceException, exception: {1}", Now, e.Exception);
         }
 
         private static string Now => DateTime.Now.ToString("o");
