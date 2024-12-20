@@ -41,12 +41,14 @@ using Toxiproxy.Net.Toxics;
 using Xunit;
 using Xunit.Abstractions;
 
+#nullable enable
+
 namespace Test.Integration
 {
     public class TestToxiproxy : IntegrationFixture
     {
         private readonly TimeSpan _heartbeatTimeout = TimeSpan.FromSeconds(1);
-        private ToxiproxyManager _toxiproxyManager;
+        private ToxiproxyManager? _toxiproxyManager;
         private int _proxyPort;
 
         public TestToxiproxy(ITestOutputHelper output) : base(output)
@@ -61,14 +63,24 @@ namespace Test.Integration
             Assert.Null(_conn);
             Assert.Null(_channel);
 
-            _toxiproxyManager = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
-            _proxyPort = ToxiproxyManager.ProxyPort;
-            return _toxiproxyManager.InitializeAsync();
+            if (AreToxiproxyTestsEnabled)
+            {
+                _toxiproxyManager = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
+                _proxyPort = ToxiproxyManager.ProxyPort;
+                return _toxiproxyManager.InitializeAsync();
+            }
+            else
+            {
+                return Task.CompletedTask;
+            }
         }
 
         public override async Task DisposeAsync()
         {
-            await _toxiproxyManager.DisposeAsync();
+            if (_toxiproxyManager is not null)
+            {
+                await _toxiproxyManager.DisposeAsync();
+            }
             await base.DisposeAsync();
         }
 
@@ -77,6 +89,7 @@ namespace Test.Integration
         public async Task TestCloseConnection()
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+            Assert.NotNull(_toxiproxyManager);
 
             ConnectionFactory cf = CreateConnectionFactory();
             cf.Port = _proxyPort;
@@ -199,6 +212,7 @@ namespace Test.Integration
         public async Task TestThatStoppedSocketResultsInHeartbeatTimeout()
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+            Assert.NotNull(_toxiproxyManager);
 
             ConnectionFactory cf = CreateConnectionFactory();
             cf.Port = _proxyPort;
@@ -246,6 +260,7 @@ namespace Test.Integration
         public async Task TestTcpReset_GH1464()
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+            Assert.NotNull(_toxiproxyManager);
 
             ConnectionFactory cf = CreateConnectionFactory();
             cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), _proxyPort);
@@ -298,6 +313,7 @@ namespace Test.Integration
         public async Task TestPublisherConfirmationThrottling()
         {
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+            Assert.NotNull(_toxiproxyManager);
 
             const int TotalMessageCount = 64;
             const int MaxOutstandingConfirms = 8;
@@ -397,7 +413,7 @@ namespace Test.Integration
         {
             get
             {
-                string s = Environment.GetEnvironmentVariable("RABBITMQ_TOXIPROXY_TESTS");
+                string? s = Environment.GetEnvironmentVariable("RABBITMQ_TOXIPROXY_TESTS");
 
                 if (string.IsNullOrEmpty(s))
                 {

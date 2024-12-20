@@ -53,7 +53,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask RecordExchangeAsync(RecordedExchange exchange,
             bool recordedEntitiesSemaphoreHeld)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask DeleteRecordedExchangeAsync(string exchangeName,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -133,7 +133,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask DeleteAutoDeleteExchangeAsync(string exchangeName,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -187,7 +187,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask RecordQueueAsync(RecordedQueue queue,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -219,7 +219,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask DeleteRecordedQueueAsync(string queueName,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -268,7 +268,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask RecordBindingAsync(RecordedBinding binding,
             bool recordedEntitiesSemaphoreHeld)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -300,7 +300,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask DeleteRecordedBindingAsync(RecordedBinding rb,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -332,7 +332,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask RecordConsumerAsync(RecordedConsumer consumer,
             bool recordedEntitiesSemaphoreHeld)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -369,7 +369,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask DeleteRecordedConsumerAsync(string consumerTag,
             bool recordedEntitiesSemaphoreHeld)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -466,7 +466,7 @@ namespace RabbitMQ.Client.Framing
         internal async Task DeleteRecordedChannelAsync(AutorecoveringChannel channel,
             bool channelsSemaphoreHeld, bool recordedEntitiesSemaphoreHeld)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
