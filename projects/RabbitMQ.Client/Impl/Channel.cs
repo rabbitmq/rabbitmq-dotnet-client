@@ -516,11 +516,21 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
+            if (_disposedValue)
+            {
+                return;
+            }
+
             Dispose(true);
         }
 
         public async ValueTask DisposeAsync()
         {
+            if (_disposedValue)
+            {
+                return;
+            }
+
             await DisposeAsyncCore(true)
                 .ConfigureAwait(false);
 
@@ -529,6 +539,11 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void Dispose(bool disposing)
         {
+            if (_disposedValue)
+            {
+                return;
+            }
+
             if (disposing)
             {
                 try

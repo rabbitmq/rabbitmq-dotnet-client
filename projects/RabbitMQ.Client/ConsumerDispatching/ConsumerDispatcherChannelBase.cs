@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         private readonly Task _worker;
         private readonly ushort _concurrency;
         private bool _quiesce = false;
-        private bool _disposed;
+        private bool _disposedValue;
 
         internal ConsumerDispatcherChannelBase(Impl.Channel channel, ushort concurrency)
         {
@@ -85,7 +85,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
-            if (false == _disposed && false == _quiesce)
+            if (false == _disposedValue && false == _quiesce)
             {
                 AddConsumer(consumer, consumerTag);
                 WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag);
@@ -101,7 +101,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body,
             CancellationToken cancellationToken)
         {
-            if (false == _disposed && false == _quiesce)
+            if (false == _disposedValue && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
                 var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
-            if (false == _disposed && false == _quiesce)
+            if (false == _disposedValue && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag);
@@ -129,7 +129,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
         {
-            if (false == _disposed && false == _quiesce)
+            if (false == _disposedValue && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag);
@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public async Task WaitForShutdownAsync()
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -201,6 +201,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         protected abstract Task ProcessChannelAsync();
+
+        protected enum WorkType : byte
+        {
+            Shutdown,
+            Cancel,
+            CancelOk,
+            Deliver,
+            ConsumeOk
+        }
 
         protected readonly struct WorkStruct : IDisposable
         {
@@ -276,42 +285,35 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public void Dispose() => Body.Dispose();
         }
 
-        protected enum WorkType : byte
-        {
-            Shutdown,
-            Cancel,
-            CancelOk,
-            Deliver,
-            ConsumeOk
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                try
-                {
-                    if (disposing)
-                    {
-                        Quiesce();
-                    }
-                }
-                catch
-                {
-                    // CHOMP
-                }
-                finally
-                {
-                    _disposed = true;
-                }
-            }
-        }
-
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposedValue)
+            {
+                return;
+            }
+
+            try
+            {
+                if (disposing)
+                {
+                    Quiesce();
+                }
+            }
+            catch
+            {
+                // CHOMP
+            }
+            finally
+            {
+                _disposedValue = true;
+            }
         }
     }
 }

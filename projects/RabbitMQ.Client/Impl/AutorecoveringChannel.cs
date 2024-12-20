@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Impl
 
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
-        private bool _disposed;
+        private bool _disposedValue;
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -143,7 +143,7 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsClosed => !IsOpen;
 
-        public bool IsOpen => !_disposed && _innerChannel.IsOpen;
+        public bool IsOpen => !_disposedValue && _innerChannel.IsOpen;
 
         public string? CurrentQueue => InnerChannel.CurrentQueue;
 
@@ -155,7 +155,7 @@ namespace RabbitMQ.Client.Impl
                 throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
             }
 
-            if (_disposed)
+            if (_disposedValue)
             {
                 return false;
             }
@@ -192,7 +192,7 @@ namespace RabbitMQ.Client.Impl
              * with the resulting basic.ack never getting sent out.
              */
 
-            if (_disposed)
+            if (_disposedValue)
             {
                 await newChannel.AbortAsync(CancellationToken.None)
                     .ConfigureAwait(false);
@@ -252,23 +252,37 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
             => InnerChannel.ToString();
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
-
-        public async ValueTask DisposeAsync()
+        public void Dispose()
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
 
-            if (IsOpen)
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposedValue)
             {
-                await this.AbortAsync()
-                    .ConfigureAwait(false);
+                return;
             }
 
-            _recordedConsumerTags.Clear();
-            _disposed = true;
+            try
+            {
+                if (IsOpen)
+                {
+                    await this.AbortAsync()
+                        .ConfigureAwait(false);
+                }
+
+                _recordedConsumerTags.Clear();
+            }
+            finally
+            {
+                _disposedValue = true;
+            }
         }
 
         public ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default) => InnerChannel.GetNextPublishSequenceNumberAsync(cancellationToken);
@@ -477,7 +491,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 ThrowDisposed();
             }

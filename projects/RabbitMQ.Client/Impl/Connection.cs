@@ -45,7 +45,7 @@ namespace RabbitMQ.Client.Framing
 {
     internal sealed partial class Connection : IConnection
     {
-        private bool _disposed;
+        private bool _disposedValue;
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
@@ -485,11 +485,19 @@ namespace RabbitMQ.Client.Framing
             return _frameHandler.WriteAsync(frames, cancellationToken);
         }
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            if (_disposedValue)
+            {
+                return;
+            }
+
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -514,14 +522,14 @@ namespace RabbitMQ.Client.Framing
             }
             finally
             {
-                _disposed = true;
+                _disposedValue = true;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 ThrowObjectDisposedException();
             }
