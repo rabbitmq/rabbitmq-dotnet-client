@@ -40,7 +40,6 @@ namespace GH_1749
     {
         private static readonly Random s_random = Random.Shared;
         private readonly ManagementClient _managementClient;
-        private static readonly bool s_isWindows = false;
 
         public Util() : this("localhost", "guest", "guest")
         {
