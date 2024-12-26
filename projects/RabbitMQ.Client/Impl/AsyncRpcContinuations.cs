@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Impl
 
         private bool _disposedValue;
 
-        public AsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+        public AsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken rpcCancellationToken)
         {
             /*
              * Note: we can't use an ObjectPool for these because the netstandard2.0
@@ -89,7 +89,7 @@ namespace RabbitMQ.Client.Impl
             _tcsConfiguredTaskAwaitable = _tcs.Task.ConfigureAwait(false);
 
             _linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-                _continuationTimeoutCancellationTokenSource.Token, cancellationToken);
+                _continuationTimeoutCancellationTokenSource.Token, rpcCancellationToken);
         }
 
         public CancellationToken CancellationToken
@@ -105,7 +105,27 @@ namespace RabbitMQ.Client.Impl
             return _tcsConfiguredTaskAwaitable.GetAwaiter();
         }
 
-        public abstract Task HandleCommandAsync(IncomingCommand cmd);
+        public async Task HandleCommandAsync(IncomingCommand cmd)
+        {
+            try
+            {
+                await DoHandleCommandAsync(cmd)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                if (CancellationToken.IsCancellationRequested)
+                {
+                    _tcs.SetCanceled();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        protected abstract Task DoHandleCommandAsync(IncomingCommand cmd);
 
         public virtual void HandleChannelShutdown(ShutdownEventArgs reason)
         {
@@ -141,17 +161,17 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override Task HandleCommandAsync(IncomingCommand cmd)
+        protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.ConnectionSecure)
             {
                 var secure = new ConnectionSecure(cmd.MethodSpan);
-                _tcs.TrySetResult(new ConnectionSecureOrTune(secure._challenge, default));
+                _tcs.SetResult(new ConnectionSecureOrTune(secure._challenge, default));
             }
             else if (cmd.CommandId == ProtocolCommandId.ConnectionTune)
             {
                 var tune = new ConnectionTune(cmd.MethodSpan);
-                _tcs.TrySetResult(new ConnectionSecureOrTune(default, new ConnectionTuneDetails
+                _tcs.SetResult(new ConnectionSecureOrTune(default, new ConnectionTuneDetails
                 {
                     m_channelMax = tune._channelMax,
                     m_frameMax = tune._frameMax,
@@ -178,11 +198,11 @@ namespace RabbitMQ.Client.Impl
             _expectedCommandId = expectedCommandId;
         }
 
-        public override Task HandleCommandAsync(IncomingCommand cmd)
+        protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == _expectedCommandId)
             {
-                _tcs.TrySetResult(true);
+                _tcs.SetResult(true);
             }
             else
             {
@@ -206,14 +226,14 @@ namespace RabbitMQ.Client.Impl
             _consumerDispatcher = consumerDispatcher;
         }
 
-        public override async Task HandleCommandAsync(IncomingCommand cmd)
+        protected override async Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.BasicCancelOk)
             {
-                _tcs.TrySetResult(true);
                 Debug.Assert(_consumerTag == new BasicCancelOk(cmd.MethodSpan)._consumerTag);
                 await _consumerDispatcher.HandleBasicCancelOkAsync(_consumerTag, CancellationToken)
                     .ConfigureAwait(false);
+                _tcs.SetResult(true);
             }
             else
             {
@@ -235,14 +255,16 @@ namespace RabbitMQ.Client.Impl
             _consumerDispatcher = consumerDispatcher;
         }
 
-        public override async Task HandleCommandAsync(IncomingCommand cmd)
+        protected override async Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.BasicConsumeOk)
             {
                 var method = new BasicConsumeOk(cmd.MethodSpan);
-                _tcs.TrySetResult(method._consumerTag);
+
                 await _consumerDispatcher.HandleBasicConsumeOkAsync(_consumer, method._consumerTag, CancellationToken)
                     .ConfigureAwait(false);
+
+                _tcs.SetResult(method._consumerTag);
             }
             else
             {
@@ -264,7 +286,7 @@ namespace RabbitMQ.Client.Impl
 
         internal DateTime StartTime { get; } = DateTime.UtcNow;
 
-        public override Task HandleCommandAsync(IncomingCommand cmd)
+        protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.BasicGetOk)
             {
@@ -280,11 +302,11 @@ namespace RabbitMQ.Client.Impl
                     header,
                     cmd.Body.ToArray());
 
-                _tcs.TrySetResult(result);
+                _tcs.SetResult(result);
             }
             else if (cmd.CommandId == ProtocolCommandId.BasicGetEmpty)
             {
-                _tcs.TrySetResult(null);
+                _tcs.SetResult(null);
             }
             else
             {
@@ -325,7 +347,7 @@ namespace RabbitMQ.Client.Impl
 
         public Task OnConnectionShutdownAsync(object? sender, ShutdownEventArgs reason)
         {
-            _tcs.TrySetResult(true);
+            _tcs.SetResult(true);
             return Task.CompletedTask;
         }
     }
@@ -377,13 +399,13 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override Task HandleCommandAsync(IncomingCommand cmd)
+        protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.QueueDeclareOk)
             {
                 var method = new Client.Framing.QueueDeclareOk(cmd.MethodSpan);
                 var result = new QueueDeclareOk(method._queue, method._messageCount, method._consumerCount);
-                _tcs.TrySetResult(result);
+                _tcs.SetResult(result);
             }
             else
             {
@@ -417,12 +439,12 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override Task HandleCommandAsync(IncomingCommand cmd)
+        protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.QueueDeleteOk)
             {
                 var method = new QueueDeleteOk(cmd.MethodSpan);
-                _tcs.TrySetResult(method._messageCount);
+                _tcs.SetResult(method._messageCount);
             }
             else
             {
@@ -440,12 +462,12 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override Task HandleCommandAsync(IncomingCommand cmd)
+        protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.QueuePurgeOk)
             {
                 var method = new QueuePurgeOk(cmd.MethodSpan);
-                _tcs.TrySetResult(method._messageCount);
+                _tcs.SetResult(method._messageCount);
             }
             else
             {
