@@ -714,6 +714,7 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
+            // TODO add check for Disposing / Disposed
             var channelClose = new ChannelClose(cmd.MethodSpan);
             SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
                 channelClose._replyCode,
@@ -730,11 +731,14 @@ namespace RabbitMQ.Client.Impl
 
             await Session.NotifyAsync(cancellationToken)
                 .ConfigureAwait(false);
+
             return true;
         }
 
         protected async Task<bool> HandleChannelCloseOkAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
+            // TODO add check for Disposing / Disposed
+
             /*
              * Note:
              * This call _must_ come before completing the async continuation
