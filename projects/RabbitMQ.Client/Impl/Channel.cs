@@ -256,10 +256,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
                 ChannelShutdownAsync -= k.OnConnectionShutdownAsync;
             }
@@ -303,10 +300,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -342,10 +336,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -392,10 +383,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
 
@@ -935,10 +923,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -967,10 +952,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1006,10 +988,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1048,10 +1027,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1078,10 +1054,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1119,10 +1092,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1166,10 +1136,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1206,10 +1173,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1247,10 +1211,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1320,10 +1281,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1361,10 +1319,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1416,10 +1371,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1444,10 +1396,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1475,10 +1424,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1504,10 +1450,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1533,10 +1476,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1562,10 +1502,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
+                MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
             }
         }
@@ -1575,6 +1512,32 @@ namespace RabbitMQ.Client.Impl
         {
             var channel = new Channel(session, createChannelOptions);
             return channel.OpenAsync(createChannelOptions, cancellationToken);
+        }
+
+        private void MaybeDisposeContinuation(bool enqueued, IRpcContinuation continuation)
+        {
+            try
+            {
+                if (enqueued)
+                {
+                    if (_continuationQueue.TryPeek(out IRpcContinuation? enqueuedContinuation))
+                    {
+                        if (object.ReferenceEquals(continuation, enqueuedContinuation))
+                        {
+                            IRpcContinuation dequeuedContinuation = _continuationQueue.Next();
+                            dequeuedContinuation.Dispose();
+                        }
+                    }
+                }
+                else
+                {
+                    continuation.Dispose();
+                }
+            }
+            catch
+            {
+                // TODO low-level debug logging
+            }
         }
 
         /// <summary>

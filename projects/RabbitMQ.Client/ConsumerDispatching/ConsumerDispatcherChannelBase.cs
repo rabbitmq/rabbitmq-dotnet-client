@@ -83,61 +83,65 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ushort Concurrency => _concurrency;
 
-        public ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
+        public async ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (false == _disposed && false == _quiesce)
             {
-                AddConsumer(consumer, consumerTag);
-                WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag);
-                return _writer.WriteAsync(work, cancellationToken);
-            }
-            else
-            {
-                return default;
+                try
+                {
+                    AddConsumer(consumer, consumerTag);
+                    WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag);
+                    await _writer.WriteAsync(work, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                    _ = GetAndRemoveConsumer(consumerTag);
+                    throw;
+                }
             }
         }
 
-        public ValueTask HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
+        public async ValueTask HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag, bool redelivered,
             string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (false == _disposed && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
                 var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
-                return _writer.WriteAsync(work, cancellationToken);
-            }
-            else
-            {
-                return default;
+                await _writer.WriteAsync(work, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
-        public ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
+        public async ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (false == _disposed && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag);
-                return _writer.WriteAsync(work, cancellationToken);
-            }
-            else
-            {
-                return default;
+                await _writer.WriteAsync(work, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
-        public ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
+        public async ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (false == _disposed && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag);
-                return _writer.WriteAsync(work, cancellationToken);
-            }
-            else
-            {
-                return default;
+                await _writer.WriteAsync(work, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
