@@ -43,6 +43,9 @@ namespace RabbitMQ.Client.Impl
 {
     internal abstract class AsyncRpcContinuation<T> : IRpcContinuation
     {
+        private readonly TimeSpan _continuationTimeout;
+        private readonly CancellationToken _rpcCancellationToken;
+        private readonly CancellationToken _continuationTimeoutCancellationToken;
         private readonly CancellationTokenSource _continuationTimeoutCancellationTokenSource;
         private readonly CancellationTokenRegistration _continuationTimeoutCancellationTokenRegistration;
         private readonly CancellationTokenSource _linkedCancellationTokenSource;
@@ -53,37 +56,25 @@ namespace RabbitMQ.Client.Impl
 
         public AsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken rpcCancellationToken)
         {
+            _continuationTimeout = continuationTimeout;
+            _rpcCancellationToken = rpcCancellationToken;
+
             /*
              * Note: we can't use an ObjectPool for these because the netstandard2.0
              * version of CancellationTokenSource can't be reset prior to checking
              * in to the ObjectPool
              */
             _continuationTimeoutCancellationTokenSource = new CancellationTokenSource(continuationTimeout);
+            _continuationTimeoutCancellationToken = _continuationTimeoutCancellationTokenSource.Token;
 
 #if NET
-            _continuationTimeoutCancellationTokenRegistration = _continuationTimeoutCancellationTokenSource.Token.UnsafeRegister((object? state) =>
-            {
-                var tcs = (TaskCompletionSource<T>)state!;
-                if (tcs.TrySetCanceled())
-                {
-                    // Cancellation was successful, does this mean we set a TimeoutException
-                    // in the same manner as BlockingCell used to
-                    string msg = $"operation '{GetType().FullName}' timed out after {continuationTimeout}";
-                    tcs.TrySetException(new TimeoutException(msg));
-                }
-            }, _tcs);
+            _continuationTimeoutCancellationTokenRegistration =
+                _continuationTimeoutCancellationToken.UnsafeRegister(
+                    callback: HandleContinuationTimeout, state: _tcs);
 #else
-            _continuationTimeoutCancellationTokenRegistration = _continuationTimeoutCancellationTokenSource.Token.Register((object state) =>
-            {
-                var tcs = (TaskCompletionSource<T>)state;
-                if (tcs.TrySetCanceled())
-                {
-                    // Cancellation was successful, does this mean we set a TimeoutException
-                    // in the same manner as BlockingCell used to
-                    string msg = $"operation '{GetType().FullName}' timed out after {continuationTimeout}";
-                    tcs.TrySetException(new TimeoutException(msg));
-                }
-            }, state: _tcs, useSynchronizationContext: false);
+            _continuationTimeoutCancellationTokenRegistration =
+                _continuationTimeoutCancellationToken.Register(
+                    callback: HandleContinuationTimeout, state: _tcs, useSynchronizationContext: false);
 #endif
 
             _tcsConfiguredTaskAwaitable = _tcs.Task.ConfigureAwait(false);
@@ -114,9 +105,26 @@ namespace RabbitMQ.Client.Impl
             }
             catch (OperationCanceledException)
             {
-                if (CancellationToken.IsCancellationRequested)
+                if (_rpcCancellationToken.IsCancellationRequested)
                 {
-                    _tcs.SetCanceled();
+#if NET
+                    _tcs.TrySetCanceled(_rpcCancellationToken);
+#else
+                    _tcs.TrySetCanceled();
+#endif
+                }
+                else if (_continuationTimeoutCancellationToken.IsCancellationRequested)
+                {
+#if NET
+                    if (_tcs.TrySetCanceled(_continuationTimeoutCancellationToken))
+#else
+                    if (_tcs.TrySetCanceled())
+#endif
+                    {
+                        // Cancellation was successful, does this mean we set a TimeoutException
+                        // in the same manner as BlockingCell used to
+                        _tcs.TrySetException(GetTimeoutException());
+                    }
                 }
                 else
                 {
@@ -125,11 +133,22 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        protected abstract Task DoHandleCommandAsync(IncomingCommand cmd);
-
         public virtual void HandleChannelShutdown(ShutdownEventArgs reason)
         {
             _tcs.TrySetException(new OperationInterruptedException(reason));
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected abstract Task DoHandleCommandAsync(IncomingCommand cmd);
+
+        protected void HandleUnexpectedCommand(IncomingCommand cmd)
+        {
+            _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
         }
 
         protected virtual void Dispose(bool disposing)
@@ -147,10 +166,33 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        public void Dispose()
+#if NET
+        private void HandleContinuationTimeout(object? state, CancellationToken cancellationToken)
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            var tcs = (TaskCompletionSource<T>)state!;
+            if (tcs.TrySetCanceled(cancellationToken))
+            {
+                tcs.TrySetException(GetTimeoutException());
+            }
+        }
+#else
+        private void HandleContinuationTimeout(object state)
+        {
+            var tcs = (TaskCompletionSource<T>)state;
+            if (tcs.TrySetCanceled())
+            {
+                tcs.TrySetException(GetTimeoutException());
+            }
+        }
+#endif
+
+        private TimeoutException GetTimeoutException()
+        {
+            // TODO
+            // Cancellation was successful, does this mean we set a TimeoutException
+            // in the same manner as BlockingCell used to
+            string msg = $"operation '{GetType().FullName}' timed out after {_continuationTimeout}";
+            return new TimeoutException(msg);
         }
     }
 
@@ -180,7 +222,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                HandleUnexpectedCommand(cmd);
             }
 
             return Task.CompletedTask;
@@ -206,7 +248,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                HandleUnexpectedCommand(cmd);
             }
 
             return Task.CompletedTask;
@@ -237,7 +279,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                HandleUnexpectedCommand(cmd);
             }
         }
     }
@@ -268,7 +310,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                HandleUnexpectedCommand(cmd);
             }
         }
     }
@@ -310,7 +352,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                HandleUnexpectedCommand(cmd);
             }
 
             return Task.CompletedTask;
@@ -409,7 +451,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                HandleUnexpectedCommand(cmd);
             }
 
             return Task.CompletedTask;
@@ -448,7 +490,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                HandleUnexpectedCommand(cmd);
             }
 
             return Task.CompletedTask;
@@ -471,7 +513,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
-                _tcs.SetException(new InvalidOperationException($"Received unexpected command of type {cmd.CommandId}!"));
+                HandleUnexpectedCommand(cmd);
             }
 
             return Task.CompletedTask;

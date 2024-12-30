@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2024 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -88,10 +89,16 @@ namespace Test.Integration.GH
 
             try
             {
-                using var cts = new CancellationTokenSource(5);
+                // Note: use this to test timeout via the passed-in RPC token
+                // using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5));
+                // await _channel.BasicConsumeAsync(q.QueueName, true, consumer, cts.Token);
+
+                // Note: use these to test timeout of the continuation RPC operation
+                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                _channel.ContinuationTimeout = TimeSpan.FromMilliseconds(5);
                 await _channel.BasicConsumeAsync(q.QueueName, true, consumer, cts.Token);
             }
-            catch (TaskCanceledException ex)
+            catch (Exception ex)
             {
                 _output.WriteLine("ex: {0}", ex);
             }
