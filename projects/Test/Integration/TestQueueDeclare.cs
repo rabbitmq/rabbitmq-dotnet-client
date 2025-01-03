@@ -58,6 +58,22 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task TestPassiveQueueDeclareException_GH1749()
+        {
+            string q = GenerateQueueName();
+            try
+            {
+                await _channel.QueueDeclarePassiveAsync(q);
+            }
+            catch (Exception ex)
+            {
+                _output.WriteLine("{0} ex: {1}", _testDisplayName, ex);
+                await _channel.DisposeAsync();
+                _channel = null;
+            }
+        }
+
+        [Fact]
         public async Task TestConcurrentQueueDeclareAndBindAsync()
         {
             bool sawShutdown = false;

@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Framing
         private readonly IEndpointResolver _endpoints;
 
         private Connection _innerConnection;
-        private bool _disposed;
+        private bool _disposedValue;
 
         private Connection InnerConnection
         {
@@ -268,11 +268,19 @@ namespace RabbitMQ.Client.Framing
             return autorecoveringChannel;
         }
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            if (_disposedValue)
+            {
+                return;
+            }
+
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -281,6 +289,11 @@ namespace RabbitMQ.Client.Framing
             {
                 await _innerConnection.DisposeAsync()
                     .ConfigureAwait(false);
+
+                _channels.Clear();
+                _recordedEntitiesSemaphore.Dispose();
+                _channelsSemaphore.Dispose();
+                _recoveryCancellationTokenSource.Dispose();
             }
             catch (OperationInterruptedException)
             {
@@ -288,11 +301,7 @@ namespace RabbitMQ.Client.Framing
             }
             finally
             {
-                _channels.Clear();
-                _recordedEntitiesSemaphore.Dispose();
-                _channelsSemaphore.Dispose();
-                _recoveryCancellationTokenSource.Dispose();
-                _disposed = true;
+                _disposedValue = true;
             }
         }
 
@@ -302,7 +311,7 @@ namespace RabbitMQ.Client.Framing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 ThrowDisposed();
             }

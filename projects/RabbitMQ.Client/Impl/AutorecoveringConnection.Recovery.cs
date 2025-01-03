@@ -285,7 +285,7 @@ namespace RabbitMQ.Client.Framing
         private async ValueTask RecoverExchangesAsync(IConnection connection,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -337,7 +337,7 @@ namespace RabbitMQ.Client.Framing
         private async Task RecoverQueuesAsync(IConnection connection,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -451,7 +451,7 @@ namespace RabbitMQ.Client.Framing
         private async ValueTask RecoverBindingsAsync(IConnection connection,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
@@ -503,7 +503,7 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, IChannel channelToUse,
             bool recordedEntitiesSemaphoreHeld = false, CancellationToken cancellationToken = default)
         {
-            if (_disposed)
+            if (_disposedValue)
             {
                 return;
             }
