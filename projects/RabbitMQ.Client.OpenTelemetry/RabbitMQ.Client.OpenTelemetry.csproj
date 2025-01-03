@@ -7,7 +7,7 @@
     <AssemblyTitle>RabbitMQ OpenTelemetry Integration Package for .NET</AssemblyTitle>
     <Authors>Broadcom</Authors>
     <Company>Broadcom, Inc. and/or its subsidiaries.</Company>
-    <Copyright>Copyright (c) 2007-2024 Broadcom. All Rights Reserved. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</Copyright>
+    <Copyright>Copyright (c) 2007-2025 Broadcom. All Rights Reserved. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</Copyright>
     <Description>The RabbitMQ OpenTelemetry Library for .NET adds convenience extension methods for RabbitMQ/OpenTelemetry</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
