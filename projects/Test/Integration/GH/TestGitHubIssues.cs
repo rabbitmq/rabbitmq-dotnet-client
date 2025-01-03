@@ -73,8 +73,9 @@ namespace Test.Integration.GH
             Assert.Null(_channel);
 
             _connFactory = CreateConnectionFactory();
-            _connFactory.AutomaticRecoveryEnabled = false;
-            _connFactory.TopologyRecoveryEnabled = false;
+            _connFactory.NetworkRecoveryInterval = TimeSpan.FromMilliseconds(250);
+            _connFactory.AutomaticRecoveryEnabled = true;
+            _connFactory.TopologyRecoveryEnabled = true;
 
             _conn = await _connFactory.CreateConnectionAsync();
             _channel = await _conn.CreateChannelAsync();
@@ -87,11 +88,20 @@ namespace Test.Integration.GH
                 return Task.CompletedTask;
             };
 
+            bool sawConnectionShutdown = false;
+            _conn.ConnectionShutdownAsync += (o, ea) =>
+            {
+                sawConnectionShutdown = true;
+                return Task.CompletedTask;
+            };
+
             try
             {
                 // Note: use this to test timeout via the passed-in RPC token
-                // using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5));
-                // await _channel.BasicConsumeAsync(q.QueueName, true, consumer, cts.Token);
+                /*
+                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5));
+                await _channel.BasicConsumeAsync(q.QueueName, true, consumer, cts.Token);
+                */
 
                 // Note: use these to test timeout of the continuation RPC operation
                 using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
@@ -102,6 +112,10 @@ namespace Test.Integration.GH
             {
                 _output.WriteLine("ex: {0}", ex);
             }
+
+            await Task.Delay(500);
+
+            Assert.False(sawConnectionShutdown);
         }
     }
 }
