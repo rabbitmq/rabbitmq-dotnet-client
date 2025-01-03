@@ -85,11 +85,23 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (false == _disposed && false == _quiesce)
             {
-                AddConsumer(consumer, consumerTag);
-                WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag);
-                return _writer.WriteAsync(work, cancellationToken);
+                try
+                {
+                    AddConsumer(consumer, consumerTag);
+                    WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag);
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return _writer.WriteAsync(work, cancellationToken);
+                }
+                catch
+                {
+                    _ = GetAndRemoveConsumer(consumerTag);
+                    throw;
+                }
             }
             else
             {
@@ -101,10 +113,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
             string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (false == _disposed && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
                 var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
+
+                cancellationToken.ThrowIfCancellationRequested();
                 return _writer.WriteAsync(work, cancellationToken);
             }
             else
@@ -115,10 +131,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ValueTask HandleBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (false == _disposed && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag);
+
+                cancellationToken.ThrowIfCancellationRequested();
                 return _writer.WriteAsync(work, cancellationToken);
             }
             else
@@ -129,10 +149,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ValueTask HandleBasicCancelAsync(string consumerTag, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (false == _disposed && false == _quiesce)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag);
+
+                cancellationToken.ThrowIfCancellationRequested();
                 return _writer.WriteAsync(work, cancellationToken);
             }
             else
