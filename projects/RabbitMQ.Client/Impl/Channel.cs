@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
         private bool _disposed;
-        private int _disposeSignaled;
+        private int _isDisposing;
 
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
@@ -529,7 +529,7 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void Dispose(bool disposing)
         {
-            if (Interlocked.Exchange(ref _disposeSignaled, 1) != 0)
+            if (IsDisposing)
             {
                 return;
             }
@@ -567,7 +567,7 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual async ValueTask DisposeAsyncCore()
         {
-            if (Interlocked.Exchange(ref _disposeSignaled, 1) != 0)
+            if (IsDisposing)
             {
                 return;
             }
@@ -694,11 +694,12 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            var serverOriginatedChannelCloseTcs = _serverOriginatedChannelCloseTcs;
+            TaskCompletionSource<bool>? serverOriginatedChannelCloseTcs = _serverOriginatedChannelCloseTcs;
             if (serverOriginatedChannelCloseTcs is null)
             {
                 // Attempt to assign the new TCS only if _tcs is still null
-                _ = Interlocked.CompareExchange(ref _serverOriginatedChannelCloseTcs, new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously), null);
+                _ = Interlocked.CompareExchange(ref _serverOriginatedChannelCloseTcs,
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously), null);
             }
 
             try
@@ -720,12 +721,12 @@ namespace RabbitMQ.Client.Impl
                 await Session.NotifyAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                _serverOriginatedChannelCloseTcs.TrySetResult(true);
+                _serverOriginatedChannelCloseTcs?.TrySetResult(true);
                 return true;
             }
             catch (Exception ex)
             {
-                _serverOriginatedChannelCloseTcs.TrySetException(ex);
+                _serverOriginatedChannelCloseTcs?.TrySetException(ex);
                 throw;
             }
         }
@@ -1645,6 +1646,19 @@ namespace RabbitMQ.Client.Impl
                     {
                         return Task.FromResult(false);
                     }
+            }
+        }
+
+        private bool IsDisposing
+        {
+            get
+            {
+                if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
     }
