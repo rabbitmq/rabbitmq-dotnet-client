@@ -64,9 +64,7 @@ namespace RabbitMQ.Client.Impl
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
         private bool _disposed;
-        private bool _isDisposing;
-
-        private readonly object _locker = new();
+        private int _isDisposing;
 
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
@@ -531,18 +529,9 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposed)
+            if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
             {
                 return;
-            }
-
-            lock (_locker)
-            {
-                if (_isDisposing)
-                {
-                    return;
-                }
-                _isDisposing = true;
             }
 
             if (disposing)
@@ -554,10 +543,7 @@ namespace RabbitMQ.Client.Impl
                         this.AbortAsync().GetAwaiter().GetResult();
                     }
 
-                    if (_serverOriginatedChannelCloseTcs is not null)
-                    {
-                        _serverOriginatedChannelCloseTcs.Task.Wait(TimeSpan.FromSeconds(5));
-                    }
+                    _serverOriginatedChannelCloseTcs?.Task.Wait(TimeSpan.FromSeconds(5));
 
                     ConsumerDispatcher.Dispose();
                     _rpcSemaphore.Dispose();
@@ -567,7 +553,6 @@ namespace RabbitMQ.Client.Impl
                 finally
                 {
                     _disposed = true;
-                    _isDisposing = false;
                 }
             }
         }
@@ -582,18 +567,9 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual async ValueTask DisposeAsyncCore()
         {
-            if (_disposed)
+            if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
             {
                 return;
-            }
-
-            lock (_locker)
-            {
-                if (_isDisposing)
-                {
-                    return;
-                }
-                _isDisposing = true;
             }
 
             try
@@ -621,7 +597,6 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 _disposed = true;
-                _isDisposing = false;
             }
         }
 
@@ -718,9 +693,11 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            lock (_locker)
+            var serverOriginatedChannelCloseTcs = _serverOriginatedChannelCloseTcs;
+            if (serverOriginatedChannelCloseTcs is null)
             {
-                _serverOriginatedChannelCloseTcs ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                // Attempt to assign the new TCS only if _tcs is still null
+                _ = Interlocked.CompareExchange(ref _serverOriginatedChannelCloseTcs, new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously), null);
             }
 
             try
