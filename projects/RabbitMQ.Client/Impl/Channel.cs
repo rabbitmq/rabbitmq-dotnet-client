@@ -59,7 +59,12 @@ namespace RabbitMQ.Client.Impl
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
+        private TaskCompletionSource<bool>? _serverOriginatedChannelCloseTcs;
+
         internal readonly IConsumerDispatcher ConsumerDispatcher;
+
+        private bool _disposed;
+        private int _isDisposing;
 
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
@@ -514,22 +519,41 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             Dispose(true);
         }
 
         protected virtual void Dispose(bool disposing)
         {
+            if (IsDisposing)
+            {
+                return;
+            }
+
             if (disposing)
             {
-                if (IsOpen)
+                try
                 {
-                    this.AbortAsync().GetAwaiter().GetResult();
-                }
+                    if (IsOpen)
+                    {
+                        this.AbortAsync().GetAwaiter().GetResult();
+                    }
 
-                ConsumerDispatcher.Dispose();
-                _rpcSemaphore.Dispose();
-                _confirmSemaphore.Dispose();
-                _outstandingPublisherConfirmationsRateLimiter?.Dispose();
+                    _serverOriginatedChannelCloseTcs?.Task.Wait(TimeSpan.FromSeconds(5));
+
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+                    _outstandingPublisherConfirmationsRateLimiter?.Dispose();
+                }
+                finally
+                {
+                    _disposed = true;
+                }
             }
         }
 
@@ -543,18 +567,37 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual async ValueTask DisposeAsyncCore()
         {
-            if (IsOpen)
+            if (IsDisposing)
             {
-                await this.AbortAsync().ConfigureAwait(false);
+                return;
             }
 
-            ConsumerDispatcher.Dispose();
-            _rpcSemaphore.Dispose();
-            _confirmSemaphore.Dispose();
-            if (_outstandingPublisherConfirmationsRateLimiter is not null)
+            try
             {
-                await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
-                    .ConfigureAwait(false);
+                if (IsOpen)
+                {
+                    await this.AbortAsync().ConfigureAwait(false);
+                }
+
+                if (_serverOriginatedChannelCloseTcs is not null)
+                {
+                    await _serverOriginatedChannelCloseTcs.Task.WaitAsync(TimeSpan.FromSeconds(5))
+                        .ConfigureAwait(false);
+                }
+
+                ConsumerDispatcher.Dispose();
+                _rpcSemaphore.Dispose();
+                _confirmSemaphore.Dispose();
+
+                if (_outstandingPublisherConfirmationsRateLimiter is not null)
+                {
+                    await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
+                        .ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _disposed = true;
             }
         }
 
@@ -651,23 +694,41 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            var channelClose = new ChannelClose(cmd.MethodSpan);
-            SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
-                channelClose._replyCode,
-                channelClose._replyText,
-                channelClose._classId,
-                channelClose._methodId));
+            TaskCompletionSource<bool>? serverOriginatedChannelCloseTcs = _serverOriginatedChannelCloseTcs;
+            if (serverOriginatedChannelCloseTcs is null)
+            {
+                // Attempt to assign the new TCS only if _tcs is still null
+                _ = Interlocked.CompareExchange(ref _serverOriginatedChannelCloseTcs,
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously), null);
+            }
 
-            await Session.CloseAsync(_closeReason, notify: false)
-                .ConfigureAwait(false);
+            try
+            {
+                var channelClose = new ChannelClose(cmd.MethodSpan);
+                SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
+                    channelClose._replyCode,
+                    channelClose._replyText,
+                    channelClose._classId,
+                    channelClose._methodId));
 
-            var method = new ChannelCloseOk();
-            await ModelSendAsync(in method, cancellationToken)
-                .ConfigureAwait(false);
+                await Session.CloseAsync(_closeReason, notify: false)
+                    .ConfigureAwait(false);
 
-            await Session.NotifyAsync(cancellationToken)
-                .ConfigureAwait(false);
-            return true;
+                var method = new ChannelCloseOk();
+                await ModelSendAsync(in method, cancellationToken)
+                    .ConfigureAwait(false);
+
+                await Session.NotifyAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                _serverOriginatedChannelCloseTcs?.TrySetResult(true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _serverOriginatedChannelCloseTcs?.TrySetException(ex);
+                throw;
+            }
         }
 
         protected async Task<bool> HandleChannelCloseOkAsync(IncomingCommand cmd, CancellationToken cancellationToken)
@@ -1585,6 +1646,19 @@ namespace RabbitMQ.Client.Impl
                     {
                         return Task.FromResult(false);
                     }
+            }
+        }
+
+        private bool IsDisposing
+        {
+            get
+            {
+                if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
     }

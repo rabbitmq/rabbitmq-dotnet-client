@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
@@ -60,6 +62,53 @@ namespace Test.Integration
             await _channel.CloseAsync();
             await WaitAsync(tcs, TimeSpan.FromSeconds(5), "channel shutdown");
             Assert.True(autorecoveringChannel.ConsumerDispatcher.IsShutdown, "dispatcher should be shut down after CloseAsync");
+        }
+
+        [Fact]
+        public async Task TestConcurrentDisposeAsync_GH1749()
+        {
+            bool sawCallbackException = false;
+            int channelShutdownCount = 0;
+
+            _channel.CallbackExceptionAsync += (channel, ea) =>
+            {
+                sawCallbackException = true;
+                return Task.CompletedTask;
+            };
+
+            _channel.ChannelShutdownAsync += (channel, args) =>
+            {
+                Interlocked.Increment(ref channelShutdownCount);
+                return Task.CompletedTask;
+            };
+
+            var disposeTasks = new List<ValueTask>
+            {
+                _channel.DisposeAsync(),
+                _channel.DisposeAsync(),
+                _channel.DisposeAsync()
+            };
+
+            foreach (ValueTask vt in disposeTasks)
+            {
+                await vt;
+            }
+
+            Assert.Equal(1, channelShutdownCount);
+            Assert.False(sawCallbackException);
+
+            disposeTasks.Clear();
+            disposeTasks.Add(_conn.DisposeAsync());
+            disposeTasks.Add(_conn.DisposeAsync());
+            disposeTasks.Add(_conn.DisposeAsync());
+
+            foreach (ValueTask vt in disposeTasks)
+            {
+                await vt;
+            }
+
+            _channel = null;
+            _conn = null;
         }
     }
 }

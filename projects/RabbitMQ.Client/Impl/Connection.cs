@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -46,6 +47,7 @@ namespace RabbitMQ.Client.Framing
     internal sealed partial class Connection : IConnection
     {
         private bool _disposed;
+        private int _isDisposing;
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
@@ -489,7 +491,7 @@ namespace RabbitMQ.Client.Framing
 
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
+            if (IsDisposing)
             {
                 return;
             }
@@ -523,13 +525,13 @@ namespace RabbitMQ.Client.Framing
         {
             if (_disposed)
             {
-                ThrowObjectDisposedException();
+                ThrowDisposed();
             }
 
-            static void ThrowObjectDisposedException()
-            {
-                throw new ObjectDisposedException(typeof(Connection).FullName);
-            }
+            return;
+
+            [DoesNotReturn]
+            static void ThrowDisposed() => throw new ObjectDisposedException(typeof(Connection).FullName);
         }
 
         public override string ToString()
@@ -537,9 +539,23 @@ namespace RabbitMQ.Client.Framing
             return $"Connection({_id},{Endpoint})";
         }
 
+        [DoesNotReturn]
         private static void ThrowAlreadyClosedException(ShutdownEventArgs closeReason)
         {
             throw new AlreadyClosedException(closeReason);
+        }
+
+        private bool IsDisposing
+        {
+            get
+            {
+                if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
     }
 }

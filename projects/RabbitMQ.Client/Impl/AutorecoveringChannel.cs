@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +49,7 @@ namespace RabbitMQ.Client.Impl
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
+        private int _isDisposing;
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -256,19 +258,25 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
+            if (IsDisposing)
             {
                 return;
             }
 
-            if (IsOpen)
+            try
             {
-                await this.AbortAsync()
-                    .ConfigureAwait(false);
-            }
+                if (IsOpen)
+                {
+                    await this.AbortAsync()
+                        .ConfigureAwait(false);
+                }
 
-            _recordedConsumerTags.Clear();
-            _disposed = true;
+                _recordedConsumerTags.Clear();
+            }
+            finally
+            {
+                _disposed = true;
+            }
         }
 
         public ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default) => InnerChannel.GetNextPublishSequenceNumberAsync(cancellationToken);
@@ -482,7 +490,23 @@ namespace RabbitMQ.Client.Impl
                 ThrowDisposed();
             }
 
+            return;
+
+            [DoesNotReturn]
             static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringChannel).FullName);
+        }
+
+        private bool IsDisposing
+        {
+            get
+            {
+                if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
     }
 }

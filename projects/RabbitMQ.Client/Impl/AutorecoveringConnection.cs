@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,6 +51,7 @@ namespace RabbitMQ.Client.Framing
 
         private Connection _innerConnection;
         private bool _disposed;
+        private int _isDisposing;
 
         private Connection InnerConnection
         {
@@ -272,7 +274,7 @@ namespace RabbitMQ.Client.Framing
 
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
+            if (IsDisposing)
             {
                 return;
             }
@@ -281,6 +283,11 @@ namespace RabbitMQ.Client.Framing
             {
                 await _innerConnection.DisposeAsync()
                     .ConfigureAwait(false);
+
+                _channels.Clear();
+                _recordedEntitiesSemaphore.Dispose();
+                _channelsSemaphore.Dispose();
+                _recoveryCancellationTokenSource.Dispose();
             }
             catch (OperationInterruptedException)
             {
@@ -288,10 +295,6 @@ namespace RabbitMQ.Client.Framing
             }
             finally
             {
-                _channels.Clear();
-                _recordedEntitiesSemaphore.Dispose();
-                _channelsSemaphore.Dispose();
-                _recoveryCancellationTokenSource.Dispose();
                 _disposed = true;
             }
         }
@@ -307,7 +310,23 @@ namespace RabbitMQ.Client.Framing
                 ThrowDisposed();
             }
 
+            return;
+
+            [DoesNotReturn]
             static void ThrowDisposed() => throw new ObjectDisposedException(typeof(AutorecoveringConnection).FullName);
+        }
+
+        private bool IsDisposing
+        {
+            get
+            {
+                if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
     }
 }
