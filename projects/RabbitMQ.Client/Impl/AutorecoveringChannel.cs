@@ -48,6 +48,8 @@ namespace RabbitMQ.Client.Impl
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
+        private bool _isDisposing;
+        private readonly object _locker = new();
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -252,7 +254,15 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
             => InnerChannel.ToString();
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         public async ValueTask DisposeAsync()
         {
@@ -261,14 +271,30 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
-            if (IsOpen)
+            lock (_locker)
             {
-                await this.AbortAsync()
-                    .ConfigureAwait(false);
+                if (_isDisposing)
+                {
+                    return;
+                }
+                _isDisposing = true;
             }
 
-            _recordedConsumerTags.Clear();
-            _disposed = true;
+            try
+            {
+                if (IsOpen)
+                {
+                    await this.AbortAsync()
+                        .ConfigureAwait(false);
+                }
+
+                _recordedConsumerTags.Clear();
+            }
+            finally
+            {
+                _disposed = true;
+                _isDisposing = false;
+            }
         }
 
         public ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default) => InnerChannel.GetNextPublishSequenceNumberAsync(cancellationToken);

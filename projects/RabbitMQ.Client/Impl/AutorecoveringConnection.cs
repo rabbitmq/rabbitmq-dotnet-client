@@ -50,6 +50,8 @@ namespace RabbitMQ.Client.Framing
 
         private Connection _innerConnection;
         private bool _disposed;
+        private bool _isDisposing;
+        private readonly object _locker = new();
 
         private Connection InnerConnection
         {
@@ -268,7 +270,15 @@ namespace RabbitMQ.Client.Framing
             return autorecoveringChannel;
         }
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         public async ValueTask DisposeAsync()
         {
@@ -277,10 +287,24 @@ namespace RabbitMQ.Client.Framing
                 return;
             }
 
+            lock (_locker)
+            {
+                if (_isDisposing)
+                {
+                    return;
+                }
+                _isDisposing = true;
+            }
+
             try
             {
                 await _innerConnection.DisposeAsync()
                     .ConfigureAwait(false);
+
+                _channels.Clear();
+                _recordedEntitiesSemaphore.Dispose();
+                _channelsSemaphore.Dispose();
+                _recoveryCancellationTokenSource.Dispose();
             }
             catch (OperationInterruptedException)
             {
@@ -288,11 +312,8 @@ namespace RabbitMQ.Client.Framing
             }
             finally
             {
-                _channels.Clear();
-                _recordedEntitiesSemaphore.Dispose();
-                _channelsSemaphore.Dispose();
-                _recoveryCancellationTokenSource.Dispose();
                 _disposed = true;
+                _isDisposing = false;
             }
         }
 

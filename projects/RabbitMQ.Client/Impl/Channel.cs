@@ -59,7 +59,14 @@ namespace RabbitMQ.Client.Impl
         private ShutdownEventArgs? _closeReason;
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
+        private TaskCompletionSource<bool>? _serverOriginatedChannelCloseTcs;
+
         internal readonly IConsumerDispatcher ConsumerDispatcher;
+
+        private bool _disposed;
+        private bool _isDisposing;
+
+        private readonly object _locker = new();
 
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
@@ -514,22 +521,54 @@ namespace RabbitMQ.Client.Impl
 
         void IDisposable.Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             Dispose(true);
         }
 
         protected virtual void Dispose(bool disposing)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            lock (_locker)
+            {
+                if (_isDisposing)
+                {
+                    return;
+                }
+                _isDisposing = true;
+            }
+
             if (disposing)
             {
-                if (IsOpen)
+                try
                 {
-                    this.AbortAsync().GetAwaiter().GetResult();
-                }
+                    if (IsOpen)
+                    {
+                        this.AbortAsync().GetAwaiter().GetResult();
+                    }
 
-                ConsumerDispatcher.Dispose();
-                _rpcSemaphore.Dispose();
-                _confirmSemaphore.Dispose();
-                _outstandingPublisherConfirmationsRateLimiter?.Dispose();
+                    if (_serverOriginatedChannelCloseTcs is not null)
+                    {
+                        _serverOriginatedChannelCloseTcs.Task.Wait(TimeSpan.FromSeconds(5));
+                    }
+
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+                    _outstandingPublisherConfirmationsRateLimiter?.Dispose();
+                }
+                finally
+                {
+                    _disposed = true;
+                    _isDisposing = false;
+                }
             }
         }
 
@@ -543,18 +582,46 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual async ValueTask DisposeAsyncCore()
         {
-            if (IsOpen)
+            if (_disposed)
             {
-                await this.AbortAsync().ConfigureAwait(false);
+                return;
             }
 
-            ConsumerDispatcher.Dispose();
-            _rpcSemaphore.Dispose();
-            _confirmSemaphore.Dispose();
-            if (_outstandingPublisherConfirmationsRateLimiter is not null)
+            lock (_locker)
             {
-                await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
-                    .ConfigureAwait(false);
+                if (_isDisposing)
+                {
+                    return;
+                }
+                _isDisposing = true;
+            }
+
+            try
+            {
+                if (IsOpen)
+                {
+                    await this.AbortAsync().ConfigureAwait(false);
+                }
+
+                if (_serverOriginatedChannelCloseTcs is not null)
+                {
+                    await _serverOriginatedChannelCloseTcs.Task.WaitAsync(TimeSpan.FromSeconds(5))
+                        .ConfigureAwait(false);
+                }
+
+                ConsumerDispatcher.Dispose();
+                _rpcSemaphore.Dispose();
+                _confirmSemaphore.Dispose();
+                if (_outstandingPublisherConfirmationsRateLimiter is not null)
+                {
+                    await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
+                        .ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _disposed = true;
+                _isDisposing = false;
             }
         }
 
@@ -651,23 +718,38 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            var channelClose = new ChannelClose(cmd.MethodSpan);
-            SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
-                channelClose._replyCode,
-                channelClose._replyText,
-                channelClose._classId,
-                channelClose._methodId));
+            lock (_locker)
+            {
+                _serverOriginatedChannelCloseTcs ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            }
 
-            await Session.CloseAsync(_closeReason, notify: false)
-                .ConfigureAwait(false);
+            try
+            {
+                var channelClose = new ChannelClose(cmd.MethodSpan);
+                SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
+                    channelClose._replyCode,
+                    channelClose._replyText,
+                    channelClose._classId,
+                    channelClose._methodId));
 
-            var method = new ChannelCloseOk();
-            await ModelSendAsync(in method, cancellationToken)
-                .ConfigureAwait(false);
+                await Session.CloseAsync(_closeReason, notify: false)
+                    .ConfigureAwait(false);
 
-            await Session.NotifyAsync(cancellationToken)
-                .ConfigureAwait(false);
-            return true;
+                var method = new ChannelCloseOk();
+                await ModelSendAsync(in method, cancellationToken)
+                    .ConfigureAwait(false);
+
+                await Session.NotifyAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                _serverOriginatedChannelCloseTcs.TrySetResult(true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _serverOriginatedChannelCloseTcs.TrySetException(ex);
+                throw;
+            }
         }
 
         protected async Task<bool> HandleChannelCloseOkAsync(IncomingCommand cmd, CancellationToken cancellationToken)

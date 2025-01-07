@@ -46,6 +46,8 @@ namespace RabbitMQ.Client.Framing
     internal sealed partial class Connection : IConnection
     {
         private bool _disposed;
+        private bool _isDisposing;
+        private readonly object _locker = new();
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
@@ -485,13 +487,30 @@ namespace RabbitMQ.Client.Framing
             return _frameHandler.WriteAsync(frames, cancellationToken);
         }
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         public async ValueTask DisposeAsync()
         {
             if (_disposed)
             {
                 return;
+            }
+
+            lock (_locker)
+            {
+                if (_isDisposing)
+                {
+                    return;
+                }
+                _isDisposing = true;
             }
 
             try
@@ -515,6 +534,7 @@ namespace RabbitMQ.Client.Framing
             finally
             {
                 _disposed = true;
+                _isDisposing = false;
             }
         }
 
