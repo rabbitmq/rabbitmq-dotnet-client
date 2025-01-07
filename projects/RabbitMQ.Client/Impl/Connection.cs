@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -524,13 +525,13 @@ namespace RabbitMQ.Client.Framing
         {
             if (_disposed)
             {
-                ThrowObjectDisposedException();
+                ThrowDisposed();
             }
 
-            static void ThrowObjectDisposedException()
-            {
-                throw new ObjectDisposedException(typeof(Connection).FullName);
-            }
+            return;
+
+            [DoesNotReturn]
+            static void ThrowDisposed() => throw new ObjectDisposedException(typeof(Connection).FullName);
         }
 
         public override string ToString()
@@ -538,6 +539,7 @@ namespace RabbitMQ.Client.Framing
             return $"Connection({_id},{Endpoint})";
         }
 
+        [DoesNotReturn]
         private static void ThrowAlreadyClosedException(ShutdownEventArgs closeReason)
         {
             throw new AlreadyClosedException(closeReason);
