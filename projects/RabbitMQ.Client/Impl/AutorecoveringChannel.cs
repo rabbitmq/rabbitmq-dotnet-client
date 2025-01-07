@@ -49,7 +49,7 @@ namespace RabbitMQ.Client.Impl
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
         private bool _disposed;
-        private int _isDisposing;
+        private int _disposeSignaled;
 
         private ushort _prefetchCountConsumer;
         private ushort _prefetchCountGlobal;
@@ -258,7 +258,7 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask DisposeAsync()
         {
-            if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+            if (Interlocked.Exchange(ref _disposeSignaled, 1) != 0)
             {
                 return;
             }

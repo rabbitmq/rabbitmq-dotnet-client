@@ -47,7 +47,7 @@ namespace RabbitMQ.Client.Framing
     internal sealed partial class Connection : IConnection
     {
         private bool _disposed;
-        private int _isDisposing;
+        private int _disposeSignaled;
         private volatile bool _closed;
 
         private readonly ConnectionConfig _config;
@@ -491,7 +491,7 @@ namespace RabbitMQ.Client.Framing
 
         public async ValueTask DisposeAsync()
         {
-            if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+            if (Interlocked.Exchange(ref _disposeSignaled, 1) != 0)
             {
                 return;
             }

@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.Impl
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
         private bool _disposed;
-        private int _isDisposing;
+        private int _disposeSignaled;
 
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
@@ -529,7 +529,7 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void Dispose(bool disposing)
         {
-            if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+            if (Interlocked.Exchange(ref _disposeSignaled, 1) != 0)
             {
                 return;
             }
@@ -567,7 +567,7 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual async ValueTask DisposeAsyncCore()
         {
-            if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+            if (Interlocked.Exchange(ref _disposeSignaled, 1) != 0)
             {
                 return;
             }

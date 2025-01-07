@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Framing
 
         private Connection _innerConnection;
         private bool _disposed;
-        private int _isDisposing;
+        private int _disposeSignaled;
 
         private Connection InnerConnection
         {
@@ -274,7 +274,7 @@ namespace RabbitMQ.Client.Framing
 
         public async ValueTask DisposeAsync()
         {
-            if (Interlocked.Exchange(ref _isDisposing, 1) != 0)
+            if (Interlocked.Exchange(ref _disposeSignaled, 1) != 0)
             {
                 return;
             }
