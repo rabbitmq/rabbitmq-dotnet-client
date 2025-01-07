@@ -588,6 +588,7 @@ namespace RabbitMQ.Client.Impl
                 ConsumerDispatcher.Dispose();
                 _rpcSemaphore.Dispose();
                 _confirmSemaphore.Dispose();
+
                 if (_outstandingPublisherConfirmationsRateLimiter is not null)
                 {
                     await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
