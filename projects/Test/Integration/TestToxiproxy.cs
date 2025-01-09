@@ -61,14 +61,25 @@ namespace Test.Integration
             Assert.Null(_conn);
             Assert.Null(_channel);
 
-            _toxiproxyManager = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
-            _proxyPort = ToxiproxyManager.ProxyPort;
-            return _toxiproxyManager.InitializeAsync();
+            if (AreToxiproxyTestsEnabled)
+            {
+                _toxiproxyManager = new ToxiproxyManager(_testDisplayName, IsRunningInCI, IsWindows);
+                _proxyPort = ToxiproxyManager.ProxyPort;
+                return _toxiproxyManager.InitializeAsync();
+            }
+            else
+            {
+                return Task.CompletedTask;
+            }
         }
 
         public override async Task DisposeAsync()
         {
-            await _toxiproxyManager.DisposeAsync();
+            if (AreToxiproxyTestsEnabled)
+            {
+                await _toxiproxyManager.DisposeAsync();
+            }
+
             await base.DisposeAsync();
         }
 

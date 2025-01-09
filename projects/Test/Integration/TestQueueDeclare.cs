@@ -65,9 +65,9 @@ namespace Test.Integration
             {
                 await _channel.QueueDeclarePassiveAsync(q);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _output.WriteLine("{0} ex: {1}", _testDisplayName, ex);
+                // _output.WriteLine("{0} ex: {1}", _testDisplayName, ex);
                 await _channel.DisposeAsync();
                 _channel = null;
             }
