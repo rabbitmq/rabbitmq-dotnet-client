@@ -47,44 +47,59 @@ namespace RabbitMQ.Client.Impl
 {
     internal partial class Channel : IChannel, IRecoverable
     {
-        ///<summary>Only used to kick-start a connection open
-        ///sequence. See <see cref="Connection.OpenAsync"/> </summary>
-        internal TaskCompletionSource<ConnectionStartDetails?>? m_connectionStartCell;
-        private Exception? m_connectionStartException;
+        private Exception? _connectionStartException;
 
         // AMQP only allows one RPC operation to be active at a time.
-        protected readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _rpcSemaphore = new SemaphoreSlim(1, 1);
         private readonly RpcContinuationQueue _continuationQueue = new RpcContinuationQueue();
 
         private ShutdownEventArgs? _closeReason;
 
         private TaskCompletionSource<bool>? _serverOriginatedChannelCloseTcs;
 
-        internal readonly IConsumerDispatcher ConsumerDispatcher;
-
         private bool _disposed;
         private int _isDisposing;
+
+        private readonly AsyncEventingWrapper<BasicAckEventArgs> _basicAcksAsyncWrapper;
+        private readonly AsyncEventingWrapper<BasicNackEventArgs> _basicNacksAsyncWrapper;
+        private readonly AsyncEventingWrapper<BasicReturnEventArgs> _basicReturnAsyncWrapper;
+        private readonly AsyncEventingWrapper<CallbackExceptionEventArgs> _callbackExceptionAsyncWrapper;
+        private readonly AsyncEventingWrapper<FlowControlEventArgs> _flowControlAsyncWrapper;
+        private readonly AsyncEventingWrapper<ShutdownEventArgs> _channelShutdownAsyncWrapper;
+        private readonly AsyncEventingWrapper<AsyncEventArgs> _recoveryAsyncWrapper;
+
+        internal readonly IConsumerDispatcher ConsumerDispatcher;
+
+        ///<summary>
+        ///Only used to kick-start a connection open
+        ///sequence. See <see cref="Connection.OpenAsync"/>
+        ///</summary>
+        internal TaskCompletionSource<ConnectionStartDetails?>? ConnectionStartCell;
 
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
             ConsumerDispatcher = new AsyncConsumerDispatcher(this, createChannelOptions.InternalConsumerDispatchConcurrency);
-            Func<Exception, string, CancellationToken, Task> onExceptionAsync = (exception, context, cancellationToken) =>
-                OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
-            _basicAcksAsyncWrapper = new AsyncEventingWrapper<BasicAckEventArgs>("OnBasicAck", onExceptionAsync);
-            _basicNacksAsyncWrapper = new AsyncEventingWrapper<BasicNackEventArgs>("OnBasicNack", onExceptionAsync);
-            _basicReturnAsyncWrapper = new AsyncEventingWrapper<BasicReturnEventArgs>("OnBasicReturn", onExceptionAsync);
+
+            _basicAcksAsyncWrapper =
+                new AsyncEventingWrapper<BasicAckEventArgs>("OnBasicAck", OnExceptionAsync);
+            _basicNacksAsyncWrapper =
+                new AsyncEventingWrapper<BasicNackEventArgs>("OnBasicNack", OnExceptionAsync);
+            _basicReturnAsyncWrapper =
+                new AsyncEventingWrapper<BasicReturnEventArgs>("OnBasicReturn", OnExceptionAsync);
             _callbackExceptionAsyncWrapper =
                 new AsyncEventingWrapper<CallbackExceptionEventArgs>(string.Empty, (exception, context, cancellationToken) => Task.CompletedTask);
-            _flowControlAsyncWrapper = new AsyncEventingWrapper<FlowControlEventArgs>("OnFlowControl", onExceptionAsync);
-            _channelShutdownAsyncWrapper = new AsyncEventingWrapper<ShutdownEventArgs>("OnChannelShutdownAsync", onExceptionAsync);
-            _recoveryAsyncWrapper = new AsyncEventingWrapper<AsyncEventArgs>("OnChannelRecovery", onExceptionAsync);
+            _flowControlAsyncWrapper =
+                new AsyncEventingWrapper<FlowControlEventArgs>("OnFlowControl", OnExceptionAsync);
+            _channelShutdownAsyncWrapper =
+                new AsyncEventingWrapper<ShutdownEventArgs>("OnChannelShutdownAsync", OnExceptionAsync);
+            _recoveryAsyncWrapper =
+                new AsyncEventingWrapper<AsyncEventArgs>("OnChannelRecovery", OnExceptionAsync);
+
             session.CommandReceived = HandleCommandAsync;
             session.SessionShutdownAsync += OnSessionShutdownAsync;
             Session = session;
         }
-
-        internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
         public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
 
@@ -96,15 +111,11 @@ namespace RabbitMQ.Client.Impl
             remove => _basicAcksAsyncWrapper.RemoveHandler(value);
         }
 
-        private AsyncEventingWrapper<BasicAckEventArgs> _basicAcksAsyncWrapper;
-
         public event AsyncEventHandler<BasicNackEventArgs> BasicNacksAsync
         {
             add => _basicNacksAsyncWrapper.AddHandler(value);
             remove => _basicNacksAsyncWrapper.RemoveHandler(value);
         }
-
-        private AsyncEventingWrapper<BasicNackEventArgs> _basicNacksAsyncWrapper;
 
         public event AsyncEventHandler<BasicReturnEventArgs> BasicReturnAsync
         {
@@ -112,23 +123,17 @@ namespace RabbitMQ.Client.Impl
             remove => _basicReturnAsyncWrapper.RemoveHandler(value);
         }
 
-        private AsyncEventingWrapper<BasicReturnEventArgs> _basicReturnAsyncWrapper;
-
         public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync
         {
             add => _callbackExceptionAsyncWrapper.AddHandler(value);
             remove => _callbackExceptionAsyncWrapper.RemoveHandler(value);
         }
 
-        private AsyncEventingWrapper<CallbackExceptionEventArgs> _callbackExceptionAsyncWrapper;
-
         public event AsyncEventHandler<FlowControlEventArgs> FlowControlAsync
         {
             add => _flowControlAsyncWrapper.AddHandler(value);
             remove => _flowControlAsyncWrapper.RemoveHandler(value);
         }
-
-        private AsyncEventingWrapper<FlowControlEventArgs> _flowControlAsyncWrapper;
 
         public event AsyncEventHandler<ShutdownEventArgs> ChannelShutdownAsync
         {
@@ -146,19 +151,10 @@ namespace RabbitMQ.Client.Impl
             remove => _channelShutdownAsyncWrapper.RemoveHandler(value);
         }
 
-        private AsyncEventingWrapper<ShutdownEventArgs> _channelShutdownAsyncWrapper;
-
         public event AsyncEventHandler<AsyncEventArgs> RecoveryAsync
         {
             add => _recoveryAsyncWrapper.AddHandler(value);
             remove => _recoveryAsyncWrapper.RemoveHandler(value);
-        }
-
-        private AsyncEventingWrapper<AsyncEventArgs> _recoveryAsyncWrapper;
-
-        internal Task RunRecoveryEventHandlers(object sender, CancellationToken cancellationToken)
-        {
-            return _recoveryAsyncWrapper.InvokeAsync(sender, AsyncEventArgs.CreateOrDefault(cancellationToken));
         }
 
         public int ChannelNumber => ((Session)Session).ChannelNumber;
@@ -178,13 +174,13 @@ namespace RabbitMQ.Client.Impl
 
         public ISession Session { get; private set; }
 
-        public Exception? ConnectionStartException => m_connectionStartException;
+        public Exception? ConnectionStartException => _connectionStartException;
 
         public void MaybeSetConnectionStartException(Exception ex)
         {
-            if (m_connectionStartCell != null)
+            if (ConnectionStartCell != null)
             {
-                m_connectionStartException = ex;
+                _connectionStartException = ex;
             }
         }
 
@@ -252,387 +248,6 @@ namespace RabbitMQ.Client.Impl
                 }
                 _rpcSemaphore.Release();
                 ChannelShutdownAsync -= k.OnConnectionShutdownAsync;
-            }
-        }
-
-        internal async ValueTask ConnectionOpenAsync(string virtualHost, CancellationToken cancellationToken)
-        {
-            using var timeoutTokenSource = new CancellationTokenSource(HandshakeContinuationTimeout);
-            using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
-            var method = new ConnectionOpen(virtualHost);
-            // Note: must be awaited or else the timeoutTokenSource instance will be disposed
-            await ModelSendAsync(in method, lts.Token).ConfigureAwait(false);
-        }
-
-        internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response,
-            CancellationToken cancellationToken)
-        {
-            bool enqueued = false;
-            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            await _rpcSemaphore.WaitAsync(k.CancellationToken)
-                .ConfigureAwait(false);
-            try
-            {
-                enqueued = Enqueue(k);
-
-                try
-                {
-                    var method = new ConnectionSecureOk(response);
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (AlreadyClosedException)
-                {
-                    // let continuation throw OperationInterruptedException,
-                    // which is a much more suitable exception before connection
-                    // negotiation finishes
-                }
-
-                return await k;
-            }
-            finally
-            {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-                _rpcSemaphore.Release();
-            }
-        }
-
-        internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(
-            IDictionary<string, object?> clientProperties,
-            string mechanism, byte[] response, string locale,
-            CancellationToken cancellationToken)
-        {
-            bool enqueued = false;
-            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            await _rpcSemaphore.WaitAsync(k.CancellationToken)
-                .ConfigureAwait(false);
-            try
-            {
-                enqueued = Enqueue(k);
-
-                try
-                {
-                    var method = new ConnectionStartOk(clientProperties, mechanism, response, locale);
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (AlreadyClosedException)
-                {
-                    // let continuation throw OperationInterruptedException,
-                    // which is a much more suitable exception before connection
-                    // negotiation finishes
-                }
-
-                return await k;
-            }
-            finally
-            {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-                _rpcSemaphore.Release();
-            }
-        }
-
-        internal async Task<IChannel> OpenAsync(CreateChannelOptions createChannelOptions,
-            CancellationToken cancellationToken)
-        {
-            ConfigurePublisherConfirmations(createChannelOptions.PublisherConfirmationsEnabled,
-                createChannelOptions.PublisherConfirmationTrackingEnabled,
-                createChannelOptions.OutstandingPublisherConfirmationsRateLimiter);
-
-            bool enqueued = false;
-            var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
-
-            await _rpcSemaphore.WaitAsync(k.CancellationToken)
-                .ConfigureAwait(false);
-            try
-            {
-                enqueued = Enqueue(k);
-
-                var method = new ChannelOpen();
-                await ModelSendAsync(in method, k.CancellationToken)
-                    .ConfigureAwait(false);
-
-                bool result = await k;
-                Debug.Assert(result);
-
-                await MaybeConfirmSelect(cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            finally
-            {
-                if (false == enqueued)
-                {
-                    k.Dispose();
-                }
-                _rpcSemaphore.Release();
-            }
-
-            return this;
-        }
-
-        internal async Task FinishCloseAsync(CancellationToken cancellationToken)
-        {
-            ShutdownEventArgs? reason = CloseReason;
-            if (reason != null)
-            {
-                await Session.CloseAsync(reason)
-                    .ConfigureAwait(false);
-            }
-
-            m_connectionStartCell?.TrySetResult(null);
-        }
-
-        protected void TakeOver(Channel other)
-        {
-            _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
-            _basicNacksAsyncWrapper.Takeover(other._basicNacksAsyncWrapper);
-            _basicReturnAsyncWrapper.Takeover(other._basicReturnAsyncWrapper);
-            _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
-            _flowControlAsyncWrapper.Takeover(other._flowControlAsyncWrapper);
-            _channelShutdownAsyncWrapper.Takeover(other._channelShutdownAsyncWrapper);
-            _recoveryAsyncWrapper.Takeover(other._recoveryAsyncWrapper);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask ModelSendAsync<T>(in T method, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod
-        {
-            return Session.TransmitAsync(in method, cancellationToken);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
-            where TMethod : struct, IOutgoingAmqpMethod
-            where THeader : IAmqpHeader
-        {
-            return Session.TransmitAsync(in method, in header, body, cancellationToken);
-        }
-
-        internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
-        {
-            return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
-        }
-
-        private bool Enqueue(IRpcContinuation k)
-        {
-            if (IsOpen)
-            {
-                _continuationQueue.Enqueue(k);
-                return true;
-            }
-            else
-            {
-                k.HandleChannelShutdown(CloseReason);
-                return false;
-            }
-        }
-
-        ///<summary>Broadcasts notification of the final shutdown of the channel.</summary>
-        ///<remarks>
-        ///<para>
-        ///Do not call anywhere other than at the end of OnSessionShutdownAsync.
-        ///</para>
-        ///<para>
-        ///Must not be called when m_closeReason is null, because
-        ///otherwise there's a window when a new continuation could be
-        ///being enqueued at the same time as we're broadcasting the
-        ///shutdown event. See the definition of Enqueue() above.
-        ///</para>
-        ///</remarks>
-        private async Task OnChannelShutdownAsync(ShutdownEventArgs reason)
-        {
-            _continuationQueue.HandleChannelShutdown(reason);
-
-            await _channelShutdownAsyncWrapper.InvokeAsync(this, reason)
-                .ConfigureAwait(false);
-
-            await MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync(reason)
-                .ConfigureAwait(false);
-
-            _flowControlBlock.Set();
-        }
-
-        /*
-         * Note:
-         * Attempting to make this method async, with the resulting fallout,
-         * resulted in many flaky test results, especially around disposing
-         * Channels/Connections
-         *
-         * Aborted PR: https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1551
-         */
-        private async Task OnSessionShutdownAsync(object? sender, ShutdownEventArgs reason)
-        {
-            ConsumerDispatcher.Quiesce();
-            SetCloseReason(reason);
-            await OnChannelShutdownAsync(reason)
-                .ConfigureAwait(false);
-            await ConsumerDispatcher.ShutdownAsync(reason)
-                .ConfigureAwait(false);
-        }
-
-        [MemberNotNull(nameof(_closeReason))]
-        internal bool SetCloseReason(ShutdownEventArgs reason)
-        {
-            if (reason is null)
-            {
-                throw new ArgumentNullException(nameof(reason));
-            }
-
-            // NB: this ensures that CloseAsync is only called once on a channel
-            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
-        }
-
-        public override string ToString()
-            => Session.ToString()!;
-
-        void IDisposable.Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            Dispose(true);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            await DisposeAsyncCore(true)
-                .ConfigureAwait(false);
-
-            Dispose(false);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (IsDisposing)
-            {
-                return;
-            }
-
-            try
-            {
-                MaybeAbort();
-
-                MaybeDisposeOutstandingPublisherConfirmationsRateLimiter();
-
-                MaybeWaitForServerOriginatedClose();
-            }
-            finally
-            {
-                try
-                {
-                    ConsumerDispatcher.Dispose();
-                    _rpcSemaphore.Dispose();
-                    _confirmSemaphore.Dispose();
-                }
-                catch
-                {
-                }
-                _disposed = true;
-            }
-        }
-
-        protected virtual async ValueTask DisposeAsyncCore(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (IsDisposing)
-            {
-                try
-                {
-                    await MaybeAbortAsync()
-                        .ConfigureAwait(false);
-
-                    await MaybeDisposeOutstandingPublisherConfirmationsRateLimiterAsync()
-                        .ConfigureAwait(false);
-
-                    await MaybeWaitForServerOriginatedCloseAsync()
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    try
-                    {
-                        ConsumerDispatcher.Dispose();
-                        _rpcSemaphore.Dispose();
-                        _confirmSemaphore.Dispose();
-                    }
-                    catch
-                    {
-                    }
-                    _disposed = true;
-                }
-            }
-        }
-
-        public Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
-        {
-            var method = new ConnectionTuneOk(channelMax, frameMax, heartbeat);
-            return ModelSendAsync(in method, cancellationToken).AsTask();
-        }
-
-        protected virtual ulong AdjustDeliveryTag(ulong deliveryTag)
-        {
-            return deliveryTag;
-        }
-
-        private async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
-        {
-            TaskCompletionSource<bool>? serverOriginatedChannelCloseTcs = _serverOriginatedChannelCloseTcs;
-            if (serverOriginatedChannelCloseTcs is null)
-            {
-                // Attempt to assign the new TCS only if _tcs is still null
-                _ = Interlocked.CompareExchange(ref _serverOriginatedChannelCloseTcs,
-                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously), null);
-            }
-
-            try
-            {
-                var channelClose = new ChannelClose(cmd.MethodSpan);
-                SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
-                    channelClose._replyCode,
-                    channelClose._replyText,
-                    channelClose._classId,
-                    channelClose._methodId));
-
-                await Session.CloseAsync(_closeReason, notify: false)
-                    .ConfigureAwait(false);
-
-                var method = new ChannelCloseOk();
-                await ModelSendAsync(in method, cancellationToken)
-                    .ConfigureAwait(false);
-
-                await Session.NotifyAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                _serverOriginatedChannelCloseTcs?.TrySetResult(true);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _serverOriginatedChannelCloseTcs?.TrySetException(ex);
-                throw;
             }
         }
 
@@ -1327,11 +942,402 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public override string ToString()
+            => Session.ToString()!;
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            Dispose(true);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            await DisposeAsyncCore(true)
+                .ConfigureAwait(false);
+
+            Dispose(false);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (IsDisposing)
+            {
+                return;
+            }
+
+            try
+            {
+                MaybeAbort();
+
+                MaybeDisposeOutstandingPublisherConfirmationsRateLimiter();
+
+                MaybeWaitForServerOriginatedClose();
+            }
+            finally
+            {
+                try
+                {
+                    ConsumerDispatcher.Dispose();
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+                }
+                catch
+                {
+                }
+                _disposed = true;
+            }
+        }
+
+        protected virtual async ValueTask DisposeAsyncCore(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (IsDisposing)
+            {
+                try
+                {
+                    await MaybeAbortAsync()
+                        .ConfigureAwait(false);
+
+                    await MaybeDisposeOutstandingPublisherConfirmationsRateLimiterAsync()
+                        .ConfigureAwait(false);
+
+                    await MaybeWaitForServerOriginatedCloseAsync()
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    try
+                    {
+                        ConsumerDispatcher.Dispose();
+                        _rpcSemaphore.Dispose();
+                        _confirmSemaphore.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                    _disposed = true;
+                }
+            }
+        }
+
+        protected virtual ulong AdjustDeliveryTag(ulong deliveryTag)
+        {
+            return deliveryTag;
+        }
+
+        protected void TakeOver(Channel other)
+        {
+            _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
+            _basicNacksAsyncWrapper.Takeover(other._basicNacksAsyncWrapper);
+            _basicReturnAsyncWrapper.Takeover(other._basicReturnAsyncWrapper);
+            _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
+            _flowControlAsyncWrapper.Takeover(other._flowControlAsyncWrapper);
+            _channelShutdownAsyncWrapper.Takeover(other._channelShutdownAsyncWrapper);
+            _recoveryAsyncWrapper.Takeover(other._recoveryAsyncWrapper);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected ValueTask ModelSendAsync<T>(in T method, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod
+        {
+            return Session.TransmitAsync(in method, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            return Session.TransmitAsync(in method, in header, body, cancellationToken);
+        }
+
         internal static Task<IChannel> CreateAndOpenAsync(CreateChannelOptions createChannelOptions, ISession session,
             CancellationToken cancellationToken)
         {
             var channel = new Channel(session, createChannelOptions);
             return channel.OpenAsync(createChannelOptions, cancellationToken);
+        }
+
+        internal Task ConnectionTuneOkAsync(ushort channelMax, uint frameMax, ushort heartbeat, CancellationToken cancellationToken)
+        {
+            var method = new ConnectionTuneOk(channelMax, frameMax, heartbeat);
+            return ModelSendAsync(in method, cancellationToken).AsTask();
+        }
+
+        internal Task OnExceptionAsync(Exception exception, string context, CancellationToken cancellationToken) =>
+            OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
+
+        internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
+        {
+            return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
+        }
+
+        internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
+        internal Task RunRecoveryEventHandlers(object sender, CancellationToken cancellationToken)
+        {
+            return _recoveryAsyncWrapper.InvokeAsync(sender, AsyncEventArgs.CreateOrDefault(cancellationToken));
+        }
+
+        internal async ValueTask ConnectionOpenAsync(string virtualHost, CancellationToken cancellationToken)
+        {
+            using var timeoutTokenSource = new CancellationTokenSource(HandshakeContinuationTimeout);
+            using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
+            var method = new ConnectionOpen(virtualHost);
+            // Note: must be awaited or else the timeoutTokenSource instance will be disposed
+            await ModelSendAsync(in method, lts.Token).ConfigureAwait(false);
+        }
+
+        internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response,
+            CancellationToken cancellationToken)
+        {
+            bool enqueued = false;
+            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+
+            await _rpcSemaphore.WaitAsync(k.CancellationToken)
+                .ConfigureAwait(false);
+            try
+            {
+                enqueued = Enqueue(k);
+
+                try
+                {
+                    var method = new ConnectionSecureOk(response);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (AlreadyClosedException)
+                {
+                    // let continuation throw OperationInterruptedException,
+                    // which is a much more suitable exception before connection
+                    // negotiation finishes
+                }
+
+                return await k;
+            }
+            finally
+            {
+                if (false == enqueued)
+                {
+                    k.Dispose();
+                }
+                _rpcSemaphore.Release();
+            }
+        }
+
+        internal async ValueTask<ConnectionSecureOrTune> ConnectionStartOkAsync(
+            IDictionary<string, object?> clientProperties,
+            string mechanism, byte[] response, string locale,
+            CancellationToken cancellationToken)
+        {
+            bool enqueued = false;
+            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+
+            await _rpcSemaphore.WaitAsync(k.CancellationToken)
+                .ConfigureAwait(false);
+            try
+            {
+                enqueued = Enqueue(k);
+
+                try
+                {
+                    var method = new ConnectionStartOk(clientProperties, mechanism, response, locale);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (AlreadyClosedException)
+                {
+                    // let continuation throw OperationInterruptedException,
+                    // which is a much more suitable exception before connection
+                    // negotiation finishes
+                }
+
+                return await k;
+            }
+            finally
+            {
+                if (false == enqueued)
+                {
+                    k.Dispose();
+                }
+                _rpcSemaphore.Release();
+            }
+        }
+
+        internal async Task<IChannel> OpenAsync(CreateChannelOptions createChannelOptions,
+            CancellationToken cancellationToken)
+        {
+            ConfigurePublisherConfirmations(createChannelOptions.PublisherConfirmationsEnabled,
+                createChannelOptions.PublisherConfirmationTrackingEnabled,
+                createChannelOptions.OutstandingPublisherConfirmationsRateLimiter);
+
+            bool enqueued = false;
+            var k = new ChannelOpenAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+
+            await _rpcSemaphore.WaitAsync(k.CancellationToken)
+                .ConfigureAwait(false);
+            try
+            {
+                enqueued = Enqueue(k);
+
+                var method = new ChannelOpen();
+                await ModelSendAsync(in method, k.CancellationToken)
+                    .ConfigureAwait(false);
+
+                bool result = await k;
+                Debug.Assert(result);
+
+                await MaybeConfirmSelect(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                if (false == enqueued)
+                {
+                    k.Dispose();
+                }
+                _rpcSemaphore.Release();
+            }
+
+            return this;
+        }
+
+        internal async Task FinishCloseAsync(CancellationToken cancellationToken)
+        {
+            ShutdownEventArgs? reason = CloseReason;
+            if (reason != null)
+            {
+                await Session.CloseAsync(reason)
+                    .ConfigureAwait(false);
+            }
+
+            ConnectionStartCell?.TrySetResult(null);
+        }
+
+        [MemberNotNull(nameof(_closeReason))]
+        internal bool SetCloseReason(ShutdownEventArgs reason)
+        {
+            if (reason is null)
+            {
+                throw new ArgumentNullException(nameof(reason));
+            }
+
+            // NB: this ensures that CloseAsync is only called once on a channel
+            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+        }
+
+        private bool Enqueue(IRpcContinuation k)
+        {
+            if (IsOpen)
+            {
+                _continuationQueue.Enqueue(k);
+                return true;
+            }
+            else
+            {
+                k.HandleChannelShutdown(CloseReason);
+                return false;
+            }
+        }
+
+        ///<summary>Broadcasts notification of the final shutdown of the channel.</summary>
+        ///<remarks>
+        ///<para>
+        ///Do not call anywhere other than at the end of OnSessionShutdownAsync.
+        ///</para>
+        ///<para>
+        ///Must not be called when m_closeReason is null, because
+        ///otherwise there's a window when a new continuation could be
+        ///being enqueued at the same time as we're broadcasting the
+        ///shutdown event. See the definition of Enqueue() above.
+        ///</para>
+        ///</remarks>
+        private async Task OnChannelShutdownAsync(ShutdownEventArgs reason)
+        {
+            _continuationQueue.HandleChannelShutdown(reason);
+
+            await _channelShutdownAsyncWrapper.InvokeAsync(this, reason)
+                .ConfigureAwait(false);
+
+            await MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync(reason)
+                .ConfigureAwait(false);
+
+            _flowControlBlock.Set();
+        }
+
+        /*
+         * Note:
+         * Attempting to make this method async, with the resulting fallout,
+         * resulted in many flaky test results, especially around disposing
+         * Channels/Connections
+         *
+         * Aborted PR: https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1551
+         */
+        private async Task OnSessionShutdownAsync(object? sender, ShutdownEventArgs reason)
+        {
+            ConsumerDispatcher.Quiesce();
+            SetCloseReason(reason);
+            await OnChannelShutdownAsync(reason)
+                .ConfigureAwait(false);
+            await ConsumerDispatcher.ShutdownAsync(reason)
+                .ConfigureAwait(false);
+        }
+
+        private async Task<bool> HandleChannelCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
+        {
+            TaskCompletionSource<bool>? serverOriginatedChannelCloseTcs = _serverOriginatedChannelCloseTcs;
+            if (serverOriginatedChannelCloseTcs is null)
+            {
+                // Attempt to assign the new TCS only if _tcs is still null
+                _ = Interlocked.CompareExchange(ref _serverOriginatedChannelCloseTcs,
+                    new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously), null);
+            }
+
+            try
+            {
+                var channelClose = new ChannelClose(cmd.MethodSpan);
+                SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Peer,
+                    channelClose._replyCode,
+                    channelClose._replyText,
+                    channelClose._classId,
+                    channelClose._methodId));
+
+                await Session.CloseAsync(_closeReason, notify: false)
+                    .ConfigureAwait(false);
+
+                var method = new ChannelCloseOk();
+                await ModelSendAsync(in method, cancellationToken)
+                    .ConfigureAwait(false);
+
+                await Session.NotifyAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                _serverOriginatedChannelCloseTcs?.TrySetResult(true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _serverOriginatedChannelCloseTcs?.TrySetException(ex);
+                throw;
+            }
         }
 
         private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
@@ -1632,7 +1638,7 @@ namespace RabbitMQ.Client.Impl
 
         private async Task<bool> HandleConnectionStartAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            if (m_connectionStartCell is null)
+            if (ConnectionStartCell is null)
             {
                 var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
                 await Session.Connection.CloseAsync(reason, false,
@@ -1645,8 +1651,8 @@ namespace RabbitMQ.Client.Impl
                 var method = new ConnectionStart(cmd.MethodSpan);
                 var details = new ConnectionStartDetails(method._locales, method._mechanisms,
                     method._serverProperties, method._versionMajor, method._versionMinor);
-                m_connectionStartCell.SetResult(details);
-                m_connectionStartCell = null;
+                ConnectionStartCell.SetResult(details);
+                ConnectionStartCell = null;
             }
 
             return true;

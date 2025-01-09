@@ -54,11 +54,17 @@ namespace RabbitMQ.Client.Framing
         private readonly Channel _channel0;
         private readonly MainSession _session0;
 
-        private Guid _id = Guid.NewGuid();
+        private readonly Guid _id = Guid.NewGuid();
         private SessionManager _sessionManager;
 
         private ShutdownEventArgs? _closeReason;
-        public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
+        private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();
+
+        private readonly AsyncEventingWrapper<CallbackExceptionEventArgs> _callbackExceptionAsyncWrapper;
+        private readonly AsyncEventingWrapper<ConnectionBlockedEventArgs> _connectionBlockedAsyncWrapper;
+        private readonly AsyncEventingWrapper<AsyncEventArgs> _connectionUnblockedAsyncWrapper;
+        private readonly AsyncEventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecoveredAsyncWrapper;
+        private readonly AsyncEventingWrapper<ShutdownEventArgs> _connectionShutdownAsyncWrapper;
 
         internal Connection(ConnectionConfig config, IFrameHandler frameHandler)
         {
@@ -94,6 +100,8 @@ namespace RabbitMQ.Client.Framing
                 OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
         }
 
+        public ShutdownEventArgs? CloseReason => Volatile.Read(ref _closeReason);
+
         public Guid Id => _id;
 
         public string? ClientProvidedName => _config.ClientProvidedName;
@@ -114,48 +122,33 @@ namespace RabbitMQ.Client.Framing
         public IDictionary<string, object?>? ServerProperties { get; private set; }
 
         public IEnumerable<ShutdownReportEntry> ShutdownReport => _shutdownReport;
-        private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
         IProtocol IConnection.Protocol => Endpoint.Protocol;
-
-        ///<summary>Another overload of a Protocol property, useful
-        ///for exposing a tighter type.</summary>
-        internal ProtocolBase Protocol => (ProtocolBase)Endpoint.Protocol;
-
-        ///<summary>Used for testing only.</summary>
-        internal IFrameHandler FrameHandler
-        {
-            get { return _frameHandler; }
-        }
 
         public event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync
         {
             add => _callbackExceptionAsyncWrapper.AddHandler(value);
             remove => _callbackExceptionAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<CallbackExceptionEventArgs> _callbackExceptionAsyncWrapper;
 
         public event AsyncEventHandler<ConnectionBlockedEventArgs> ConnectionBlockedAsync
         {
             add => _connectionBlockedAsyncWrapper.AddHandler(value);
             remove => _connectionBlockedAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<ConnectionBlockedEventArgs> _connectionBlockedAsyncWrapper;
 
         public event AsyncEventHandler<AsyncEventArgs> ConnectionUnblockedAsync
         {
             add => _connectionUnblockedAsyncWrapper.AddHandler(value);
             remove => _connectionUnblockedAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<AsyncEventArgs> _connectionUnblockedAsyncWrapper;
 
         public event AsyncEventHandler<RecoveringConsumerEventArgs> RecoveringConsumerAsync
         {
             add => _consumerAboutToBeRecoveredAsyncWrapper.AddHandler(value);
             remove => _consumerAboutToBeRecoveredAsyncWrapper.RemoveHandler(value);
         }
-        private AsyncEventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecoveredAsyncWrapper;
 
         public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync
         {
@@ -178,7 +171,6 @@ namespace RabbitMQ.Client.Framing
                 _connectionShutdownAsyncWrapper.RemoveHandler(value);
             }
         }
-        private AsyncEventingWrapper<ShutdownEventArgs> _connectionShutdownAsyncWrapper;
 
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
@@ -214,6 +206,96 @@ namespace RabbitMQ.Client.Framing
         {
             add { }
             remove { }
+        }
+
+        public Task<IChannel> CreateChannelAsync(CreateChannelOptions? createChannelOptions = default,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureIsOpen();
+
+            createChannelOptions = CreateChannelOptions.CreateOrUpdate(createChannelOptions, _config);
+            ISession session = CreateSession();
+            return Channel.CreateAndOpenAsync(createChannelOptions, session, cancellationToken);
+        }
+
+        ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
+        public Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,
+            CancellationToken cancellationToken = default)
+        {
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText);
+            return CloseAsync(reason, abort, timeout, cancellationToken);
+        }
+
+        public override string ToString()
+        {
+            return $"Connection({_id},{Endpoint})";
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (IsDisposing)
+            {
+                return;
+            }
+
+            try
+            {
+                if (IsOpen)
+                {
+                    await this.AbortAsync()
+                        .ConfigureAwait(false);
+                }
+
+                _session0.Dispose();
+                _mainLoopCts.Dispose();
+
+                await _channel0.DisposeAsync()
+                    .ConfigureAwait(false);
+            }
+            catch (OperationInterruptedException)
+            {
+                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
+            }
+            finally
+            {
+                _disposed = true;
+            }
+        }
+
+        internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
+        {
+            return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
+        }
+
+        internal ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
+        {
+            Activity.Current.SetNetworkTags(_frameHandler);
+            return _frameHandler.WriteAsync(frames, cancellationToken);
+        }
+
+        ///<summary>Another overload of a Protocol property, useful
+        ///for exposing a tighter type.</summary>
+        internal ProtocolBase Protocol => (ProtocolBase)Endpoint.Protocol;
+
+        ///<summary>Used for testing only.</summary>
+        internal IFrameHandler FrameHandler
+        {
+            get { return _frameHandler; }
         }
 
         internal void TakeOver(Connection other)
@@ -265,16 +347,6 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        public Task<IChannel> CreateChannelAsync(CreateChannelOptions? createChannelOptions = default,
-            CancellationToken cancellationToken = default)
-        {
-            EnsureIsOpen();
-
-            createChannelOptions = CreateChannelOptions.CreateOrUpdate(createChannelOptions, _config);
-            ISession session = CreateSession();
-            return Channel.CreateAndOpenAsync(createChannelOptions, session, cancellationToken);
-        }
-
         internal ISession CreateSession()
         {
             return _sessionManager.Create();
@@ -293,14 +365,6 @@ namespace RabbitMQ.Client.Framing
             {
                 ThrowAlreadyClosedException(CloseReason!);
             }
-        }
-
-        ///<summary>Asynchronous API-side invocation of connection.close with timeout.</summary>
-        public Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,
-            CancellationToken cancellationToken = default)
-        {
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Application, reasonCode, reasonText);
-            return CloseAsync(reason, abort, timeout, cancellationToken);
         }
 
         ///<summary>Asychronously try to close connection in a graceful way</summary>
@@ -480,63 +544,6 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
-        {
-            return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
-        }
-
-        internal ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
-        {
-            Activity.Current.SetNetworkTags(_frameHandler);
-            return _frameHandler.WriteAsync(frames, cancellationToken);
-        }
-
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            DisposeAsync().AsTask().GetAwaiter().GetResult();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (IsDisposing)
-            {
-                return;
-            }
-
-            try
-            {
-                if (IsOpen)
-                {
-                    await this.AbortAsync()
-                        .ConfigureAwait(false);
-                }
-
-                _session0.Dispose();
-                _mainLoopCts.Dispose();
-
-                await _channel0.DisposeAsync()
-                    .ConfigureAwait(false);
-            }
-            catch (OperationInterruptedException)
-            {
-                // ignored, see rabbitmq/rabbitmq-dotnet-client#133
-            }
-            finally
-            {
-                _disposed = true;
-            }
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfDisposed()
         {
@@ -549,11 +556,6 @@ namespace RabbitMQ.Client.Framing
 
             [DoesNotReturn]
             static void ThrowDisposed() => throw new ObjectDisposedException(typeof(Connection).FullName);
-        }
-
-        public override string ToString()
-        {
-            return $"Connection({_id},{Endpoint})";
         }
 
         [DoesNotReturn]

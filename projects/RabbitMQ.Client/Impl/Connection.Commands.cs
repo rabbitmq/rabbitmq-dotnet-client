@@ -93,7 +93,7 @@ namespace RabbitMQ.Client.Framing
             }, state: connectionStartCell, useSynchronizationContext: false);
 #endif
 
-            _channel0.m_connectionStartCell = connectionStartCell;
+            _channel0.ConnectionStartCell = connectionStartCell;
             _channel0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
 
