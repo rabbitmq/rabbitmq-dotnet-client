@@ -11,7 +11,7 @@
     <NoWarn>$(NoWarn);CA2007</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LangVersion>12.0</LangVersion>
