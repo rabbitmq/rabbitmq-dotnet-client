@@ -5,13 +5,13 @@
     <NoWarn>$(NoWarn);CA2007</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
     <TargetFramework>net8.0</TargetFramework>
     <NoWarn>$(NoWarn);CA2007</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>../../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -24,7 +24,7 @@
     <InternalsVisibleTo Include="Integration" />
     <InternalsVisibleTo Include="SequentialIntegration" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="EasyNetQ.Management.Client" />
