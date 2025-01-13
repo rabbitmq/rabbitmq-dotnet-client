@@ -529,6 +529,11 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual void Dispose(bool disposing)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (IsDisposing)
             {
                 return;
@@ -559,6 +564,11 @@ namespace RabbitMQ.Client.Impl
 
         public async ValueTask DisposeAsync()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             await DisposeAsyncCore()
                 .ConfigureAwait(false);
 
@@ -567,6 +577,11 @@ namespace RabbitMQ.Client.Impl
 
         protected virtual async ValueTask DisposeAsyncCore()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (IsDisposing)
             {
                 return;
@@ -576,7 +591,8 @@ namespace RabbitMQ.Client.Impl
             {
                 if (IsOpen)
                 {
-                    await this.AbortAsync().ConfigureAwait(false);
+                    await this.AbortAsync()
+                        .ConfigureAwait(false);
                 }
 
                 if (_serverOriginatedChannelCloseTcs is not null)
