@@ -637,7 +637,7 @@ namespace Test
         protected static Task WaitForRecoveryAsync(IConnection conn)
         {
             TaskCompletionSource<bool> tcs = PrepareForRecovery((AutorecoveringConnection)conn);
-            return WaitAsync(tcs, "recovery succeded");
+            return WaitAsync(tcs, "recovery succeeded");
         }
 
         protected static TaskCompletionSource<bool> PrepareForRecovery(IConnection conn)

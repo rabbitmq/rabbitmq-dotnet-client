@@ -160,7 +160,7 @@ namespace Test.SequentialIntegration
             }
             finally
             {
-                // NOTE: must unblock so that close succeeeds on test tear-down
+                // NOTE: must unblock so that close succeeds on test tear-down
                 await UnblockAsync();
             }
         }

@@ -120,7 +120,7 @@ namespace RabbitMQ.Client.Framing
                     MaybeTerminateMainloopAndStopHeartbeatTimers();
                     /*
                      * Note: do NOT use the main loop cancellation token,
-                     * because FininshCloseAsync immediately cancels it
+                     * because FinishCloseAsync immediately cancels it
                      */
                     using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionAbortTimeout);
                     await FinishCloseAsync(cts.Token)
