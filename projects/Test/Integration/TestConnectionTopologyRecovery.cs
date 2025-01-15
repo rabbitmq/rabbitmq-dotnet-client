@@ -383,7 +383,7 @@ namespace Test.Integration
             try
             {
                 await CloseAndWaitForRecoveryAsync(conn);
-                await WaitAsync(tcs, "recovery succeded");
+                await WaitAsync(tcs, "recovery succeeded");
 
                 Assert.True(ch.IsOpen);
                 await AssertQueueRecoveryAsync(ch, queueToRecoverSuccessfully, false);

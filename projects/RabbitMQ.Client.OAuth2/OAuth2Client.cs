@@ -64,7 +64,7 @@ namespace RabbitMQ.Client.OAuth2
         /// <param name="clientId">Id of the client</param>
         /// <param name="clientSecret">Secret of the client</param>
         /// <param name="tokenEndpoint">Endpoint to receive the Access Token</param>
-        /// <param name="issuer">Issuer of the Access Token. Used to automaticly receive the Token Endpoint while building</param>
+        /// <param name="issuer">Issuer of the Access Token. Used to automatically receive the Token Endpoint while building</param>
         /// <remarks>
         /// Either <paramref name="tokenEndpoint"/> or <paramref name="issuer"/> must be provided.
         /// </remarks>
@@ -163,7 +163,7 @@ namespace RabbitMQ.Client.OAuth2
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // Build endpoint from Issuer and dicovery endpoint, we can't use the Uri overload because the Issuer Uri may not have a trailing '/'
+            // Build endpoint from Issuer and discovery endpoint, we can't use the Uri overload because the Issuer Uri may not have a trailing '/'
             string tempIssuer = _issuer.AbsoluteUri.EndsWith("/") ? _issuer.AbsoluteUri : _issuer.AbsoluteUri + "/";
             Uri discoveryEndpoint = new Uri(tempIssuer + DISCOVERY_ENDPOINT);
 
@@ -187,7 +187,7 @@ namespace RabbitMQ.Client.OAuth2
 
     /**
     * Default implementation of IOAuth2Client. It uses Client_Credentials OAuth2 flow to request a
-    * token. The basic constructor assumes no scopes are needed only the OAuth2 Client credentiuals.
+    * token. The basic constructor assumes no scopes are needed only the OAuth2 Client credentials.
     * The additional constructor accepts a Dictionary with all the request parameters passed onto the
     * OAuth2 request token.
     */
