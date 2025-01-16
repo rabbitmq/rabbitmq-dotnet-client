@@ -71,6 +71,7 @@ namespace Test.Integration
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
+            var consumerRegisteredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var publish1SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var publish2SyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -105,6 +106,20 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
+                consumer.RegisteredAsync += (object sender, ConsumerEventArgs ea) =>
+                {
+                    if (ReferenceEquals(consumer, sender))
+                    {
+                        consumerRegisteredTcs.SetResult(true);
+                    }
+                    else
+                    {
+                        var ex = Xunit.Sdk.EqualException.ForMismatchedValues(consumer, sender);
+                        consumerRegisteredTcs.SetException(ex);
+                    }
+                    return Task.CompletedTask;
+                };
+
                 consumer.ReceivedAsync += (o, a) =>
                 {
                     if (ByteArraysEqual(a.Body.Span, body1))
@@ -126,6 +141,7 @@ namespace Test.Integration
                 };
 
                 await _channel.BasicConsumeAsync(q.QueueName, true, string.Empty, false, false, null, consumer);
+                await consumerRegisteredTcs.Task.WaitAsync(WaitSpan);
 
                 try
                 {

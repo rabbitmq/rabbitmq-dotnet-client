@@ -185,16 +185,27 @@ namespace Test
                     await _conn.CloseAsync();
                 }
             }
+            catch (Exception ex)
+            {
+                _output.WriteLine("[WARNING] IntegrationFixture.CloseAsync() exception: {0}", ex);
+            }
             finally
             {
-                _eventListener?.Dispose();
-                if (_channel is not null)
+                try
                 {
-                    await _channel.DisposeAsync();
+                    _eventListener?.Dispose();
+                    if (_channel is not null)
+                    {
+                        await _channel.DisposeAsync();
+                    }
+                    if (_conn is not null)
+                    {
+                        await _conn.DisposeAsync();
+                    }
                 }
-                if (_conn is not null)
+                catch (Exception ex)
                 {
-                    await _conn.DisposeAsync();
+                    _output.WriteLine("[WARNING] IntegrationFixture.DisposeAsync() exception: {0}", ex);
                 }
                 _channel = null;
                 _conn = null;

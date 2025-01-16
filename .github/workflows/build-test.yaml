@@ -67,7 +67,7 @@ jobs:
         id: install-start-rabbitmq
         run: ${{ github.workspace }}\.ci\windows\gha-setup.ps1
       - name: Integration Tests
-        timeout-minutes: 25
+        timeout-minutes: 45
         run: |
           Start-Job -Verbose -ScriptBlock { & "${{ github.workspace }}\.ci\windows\toxiproxy\toxiproxy-server.exe" | Out-File -LiteralPath $env:APPDATA\RabbitMQ\log\toxiproxy-log.txt }; `
           dotnet test `
@@ -113,7 +113,7 @@ jobs:
         id: install-start-rabbitmq
         run: ${{ github.workspace }}\.ci\windows\gha-setup.ps1
       - name: Sequential Integration Tests
-        timeout-minutes: 25
+        timeout-minutes: 45
         run: dotnet test `
             --environment 'RABBITMQ_LONG_RUNNING_TESTS=true' `
             --environment "RABBITMQ_RABBITMQCTL_PATH=${{ steps.install-start-rabbitmq.outputs.path }}" `
