@@ -1,12 +1,61 @@
 # Changelog
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.14...HEAD)
+## [Unreleased](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/HEAD)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/7.1.0-alpha.0...HEAD)
+
+**Closed issues:**
+
+- `IChannel` thread safety [\#1722](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1722)
+
+## [7.1.0-alpha.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/7.1.0-alpha.0) (2025-01-16)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.0-alpha.0...7.1.0-alpha.0)
+
+## [v7.1.0-alpha.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.1.0-alpha.0) (2025-01-16)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0...v7.1.0-alpha.0)
+
+**Implemented enhancements:**
+
+- Single Active consumer [\#1723](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1723)
+- OpenTelemetry: Update messaging.operation span attribute to latest OTel Semantic Conventions [\#1715](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1715)
+- 7.0 release checklist / misc items [\#1413](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1413)
+
+**Fixed bugs:**
+
+- Connection Recovery is triggered without the old connection being closed [\#1767](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1767)
+- Cancelling `ModelSendAsync` can close the connection when it shouldn't [\#1750](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1750)
+- `ObjectDisposedException` when channel is closed by RabbitMQ due to a channel exception [\#1749](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1749)
 
 **Merged pull requests:**
 
+- Fix typos [\#1770](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1770) ([sungam3r](https://github.com/sungam3r))
+- Remove whitespaces from csproj files [\#1768](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1768) ([sungam3r](https://github.com/sungam3r))
+- Misc items [\#1766](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1766) ([lukebakken](https://github.com/lukebakken))
+- Ensure broker-originated channel closure completes [\#1764](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1764) ([lukebakken](https://github.com/lukebakken))
+- Update copyright year to 2025 [\#1755](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1755) ([lukebakken](https://github.com/lukebakken))
+- Handle `OperationCanceledException` in RPC continuations [\#1753](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1753) ([lukebakken](https://github.com/lukebakken))
+- Update NuGet packages [\#1748](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1748) ([lukebakken](https://github.com/lukebakken))
+- Set TestTfmsInParallel to false for Integration tests [\#1745](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1745) ([lukebakken](https://github.com/lukebakken))
+- Toxiproxy manager change [\#1744](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1744) ([lukebakken](https://github.com/lukebakken))
+- Address flaky integration tests [\#1742](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1742) ([lukebakken](https://github.com/lukebakken))
+- Simplify preprocessor directives [\#1741](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1741) ([danielmarbach](https://github.com/danielmarbach))
+- chore: bump regular System.Text.RegularExpressions due to a known CVE in earlier versions [\#1735](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1735) ([aygalinc](https://github.com/aygalinc))
+- More updates for the current OTel \(OpenTelemetry\) conventions [\#1717](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1717) ([iinuwa](https://github.com/iinuwa))
+
+## [v7.0.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0) (2024-11-05)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-rc.14...v7.0.0)
+
+**Merged pull requests:**
+
+- 7.0.0 CHANGELOG [\#1719](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1719) ([lukebakken](https://github.com/lukebakken))
 - Fix build warnings in API [\#1718](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1718) ([lukebakken](https://github.com/lukebakken))
 - Change OTel attribute messaging.operation to messaging.operation.type [\#1716](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1716) ([iinuwa](https://github.com/iinuwa))
 - Throw when lease not acquired. This can happen then the rate limiter doesn't allow queuing or is generally wrongly configured [\#1714](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1714) ([danielmarbach](https://github.com/danielmarbach))
+
+**Merged pull requests:**
 
 ## [v7.0.0-rc.14](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.14) (2024-10-24)
 
@@ -229,7 +278,6 @@
 - Update CHANGELOG [\#1598](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1598) ([lukebakken](https://github.com/lukebakken))
 - Use default value for `RabbitMQActivitySource.UseRoutingKeyAsOperationName` [\#1595](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1595) ([lukebakken](https://github.com/lukebakken))
 - downgrade dependencies [\#1594](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1594) ([WeihanLi](https://github.com/WeihanLi))
-
 ## [v7.0.0-rc.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0-rc.1) (2024-06-04)
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0-alpha.6...v7.0.0-rc.1)
