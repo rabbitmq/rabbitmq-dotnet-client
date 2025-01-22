@@ -744,11 +744,13 @@ namespace RabbitMQ.Client.Impl
             await FinishCloseAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            if (_continuationQueue.TryPeek<ChannelCloseAsyncRpcContinuation>(out ChannelCloseAsyncRpcContinuation? k))
+            if (_continuationQueue.TryPeek(out ChannelCloseAsyncRpcContinuation? k))
             {
-                _continuationQueue.Next();
-                await k.HandleCommandAsync(cmd)
-                    .ConfigureAwait(false);
+                using (IRpcContinuation c = _continuationQueue.Next())
+                {
+                    await k.HandleCommandAsync(cmd)
+                        .ConfigureAwait(false);
+                }
             }
 
             return true;
@@ -818,10 +820,12 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleConnectionSecureAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
-            await k.HandleCommandAsync(new IncomingCommand())
-                .ConfigureAwait(false); // release the continuation.
-            return true;
+            using (var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next())
+            {
+                await k.HandleCommandAsync(new IncomingCommand())
+                    .ConfigureAwait(false); // release the continuation.
+                return true;
+            }
         }
 
         protected async Task<bool> HandleConnectionStartAsync(IncomingCommand cmd, CancellationToken cancellationToken)
@@ -848,12 +852,12 @@ namespace RabbitMQ.Client.Impl
 
         protected async Task<bool> HandleConnectionTuneAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
-            // Note: `using` here to ensure instance is disposed
-            using var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next();
-
-            // Note: releases the continuation and returns the buffers
-            await k.HandleCommandAsync(cmd)
-                .ConfigureAwait(false);
+            using (var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next())
+            {
+                // Note: releases the continuation and returns the buffers
+                await k.HandleCommandAsync(cmd)
+                    .ConfigureAwait(false);
+            }
 
             return true;
         }

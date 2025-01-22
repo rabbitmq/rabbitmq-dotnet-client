@@ -44,7 +44,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         private readonly System.Threading.Channels.ChannelWriter<WorkStruct> _writer;
         private readonly Task _worker;
         private readonly ushort _concurrency;
-        private bool _quiesce = false;
+        private long _isQuiescing;
         private bool _disposed;
 
         internal ConsumerDispatcherChannelBase(Impl.Channel channel, ushort concurrency)
@@ -79,7 +79,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        public bool IsShutdown => _quiesce;
+        public bool IsShutdown => IsQuiescing;
 
         public ushort Concurrency => _concurrency;
 
@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (false == _disposed && false == _quiesce)
+            if (false == _disposed && false == IsQuiescing)
             {
                 try
                 {
@@ -110,7 +110,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (false == _disposed && false == _quiesce)
+            if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
                 var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body);
@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (false == _disposed && false == _quiesce)
+            if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag);
@@ -136,7 +136,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (false == _disposed && false == _quiesce)
+            if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag);
@@ -147,7 +147,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public void Quiesce()
         {
-            _quiesce = true;
+            Interlocked.Exchange(ref _isQuiescing, 1);
         }
 
         public async Task WaitForShutdownAsync()
@@ -157,7 +157,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 return;
             }
 
-            if (_quiesce)
+            if (IsQuiescing)
             {
                 try
                 {
@@ -190,6 +190,19 @@ namespace RabbitMQ.Client.ConsumerDispatching
             else
             {
                 throw new InvalidOperationException("WaitForShutdownAsync called but _quiesce is false");
+            }
+        }
+
+        protected bool IsQuiescing
+        {
+            get
+            {
+                if (Interlocked.Read(ref _isQuiescing) == 1)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 

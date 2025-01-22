@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
@@ -69,6 +70,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 if (false == _reader.Completion.IsCompleted)
                 {
                     throw;
+                }
+            }
+            finally
+            {
+                while (_reader.TryRead(out WorkStruct work))
+                {
+                    using (work)
+                    {
+                        ESLog.Warn($"discarding consumer work: {work.WorkType}");
+                    }
                 }
             }
         }

@@ -97,7 +97,10 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void HandleChannelShutdown(ShutdownEventArgs reason)
         {
-            Next().HandleChannelShutdown(reason);
+            using (IRpcContinuation c = Next())
+            {
+                c.HandleChannelShutdown(reason);
+            }
         }
 
         ///<summary>Retrieve the next waiting continuation.</summary>
