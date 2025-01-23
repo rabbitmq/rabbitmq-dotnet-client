@@ -160,13 +160,11 @@ namespace GH_1749
 
         private static void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
         {
-            Console.WriteLine("{0} [INFO] saw FirstChanceException, exception: {1}", Now, e.Exception);
-            /*
+            // Console.WriteLine("{0} [INFO] saw FirstChanceException, exception: {1}", Now, e.Exception);
             if (e.Exception is ObjectDisposedException)
             {
                 Console.WriteLine("{0} [INFO] saw FirstChanceException, exception: {1}", Now, e.Exception);
             }
-            */
         }
 
         private static Task Connection_CallbackExceptionAsync(object sender, CallbackExceptionEventArgs ea)
