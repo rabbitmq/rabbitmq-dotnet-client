@@ -117,5 +117,17 @@ namespace Test.Integration.GH
 
             Assert.False(sawConnectionShutdown);
         }
+
+        [Fact]
+        public async Task TestHeartbeatTimeoutValue_GH1756()
+        {
+            var connectionFactory = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true,
+                RequestedHeartbeat = TimeSpan.Zero,
+            };
+
+            _conn = await connectionFactory.CreateConnectionAsync("some-name");
+        }
     }
 }
