@@ -161,16 +161,9 @@ namespace RabbitMQ.Client.ConsumerDispatching
             {
                 try
                 {
-                    await _worker
-                        .ConfigureAwait(false);
-
-                    /*
-                     * rabbitmq/rabbitmq-dotnet-client#1751
-                     *
-                     * Wait for the worker first to ensure all items have been read out of the channel,
-                     * otherwise the following will never return (https://stackoverflow.com/a/66521303)
-                     */
                     await _reader.Completion
+                        .ConfigureAwait(false);
+                    await _worker
                         .ConfigureAwait(false);
                 }
                 catch (AggregateException aex)
