@@ -330,8 +330,6 @@ namespace RabbitMQ.Client.Framing
             }
             else
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 await OnShutdownAsync(reason)
                     .ConfigureAwait(false);
                 await _session0.SetSessionClosingAsync(false, cancellationToken)
@@ -518,7 +516,6 @@ namespace RabbitMQ.Client.Framing
                 }
 
                 _session0.Dispose();
-                _mainLoopCts.Dispose();
 
                 await _channel0.DisposeAsync()
                     .ConfigureAwait(false);
@@ -529,6 +526,7 @@ namespace RabbitMQ.Client.Framing
             }
             finally
             {
+                _mainLoopCts.Dispose();
                 _disposed = true;
             }
         }
