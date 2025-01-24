@@ -111,8 +111,11 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    _socket.ReceiveTimeout = value;
-                    _stream.ReadTimeout = (int)value.TotalMilliseconds;
+                    if (value != default)
+                    {
+                        _socket.ReceiveTimeout = value;
+                        _stream.ReadTimeout = (int)value.TotalMilliseconds;
+                    }
                 }
                 catch (SocketException)
                 {
@@ -125,8 +128,11 @@ namespace RabbitMQ.Client.Impl
         {
             set
             {
-                _socket.Client.SendTimeout = (int)value.TotalMilliseconds;
-                _stream.WriteTimeout = (int)value.TotalMilliseconds;
+                if (value != default)
+                {
+                    _socket.Client.SendTimeout = (int)value.TotalMilliseconds;
+                    _stream.WriteTimeout = (int)value.TotalMilliseconds;
+                }
             }
         }
 
