@@ -128,6 +128,8 @@ namespace Test.Integration.GH
             };
 
             _conn = await connectionFactory.CreateConnectionAsync("some-name");
+
+            Assert.True(_conn.Heartbeat != default);
         }
     }
 }
