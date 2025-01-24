@@ -59,10 +59,11 @@ namespace RabbitMQ.Client
         /// To wait infinitely for the close operations to complete use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>.
         /// </para>
         /// </remarks>
-        public static Task CloseAsync(this IConnection connection, TimeSpan timeout)
+        public static async Task CloseAsync(this IConnection connection, TimeSpan timeout)
         {
-            return connection.CloseAsync(Constants.ReplySuccess, "Goodbye", timeout, false,
-                CancellationToken.None);
+            using var cts = new CancellationTokenSource(timeout);
+            await connection.CloseAsync(Constants.ReplySuccess, "Goodbye", timeout, false, cts.Token)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -82,10 +83,11 @@ namespace RabbitMQ.Client
         /// Operation timeout.
         /// </para>
         /// </remarks>
-        public static Task CloseAsync(this IConnection connection, ushort reasonCode, string reasonText, TimeSpan timeout)
+        public static async Task CloseAsync(this IConnection connection, ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            return connection.CloseAsync(reasonCode, reasonText, timeout, false,
-                CancellationToken.None);
+            using var cts = new CancellationTokenSource(timeout);
+            await connection.CloseAsync(reasonCode, reasonText, timeout, false, cts.Token)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -97,10 +99,12 @@ namespace RabbitMQ.Client
         /// <see cref="IOException"/> during closing connection.
         ///This method waits infinitely for the in-progress close operation to complete.
         /// </remarks>
-        public static Task AbortAsync(this IConnection connection)
+        public static async Task AbortAsync(this IConnection connection)
         {
-            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced", InternalConstants.DefaultConnectionAbortTimeout, true,
-                CancellationToken.None);
+            using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionAbortTimeout);
+            await connection.CloseAsync(Constants.ReplySuccess,
+                "Connection close forced", InternalConstants.DefaultConnectionAbortTimeout, true, cts.Token)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -116,10 +120,12 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the connection
         /// </para>
         /// </remarks>
-        public static Task AbortAsync(this IConnection connection, ushort reasonCode, string reasonText)
+        public static async Task AbortAsync(this IConnection connection, ushort reasonCode, string reasonText)
         {
-            return connection.CloseAsync(reasonCode, reasonText, InternalConstants.DefaultConnectionAbortTimeout, true,
-                CancellationToken.None);
+            using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionAbortTimeout);
+            await connection.CloseAsync(reasonCode,
+                reasonText, InternalConstants.DefaultConnectionAbortTimeout, true, cts.Token)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -135,10 +141,12 @@ namespace RabbitMQ.Client
         /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
         /// </para>
         /// </remarks>
-        public static Task AbortAsync(this IConnection connection, TimeSpan timeout)
+        public static async Task AbortAsync(this IConnection connection, TimeSpan timeout)
         {
-            return connection.CloseAsync(Constants.ReplySuccess, "Connection close forced", timeout, true,
-                CancellationToken.None);
+            using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionAbortTimeout);
+            await connection.CloseAsync(Constants.ReplySuccess,
+                "Connection close forced", timeout, true, cts.Token)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -155,10 +163,12 @@ namespace RabbitMQ.Client
         /// A message indicating the reason for closing the connection.
         /// </para>
         /// </remarks>
-        public static Task AbortAsync(this IConnection connection, ushort reasonCode, string reasonText, TimeSpan timeout)
+        public static async Task AbortAsync(this IConnection connection, ushort reasonCode, string reasonText, TimeSpan timeout)
         {
-            return connection.CloseAsync(reasonCode, reasonText, timeout, true,
-                CancellationToken.None);
+            using var cts = new CancellationTokenSource(InternalConstants.DefaultConnectionAbortTimeout);
+            await connection.CloseAsync(reasonCode,
+                reasonText, timeout, true, cts.Token)
+                .ConfigureAwait(false);
         }
     }
 }
