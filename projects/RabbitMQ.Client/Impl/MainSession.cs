@@ -47,6 +47,7 @@ namespace RabbitMQ.Client.Impl
         private volatile bool _closeIsServerInitiated;
         private volatile bool _closing;
         private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
+        private bool _disposed = false;
 
         public MainSession(Connection connection, uint maxBodyLength)
             : base(connection, 0, maxBodyLength)
@@ -83,6 +84,13 @@ namespace RabbitMQ.Client.Impl
 
         public async Task SetSessionClosingAsync(bool closeIsServerInitiated, CancellationToken cancellationToken)
         {
+            if (_disposed)
+            {
+                _closing = true;
+                _closeIsServerInitiated = closeIsServerInitiated;
+                return;
+            }
+
             if (await _closingSemaphore.WaitAsync(InternalConstants.DefaultConnectionAbortTimeout, cancellationToken)
                     .ConfigureAwait(false))
             {
@@ -122,6 +130,24 @@ namespace RabbitMQ.Client.Impl
             return base.TransmitAsync(in cmd, cancellationToken);
         }
 
-        public void Dispose() => ((IDisposable)_closingSemaphore).Dispose();
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            try
+            {
+                _closingSemaphore.Dispose();
+            }
+            catch
+            {
+            }
+            finally
+            {
+                _disposed = true;
+            }
+        }
     }
 }
