@@ -8,14 +8,24 @@ using RabbitMQ.Client;
 
 namespace OpenTelemetry.Trace
 {
+
     public static class OpenTelemetryExtensions
     {
-        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder)
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder, Action<RabbitMQTracingOptions> configure)
         {
+            var options = new RabbitMQTracingOptions();
+            configure?.Invoke(options);
+            RabbitMQActivitySource.TracingOptions = options;
+
             RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
             RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
             builder.AddSource("RabbitMQ.Client.*");
             return builder;
+        }
+
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder)
+        {
+            return AddRabbitMQInstrumentation(builder, null);
         }
 
         private static ActivityContext OpenTelemetryContextExtractor(IReadOnlyBasicProperties props)
