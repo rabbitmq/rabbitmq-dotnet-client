@@ -83,20 +83,25 @@ namespace Test.SequentialIntegration
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName)
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
-                .AddRabbitMQInstrumentation()
+                .AddRabbitMQInstrumentation(options =>
+                {
+                    options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
 
-            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
             string queueName = $"{Guid.NewGuid()}";
             QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName);
@@ -132,24 +137,29 @@ namespace Test.SequentialIntegration
 
             await _channel.BasicCancelAsync(consumerTag);
             await Task.Delay(500);
-            AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
+            AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queueName, exportedItems, true);
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
-                .AddRabbitMQInstrumentation()
+                .AddRabbitMQInstrumentation(options =>
+                {
+                    options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
 
-            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
 
             string queueName = $"{Guid.NewGuid()}";
@@ -186,24 +196,29 @@ namespace Test.SequentialIntegration
 
             await _channel.BasicCancelAsync(consumerTag);
             await Task.Delay(500);
-            AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
+            AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queueName, exportedItems, true);
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
-                .AddRabbitMQInstrumentation()
+                .AddRabbitMQInstrumentation(options =>
+                {
+                    options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
 
-            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
 
             string queueName = $"{Guid.NewGuid()}";
@@ -241,24 +256,29 @@ namespace Test.SequentialIntegration
 
             await _channel.BasicCancelAsync(consumerTag);
             await Task.Delay(500);
-            AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
+            AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queueName, exportedItems, true);
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName)
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
-                .AddRabbitMQInstrumentation()
+                .AddRabbitMQInstrumentation(options =>
+                {
+                    options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
 
-            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
 
             string queueName = $"{Guid.NewGuid()}";
@@ -297,23 +317,28 @@ namespace Test.SequentialIntegration
 
             await _channel.BasicCancelAsync(consumerTag);
             await Task.Delay(500);
-            AssertActivityData(useRoutingKeyAsOperationName, queueName, exportedItems, true);
+            AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queueName, exportedItems, true);
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
-                .AddRabbitMQInstrumentation()
+                .AddRabbitMQInstrumentation(options =>
+                {
+                    options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
             string baggageGuid = Guid.NewGuid().ToString();
             Baggage.SetBaggage("TestItem", baggageGuid);
             Assert.Equal(baggageGuid, Baggage.GetBaggage("TestItem"));
-            RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             await Task.Delay(500);
             string queue = $"queue-{Guid.NewGuid()}";
             const string msg = "for basic.get";
@@ -331,7 +356,7 @@ namespace Test.SequentialIntegration
                 ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(0u, ok.MessageCount);
                 await Task.Delay(500);
-                AssertActivityData(useRoutingKeyAsOperationName, queue, exportedItems, false);
+                AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queue, exportedItems, false);
             }
             finally
             {
@@ -339,7 +364,7 @@ namespace Test.SequentialIntegration
             }
         }
 
-        private void AssertActivityData(bool useRoutingKeyAsOperationName, string queueName,
+        private void AssertActivityData(bool useRoutingKeyAsOperationName, bool useParentChildLinking, string queueName,
             List<Activity> activityList, bool isDeliver = false, string baggageGuid = null)
         {
             string childName = isDeliver ? "deliver" : "fetch";
@@ -359,11 +384,21 @@ namespace Test.SequentialIntegration
                 x.GetTagItem(RabbitMQActivitySource.MessagingDestinationRoutingKey) is string routingKeyTag &&
                 routingKeyTag == $"{queueName}");
             Activity receiveActivity = activities.Single(x =>
-                x.OperationName == (useRoutingKeyAsOperationName ? $"{childName} {queueName}" : childName) &&
-                x.Links.First().Context.TraceId == sendActivity.TraceId);
+                x.OperationName == (useRoutingKeyAsOperationName ? $"{childName} {queueName}" : childName));
             Assert.Equal(ActivityKind.Producer, sendActivity.Kind);
             Assert.Equal(ActivityKind.Consumer, receiveActivity.Kind);
-            Assert.Null(receiveActivity.ParentId);
+            if (useParentChildLinking)
+            {
+                Assert.Empty(receiveActivity.Links);
+                Assert.Equal(sendActivity.Id, receiveActivity.ParentId);
+                Assert.Equal(sendActivity.TraceId, receiveActivity.TraceId);
+            }
+            else
+            {
+                Assert.Equal(sendActivity.TraceId, receiveActivity.Links.Single().Context.TraceId);
+                Assert.Null(receiveActivity.ParentId);
+                Assert.NotEqual(sendActivity.TraceId, receiveActivity.TraceId);
+            }
             AssertStringTagNotNullOrEmpty(sendActivity, "network.peer.address");
             AssertStringTagNotNullOrEmpty(sendActivity, "network.local.address");
             AssertStringTagNotNullOrEmpty(sendActivity, "server.address");
@@ -385,6 +420,7 @@ namespace Test.SequentialIntegration
             AssertStringTagEquals(receiveActivity, RabbitMQActivitySource.MessagingOperationName, childName);
             AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessagingOperationType, "send");
             AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessagingOperationName, "publish");
+
         }
     }
 }

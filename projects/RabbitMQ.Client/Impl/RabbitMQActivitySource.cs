@@ -52,6 +52,7 @@ namespace RabbitMQ.Client
             DefaultContextExtractor;
 
         public static bool UseRoutingKeyAsOperationName { get; set; } = true;
+        public static OpenTelemetryLinkType LinkType { get; set; } = OpenTelemetryLinkType.AlwaysLink;
         internal static bool PublisherHasListeners => s_publisherSource.HasListeners();
 
         internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
@@ -115,9 +116,16 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
+            ActivityContext linkedContext = LinkType == OpenTelemetryLinkType.AlwaysLink
+                ? ContextExtractor(readOnlyBasicProperties) : default;
+            ActivityContext parentContext = LinkType == OpenTelemetryLinkType.AlwaysParentChild
+                ? ContextExtractor(readOnlyBasicProperties) : default;
+
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
-                ContextExtractor(readOnlyBasicProperties));
+                linkedContext, parentContext);
+
+
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags(MessagingOperationTypeReceive, MessagingOperationNameBasicGet, routingKey, exchange, deliveryTag, readOnlyBasicProperties,
@@ -128,7 +136,7 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? Deliver(string routingKey, string exchange, ulong deliveryTag,
-            IReadOnlyBasicProperties basicProperties, int bodySize)
+            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -136,13 +144,18 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
+            ActivityContext linkedContext = LinkType == OpenTelemetryLinkType.AlwaysLink
+                ? ContextExtractor(readOnlyBasicProperties) : default;
+            ActivityContext parentContext = LinkType == OpenTelemetryLinkType.AlwaysParentChild
+                ? ContextExtractor(readOnlyBasicProperties) : default;
+
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,
-                ActivityKind.Consumer, ContextExtractor(basicProperties));
+                ActivityKind.Consumer, linkedContext, parentContext);
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags(MessagingOperationTypeProcess, MessagingOperationNameBasicDeliver, routingKey, exchange,
-                    deliveryTag, basicProperties, bodySize, activity);
+                    deliveryTag, readOnlyBasicProperties, bodySize, activity);
             }
 
             return activity;
@@ -157,8 +170,13 @@ namespace RabbitMQ.Client
         private static Activity? StartLinkedRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
             ActivityContext linkedContext = default, ActivityContext parentContext = default)
         {
+            var links = new List<ActivityLink>();
+            if (linkedContext != default)
+            {
+                links.Add(new ActivityLink(linkedContext));
+            }
             return source.CreateActivity(name, kind, parentContext: parentContext,
-                    links: new[] { new ActivityLink(linkedContext) }, idFormat: ActivityIdFormat.W3C,
+                    links: links, idFormat: ActivityIdFormat.W3C,
                     tags: CreationTags)
                 ?.Start();
         }
