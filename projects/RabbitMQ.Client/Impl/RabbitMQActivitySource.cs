@@ -116,10 +116,9 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = LinkType == OpenTelemetryLinkType.AlwaysLink
-                ? ContextExtractor(readOnlyBasicProperties) : default;
-            ActivityContext parentContext = LinkType == OpenTelemetryLinkType.AlwaysParentChild
-                ? ContextExtractor(readOnlyBasicProperties) : default;
+            ActivityContext linkedContext = ContextExtractor(readOnlyBasicProperties);
+            ActivityContext parentContext = LinkType == OpenTelemetryLinkType.AlwaysParentChildAndLink
+                ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
@@ -144,10 +143,9 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = LinkType == OpenTelemetryLinkType.AlwaysLink
-                ? ContextExtractor(readOnlyBasicProperties) : default;
-            ActivityContext parentContext = LinkType == OpenTelemetryLinkType.AlwaysParentChild
-                ? ContextExtractor(readOnlyBasicProperties) : default;
+            ActivityContext linkedContext = ContextExtractor(readOnlyBasicProperties);
+            ActivityContext parentContext = LinkType == OpenTelemetryLinkType.AlwaysParentChildAndLink
+                ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,

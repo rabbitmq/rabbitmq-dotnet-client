@@ -3,7 +3,7 @@
     public enum OpenTelemetryLinkType
     {
         AlwaysLink,
-        AlwaysParentChild
+        AlwaysParentChildAndLink
     }
 
     public class RabbitMQOpenTelemetryOptions

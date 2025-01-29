@@ -83,7 +83,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var _activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(_activities);
             await Task.Delay(500);
@@ -120,7 +120,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var _activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(_activities);
             await Task.Delay(500);
@@ -159,7 +159,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var _activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(_activities);
             await Task.Delay(500);
@@ -197,7 +197,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
             await Task.Delay(500);
@@ -235,7 +235,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
             await Task.Delay(500);
@@ -275,7 +275,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
             await Task.Delay(500);
@@ -314,7 +314,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
             await Task.Delay(500);
@@ -348,7 +348,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherWithCachedStringsAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
             await Task.Delay(500);
@@ -384,7 +384,7 @@ namespace Test.SequentialIntegration
         public async Task TestPublisherWithPublicationAddressAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+            RabbitMQActivitySource.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
             var activities = new List<Activity>();
             using ActivityListener activityListener = StartActivityListener(activities);
             await Task.Delay(500);
@@ -452,15 +452,14 @@ namespace Test.SequentialIntegration
                 x.OperationName == (useRoutingKeyAsOperationName ? $"{childName} {queueName}" : childName));
             Assert.Equal(ActivityKind.Producer, sendActivity.Kind);
             Assert.Equal(ActivityKind.Consumer, receiveActivity.Kind);
+            Assert.Equal(sendActivity.TraceId, receiveActivity.Links.Single().Context.TraceId);
             if (useParentChildLinking)
             {
-                Assert.Empty(receiveActivity.Links);
                 Assert.Equal(sendActivity.Id, receiveActivity.ParentId);
                 Assert.Equal(sendActivity.TraceId, receiveActivity.TraceId);
             }
             else
             {
-                Assert.Equal(sendActivity.TraceId, receiveActivity.Links.Single().Context.TraceId);
                 Assert.Null(receiveActivity.ParentId);
                 Assert.NotEqual(sendActivity.TraceId, receiveActivity.TraceId);
             }

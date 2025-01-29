@@ -94,7 +94,7 @@ namespace Test.SequentialIntegration
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -152,7 +152,7 @@ namespace Test.SequentialIntegration
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -211,7 +211,7 @@ namespace Test.SequentialIntegration
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -271,7 +271,7 @@ namespace Test.SequentialIntegration
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -332,7 +332,7 @@ namespace Test.SequentialIntegration
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChild : OpenTelemetryLinkType.AlwaysLink;
+                    options.LinkType = useParentChildLinking ? OpenTelemetryLinkType.AlwaysParentChildAndLink : OpenTelemetryLinkType.AlwaysLink;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -387,15 +387,14 @@ namespace Test.SequentialIntegration
                 x.OperationName == (useRoutingKeyAsOperationName ? $"{childName} {queueName}" : childName));
             Assert.Equal(ActivityKind.Producer, sendActivity.Kind);
             Assert.Equal(ActivityKind.Consumer, receiveActivity.Kind);
+            Assert.Equal(sendActivity.TraceId, receiveActivity.Links.Single().Context.TraceId);
             if (useParentChildLinking)
             {
-                Assert.Empty(receiveActivity.Links);
                 Assert.Equal(sendActivity.Id, receiveActivity.ParentId);
                 Assert.Equal(sendActivity.TraceId, receiveActivity.TraceId);
             }
             else
             {
-                Assert.Equal(sendActivity.TraceId, receiveActivity.Links.Single().Context.TraceId);
                 Assert.Null(receiveActivity.ParentId);
                 Assert.NotEqual(sendActivity.TraceId, receiveActivity.TraceId);
             }
