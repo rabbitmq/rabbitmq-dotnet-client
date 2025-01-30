@@ -1,11 +1,11 @@
-RabbitMQ.Client.OpenTelemetryLinkType
-RabbitMQ.Client.OpenTelemetryLinkType.AlwaysLink = 0 -> RabbitMQ.Client.OpenTelemetryLinkType
-RabbitMQ.Client.OpenTelemetryLinkType.AlwaysParentChildAndLink = 1 -> RabbitMQ.Client.OpenTelemetryLinkType
-RabbitMQ.Client.RabbitMQOpenTelemetryOptions
-RabbitMQ.Client.RabbitMQOpenTelemetryOptions.LinkType.get -> RabbitMQ.Client.OpenTelemetryLinkType
-RabbitMQ.Client.RabbitMQOpenTelemetryOptions.LinkType.set -> void
-RabbitMQ.Client.RabbitMQOpenTelemetryOptions.RabbitMQOpenTelemetryOptions() -> void
-RabbitMQ.Client.RabbitMQOpenTelemetryOptions.UseRoutingKeyAsOperationName.get -> bool
-RabbitMQ.Client.RabbitMQOpenTelemetryOptions.UseRoutingKeyAsOperationName.set -> void
-static RabbitMQ.Client.RabbitMQActivitySource.LinkType.get -> RabbitMQ.Client.OpenTelemetryLinkType
-static RabbitMQ.Client.RabbitMQActivitySource.LinkType.set -> void
+RabbitMQ.Client.RabbitMQTracingOptions
+RabbitMQ.Client.RabbitMQTracingOptions.LinkType.get -> RabbitMQ.Client.TracingLinkType
+RabbitMQ.Client.RabbitMQTracingOptions.LinkType.set -> void
+RabbitMQ.Client.RabbitMQTracingOptions.RabbitMQTracingOptions() -> void
+RabbitMQ.Client.RabbitMQTracingOptions.UseRoutingKeyAsOperationName.get -> bool
+RabbitMQ.Client.RabbitMQTracingOptions.UseRoutingKeyAsOperationName.set -> void
+RabbitMQ.Client.TracingLinkType
+RabbitMQ.Client.TracingLinkType.AlwaysLink = 0 -> RabbitMQ.Client.TracingLinkType
+RabbitMQ.Client.TracingLinkType.AlwaysParentChildAndLink = 1 -> RabbitMQ.Client.TracingLinkType
+static RabbitMQ.Client.RabbitMQActivitySource.TracingOptions.get -> RabbitMQ.Client.RabbitMQTracingOptions!
+static RabbitMQ.Client.RabbitMQActivitySource.TracingOptions.set -> void

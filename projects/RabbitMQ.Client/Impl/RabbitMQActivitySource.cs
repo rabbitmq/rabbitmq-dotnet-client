@@ -51,8 +51,12 @@ namespace RabbitMQ.Client
         public static Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor { get; set; } =
             DefaultContextExtractor;
 
-        public static bool UseRoutingKeyAsOperationName { get; set; } = true;
-        public static OpenTelemetryLinkType LinkType { get; set; } = OpenTelemetryLinkType.AlwaysLink;
+        public static bool UseRoutingKeyAsOperationName
+        {
+            get => TracingOptions.UseRoutingKeyAsOperationName;
+            set => TracingOptions.UseRoutingKeyAsOperationName = value;
+        }
+        public static RabbitMQTracingOptions TracingOptions { get; set; } = new RabbitMQTracingOptions();
         internal static bool PublisherHasListeners => s_publisherSource.HasListeners();
 
         internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
@@ -117,7 +121,7 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             ActivityContext linkedContext = ContextExtractor(readOnlyBasicProperties);
-            ActivityContext parentContext = LinkType == OpenTelemetryLinkType.AlwaysParentChildAndLink
+            ActivityContext parentContext = TracingOptions.LinkType == TracingLinkType.AlwaysParentChildAndLink
                 ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
@@ -144,7 +148,7 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             ActivityContext linkedContext = ContextExtractor(readOnlyBasicProperties);
-            ActivityContext parentContext = LinkType == OpenTelemetryLinkType.AlwaysParentChildAndLink
+            ActivityContext parentContext = TracingOptions.LinkType == TracingLinkType.AlwaysParentChildAndLink
                 ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(

@@ -11,12 +11,11 @@ namespace OpenTelemetry.Trace
 
     public static class OpenTelemetryExtensions
     {
-        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder, Action<RabbitMQOpenTelemetryOptions> configure)
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder, Action<RabbitMQTracingOptions> configure)
         {
-            var options = new RabbitMQOpenTelemetryOptions();
+            var options = new RabbitMQTracingOptions();
             configure?.Invoke(options);
-            RabbitMQActivitySource.LinkType = options.LinkType;
-            RabbitMQActivitySource.UseRoutingKeyAsOperationName = options.UseRoutingKeyAsOperationName;
+            RabbitMQActivitySource.TracingOptions = options;
 
             RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
             RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
