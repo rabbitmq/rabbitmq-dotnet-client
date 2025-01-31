@@ -9,6 +9,6 @@
     public class RabbitMQTracingOptions
     {
         public bool UseRoutingKeyAsOperationName { get; set; } = true;
-        public TracingLinkType LinkType { get; set; } = TracingLinkType.AlwaysLink;
+        public TracingLinkType LinkType { get; set; } = TracingLinkType.AlwaysParentChildAndLink;
     }
 }

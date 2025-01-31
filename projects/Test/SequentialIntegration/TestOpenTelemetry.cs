@@ -91,7 +91,7 @@ namespace Test.SequentialIntegration
 
             Assert.True(RabbitMQActivitySource.UseRoutingKeyAsOperationName);
             Assert.True(RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName);
-            Assert.Equal(TracingLinkType.AlwaysLink, RabbitMQActivitySource.TracingOptions.LinkType);
+            Assert.Equal(TracingLinkType.AlwaysParentChildAndLink, RabbitMQActivitySource.TracingOptions.LinkType);
         }
 
         [Theory]
