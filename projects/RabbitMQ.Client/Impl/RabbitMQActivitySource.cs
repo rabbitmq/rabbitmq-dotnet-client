@@ -172,9 +172,10 @@ namespace RabbitMQ.Client
         private static Activity? StartLinkedRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
             ActivityContext linkedContext = default, ActivityContext parentContext = default)
         {
-            var links = new List<ActivityLink>();
+            List<ActivityLink> links = null;
             if (linkedContext != default)
             {
+                links = new List<ActivityLink>();
                 links.Add(new ActivityLink(linkedContext));
             }
             return source.CreateActivity(name, kind, parentContext: parentContext,
