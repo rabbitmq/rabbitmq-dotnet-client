@@ -131,5 +131,21 @@ namespace Test.Integration.GH
 
             Assert.True(_conn.Heartbeat != default);
         }
+
+        [Fact]
+        public async Task DisposeWhileCatchingTimeoutDeadlocksRepro_GH1759()
+        {
+            _connFactory = new ConnectionFactory();
+            _conn = await _connFactory.CreateConnectionAsync();
+            try
+            {
+                await _conn.CloseAsync(TimeSpan.Zero);
+            }
+            catch (Exception)
+            {
+            }
+
+            await _conn.DisposeAsync();
+        }
     }
 }
