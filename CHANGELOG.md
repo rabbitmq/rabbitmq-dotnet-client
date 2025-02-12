@@ -2,6 +2,27 @@
 
 ## [Unreleased](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/HEAD)
 
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.0-alpha.0...HEAD)
+
+**Fixed bugs:**
+
+- `ObjectDisposedException` when connection is closed from the server [\#1760](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1760)
+- Disposing Connection after closing it with timeout causes deadlock [\#1759](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1759)
+- Intermittent deadlock when closing a channel using CloseAsync in 7.x [\#1751](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1751)
+
+**Closed issues:**
+
+- Throw exception during CreateConnectionAsync in case of wrong credentials [\#1777](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1777)
+- Exception when disabling heartbeat with v7 [\#1756](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1756)
+
+**Merged pull requests:**
+
+- Fix \#1777 [\#1781](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1781) ([lukebakken](https://github.com/lukebakken))
+- Create cancellation token from `timeout` [\#1775](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1775) ([lukebakken](https://github.com/lukebakken))
+- Allow setting heartbeat timeout to `TimeSpan.Zero` [\#1773](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1773) ([lukebakken](https://github.com/lukebakken))
+- Track down `ObjectDisposedExceptions` [\#1772](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1772) ([lukebakken](https://github.com/lukebakken))
+- Fix very rare deadlock [\#1771](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1771) ([lukebakken](https://github.com/lukebakken))
+
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/7.1.0-alpha.0...HEAD)
 
 **Closed issues:**
