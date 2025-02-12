@@ -793,11 +793,16 @@ namespace RabbitMQ.Client.Impl
             var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
             try
             {
-                await Session.Connection.ClosedViaPeerAsync(reason, cancellationToken)
-                    .ConfigureAwait(false);
-
+                /*
+                 * rabbitmq-dotnet-client#1777
+                 * Send the connection.close-ok message prior to closing within the client,
+                 * because ClosedViaPeerAsync will stop the main loop
+                 */
                 var replyMethod = new ConnectionCloseOk();
                 await ModelSendAsync(in replyMethod, cancellationToken)
+                    .ConfigureAwait(false);
+
+                await Session.Connection.ClosedViaPeerAsync(reason, cancellationToken)
                     .ConfigureAwait(false);
 
                 SetCloseReason(Session.Connection.CloseReason!);
