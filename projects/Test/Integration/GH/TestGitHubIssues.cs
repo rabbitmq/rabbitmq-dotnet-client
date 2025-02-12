@@ -34,6 +34,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -146,6 +147,23 @@ namespace Test.Integration.GH
             }
 
             await _conn.DisposeAsync();
+        }
+
+        [Fact]
+        public async Task InvalidCredentialsShouldThrow_GH1777()
+        {
+            string userPass = Guid.NewGuid().ToString();
+
+            _connFactory = new ConnectionFactory
+            {
+                UserName = userPass,
+                Password = userPass
+            };
+
+            BrokerUnreachableException ex =
+                await Assert.ThrowsAnyAsync<BrokerUnreachableException>(
+                    async () => await _connFactory.CreateConnectionAsync());
+            Assert.IsAssignableFrom<PossibleAuthenticationFailureException>(ex.InnerException);
         }
     }
 }
