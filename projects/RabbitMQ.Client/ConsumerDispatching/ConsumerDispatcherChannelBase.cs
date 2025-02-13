@@ -161,8 +161,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
             {
                 try
                 {
-                    await _reader.Completion
-                        .ConfigureAwait(false);
+                    /*
+                     * rabbitmq/rabbitmq-dotnet-client#1751
+                     * Awaiting the work channel reader could deadlock - no idea why.
+                     * Since we await the consumer dispatcher _worker task,
+                     * that should suffice.
+                     *
+                     * await _reader.Completion.ConfigureAwait(false);
+                     */
                     await _worker
                         .ConfigureAwait(false);
                 }
