@@ -1,56 +1,29 @@
 # Changelog
 
-## [Unreleased](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/HEAD)
+## [v7.1.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.1.0) (2025-02-19)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.0-alpha.0...HEAD)
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0...v7.1.0)
 
 **Fixed bugs:**
 
+- Intermittent deadlock when closing a channel using CloseAsync in 7.x [\#1751](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1751)
+- `ObjectDisposedException` when connection is closed from the server [\#1760](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1760)
+- Disposing Connection after closing it with timeout causes deadlock [\#1759](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1759)
 - `ObjectDisposedException` when connection is closed from the server [\#1760](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1760)
 - Disposing Connection after closing it with timeout causes deadlock [\#1759](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1759)
 - Intermittent deadlock when closing a channel using CloseAsync in 7.x [\#1751](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1751)
-
-**Closed issues:**
-
-- Throw exception during CreateConnectionAsync in case of wrong credentials [\#1777](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1777)
-- Exception when disabling heartbeat with v7 [\#1756](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1756)
-
-**Merged pull requests:**
-
-- Fix \#1777 [\#1781](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1781) ([lukebakken](https://github.com/lukebakken))
-- Create cancellation token from `timeout` [\#1775](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1775) ([lukebakken](https://github.com/lukebakken))
-- Allow setting heartbeat timeout to `TimeSpan.Zero` [\#1773](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1773) ([lukebakken](https://github.com/lukebakken))
-- Track down `ObjectDisposedExceptions` [\#1772](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1772) ([lukebakken](https://github.com/lukebakken))
-- Fix very rare deadlock [\#1771](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1771) ([lukebakken](https://github.com/lukebakken))
-
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/7.1.0-alpha.0...HEAD)
-
-**Closed issues:**
-
-- `IChannel` thread safety [\#1722](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1722)
-
-## [7.1.0-alpha.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/7.1.0-alpha.0) (2025-01-16)
-
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.0-alpha.0...7.1.0-alpha.0)
-
-## [v7.1.0-alpha.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.1.0-alpha.0) (2025-01-16)
-
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0...v7.1.0-alpha.0)
-
-**Implemented enhancements:**
-
-- Single Active consumer [\#1723](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1723)
-- OpenTelemetry: Update messaging.operation span attribute to latest OTel Semantic Conventions [\#1715](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1715)
-- 7.0 release checklist / misc items [\#1413](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1413)
-
-**Fixed bugs:**
-
 - Connection Recovery is triggered without the old connection being closed [\#1767](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1767)
 - Cancelling `ModelSendAsync` can close the connection when it shouldn't [\#1750](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1750)
 - `ObjectDisposedException` when channel is closed by RabbitMQ due to a channel exception [\#1749](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1749)
 
 **Merged pull requests:**
 
+- Fix rare deadlock, second try [\#1782](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1782) ([lukebakken](https://github.com/lukebakken))
+- Fix \#1777 [\#1781](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1781) ([lukebakken](https://github.com/lukebakken))
+- Create cancellation token from `timeout` [\#1775](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1775) ([lukebakken](https://github.com/lukebakken))
+- Allow setting heartbeat timeout to `TimeSpan.Zero` [\#1773](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1773) ([lukebakken](https://github.com/lukebakken))
+- Track down `ObjectDisposedExceptions` [\#1772](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1772) ([lukebakken](https://github.com/lukebakken))
+- Fix very rare deadlock [\#1771](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1771) ([lukebakken](https://github.com/lukebakken))
 - Fix typos [\#1770](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1770) ([sungam3r](https://github.com/sungam3r))
 - Remove whitespaces from csproj files [\#1768](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1768) ([sungam3r](https://github.com/sungam3r))
 - Misc items [\#1766](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1766) ([lukebakken](https://github.com/lukebakken))
@@ -64,6 +37,20 @@
 - Simplify preprocessor directives [\#1741](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1741) ([danielmarbach](https://github.com/danielmarbach))
 - chore: bump regular System.Text.RegularExpressions due to a known CVE in earlier versions [\#1735](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1735) ([aygalinc](https://github.com/aygalinc))
 - More updates for the current OTel \(OpenTelemetry\) conventions [\#1717](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1717) ([iinuwa](https://github.com/iinuwa))
+
+**Closed issues:**
+
+- Throw exception during CreateConnectionAsync in case of wrong credentials [\#1777](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1777)
+- Exception when disabling heartbeat with v7 [\#1756](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1756)
+- Throw exception during CreateConnectionAsync in case of wrong credentials [\#1777](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1777)
+- Exception when disabling heartbeat with v7 [\#1756](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1756)
+- `IChannel` thread safety [\#1722](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1722)
+
+**Implemented enhancements:**
+
+- Single Active consumer [\#1723](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1723)
+- OpenTelemetry: Update messaging.operation span attribute to latest OTel Semantic Conventions [\#1715](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1715)
+- 7.0 release checklist / misc items [\#1413](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1413)
 
 ## [v7.0.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.0.0) (2024-11-05)
 
