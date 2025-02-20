@@ -184,9 +184,9 @@ namespace RabbitMQ.Client.Util
                     return x;
                 }
 
-                if (x.End > y.Start)
+                if (x.Start > y.Start)
                 {
-                    return Merge(y, x);
+                    (x, y) = (y, x);
                 }
 
                 Debug.Assert(x.End != y.Start);

@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2025 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using RabbitMQ.Client.Util;
 using Xunit;
@@ -42,13 +41,12 @@ namespace Test.Unit
         public void TestRandomAllocation()
         {
             int repeatCount = 10000;
-            int range = 100;
+            int range = 2048;
             IList<int> allocated = new List<int>();
             IntAllocator intAllocator = new IntAllocator(0, range);
-            Random rand = new Random();
             while (repeatCount-- > 0)
             {
-                if (rand.Next(2) == 0)
+                if (Util.S_Random.Next(2) == 0)
                 {
                     int a = intAllocator.Allocate();
                     if (a > -1)
@@ -69,7 +67,7 @@ namespace Test.Unit
         [Fact]
         public void TestAllocateAll()
         {
-            int range = 100;
+            int range = 2048;
             IList<int> allocated = new List<int>();
             IntAllocator intAllocator = new IntAllocator(0, range);
             for (int i = 0; i <= range; i++)
