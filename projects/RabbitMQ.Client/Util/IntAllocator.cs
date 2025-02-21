@@ -30,183 +30,83 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
+using System.Collections;
 
 namespace RabbitMQ.Client.Util
 {
-    /**
-   * A class for allocating integer IDs in a given range.
-   */
+    /// <summary>
+    /// <see href="https://github.com/rabbitmq/rabbitmq-java-client/blob/main/src/main/java/com/rabbitmq/utility/IntAllocator.java"/>
+    /// </summary>
     internal class IntAllocator
     {
-        private readonly int[] _unsorted;
-        private IntervalList? _base;
-        private int _unsortedCount = 0;
+        private readonly int _loRange; // the integer that bit 0 represents
+        private readonly int _hiRange; // one more than the integer the highest bit represents
+        private readonly int _numberOfBits; //
 
-        /**
-     * A class representing a list of inclusive intervals
-     */
+        /// <summary>
+        /// A bit is SET/true in _freeSet if the corresponding integer is FREE
+        /// A bit is UNSET/false in freeSet if the corresponding integer is ALLOCATED
+        /// </summary>
+        private readonly BitArray _freeSet;
 
-        /**
-     * Creates an IntAllocator allocating integer IDs within the inclusive range [start, end]
-     */
-
-        public IntAllocator(int start, int end)
+        /// <summary>
+        /// Creates an IntAllocator allocating integer IDs within the
+        /// inclusive range [<c>bottom</c>, <c>top</c>].
+        /// </summary>
+        /// <param name="bottom">lower end of range</param>
+        /// <param name="top">upper end of range (incusive)</param>
+        /// <exception cref="ArgumentException"></exception>
+        public IntAllocator(int bottom, int top)
         {
-            if (start > end)
+            if (bottom > top)
             {
-                throw new ArgumentException($"illegal range [{start}, {end}]");
+                throw new ArgumentException($"illegal range [{bottom}, {top}]");
             }
 
-            // Fairly arbitrary heuristic for a good size for the unsorted set.
-            _unsorted = new int[Math.Max(32, (int)Math.Sqrt(end - start))];
-            _base = new IntervalList(start, end);
+            _loRange = bottom;
+            _hiRange = top + 1;
+            _numberOfBits = _hiRange - _loRange;
+            _freeSet = new BitArray(_numberOfBits, true); // All integers are FREE initially
         }
-
-        /**
-     * Allocate a fresh integer from the range, or return -1 if no more integers
-     * are available. This operation is guaranteed to run in O(1)
-     */
 
         public int Allocate()
         {
-            if (_unsortedCount > 0)
-            {
-                return _unsorted[--_unsortedCount];
-            }
-            else if (_base != null)
-            {
-                int result = _base.Start;
-                if (_base.Start == _base.End)
-                {
-                    _base = _base.Next;
-                }
-                else
-                {
-                    _base.Start++;
-                }
-                return result;
-            }
-            else
+            int setIndex = nextSetBit();
+            if (setIndex < 0) // no free integers are available
             {
                 return -1;
             }
+            _freeSet.Set(setIndex, false);
+            return setIndex + _loRange;
         }
 
-        /**
-     * Make the provided integer available for allocation again. This operation
-     * runs in amortized O(sqrt(range size)) time: About every sqrt(range size)
-     * operations  will take O(range_size + number of intervals) to complete and
-     * the rest run in constant time.
-     *
-     * No error checking is performed, so if you double Free or Free an integer
-     * that was not originally Allocated the results are undefined. Sorry.
-     */
-
-        public void Free(int id)
+        /// <summary>
+        /// Makes the provided integer available for allocation again.
+        /// </summary>
+        /// <param name="reservation">the previously allocated integer to free</param>
+        public void Free(int reservation)
         {
-            if (_unsortedCount >= _unsorted.Length)
-            {
-                Flush();
-            }
-            _unsorted[_unsortedCount++] = id;
+            int setIndex = reservation - _loRange;
+            _freeSet.Set(setIndex, true); // true means "unallocated"
         }
 
-        private void Flush()
+        /// <summary>
+        /// Note: this is different than the Java implementation, because we need to
+        /// preserve the prior behavior of always reserving low integers, if available.
+        /// See <c>Test.Integration.AllocateAfterFreeingMany</c>
+        /// </summary>
+        /// <returns>index of the next unallocated bit</returns>
+        private int nextSetBit()
         {
-            if (_unsortedCount > 0)
+            for (int i = 0; i < _freeSet.Count; i++)
             {
-                _base = IntervalList.Merge(_base, IntervalList.FromArray(_unsorted, _unsortedCount));
-                _unsortedCount = 0;
-            }
-        }
-
-
-        public class IntervalList
-        {
-            public int End;
-
-            // Invariant: If Next != Null then Next.Start > this.End + 1
-            public IntervalList? Next;
-            public int Start;
-
-            public IntervalList(int start, int end)
-            {
-                Start = start;
-                End = end;
+                if (_freeSet.Get(i)) // true means "unallocated"
+                {
+                    return i;
+                }
             }
 
-            // Destructively merge two IntervalLists.
-            // Invariant: None of the Intervals in the two lists may overlap
-            // intervals in this list.
-
-            public static IntervalList? FromArray(int[] xs, int length)
-            {
-                Array.Sort(xs, 0, length);
-
-                IntervalList? result = null;
-                IntervalList? current = null;
-
-                int i = 0;
-                while (i < length)
-                {
-                    int start = i;
-                    while ((i < length - 1) && (xs[i + 1] == xs[i] + 1))
-                    {
-                        i++;
-                    }
-
-                    var interval = new IntervalList(xs[start], xs[i]);
-
-                    if (result is null)
-                    {
-                        result = interval;
-                        current = interval;
-                    }
-                    else
-                    {
-                        current!.Next = interval;
-                        current = interval;
-                    }
-                    i++;
-                }
-                return result;
-            }
-
-            public static IntervalList? Merge(IntervalList? x, IntervalList? y)
-            {
-                if (x is null)
-                {
-                    return y;
-                }
-                if (y is null)
-                {
-                    return x;
-                }
-
-                if (x.Start > y.Start)
-                {
-                    (x, y) = (y, x);
-                }
-
-                Debug.Assert(x.End != y.Start);
-
-                // We now have x, y non-null and x.End < y.Start.
-
-                if (y.Start == x.End + 1)
-                {
-                    // The two intervals adjoin. Merge them into one and then
-                    // merge the tails.
-                    x.End = y.End;
-                    x.Next = Merge(x.Next, y.Next);
-                    return x;
-                }
-
-                // y belongs in the tail of x.
-
-                x.Next = Merge(y, x.Next);
-                return x;
-            }
+            return -1;
         }
     }
 }
