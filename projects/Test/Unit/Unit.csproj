@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../RabbitMQ.Client/RabbitMQ.Client.csproj" />
+    <ProjectReference Include="../Common/Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
