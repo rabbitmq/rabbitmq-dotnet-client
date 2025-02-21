@@ -100,6 +100,11 @@ namespace RabbitMQ.Client.Impl
         {
             lock (_sessionMap)
             {
+                /*
+                 * Note: rabbitmq/rabbitmq-server#13337
+                 * When investigating the above issue, a couple KeyNotFoundExceptions
+                 * were thrown here during test shutdown. No reliable reproducer.
+                 */
                 return _sessionMap[number];
             }
         }
