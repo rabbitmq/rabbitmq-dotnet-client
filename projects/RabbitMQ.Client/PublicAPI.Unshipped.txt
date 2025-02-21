@@ -5,6 +5,7 @@ RabbitMQ.Client.Exceptions.PublishReturnException.PublishReturnException(ulong p
 RabbitMQ.Client.Exceptions.PublishReturnException.ReplyCode.get -> ushort
 RabbitMQ.Client.Exceptions.PublishReturnException.ReplyText.get -> string!
 RabbitMQ.Client.Exceptions.PublishReturnException.RoutingKey.get -> string!
+RabbitMQ.Client.IChannel.ChannelCancellationToken.get -> System.Threading.CancellationToken
 RabbitMQ.Client.RabbitMQTracingOptions
 RabbitMQ.Client.RabbitMQTracingOptions.RabbitMQTracingOptions() -> void
 RabbitMQ.Client.RabbitMQTracingOptions.UsePublisherAsParent.get -> bool

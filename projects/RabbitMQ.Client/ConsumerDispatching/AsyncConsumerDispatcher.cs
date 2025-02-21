@@ -33,8 +33,10 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                             work.DeliveryTag, work.BasicProperties!, work.Body.Size))
                                         {
                                             await work.Consumer.HandleBasicDeliverAsync(
-                                                work.ConsumerTag!, work.DeliveryTag, work.Redelivered,
-                                                work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory)
+                                                    work.ConsumerTag!, work.DeliveryTag, work.Redelivered,
+                                                    work.Exchange!, work.RoutingKey!, work.BasicProperties!,
+                                                    work.Body.Memory,
+                                                    work.Consumer.Channel?.ChannelCancellationToken ?? default)
                                                 .ConfigureAwait(false);
                                         }
                                         break;

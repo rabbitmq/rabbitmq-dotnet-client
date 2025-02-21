@@ -66,6 +66,8 @@ namespace RabbitMQ.Client.Impl
         private bool _disposed;
         private int _isDisposing;
 
+        private CancellationTokenSource _closeAsyncCts = new CancellationTokenSource();
+
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
@@ -84,6 +86,8 @@ namespace RabbitMQ.Client.Impl
             session.SessionShutdownAsync += OnSessionShutdownAsync;
             Session = session;
         }
+
+        public CancellationToken ChannelCancellationToken => _closeAsyncCts.Token;
 
         internal TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
@@ -208,13 +212,6 @@ namespace RabbitMQ.Client.Impl
         public async Task CloseAsync(ShutdownEventArgs args, bool abort,
             CancellationToken cancellationToken)
         {
-            CancellationToken argCancellationToken = cancellationToken;
-            if (IsOpen)
-            {
-                // Note: we really do need to try and close this channel!
-                cancellationToken = CancellationToken.None;
-            }
-
             bool enqueued = false;
             var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
@@ -235,6 +232,8 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 AssertResultIsTrue(await k);
+
+                _closeAsyncCts.Cancel();
 
                 await ConsumerDispatcher.WaitForShutdownAsync()
                     .ConfigureAwait(false);
@@ -265,7 +264,7 @@ namespace RabbitMQ.Client.Impl
                 MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
                 ChannelShutdownAsync -= k.OnConnectionShutdownAsync;
-                argCancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
@@ -591,6 +590,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         _rpcSemaphore.Dispose();
                         _confirmSemaphore.Dispose();
+                        _closeAsyncCts.Dispose();
                     }
                     catch
                     {

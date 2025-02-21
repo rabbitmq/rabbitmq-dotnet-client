@@ -450,5 +450,10 @@ namespace RabbitMQ.Client
         /// timing out.
         /// </summary>
         TimeSpan ContinuationTimeout { get; set; }
+
+        /// <summary>
+        /// The <see cref="CancellationToken"/> associated with channel closure.
+        /// </summary>
+        CancellationToken ChannelCancellationToken { get; }
     }
 }
