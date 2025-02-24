@@ -181,7 +181,7 @@ namespace RabbitMQ.Client.Framing
                 // frames for non-zero channels (and any inbound
                 // commands on channel zero that aren't
                 // Connection.CloseOk) must be discarded.
-                if (_closeReason is null)
+                if (CloseReason is null)
                 {
                     // No close reason, not quiescing the
                     // connection. Handle the frame. (Of course, the
