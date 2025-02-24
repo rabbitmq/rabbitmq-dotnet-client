@@ -329,5 +329,58 @@ namespace Test.Integration.GH
                 _output.WriteLine("saw {0} publishExceptions", publishExceptions.Count);
             }
         }
+
+        [Fact]
+        public async Task MaybeSomethingUpWithRateLimiter_GH1793()
+        {
+            const int messageCount = 16;
+
+            _connFactory = new ConnectionFactory
+            {
+                AutomaticRecoveryEnabled = true
+            };
+
+            _conn = await _connFactory.CreateConnectionAsync();
+
+            var channelOpts = new CreateChannelOptions(
+                publisherConfirmationsEnabled: true,
+                publisherConfirmationTrackingEnabled: true,
+                outstandingPublisherConfirmationsRateLimiter: new NeverAcquiredRateLimiter()
+            );
+
+            _channel = await _conn.CreateChannelAsync(channelOpts);
+
+            var properties = new BasicProperties
+            {
+                DeliveryMode = DeliveryModes.Persistent
+            };
+
+            for (int i = 0; i < messageCount; i++)
+            {
+                int retryCount = 0;
+                const int maxRetries = 3;
+                while (retryCount <= maxRetries)
+                {
+                    try
+                    {
+                        byte[] bytes = Encoding.UTF8.GetBytes("message");
+                        await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
+                        {
+                            await _channel.BasicPublishAsync(string.Empty, string.Empty, true, properties, bytes);
+                        });
+                        break;
+                    }
+                    catch (SemaphoreFullException ex0)
+                    {
+                        _output.WriteLine("{0} ex: {1}", _testDisplayName, ex0);
+                        retryCount++;
+                    }
+                    catch (PublishException)
+                    {
+                        retryCount++;
+                    }
+                }
+            }
+        }
     }
 }

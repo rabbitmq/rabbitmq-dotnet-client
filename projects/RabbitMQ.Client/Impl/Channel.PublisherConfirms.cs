@@ -344,7 +344,24 @@ namespace RabbitMQ.Client.Impl
         {
             if (_publisherConfirmationsEnabled)
             {
-                _confirmSemaphore.Release();
+                try
+                {
+                    _confirmSemaphore.Release();
+                }
+                catch (SemaphoreFullException ex)
+                {
+                    /*
+                     * rabbitmq/rabbitmq-dotnet-client-1793
+                     * If MaybeStartPublisherConfirmationTracking throws an exception *prior* to acquiring
+                     * _confirmSemaphore, the above Release() call will throw SemaphoreFullException.
+                     * In "normal" cases, publisherConfirmationInfo will thus be null, but if not, throw
+                     * a "bug found" exception here.
+                     */
+                    if (publisherConfirmationInfo is not null)
+                    {
+                        throw new InvalidOperationException(InternalConstants.BugFound, ex);
+                    }
+                }
 
                 if (publisherConfirmationInfo is not null)
                 {
