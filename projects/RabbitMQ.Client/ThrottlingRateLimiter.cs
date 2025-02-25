@@ -134,13 +134,24 @@ namespace RabbitMQ.Client
 
         private int CalculateDelay()
         {
-            long? availablePermits = _concurrencyLimiter.GetStatistics()?.CurrentAvailablePermits;
-            if (!(availablePermits < _throttlingThreshold))
+            RateLimiterStatistics? rateLimiterStatistics = _concurrencyLimiter.GetStatistics();
+            if (rateLimiterStatistics is null)
             {
                 return 0;
             }
 
-            return (int)((1.0 - availablePermits / (double)_maxConcurrency) * 1000);
+            long availablePermits = rateLimiterStatistics.CurrentAvailablePermits;
+            if (availablePermits >= _throttlingThreshold)
+            {
+                /*
+                 * Note: do NOT add a delay because available permits exceeeds the threshold
+                 * below which throttling begins
+                 */
+                return 0;
+            }
+
+            double percentageUsed = 1.0 - (availablePermits / (double)_maxConcurrency);
+            return (int)(percentageUsed * 1000);
         }
     }
 }
