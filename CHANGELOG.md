@@ -1,5 +1,25 @@
 # Changelog
 
+## [v7.1.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.1.1) (2025-02-26)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.0...v7.1.1)
+
+**Implemented enhancements:**
+
+- Port `IntAllocator` from `rabbitmq-java-client` [\#1786](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1786)
+
+**Fixed bugs:**
+
+- Intermittent deadlock when closing a channel using CloseAsync in 7.x [\#1751](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1751)
+- Bug in `IntervalList` causes leak in locks. [\#1784](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1784)
+
+**Merged pull requests:**
+
+- Fix handling when rate limit lease can't be acquired. [\#1794](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1794) ([lukebakken](https://github.com/lukebakken))
+- Demonstrate handling of `Channel.Close` [\#1791](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1791) ([lukebakken](https://github.com/lukebakken))
+- Port `IntAllocator` from `rabbitmq-java-client` [\#1790](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1790) ([lukebakken](https://github.com/lukebakken))
+- Fix bug in `IntervalList` [\#1785](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1785) ([lukebakken](https://github.com/lukebakken))
+
 ## [v7.1.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.1.0) (2025-02-19)
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.0.0...v7.1.0)
