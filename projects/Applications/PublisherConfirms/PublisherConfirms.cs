@@ -30,13 +30,13 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 const ushort MAX_OUTSTANDING_CONFIRMS = 256;
 
@@ -124,11 +124,33 @@ async Task PublishMessagesInBatchAsync()
     var sw = new Stopwatch();
     sw.Start();
 
+    channel.BasicReturnAsync += (sender, ea) =>
+    {
+        ulong sequenceNumber = 0;
+
+        IReadOnlyBasicProperties props = ea.BasicProperties;
+        if (props.Headers is not null)
+        {
+            object? maybeSeqNum = props.Headers[Constants.PublishSequenceNumberHeader];
+            if (maybeSeqNum is long longSequenceNumber)
+            {
+                sequenceNumber = (ulong)longSequenceNumber;
+            }
+        }
+
+        return Console.Out.WriteLineAsync($"{DateTime.Now} [INFO] message sequence number '{sequenceNumber}' has been basic.return-ed");
+    };
+
     var publishTasks = new List<ValueTask>();
     for (int i = 0; i < MESSAGE_COUNT; i++)
     {
+        string rk = queueName;
+        if (i % 1000 == 0)
+        {
+            rk = Guid.NewGuid().ToString();
+        }
         byte[] body = Encoding.UTF8.GetBytes(i.ToString());
-        publishTasks.Add(channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: body, mandatory: true, basicProperties: props));
+        publishTasks.Add(channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true, basicProperties: props));
         outstandingMessageCount++;
 
         if (outstandingMessageCount == batchSize)
@@ -139,9 +161,13 @@ async Task PublishMessagesInBatchAsync()
                 {
                     await pt;
                 }
+                catch (PublishException pex)
+                {
+                    Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack or return, pex.IsReturn: '{pex.IsReturn}', seq no: '{pex.PublishSequenceNumber}'");
+                }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack or return, ex: '{ex}'");
+                    Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw exception, ex: '{ex}'");
                 }
             }
             publishTasks.Clear();
@@ -157,9 +183,13 @@ async Task PublishMessagesInBatchAsync()
             {
                 await pt;
             }
+            catch (PublishException pex)
+            {
+                Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack or return, pex.IsReturn: '{pex.IsReturn}', seq no: '{pex.PublishSequenceNumber}'");
+            }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw nack or return, ex: '{ex}'");
+                Console.Error.WriteLine($"{DateTime.Now} [ERROR] saw exception, ex: '{ex}'");
             }
         }
         publishTasks.Clear();
@@ -236,7 +266,7 @@ async Task HandlePublishConfirmsAsynchronously()
         }
     }
 
-    channel.BasicReturnAsync += (sender, ea) =>
+    channel.BasicReturnAsync += async (sender, ea) =>
     {
         ulong sequenceNumber = 0;
 
@@ -244,14 +274,15 @@ async Task HandlePublishConfirmsAsynchronously()
         if (props.Headers is not null)
         {
             object? maybeSeqNum = props.Headers[Constants.PublishSequenceNumberHeader];
-            if (maybeSeqNum is not null)
+            if (maybeSeqNum is long longSequenceNumber)
             {
-                sequenceNumber = BinaryPrimitives.ReadUInt64BigEndian((byte[])maybeSeqNum);
+                sequenceNumber = (ulong)longSequenceNumber;
             }
         }
 
-        Console.WriteLine($"{DateTime.Now} [WARNING] message sequence number {sequenceNumber} has been basic.return-ed");
-        return CleanOutstandingConfirms(sequenceNumber, false);
+        await Console.Out.WriteLineAsync($"{DateTime.Now} [INFO] message sequence number '{sequenceNumber}' has been basic.return-ed");
+
+        await CleanOutstandingConfirms(sequenceNumber, false);
     };
 
     channel.BasicAcksAsync += (sender, ea) => CleanOutstandingConfirms(ea.DeliveryTag, ea.Multiple);
@@ -290,13 +321,21 @@ async Task HandlePublishConfirmsAsynchronously()
             // This will cause a basic.return, for fun
             rk = Guid.NewGuid().ToString();
         }
+
+        var msgProps = new BasicProperties
+        {
+            Persistent = true,
+            Headers = new Dictionary<string, object?>()
+        };
+
+        msgProps.Headers.Add(Constants.PublishSequenceNumberHeader, (long)nextPublishSeqNo);
+
         (ulong, ValueTask) data =
-            (nextPublishSeqNo, channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true, basicProperties: props));
+            (nextPublishSeqNo, channel.BasicPublishAsync(exchange: string.Empty, routingKey: rk, body: body, mandatory: true, basicProperties: msgProps));
         publishTasks.Add(data);
     }
 
     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-    // await Task.WhenAll(publishTasks).WaitAsync(cts.Token);
     foreach ((ulong SeqNo, ValueTask PublishTask) datum in publishTasks)
     {
         try
