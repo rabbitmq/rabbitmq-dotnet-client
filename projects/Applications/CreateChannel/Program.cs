@@ -31,10 +31,12 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
+using System.Globalization;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace CreateChannel
 {
@@ -44,11 +46,11 @@ namespace CreateChannel
         private const int ChannelsToOpen = 50;
 
         private static int channelsOpened;
-        private static AutoResetEvent doneEvent;
+        private readonly static TaskCompletionSource<bool> s_tcs = new();
 
         public static async Task Main()
         {
-            doneEvent = new AutoResetEvent(false);
+            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
             var connectionFactory = new ConnectionFactory { };
             await using IConnection connection = await connectionFactory.CreateConnectionAsync();
@@ -67,26 +69,48 @@ namespace CreateChannel
 
                     for (int j = 0; j < channels.Length; j++)
                     {
+                        if (j % 2 == 0)
+                        {
+                            try
+                            {
+                                await channels[j].QueueDeclarePassiveAsync(Guid.NewGuid().ToString());
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
                         await channels[j].DisposeAsync();
                     }
                 }
 
-                doneEvent.Set();
+                s_tcs.SetResult(true);
             });
 
             Console.WriteLine($"{Repeats} times opening {ChannelsToOpen} channels on a connection. => Total channel open/close: {Repeats * ChannelsToOpen}");
             Console.WriteLine();
             Console.WriteLine("Opened");
-            while (!doneEvent.WaitOne(500))
+            while (false == s_tcs.Task.IsCompleted)
             {
+                await Task.Delay(500);
                 Console.WriteLine($"{channelsOpened,5}");
             }
             watch.Stop();
             Console.WriteLine($"{channelsOpened,5}");
             Console.WriteLine();
             Console.WriteLine($"Took {watch.Elapsed.TotalMilliseconds} ms");
+        }
 
-            Console.ReadLine();
+        private static string Now => DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
+
+        private static void CurrentDomain_FirstChanceException(object sender, FirstChanceExceptionEventArgs e)
+        {
+            if (e.Exception is OperationInterruptedException)
+            {
+            }
+            else
+            {
+                Console.Error.WriteLine("{0} [ERROR] {1}", Now, e.Exception);
+            }
         }
     }
 }
