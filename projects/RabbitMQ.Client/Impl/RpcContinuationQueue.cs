@@ -30,10 +30,13 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -65,6 +68,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
+        private readonly Queue<ProtocolCommandId[]> _rpcCancellationQueue = new();
         private IRpcContinuation _outstandingRpc = s_tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
@@ -137,6 +141,30 @@ namespace RabbitMQ.Client.Impl
 
             continuation = default;
             return false;
+        }
+
+        public void RpcCanceled(ProtocolCommandId[] protocolCommandIds)
+        {
+            _rpcCancellationQueue.Enqueue(protocolCommandIds);
+        }
+
+        public bool ShouldIgnoreCommand(ProtocolCommandId commandId)
+        {
+            // rabbitmq/rabbitmq-dotnet-client#1802
+            // This keeps track of ProtocolCommandId values from previous RPC
+            // commands that have timed out.
+            bool rv = false;
+
+            if (_rpcCancellationQueue.Count > 0)
+            {
+                ProtocolCommandId[] lastErroredCommandIds = _rpcCancellationQueue.Dequeue();
+                if (lastErroredCommandIds.Contains(commandId))
+                {
+                    rv = true;
+                }
+            }
+
+            return rv;
         }
     }
 }

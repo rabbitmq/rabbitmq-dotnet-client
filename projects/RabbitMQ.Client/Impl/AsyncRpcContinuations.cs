@@ -96,6 +96,8 @@ namespace RabbitMQ.Client.Impl
             return _tcsConfiguredTaskAwaitable.GetAwaiter();
         }
 
+        public abstract ProtocolCommandId[] HandledProtocolCommandIds { get; }
+
         public async Task HandleCommandAsync(IncomingCommand cmd)
         {
             try
@@ -203,6 +205,9 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
+        public override ProtocolCommandId[] HandledProtocolCommandIds
+            => [ProtocolCommandId.ConnectionSecure, ProtocolCommandId.ConnectionTune];
+
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.ConnectionSecure)
@@ -239,6 +244,9 @@ namespace RabbitMQ.Client.Impl
         {
             _expectedCommandId = expectedCommandId;
         }
+
+        public override ProtocolCommandId[] HandledProtocolCommandIds
+            => [_expectedCommandId];
 
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
@@ -297,6 +305,9 @@ namespace RabbitMQ.Client.Impl
             _consumerDispatcher = consumerDispatcher;
         }
 
+        public override ProtocolCommandId[] HandledProtocolCommandIds
+            => [ProtocolCommandId.BasicConsumeOk];
+
         protected override async Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.BasicConsumeOk)
@@ -325,6 +336,9 @@ namespace RabbitMQ.Client.Impl
         {
             _adjustDeliveryTag = adjustDeliveryTag;
         }
+
+        public override ProtocolCommandId[] HandledProtocolCommandIds
+            => [ProtocolCommandId.BasicGetOk, ProtocolCommandId.BasicGetEmpty];
 
         internal DateTime StartTime { get; } = DateTime.UtcNow;
 
@@ -441,6 +455,9 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
+        public override ProtocolCommandId[] HandledProtocolCommandIds
+            => [ProtocolCommandId.QueueDeclareOk];
+
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.QueueDeclareOk)
@@ -481,6 +498,9 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
+        public override ProtocolCommandId[] HandledProtocolCommandIds
+            => [ProtocolCommandId.QueueDeleteOk];
+
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
             if (cmd.CommandId == ProtocolCommandId.QueueDeleteOk)
@@ -503,6 +523,9 @@ namespace RabbitMQ.Client.Impl
             : base(continuationTimeout, cancellationToken)
         {
         }
+
+        public override ProtocolCommandId[] HandledProtocolCommandIds
+            => [ProtocolCommandId.QueuePurgeOk];
 
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
