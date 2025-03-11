@@ -36,7 +36,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -217,9 +216,14 @@ namespace RabbitMQ.Client.Impl
             {
                 if (_publisherConfirmationsEnabled && _publisherConfirmationTrackingEnabled)
                 {
-                    byte[] publishSequenceNumberBytes = new byte[8];
-                    NetworkOrderSerializer.WriteUInt64(ref publishSequenceNumberBytes.GetStart(), publishSequenceNumber);
-                    headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumberBytes;
+                    if (publishSequenceNumber > long.MaxValue)
+                    {
+                        headers[Constants.PublishSequenceNumberHeader] = publishSequenceNumber.ToString();
+                    }
+                    else
+                    {
+                        headers[Constants.PublishSequenceNumberHeader] = (long)publishSequenceNumber;
+                    }
                 }
             }
         }

@@ -34,13 +34,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
-using RabbitMQ.Client.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -233,10 +233,20 @@ namespace RabbitMQ.Client.Impl
                 ulong publishSequenceNumber = 0;
                 IReadOnlyBasicProperties props = basicReturnEvent.BasicProperties;
                 object? maybeSeqNum = props.Headers?[Constants.PublishSequenceNumberHeader];
-                if (maybeSeqNum != null &&
-                    maybeSeqNum is byte[] seqNumBytes)
+                if (maybeSeqNum != null)
                 {
-                    publishSequenceNumber = NetworkOrderDeserializer.ReadUInt64(seqNumBytes);
+                    switch (maybeSeqNum)
+                    {
+                        case long seqNumLong:
+                            publishSequenceNumber = (ulong)seqNumLong;
+                            break;
+                        case string seqNumString:
+                            publishSequenceNumber = ulong.Parse(seqNumString);
+                            break;
+                        case byte[] seqNumBytes:
+                            publishSequenceNumber = ulong.Parse(Encoding.ASCII.GetString(seqNumBytes));
+                            break;
+                    }
                 }
 
                 HandleNack(publishSequenceNumber, multiple: false, isReturn: true);
