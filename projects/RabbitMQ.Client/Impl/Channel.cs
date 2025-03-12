@@ -208,9 +208,8 @@ namespace RabbitMQ.Client.Impl
         public async Task CloseAsync(ShutdownEventArgs args, bool abort,
             CancellationToken cancellationToken)
         {
-            CancellationToken originalCancellationToken = cancellationToken;
-            bool cancellationRequested = cancellationToken.IsCancellationRequested;
-            if (IsOpen && cancellationRequested)
+            CancellationToken argCancellationToken = cancellationToken;
+            if (IsOpen)
             {
                 // Note: we really do need to try and close this channel!
                 cancellationToken = CancellationToken.None;
@@ -267,7 +266,7 @@ namespace RabbitMQ.Client.Impl
                 MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
                 ChannelShutdownAsync -= k.OnConnectionShutdownAsync;
-                originalCancellationToken.ThrowIfCancellationRequested();
+                argCancellationToken.ThrowIfCancellationRequested();
             }
         }
 

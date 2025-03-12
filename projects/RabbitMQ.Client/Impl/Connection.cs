@@ -320,6 +320,8 @@ namespace RabbitMQ.Client.Framing
         ///</remarks>
         internal async Task CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout, CancellationToken cancellationToken)
         {
+            CancellationToken argCancellationToken = cancellationToken;
+
             if (timeout < InternalConstants.DefaultConnectionAbortTimeout)
             {
                 timeout = InternalConstants.DefaultConnectionAbortTimeout;
@@ -424,6 +426,8 @@ namespace RabbitMQ.Client.Framing
                     throw;
                 }
             }
+
+            argCancellationToken.ThrowIfCancellationRequested();
         }
 
         internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason, CancellationToken cancellationToken)
