@@ -325,7 +325,7 @@ namespace RabbitMQ.Client.Framing
                 timeout = InternalConstants.DefaultConnectionAbortTimeout;
             }
 
-            if (IsOpen && cancellationToken.IsCancellationRequested)
+            if (IsOpen)
             {
                 // Note: we really do need to try and close this connection!
                 cancellationToken = CancellationToken.None;
