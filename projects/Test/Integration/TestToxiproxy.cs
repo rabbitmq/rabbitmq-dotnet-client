@@ -404,10 +404,45 @@ namespace Test.Integration
             Assert.Equal(TotalMessageCount, publishCount);
         }
 
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestRpcContinuationTimeout_GH1802()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), _proxyPort);
+            cf.ContinuationTimeout = TimeSpan.FromSeconds(1);
+            cf.AutomaticRecoveryEnabled = false;
+            cf.TopologyRecoveryEnabled = false;
+
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+
+            string toxicName = $"rmq-localhost-bandwidth-{Now}-{GenerateShortUuid()}";
+            var bandwidthToxic = new BandwidthToxic
+            {
+                Name = toxicName
+            };
+            bandwidthToxic.Attributes.Rate = 0;
+            bandwidthToxic.Toxicity = 1.0;
+            bandwidthToxic.Stream = ToxicDirection.DownStream;
+
+            Task<BandwidthToxic> addToxicTask = _toxiproxyManager.AddToxicAsync(bandwidthToxic);
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            ch.ContinuationTimeout = TimeSpan.FromMilliseconds(5);
+            QueueDeclareOk q = await ch.QueueDeclareAsync();
+        }
+
         private bool AreToxiproxyTestsEnabled
         {
             get
             {
+                // TODO rabbitmq/rabbitmq-dotnet-client#1802
+                return true;
+                /*
                 string s = Environment.GetEnvironmentVariable("RABBITMQ_TOXIPROXY_TESTS");
 
                 if (string.IsNullOrEmpty(s))
@@ -421,6 +456,7 @@ namespace Test.Integration
                 }
 
                 return false;
+                */
             }
         }
     }
