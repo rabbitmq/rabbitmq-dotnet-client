@@ -320,6 +320,17 @@ namespace RabbitMQ.Client.Framing
         ///</remarks>
         internal async Task CloseAsync(ShutdownEventArgs reason, bool abort, TimeSpan timeout, CancellationToken cancellationToken)
         {
+            if (timeout < InternalConstants.DefaultConnectionAbortTimeout)
+            {
+                timeout = InternalConstants.DefaultConnectionAbortTimeout;
+            }
+
+            if (IsOpen && cancellationToken.IsCancellationRequested)
+            {
+                // Note: we really do need to try and close this connection!
+                cancellationToken = CancellationToken.None;
+            }
+
             using var timeoutCts = new CancellationTokenSource(timeout);
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
@@ -335,6 +346,7 @@ namespace RabbitMQ.Client.Framing
             {
                 await OnShutdownAsync(reason)
                     .ConfigureAwait(false);
+
                 await _session0.SetSessionClosingAsync(false, cts.Token)
                     .ConfigureAwait(false);
 
@@ -393,7 +405,7 @@ namespace RabbitMQ.Client.Framing
 
             try
             {
-                await _mainLoopTask.WaitAsync(timeout, cts.Token)
+                await _mainLoopTask.WaitAsync(cts.Token)
                     .ConfigureAwait(false);
             }
             catch
