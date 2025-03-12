@@ -304,7 +304,15 @@ namespace RabbitMQ.Client.Impl
                     // negotiation finishes
                 }
 
-                return await k;
+                try
+                {
+                    return await k;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -340,26 +348,20 @@ namespace RabbitMQ.Client.Impl
                     // negotiation finishes
                 }
 
-                return await k;
+                try
+                {
+                    return await k;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
                 MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
-            }
-        }
-
-        protected bool Enqueue(IRpcContinuation k)
-        {
-            if (IsOpen)
-            {
-                _continuationQueue.Enqueue(k);
-                return true;
-            }
-            else
-            {
-                k.HandleChannelShutdown(CloseReason);
-                return false;
             }
         }
 
@@ -383,11 +385,19 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                bool result = await k;
-                Debug.Assert(result);
+                try
+                {
+                    bool result = await k;
+                    Debug.Assert(result);
 
-                await MaybeConfirmSelect(cancellationToken)
-                    .ConfigureAwait(false);
+                    await MaybeConfirmSelect(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -410,6 +420,20 @@ namespace RabbitMQ.Client.Impl
             m_connectionStartCell?.TrySetResult(null);
         }
 
+        private bool Enqueue(IRpcContinuation k)
+        {
+            if (IsOpen)
+            {
+                _continuationQueue.Enqueue(k);
+                return true;
+            }
+            else
+            {
+                k.HandleChannelShutdown(CloseReason);
+                return false;
+            }
+        }
+
         private async Task HandleCommandAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             /*
@@ -420,6 +444,11 @@ namespace RabbitMQ.Client.Impl
              */
             try
             {
+                if (_continuationQueue.ShouldIgnoreCommand(cmd.CommandId))
+                {
+                    return;
+                }
+
                 if (false == await DispatchCommandAsync(cmd, cancellationToken)
                     .ConfigureAwait(false))
                 {
@@ -929,11 +958,19 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
+                    try
+                    {
+                        await ModelSendAsync(in method, k.CancellationToken)
+                            .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
+                    catch
+                    {
+                        _continuationQueue.RpcErrored();
+                        throw;
+                    }
                 }
 
                 return;
@@ -965,7 +1002,15 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                return await k;
+                try
+                {
+                    return await k;
+                }
+                catch
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -991,17 +1036,25 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                BasicGetResult? result = await k;
+                try
+                {
+                    BasicGetResult? result = await k;
 
-                using Activity? activity = result != null
-                    ? RabbitMQActivitySource.BasicGet(result.RoutingKey,
-                        result.Exchange,
-                        result.DeliveryTag, result.BasicProperties, result.Body.Length)
-                    : RabbitMQActivitySource.BasicGetEmpty(queue);
+                    using Activity? activity = result != null
+                        ? RabbitMQActivitySource.BasicGet(result.RoutingKey,
+                            result.Exchange,
+                            result.DeliveryTag, result.BasicProperties, result.Body.Length)
+                        : RabbitMQActivitySource.BasicGetEmpty(queue);
 
-                activity?.SetStartTime(k.StartTime);
+                    activity?.SetStartTime(k.StartTime);
 
-                return result;
+                    return result;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -1038,9 +1091,17 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                bool result = await k;
-                Debug.Assert(result);
-                return;
+                try
+                {
+                    bool result = await k;
+                    Debug.Assert(result);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -1065,9 +1126,17 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                bool result = await k;
-                Debug.Assert(result);
-                return;
+                try
+                {
+                    bool result = await k;
+                    Debug.Assert(result);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -1101,8 +1170,17 @@ namespace RabbitMQ.Client.Impl
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
+                    try
+                    {
+                        bool result = await k;
+                        Debug.Assert(result);
+                        return;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _continuationQueue.RpcErrored();
+                        throw;
+                    }
                 }
 
                 return;
@@ -1145,8 +1223,17 @@ namespace RabbitMQ.Client.Impl
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
+                    try
+                    {
+                        bool result = await k;
+                        Debug.Assert(result);
+                        return;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _continuationQueue.RpcErrored();
+                        throw;
+                    }
                 }
 
                 return;
@@ -1182,8 +1269,16 @@ namespace RabbitMQ.Client.Impl
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
+                    try
+                    {
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _continuationQueue.RpcErrored();
+                        throw;
+                    }
                 }
 
                 return;
@@ -1220,8 +1315,16 @@ namespace RabbitMQ.Client.Impl
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
+                    try
+                    {
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _continuationQueue.RpcErrored();
+                        throw;
+                    }
                 }
 
                 return;
@@ -1284,16 +1387,24 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
-                    await ModelSendAsync(in method, k.CancellationToken)
-                        .ConfigureAwait(false);
-
-                    QueueDeclareOk result = await k;
-                    if (false == passive)
+                    try
                     {
-                        CurrentQueue = result.QueueName;
-                    }
+                        await ModelSendAsync(in method, k.CancellationToken)
+                            .ConfigureAwait(false);
 
-                    return result;
+                        QueueDeclareOk result = await k;
+                        if (false == passive)
+                        {
+                            CurrentQueue = result.QueueName;
+                        }
+
+                        return result;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _continuationQueue.RpcErrored();
+                        throw;
+                    }
                 }
             }
             finally
@@ -1328,8 +1439,16 @@ namespace RabbitMQ.Client.Impl
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
+                    try
+                    {
+                        bool result = await k;
+                        Debug.Assert(result);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _continuationQueue.RpcErrored();
+                        throw;
+                    }
                 }
 
                 return;
@@ -1383,7 +1502,15 @@ namespace RabbitMQ.Client.Impl
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    return await k;
+                    try
+                    {
+                        return await k;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _continuationQueue.RpcErrored();
+                        throw;
+                    }
                 }
             }
             finally
@@ -1409,7 +1536,15 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                return await k;
+                try
+                {
+                    return await k;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -1435,9 +1570,17 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                bool result = await k;
-                Debug.Assert(result);
-                return;
+                try
+                {
+                    bool result = await k;
+                    Debug.Assert(result);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -1461,9 +1604,17 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                bool result = await k;
-                Debug.Assert(result);
-                return;
+                try
+                {
+                    bool result = await k;
+                    Debug.Assert(result);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -1487,9 +1638,17 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                bool result = await k;
-                Debug.Assert(result);
-                return;
+                try
+                {
+                    bool result = await k;
+                    Debug.Assert(result);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {
@@ -1513,9 +1672,17 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in method, k.CancellationToken)
                     .ConfigureAwait(false);
 
-                bool result = await k;
-                Debug.Assert(result);
-                return;
+                try
+                {
+                    bool result = await k;
+                    Debug.Assert(result);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcErrored();
+                    throw;
+                }
             }
             finally
             {

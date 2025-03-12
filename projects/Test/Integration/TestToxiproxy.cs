@@ -432,8 +432,22 @@ namespace Test.Integration
 
             await Task.Delay(TimeSpan.FromSeconds(1));
 
-            ch.ContinuationTimeout = TimeSpan.FromMilliseconds(5);
-            QueueDeclareOk q = await ch.QueueDeclareAsync();
+            bool sawContinuationTimeout = false;
+            try
+            {
+                ch.ContinuationTimeout = TimeSpan.FromMilliseconds(5);
+                QueueDeclareOk q = await ch.QueueDeclareAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                sawContinuationTimeout = true;
+            }
+
+            await _toxiproxyManager.RemoveToxicAsync(toxicName);
+
+            await ch.CloseAsync();
+
+            Assert.True(sawContinuationTimeout);
         }
 
         private bool AreToxiproxyTestsEnabled

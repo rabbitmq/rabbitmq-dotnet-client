@@ -34,6 +34,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -65,6 +66,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
+        private int _rpcErrorCount = 0;
         private IRpcContinuation _outstandingRpc = s_tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
@@ -137,6 +139,27 @@ namespace RabbitMQ.Client.Impl
 
             continuation = default;
             return false;
+        }
+
+        public void RpcErrored()
+        {
+            Interlocked.Increment(ref _rpcErrorCount);
+        }
+
+        public bool ShouldIgnoreCommand(ProtocolCommandId commandId)
+        {
+            // TODO rabbitmq/rabbitmq-dotnet-client#1802
+            // this really should keep track of ProtocolCommandId values from previous RPC
+            // commands that have failed
+            bool rv = false;
+
+            if (_rpcErrorCount > 0)
+            {
+                rv = true;
+                Interlocked.Decrement(ref _rpcErrorCount);
+            }
+
+            return rv;
         }
     }
 }
