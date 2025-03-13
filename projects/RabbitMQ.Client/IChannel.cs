@@ -57,6 +57,8 @@ namespace RabbitMQ.Client
         /// or the cause of its closure otherwise.
         /// </summary>
         ShutdownEventArgs? CloseReason { get; }
+        
+        CancellationTokenSource ShutdownCts { get; }
 
         /// <summary>Signalled when an unexpected message is delivered.</summary>
         ///

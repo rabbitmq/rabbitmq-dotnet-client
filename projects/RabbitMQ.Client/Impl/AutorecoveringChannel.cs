@@ -136,6 +136,7 @@ namespace RabbitMQ.Client.Impl
         public int ChannelNumber => InnerChannel.ChannelNumber;
 
         public ShutdownEventArgs? CloseReason => InnerChannel.CloseReason;
+        public CancellationTokenSource ShutdownCts => InnerChannel.ShutdownCts;
 
         public IAsyncBasicConsumer? DefaultConsumer
         {

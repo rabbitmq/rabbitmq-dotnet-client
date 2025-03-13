@@ -66,6 +66,9 @@ namespace RabbitMQ.Client.Impl
         private bool _disposed;
         private int _isDisposing;
 
+        private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
+        public CancellationTokenSource ShutdownCts => _shutdownCts;
+        
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
@@ -208,6 +211,8 @@ namespace RabbitMQ.Client.Impl
         public async Task CloseAsync(ShutdownEventArgs args, bool abort,
             CancellationToken cancellationToken)
         {
+            _shutdownCts.Cancel();
+            
             bool enqueued = false;
             var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
