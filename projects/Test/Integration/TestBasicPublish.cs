@@ -183,7 +183,7 @@ namespace Test.Integration
 
             int count = 0;
             byte[] msg0 = _encoding.GetBytes("hi");
-            byte[] msg1 = GetRandomBody(maxMsgSize * 20);
+            byte[] msg1 = GetRandomBody(maxMsgSize * 64);
 
             ConnectionFactory cf = CreateConnectionFactory();
             cf.AutomaticRecoveryEnabled = false;
