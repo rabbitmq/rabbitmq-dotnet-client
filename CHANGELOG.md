@@ -1,5 +1,23 @@
 # Changelog
 
+## [v7.1.2](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.1.2) (2025-03-17)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.2-alpha.0...v7.1.2)
+
+**Closed issues:**
+
+- RabbitMQ client for .net ignores connection string [\#1807](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1807)
+
+**Fixed bugs:**
+
+- `ObjectDisposedException` persists [\#1802](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1802)
+
+**Merged pull requests:**
+
+- Skip flaky test [\#1810](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1810) ([lukebakken](https://github.com/lukebakken))
+- Address `ObjectDisposedException` [\#1809](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1809) ([lukebakken](https://github.com/lukebakken))
+- Serialize sequence number as `long` [\#1806](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1806) ([lukebakken](https://github.com/lukebakken))
+
 ## [v7.1.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.1.1) (2025-02-26)
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.0...v7.1.1)
