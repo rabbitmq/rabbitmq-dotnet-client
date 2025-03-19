@@ -296,11 +296,6 @@ namespace RabbitMQ.Client.Framing
             {
                 await _innerConnection.DisposeAsync()
                     .ConfigureAwait(false);
-
-                _channels.Clear();
-                _recordedEntitiesSemaphore.Dispose();
-                _channelsSemaphore.Dispose();
-                _recoveryCancellationTokenSource.Dispose();
             }
             catch (OperationInterruptedException)
             {
@@ -308,6 +303,17 @@ namespace RabbitMQ.Client.Framing
             }
             finally
             {
+                try
+                {
+                    _channels.Clear();
+                    _recordedEntitiesSemaphore.Dispose();
+                    _channelsSemaphore.Dispose();
+                    _recoveryCancellationTokenSource.Dispose();
+                }
+                catch
+                {
+                }
+
                 _disposed = true;
             }
         }

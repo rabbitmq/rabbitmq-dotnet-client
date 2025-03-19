@@ -37,6 +37,7 @@ namespace RabbitMQ.Client
     {
         internal static readonly TimeSpan DefaultConnectionAbortTimeout = TimeSpan.FromSeconds(5);
         internal static readonly TimeSpan DefaultConnectionCloseTimeout = TimeSpan.FromSeconds(30);
+        internal static readonly TimeSpan DefaultChannelDisposeTimeout = TimeSpan.FromSeconds(5);
 
         /// <summary>
         /// Largest message size, in bytes, allowed in RabbitMQ.        
