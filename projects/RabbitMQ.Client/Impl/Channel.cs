@@ -573,15 +573,23 @@ namespace RabbitMQ.Client.Impl
                         this.AbortAsync().GetAwaiter().GetResult();
                     }
 
-                    _serverOriginatedChannelCloseTcs?.Task.Wait(TimeSpan.FromSeconds(5));
+                    _serverOriginatedChannelCloseTcs?.Task.Wait(InternalConstants.DefaultChannelDisposeTimeout);
 
                     ConsumerDispatcher.Dispose();
-                    _rpcSemaphore.Dispose();
-                    _confirmSemaphore.Dispose();
+
                     _outstandingPublisherConfirmationsRateLimiter?.Dispose();
                 }
                 finally
                 {
+                    try
+                    {
+                        _rpcSemaphore.Dispose();
+                        _confirmSemaphore.Dispose();
+                    }
+                    catch
+                    {
+                    }
+
                     _disposed = true;
                 }
             }
@@ -622,13 +630,11 @@ namespace RabbitMQ.Client.Impl
 
                 if (_serverOriginatedChannelCloseTcs is not null)
                 {
-                    await _serverOriginatedChannelCloseTcs.Task.WaitAsync(TimeSpan.FromSeconds(5))
+                    await _serverOriginatedChannelCloseTcs.Task.WaitAsync(InternalConstants.DefaultChannelDisposeTimeout)
                         .ConfigureAwait(false);
                 }
 
                 ConsumerDispatcher.Dispose();
-                _rpcSemaphore.Dispose();
-                _confirmSemaphore.Dispose();
 
                 if (_outstandingPublisherConfirmationsRateLimiter is not null)
                 {
@@ -638,6 +644,15 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
+                try
+                {
+                    _rpcSemaphore.Dispose();
+                    _confirmSemaphore.Dispose();
+                }
+                catch
+                {
+                }
+
                 _disposed = true;
             }
         }
