@@ -283,11 +283,17 @@ namespace RabbitMQ.Client.Impl
                     await this.AbortAsync()
                         .ConfigureAwait(false);
                 }
-
-                _recordedConsumerTags.Clear();
             }
             finally
             {
+                try
+                {
+                    _recordedConsumerTags.Clear();
+                }
+                catch
+                {
+                }
+
                 _disposed = true;
             }
         }

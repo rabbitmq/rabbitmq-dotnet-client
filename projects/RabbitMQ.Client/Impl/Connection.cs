@@ -550,7 +550,14 @@ namespace RabbitMQ.Client.Framing
             }
             finally
             {
-                _mainLoopCts.Dispose();
+                try
+                {
+                    _mainLoopCts.Dispose();
+                }
+                catch
+                {
+                }
+
                 _disposed = true;
             }
         }
