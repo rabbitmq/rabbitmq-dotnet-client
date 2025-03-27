@@ -180,7 +180,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (multiple)
                 {
-                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
+                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources.ToArray())
                     {
                         if (pair.Key <= deliveryTag)
                         {
@@ -206,7 +206,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (multiple)
                 {
-                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
+                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources.ToArray())
                     {
                         if (pair.Key <= deliveryTag)
                         {
