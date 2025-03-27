@@ -234,8 +234,7 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
 
-                bool result = await k;
-                Debug.Assert(result);
+                AssertResultIsTrue(await k);
 
                 await ConsumerDispatcher.WaitForShutdownAsync()
                     .ConfigureAwait(false);
@@ -387,10 +386,9 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    bool result = await k;
-                    Debug.Assert(result);
+                    AssertResultIsTrue(await k);
 
-                    await MaybeConfirmSelect(cancellationToken)
+                    await MaybeConfirmSelectAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
@@ -462,6 +460,14 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 cmd.ReturnBuffers();
+            }
+        }
+
+        private static void AssertResultIsTrue(bool result)
+        {
+            if (false == result)
+            {
+                throw new InvalidOperationException(InternalConstants.BugFound);
             }
         }
 
@@ -978,8 +984,7 @@ namespace RabbitMQ.Client.Impl
                         await ModelSendAsync(in method, k.CancellationToken)
                             .ConfigureAwait(false);
 
-                        bool result = await k;
-                        Debug.Assert(result);
+                        AssertResultIsTrue(await k);
                     }
                     catch
                     {
@@ -1108,9 +1113,7 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    bool result = await k;
-                    Debug.Assert(result);
-                    return;
+                    AssertResultIsTrue(await k);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1143,9 +1146,7 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    bool result = await k;
-                    Debug.Assert(result);
-                    return;
+                    AssertResultIsTrue(await k);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1187,9 +1188,7 @@ namespace RabbitMQ.Client.Impl
 
                     try
                     {
-                        bool result = await k;
-                        Debug.Assert(result);
-                        return;
+                        AssertResultIsTrue(await k);
                     }
                     catch (OperationCanceledException)
                     {
@@ -1240,9 +1239,7 @@ namespace RabbitMQ.Client.Impl
 
                     try
                     {
-                        bool result = await k;
-                        Debug.Assert(result);
-                        return;
+                        AssertResultIsTrue(await k);
                     }
                     catch (OperationCanceledException)
                     {
@@ -1286,8 +1283,7 @@ namespace RabbitMQ.Client.Impl
 
                     try
                     {
-                        bool result = await k;
-                        Debug.Assert(result);
+                        AssertResultIsTrue(await k);
                     }
                     catch (OperationCanceledException)
                     {
@@ -1332,8 +1328,7 @@ namespace RabbitMQ.Client.Impl
 
                     try
                     {
-                        bool result = await k;
-                        Debug.Assert(result);
+                        AssertResultIsTrue(await k);
                     }
                     catch (OperationCanceledException)
                     {
@@ -1456,8 +1451,7 @@ namespace RabbitMQ.Client.Impl
 
                     try
                     {
-                        bool result = await k;
-                        Debug.Assert(result);
+                        AssertResultIsTrue(await k);
                     }
                     catch (OperationCanceledException)
                     {
@@ -1587,9 +1581,7 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    bool result = await k;
-                    Debug.Assert(result);
-                    return;
+                    AssertResultIsTrue(await k);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1621,9 +1613,7 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    bool result = await k;
-                    Debug.Assert(result);
-                    return;
+                    AssertResultIsTrue(await k);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1655,9 +1645,7 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    bool result = await k;
-                    Debug.Assert(result);
-                    return;
+                    AssertResultIsTrue(await k);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1689,9 +1677,7 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    bool result = await k;
-                    Debug.Assert(result);
-                    return;
+                    AssertResultIsTrue(await k);
                 }
                 catch (OperationCanceledException)
                 {

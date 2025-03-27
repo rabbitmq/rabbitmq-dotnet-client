@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -280,10 +279,20 @@ namespace RabbitMQ.Client.Impl
         {
             if (cmd.CommandId == ProtocolCommandId.BasicCancelOk)
             {
-                Debug.Assert(_consumerTag == new BasicCancelOk(cmd.MethodSpan)._consumerTag);
-                await _consumerDispatcher.HandleBasicCancelOkAsync(_consumerTag, CancellationToken)
-                    .ConfigureAwait(false);
-                _tcs.SetResult(true);
+                var result = new BasicCancelOk(cmd.MethodSpan);
+                if (_consumerTag == result._consumerTag)
+                {
+                    await _consumerDispatcher.HandleBasicCancelOkAsync(_consumerTag, CancellationToken)
+                        .ConfigureAwait(false);
+                    _tcs.SetResult(true);
+                }
+                else
+                {
+                    string msg = string.Format("Consumer tag '{0}' does not match expected consumer tag for basic.cancel operation {1}",
+                        result._consumerTag, _consumerTag);
+                    var ex = new InvalidOperationException(msg);
+                    _tcs.SetException(ex);
+                }
             }
             else
             {
