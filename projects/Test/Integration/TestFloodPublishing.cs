@@ -92,31 +92,37 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            var publishTasks = new List<Task>();
             var stopwatch = Stopwatch.StartNew();
-            int i = 0;
             int publishCount = 0;
             try
             {
-                for (i = 0; i < 65535 * 64; i++)
+                var tasks = new List<Task>();
+                for (int j = 0; j < 64; j++)
                 {
-                    if (i % 65536 == 0)
+                    tasks.Add(Task.Run(async () =>
                     {
-                        if (stopwatch.Elapsed > FiveSeconds)
+                        var publishTasks = new List<Task>();
+                        for (int i = 0; i < 65536 * 2; i++)
                         {
-                            break;
+                            if (stopwatch.Elapsed > FiveSeconds)
+                            {
+                                await Task.WhenAll(publishTasks).WaitAsync(ShortSpan);
+                                publishTasks.Clear();
+                                break;
+                            }
+
+                            Interlocked.Increment(ref publishCount);
+                            publishTasks.Add(_channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body).AsTask());
+
+                            if (i % 500 == 0)
+                            {
+                                await Task.WhenAll(publishTasks).WaitAsync(ShortSpan);
+                                publishTasks.Clear();
+                            }
                         }
-                    }
-
-                    publishCount++;
-                    publishTasks.Add(_channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body).AsTask());
-
-                    if (i % 500 == 0)
-                    {
-                        await Task.WhenAll(publishTasks).WaitAsync(ShortSpan);
-                        publishTasks.Clear();
-                    }
+                    }));
                 }
+                await Task.WhenAll(tasks).WaitAsync(WaitSpan);
             }
             finally
             {
