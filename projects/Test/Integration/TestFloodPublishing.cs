@@ -104,6 +104,24 @@ namespace Test.Integration
             string queueName = q.QueueName;
 
             var exceptions = new ConcurrentBag<Exception>();
+
+            async Task WaitPublishTasksAsync(ICollection<ValueTask> publishTasks)
+            {
+                foreach (ValueTask pt in publishTasks)
+                {
+                    try
+                    {
+                        await pt;
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions.Add(ex);
+                    }
+                }
+
+                publishTasks.Clear();
+            }
+
             var stopwatch = Stopwatch.StartNew();
             int publishCount = 0;
             try
@@ -118,18 +136,7 @@ namespace Test.Integration
                         {
                             if (stopwatch.Elapsed > ElapsedMax)
                             {
-                                foreach (ValueTask pt in publishTasks)
-                                {
-                                    try
-                                    {
-                                        await pt;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        exceptions.Add(ex);
-                                    }
-                                }
-                                publishTasks.Clear();
+                                await WaitPublishTasksAsync(publishTasks);
                                 return;
                             }
 
@@ -139,33 +146,11 @@ namespace Test.Integration
 
                             if (i % 128 == 0)
                             {
-                                foreach (ValueTask pt in publishTasks)
-                                {
-                                    try
-                                    {
-                                        await pt;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        exceptions.Add(ex);
-                                    }
-                                }
-                                publishTasks.Clear();
+                                await WaitPublishTasksAsync(publishTasks);
                             }
                         }
 
-                        foreach (ValueTask pt in publishTasks)
-                        {
-                            try
-                            {
-                                await pt;
-                            }
-                            catch (Exception ex)
-                            {
-                                exceptions.Add(ex);
-                            }
-                        }
-                        publishTasks.Clear();
+                        await WaitPublishTasksAsync(publishTasks);
                     }));
                 }
 
@@ -178,8 +163,7 @@ namespace Test.Integration
 
             Assert.True(_conn.IsOpen);
             Assert.False(sawUnexpectedShutdown);
-            // if (IsVerbose)
-            if (true)
+            if (IsVerbose)
             {
                 _output.WriteLine("[INFO] published {0} messages in {1}, exceptions: {2}",
                     publishCount, stopwatch.Elapsed, exceptions.Count);
