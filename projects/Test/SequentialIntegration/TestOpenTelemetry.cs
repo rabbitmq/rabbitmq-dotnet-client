@@ -91,7 +91,7 @@ namespace Test.SequentialIntegration
 
             Assert.True(RabbitMQActivitySource.UseRoutingKeyAsOperationName);
             Assert.True(RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName);
-            Assert.Equal(TracingLinkType.AlwaysParentChildAndLink, RabbitMQActivitySource.TracingOptions.LinkType);
+            Assert.True(RabbitMQActivitySource.TracingOptions.UsePublisherAsParent);
         }
 
         [Theory]
@@ -99,14 +99,14 @@ namespace Test.SequentialIntegration
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
+        public async Task TestPublisherAndConsumerActivityTags(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? TracingLinkType.AlwaysParentChildAndLink : TracingLinkType.AlwaysLink;
+                    options.UsePublisherAsParent = usePublisherAsParent;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -149,7 +149,7 @@ namespace Test.SequentialIntegration
 
             await _channel.BasicCancelAsync(consumerTag);
             await Task.Delay(500);
-            AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queueName, exportedItems, true);
+            AssertActivityData(useRoutingKeyAsOperationName, usePublisherAsParent, queueName, exportedItems, true);
         }
 
         [Theory]
@@ -157,14 +157,14 @@ namespace Test.SequentialIntegration
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
+        public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? TracingLinkType.AlwaysParentChildAndLink : TracingLinkType.AlwaysLink;
+                    options.UsePublisherAsParent = usePublisherAsParent;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -208,7 +208,7 @@ namespace Test.SequentialIntegration
 
             await _channel.BasicCancelAsync(consumerTag);
             await Task.Delay(500);
-            AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queueName, exportedItems, true);
+            AssertActivityData(useRoutingKeyAsOperationName, usePublisherAsParent, queueName, exportedItems, true);
         }
 
         [Theory]
@@ -216,14 +216,14 @@ namespace Test.SequentialIntegration
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
+        public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? TracingLinkType.AlwaysParentChildAndLink : TracingLinkType.AlwaysLink;
+                    options.UsePublisherAsParent = usePublisherAsParent;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -268,7 +268,7 @@ namespace Test.SequentialIntegration
 
             await _channel.BasicCancelAsync(consumerTag);
             await Task.Delay(500);
-            AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queueName, exportedItems, true);
+            AssertActivityData(useRoutingKeyAsOperationName, usePublisherAsParent, queueName, exportedItems, true);
         }
 
         [Theory]
@@ -276,14 +276,14 @@ namespace Test.SequentialIntegration
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
+        public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? TracingLinkType.AlwaysParentChildAndLink : TracingLinkType.AlwaysLink;
+                    options.UsePublisherAsParent = usePublisherAsParent;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -329,7 +329,7 @@ namespace Test.SequentialIntegration
 
             await _channel.BasicCancelAsync(consumerTag);
             await Task.Delay(500);
-            AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queueName, exportedItems, true);
+            AssertActivityData(useRoutingKeyAsOperationName, usePublisherAsParent, queueName, exportedItems, true);
         }
 
         [Theory]
@@ -337,14 +337,14 @@ namespace Test.SequentialIntegration
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool useParentChildLinking)
+        public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
-                    options.LinkType = useParentChildLinking ? TracingLinkType.AlwaysParentChildAndLink : TracingLinkType.AlwaysLink;
+                    options.UsePublisherAsParent = usePublisherAsParent;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -368,7 +368,7 @@ namespace Test.SequentialIntegration
                 ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(0u, ok.MessageCount);
                 await Task.Delay(500);
-                AssertActivityData(useRoutingKeyAsOperationName, useParentChildLinking, queue, exportedItems, false);
+                AssertActivityData(useRoutingKeyAsOperationName, usePublisherAsParent, queue, exportedItems, false);
             }
             finally
             {
@@ -376,7 +376,7 @@ namespace Test.SequentialIntegration
             }
         }
 
-        private void AssertActivityData(bool useRoutingKeyAsOperationName, bool useParentChildLinking, string queueName,
+        private void AssertActivityData(bool useRoutingKeyAsOperationName, bool usePublisherAsParent, string queueName,
             List<Activity> activityList, bool isDeliver = false, string baggageGuid = null)
         {
             string childName = isDeliver ? "deliver" : "fetch";
@@ -400,7 +400,7 @@ namespace Test.SequentialIntegration
             Assert.Equal(ActivityKind.Producer, sendActivity.Kind);
             Assert.Equal(ActivityKind.Consumer, receiveActivity.Kind);
             Assert.Equal(sendActivity.TraceId, receiveActivity.Links.Single().Context.TraceId);
-            if (useParentChildLinking)
+            if (usePublisherAsParent)
             {
                 Assert.Equal(sendActivity.Id, receiveActivity.ParentId);
                 Assert.Equal(sendActivity.TraceId, receiveActivity.TraceId);

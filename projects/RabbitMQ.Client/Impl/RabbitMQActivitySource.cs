@@ -121,8 +121,7 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             ActivityContext linkedContext = ContextExtractor(readOnlyBasicProperties);
-            ActivityContext parentContext = TracingOptions.LinkType == TracingLinkType.AlwaysParentChildAndLink
-                ? linkedContext : default;
+            ActivityContext parentContext = TracingOptions.UsePublisherAsParent ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
@@ -148,8 +147,7 @@ namespace RabbitMQ.Client
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             ActivityContext linkedContext = ContextExtractor(readOnlyBasicProperties);
-            ActivityContext parentContext = TracingOptions.LinkType == TracingLinkType.AlwaysParentChildAndLink
-                ? linkedContext : default;
+            ActivityContext parentContext = TracingOptions.UsePublisherAsParent ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,
