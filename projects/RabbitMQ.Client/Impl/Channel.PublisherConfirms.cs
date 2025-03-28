@@ -380,6 +380,11 @@ namespace RabbitMQ.Client.Impl
                         await publisherConfirmationInfo.MaybeWaitForConfirmationAsync(cancellationToken)
                             .ConfigureAwait(false);
                     }
+                    catch (OperationCanceledException)
+                    {
+                        _confirmsTaskCompletionSources.Remove(publisherConfirmationInfo.PublishSequenceNumber, out _);
+                        throw;
+                    }
                     finally
                     {
                         publisherConfirmationInfo.Dispose();
