@@ -184,8 +184,10 @@ namespace RabbitMQ.Client.Impl
                     {
                         if (pair.Key <= deliveryTag)
                         {
-                            pair.Value.SetResult(true);
-                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
+                            if (_confirmsTaskCompletionSources.TryRemove(pair.Key, out TaskCompletionSource<bool>? tcs))
+                            {
+                                tcs.SetResult(true);
+                            }
                         }
                     }
                 }
@@ -210,14 +212,16 @@ namespace RabbitMQ.Client.Impl
                     {
                         if (pair.Key <= deliveryTag)
                         {
-                            pair.Value.SetException(new PublishException(pair.Key, isReturn));
-                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
+                            if (_confirmsTaskCompletionSources.TryRemove(pair.Key, out TaskCompletionSource<bool>? tcs))
+                            {
+                                tcs.SetException(new PublishException(pair.Key, isReturn));
+                            }
                         }
                     }
                 }
                 else
                 {
-                    if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
+                    if (_confirmsTaskCompletionSources.TryRemove(deliveryTag, out TaskCompletionSource<bool>? tcs))
                     {
                         tcs.SetException(new PublishException(deliveryTag, isReturn));
                     }
@@ -382,7 +386,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (OperationCanceledException)
                     {
-                        _confirmsTaskCompletionSources.Remove(publisherConfirmationInfo.PublishSequenceNumber, out _);
+                        _confirmsTaskCompletionSources.TryRemove(publisherConfirmationInfo.PublishSequenceNumber, out _);
                         throw;
                     }
                     finally
