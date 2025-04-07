@@ -17,16 +17,9 @@
     <Product>RabbitMQ</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/rabbitmq/rabbitmq-dotnet-client.git</RepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AssemblyOriginatorKeyFile>../rabbit.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <IsPackable>true</IsPackable>
-    <MinVerTagPrefix>oauth2-</MinVerTagPrefix>
-    <MinVerVerbosity>minimal</MinVerVerbosity>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageOutputPath>../../packages</PackageOutputPath>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>false</IsPackable>
     <!--
       https://learn.microsoft.com/en-us/answers/questions/1371494/for-net-standard-2-0-library-why-add-net-core-3-1
       https://devblogs.microsoft.com/dotnet/embracing-nullable-reference-types/#what-should-library-authors-do
@@ -35,20 +28,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(CI)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <Deterministic>true</Deterministic>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release' and '$(SourceRoot)' == ''">
-    <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
-  </ItemGroup>
-
   <ItemGroup>
-    <None Remove="icon.png" />
-    <Content Include="icon.png" PackagePath="" />
-    <None Include="README.md" Pack="true" PackagePath="/" />
     <InternalsVisibleTo Include="Benchmarks" />
     <InternalsVisibleTo Include="OAuth2" />
   </ItemGroup>
