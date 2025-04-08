@@ -32,7 +32,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -148,13 +147,14 @@ namespace RabbitMQ.Client.Impl
                     enqueued = Enqueue(k);
 
                     var method = new ConfirmSelect(false);
+
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
-
-                    return;
+                    if (false == await k)
+                    {
+                        throw new InvalidOperationException(InternalConstants.BugFound);
+                    }
                 }
                 finally
                 {
