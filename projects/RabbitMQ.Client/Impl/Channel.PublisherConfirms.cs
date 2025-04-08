@@ -32,7 +32,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -148,13 +147,14 @@ namespace RabbitMQ.Client.Impl
                     enqueued = Enqueue(k);
 
                     var method = new ConfirmSelect(false);
+
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
-                    bool result = await k;
-                    Debug.Assert(result);
-
-                    return;
+                    if (false == await k)
+                    {
+                        throw new InvalidOperationException(InternalConstants.BugFound);
+                    }
                 }
                 finally
                 {
@@ -180,12 +180,14 @@ namespace RabbitMQ.Client.Impl
             {
                 if (multiple)
                 {
-                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
+                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources.ToArray())
                     {
                         if (pair.Key <= deliveryTag)
                         {
-                            pair.Value.SetResult(true);
-                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
+                            if (_confirmsTaskCompletionSources.TryRemove(pair.Key, out TaskCompletionSource<bool>? tcs))
+                            {
+                                tcs.SetResult(true);
+                            }
                         }
                     }
                 }
@@ -206,18 +208,20 @@ namespace RabbitMQ.Client.Impl
             {
                 if (multiple)
                 {
-                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources)
+                    foreach (KeyValuePair<ulong, TaskCompletionSource<bool>> pair in _confirmsTaskCompletionSources.ToArray())
                     {
                         if (pair.Key <= deliveryTag)
                         {
-                            pair.Value.SetException(new PublishException(pair.Key, isReturn));
-                            _confirmsTaskCompletionSources.Remove(pair.Key, out _);
+                            if (_confirmsTaskCompletionSources.TryRemove(pair.Key, out TaskCompletionSource<bool>? tcs))
+                            {
+                                tcs.SetException(new PublishException(pair.Key, isReturn));
+                            }
                         }
                     }
                 }
                 else
                 {
-                    if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
+                    if (_confirmsTaskCompletionSources.TryRemove(deliveryTag, out TaskCompletionSource<bool>? tcs))
                     {
                         tcs.SetException(new PublishException(deliveryTag, isReturn));
                     }
@@ -379,6 +383,11 @@ namespace RabbitMQ.Client.Impl
                     {
                         await publisherConfirmationInfo.MaybeWaitForConfirmationAsync(cancellationToken)
                             .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _confirmsTaskCompletionSources.TryRemove(publisherConfirmationInfo.PublishSequenceNumber, out _);
+                        throw;
                     }
                     finally
                     {
