@@ -147,7 +147,7 @@ namespace Test
             Assert.Equal(exception.GetType().ToString(),
                 exceptionEvent.Tags.SingleOrDefault(t => t.Key == "exception.type").Value);
         }
-        
+
         public static void IsInError(this Activity activity)
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);

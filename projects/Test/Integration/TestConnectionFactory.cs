@@ -435,7 +435,7 @@ namespace Test.Integration
                 Assert.Contains(conn.ClientProvidedName, cpn);
             }
         }
-        
+
         [Fact]
         public async Task TestCreateConnectionRegisterAnActivity()
         {
@@ -446,7 +446,7 @@ namespace Test.Integration
             recorder.VerifyActivityRecordedOnce();
             await conn.CloseAsync();
         }
-        
+
         [Fact]
         public async Task TestCreateConnectionWithFailureRecordException()
         {
