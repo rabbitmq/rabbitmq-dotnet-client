@@ -60,9 +60,7 @@ namespace RabbitMQ.Client.Impl
 
                 var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
 
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length)
-                    : default;
+                using Activity? sendActivity = RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length);
 
                 ulong publishSequenceNumber = 0;
                 if (publisherConfirmationInfo is not null)
@@ -115,9 +113,7 @@ namespace RabbitMQ.Client.Impl
 
                 var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
 
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.BasicPublish(routingKey.Value, exchange.Value, body.Length)
-                    : default;
+                using Activity? sendActivity = RabbitMQActivitySource.BasicPublish(routingKey.Value, exchange.Value, body.Length);
 
                 ulong publishSequenceNumber = 0;
                 if (publisherConfirmationInfo is not null)

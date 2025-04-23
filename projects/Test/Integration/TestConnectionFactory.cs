@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -433,6 +434,35 @@ namespace Test.Integration
                 Assert.True(conn.ClientProvidedName.Length <= InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
                 Assert.Contains(conn.ClientProvidedName, cpn);
             }
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionRegisterAnActivity()
+        {
+            using ActivityRecorder recorder =
+                new ActivityRecorder(RabbitMQActivitySource.ConnectionSourceName, "connection attempt");
+            ConnectionFactory cf = CreateConnectionFactory();
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            recorder.VerifyActivityRecordedOnce();
+            await conn.CloseAsync();
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionWithFailureRecordException()
+        {
+            using ActivityRecorder recorder =
+                new ActivityRecorder(RabbitMQActivitySource.ConnectionSourceName, "connection attempt");
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = true;
+            var unreachablePort = 1234;
+            var ep = new AmqpTcpEndpoint("localhost", unreachablePort);
+            var exception = await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
+            {
+                return cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
+            });
+            Activity activity = recorder.VerifyActivityRecordedOnce();
+            activity.HasRecordedException(exception);
+            activity.IsInError();
         }
     }
 }
