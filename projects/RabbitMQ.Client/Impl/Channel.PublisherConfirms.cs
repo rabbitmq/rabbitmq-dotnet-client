@@ -200,7 +200,8 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void HandleNack(ulong deliveryTag, bool multiple, bool isReturn)
+        private void HandleNack(ulong deliveryTag, bool multiple, bool isReturn,
+            string? exchange = null, string? routingKey = null)
         {
             if (ShouldHandleAckOrNack(deliveryTag))
             {
@@ -210,7 +211,8 @@ namespace RabbitMQ.Client.Impl
                     {
                         if (pair.Key <= deliveryTag)
                         {
-                            pair.Value.SetException(new PublishException(pair.Key, isReturn));
+                            PublishException ex = PublishExceptionFactory.Create(isReturn, pair.Key, exchange, routingKey);
+                            pair.Value.SetException(ex);
                             _confirmsTaskCompletionSources.Remove(pair.Key, out _);
                         }
                     }
@@ -219,7 +221,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
                     {
-                        tcs.SetException(new PublishException(deliveryTag, isReturn));
+                        PublishException ex = PublishExceptionFactory.Create(isReturn, deliveryTag);
+                        tcs.SetException(ex);
                     }
                 }
             }
@@ -249,7 +252,8 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
 
-                HandleNack(publishSequenceNumber, multiple: false, isReturn: true);
+                HandleNack(publishSequenceNumber, multiple: false, isReturn: true,
+                    exchange: basicReturnEvent.Exchange, routingKey: basicReturnEvent.RoutingKey);
             }
         }
 

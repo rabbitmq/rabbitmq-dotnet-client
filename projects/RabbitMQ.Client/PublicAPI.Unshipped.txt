@@ -1,0 +1,4 @@
+RabbitMQ.Client.Exceptions.PublishReturnException
+RabbitMQ.Client.Exceptions.PublishReturnException.Exchange.get -> string!
+RabbitMQ.Client.Exceptions.PublishReturnException.PublishReturnException(ulong publishSequenceNumber, string! exchange, string! routingKey) -> void
+RabbitMQ.Client.Exceptions.PublishReturnException.RoutingKey.get -> string!

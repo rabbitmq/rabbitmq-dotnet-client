@@ -63,4 +63,55 @@ namespace RabbitMQ.Client.Exceptions
         /// </summary>
         public ulong PublishSequenceNumber => _publishSequenceNumber;
     }
+
+    /// <summary>
+    /// Class for exceptions related to publisher confirmations
+    /// or the <c>mandatory</c> flag, when <c>basic.return</c> is
+    /// sent from the broker.
+    /// </summary>
+    public class PublishReturnException : PublishException
+    {
+        private readonly string _exchange;
+        private readonly string _routingKey;
+
+        public PublishReturnException(ulong publishSequenceNumber, string exchange, string routingKey)
+            : base(publishSequenceNumber, true)
+        {
+            _exchange = exchange;
+            _routingKey = routingKey;
+        }
+
+        /// <summary>
+        /// Get the Exchange associated with this <c>basic.return</c>
+        /// </summary>
+        public string Exchange => _exchange;
+
+        /// <summary>
+        /// Get the RoutingKey associated with this <c>basic.return</c>
+        /// </summary>
+        public string RoutingKey => _routingKey;
+    }
+
+    internal static class PublishExceptionFactory
+    {
+        internal static PublishException Create(bool isReturn,
+            ulong deliveryTag, string? exchange = null, string? routingKey = null)
+        {
+            if (isReturn)
+            {
+                if (exchange is not null && routingKey is not null)
+                {
+                    return new PublishReturnException(deliveryTag, exchange, routingKey);
+                }
+                else
+                {
+                    return new PublishException(deliveryTag, isReturn);
+                }
+            }
+            else
+            {
+                return new PublishException(deliveryTag, isReturn);
+            }
+        }
+    }
 }
