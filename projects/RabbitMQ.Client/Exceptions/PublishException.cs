@@ -42,7 +42,11 @@ namespace RabbitMQ.Client.Exceptions
         private bool _isReturn = false;
         private ulong _publishSequenceNumber = ulong.MinValue;
 
-        public PublishException(ulong publishSequenceNumber, bool isReturn) : base()
+        public PublishException(ulong publishSequenceNumber, bool isReturn) : this(publishSequenceNumber, isReturn, "Message rejected by broker.")
+        {
+        }
+
+        public PublishException(ulong publishSequenceNumber, bool isReturn, string message) : base(message)
         {
             if (publishSequenceNumber == ulong.MinValue)
             {
@@ -62,5 +66,67 @@ namespace RabbitMQ.Client.Exceptions
         /// Retrieve the publish sequence number.
         /// </summary>
         public ulong PublishSequenceNumber => _publishSequenceNumber;
+    }
+
+    /// <summary>
+    /// Class for exceptions related to publisher confirmations
+    /// or the <c>mandatory</c> flag, when <c>basic.return</c> is
+    /// sent from the broker.
+    /// </summary>
+    public class PublishReturnException : PublishException
+    {
+        private readonly string _exchange;
+        private readonly string _routingKey;
+        private readonly ushort _replyCode;
+        private readonly string _replyText;
+
+        public PublishReturnException(ulong publishSequenceNumber, string message,
+            string? exchange = null, string? routingKey = null,
+            ushort? replyCode = null, string? replyText = null)
+            : base(publishSequenceNumber, true, message)
+        {
+            _exchange = exchange ?? string.Empty;
+            _routingKey = routingKey ?? string.Empty;
+            _replyCode = replyCode ?? 0;
+            _replyText = replyText ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Get the exchange associated with this <c>basic.return</c>
+        /// </summary>
+        public string Exchange => _exchange;
+
+        /// <summary>
+        /// Get the routing key associated with this <c>basic.return</c>
+        /// </summary>
+        public string RoutingKey => _routingKey;
+
+        /// <summary>
+        /// Get the reply code associated with this <c>basic.return</c>
+        /// </summary>
+        public ushort ReplyCode => _replyCode;
+
+        /// <summary>
+        /// Get the reply text associated with this <c>basic.return</c>
+        /// </summary>
+        public string ReplyText => _replyText;
+    }
+
+    internal static class PublishExceptionFactory
+    {
+        internal static PublishException Create(bool isReturn,
+            ulong deliveryTag, string? exchange = null, string? routingKey = null,
+            ushort? replyCode = null, string? replyText = null)
+        {
+            if (isReturn)
+            {
+                string message = $"{replyCode} {replyText} Exchange: {exchange} Routing Key: {routingKey}";
+                return new PublishReturnException(deliveryTag, message, exchange, routingKey, replyCode, replyText);
+            }
+            else
+            {
+                return new PublishException(deliveryTag, isReturn);
+            }
+        }
     }
 }
