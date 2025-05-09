@@ -223,7 +223,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (_confirmsTaskCompletionSources.Remove(deliveryTag, out TaskCompletionSource<bool>? tcs))
                     {
-                        PublishException ex = PublishExceptionFactory.Create(isReturn, deliveryTag);
+                        PublishException ex = PublishExceptionFactory.Create(isReturn, deliveryTag,
+                            exchange, routingKey, replyCode, replyText);
                         tcs.SetException(ex);
                     }
                 }

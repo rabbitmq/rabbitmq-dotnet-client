@@ -29,8 +29,10 @@
 //  Copyright (c) 2007-2025 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -49,7 +51,6 @@ namespace Test.Integration
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-
             QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
 
             var publishTask = Task.Run(async () =>
@@ -64,6 +65,24 @@ namespace Test.Integration
 
             Assert.True(await publishSyncSource.Task);
             Assert.Equal((uint)messageCount, await _channel.QueuePurgeAsync(q));
+        }
+
+        [Fact]
+        public async Task TestBasicReturnAsync()
+        {
+            try
+            {
+                await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: Guid.NewGuid().ToString(),
+                    mandatory: true, body: GetRandomBody());
+            }
+            catch (PublishReturnException prex)
+            {
+                Assert.True(prex.IsReturn);
+                Assert.NotNull(prex.Exchange);
+                Assert.NotNull(prex.RoutingKey);
+                Assert.NotEqual(0, prex.ReplyCode);
+                Assert.NotNull(prex.ReplyText);
+            }
         }
     }
 }
