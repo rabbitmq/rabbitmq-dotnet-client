@@ -42,7 +42,11 @@ namespace RabbitMQ.Client.Exceptions
         private bool _isReturn = false;
         private ulong _publishSequenceNumber = ulong.MinValue;
 
-        public PublishException(ulong publishSequenceNumber, bool isReturn) : base()
+        public PublishException(ulong publishSequenceNumber, bool isReturn) : this(publishSequenceNumber, isReturn, "Message rejected by broker.")
+        {
+        }
+
+        public PublishException(ulong publishSequenceNumber, bool isReturn, string message) : base(message)
         {
             if (publishSequenceNumber == ulong.MinValue)
             {
@@ -76,10 +80,10 @@ namespace RabbitMQ.Client.Exceptions
         private readonly ushort _replyCode;
         private readonly string _replyText;
 
-        public PublishReturnException(ulong publishSequenceNumber,
+        public PublishReturnException(ulong publishSequenceNumber, string message,
             string? exchange = null, string? routingKey = null,
             ushort? replyCode = null, string? replyText = null)
-            : base(publishSequenceNumber, true)
+            : base(publishSequenceNumber, true, message)
         {
             _exchange = exchange ?? string.Empty;
             _routingKey = routingKey ?? string.Empty;
@@ -116,7 +120,8 @@ namespace RabbitMQ.Client.Exceptions
         {
             if (isReturn)
             {
-                return new PublishReturnException(deliveryTag, exchange, routingKey, replyCode, replyText);
+                string message = $"{replyCode} {replyText} Exchange: {exchange} Routing Key: {routingKey}";
+                return new PublishReturnException(deliveryTag, message, exchange, routingKey, replyCode, replyText);
             }
             else
             {

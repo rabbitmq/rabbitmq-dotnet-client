@@ -1,6 +1,7 @@
+RabbitMQ.Client.Exceptions.PublishException.PublishException(ulong publishSequenceNumber, bool isReturn, string! message) -> void
 RabbitMQ.Client.Exceptions.PublishReturnException
 RabbitMQ.Client.Exceptions.PublishReturnException.Exchange.get -> string!
-RabbitMQ.Client.Exceptions.PublishReturnException.PublishReturnException(ulong publishSequenceNumber, string? exchange = null, string? routingKey = null, ushort? replyCode = null, string? replyText = null) -> void
+RabbitMQ.Client.Exceptions.PublishReturnException.PublishReturnException(ulong publishSequenceNumber, string! message, string? exchange = null, string? routingKey = null, ushort? replyCode = null, string? replyText = null) -> void
 RabbitMQ.Client.Exceptions.PublishReturnException.ReplyCode.get -> ushort
 RabbitMQ.Client.Exceptions.PublishReturnException.ReplyText.get -> string!
 RabbitMQ.Client.Exceptions.PublishReturnException.RoutingKey.get -> string!
