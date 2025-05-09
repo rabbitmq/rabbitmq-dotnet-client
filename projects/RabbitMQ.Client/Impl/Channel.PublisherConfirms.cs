@@ -201,7 +201,8 @@ namespace RabbitMQ.Client.Impl
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void HandleNack(ulong deliveryTag, bool multiple, bool isReturn,
-            string? exchange = null, string? routingKey = null)
+            string? exchange = null, string? routingKey = null,
+            ushort? replyCode = null, string? replyText = null)
         {
             if (ShouldHandleAckOrNack(deliveryTag))
             {
@@ -211,7 +212,8 @@ namespace RabbitMQ.Client.Impl
                     {
                         if (pair.Key <= deliveryTag)
                         {
-                            PublishException ex = PublishExceptionFactory.Create(isReturn, pair.Key, exchange, routingKey);
+                            PublishException ex = PublishExceptionFactory.Create(isReturn, pair.Key,
+                                exchange, routingKey, replyCode, replyText);
                             pair.Value.SetException(ex);
                             _confirmsTaskCompletionSources.Remove(pair.Key, out _);
                         }
@@ -253,7 +255,8 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 HandleNack(publishSequenceNumber, multiple: false, isReturn: true,
-                    exchange: basicReturnEvent.Exchange, routingKey: basicReturnEvent.RoutingKey);
+                    exchange: basicReturnEvent.Exchange, routingKey: basicReturnEvent.RoutingKey,
+                    replyCode: basicReturnEvent.ReplyCode, replyText: basicReturnEvent.ReplyText);
             }
         }
 

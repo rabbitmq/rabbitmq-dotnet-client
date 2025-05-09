@@ -73,40 +73,50 @@ namespace RabbitMQ.Client.Exceptions
     {
         private readonly string _exchange;
         private readonly string _routingKey;
+        private readonly ushort _replyCode;
+        private readonly string _replyText;
 
-        public PublishReturnException(ulong publishSequenceNumber, string exchange, string routingKey)
+        public PublishReturnException(ulong publishSequenceNumber,
+            string? exchange = null, string? routingKey = null,
+            ushort? replyCode = null, string? replyText = null)
             : base(publishSequenceNumber, true)
         {
-            _exchange = exchange;
-            _routingKey = routingKey;
+            _exchange = exchange ?? string.Empty;
+            _routingKey = routingKey ?? string.Empty;
+            _replyCode = replyCode ?? 0;
+            _replyText = replyText ?? string.Empty;
         }
 
         /// <summary>
-        /// Get the Exchange associated with this <c>basic.return</c>
+        /// Get the exchange associated with this <c>basic.return</c>
         /// </summary>
         public string Exchange => _exchange;
 
         /// <summary>
-        /// Get the RoutingKey associated with this <c>basic.return</c>
+        /// Get the routing key associated with this <c>basic.return</c>
         /// </summary>
         public string RoutingKey => _routingKey;
+
+        /// <summary>
+        /// Get the reply code associated with this <c>basic.return</c>
+        /// </summary>
+        public ushort ReplyCode => _replyCode;
+
+        /// <summary>
+        /// Get the reply text associated with this <c>basic.return</c>
+        /// </summary>
+        public string ReplyText => _replyText;
     }
 
     internal static class PublishExceptionFactory
     {
         internal static PublishException Create(bool isReturn,
-            ulong deliveryTag, string? exchange = null, string? routingKey = null)
+            ulong deliveryTag, string? exchange = null, string? routingKey = null,
+            ushort? replyCode = null, string? replyText = null)
         {
             if (isReturn)
             {
-                if (exchange is not null && routingKey is not null)
-                {
-                    return new PublishReturnException(deliveryTag, exchange, routingKey);
-                }
-                else
-                {
-                    return new PublishException(deliveryTag, isReturn);
-                }
+                return new PublishReturnException(deliveryTag, exchange, routingKey, replyCode, replyText);
             }
             else
             {
