@@ -145,8 +145,13 @@ namespace Test.Integration
                     }
                     catch (PublishException ex)
                     {
-                        if (ex.IsReturn)
+                        if (ex is PublishReturnException prex)
                         {
+                            Assert.True(prex.IsReturn);
+                            Assert.NotNull(prex.Exchange);
+                            Assert.NotNull(prex.RoutingKey);
+                            Assert.NotEqual(0, prex.ReplyCode);
+                            Assert.NotNull(prex.ReplyText);
                             Interlocked.Increment(ref totalReturnCount);
                         }
                         else
