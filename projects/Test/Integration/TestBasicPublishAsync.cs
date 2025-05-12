@@ -70,18 +70,23 @@ namespace Test.Integration
         [Fact]
         public async Task TestBasicReturnAsync()
         {
+            string routingKey = Guid.NewGuid().ToString();
             try
             {
-                await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: Guid.NewGuid().ToString(),
+                await _channel.BasicPublishAsync(exchange: string.Empty, routingKey: routingKey,
                     mandatory: true, body: GetRandomBody());
             }
             catch (PublishReturnException prex)
             {
                 Assert.True(prex.IsReturn);
                 Assert.NotNull(prex.Exchange);
+                Assert.Equal(string.Empty, prex.Exchange);
                 Assert.NotNull(prex.RoutingKey);
+                Assert.Equal(routingKey, prex.RoutingKey);
                 Assert.NotEqual(0, prex.ReplyCode);
                 Assert.NotNull(prex.ReplyText);
+                Assert.Equal("NO_ROUTE", prex.ReplyText);
+                
             }
         }
     }
