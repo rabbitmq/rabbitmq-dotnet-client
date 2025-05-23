@@ -42,6 +42,6 @@
   <ItemGroup Condition="'$(IsPackable)'=='true'">
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
     <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-    <GlobalPackageReference Include="MinVer" Version="6.0.0" />
+    <GlobalPackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
   </ItemGroup>
 </Project>
