@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -89,11 +90,12 @@ namespace RabbitMQ.Client.Framing
                 _innerConnection.OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
         }
 
-        internal static async ValueTask<AutorecoveringConnection> CreateAsync(ConnectionConfig config, IEndpointResolver endpoints,
+        internal static async ValueTask<AutorecoveringConnection> CreateAsync(ConnectionConfig config, IEndpointResolver endpoints, Activity? connectionActivity,
             CancellationToken cancellationToken)
         {
             IFrameHandler fh = await endpoints.SelectOneAsync(config.FrameHandlerFactoryAsync, cancellationToken)
                 .ConfigureAwait(false);
+            connectionActivity.SetNetworkTags(fh);
             Connection innerConnection = new(config, fh);
             AutorecoveringConnection connection = new(config, endpoints, innerConnection);
             await innerConnection.OpenAsync(cancellationToken)

@@ -43,16 +43,20 @@ namespace RabbitMQ.Client
         private static readonly ActivitySource s_subscriberSource =
             new ActivitySource(SubscriberSourceName, AssemblyVersion);
 
+        private static readonly ActivitySource s_connectionSource =
+            new ActivitySource(ConnectionSourceName, AssemblyVersion);
+
         public const string PublisherSourceName = "RabbitMQ.Client.Publisher";
         public const string SubscriberSourceName = "RabbitMQ.Client.Subscriber";
+        public const string ConnectionSourceName = "RabbitMQ.Client.Connection";
 
-        public static Action<Activity, IDictionary<string, object?>> ContextInjector { get; set; } = DefaultContextInjector;
+        public static Action<Activity, IDictionary<string, object?>> ContextInjector { get; set; } =
+            DefaultContextInjector;
 
         public static Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor { get; set; } =
             DefaultContextExtractor;
 
         public static bool UseRoutingKeyAsOperationName { get; set; } = true;
-        internal static bool PublisherHasListeners => s_publisherSource.HasListeners();
 
         internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
         {
@@ -61,14 +65,24 @@ namespace RabbitMQ.Client
             new KeyValuePair<string, object?>(ProtocolVersion, "0.9.1")
         };
 
+        internal static Activity? OpenConnection(bool isReconnection)
+        {
+            Activity? connectionActivity =
+                s_connectionSource.StartRabbitMQActivity("connection attempt", ActivityKind.Client);
+            connectionActivity?.SetTag("messaging.rabbitmq.connection.is_reconnection", isReconnection);
+            return connectionActivity;
+        }
+
+        internal static Activity? OpenTcpConnection()
+        {
+            Activity? connectionActivity =
+                s_connectionSource.StartRabbitMQActivity("tcp connection attempt", ActivityKind.Client);
+            return connectionActivity;
+        }
+
         internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize,
             ActivityContext linkedContext = default)
         {
-            if (!s_publisherSource.HasListeners())
-            {
-                return null;
-            }
-
             Activity? activity = linkedContext == default
                 ? s_publisherSource.StartRabbitMQActivity(
                     UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
@@ -82,16 +96,10 @@ namespace RabbitMQ.Client
             }
 
             return activity;
-
         }
 
         internal static Activity? BasicGetEmpty(string queue)
         {
-            if (!s_subscriberSource.HasListeners())
-            {
-                return null;
-            }
-
             Activity? activity = s_subscriberSource.StartRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGetEmpty} {queue}" : MessagingOperationNameBasicGetEmpty,
                 ActivityKind.Consumer);
@@ -109,11 +117,6 @@ namespace RabbitMQ.Client
         internal static Activity? BasicGet(string routingKey, string exchange, ulong deliveryTag,
             IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize)
         {
-            if (!s_subscriberSource.HasListeners())
-            {
-                return null;
-            }
-
             // Extract the PropagationContext of the upstream parent from the message headers.
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
@@ -130,11 +133,6 @@ namespace RabbitMQ.Client
         internal static Activity? Deliver(string routingKey, string exchange, ulong deliveryTag,
             IReadOnlyBasicProperties basicProperties, int bodySize)
         {
-            if (!s_subscriberSource.HasListeners())
-            {
-                return null;
-            }
-
             // Extract the PropagationContext of the upstream parent from the message headers.
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,
@@ -197,7 +195,7 @@ namespace RabbitMQ.Client
 
         internal static void PopulateMessageEnvelopeSize(Activity? activity, int size)
         {
-            if (activity != null && activity.IsAllDataRequested && PublisherHasListeners)
+            if (activity?.IsAllDataRequested ?? false)
             {
                 activity.SetTag(MessagingEnvelopeSize, size);
             }
@@ -205,7 +203,7 @@ namespace RabbitMQ.Client
 
         internal static void SetNetworkTags(this Activity? activity, IFrameHandler frameHandler)
         {
-            if (PublisherHasListeners && activity != null && activity.IsAllDataRequested)
+            if (activity?.IsAllDataRequested ?? false)
             {
                 switch (frameHandler.RemoteEndPoint.AddressFamily)
                 {
@@ -216,15 +214,7 @@ namespace RabbitMQ.Client
                         activity.SetTag("network.type", "ipv4");
                         break;
                 }
-
-                if (!string.IsNullOrEmpty(frameHandler.Endpoint.HostName))
-                {
-                    activity
-                        .SetTag("server.address", frameHandler.Endpoint.HostName);
-                }
-
-                activity
-                    .SetTag("server.port", frameHandler.Endpoint.Port);
+                activity.SetServerTags(frameHandler.Endpoint);
 
                 if (frameHandler.RemoteEndPoint is IPEndPoint ipEndpoint)
                 {
@@ -250,6 +240,18 @@ namespace RabbitMQ.Client
                         .SetTag("network.local.port", localEndpoint.Port);
                 }
             }
+        }
+
+        internal static void SetServerTags(this Activity activity, AmqpTcpEndpoint endpoint)
+        {
+            if (!string.IsNullOrEmpty(endpoint.HostName))
+            {
+                activity
+                    .SetTag("server.address", endpoint.HostName);
+            }
+
+            activity
+                .SetTag("server.port", endpoint.Port);
         }
 
         private static void DefaultContextInjector(Activity sendActivity, IDictionary<string, object?> props)
