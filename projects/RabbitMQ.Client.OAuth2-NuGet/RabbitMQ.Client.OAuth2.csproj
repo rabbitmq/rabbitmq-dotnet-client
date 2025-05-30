@@ -64,7 +64,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="[6.0.0,)" />
+    <PackageReference Include="MinVer" Version="[6.0.0,)">
+        <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="RabbitMQ.Client" Version="[7.0.0,)" />
   </ItemGroup>
 
