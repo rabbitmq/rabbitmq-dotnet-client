@@ -294,6 +294,20 @@ namespace RabbitMQ.Client.Framing
 
             try
             {
+#if NETSTANDARD2_0
+                _recoveryCancellationTokenSource.Cancel();
+#else
+                await _recoveryCancellationTokenSource.CancelAsync()
+                    .ConfigureAwait(false);
+#endif
+            }
+            catch
+            {
+                // Ensure dispose does not throw any exceptions.
+            }
+
+            try
+            {
                 await _innerConnection.DisposeAsync()
                     .ConfigureAwait(false);
             }
