@@ -229,11 +229,11 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ValueTask MaybeEnforceFlowControlAsync(CancellationToken cancellationToken)
+        private Task MaybeEnforceFlowControlAsync(CancellationToken cancellationToken)
         {
             if (_flowControlBlock.IsSet)
             {
-                return default;
+                return Task.CompletedTask;
             }
 
             return _flowControlBlock.WaitAsync(cancellationToken);
