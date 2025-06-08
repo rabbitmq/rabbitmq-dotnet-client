@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -433,6 +434,55 @@ namespace Test.Integration
                 Assert.True(conn.ClientProvidedName.Length <= InternalConstants.DefaultRabbitMqMaxClientProvideNameLength);
                 Assert.Contains(conn.ClientProvidedName, cpn);
             }
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionRegisterAnActivity()
+        {
+            using ActivityRecorder connectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "connection attempt");
+            using ActivityRecorder tcpConnectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "tcp connection attempt");
+            tcpConnectionRecorder.VerifyParent = false;
+            ConnectionFactory cf = CreateConnectionFactory();
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            var connectionActivity = connectionRecorder.VerifyActivityRecordedOnce();
+            connectionActivity.HasTag("network.peer.address");
+            connectionActivity.HasTag("network.local.address");
+            connectionActivity.HasTag("server.address");
+            connectionActivity.HasTag("client.address");
+            connectionActivity.HasTag("network.peer.port");
+            connectionActivity.HasTag("network.local.port");
+            connectionActivity.HasTag("server.port");
+            connectionActivity.HasTag("client.port");
+            connectionActivity.HasTag("network.type");
+            var tcpConnectionActivity = tcpConnectionRecorder.VerifyActivityRecordedOnce();
+            tcpConnectionActivity.HasTag("server.port");
+            tcpConnectionActivity.HasTag("server.address");
+            Assert.Equal(connectionActivity, tcpConnectionActivity.Parent);
+            await conn.CloseAsync();
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionWithFailureRecordException()
+        {
+            using ActivityRecorder recorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "connection attempt");
+            using ActivityRecorder tcpConnectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "tcp connection attempt");
+            tcpConnectionRecorder.VerifyParent = false;
+            ConnectionFactory cf = CreateConnectionFactory();
+            var unreachablePort = 1234;
+            var ep = new AmqpTcpEndpoint("localhost", unreachablePort);
+            var exception = await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
+            {
+                return cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
+            });
+            Activity connectionActivity = recorder.VerifyActivityRecordedOnce();
+            connectionActivity.HasRecordedException(exception);
+            connectionActivity.IsInError();
+            Activity tcpConnectionActivity = tcpConnectionRecorder.VerifyActivityRecordedOnce();
+            tcpConnectionActivity.HasRecordedException("RabbitMQ.Client.Exceptions.ConnectFailureException");
         }
     }
 }

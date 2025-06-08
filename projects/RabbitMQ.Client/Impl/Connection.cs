@@ -228,11 +228,9 @@ namespace RabbitMQ.Client.Framing
         internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             try
             {
                 RabbitMqClientEventSource.Log.ConnectionOpened();
-
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Note: this must happen *after* the frame handler is started
@@ -250,7 +248,7 @@ namespace RabbitMQ.Client.Framing
 
                 return this;
             }
-            catch
+            catch (Exception)
             {
                 try
                 {

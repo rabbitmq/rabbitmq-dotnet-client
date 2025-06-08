@@ -50,6 +50,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
