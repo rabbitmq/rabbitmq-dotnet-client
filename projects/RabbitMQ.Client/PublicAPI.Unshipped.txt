@@ -5,3 +5,11 @@ RabbitMQ.Client.Exceptions.PublishReturnException.PublishReturnException(ulong p
 RabbitMQ.Client.Exceptions.PublishReturnException.ReplyCode.get -> ushort
 RabbitMQ.Client.Exceptions.PublishReturnException.ReplyText.get -> string!
 RabbitMQ.Client.Exceptions.PublishReturnException.RoutingKey.get -> string!
+RabbitMQ.Client.RabbitMQTracingOptions
+RabbitMQ.Client.RabbitMQTracingOptions.RabbitMQTracingOptions() -> void
+RabbitMQ.Client.RabbitMQTracingOptions.UsePublisherAsParent.get -> bool
+RabbitMQ.Client.RabbitMQTracingOptions.UsePublisherAsParent.set -> void
+RabbitMQ.Client.RabbitMQTracingOptions.UseRoutingKeyAsOperationName.get -> bool
+RabbitMQ.Client.RabbitMQTracingOptions.UseRoutingKeyAsOperationName.set -> void
+static RabbitMQ.Client.RabbitMQActivitySource.TracingOptions.get -> RabbitMQ.Client.RabbitMQTracingOptions!
+static RabbitMQ.Client.RabbitMQActivitySource.TracingOptions.set -> void
