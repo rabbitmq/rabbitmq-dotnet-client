@@ -59,7 +59,7 @@ namespace Test.SequentialIntegration
 
         [SkippableFact(Timeout = 35000)]
         [Trait("Category", "LongRunning")]
-        public async Task TestThatHeartbeatWriterUsesConfigurableInterval()
+        public async Task TestThatHeartbeatWriterUsesConfigurableIntervalAsync()
         {
             Skip.IfNot(LongRunningTestsEnabled(), "RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
 
@@ -72,7 +72,7 @@ namespace Test.SequentialIntegration
 
         [SkippableFact]
         [Trait("Category", "LongRunning")]
-        public async Task TestThatHeartbeatWriterWithTLSEnabled()
+        public async Task TestThatHeartbeatWriterWithTLSEnabledAsync()
         {
             Skip.IfNot(LongRunningTestsEnabled(), "RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
 
@@ -94,7 +94,7 @@ namespace Test.SequentialIntegration
 
         [SkippableFact(Timeout = 90000)]
         [Trait("Category", "LongRunning")]
-        public async Task TestHundredsOfConnectionsWithRandomHeartbeatInterval()
+        public async Task TestHundredsOfConnectionsWithRandomHeartbeatIntervalAsync()
         {
             Skip.IfNot(LongRunningTestsEnabled(), "RABBITMQ_LONG_RUNNING_TESTS is not set, skipping test");
 
