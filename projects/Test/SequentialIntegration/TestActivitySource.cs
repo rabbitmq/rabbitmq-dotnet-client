@@ -289,9 +289,11 @@ namespace Test.SequentialIntegration
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName)
+        [InlineData(true, true)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(false, false)]
+        public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool useMessageId)
         {
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             var activities = new List<Activity>();
@@ -300,10 +302,12 @@ namespace Test.SequentialIntegration
             string queue = $"queue-{Guid.NewGuid()}";
             const string msg = "for basic.get";
 
+            var basicProps = useMessageId ? new BasicProperties() { MessageId = Guid.NewGuid().ToString() } : new BasicProperties();
+
             try
             {
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
-                await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
+                await _channel.BasicPublishAsync("", queue, true, basicProps, Encoding.UTF8.GetBytes(msg));
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(1u, ok.MessageCount);
                 BasicGetResult res = await _channel.BasicGetAsync(queue, true);
@@ -311,7 +315,7 @@ namespace Test.SequentialIntegration
                 ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(0u, ok.MessageCount);
                 await Task.Delay(500);
-                AssertActivityData(useRoutingKeyAsOperationName, queue, activities, false);
+                AssertActivityData(useRoutingKeyAsOperationName, queue, activities, false, basicProps.MessageId);
             }
             finally
             {
@@ -400,7 +404,7 @@ namespace Test.SequentialIntegration
         }
 
         private void AssertActivityData(bool useRoutingKeyAsOperationName, string queueName,
-            List<Activity> activityList, bool isDeliver = false)
+            List<Activity> activityList, bool isDeliver = false, string messageId = null)
         {
             string childName = isDeliver ? "deliver" : "fetch";
             Activity[] activities = activityList.ToArray();
@@ -444,6 +448,12 @@ namespace Test.SequentialIntegration
             AssertIntTagGreaterThanZero(sendActivity, RabbitMQActivitySource.MessagingEnvelopeSize);
             AssertIntTagGreaterThanZero(sendActivity, RabbitMQActivitySource.MessagingBodySize);
             AssertIntTagGreaterThanZero(receiveActivity, RabbitMQActivitySource.MessagingBodySize);
+
+            if (messageId is not null)
+            {
+                AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessageId, messageId);
+                AssertStringTagEquals(receiveActivity, RabbitMQActivitySource.MessageId, messageId);
+            }
         }
     }
 }
