@@ -66,7 +66,7 @@ namespace RabbitMQ.Client
             new KeyValuePair<string, object?>(ProtocolVersion, "0.9.1")
         };
 
-        internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize,
+        internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize, IReadOnlyBasicProperties basicProperties,
             ActivityContext linkedContext = default)
         {
             if (!s_publisherSource.HasListeners())
@@ -83,7 +83,7 @@ namespace RabbitMQ.Client
                     ActivityKind.Producer, linkedContext);
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, exchange, 0, bodySize, activity);
+                PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, exchange, 0, basicProperties, bodySize, activity);
             }
 
             return activity;
