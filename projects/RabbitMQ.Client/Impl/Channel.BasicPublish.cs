@@ -52,7 +52,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 publisherConfirmationInfo =
-                    await MaybeStartPublisherConfirmationTracking(cancellationToken)
+                    await MaybeStartPublisherConfirmationTrackingAsync(cancellationToken)
                         .ConfigureAwait(false);
 
                 await MaybeEnforceFlowControlAsync(cancellationToken)
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                await MaybeEndPublisherConfirmationTracking(publisherConfirmationInfo, cancellationToken)
+                await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
@@ -107,7 +107,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 publisherConfirmationInfo =
-                    await MaybeStartPublisherConfirmationTracking(cancellationToken)
+                    await MaybeStartPublisherConfirmationTrackingAsync(cancellationToken)
                         .ConfigureAwait(false);
 
                 await MaybeEnforceFlowControlAsync(cancellationToken)
@@ -148,7 +148,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                await MaybeEndPublisherConfirmationTracking(publisherConfirmationInfo, cancellationToken)
+                await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
                     .ConfigureAwait(false);
             }
         }

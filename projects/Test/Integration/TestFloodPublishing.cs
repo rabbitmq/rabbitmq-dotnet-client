@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -43,7 +44,7 @@ namespace Test.Integration
 {
     public class TestFloodPublishing : IntegrationFixture
     {
-        private static readonly TimeSpan FiveSeconds = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan ElapsedMax = TimeSpan.FromSeconds(10);
         private readonly byte[] _body = GetRandomBody(2048);
 
         public TestFloodPublishing(ITestOutputHelper output) : base(output)
@@ -92,31 +93,68 @@ namespace Test.Integration
                 return Task.CompletedTask;
             };
 
-            var publishTasks = new List<Task>();
+            var queueArguments = new Dictionary<string, object>
+            {
+                ["x-max-length"] = 131072,
+                ["x-overflow"] = "reject-publish"
+            };
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: string.Empty,
+                    passive: false, durable: false, exclusive: true, autoDelete: true, arguments: queueArguments);
+            string queueName = q.QueueName;
+
+            var exceptions = new ConcurrentBag<Exception>();
+
+            async Task WaitPublishTasksAsync(ICollection<ValueTask> publishTasks)
+            {
+                foreach (ValueTask pt in publishTasks)
+                {
+                    try
+                    {
+                        await pt;
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions.Add(ex);
+                    }
+                }
+
+                publishTasks.Clear();
+            }
+
             var stopwatch = Stopwatch.StartNew();
-            int i = 0;
             int publishCount = 0;
             try
             {
-                for (i = 0; i < 65535 * 64; i++)
+                var tasks = new List<Task>();
+                for (int j = 0; j < 8; j++)
                 {
-                    if (i % 65536 == 0)
+                    tasks.Add(Task.Run(async () =>
                     {
-                        if (stopwatch.Elapsed > FiveSeconds)
+                        var publishTasks = new List<ValueTask>();
+                        for (int i = 0; i < 65536; i++)
                         {
-                            break;
+                            if (stopwatch.Elapsed > ElapsedMax)
+                            {
+                                await WaitPublishTasksAsync(publishTasks);
+                                return;
+                            }
+
+                            Interlocked.Increment(ref publishCount);
+                            publishTasks.Add(_channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, mandatory: true,
+                                body: _body));
+
+                            if (i % 128 == 0)
+                            {
+                                await WaitPublishTasksAsync(publishTasks);
+                            }
                         }
-                    }
 
-                    publishCount++;
-                    publishTasks.Add(_channel.BasicPublishAsync(CachedString.Empty, CachedString.Empty, _body).AsTask());
-
-                    if (i % 500 == 0)
-                    {
-                        await Task.WhenAll(publishTasks).WaitAsync(ShortSpan);
-                        publishTasks.Clear();
-                    }
+                        await WaitPublishTasksAsync(publishTasks);
+                    }));
                 }
+
+                await Task.WhenAll(tasks).WaitAsync(WaitSpan);
             }
             finally
             {
@@ -127,7 +165,8 @@ namespace Test.Integration
             Assert.False(sawUnexpectedShutdown);
             if (IsVerbose)
             {
-                _output.WriteLine("[INFO] published {0} messages in {1}", publishCount, stopwatch.Elapsed);
+                _output.WriteLine("[INFO] published {0} messages in {1}, exceptions: {2}",
+                    publishCount, stopwatch.Elapsed, exceptions.Count);
             }
         }
 
