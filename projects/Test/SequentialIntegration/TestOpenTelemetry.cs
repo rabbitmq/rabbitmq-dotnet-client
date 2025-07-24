@@ -333,11 +333,15 @@ namespace Test.SequentialIntegration
         }
 
         [Theory]
-        [InlineData(true, true)]
-        [InlineData(true, false)]
-        [InlineData(false, true)]
-        [InlineData(false, false)]
-        public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
+        [InlineData(true, true, true)]
+        [InlineData(true, true, false)]
+        [InlineData(true, false, true)]
+        [InlineData(true, false, false)]
+        [InlineData(false, true, true)]
+        [InlineData(false, true, false)]
+        [InlineData(false, false, true)]
+        [InlineData(false, false, false)]
+        public async Task TestPublisherAndBasicGetActivityTags(bool useRoutingKeyAsOperationName, bool usePublisherAsParent, bool useMessageId)
         {
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
@@ -355,10 +359,12 @@ namespace Test.SequentialIntegration
             string queue = $"queue-{Guid.NewGuid()}";
             const string msg = "for basic.get";
 
+            var basicProps = useMessageId ? new BasicProperties() { MessageId = Guid.NewGuid().ToString() } : new BasicProperties();
+
             try
             {
                 await _channel.QueueDeclareAsync(queue, false, false, false, null);
-                await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes(msg));
+                await _channel.BasicPublishAsync("", queue, true, basicProps, Encoding.UTF8.GetBytes(msg));
                 Baggage.ClearBaggage();
                 Assert.Null(Baggage.GetBaggage("TestItem"));
                 QueueDeclareOk ok = await _channel.QueueDeclarePassiveAsync(queue);
@@ -368,7 +374,7 @@ namespace Test.SequentialIntegration
                 ok = await _channel.QueueDeclarePassiveAsync(queue);
                 Assert.Equal(0u, ok.MessageCount);
                 await Task.Delay(500);
-                AssertActivityData(useRoutingKeyAsOperationName, usePublisherAsParent, queue, exportedItems, false);
+                AssertActivityData(useRoutingKeyAsOperationName, usePublisherAsParent, queue, exportedItems, false, basicProps.MessageId);
             }
             finally
             {
@@ -377,7 +383,7 @@ namespace Test.SequentialIntegration
         }
 
         private void AssertActivityData(bool useRoutingKeyAsOperationName, bool usePublisherAsParent, string queueName,
-            List<Activity> activityList, bool isDeliver = false, string baggageGuid = null)
+            List<Activity> activityList, bool isDeliver = false, string messageId = null)
         {
             string childName = isDeliver ? "deliver" : "fetch";
             string childType = isDeliver ? "process" : "receive";
@@ -432,6 +438,11 @@ namespace Test.SequentialIntegration
             AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessagingOperationType, "send");
             AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessagingOperationName, "publish");
 
+            if (messageId is not null)
+            {
+                AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessageId, messageId);
+                AssertStringTagEquals(receiveActivity, RabbitMQActivitySource.MessageId, messageId);
+            }
         }
     }
 }
