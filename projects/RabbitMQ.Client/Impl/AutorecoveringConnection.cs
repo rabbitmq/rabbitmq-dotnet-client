@@ -105,8 +105,9 @@ namespace RabbitMQ.Client.Framing
             {
                 try
                 {
-                    await connection.CloseAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                    await connection.CloseAsync(Constants.InternalError, "FailedOpen",
+                        InternalConstants.DefaultConnectionCloseTimeout, true,
+                        cancellationToken).ConfigureAwait(false);
                     await connection.DisposeAsync()
                         .ConfigureAwait(false);
                 }
