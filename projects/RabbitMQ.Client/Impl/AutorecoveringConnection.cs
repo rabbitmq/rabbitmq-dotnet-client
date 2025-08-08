@@ -96,8 +96,27 @@ namespace RabbitMQ.Client.Framing
                 .ConfigureAwait(false);
             Connection innerConnection = new(config, fh);
             AutorecoveringConnection connection = new(config, endpoints, innerConnection);
-            await innerConnection.OpenAsync(cancellationToken)
-                .ConfigureAwait(false);
+            try
+            {
+                await innerConnection.OpenAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                try
+                {
+                    await connection.CloseAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    await connection.DisposeAsync()
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                }
+
+                throw;
+            }
+
             return connection;
         }
 
