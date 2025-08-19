@@ -681,7 +681,10 @@ namespace RabbitMQ.Client.Impl
                 k.m_consumer = DefaultConsumer;
             }
 
-            ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
+            if (!(k.m_consumer is null))
+            {
+                ConsumerDispatcher.HandleBasicCancelOk(k.m_consumer, consumerTag);
+            }
 
             k.HandleCommand(IncomingCommand.Empty); // release the continuation.
         }
@@ -1073,7 +1076,10 @@ namespace RabbitMQ.Client.Impl
                 _consumers.Remove(consumerTag);
             }
 
-            ModelShutdown -= k.m_consumer.HandleModelShutdown;
+            if (!(k.m_consumer is null))
+            {
+                ModelShutdown -= k.m_consumer.HandleModelShutdown;
+            }
         }
 
         public void BasicCancelNoWait(string consumerTag)
