@@ -41,9 +41,9 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Largest message size, in bytes, allowed in RabbitMQ.        
         /// Note: <code>rabbit.max_message_size</code> setting (https://www.rabbitmq.com/configure.html)
-        /// configures the largest message size which should be lower than this maximum of 128MiB.
+        /// configures the largest message size which should not be higher than this maximum of 512MiB.
         /// </summary>
-        internal const uint DefaultRabbitMqMaxInboundMessageBodySize = 1_048_576 * 128;
+        internal const uint MaximumRabbitMqMaxInboundMessageBodySize = 1_048_576 * 512;
 
         /// <summary>
         /// Largest client provide name, in characters, allowed in RabbitMQ.

@@ -78,7 +78,7 @@ namespace RabbitMQ.Client
             _port = portOrMinusOne;
             Ssl = ssl;
             _maxInboundMessageBodySize = Math.Min(maxInboundMessageBodySize,
-                InternalConstants.DefaultRabbitMqMaxInboundMessageBodySize);
+                InternalConstants.MaximumRabbitMqMaxInboundMessageBodySize);
         }
 
         /// <summary>

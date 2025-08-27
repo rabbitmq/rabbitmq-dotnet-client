@@ -320,8 +320,8 @@ namespace Test.Integration
         public void TestCreateAmqpTCPEndPointOverridesMaxMessageSizeWhenGreaterThanMaximumAllowed()
         {
             var ep = new AmqpTcpEndpoint("localhost", -1, new SslOption(),
-                2 * InternalConstants.DefaultRabbitMqMaxInboundMessageBodySize);
-            Assert.Equal(InternalConstants.DefaultRabbitMqMaxInboundMessageBodySize, ep.MaxInboundMessageBodySize);
+                2 * InternalConstants.MaximumRabbitMqMaxInboundMessageBodySize);
+            Assert.Equal(InternalConstants.MaximumRabbitMqMaxInboundMessageBodySize, ep.MaxInboundMessageBodySize);
         }
 
         [Fact]
