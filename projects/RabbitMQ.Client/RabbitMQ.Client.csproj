@@ -81,4 +81,17 @@
     <PackageReference Include="System.Threading.Channels" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
+
+  <!-- Public API files per target framework -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <AdditionalFiles Include="PublicAPI/PublicAPI.Unshipped.net8.0.txt" Link="PublicAPI.Unshipped.txt" />
+    <!-- Shipped surface is currently identical across TFMs; reuse common file -->
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" Link="PublicAPI.Shipped.txt" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <AdditionalFiles Include="PublicAPI/PublicAPI.Unshipped.netstandard2.0.txt" Link="PublicAPI.Unshipped.txt" />
+    <!-- Shipped surface is currently identical across TFMs; reuse common file -->
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" Link="PublicAPI.Shipped.txt" />
+  </ItemGroup>
 </Project>

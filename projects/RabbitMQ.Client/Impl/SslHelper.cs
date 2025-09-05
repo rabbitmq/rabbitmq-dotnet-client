@@ -75,14 +75,20 @@ namespace RabbitMQ.Client.Impl
                     certificateRevocationCheckMode = X509RevocationMode.Online;
                 }
 
-                var o = new SslClientAuthenticationOptions
+                var sslClientAuthenticationOptions = new SslClientAuthenticationOptions
                 {
                     CertificateRevocationCheckMode = certificateRevocationCheckMode,
                     ClientCertificates = opts.Certs,
                     EnabledSslProtocols = opts.Version,
                     TargetHost = opts.ServerName,
                 };
-                return sslStream.AuthenticateAsClientAsync(o, cancellationToken);
+
+                if (opts.ClientCertificateContext != null)
+                {
+                    sslClientAuthenticationOptions.ClientCertificateContext = opts.ClientCertificateContext;
+                }
+
+                return sslStream.AuthenticateAsClientAsync(sslClientAuthenticationOptions, cancellationToken);
 #else
                 return sslStream.AuthenticateAsClientAsync(opts.ServerName, opts.Certs, opts.Version, opts.CheckCertificateRevocation);
 #endif

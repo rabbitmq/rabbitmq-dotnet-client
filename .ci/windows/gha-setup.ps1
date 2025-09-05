@@ -240,7 +240,11 @@ $ErrorActionPreference = 'Continue'
 Write-Host '[INFO] Enabling plugins...'
 & $rabbitmq_plugins_path enable rabbitmq_management rabbitmq_stream rabbitmq_stream_management rabbitmq_amqp1_0
 
-echo Q | openssl s_client -connect localhost:5671 -CAfile "$certs_dir/ca_certificate.pem" -cert "$certs_dir/client_localhost_certificate.pem" -key "$certs_dir/client_localhost_key.pem" -pass pass:grapefruit
+echo Q | openssl s_client -connect localhost:5671 `
+    -CAfile "$certs_dir/ca_certificate.pem" `
+    -cert "$certs_dir/client_direct_certificate.pem" `
+    -key "$certs_dir/client_direct_key.pem" `
+    -pass pass:grapefruit
 if ($LASTEXITCODE -ne 0)
 {
     throw "[ERROR] 'openssl s_client' returned error: $LASTEXITCODE"

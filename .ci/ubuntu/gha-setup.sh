@@ -144,8 +144,19 @@ function install_ca_certificate
 
     openssl s_client -connect localhost:5671 \
         -CAfile "$GITHUB_WORKSPACE/.ci/certs/ca_certificate.pem" \
-        -cert "$GITHUB_WORKSPACE/.ci/certs/client_localhost_certificate.pem" \
-        -key "$GITHUB_WORKSPACE/.ci/certs/client_localhost_key.pem" \
+        -cert "$GITHUB_WORKSPACE/.ci/certs/client_direct_certificate.pem" \
+        -key "$GITHUB_WORKSPACE/.ci/certs/client_direct_key.pem" \
+        -pass pass:grapefruit < /dev/null
+
+    # rabbitmq/rabbitmq-dotnet-client#1864
+    # https://docs.openssl.org/master/man1/openssl-s_client/#options
+    # This tests the case where the client certificate is signed by an
+    # intermediate certificate
+    openssl s_client -connect localhost:5671 \
+        -CAfile "$GITHUB_WORKSPACE/.ci/certs/ca_certificate.pem" \
+        -chainCAfile "$GITHUB_WORKSPACE/.ci/certs/chained_ca_certificate.pem" \
+        -cert "$GITHUB_WORKSPACE/.ci/certs/client_certificate.pem" \
+        -key "$GITHUB_WORKSPACE/.ci/certs/client_key.pem" \
         -pass pass:grapefruit < /dev/null
 }
 
