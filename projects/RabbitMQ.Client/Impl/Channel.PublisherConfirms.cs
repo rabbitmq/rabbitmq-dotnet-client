@@ -268,22 +268,18 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private async Task MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync(ShutdownEventArgs reason)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (_publisherConfirmationsEnabled)
             {
                 await _confirmSemaphore.WaitAsync(reason.CancellationToken)
                     .ConfigureAwait(false);
                 try
                 {
-                    if (!_confirmsTaskCompletionSources.IsEmpty)
-                    {
-                        var exception = new AlreadyClosedException(reason);
-                        foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources.Values)
-                        {
-                            confirmsTaskCompletionSource.TrySetException(exception);
-                        }
-
-                        _confirmsTaskCompletionSources.Clear();
-                    }
+                    MaybeSetExceptionOnConfirmsTcs(reason);
                 }
                 finally
                 {
@@ -402,6 +398,28 @@ namespace RabbitMQ.Client.Impl
                         publisherConfirmationInfo.Dispose();
                     }
                 }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void MaybeSetExceptionOnConfirmsTcs(ShutdownEventArgs? reason = null)
+        {
+            if (!_confirmsTaskCompletionSources.IsEmpty)
+            {
+                Exception ex;
+                if (reason is not null)
+                {
+                    ex = new AlreadyClosedException(reason);
+                }
+                else
+                {
+                    ex = new OperationInterruptedException();
+                }
+                foreach (TaskCompletionSource<bool> confirmsTaskCompletionSource in _confirmsTaskCompletionSources.Values)
+                {
+                    confirmsTaskCompletionSource.TrySetException(ex);
+                }
+                _confirmsTaskCompletionSources.Clear();
             }
         }
     }

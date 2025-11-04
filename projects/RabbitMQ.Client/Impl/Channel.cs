@@ -591,6 +591,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         _rpcSemaphore.Dispose();
                         _confirmSemaphore.Dispose();
+                        MaybeSetExceptionOnConfirmsTcs();
                     }
                     catch
                     {
@@ -608,13 +609,13 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
-            await DisposeAsyncCore()
+            await DisposeAsyncCoreAsync()
                 .ConfigureAwait(false);
 
             Dispose(false);
         }
 
-        protected virtual async ValueTask DisposeAsyncCore()
+        protected virtual async ValueTask DisposeAsyncCoreAsync()
         {
             if (_disposed)
             {
@@ -669,7 +670,7 @@ namespace RabbitMQ.Client.Impl
             return ModelSendAsync(in method, cancellationToken).AsTask();
         }
 
-        protected async Task<bool> HandleBasicAck(IncomingCommand cmd,
+        protected async Task<bool> HandleBasicAckAsync(IncomingCommand cmd,
             CancellationToken cancellationToken = default)
         {
             var ack = new BasicAck(cmd.MethodSpan);
@@ -685,7 +686,7 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected async Task<bool> HandleBasicNack(IncomingCommand cmd,
+        protected async Task<bool> HandleBasicNackAsync(IncomingCommand cmd,
             CancellationToken cancellationToken = default)
         {
             var nack = new BasicNack(cmd.MethodSpan);
@@ -702,7 +703,7 @@ namespace RabbitMQ.Client.Impl
             return true;
         }
 
-        protected async Task<bool> HandleBasicReturn(IncomingCommand cmd, CancellationToken cancellationToken)
+        protected async Task<bool> HandleBasicReturnAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             var basicReturn = new BasicReturn(cmd.MethodSpan);
 
@@ -1750,16 +1751,16 @@ namespace RabbitMQ.Client.Impl
                     }
                 case ProtocolCommandId.BasicAck:
                     {
-                        return HandleBasicAck(cmd, cancellationToken);
+                        return HandleBasicAckAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.BasicNack:
                     {
-                        return HandleBasicNack(cmd, cancellationToken);
+                        return HandleBasicNackAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.BasicReturn:
                     {
                         // Note: always returns true
-                        return HandleBasicReturn(cmd, cancellationToken);
+                        return HandleBasicReturnAsync(cmd, cancellationToken);
                     }
                 case ProtocolCommandId.ChannelClose:
                     {
