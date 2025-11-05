@@ -514,7 +514,7 @@ namespace Test.Integration
             Assert.True(await publishSyncSource.Task);
             Assert.Equal(messageCount, messagesReceived);
             await _channel.QueueDeleteAsync(queue: queueName);
-            await _channel.CloseAsync(_closeArgs, false, CancellationToken.None);
+            await _channel.CloseAsync(_closeArgs, false);
         }
 
         [Fact]
@@ -591,7 +591,7 @@ namespace Test.Integration
                 Assert.Equal((uint)0, consumerCount);
             }
 
-            await _channel.CloseAsync(_closeArgs, false, CancellationToken.None);
+            await _channel.CloseAsync(_closeArgs, false);
         }
 
         [Fact]

@@ -31,6 +31,8 @@
 
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -43,6 +45,9 @@ namespace Test.Integration
 {
     public class TestConnectionShutdown : IntegrationFixture
     {
+        // default Connection.Abort() timeout and then some
+        private readonly TimeSpan _waitSpan = TimeSpan.FromSeconds(6);
+
         public TestConnectionShutdown(ITestOutputHelper output) : base(output)
         {
         }
@@ -58,18 +63,31 @@ namespace Test.Integration
             };
 
             var c = (AutorecoveringConnection)_conn;
-            await c.CloseFrameHandlerAsync();
-
+            ValueTask frameHandlerCloseTask = c.CloseFrameHandlerAsync();
             try
             {
-                await _conn.CloseAsync(TimeSpan.FromSeconds(4));
+                await _conn.CloseAsync(_waitSpan);
             }
             catch (AlreadyClosedException ex)
             {
                 Assert.IsAssignableFrom<IOException>(ex.InnerException);
             }
+            catch (ChannelClosedException)
+            {
+                /*
+                 * TODO: ideally we'd not see this exception!
+                 */
+            }
 
-            await WaitAsync(tcs, TimeSpan.FromSeconds(5), "channel shutdown");
+            try
+            {
+                await WaitAllAsync(tcs, frameHandlerCloseTask);
+            }
+            finally
+            {
+                _conn = null;
+                _channel = null;
+            }
         }
 
         [Fact]
@@ -83,12 +101,50 @@ namespace Test.Integration
             };
 
             var c = (AutorecoveringConnection)_conn;
-            await c.CloseFrameHandlerAsync();
+            ValueTask frameHandlerCloseTask = c.CloseFrameHandlerAsync();
+            try
+            {
+                await _conn.AbortAsync();
+                await WaitAllAsync(tcs, frameHandlerCloseTask);
+            }
+            finally
+            {
+                _conn = null;
+                _channel = null;
+            }
+        }
 
-            await _conn.AbortAsync();
+        [Fact]
+        public async Task TestAbortWithSocketClosedOutOfBandAndCancellation()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            // default Connection.Abort() timeout and then some
-            await WaitAsync(tcs, TimeSpan.FromSeconds(6), "channel shutdown");
+            _channel.ChannelShutdownAsync += async (channel, args) =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(1), args.CancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    tcs.SetResult(true);
+                }
+            };
+
+            var c = (AutorecoveringConnection)_conn;
+            ValueTask frameHandlerCloseTask = c.CloseFrameHandlerAsync();
+
+            try
+            {
+                await _conn.AbortAsync(cts.Token);
+                await WaitAllAsync(tcs, frameHandlerCloseTask);
+            }
+            finally
+            {
+                _conn = null;
+                _channel = null;
+            }
         }
 
         [Fact]
@@ -135,6 +191,52 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task TestShutdownCancellation()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _conn.ConnectionShutdownAsync += async (channel, args) =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(1), args.CancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    tcs.SetResult(true);
+                }
+            };
+
+            await _conn.CloseAsync(cancellationToken: cts.Token);
+
+            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "connection shutdown");
+        }
+
+        [Fact]
+        public async Task TestShutdownSignalPropagationWithCancellationToChannels()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _channel.ChannelShutdownAsync += async (channel, args) =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(1), args.CancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    tcs.SetResult(true);
+                }
+            };
+
+            await _conn.CloseAsync(cts.Token);
+
+            await WaitAsync(tcs, TimeSpan.FromSeconds(3), "channel shutdown");
+        }
+
+        [Fact]
         public async Task TestShutdownSignalPropagationToChannelsUsingDispose()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -173,6 +275,12 @@ namespace Test.Integration
         {
             await _channel.AbortAsync();
             await _channel.DisposeAsync();
+        }
+
+        private async Task WaitAllAsync(TaskCompletionSource<bool> tcs, ValueTask frameHandlerCloseTask)
+        {
+            await WaitAsync(tcs, _waitSpan, "channel shutdown");
+            await frameHandlerCloseTask.AsTask().WaitAsync(_waitSpan);
         }
     }
 }

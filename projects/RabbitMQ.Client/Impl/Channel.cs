@@ -201,22 +201,23 @@ namespace RabbitMQ.Client.Impl
         public Task CloseAsync(ushort replyCode, string replyText, bool abort,
             CancellationToken cancellationToken)
         {
-            var args = new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText);
-            return CloseAsync(args, abort, cancellationToken);
+            var args = new ShutdownEventArgs(ShutdownInitiator.Application, replyCode, replyText, cancellationToken: cancellationToken);
+            return CloseAsync(args, abort);
         }
 
-        public async Task CloseAsync(ShutdownEventArgs args, bool abort,
+        public Task CloseAsync(ShutdownEventArgs args, bool abort,
             CancellationToken cancellationToken)
         {
-            CancellationToken argCancellationToken = cancellationToken;
-            if (IsOpen)
-            {
-                // Note: we really do need to try and close this channel!
-                cancellationToken = CancellationToken.None;
-            }
+            return CloseAsync(args, abort);
+        }
+
+        public async Task CloseAsync(ShutdownEventArgs args, bool abort)
+        {
+            CancellationToken cancellationToken = args.CancellationToken;
 
             bool enqueued = false;
-            var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+            // We should really try to close the channel and therefore we don't allow this to be canceled by the user
+            var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout, IsOpen ? CancellationToken.None : cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -236,7 +237,7 @@ namespace RabbitMQ.Client.Impl
 
                 AssertResultIsTrue(await k);
 
-                await ConsumerDispatcher.WaitForShutdownAsync()
+                await ConsumerDispatcher.WaitForShutdownAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (AlreadyClosedException)
@@ -265,7 +266,6 @@ namespace RabbitMQ.Client.Impl
                 MaybeDisposeContinuation(enqueued, k);
                 _rpcSemaphore.Release();
                 ChannelShutdownAsync -= k.OnConnectionShutdownAsync;
-                argCancellationToken.ThrowIfCancellationRequested();
             }
         }
 
@@ -851,7 +851,7 @@ namespace RabbitMQ.Client.Impl
         protected async Task<bool> HandleConnectionCloseAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             var method = new ConnectionClose(cmd.MethodSpan);
-            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId);
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, method._replyCode, method._replyText, method._classId, method._methodId, cancellationToken: cancellationToken);
             try
             {
                 /*
@@ -863,7 +863,7 @@ namespace RabbitMQ.Client.Impl
                 await ModelSendAsync(in replyMethod, cancellationToken)
                     .ConfigureAwait(false);
 
-                await Session.Connection.ClosedViaPeerAsync(reason, cancellationToken)
+                await Session.Connection.ClosedViaPeerAsync(reason)
                     .ConfigureAwait(false);
 
                 SetCloseReason(Session.Connection.CloseReason!);
@@ -896,10 +896,9 @@ namespace RabbitMQ.Client.Impl
         {
             if (m_connectionStartCell is null)
             {
-                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start");
+                var reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.CommandInvalid, "Unexpected Connection.Start", cancellationToken: cancellationToken);
                 await Session.Connection.CloseAsync(reason, false,
-                    InternalConstants.DefaultConnectionCloseTimeout,
-                    cancellationToken)
+                    InternalConstants.DefaultConnectionCloseTimeout)
                     .ConfigureAwait(false);
             }
             else

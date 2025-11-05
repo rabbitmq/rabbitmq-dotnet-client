@@ -62,7 +62,8 @@ namespace RabbitMQ.Client.Framing
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                     Constants.InternalError,
                     "Thread aborted (AppDomain unloaded?)",
-                    exception: taex);
+                    exception: taex,
+                    cancellationToken: mainLoopToken);
                 await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }
@@ -73,7 +74,8 @@ namespace RabbitMQ.Client.Framing
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                     0,
                     "End of stream",
-                    exception: eose);
+                    exception: eose,
+                    cancellationToken: mainLoopToken);
                 await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }
@@ -91,7 +93,8 @@ namespace RabbitMQ.Client.Framing
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                     Constants.InternalError,
                     fileLoadException.Message,
-                    exception: fileLoadException);
+                    exception: fileLoadException,
+                    cancellationToken: mainLoopToken);
                 await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }
@@ -106,7 +109,8 @@ namespace RabbitMQ.Client.Framing
                     var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                         Constants.InternalError,
                         ocex.Message,
-                        exception: ocex);
+                        exception: ocex,
+                        cancellationToken: mainLoopToken);
                     await HandleMainLoopExceptionAsync(ea)
                         .ConfigureAwait(false);
                 }
@@ -116,7 +120,8 @@ namespace RabbitMQ.Client.Framing
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
                     Constants.InternalError,
                     ex.Message,
-                    exception: ex);
+                    exception: ex,
+                    cancellationToken: mainLoopToken);
                 await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }
