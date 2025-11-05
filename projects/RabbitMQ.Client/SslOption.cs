@@ -166,5 +166,13 @@ namespace RabbitMQ.Client
             Version = SslProtocols.Tls12;
             return Version;
         }
+
+#if NET
+        /// <summary>
+        /// Retrieve or set the <see cref="SslStreamCertificateContext"/> to supply
+        /// a set of certificates used for building a certificate chain.
+        /// </summary>
+        public SslStreamCertificateContext? ClientCertificateContext { get; set; }
+#endif
     }
 }

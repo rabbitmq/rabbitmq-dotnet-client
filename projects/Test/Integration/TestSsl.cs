@@ -32,6 +32,7 @@
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
@@ -46,6 +47,7 @@ namespace Test.Integration
         public TestSsl(ITestOutputHelper output) : base(output)
         {
             _sslEnv = new SslEnv();
+            Assert.True(File.Exists(_sslEnv.CertDirectPath));
         }
 
         public override Task InitializeAsync()
@@ -64,6 +66,8 @@ namespace Test.Integration
             ConnectionFactory cf = CreateConnectionFactory();
             cf.Port = 5671;
             cf.Ssl.ServerName = "*";
+            cf.Ssl.CertPath = _sslEnv.CertDirectPath;
+            cf.Ssl.CertPassphrase = _sslEnv.CertPassphrase;
             cf.Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
             cf.Ssl.Enabled = true;
 
@@ -78,6 +82,8 @@ namespace Test.Integration
             ConnectionFactory cf = CreateConnectionFactory();
             cf.Port = 5671;
             cf.Ssl.ServerName = _sslEnv.Hostname;
+            cf.Ssl.CertPath = _sslEnv.CertDirectPath;
+            cf.Ssl.CertPassphrase = _sslEnv.CertPassphrase;
             cf.Ssl.Enabled = true;
 
             await SendReceiveAsync(cf);
@@ -88,22 +94,18 @@ namespace Test.Integration
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
-            string certPath = _sslEnv.CertPath;
-            Assert.True(File.Exists(certPath));
-
             ConnectionFactory cf = CreateConnectionFactory();
             cf.Port = 5671;
             cf.Ssl.ServerName = _sslEnv.Hostname;
-            cf.Ssl.CertPath = certPath;
+            cf.Ssl.CertPath = _sslEnv.CertDirectPath;
             cf.Ssl.CertPassphrase = _sslEnv.CertPassphrase;
             cf.Ssl.Enabled = true;
 
             await SendReceiveAsync(cf);
         }
 
-        // rabbitmq/rabbitmq-dotnet-client#46, also #44 and #45
         [SkippableFact]
-        public async Task TestNoClientCertificate()
+        public async Task TestWithClientCertificate()
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
 
@@ -111,7 +113,8 @@ namespace Test.Integration
             cf.Port = 5671;
             cf.Ssl = new SslOption()
             {
-                CertPath = null,
+                CertPath = _sslEnv.CertDirectPath,
+                CertPassphrase = _sslEnv.CertPassphrase,
                 Enabled = true,
                 ServerName = _sslEnv.Hostname,
                 Version = SslProtocols.None,
@@ -122,6 +125,31 @@ namespace Test.Integration
 
             await SendReceiveAsync(cf);
         }
+
+#if NET
+        [SkippableFact]
+        public async Task TestWithClientCertificateSignedByIntermediate()
+        {
+            Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
+
+            Assert.True(File.Exists(_sslEnv.CertIntermediatePath));
+
+            X509Certificate2 clientCertificate = new(_sslEnv.CertIntermediatePath, _sslEnv.CertPassphrase);
+            X509Certificate2 intermediateCaCertificate = new(_sslEnv.CertIntermediateCaPath);
+            X509Certificate2Collection intermediateCertificates = new(intermediateCaCertificate);
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Port = 5671;
+            cf.Ssl.Enabled = true;
+            cf.Ssl.ClientCertificateContext = SslStreamCertificateContext.Create(clientCertificate, intermediateCertificates);
+            cf.Ssl.ServerName = _sslEnv.Hostname;
+            cf.Ssl.AcceptablePolicyErrors =
+                SslPolicyErrors.RemoteCertificateNotAvailable |
+                SslPolicyErrors.RemoteCertificateNameMismatch;
+
+            await SendReceiveAsync(cf);
+        }
+#endif
 
         private async Task SendReceiveAsync(ConnectionFactory connectionFactory)
         {

@@ -37,7 +37,9 @@ namespace Test
     public class SslEnv
     {
         private readonly string _certPassphrase;
-        private readonly string _certPath;
+        private readonly string _certDirectPath;
+        private readonly string _certIntermediatePath;
+        private readonly string _certIntermediateCaPath;
         private const string _hostname = "localhost";
         private readonly string _sslDir;
         private readonly bool _isSslConfigured;
@@ -52,13 +54,25 @@ namespace Test
 
             if (_isSslConfigured)
             {
-                _certPath = Path.Combine(_sslDir, $"client_{_hostname}.p12");
+                _certDirectPath = Path.Combine(_sslDir, $"client_direct.p12");
+                _certIntermediatePath = Path.Combine(_sslDir, $"client.p12");
+                _certIntermediateCaPath = Path.Combine(_sslDir, $"intermediate_ca_certificate.pem");
             }
         }
 
-        public string CertPath
+        public string CertDirectPath
         {
-            get { return _certPath; }
+            get { return _certDirectPath; }
+        }
+
+        public string CertIntermediatePath
+        {
+            get { return _certIntermediatePath; }
+        }
+
+        public string CertIntermediateCaPath
+        {
+            get { return _certIntermediateCaPath; }
         }
 
         public string CertPassphrase

@@ -85,7 +85,7 @@ namespace Test.SequentialIntegration
             cf.AutomaticRecoveryEnabled = false;
 
             cf.Ssl.ServerName = sslEnv.Hostname;
-            cf.Ssl.CertPath = sslEnv.CertPath;
+            cf.Ssl.CertPath = sslEnv.CertDirectPath;
             cf.Ssl.CertPassphrase = sslEnv.CertPassphrase;
             cf.Ssl.Enabled = true;
 
