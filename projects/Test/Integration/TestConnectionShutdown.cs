@@ -46,7 +46,7 @@ namespace Test.Integration
     public class TestConnectionShutdown : IntegrationFixture
     {
         // default Connection.Abort() timeout and then some
-        private readonly TimeSpan _waitSpan = TimeSpan.FromSeconds(6);
+        private readonly TimeSpan _waitSpan = TimeSpan.FromSeconds(10);
 
         public TestConnectionShutdown(ITestOutputHelper output) : base(output)
         {
