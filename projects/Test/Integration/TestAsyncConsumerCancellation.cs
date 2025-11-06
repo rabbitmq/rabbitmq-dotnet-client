@@ -29,6 +29,7 @@ namespace Test.Integration
             var tcsShutdownCancelled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
+
             consumer.ShutdownAsync += async (model, ea) =>
             {
                 try
@@ -40,6 +41,7 @@ namespace Test.Integration
                     tcsShutdownCancelled.SetResult(true);
                 }
             };
+
             consumer.ReceivedAsync += async (model, ea) =>
             {
                 tcsMessageReceived.SetResult(true);
@@ -52,6 +54,7 @@ namespace Test.Integration
                     tcsReceivedCancelled.SetResult(true);
                 }
             };
+
             await _channel.BasicConsumeAsync(queueName, false, consumer);
 
             //publisher
@@ -65,8 +68,8 @@ namespace Test.Integration
 
             await _channel.CloseAsync();
 
-            await WaitAsync(tcsMessageReceived, TimeSpan.FromSeconds(5), "Consumer closed");
-            await WaitAsync(tcsShutdownCancelled, TimeSpan.FromSeconds(5), "Consumer closed");
+            await WaitAsync(tcsReceivedCancelled, TimeSpan.FromSeconds(5), "ReceivedAsync cancelled");
+            await WaitAsync(tcsShutdownCancelled, TimeSpan.FromSeconds(5), "ShutdownAsync cancellation");
         }
     }
 }

@@ -46,7 +46,7 @@ namespace Test.Integration
     public class TestConnectionShutdown : IntegrationFixture
     {
         // default Connection.Abort() timeout and then some
-        private readonly TimeSpan _waitSpan = TimeSpan.FromSeconds(10);
+        private readonly TimeSpan _waitSpan = TimeSpan.FromSeconds(6);
 
         public TestConnectionShutdown(ITestOutputHelper output) : base(output)
         {
@@ -130,6 +130,15 @@ namespace Test.Integration
                 {
                     tcs.SetResult(true);
                 }
+            };
+
+            _conn.ConnectionShutdownAsync += (c, args) =>
+            {
+                if (tcs.TrySetResult(true))
+                {
+                    _output.WriteLine("[ERROR] {0}: completed tcs via ConnectionShutdownAsync", _testDisplayName);
+                }
+                return Task.CompletedTask;
             };
 
             var c = (AutorecoveringConnection)_conn;

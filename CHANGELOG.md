@@ -1,8 +1,58 @@
 # Changelog
 
+## [v7.2.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.2.0) (2025-11-06)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.2...v7.2.0)
+
+**Implemented enhancements:**
+
+- Add support for SslStreamCertificateContext in SslOption [\#1864](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1864)
+- Consider including MessageId tag in RabbitMQActivitySource during BasicPublish [\#1849](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1849)
+- Consider allowing to set remote span as parent instead of link when propagating context via RabbitMQ [\#1666](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1666)
+- Make ConnectionFactory a real Factory pattern [\#1844](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1844)
+- Release an abstractions package [\#1833](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1833)
+- Replace `IReadOnlyBasicProperties, IAmqpHeader` generic type constraints in `IChannel.BasicPublishAsync()` with a single interface constraint. [\#1813](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1813)
+
+**Fixed bugs:**
+
+- ObjectDisposedException from MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync closing connection when CloseChannel Continuation is cancelled [\#1865](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1865)
+- Possible connection leak when trying to create first connection [\#1856](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1856)
+- Semaphore exception when publishing with confirmation [\#1818](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1818)
+- Cancellation token not canceled in AsyncEventingBasicConsumer.ReceivedAsync [\#1787](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1787)
+- Event handlers for Channel.ChannelShutdownAsync and Consumer.ShutdownAsync are all called on the last registration? [\#1837](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1837)
+- Exception details lost when using async API [\#1831](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1831)
+- Recovery loop is not cancelled on connection dispose [\#1825](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1825)
+- Memory leak in Connection SharedArraypool [\#1817](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1817)
+- AutorecoveringConnection Memory Leak [\#1808](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1808)
+
+**Closed issues:**
+
+- Ship public API changes [\#1834](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1834)
+- Update v7 migration guide [\#1724](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1724)
+- IConnectionFactory does not contain properties that are present in the class and are needed to correctly configure the connection. [\#1836](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1836)
+- Unexpected AMQP close-reason, initiated by Peer, code=504, text='CHANNEL\_ERROR - expected 'channel.open' [\#1835](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1835)
+- Ship `RabbitMQ.Client.OAuth2` `2.0.0` [\#1727](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1727)
+
+**Merged pull requests:**
+
+- Prepare PublicAPI for next release [\#1874](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1874) ([lukebakken](https://github.com/lukebakken))
+- Do not handle publisher confirms when disposed [\#1873](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1873) ([lukebakken](https://github.com/lukebakken))
+- Bump versions [\#1872](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1872) ([lukebakken](https://github.com/lukebakken))
+- Added option to specify ClientCertificateContext in .NET 8+ [\#1866](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1866) ([tyb-dev](https://github.com/tyb-dev))
+- fix: prevent possible connection leak in AutorecoveringConnection during creation [\#1857](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1857) ([krisz2000](https://github.com/krisz2000))
+- Closes\#1849:  include a message id tag in rabbitmqactivitysource for published messages [\#1852](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1852) ([YayBurritos](https://github.com/YayBurritos))
+- Ensure Connection and Channel cancellation token properly float into handlers [\#1740](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1740) ([danielmarbach](https://github.com/danielmarbach))
+- Improve AsyncManualResetEvent implementation to address races [\#1843](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1843) ([danielmarbach](https://github.com/danielmarbach))
+- Pin .NET SDK versions for CI/CD runs [\#1842](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1842) ([danielmarbach](https://github.com/danielmarbach))
+- Cancel recovery CTS on connection Dispose [\#1839](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1839) ([AndreReise](https://github.com/AndreReise))
+- Prevent downstream dependencies to pickup MinVer as a depencency [\#1838](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1838) ([romerod](https://github.com/romerod))
+- Add dedicated exception for `basic.return` messages. [\#1832](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1832) ([lukebakken](https://github.com/lukebakken))
+- Investigate & fix `SemaphoreFullException` [\#1819](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1819) ([lukebakken](https://github.com/lukebakken))
+- Allow parent/child relationship in Opentelemetry spans [\#1779](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1779) ([meum](https://github.com/meum))
+
 ## [v7.1.2](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.1.2) (2025-03-17)
 
-[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.2-alpha.0...v7.1.2)
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.1...v7.1.2)
 
 **Closed issues:**
 
@@ -1133,6 +1183,3 @@ GH issue: [rabbitmq-dotnet-client#239](https://github.com/rabbitmq/rabbitmq-dotn
 ### Occasional `NullReferenceException` in Endpoint Resolution
 
 GH issue: [rabbitmq-dotnet-client#238](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/238)
-
-
-\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*
