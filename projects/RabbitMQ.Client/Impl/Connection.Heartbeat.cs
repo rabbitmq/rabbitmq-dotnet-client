@@ -80,17 +80,19 @@ namespace RabbitMQ.Client.Framing
             _heartbeatDetected = true;
         }
 
+        // Intentionally declared `async void` because `System.Threading.Timer` requires a void callback.
+        // Catch all exceptions in it: any exceptions unhandled by the method might lead to the process crash
         private async void HeartbeatReadTimerCallback(object? state)
         {
-            if (_heartbeatReadTimer is null)
-            {
-                return;
-            }
-
-            bool shouldTerminate = false;
-
             try
             {
+                if (_heartbeatReadTimer is null)
+                {
+                    return;
+                }
+
+                bool shouldTerminate = false;
+
                 if (false == _closed)
                 {
                     if (_heartbeatDetected)
@@ -131,34 +133,29 @@ namespace RabbitMQ.Client.Framing
                     _heartbeatReadTimer?.Change((int)Heartbeat.TotalMilliseconds, Timeout.Infinite);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                if (false == _mainLoopCts.IsCancellationRequested)
-                {
-                    throw;
-                }
-            }
             catch (ObjectDisposedException)
             {
                 // timer is already disposed,
                 // e.g. due to shutdown
             }
-            catch (NullReferenceException)
+            catch (Exception)
             {
-                // timer has already been disposed from a different thread after null check
-                // this event should be rare
+                // ignore
+                // peer unavailability. See rabbitmq/rabbitmq-dotnet-client#638 for details.
             }
         }
 
+        // Intentionally declared `async void` because `System.Threading.Timer` requires a void callback.
+        // Catch all exceptions in it: any exceptions unhandled by the method might lead to the process crash
         private async void HeartbeatWriteTimerCallback(object? state)
         {
-            if (_heartbeatWriteTimer is null)
-            {
-                return;
-            }
-
             try
             {
+                if (_heartbeatWriteTimer is null)
+                {
+                    return;
+                }
+
                 if (false == _closed)
                 {
                     await WriteAsync(Client.Impl.Framing.Heartbeat.GetHeartbeatFrame(), _mainLoopCts.Token)
