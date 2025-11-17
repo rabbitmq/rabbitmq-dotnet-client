@@ -3,6 +3,9 @@ name: build/test rabbitmq-dotnet-client
 on:
   - workflow_call
 
+permissions:
+  contents: read
+
 jobs:
   build-win32:
     runs-on: windows-latest

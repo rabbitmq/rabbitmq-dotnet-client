@@ -10,6 +10,9 @@ on:
       - main
       - 'rabbitmq-dotnet-client-*'
 
+permissions:
+  contents: read
+
 jobs:
   call-build-test:
     uses: ./.github/workflows/build-test.yaml

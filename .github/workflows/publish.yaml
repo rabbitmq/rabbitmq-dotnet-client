@@ -6,6 +6,9 @@ on:
       # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release
       - published
 
+permissions:
+  contents: read
+
 jobs:
   call-build-test:
     uses: ./.github/workflows/build-test.yaml

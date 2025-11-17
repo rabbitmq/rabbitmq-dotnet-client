@@ -6,6 +6,9 @@ on:
       NUGET_API_KEY:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   publish-nuget:
     runs-on: windows-latest
