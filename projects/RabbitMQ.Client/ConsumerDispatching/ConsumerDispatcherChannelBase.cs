@@ -228,7 +228,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected override Task InternalShutdownAsync()
         {
-            _writer.Complete();
+            _writer.TryComplete();
             return _worker;
         }
 
