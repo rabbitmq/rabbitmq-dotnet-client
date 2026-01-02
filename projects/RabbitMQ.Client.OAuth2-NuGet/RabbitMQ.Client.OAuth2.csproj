@@ -8,7 +8,7 @@
     <AssemblyTitle>RabbitMQ OAuth2 Client Library for .NET</AssemblyTitle>
     <Authors>Broadcom</Authors>
     <Company>Broadcom, Inc. and/or its subsidiaries.</Company>
-    <Copyright>Copyright (c) 2007-2025 Broadcom. All Rights Reserved. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</Copyright>
+    <Copyright>Copyright (c) 2007-2026 Broadcom. All Rights Reserved. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.</Copyright>
     <Description>The RabbitMQ OAuth2 Client Library for .NET enables OAuth2 token refresh for RabbitMQ.Client</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageIcon>icon.png</PackageIcon>
