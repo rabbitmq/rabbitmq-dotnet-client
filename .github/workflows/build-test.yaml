@@ -18,11 +18,11 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
         with:
           global-json-file: global.json     
       - name: Cache NuGet packages
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           path: |
             ~/.nuget/packages
@@ -59,11 +59,11 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
         with:
           global-json-file: global.json            
       - name: Cache installers
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
@@ -109,11 +109,11 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
         with:
           global-json-file: global.json            
       - name: Cache installers
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
@@ -150,11 +150,11 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
         with:
           global-json-file: global.json            
       - name: Cache NuGet packages
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           path: |
             ~/.nuget/packages
@@ -188,7 +188,7 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
         with:
           global-json-file: global.json            
       - name: Download Build (Debug)
@@ -229,7 +229,7 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
+        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5.1.0
         with:
           global-json-file: global.json            
       - name: Download Build (Debug)
