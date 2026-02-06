@@ -54,33 +54,20 @@ namespace RabbitMQ.Client.Impl
 
         private sealed class PublisherConfirmationInfo : IDisposable
         {
-            private readonly SemaphoreSlim _semaphore;
             private readonly TaskCompletionSource<bool>? _publisherConfirmationTcs;
             private readonly RateLimitLease? _lease;
-            private bool _semaphoreReleased;
 
             internal PublisherConfirmationInfo(
-                SemaphoreSlim semaphore,
                 ulong publishSequenceNumber,
                 TaskCompletionSource<bool>? publisherConfirmationTcs,
                 RateLimitLease? lease)
             {
-                _semaphore = semaphore;
                 PublishSequenceNumber = publishSequenceNumber;
                 _publisherConfirmationTcs = publisherConfirmationTcs;
                 _lease = lease;
             }
 
             internal ulong PublishSequenceNumber { get; }
-
-            internal void ReleaseSemaphore()
-            {
-                if (!_semaphoreReleased)
-                {
-                    _semaphoreReleased = true;
-                    _semaphore.Release();
-                }
-            }
 
             internal async Task MaybeWaitForConfirmationAsync(CancellationToken cancellationToken)
             {
@@ -106,7 +93,6 @@ namespace RabbitMQ.Client.Impl
 
             public void Dispose()
             {
-                ReleaseSemaphore();
                 _lease?.Dispose();
             }
         }
@@ -323,9 +309,11 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
+            bool confirmSemaphoreAcquired;
             try
             {
                 await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                confirmSemaphoreAcquired = true;
             }
             catch (OperationCanceledException)
             {
@@ -341,7 +329,10 @@ namespace RabbitMQ.Client.Impl
                 publisherConfirmationTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 if (!_confirmsTaskCompletionSources.TryAdd(publishSequenceNumber, publisherConfirmationTcs))
                 {
-                    _confirmSemaphore.Release();
+                    if (confirmSemaphoreAcquired)
+                    {
+                        _confirmSemaphore.Release();
+                    }
                     lease?.Dispose();
                     throw new InvalidOperationException($"Failed to track the publisher confirmation for sequence number '{publishSequenceNumber}' because it already exists.");
                 }
@@ -349,8 +340,7 @@ namespace RabbitMQ.Client.Impl
 
             _nextPublishSeqNo++;
 
-            return new PublisherConfirmationInfo(_confirmSemaphore, publishSequenceNumber, publisherConfirmationTcs, lease);
-
+            return new PublisherConfirmationInfo(publishSequenceNumber, publisherConfirmationTcs, lease);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -384,7 +374,7 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
-            publisherConfirmationInfo.ReleaseSemaphore();
+            _confirmSemaphore.Release();
 
             try
             {
