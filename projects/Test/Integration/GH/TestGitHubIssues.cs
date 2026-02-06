@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -369,11 +369,6 @@ namespace Test.Integration.GH
                             await _channel.BasicPublishAsync(string.Empty, string.Empty, true, properties, bytes);
                         });
                         break;
-                    }
-                    catch (SemaphoreFullException ex0)
-                    {
-                        _output.WriteLine("{0} ex: {1}", _testDisplayName, ex0);
-                        retryCount++;
                     }
                     catch (PublishException)
                     {
