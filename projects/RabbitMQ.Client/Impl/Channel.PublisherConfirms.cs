@@ -48,8 +48,9 @@ namespace RabbitMQ.Client.Impl
         private bool _publisherConfirmationsEnabled = false;
         private bool _publisherConfirmationTrackingEnabled = false;
         private ulong _nextPublishSeqNo = 0;
-        private PublisherConfirmLeaseFactory _confirmLeaseFactory = new(false, null);
+        private readonly SemaphoreSlim _confirmSemaphore = new(1, 1);
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
+        private RateLimiter? _outstandingPublisherConfirmationsRateLimiter;
 
         private sealed class PublisherConfirmationInfo
         {
@@ -86,92 +87,19 @@ namespace RabbitMQ.Client.Impl
                 return exceptionWasHandled;
             }
         }
-        
-        private sealed class PublisherConfirmLeaseFactory: IDisposable
-        {
-            private readonly SemaphoreSlim _confirmSemaphore;
-            private readonly bool _trackingEnabled;
-            private readonly RateLimiter? _rateLimiter;
-
-            internal PublisherConfirmLeaseFactory(bool trackingEnabled, RateLimiter? rateLimiter)
-            {
-                _confirmSemaphore = new SemaphoreSlim(1, 1);
-                ;
-                _trackingEnabled = trackingEnabled;
-                _rateLimiter = rateLimiter;
-            }
-
-            internal async Task<PublisherConfirmLease?> AcquireWithLeaseAsync(CancellationToken ct)
-            {
-                RateLimitLease? lease = null;
-                if (_trackingEnabled && _rateLimiter is not null)
-                {
-                    lease = await _rateLimiter.AcquireAsync(cancellationToken: ct).ConfigureAwait(false);
-                    if (!lease.IsAcquired)
-                    {
-                        throw new InvalidOperationException("Could not acquire a lease from the rate limiter.");
-                    }
-                }
-
-                try
-                {
-                    await _confirmSemaphore.WaitAsync(ct).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    lease?.Dispose();
-                    throw;
-                }
-
-                return new PublisherConfirmLease(_confirmSemaphore, lease);
-            }
-
-            internal async Task<PublisherConfirmLease?> AcquireAsync(CancellationToken ct)
-            {
-                await _confirmSemaphore.WaitAsync(ct).ConfigureAwait(false);
-                return new PublisherConfirmLease(_confirmSemaphore, null);
-            }
-
-            public void Dispose()
-            {
-                _confirmSemaphore.Dispose();
-                _rateLimiter?.Dispose();
-            }
-        }
-        
-        private sealed class PublisherConfirmLease : IDisposable
-        {
-            private readonly SemaphoreSlim _confirmSemaphore;
-            private readonly RateLimitLease? _lease;
-            private bool _disposed;
-
-            internal PublisherConfirmLease(SemaphoreSlim factory,
-                RateLimitLease? rateLimitLease)
-            {
-                _confirmSemaphore = factory;
-                _lease = rateLimitLease;
-            }
-
-            public void Dispose()
-            {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                _disposed = true;
-                _confirmSemaphore.Release();
-                _lease?.Dispose();
-            }
-        }
 
         public async ValueTask<ulong> GetNextPublishSequenceNumberAsync(CancellationToken cancellationToken = default)
         {
             if (_publisherConfirmationsEnabled)
             {
-                using (await _confirmLeaseFactory.AcquireAsync(cancellationToken).ConfigureAwait(false))
+                await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
                 {
                     return _nextPublishSeqNo;
+                }
+                finally
+                {
+                    _confirmSemaphore.Release();
                 }
             }
             else
@@ -186,11 +114,7 @@ namespace RabbitMQ.Client.Impl
         {
             _publisherConfirmationsEnabled = publisherConfirmationsEnabled;
             _publisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
-            if (publisherConfirmationsEnabled)
-            {
-                _confirmLeaseFactory = new PublisherConfirmLeaseFactory(_publisherConfirmationTrackingEnabled,
-                    outstandingPublisherConfirmationsRateLimiter);
-            }
+            _outstandingPublisherConfirmationsRateLimiter = outstandingPublisherConfirmationsRateLimiter;
         }
 
         private async Task MaybeConfirmSelectAsync(CancellationToken cancellationToken)
@@ -343,10 +267,57 @@ namespace RabbitMQ.Client.Impl
 
             if (_publisherConfirmationsEnabled)
             {
-                using (await _confirmLeaseFactory.AcquireAsync(reason.CancellationToken).ConfigureAwait(false))
+                await _confirmSemaphore.WaitAsync(reason.CancellationToken)
+                    .ConfigureAwait(false);
+                try
                 {
                     MaybeSetExceptionOnConfirmsTcs(reason);
                 }
+                finally
+                {
+                    _confirmSemaphore.Release();
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private async Task<RateLimitLease?> MaybeAcquirePublisherConfirmationLockAsync(CancellationToken cancellationToken)
+        {
+            if (_publisherConfirmationsEnabled)
+            {
+                RateLimitLease? lease = null;
+                if (_publisherConfirmationTrackingEnabled && _outstandingPublisherConfirmationsRateLimiter is not null)
+                {
+                    lease = await _outstandingPublisherConfirmationsRateLimiter.AcquireAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                    if (!lease.IsAcquired)
+                    {
+                        throw new InvalidOperationException("Could not acquire a lease from the rate limiter.");
+                    }
+                }
+
+                try
+                {
+                    await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    lease?.Dispose();
+                    throw;
+                }
+
+                return lease;
+            }
+            
+            return null;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void MaybeReleasePublisherConfirmationLock(RateLimitLease? lease)
+        {
+            if (_publisherConfirmationsEnabled)
+            {
+                _confirmSemaphore.Release();
+                lease?.Dispose();
             }
         }
 

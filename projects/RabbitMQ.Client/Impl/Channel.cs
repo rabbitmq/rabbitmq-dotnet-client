@@ -582,13 +582,15 @@ namespace RabbitMQ.Client.Impl
                     _serverOriginatedChannelCloseTcs?.Task.Wait(InternalConstants.DefaultChannelDisposeTimeout);
 
                     ConsumerDispatcher.Dispose();
+
+                    _outstandingPublisherConfirmationsRateLimiter?.Dispose();
                 }
                 finally
                 {
                     try
                     {
                         _rpcSemaphore.Dispose();
-                        _confirmLeaseFactory.Dispose();
+                        _confirmSemaphore.Dispose();
                         MaybeSetExceptionOnConfirmsTcs();
                     }
                     catch
@@ -640,13 +642,19 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 ConsumerDispatcher.Dispose();
+
+                if (_outstandingPublisherConfirmationsRateLimiter is not null)
+                {
+                    await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
+                        .ConfigureAwait(false);
+                }
             }
             finally
             {
                 try
                 {
                     _rpcSemaphore.Dispose();
-                    _confirmLeaseFactory.Dispose();
+                    _confirmSemaphore.Dispose();
                 }
                 catch
                 {
