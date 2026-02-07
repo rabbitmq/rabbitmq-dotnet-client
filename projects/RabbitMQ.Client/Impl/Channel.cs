@@ -588,7 +588,8 @@ namespace RabbitMQ.Client.Impl
                     try
                     {
                         _rpcSemaphore.Dispose();
-                        _confirmLeaseFactory.Dispose();
+                        _confirmSemaphore.Dispose();
+                        _outstandingPublisherConfirmationsRateLimiter?.Dispose();
                         MaybeSetExceptionOnConfirmsTcs();
                     }
                     catch
@@ -646,7 +647,12 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     _rpcSemaphore.Dispose();
-                    _confirmLeaseFactory.Dispose();
+                    _confirmSemaphore.Dispose();
+                    if (_outstandingPublisherConfirmationsRateLimiter is not null)
+                    {
+                        await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
+                            .ConfigureAwait(false);
+                    }
                 }
                 catch
                 {

@@ -49,14 +49,10 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             PublisherConfirmationInfo? publisherConfirmationInfo = null;
-            PublisherConfirmLease? publisherConfirmLease = null;
-            if (_publisherConfirmationsEnabled)
-            {
-                publisherConfirmLease = await _confirmLeaseFactory.AcquireWithLeaseAsync(cancellationToken).ConfigureAwait(false);
-            }
             try
             {
-                publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
+                publisherConfirmationInfo = await MaybeStartPublisherConfirmationTrackingAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
                 await MaybeEnforceFlowControlAsync(cancellationToken)
                     .ConfigureAwait(false);
@@ -96,7 +92,6 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                publisherConfirmLease?.Dispose();
                 await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -108,14 +103,10 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             PublisherConfirmationInfo? publisherConfirmationInfo = null;
-            PublisherConfirmLease? publisherConfirmLease = null;
-            if (_publisherConfirmationsEnabled)
-            {
-                publisherConfirmLease = await _confirmLeaseFactory.AcquireWithLeaseAsync(cancellationToken).ConfigureAwait(false);
-            }
             try
             {
-                publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
+                publisherConfirmationInfo = await MaybeStartPublisherConfirmationTrackingAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
                 await MaybeEnforceFlowControlAsync(cancellationToken)
                     .ConfigureAwait(false);
@@ -155,7 +146,6 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                publisherConfirmLease?.Dispose();
                 await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
                     .ConfigureAwait(false);
             }
