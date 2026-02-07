@@ -307,7 +307,7 @@ namespace RabbitMQ.Client.Impl
 
                 return lease;
             }
-            
+
             return null;
         }
         
