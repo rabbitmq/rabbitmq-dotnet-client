@@ -310,7 +310,7 @@ namespace RabbitMQ.Client.Impl
 
             return null;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MaybeReleasePublisherConfirmationLock(RateLimitLease? lease)
         {
