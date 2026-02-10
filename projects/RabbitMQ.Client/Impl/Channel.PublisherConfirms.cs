@@ -52,18 +52,15 @@ namespace RabbitMQ.Client.Impl
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<bool>> _confirmsTaskCompletionSources = new();
         private RateLimiter? _outstandingPublisherConfirmationsRateLimiter;
 
-        private sealed class PublisherConfirmationInfo : IDisposable
+        private sealed class PublisherConfirmationInfo
         {
             private TaskCompletionSource<bool>? _publisherConfirmationTcs;
-            private readonly RateLimitLease? _lease;
 
             internal PublisherConfirmationInfo(ulong publishSequenceNumber,
-                TaskCompletionSource<bool>? publisherConfirmationTcs,
-                RateLimitLease? lease)
+                TaskCompletionSource<bool>? publisherConfirmationTcs)
             {
                 PublishSequenceNumber = publishSequenceNumber;
                 _publisherConfirmationTcs = publisherConfirmationTcs;
-                _lease = lease;
             }
 
             internal ulong PublishSequenceNumber { get; }
@@ -88,11 +85,6 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 return exceptionWasHandled;
-            }
-
-            public void Dispose()
-            {
-                _lease?.Dispose();
             }
         }
 
@@ -289,29 +281,53 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private async Task<PublisherConfirmationInfo?> MaybeStartPublisherConfirmationTrackingAsync(CancellationToken cancellationToken)
+        private async Task<RateLimitLease?> MaybeAcquirePublisherConfirmationLockAsync(CancellationToken cancellationToken)
         {
             if (_publisherConfirmationsEnabled)
             {
                 RateLimitLease? lease = null;
-                if (_publisherConfirmationTrackingEnabled)
+                if (_publisherConfirmationTrackingEnabled && _outstandingPublisherConfirmationsRateLimiter is not null)
                 {
-                    if (_outstandingPublisherConfirmationsRateLimiter is not null)
+                    lease = await _outstandingPublisherConfirmationsRateLimiter.AcquireAsync(cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
+                    if (false == lease.IsAcquired)
                     {
-                        lease = await _outstandingPublisherConfirmationsRateLimiter.AcquireAsync(
-                            cancellationToken: cancellationToken)
-                            .ConfigureAwait(false);
-
-                        if (!lease.IsAcquired)
-                        {
-                            throw new InvalidOperationException("Could not acquire a lease from the rate limiter.");
-                        }
+                        throw new InvalidOperationException("Could not acquire a lease from the rate limiter.");
                     }
                 }
 
-                await _confirmSemaphore.WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    lease?.Dispose();
+                    throw;
+                }
 
+                return lease;
+            }
+
+            return null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void MaybeReleasePublisherConfirmationLock(RateLimitLease? lease)
+        {
+            if (_publisherConfirmationsEnabled)
+            {
+                _confirmSemaphore.Release();
+                lease?.Dispose();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private PublisherConfirmationInfo? MaybeStartPublisherConfirmationTracking()
+        {
+            if (_publisherConfirmationsEnabled)
+            {
                 ulong publishSequenceNumber = _nextPublishSeqNo;
 
                 TaskCompletionSource<bool>? publisherConfirmationTcs = null;
@@ -326,7 +342,7 @@ namespace RabbitMQ.Client.Impl
 
                 _nextPublishSeqNo++;
 
-                return new PublisherConfirmationInfo(publishSequenceNumber, publisherConfirmationTcs, lease);
+                return new PublisherConfirmationInfo(publishSequenceNumber, publisherConfirmationTcs);
             }
             else
             {
@@ -362,25 +378,6 @@ namespace RabbitMQ.Client.Impl
         {
             if (_publisherConfirmationsEnabled)
             {
-                try
-                {
-                    _confirmSemaphore.Release();
-                }
-                catch (SemaphoreFullException ex)
-                {
-                    /*
-                     * rabbitmq/rabbitmq-dotnet-client-1793
-                     * If MaybeStartPublisherConfirmationTracking throws an exception *prior* to acquiring
-                     * _confirmSemaphore, the above Release() call will throw SemaphoreFullException.
-                     * In "normal" cases, publisherConfirmationInfo will thus be null, but if not, throw
-                     * a "bug found" exception here.
-                     */
-                    if (publisherConfirmationInfo is not null)
-                    {
-                        throw new InvalidOperationException(InternalConstants.BugFound, ex);
-                    }
-                }
-
                 if (publisherConfirmationInfo is not null)
                 {
                     try
@@ -392,10 +389,6 @@ namespace RabbitMQ.Client.Impl
                     {
                         _confirmsTaskCompletionSources.TryRemove(publisherConfirmationInfo.PublishSequenceNumber, out _);
                         throw;
-                    }
-                    finally
-                    {
-                        publisherConfirmationInfo.Dispose();
                     }
                 }
             }
