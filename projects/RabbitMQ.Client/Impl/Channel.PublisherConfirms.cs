@@ -288,8 +288,9 @@ namespace RabbitMQ.Client.Impl
                 RateLimitLease? lease = null;
                 if (_publisherConfirmationTrackingEnabled && _outstandingPublisherConfirmationsRateLimiter is not null)
                 {
-                    lease = await _outstandingPublisherConfirmationsRateLimiter.AcquireAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-                    if (!lease.IsAcquired)
+                    lease = await _outstandingPublisherConfirmationsRateLimiter.AcquireAsync(cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
+                    if (false == lease.IsAcquired)
                     {
                         throw new InvalidOperationException("Could not acquire a lease from the rate limiter.");
                     }
@@ -297,7 +298,8 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    await _confirmSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    await _confirmSemaphore.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

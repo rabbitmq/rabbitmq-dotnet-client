@@ -51,7 +51,8 @@ namespace RabbitMQ.Client.Impl
         {
             PublisherConfirmationInfo? publisherConfirmationInfo = null;
             RateLimitLease? lease =
-                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken).ConfigureAwait(false);
+                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
+                    .ConfigureAwait(false);
             try
             {
                 publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
@@ -107,7 +108,8 @@ namespace RabbitMQ.Client.Impl
         {
             PublisherConfirmationInfo? publisherConfirmationInfo = null;
             RateLimitLease? lease =
-                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken).ConfigureAwait(false);
+                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
+                    .ConfigureAwait(false);
             try
             {
                 publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
