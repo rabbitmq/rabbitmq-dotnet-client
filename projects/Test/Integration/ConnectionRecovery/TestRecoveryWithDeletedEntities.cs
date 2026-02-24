@@ -31,7 +31,9 @@
 
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -149,6 +151,73 @@ namespace Test.Integration.ConnectionRecovery
                 // expected
                 AssertShutdownError(e.ShutdownReason, 404);
             }
+        }
+
+        [Fact]
+        public async Task TestAutoDeleteQueueBindingsRemovedWhenConsumerCancelled()
+        {
+            // See rabbitmq/rabbitmq-dotnet-client#1905.
+            //
+            // When the last consumer on an auto-delete queue is cancelled, the queue
+            // and its bindings must be removed from recorded topology so that recovery
+            // does not try to restore them.
+            string exchangeName = GenerateExchangeName();
+            await _channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
+
+            var queueDeclareOk = await _channel.QueueDeclareAsync("", false, false, autoDelete: true);
+            string queueName = queueDeclareOk.QueueName;
+            await _channel.QueueBindAsync(queueName, exchangeName, routingKey: "key");
+
+            var autorecoveringConn = (AutorecoveringConnection)_conn;
+            Assert.Equal(1, autorecoveringConn.RecordedExchangesCount);
+            Assert.Equal(1, autorecoveringConn.RecordedQueuesCount);
+            Assert.Equal(1, autorecoveringConn.RecordedBindingsCount);
+
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            string consumerTag = await _channel.BasicConsumeAsync(queueName, true, consumer);
+            await _channel.BasicCancelAsync(consumerTag);
+
+            Assert.Equal(0, autorecoveringConn.RecordedExchangesCount);
+            Assert.Equal(0, autorecoveringConn.RecordedQueuesCount);
+            Assert.Equal(0, autorecoveringConn.RecordedBindingsCount);
+
+            await CloseAndWaitForRecoveryAsync();
+            Assert.True(_channel.IsOpen);
+        }
+
+        [Fact]
+        public async Task TestAutoDeleteQueueBindingsRemovedWhenChannelClosed()
+        {
+            // See rabbitmq/rabbitmq-dotnet-client#1905.
+            //
+            // Same as above but uses channel closure as the trigger.
+            string exchangeName = GenerateExchangeName();
+            var autorecoveringConn = (AutorecoveringConnection)_conn;
+
+            IChannel ch = await _conn.CreateChannelAsync(_createChannelOptions);
+            await using (ch.ConfigureAwait(false))
+            {
+                await ch.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
+
+                var queueDeclareOk = await ch.QueueDeclareAsync("", false, false, autoDelete: true);
+                string queueName = queueDeclareOk.QueueName;
+                await ch.QueueBindAsync(queueName, exchangeName, routingKey: "key");
+
+                Assert.Equal(1, autorecoveringConn.RecordedExchangesCount);
+                Assert.Equal(1, autorecoveringConn.RecordedQueuesCount);
+                Assert.Equal(1, autorecoveringConn.RecordedBindingsCount);
+
+                var consumer = new AsyncEventingBasicConsumer(ch);
+                await ch.BasicConsumeAsync(queueName, true, consumer);
+                await ch.CloseAsync();
+            }
+
+            Assert.Equal(0, autorecoveringConn.RecordedExchangesCount);
+            Assert.Equal(0, autorecoveringConn.RecordedQueuesCount);
+            Assert.Equal(0, autorecoveringConn.RecordedBindingsCount);
+
+            await CloseAndWaitForRecoveryAsync();
+            Assert.True(_channel.IsOpen);
         }
     }
 }
