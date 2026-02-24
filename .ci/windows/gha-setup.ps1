@@ -240,16 +240,40 @@ $ErrorActionPreference = 'Continue'
 Write-Host '[INFO] Enabling plugins...'
 & $rabbitmq_plugins_path enable rabbitmq_management rabbitmq_stream rabbitmq_stream_management rabbitmq_amqp1_0
 
-echo Q | openssl s_client -connect localhost:5671 `
-    -CAfile "$certs_dir/ca_certificate.pem" `
-    -cert "$certs_dir/client_direct_certificate.pem" `
-    -key "$certs_dir/client_direct_key.pem" `
-    -pass pass:grapefruit
-if ($LASTEXITCODE -ne 0)
-{
-    throw "[ERROR] 'openssl s_client' returned error: $LASTEXITCODE"
-}
+$ErrorActionPreference = 'Stop'
 
+$ca   = "$certs_dir/ca_certificate.pem"
+$cert = "$certs_dir/client_direct_certificate.pem"
+$key  = "$certs_dir/client_direct_key.pem"
+
+# Write QUIT to stdin (more reliable than echo Q on Windows)
+$inputFile = Join-Path $env:TEMP "openssl-input.txt"
+Set-Content -LiteralPath $inputFile -Value "QUIT`r`n" -Encoding ASCII
+
+# Capture output; OpenSSL can return non-zero on shutdown quirks even if verify is OK
+$outputFile = Join-Path $env:TEMP "openssl-s_client.out.txt"
+
+& openssl s_client -connect "localhost:5671" `
+  -servername "localhost" `
+  -CAfile $ca `
+  -cert $cert `
+  -key $key `
+  -pass "pass:grapefruit" `
+  -verify_return_error `
+  -brief `
+  -ign_eof `
+  0< $inputFile 1> $outputFile 2>&1
+
+$txt = Get-Content -LiteralPath $outputFile -Raw
+Write-Host $txt
+
+# Fail only on meaningful conditions
+if ($txt -notmatch "Verification: OK" -and $txt -notmatch "Verify return code:\s*0") {
+  throw "[ERROR] TLS verify failed for localhost:5671"
+}
+if ($txt -notmatch "Peer certificate" -and $txt -notmatch "BEGIN CERTIFICATE") {
+  throw "[ERROR] No peer certificate received from localhost:5671"
+}
 
 $rabbitmqctl_path = Resolve-Path -LiteralPath `
     (Join-Path -Path $rabbitmq_base_path -ChildPath "rabbitmq_server-$rabbitmq_version" | Join-Path -ChildPath 'sbin' | Join-Path -ChildPath 'rabbitmqctl.bat')
