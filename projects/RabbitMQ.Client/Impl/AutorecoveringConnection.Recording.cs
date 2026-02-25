@@ -265,6 +265,8 @@ namespace RabbitMQ.Client.Framing
 
         }
 
+        internal int RecordedBindingsCount => _recordedBindings.Count;
+
         internal async ValueTask RecordBindingAsync(RecordedBinding binding,
             bool recordedEntitiesSemaphoreHeld)
         {
@@ -419,6 +421,15 @@ namespace RabbitMQ.Client.Framing
                 if (!AnyConsumersOnQueue(queue))
                 {
                     _recordedQueues.Remove(queue);
+                    // remove bindings targeting this queue; also cascade to auto-delete exchanges
+                    foreach (RecordedBinding binding in _recordedBindings.ToArray())
+                    {
+                        if (binding.Destination == queue)
+                        {
+                            DoDeleteRecordedBinding(binding);
+                            DoDeleteAutoDeleteExchange(binding.Source);
+                        }
+                    }
                 }
             }
         }
