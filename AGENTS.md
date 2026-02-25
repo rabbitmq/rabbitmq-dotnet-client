@@ -8,8 +8,8 @@ The RabbitMQ .NET Client is a comprehensive AMQP 0-9-1 client library for .NET, 
 - **Dual-licensed**: Apache License 2.0 and Mozilla Public License 2.0
 - **Target Frameworks**: .NET 8.0 and .NET Standard 2.0
 - **Language**: C# 12.0 with nullable reference types enabled
-- **Current Version**: 7.2.0 (in development)
-- **Latest Stable**: 7.1.2 (released March 2025)
+- **Current Version**: 7.2.1 (in development)
+- **Latest Stable**: 7.2.0 (released November 2025)
 
 ## Major Version 7.x Changes
 
@@ -65,7 +65,7 @@ Wraps `Connection` to provide automatic recovery from network failures:
 
 #### 3. Channel Management (`IChannel` / `Channel`)
 
-**Location**: `projects/RabbitMQ.Client/Impl/Channel.cs`
+**Location**: `projects/RabbitMQ.Client/Impl/Channel.cs` (partial class, with `Channel.BasicPublish.cs` and `Channel.PublisherConfirms.cs`)
 
 Channels are lightweight virtual connections multiplexed over a single TCP connection:
 
@@ -223,13 +223,12 @@ var factory = new ConnectionFactory
 Per-channel configuration:
 
 ```csharp
-var options = new CreateChannelOptions
-{
-    PublisherConfirmationsEnabled = true,
-    PublisherConfirmationTrackingEnabled = true,
-    OutstandingPublisherConfirmationsRateLimiter = rateLimiter,
-    ContinuationTimeout = TimeSpan.FromSeconds(20)
-};
+var options = new CreateChannelOptions(
+    publisherConfirmationsEnabled: true,
+    publisherConfirmationTrackingEnabled: true,
+    outstandingPublisherConfirmationsRateLimiter: rateLimiter,
+    consumerDispatchConcurrency: 1
+);
 ```
 
 ## Key Design Patterns
@@ -305,7 +304,7 @@ Multiple levels of shutdown:
 - **IntegrationFixture**: Base class for integration tests
 - **TestConnectionRecoveryBase**: Base for recovery tests
 - **RabbitMQCtl**: Wrapper for `rabbitmqctl` commands
-- **ToxiproxyManager**: Network failure simulation
+- **ToxiproxyManager**: Network failure simulation (in `projects/Test/Integration/`)
 
 ## Build and Packaging
 
@@ -315,11 +314,14 @@ Multiple levels of shutdown:
 rabbitmq-dotnet-client/
 ├── projects/
 │   ├── RabbitMQ.Client/              # Main client library
-│   ├── RabbitMQ.Client.OAuth2/       # OAuth2 support
+│   ├── RabbitMQ.Client.OAuth2/       # OAuth2 support (source)
+│   ├── RabbitMQ.Client.OAuth2-NuGet/ # OAuth2 NuGet packaging
 │   ├── RabbitMQ.Client.OpenTelemetry/ # OTel extensions
 │   ├── Test/                         # Test projects
 │   ├── Benchmarks/                   # Performance benchmarks
-│   └── Applications/                 # Sample applications
+│   ├── Applications/                 # Sample applications
+│   ├── toxiproxy-netcore/            # Toxiproxy .NET client (vendored)
+│   └── specs/                        # AMQP 0-9-1 spec files
 ├── .ci/                              # CI configuration
 ├── .github/workflows/                # GitHub Actions
 └── packages/                         # NuGet output
@@ -411,11 +413,12 @@ Configurable TLS options:
 
 ## Known Issues and Limitations
 
-### Current Issues (as of 7.1.2)
+### Current Issues (as of 7.2.0)
 
-1. **Deadlock Scenarios**: Rare deadlocks during channel close (addressed in 7.1.1)
-2. **ObjectDisposedException**: Occasional exceptions during shutdown (addressed in 7.1.2)
-3. **Rate Limiter**: Issues with lease acquisition (fixed in 7.1.1)
+1. **Heartbeat Crashes**: Unhandled exceptions in heartbeat timer callbacks (addressed in 7.2.1)
+2. **Publisher Confirm Semaphore**: Unconditional semaphore release on cancellation (addressed in 7.2.1)
+3. **Channel Shutdown**: `TryComplete` needed instead of `Complete` during channel shutdown (addressed in 7.2.1)
+4. **Auto-delete Entity Recovery**: Recorded bindings not removed for auto-delete entities (addressed in 7.2.1)
 
 ### Design Limitations
 
@@ -424,7 +427,7 @@ Configurable TLS options:
 3. **Frame Size**: Maximum frame size negotiated at connection time
 4. **Synchronous RPC**: Only one RPC operation per channel at a time
 
-## Future Directions (7.2.0)
+## Future Directions (7.2.1)
 
 Based on the changelog and issue tracker:
 
