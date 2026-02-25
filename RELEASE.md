@@ -12,6 +12,19 @@ Note: `main` (`6.x` and later) only
 Please see [this guide](https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/APIDOCS.md).
 
 
+## Update CHANGELOG
+
+Run `tools/generate-changelog.sh` with the previous tag and the new tag:
+
+```
+tools/generate-changelog.sh v7.X.Y v7.X.(Y+1)
+```
+
+This inserts a new section into `CHANGELOG.md` after the `# Changelog` header.
+The release date is set to `UNRELEASED-DATE` as a placeholder. Review the
+output with `git diff CHANGELOG.md` and edit as needed before committing.
+
+
 ## Create and push release tag
 
 Note: `alpha` releases are versioned by default via the MinVer package. The version is based off of the most recent tag.
@@ -53,16 +66,3 @@ dotnet nuget push -k NUGET_API_KEY -s https://api.nuget.org/v3/index.json ./pack
 * Close the appropriate milestone, and make a note of the link to the milestone with closed issues visible
 * Use the GitHub web UI or `gh release create` command to create the new release
 * GitHub actions will build and publish the release to NuGet
-
-
-## Update CHANGELOG
-
-Run `tools/generate-changelog.sh` with the previous tag and the new tag:
-
-```
-tools/generate-changelog.sh v7.X.Y v7.X.(Y+1)
-```
-
-This inserts a new section into `CHANGELOG.md` after the `# Changelog` header.
-The release date is set to `UNRELEASED-DATE` as a placeholder. Review the
-output with `git diff CHANGELOG.md` and edit as needed before committing.
