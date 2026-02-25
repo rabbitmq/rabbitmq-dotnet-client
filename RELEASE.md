@@ -57,12 +57,12 @@ dotnet nuget push -k NUGET_API_KEY -s https://api.nuget.org/v3/index.json ./pack
 
 ## Update CHANGELOG
 
-Note: this does not seem to work well, please examine the output carefully.
-
-`--since-tag` should be the previous tag.
+Run `tools/generate-changelog.sh` with the previous tag and the new tag:
 
 ```
-github_changelog_generator --token github_pat_XXXX \
-    --user rabbitmq --project rabbitmq-dotnet-client \
-    --no-unreleased --release-branch main --since-tag 'v7.X.Y'
+tools/generate-changelog.sh v7.X.Y v7.X.(Y+1)
 ```
+
+This inserts a new section into `CHANGELOG.md` after the `# Changelog` header.
+The release date is set to `UNRELEASED-DATE` as a placeholder. Review the
+output with `git diff CHANGELOG.md` and edit as needed before committing.
