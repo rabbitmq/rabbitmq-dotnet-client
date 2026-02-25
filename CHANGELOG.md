@@ -1,5 +1,34 @@
 # Changelog
 
+## [v7.2.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.2.1) (2026-02-25)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.2.0...v7.2.1)
+
+**Fixed bugs:**
+
+- The Channel has been closed exception from HeartBeatReadCallback [\#1884](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1884)
+- Publisher confirms: `_confirmSemaphore` broken by cancelled CancellationToken allows concurrent access, corrupts `_nextPublishSeqNo`; [\#1900](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1900)
+- Auto-recovery attempts to restore bindings to deleted queues causing recovery failures [\#1905](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1905)
+
+**Closed issues:**
+
+- Closing Channel does NOT remove the cached RecordedBinding, which will cause AutoRecovery fail [\#1904](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1904)
+
+**Merged pull requests:**
+
+- Catch all exceptions in HeartbeatWriteTimerCallback and HeartbeatReadTimerCallback to avoid crash [\#1876](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1876) ([klettier](https://github.com/klettier))
+- Add 'contents: read' to workflow permissions to increase the OpenSSF scorecard of the repo [\#1880](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1880) ([pavlofilatov1](https://github.com/pavlofilatov1))
+- Added TryComplete instead of comple during channel shutdown [\#1885](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1885) ([patriktiain](https://github.com/patriktiain))
+- Update GHA via `actions-up` [\#1886](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1886) ([lukebakken](https://github.com/lukebakken))
+- Add workflow to check for GHA updates [\#1887](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1887) ([lukebakken](https://github.com/lukebakken))
+- Use dependabot to update actions refs [\#1896](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1896) ([lukebakken](https://github.com/lukebakken))
+- Bump actions/checkout from 6.0.1 to 6.0.2 [\#1897](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1897) ([app/dependabot](https://github.com/app/dependabot))
+- Bump github/codeql-action from 3 to 4 [\#1898](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1898) ([app/dependabot](https://github.com/app/dependabot))
+- Bump actions/cache from 5.0.2 to 5.0.3 [\#1899](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1899) ([app/dependabot](https://github.com/app/dependabot))
+- Fix unconditional semaphore release in BasicPublishAsync when Cancell… [\#1901](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1901) ([EvheniyHlushko](https://github.com/EvheniyHlushko))
+- Connection recovery: remove recorded bindings of auto-delete entities [\#1906](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1906) ([michaelklishin](https://github.com/michaelklishin))
+- Pre-7.2.1 release preparation [\#1909](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1909) ([lukebakken](https://github.com/lukebakken))
+
 ## [v7.2.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.2.0) (2025-11-06)
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.1.2...v7.2.0)
