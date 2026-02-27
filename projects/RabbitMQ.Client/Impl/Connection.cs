@@ -501,7 +501,7 @@ namespace RabbitMQ.Client.Framing
             return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);
         }
 
-        internal ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
+        internal ValueTask WriteAsync(OutgoingFrameMemory frames, CancellationToken cancellationToken)
         {
             Activity.Current.SetNetworkTags(_frameHandler);
             return _frameHandler.WriteAsync(frames, cancellationToken);

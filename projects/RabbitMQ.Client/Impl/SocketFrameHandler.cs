@@ -47,8 +47,8 @@ namespace RabbitMQ.Client.Impl
         private readonly ITcpClient _socket;
         private readonly Stream _stream;
 
-        private readonly ChannelWriter<RentedMemory> _channelWriter;
-        private readonly ChannelReader<RentedMemory> _channelReader;
+        private readonly ChannelWriter<OutgoingFrameMemory> _channelWriter;
+        private readonly ChannelReader<OutgoingFrameMemory> _channelReader;
         private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
 
         private readonly PipeWriter _pipeWriter;
@@ -65,7 +65,7 @@ namespace RabbitMQ.Client.Impl
             _socket = socket;
             _stream = stream;
 
-            var channel = System.Threading.Channels.Channel.CreateBounded<RentedMemory>(
+            var channel = System.Threading.Channels.Channel.CreateBounded<OutgoingFrameMemory>(
                 new BoundedChannelOptions(128)
                 {
                     AllowSynchronousContinuations = false,
@@ -229,7 +229,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
+        public ValueTask WriteAsync(OutgoingFrameMemory frames, CancellationToken cancellationToken)
         {
             if (_closed)
             {
@@ -246,11 +246,12 @@ namespace RabbitMQ.Client.Impl
             {
                 while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    while (_channelReader.TryRead(out RentedMemory frames))
+                    while (_channelReader.TryRead(out OutgoingFrameMemory frames))
                     {
                         try
                         {
-                            await _pipeWriter.WriteAsync(frames.Memory)
+                            frames.WriteTo(_pipeWriter);
+                            await _pipeWriter.FlushAsync()
                                 .ConfigureAwait(false);
                             RabbitMqClientEventSource.Log.CommandSent(frames.Size);
                         }
