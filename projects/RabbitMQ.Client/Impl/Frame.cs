@@ -142,33 +142,31 @@ namespace RabbitMQ.Client.Impl
             ///</summary>
             private static ReadOnlySpan<byte> Payload => new byte[] { Constants.FrameHeartbeat, 0, 0, 0, 0, 0, 0, Constants.FrameEnd };
 
-            public static RentedMemory GetHeartbeatFrame()
+            public static OutgoingFrameMemory GetHeartbeatFrame()
             {
                 // Is returned by SocketFrameHandler.WriteLoop
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
-                Payload.CopyTo(buffer);
-                var mem = new ReadOnlyMemory<byte>(buffer, 0, FrameSize);
-                return new RentedMemory(mem, buffer);
+                IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(FrameSize);
+                Payload.CopyTo(buffer.Memory.Span);
+                return new OutgoingFrameMemory(buffer, FrameSize);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static RentedMemory SerializeToFrames<T>(ref T method, ushort channelNumber)
+        public static OutgoingFrameMemory SerializeToFrames<T>(ref T method, ushort channelNumber)
             where T : struct, IOutgoingAmqpMethod
         {
             int size = Method.FrameSize + method.GetRequiredBufferSize();
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            byte[] array = ArrayPool<byte>.Shared.Rent(size);
-            int offset = Method.WriteTo(array, channelNumber, ref method);
+            IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(size);
+            int offset = Method.WriteTo(buffer.Memory.Span, channelNumber, ref method);
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            var mem = new ReadOnlyMemory<byte>(array, 0, size);
-            return new RentedMemory(mem, array);
+            return new OutgoingFrameMemory(buffer, size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static RentedMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+        public static OutgoingFrameMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -178,21 +176,21 @@ namespace RabbitMQ.Client.Impl
                        BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes) + remainingBodyBytes;
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            byte[] array = ArrayPool<byte>.Shared.Rent(size);
+            IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(size);
+            Span<byte> bufferSpan = buffer.Memory.Span;
 
-            int offset = Method.WriteTo(array, channelNumber, ref method);
-            offset += Header.WriteTo(array.AsSpan(offset), channelNumber, ref header, remainingBodyBytes);
+            int offset = Method.WriteTo(bufferSpan, channelNumber, ref method);
+            offset += Header.WriteTo(bufferSpan.Slice(offset), channelNumber, ref header, remainingBodyBytes);
             ReadOnlySpan<byte> bodySpan = body.Span;
             while (remainingBodyBytes > 0)
             {
                 int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
-                offset += BodySegment.WriteTo(array.AsSpan(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
+                offset += BodySegment.WriteTo(bufferSpan.Slice(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
                 remainingBodyBytes -= frameSize;
             }
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            var mem = new ReadOnlyMemory<byte>(array, 0, size);
-            return new RentedMemory(mem, array);
+            return new OutgoingFrameMemory(buffer, size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
