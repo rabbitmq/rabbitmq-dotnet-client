@@ -31,6 +31,7 @@
 
 using System;
 using System.Buffers;
+using System.IO.Pipelines;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
@@ -43,9 +44,13 @@ namespace Test.Unit
         [Fact]
         public void HeartbeatFrame()
         {
-            RentedMemory sfc = Framing.Heartbeat.GetHeartbeatFrame();
-            ReadOnlySpan<byte> frameSpan = sfc.Memory.Span;
-
+            OutgoingFrameMemory sfc = Framing.Heartbeat.GetHeartbeatFrame();
+            var pipe = new Pipe();
+            sfc.WriteTo(pipe.Writer);
+            pipe.Writer.Complete();
+            pipe.Reader.TryRead(out ReadResult result);
+            Assert.Equal(Framing.BaseFrameSize, (int)result.Buffer.Length);
+            ReadOnlySpan<byte> frameSpan = result.Buffer.ToArray();
             try
             {
                 Assert.Equal(8, frameSpan.Length);
@@ -60,7 +65,7 @@ namespace Test.Unit
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(sfc.RentedArray);
+                sfc.Dispose();
             }
         }
 
