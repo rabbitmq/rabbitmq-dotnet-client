@@ -251,7 +251,8 @@ namespace RabbitMQ.Client.Impl
                         try
                         {
                             frames.WriteTo(_pipeWriter);
-                            await _pipeWriter.FlushAsync().ConfigureAwait(false);
+                            await _pipeWriter.FlushAsync()
+                                .ConfigureAwait(false);
                             RabbitMqClientEventSource.Log.CommandSent(frames.Size);
                         }
                         finally
