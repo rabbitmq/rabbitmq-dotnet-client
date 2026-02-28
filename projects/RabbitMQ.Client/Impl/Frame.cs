@@ -31,12 +31,10 @@
 
 using System;
 using System.Buffers;
-using System.Buffers.Binary;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
@@ -115,29 +113,26 @@ namespace RabbitMQ.Client.Impl
              * +--------------+
              * | x bytes      |
              * +--------------+ */
-            public const int HeaderSize = StartPayload;
-            public const int FooterSize = 1;
             public const int FrameSize = BaseFrameSize;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo(Span<byte> span, ushort channel, ReadOnlySpan<byte> body)
             {
                 const int StartBodyArgument = StartPayload;
-                WriteHeader(span, channel, body.Length);
+                NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)body.Length << 8));
                 body.CopyTo(span.Slice(StartBodyArgument));
                 span[StartPayload + body.Length] = Constants.FrameEnd;
-                WriteFooter(span.Slice(StartPayload + body.Length));
                 return body.Length + BaseFrameSize;
             }
 
-            public static void WriteHeader(Span<byte> span, ushort channel, int bodyLength)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static int WriteTo(IBufferWriter<byte> bufferWriter, ushort channel, ReadOnlySpan<byte> body)
             {
-                NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)bodyLength << 8));
-            }
-
-            public static void WriteFooter(Span<byte> span)
-            {
-                span[0] = Constants.FrameEnd;
+                int segmentSize = body.Length + BaseFrameSize;
+                Span<byte> span = bufferWriter.GetSpan(segmentSize);
+                int offset = WriteTo(span, channel, body);
+                bufferWriter.Advance(offset);
+                return offset;
             }
         }
 

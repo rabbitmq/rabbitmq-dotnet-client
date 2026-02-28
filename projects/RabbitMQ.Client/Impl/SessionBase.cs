@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -143,6 +144,20 @@ namespace RabbitMQ.Client.Impl
             }
 
             OutgoingFrameMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, ChannelNumber, Connection.MaxPayloadSize);
+            RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+            return Connection.WriteAsync(bytes, cancellationToken);
+        }
+
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, IMemoryOwner<byte> body, int bodyLength, CancellationToken cancellationToken = default)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
+            {
+                ThrowAlreadyClosedException();
+            }
+
+            OutgoingFrameMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyLength, ChannelNumber, Connection.MaxPayloadSize);
             RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
             return Connection.WriteAsync(bytes, cancellationToken);
         }
