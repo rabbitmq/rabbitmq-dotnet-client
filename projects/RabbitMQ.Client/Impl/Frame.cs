@@ -31,10 +31,12 @@
 
 using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
@@ -113,16 +115,29 @@ namespace RabbitMQ.Client.Impl
              * +--------------+
              * | x bytes      |
              * +--------------+ */
+            public const int HeaderSize = StartPayload;
+            public const int FooterSize = 1;
             public const int FrameSize = BaseFrameSize;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo(Span<byte> span, ushort channel, ReadOnlySpan<byte> body)
             {
                 const int StartBodyArgument = StartPayload;
-                NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)body.Length << 8));
+                WriteHeader(span, channel, body.Length);
                 body.CopyTo(span.Slice(StartBodyArgument));
                 span[StartPayload + body.Length] = Constants.FrameEnd;
+                WriteFooter(span.Slice(StartPayload + body.Length));
                 return body.Length + BaseFrameSize;
+            }
+
+            public static void WriteHeader(Span<byte> span, ushort channel, int bodyLength)
+            {
+                NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)bodyLength << 8));
+            }
+
+            public static void WriteFooter(Span<byte> span)
+            {
+                span[0] = Constants.FrameEnd;
             }
         }
 
@@ -170,27 +185,42 @@ namespace RabbitMQ.Client.Impl
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
-            int remainingBodyBytes = body.Length;
-            int size = Method.FrameSize + Header.FrameSize +
-                       method.GetRequiredBufferSize() + header.GetRequiredBufferSize() +
-                       BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, remainingBodyBytes) + remainingBodyBytes;
-
             // Will be returned by SocketFrameWriter.WriteLoop
-            IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(size);
+            IMemoryOwner<byte> bodyCopy = MemoryPool<byte>.Shared.Rent(body.Length);
+            body.CopyTo(bodyCopy.Memory);
+            return SerializeToFrames(ref method, ref header, bodyCopy, body.Length, channelNumber, maxBodyPayloadBytes);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OutgoingFrameMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, IMemoryOwner<byte> body, int bodyLength, ushort channelNumber, int maxBodyPayloadBytes)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            // Calculate ONLY the Method and Header framing size
+            int framingSize = Method.FrameSize + Header.FrameSize +
+                              method.GetRequiredBufferSize() + header.GetRequiredBufferSize();
+
+            // Pre-calculate total final sequence size
+            int bodyFramesCount = GetBodyFrameCount(maxBodyPayloadBytes, bodyLength);
+            int totalSize = framingSize + bodyLength + (BodySegment.FrameSize * bodyFramesCount);
+
+            // Rent a smaller buffer exclusively for the Method and Header
+            IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(framingSize);
             Span<byte> bufferSpan = buffer.Memory.Span;
 
             int offset = Method.WriteTo(bufferSpan, channelNumber, ref method);
-            offset += Header.WriteTo(bufferSpan.Slice(offset), channelNumber, ref header, remainingBodyBytes);
-            ReadOnlySpan<byte> bodySpan = body.Span;
-            while (remainingBodyBytes > 0)
-            {
-                int frameSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
-                offset += BodySegment.WriteTo(bufferSpan.Slice(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, frameSize));
-                remainingBodyBytes -= frameSize;
-            }
+            offset += Header.WriteTo(bufferSpan.Slice(offset), channelNumber, ref header, bodyLength);
 
-            System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            return new OutgoingFrameMemory(buffer, size);
+            System.Diagnostics.Debug.Assert(offset == framingSize, $"Serialized to wrong size, expect {framingSize}, offset {offset}");
+
+            return new OutgoingFrameMemory(
+                buffer,
+                framingSize,
+                body,
+                bodyLength,
+                channelNumber,
+                maxBodyPayloadBytes,
+                totalSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
