@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,6 +93,23 @@ namespace RabbitMQ.Client
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
         /// </summary>
         /// <remarks>
+        /// The publication occurs with mandatory=false.
+        /// </remarks>
+        public static ValueTask BasicPublishAsync<T>(this IChannel channel,
+            PublicationAddress addr,
+            T basicProperties,
+            IMemoryOwner<byte> body,
+            int bodyLength,
+            CancellationToken cancellationToken = default)
+            where T : IReadOnlyBasicProperties, IAmqpHeader =>
+            channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
+                mandatory: false, basicProperties: basicProperties, body: body, bodyLength: bodyLength,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// </summary>
+        /// <remarks>
         /// The publication occurs with mandatory=false and empty BasicProperties
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
@@ -101,6 +119,22 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with mandatory=false and empty BasicProperties
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            string exchange,
+            string routingKey,
+            IMemoryOwner<byte> body,
+            int bodyLength,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyLength: bodyLength,
                 cancellationToken);
 
         /// <summary>
@@ -116,6 +150,22 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with mandatory=false and empty BasicProperties
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            CachedString exchange,
+            CachedString routingKey,
+            IMemoryOwner<byte> body,
+            int bodyLength,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyLength: bodyLength,
                 cancellationToken);
 
         /// <summary>
@@ -135,6 +185,23 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with empty BasicProperties
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            string exchange,
+            string routingKey,
+            bool mandatory,
+            IMemoryOwner<byte> body,
+            int bodyLength,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyLength: bodyLength,
+                cancellationToken);
+
+        /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
         /// </summary>
         /// <remarks>
@@ -148,6 +215,23 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
+        /// </summary>
+        /// <remarks>
+        /// The publication occurs with empty BasicProperties
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            CachedString exchange,
+            CachedString routingKey,
+            bool mandatory,
+            IMemoryOwner<byte> body,
+            int bodyLength,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyLength: bodyLength,
                 cancellationToken);
 
         /// <summary>

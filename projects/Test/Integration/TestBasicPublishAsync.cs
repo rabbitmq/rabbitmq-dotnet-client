@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -87,6 +88,37 @@ namespace Test.Integration
                 Assert.NotNull(prex.ReplyText);
                 Assert.Equal("NO_ROUTE", prex.ReplyText);
 
+            }
+        }
+
+        [Fact]
+        public async Task TestMemoryOwnerBody()
+        {
+            const int size = 1024;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            var body = new TrackedMemoryOwner(GetRandomBody(size));
+
+            await _channel.BasicPublishAsync(string.Empty, q,
+                mandatory: true, body: body, body.Memory.Length);
+
+            Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
+            Assert.True(body.Disposed);
+        }
+
+        private class TrackedMemoryOwner : IMemoryOwner<byte>
+        {
+            public TrackedMemoryOwner(byte[] content)
+            {
+                Memory = content;
+            }
+
+            public Memory<byte> Memory { get; }
+            public bool Disposed { get; private set; }
+
+            public void Dispose()
+            {
+                Disposed = true;
             }
         }
     }

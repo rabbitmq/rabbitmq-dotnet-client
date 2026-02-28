@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -483,6 +484,14 @@ namespace RabbitMQ.Client.Impl
             where THeader : IAmqpHeader
         {
             return Session.TransmitAsync(in method, in header, body, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, IMemoryOwner<byte> body, int bodyLength, CancellationToken cancellationToken)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            return Session.TransmitAsync(in method, in header, body, bodyLength, cancellationToken);
         }
 
         internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)

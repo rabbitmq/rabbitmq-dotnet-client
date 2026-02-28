@@ -97,11 +97,7 @@ namespace RabbitMQ.Client
             while (remainingBodyBytes > 0)
             {
                 int payloadSize = remainingBodyBytes > _maxBodyPayloadBytes ? _maxBodyPayloadBytes : remainingBodyBytes;
-
-                Span<byte> span = writer.GetSpan(BodySegment.HeaderSize + payloadSize + BodySegment.FooterSize);
-                int offset = BodySegment.WriteTo(span, _channelNumber, bodySpan.Slice(bodyOffset, payloadSize));
-                writer.Advance(offset);
-
+                BodySegment.WriteTo(writer, _channelNumber, bodySpan.Slice(bodyOffset, payloadSize));
                 remainingBodyBytes -= payloadSize;
                 bodyOffset += payloadSize;
             }

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -101,6 +102,63 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            bool mandatory, TProperties basicProperties, IMemoryOwner<byte> body, int bodyLength,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            PublisherConfirmationInfo? publisherConfirmationInfo = null;
+            RateLimitLease? lease =
+                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            try
+            {
+                publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
+
+                await MaybeEnforceFlowControlAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+
+                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, bodyLength, basicProperties)
+                    : default;
+
+                ulong publishSequenceNumber = 0;
+                if (publisherConfirmationInfo is not null)
+                {
+                    publishSequenceNumber = publisherConfirmationInfo.PublishSequenceNumber;
+                }
+
+                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
+                if (props is null)
+                {
+                    await ModelSendAsync(in cmd, in basicProperties, body, bodyLength, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await ModelSendAsync(in cmd, in props, body, bodyLength, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                bool exceptionWasHandled =
+                    MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
+                if (!exceptionWasHandled)
+                {
+                    throw;
+                }
+            }
+            finally
+            {
+                MaybeReleasePublisherConfirmationLock(lease);
+                await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+
         public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
@@ -138,6 +196,64 @@ namespace RabbitMQ.Client.Impl
                 else
                 {
                     await ModelSendAsync(in cmd, in props, body, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                bool exceptionWasHandled =
+                    MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
+                if (!exceptionWasHandled)
+                {
+                    throw;
+                }
+            }
+            finally
+            {
+                MaybeReleasePublisherConfirmationLock(lease);
+                await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+
+
+        public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            bool mandatory, TProperties basicProperties, IMemoryOwner<byte> body, int bodyLength,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            PublisherConfirmationInfo? publisherConfirmationInfo = null;
+            RateLimitLease? lease =
+                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            try
+            {
+                publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
+
+                await MaybeEnforceFlowControlAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+
+                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.BasicPublish(routingKey.Value, exchange.Value, bodyLength, basicProperties)
+                    : default;
+
+                ulong publishSequenceNumber = 0;
+                if (publisherConfirmationInfo is not null)
+                {
+                    publishSequenceNumber = publisherConfirmationInfo.PublishSequenceNumber;
+                }
+
+                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
+                if (props is null)
+                {
+                    await ModelSendAsync(in cmd, in basicProperties, body, bodyLength, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await ModelSendAsync(in cmd, in props, body, bodyLength, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }
