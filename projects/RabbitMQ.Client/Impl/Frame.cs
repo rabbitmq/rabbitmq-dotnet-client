@@ -191,10 +191,6 @@ namespace RabbitMQ.Client.Impl
             // Rent a smaller buffer exclusively for the Method and Header
             byte[] headerAndMethod = ArrayPool<byte>.Shared.Rent(framingSize);
 
-            // Rent a buffer to copy the body
-            byte[] rentedBody = ArrayPool<byte>.Shared.Rent(body.Length);
-            body.CopyTo(rentedBody);
-
             int offset = Method.WriteTo(headerAndMethod, channelNumber, ref method);
             offset += Header.WriteTo(headerAndMethod.AsSpan(offset), channelNumber, ref header, body.Length);
 
@@ -202,8 +198,7 @@ namespace RabbitMQ.Client.Impl
             return new OutgoingFrameMemory(
                 headerAndMethod,
                 framingSize,
-                rentedBody.AsMemory(0, body.Length),
-                rentedBody,
+                body,
                 channelNumber,
                 maxBodyPayloadBytes,
                 totalSize);

@@ -71,7 +71,16 @@ namespace RabbitMQ.Client.Impl
 
         protected override ValueTask InternalWriteAsync(OutgoingFrameMemory frames, CancellationToken cancellationToken)
         {
-            return _channelWriter.WriteAsync(frames, cancellationToken);
+            // Cross-thread boundary: The caller's 'ReadOnlyMemory<byte> body' might be 
+            // overwritten or disposed before the background writer loop processes it.
+            // We must materialize the body into a rented array to guarantee its lifetime.
+            // 
+            // OWNERSHIP TRANSFER: This call consumes the original 'frames' struct.
+            // The caller must NOT dispose the original struct, as the rented header 
+            // arrays are now owned by 'BackgroundSocketFrameHandler'.
+            OutgoingFrameMemory frameWithCopiedBody = frames.TransferOwnershipAndCopyBody();
+
+            return _channelWriter.WriteAsync(frameWithCopiedBody, cancellationToken);
         }
 
         private async Task WriteLoopAsync()

@@ -53,6 +53,23 @@ namespace RabbitMQ.Client
             byte[] rentedMethodAndHeader,
             int methodAndHeaderLength,
             ReadOnlyMemory<byte> body,
+            ushort channelNumber,
+            int maxBodyPayloadBytes,
+            int totalSize)
+        {
+            _rentedMethodAndHeader = rentedMethodAndHeader;
+            _methodAndHeaderLength = methodAndHeaderLength;
+            _body = body;
+            _rentedBody = null;
+            _channelNumber = channelNumber;
+            _maxBodyPayloadBytes = maxBodyPayloadBytes;
+            Size = totalSize;
+        }
+
+        private OutgoingFrameMemory(
+            byte[] rentedMethodAndHeader,
+            int methodAndHeaderLength,
+            ReadOnlyMemory<byte> body,
             byte[] rentedBody,
             ushort channelNumber,
             int maxBodyPayloadBytes,
@@ -100,6 +117,39 @@ namespace RabbitMQ.Client
                 remainingBodyBytes -= payloadSize;
                 bodyOffset += payloadSize;
             }
+        }
+
+        /// <summary>
+        /// Allocates a rented array for the body payload and copies the memory into it, 
+        /// making the frame safe to pass across thread boundaries (e.g., to a background queue).
+        /// </summary>
+        /// <remarks>
+        /// DANGER: This method simulates "move semantics". It transfers ownership of the 
+        /// underlying rented header/method arrays to the returned copy. 
+        /// DO NOT call <see cref="Dispose"/> on the original struct after calling this method, 
+        /// as it will result in a double-free on the ArrayPool.
+        /// </remarks>
+        internal OutgoingFrameMemory TransferOwnershipAndCopyBody()
+        {
+            Debug.Assert(_rentedBody == null);
+
+            if (_body.Length == 0)
+            {
+                // If the message has no body, no copy is needed. 
+                // We return 'this', implicitly transferring ownership to the caller.
+                return this;
+            }
+
+            byte[] rentedBody = ArrayPool<byte>.Shared.Rent(_body.Length);
+            _body.CopyTo(rentedBody);
+            return new OutgoingFrameMemory(
+                _rentedMethodAndHeader,
+                _methodAndHeaderLength,
+                rentedBody.AsMemory(0, _body.Length),
+                rentedBody,
+                _channelNumber,
+                _maxBodyPayloadBytes,
+                Size);
         }
 
         public void Dispose()
