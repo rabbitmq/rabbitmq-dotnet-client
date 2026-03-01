@@ -365,6 +365,31 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to use a background task for dispatching 
+        /// outgoing frames to the socket. Defaults to <see langword="true"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// When set to <see langword="true"/> (default), messages published by the client are pushed 
+        /// into an internal queue and written to the network by a dedicated background task. This 
+        /// ensures the calling code returns immediately without awaiting network I/O. While buffer 
+        /// allocations are amortized via the shared ArrayPool, this model still introduces performance 
+        /// overhead from memory copying (payload materialization) and increased ArrayPool contention.
+        /// Furthermore, for payloads exceeding 85,000 bytes, this requires Large Object Heap (LOH) array
+        /// rentals, which can lead to LOH fragmentation and expensive Gen 2 garbage collections under
+        /// heavy load.
+        /// </para>
+        /// <para>
+        /// When set to <see langword="false"/>, the client will write frames inline directly to the 
+        /// socket pipeline. This bypasses the internal queue, enabling zero-copy publishing. 
+        /// This eliminates the CPU overhead of copying memory and reduces the application's peak working 
+        /// set by completely bypassing the ArrayPool (and consequently, the LOH) for message bodies. 
+        /// However, the calling code will asynchronously await the socket flush operation.
+        /// </para>
+        /// </remarks>
+        public bool UseBackgroundFrameWriter { get; set; } = true;
+
+        /// <summary>
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
@@ -606,7 +631,7 @@ namespace RabbitMQ.Client
             AmqpTcpEndpoint endpoint, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            SocketFrameHandler frameHandler = await SocketFrameHandler.CreateAsync(endpoint, SocketFactory, RequestedConnectionTimeout, cancellationToken)
+            SocketFrameHandler frameHandler = await SocketFrameHandler.CreateAsync(endpoint, SocketFactory, RequestedConnectionTimeout, UseBackgroundFrameWriter, cancellationToken)
                 .ConfigureAwait(false);
             return ConfigureFrameHandler(frameHandler);
         }

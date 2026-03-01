@@ -123,7 +123,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public static async Task<SocketFrameHandler> CreateAsync(AmqpTcpEndpoint amqpTcpEndpoint, Func<AddressFamily, ITcpClient> socketFactory,
-            TimeSpan connectionTimeout, CancellationToken cancellationToken)
+            TimeSpan connectionTimeout, bool useBackgroundSocketHandler, CancellationToken cancellationToken)
         {
             ITcpClient socket = await SocketFactory.OpenAsync(amqpTcpEndpoint, socketFactory, connectionTimeout, cancellationToken)
                 .ConfigureAwait(false);
@@ -143,7 +143,15 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            SocketFrameHandler socketFrameHandler = new BackgroundSocketFrameHandler(amqpTcpEndpoint, socket, stream, cancellationToken);
+            SocketFrameHandler socketFrameHandler;
+            if (useBackgroundSocketHandler)
+            {
+                socketFrameHandler = new BackgroundSocketFrameHandler(amqpTcpEndpoint, socket, stream, cancellationToken);
+            }
+            else
+            {
+                socketFrameHandler = new InlineSocketFrameHandler(amqpTcpEndpoint, socket, stream);
+            }
             return socketFrameHandler;
         }
 
