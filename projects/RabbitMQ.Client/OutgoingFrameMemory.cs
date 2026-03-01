@@ -31,32 +31,85 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics;
+using static RabbitMQ.Client.Impl.Framing;
 
 namespace RabbitMQ.Client
 {
     internal readonly struct OutgoingFrameMemory : IDisposable
     {
-        internal OutgoingFrameMemory(ReadOnlyMemory<byte> memory, byte[] rentedArray)
+        internal OutgoingFrameMemory(byte[] rentedMethodAndHeader, int methodAndHeaderLength)
         {
-            _memory = memory;
-            _rentedMemory = rentedArray;
+            _rentedMethodAndHeader = rentedMethodAndHeader;
+            _methodAndHeaderLength = methodAndHeaderLength;
+            _body = default;
+            _rentedBody = null;
+            _channelNumber = 0;
+            _maxBodyPayloadBytes = 0;
+            Size = methodAndHeaderLength;
         }
 
-        internal readonly int Size => _memory.Length;
+        internal OutgoingFrameMemory(
+            byte[] rentedMethodAndHeader,
+            int methodAndHeaderLength,
+            ReadOnlyMemory<byte> body,
+            byte[] rentedBody,
+            ushort channelNumber,
+            int maxBodyPayloadBytes,
+            int totalSize)
+        {
+            _rentedMethodAndHeader = rentedMethodAndHeader;
+            _methodAndHeaderLength = methodAndHeaderLength;
+            _body = body;
+            _rentedBody = rentedBody;
+            _channelNumber = channelNumber;
+            _maxBodyPayloadBytes = maxBodyPayloadBytes;
+            Size = totalSize;
+        }
 
-        private readonly ReadOnlyMemory<byte> _memory;
-        private readonly byte[] _rentedMemory;
+        internal readonly int Size { get; }
+
+        private readonly byte[] _rentedMethodAndHeader;
+        private readonly int _methodAndHeaderLength;
+        private readonly ushort _channelNumber;
+        private readonly int _maxBodyPayloadBytes;
+        private readonly ReadOnlyMemory<byte> _body;
+        private readonly byte[]? _rentedBody;
 
         internal readonly void WriteTo(IBufferWriter<byte> bufferWriter)
         {
-            bufferWriter.Write(_rentedMemory);
+            Debug.Assert(_rentedMethodAndHeader != null);
+
+            // Write the pre-serialized portion that all messages will always have
+            ReadOnlySpan<byte> methodAndHeader = _rentedMethodAndHeader.AsSpan(0, _methodAndHeaderLength);
+            bufferWriter.Write(methodAndHeader);
+
+            if (_body.Length == 0)
+            {
+                return;
+            }
+
+            ReadOnlySpan<byte> bodySpan = _body.Span;
+            int remainingBodyBytes = bodySpan.Length;
+            int bodyOffset = 0;
+
+            while (remainingBodyBytes > 0)
+            {
+                int payloadSize = remainingBodyBytes > _maxBodyPayloadBytes ? _maxBodyPayloadBytes : remainingBodyBytes;
+                BodySegment.WriteTo(bufferWriter, _channelNumber, bodySpan.Slice(bodyOffset, payloadSize));
+                remainingBodyBytes -= payloadSize;
+                bodyOffset += payloadSize;
+            }
         }
 
         public void Dispose()
         {
-            if (_rentedMemory != null)
+            Debug.Assert(_rentedMethodAndHeader != null);
+            ArrayPool<byte>.Shared.Return(_rentedMethodAndHeader);
+
+            if (_rentedBody != null)
             {
-                ArrayPool<byte>.Shared.Return(_rentedMemory);
+                ArrayPool<byte>.Shared.Return(_rentedBody);
             }
         }
     }
