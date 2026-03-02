@@ -49,7 +49,7 @@ namespace RabbitMQ.Benchmarks
         public ushort Channel { get; set; }
 
         [Benchmark]
-        internal RentedMemory BasicAckWrite() => Framing.SerializeToFrames(ref _basicAck, Channel);
+        internal OutgoingFrameMemory BasicAckWrite() => Framing.SerializeToFrames(ref _basicAck, Channel);
     }
 
     [Config(typeof(Config))]
@@ -71,13 +71,13 @@ namespace RabbitMQ.Benchmarks
         public int FrameMax { get; set; }
 
         [Benchmark]
-        internal RentedMemory BasicPublishWriteNonEmpty() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _body, Channel, FrameMax);
+        internal OutgoingFrameMemory BasicPublishWriteNonEmpty() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _body, Channel, FrameMax);
 
         [Benchmark]
-        internal RentedMemory BasicPublishWrite() => Framing.SerializeToFrames(ref _basicPublish, ref _propertiesEmpty, _bodyEmpty, Channel, FrameMax);
+        internal OutgoingFrameMemory BasicPublishWrite() => Framing.SerializeToFrames(ref _basicPublish, ref _propertiesEmpty, _bodyEmpty, Channel, FrameMax);
 
         [Benchmark]
-        internal RentedMemory BasicPublishMemoryWrite() => Framing.SerializeToFrames(ref _basicPublishMemory, ref _propertiesEmpty, _bodyEmpty, Channel, FrameMax);
+        internal OutgoingFrameMemory BasicPublishMemoryWrite() => Framing.SerializeToFrames(ref _basicPublishMemory, ref _propertiesEmpty, _bodyEmpty, Channel, FrameMax);
     }
 
     [Config(typeof(Config))]
@@ -90,6 +90,6 @@ namespace RabbitMQ.Benchmarks
         public ushort Channel { get; set; }
 
         [Benchmark]
-        internal RentedMemory ChannelCloseWrite() => Framing.SerializeToFrames(ref _channelClose, Channel);
+        internal OutgoingFrameMemory ChannelCloseWrite() => Framing.SerializeToFrames(ref _channelClose, Channel);
     }
 }

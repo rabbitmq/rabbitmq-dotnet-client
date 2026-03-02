@@ -1,0 +1,2 @@
+RabbitMQ.Client.ConnectionFactory.UseBackgroundFrameWriter.get -> bool
+RabbitMQ.Client.ConnectionFactory.UseBackgroundFrameWriter.set -> void

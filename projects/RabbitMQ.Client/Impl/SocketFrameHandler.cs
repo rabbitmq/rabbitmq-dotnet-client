@@ -41,40 +41,26 @@ using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Impl
 {
-    internal sealed class SocketFrameHandler : IFrameHandler
+    internal abstract class SocketFrameHandler : IFrameHandler
     {
         private readonly AmqpTcpEndpoint _amqpTcpEndpoint;
         private readonly ITcpClient _socket;
         private readonly Stream _stream;
 
-        private readonly ChannelWriter<RentedMemory> _channelWriter;
-        private readonly ChannelReader<RentedMemory> _channelReader;
         private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
 
-        private readonly PipeWriter _pipeWriter;
+        protected readonly PipeWriter _pipeWriter;
         private readonly PipeReader _pipeReader;
-        private Task? _writerTask;
 
         private bool _closed;
 
         private static ReadOnlyMemory<byte> Amqp091ProtocolHeader => new byte[] { (byte)'A', (byte)'M', (byte)'Q', (byte)'P', 0, 0, 9, 1 };
 
-        private SocketFrameHandler(AmqpTcpEndpoint amqpTcpEndpoint, ITcpClient socket, Stream stream)
+        protected SocketFrameHandler(AmqpTcpEndpoint amqpTcpEndpoint, ITcpClient socket, Stream stream)
         {
             _amqpTcpEndpoint = amqpTcpEndpoint;
             _socket = socket;
             _stream = stream;
-
-            var channel = System.Threading.Channels.Channel.CreateBounded<RentedMemory>(
-                new BoundedChannelOptions(128)
-                {
-                    AllowSynchronousContinuations = false,
-                    SingleReader = true,
-                    SingleWriter = false
-                });
-
-            _channelWriter = channel.Writer;
-            _channelReader = channel.Reader;
 
             _pipeWriter = PipeWriter.Create(stream);
             _pipeReader = PipeReader.Create(stream);
@@ -137,7 +123,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public static async Task<SocketFrameHandler> CreateAsync(AmqpTcpEndpoint amqpTcpEndpoint, Func<AddressFamily, ITcpClient> socketFactory,
-            TimeSpan connectionTimeout, CancellationToken cancellationToken)
+            TimeSpan connectionTimeout, bool useBackgroundSocketHandler, CancellationToken cancellationToken)
         {
             ITcpClient socket = await SocketFactory.OpenAsync(amqpTcpEndpoint, socketFactory, connectionTimeout, cancellationToken)
                 .ConfigureAwait(false);
@@ -157,8 +143,15 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            SocketFrameHandler socketFrameHandler = new(amqpTcpEndpoint, socket, stream);
-            socketFrameHandler._writerTask = Task.Run(socketFrameHandler.WriteLoopAsync, cancellationToken);
+            SocketFrameHandler socketFrameHandler;
+            if (useBackgroundSocketHandler)
+            {
+                socketFrameHandler = new BackgroundSocketFrameHandler(amqpTcpEndpoint, socket, stream, cancellationToken);
+            }
+            else
+            {
+                socketFrameHandler = new InlineSocketFrameHandler(amqpTcpEndpoint, socket, stream);
+            }
             return socketFrameHandler;
         }
 
@@ -175,11 +168,8 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
                 try
                 {
-                    _channelWriter.Complete();
-                    if (_writerTask != null)
-                    {
-                        await _writerTask.ConfigureAwait(false);
-                    }
+                    await InternalClose(cancellationToken)
+                        .ConfigureAwait(false);
                     await _pipeWriter.CompleteAsync()
                         .ConfigureAwait(false);
                     await _pipeReader.CompleteAsync()
@@ -229,7 +219,7 @@ namespace RabbitMQ.Client.Impl
                 .ConfigureAwait(false);
         }
 
-        public ValueTask WriteAsync(RentedMemory frames, CancellationToken cancellationToken)
+        public ValueTask WriteAsync(OutgoingFrameMemory frames, CancellationToken cancellationToken)
         {
             if (_closed)
             {
@@ -237,38 +227,11 @@ namespace RabbitMQ.Client.Impl
                 return default;
             }
 
-            return _channelWriter.WriteAsync(frames, cancellationToken);
+            return InternalWriteAsync(frames, cancellationToken);
         }
 
-        private async Task WriteLoopAsync()
-        {
-            try
-            {
-                while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
-                {
-                    while (_channelReader.TryRead(out RentedMemory frames))
-                    {
-                        try
-                        {
-                            await _pipeWriter.WriteAsync(frames.Memory)
-                                .ConfigureAwait(false);
-                            RabbitMqClientEventSource.Log.CommandSent(frames.Size);
-                        }
-                        finally
-                        {
-                            frames.Dispose();
-                        }
-                    }
+        protected abstract ValueTask InternalClose(CancellationToken cancellationToken);
 
-                    await _pipeWriter.FlushAsync()
-                        .ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                ESLog.Error("Background socket write loop has crashed", ex);
-                throw;
-            }
-        }
+        protected abstract ValueTask InternalWriteAsync(OutgoingFrameMemory frames, CancellationToken cancellationToken);
     }
 }

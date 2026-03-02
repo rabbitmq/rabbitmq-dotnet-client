@@ -42,7 +42,7 @@ using Xunit.Sdk;
 
 namespace Test.Integration
 {
-    public class TestBasicPublish : IntegrationFixture
+    public abstract class TestBasicPublish : IntegrationFixture
     {
         public TestBasicPublish(ITestOutputHelper output) : base(output)
         {
@@ -323,6 +323,34 @@ namespace Test.Integration
             Assert.True(waitResFalse);
             Assert.Equal(sendBody, consumeBody);
             Assert.Equal("World", response);
+        }
+    }
+
+    public class TestBasicPublishWithBackgroundSocketFrameHandler : TestBasicPublish
+    {
+        public TestBasicPublishWithBackgroundSocketFrameHandler(ITestOutputHelper output) : base(output)
+        {
+        }
+
+        protected override ConnectionFactory CreateConnectionFactory(ushort consumerDispatchConcurrency = 1)
+        {
+            ConnectionFactory factory = base.CreateConnectionFactory(consumerDispatchConcurrency);
+            factory.UseBackgroundFrameWriter = true;
+            return factory;
+        }
+    }
+
+    public class TestBasicPublishWithInlineSocketFrameHandler : TestBasicPublish
+    {
+        public TestBasicPublishWithInlineSocketFrameHandler(ITestOutputHelper output) : base(output)
+        {
+        }
+
+        protected override ConnectionFactory CreateConnectionFactory(ushort consumerDispatchConcurrency = 1)
+        {
+            ConnectionFactory factory = base.CreateConnectionFactory(consumerDispatchConcurrency);
+            factory.UseBackgroundFrameWriter = false;
+            return factory;
         }
     }
 }

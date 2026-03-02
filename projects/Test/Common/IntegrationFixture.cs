@@ -539,7 +539,7 @@ namespace Test
             }
         }
 
-        protected ConnectionFactory CreateConnectionFactory(
+        protected virtual ConnectionFactory CreateConnectionFactory(
             ushort consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency)
         {
             return new ConnectionFactory
