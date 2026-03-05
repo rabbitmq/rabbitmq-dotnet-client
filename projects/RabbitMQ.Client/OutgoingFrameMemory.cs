@@ -83,7 +83,7 @@ namespace RabbitMQ.Client
             Debug.Assert(_methodAndHeader is not null);
             ReadOnlySpan<byte> methodAndHeader = _methodAndHeader!.Memory.Span.Slice(0, _methodAndHeaderLength);
             writer.Write(methodAndHeader);
-            
+
             if (_bodyLength == 0)
             {
                 return;
