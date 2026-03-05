@@ -36,7 +36,7 @@ using static RabbitMQ.Client.Impl.Framing;
 
 namespace RabbitMQ.Client
 {
-    internal struct OutgoingFrameMemory : IDisposable
+    internal struct OutgoingFrame : IDisposable
     {
         private IMemoryOwner<byte>? _methodAndHeader;
         private readonly int _methodAndHeaderLength;
@@ -45,7 +45,7 @@ namespace RabbitMQ.Client
         private readonly int _maxBodyPayloadBytes;
         private readonly ushort _channelNumber;
 
-        internal OutgoingFrameMemory(
+        internal OutgoingFrame(
             IMemoryOwner<byte> methodAndHeader,
             int methodAndHeaderLength)
         {
@@ -58,7 +58,7 @@ namespace RabbitMQ.Client
             Size = methodAndHeaderLength;
         }
 
-        internal OutgoingFrameMemory(
+        internal OutgoingFrame(
             IMemoryOwner<byte> methodAndHeader,
             int methodAndHeaderLength,
             IMemoryOwner<byte> body,

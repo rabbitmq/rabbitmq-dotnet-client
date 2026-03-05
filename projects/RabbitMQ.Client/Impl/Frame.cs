@@ -152,17 +152,17 @@ namespace RabbitMQ.Client.Impl
             ///</summary>
             private static ReadOnlySpan<byte> Payload => new byte[] { Constants.FrameHeartbeat, 0, 0, 0, 0, 0, 0, Constants.FrameEnd };
 
-            public static OutgoingFrameMemory GetHeartbeatFrame()
+            public static OutgoingFrame GetHeartbeatFrame()
             {
                 // Is returned by SocketFrameHandler.WriteLoop
                 IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(FrameSize);
                 Payload.CopyTo(buffer.Memory.Span);
-                return new OutgoingFrameMemory(buffer, FrameSize);
+                return new OutgoingFrame(buffer, FrameSize);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static OutgoingFrameMemory SerializeToFrames<T>(ref T method, ushort channelNumber)
+        public static OutgoingFrame SerializeToFrames<T>(ref T method, ushort channelNumber)
             where T : struct, IOutgoingAmqpMethod
         {
             int size = Method.FrameSize + method.GetRequiredBufferSize();
@@ -172,11 +172,11 @@ namespace RabbitMQ.Client.Impl
             int offset = Method.WriteTo(buffer.Memory.Span, channelNumber, ref method);
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
-            return new OutgoingFrameMemory(buffer, size);
+            return new OutgoingFrame(buffer, size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static OutgoingFrameMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
+        public static OutgoingFrame SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlyMemory<byte> body, ushort channelNumber, int maxBodyPayloadBytes)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -187,7 +187,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static OutgoingFrameMemory SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, IMemoryOwner<byte> body, int bodyLength, ushort channelNumber, int maxBodyPayloadBytes)
+        public static OutgoingFrame SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, IMemoryOwner<byte> body, int bodyLength, ushort channelNumber, int maxBodyPayloadBytes)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -208,7 +208,7 @@ namespace RabbitMQ.Client.Impl
 
             System.Diagnostics.Debug.Assert(offset == framingSize, $"Serialized to wrong size, expect {framingSize}, offset {offset}");
 
-            return new OutgoingFrameMemory(
+            return new OutgoingFrame(
                 buffer,
                 framingSize,
                 body,
