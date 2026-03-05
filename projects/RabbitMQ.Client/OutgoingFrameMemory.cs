@@ -76,7 +76,7 @@ namespace RabbitMQ.Client
             Size = totalSize;
         }
 
-        internal readonly int Size { get; }
+        internal int Size { get; }
 
         internal readonly void WriteTo(IBufferWriter<byte> writer)
         {
