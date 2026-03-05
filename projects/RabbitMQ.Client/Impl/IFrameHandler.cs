@@ -68,6 +68,6 @@ namespace RabbitMQ.Client.Impl
 
         ValueTask SendProtocolHeaderAsync(CancellationToken cancellationToken);
 
-        ValueTask WriteAsync(OutgoingFrameMemory frames, CancellationToken cancellationToken);
+        ValueTask WriteAsync(OutgoingFrame frames, CancellationToken cancellationToken);
     }
 }

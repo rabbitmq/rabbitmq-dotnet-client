@@ -44,7 +44,7 @@ namespace Test.Unit
         [Fact]
         public void HeartbeatFrame()
         {
-            OutgoingFrameMemory sfc = Framing.Heartbeat.GetHeartbeatFrame();
+            OutgoingFrame sfc = Framing.Heartbeat.GetHeartbeatFrame();
             var pipe = new Pipe();
             sfc.WriteTo(pipe.Writer);
             pipe.Writer.Complete();
