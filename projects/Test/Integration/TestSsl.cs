@@ -47,7 +47,6 @@ namespace Test.Integration
         public TestSsl(ITestOutputHelper output) : base(output)
         {
             _sslEnv = new SslEnv();
-            Assert.True(File.Exists(_sslEnv.CertDirectPath));
         }
 
         public override Task InitializeAsync()

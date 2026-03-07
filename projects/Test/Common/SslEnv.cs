@@ -31,6 +31,7 @@
 
 using System;
 using System.IO;
+using Xunit;
 
 namespace Test
 {
@@ -57,6 +58,7 @@ namespace Test
                 _certDirectPath = Path.Combine(_sslDir, $"client_direct.p12");
                 _certIntermediatePath = Path.Combine(_sslDir, $"client.p12");
                 _certIntermediateCaPath = Path.Combine(_sslDir, $"intermediate_ca_certificate.pem");
+                Assert.True(File.Exists(_certDirectPath));
             }
         }
 
