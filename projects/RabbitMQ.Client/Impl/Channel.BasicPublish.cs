@@ -83,7 +83,7 @@ namespace RabbitMQ.Client.Impl
 
         private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
             TMethod cmd, TProperties basicProperties, ReadOnlyMemory<byte> body, int bodySize,
-            string? exchange, string? routingKey, CancellationToken cancellationToken)
+            string exchange, string routingKey, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
@@ -135,7 +135,7 @@ namespace RabbitMQ.Client.Impl
 
         private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
             TMethod cmd, TProperties basicProperties, IMemoryOwner<byte> body, int bodyLength,
-            string? exchange, string? routingKey, CancellationToken cancellationToken)
+            string exchange, string routingKey, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
