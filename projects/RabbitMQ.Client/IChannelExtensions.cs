@@ -76,8 +76,15 @@ namespace RabbitMQ.Client
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="addr">The destination address.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// The publication occurs with mandatory=false.
+        /// Routing key must be shorter than 255 bytes.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync<T>(this IChannel channel,
             PublicationAddress addr,
@@ -90,10 +97,18 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// (Extension method) Convenience overload of <c>IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, IMemoryOwner{byte}, int, CancellationToken)</c>
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="addr">The destination address.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message bodyh.</param>
+        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with mandatory=false.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync<T>(this IChannel channel,
             PublicationAddress addr,
@@ -109,8 +124,15 @@ namespace RabbitMQ.Client
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with mandatory=false and empty BasicProperties
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
             string exchange,
@@ -122,10 +144,18 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// (Extension method) Convenience overload of <c>IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, IMemoryOwner{byte}, int, CancellationToken)</c>
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with mandatory=false and empty BasicProperties
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
             string exchange,
@@ -140,8 +170,15 @@ namespace RabbitMQ.Client
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with mandatory=false and empty BasicProperties
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
             CachedString exchange,
@@ -153,10 +190,18 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
+        /// (Extension method) Convenience overload of <c>IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, IMemoryOwner{byte}, int, CancellationToken)</c>
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with mandatory=false and empty BasicProperties
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
             CachedString exchange,
@@ -171,8 +216,16 @@ namespace RabbitMQ.Client
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with empty BasicProperties
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
             string exchange,
@@ -185,10 +238,19 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
+        /// (Extension method) Convenience overload of <c>IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, IMemoryOwner{byte}, int, CancellationToken)</c>
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with empty BasicProperties
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
             string exchange,
@@ -204,8 +266,16 @@ namespace RabbitMQ.Client
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with empty BasicProperties
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
             CachedString exchange,
@@ -218,10 +288,19 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
+        /// (Extension method) Convenience overload of <c>IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, IMemoryOwner{byte}, int, CancellationToken)</c>
         /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
         /// The publication occurs with empty BasicProperties
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
             CachedString exchange,
