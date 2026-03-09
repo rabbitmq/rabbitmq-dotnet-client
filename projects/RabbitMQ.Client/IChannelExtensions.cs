@@ -102,7 +102,7 @@ namespace RabbitMQ.Client
         /// <param name="channel">The channel.</param>
         /// <param name="addr">The destination address.</param>
         /// <param name="basicProperties">The message properties.</param>
-        /// <param name="body">The message bodyh.</param>
+        /// <param name="body">The message body.</param>
         /// <param name="bodyLength">The message body length.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
