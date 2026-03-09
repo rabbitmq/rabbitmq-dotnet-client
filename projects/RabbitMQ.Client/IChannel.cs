@@ -219,8 +219,8 @@ namespace RabbitMQ.Client
         /// <param name="routingKey">The routing key.</param>
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
-        /// <param name="body">The message body length.</param>
-        /// <param name="bodyLength">The message body.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="bodyLength">The message body length.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
