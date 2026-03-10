@@ -180,10 +180,30 @@ namespace RabbitMQ.Client.Impl
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
+            // Packs method, header, and body frames into a single buffer. The body is copied
+            // into the buffer because the caller retains ownership of the ReadOnlyMemory<byte>.
+            int bodyLength = body.Length;
+            int remainingBodyBytes = bodyLength;
+            int size = Method.FrameSize + Header.FrameSize +
+                       method.GetRequiredBufferSize() + header.GetRequiredBufferSize() +
+                       BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, bodyLength) + bodyLength;
+
             // Will be returned by SocketFrameWriter.WriteLoop
-            IMemoryOwner<byte> bodyCopy = MemoryPool<byte>.Shared.Rent(body.Length);
-            body.CopyTo(bodyCopy.Memory);
-            return SerializeToFrames(ref method, ref header, bodyCopy, body.Length, channelNumber, maxBodyPayloadBytes);
+            IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(size);
+            Span<byte> bufferSpan = buffer.Memory.Span;
+
+            int offset = Method.WriteTo(bufferSpan, channelNumber, ref method);
+            offset += Header.WriteTo(bufferSpan.Slice(offset), channelNumber, ref header, bodyLength);
+            ReadOnlySpan<byte> bodySpan = body.Span;
+            while (remainingBodyBytes > 0)
+            {
+                int payloadSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
+                offset += BodySegment.WriteTo(bufferSpan.Slice(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, payloadSize));
+                remainingBodyBytes -= payloadSize;
+            }
+
+            System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
+            return new OutgoingFrame(buffer, size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -191,6 +211,9 @@ namespace RabbitMQ.Client.Impl
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
+            // Zero-copy path: ownership of body is transferred to the OutgoingFrame, which
+            // disposes it after writing. Method and header are packed into a separate buffer;
+            // the body is written directly to the wire without an intermediate copy.
             // Calculate ONLY the Method and Header framing size
             int framingSize = Method.FrameSize + Header.FrameSize +
                               method.GetRequiredBufferSize() + header.GetRequiredBufferSize();
