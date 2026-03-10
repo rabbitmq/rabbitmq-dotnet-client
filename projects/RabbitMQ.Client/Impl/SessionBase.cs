@@ -154,6 +154,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
             {
+                body.Dispose();
                 ThrowAlreadyClosedException();
             }
 
