@@ -82,8 +82,8 @@ namespace RabbitMQ.Client
         /// <param name="body">The message body.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
-        /// The publication occurs with mandatory=false.
         /// Routing key must be shorter than 255 bytes.
+        /// The publication occurs with mandatory=false.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync<T>(this IChannel channel,
@@ -131,7 +131,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
-        /// The publication occurs with mandatory=false and empty BasicProperties
+        /// The publication occurs with mandatory=false and empty BasicProperties.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
@@ -154,7 +154,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
-        /// The publication occurs with mandatory=false and empty BasicProperties
+        /// The publication occurs with mandatory=false and empty BasicProperties.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
@@ -177,7 +177,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
-        /// The publication occurs with mandatory=false and empty BasicProperties
+        /// The publication occurs with mandatory=false and empty BasicProperties.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
@@ -200,7 +200,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
-        /// The publication occurs with mandatory=false and empty BasicProperties
+        /// The publication occurs with mandatory=false and empty BasicProperties.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
@@ -224,7 +224,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
-        /// The publication occurs with empty BasicProperties
+        /// The publication occurs with empty BasicProperties.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
@@ -249,7 +249,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
-        /// The publication occurs with empty BasicProperties
+        /// The publication occurs with empty BasicProperties.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
@@ -274,7 +274,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
-        /// The publication occurs with empty BasicProperties
+        /// The publication occurs with empty BasicProperties.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,
@@ -299,7 +299,7 @@ namespace RabbitMQ.Client
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
-        /// The publication occurs with empty BasicProperties
+        /// The publication occurs with empty BasicProperties.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         public static ValueTask BasicPublishAsync(this IChannel channel,

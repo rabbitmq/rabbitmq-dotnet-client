@@ -107,12 +107,11 @@ namespace RabbitMQ.Client
         {
             IMemoryOwner<byte>? memoryOwner = _methodAndHeader;
             _methodAndHeader = null;
-            if (memoryOwner != null)
+            if (memoryOwner is not null)
             {
                 memoryOwner.Dispose();
-                _methodAndHeader = default;
                 _body?.Dispose();
-                _body = null;
+                _body = default;
             }
         }
     }
