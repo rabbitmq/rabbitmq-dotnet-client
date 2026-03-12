@@ -33,6 +33,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Util;
@@ -343,15 +344,15 @@ namespace RabbitMQ.Client.Impl
             int bytesWritten = 0;
             if (!string.IsNullOrEmpty(val))
             {
-                unsafe
+                byte[] tempBuffer = UTF8.GetBytes(val);
+                if (tempBuffer.Length > byte.MaxValue)
                 {
-
-                    ref byte valDestination = ref destination.GetOffset(1);
-                    fixed (char* chars = val)
-                    fixed (byte* bytes = &valDestination)
-                    {
-                        bytesWritten = UTF8.GetBytes(chars, val!.Length, bytes, byte.MaxValue);
-                    }
+                    throw new ArgumentException($"The output byte buffer is too small to contain the encoded data, encoding 'Unicode (UTF-8)' fallback 'System.Text.EncoderReplacementFallback'.", nameof(val));
+                }
+                bytesWritten = tempBuffer.Length;
+                for (int i = 0; i < bytesWritten; i++)
+                {
+                    destination.GetOffset(1 + i) = tempBuffer[i];
                 }
             }
 
@@ -362,19 +363,17 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteLongstr(ref byte destination, string val)
         {
-            static int GetBytes(ref byte destination, string val)
+            int bytesWritten = 0;
+            if (!string.IsNullOrEmpty(val))
             {
-                unsafe
+                byte[] tempBuffer = UTF8.GetBytes(val);
+                bytesWritten = tempBuffer.Length;
+                for (int i = 0; i < bytesWritten; i++)
                 {
-                    fixed (char* chars = val)
-                    fixed (byte* bytes = &destination)
-                    {
-                        return UTF8.GetBytes(chars, val.Length, bytes, int.MaxValue);
-                    }
+                    destination.GetOffset(4 + i) = tempBuffer[i];
                 }
             }
 
-            int bytesWritten = string.IsNullOrEmpty(val) ? 0 : GetBytes(ref destination.GetOffset(4), val);
             NetworkOrderSerializer.WriteUInt32(ref destination, (uint)bytesWritten);
             return bytesWritten + 4;
         }
