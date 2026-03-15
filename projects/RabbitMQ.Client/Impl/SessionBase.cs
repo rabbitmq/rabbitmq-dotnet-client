@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -128,21 +129,23 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-            RentedMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ChannelNumber);
+            OutgoingFrame bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ChannelNumber);
             RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
             return Connection.WriteAsync(bytes, cancellationToken);
         }
 
-        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken = default)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
             if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
             {
+                bodyOwner?.Dispose();
                 ThrowAlreadyClosedException();
             }
 
-            RentedMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, ChannelNumber, Connection.MaxPayloadSize);
+
+            OutgoingFrame bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
             RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
             return Connection.WriteAsync(bytes, cancellationToken);
         }
