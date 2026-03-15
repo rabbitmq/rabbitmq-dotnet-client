@@ -51,16 +51,16 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            return BasicPublishCoreAsync(cmd, basicProperties, body, body.Length, exchange, routingKey, cancellationToken);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner: null, exchange, routingKey, cancellationToken);
         }
 
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            bool mandatory, TProperties basicProperties, IMemoryOwner<byte> body, int bodyLength,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyLength, exchange, routingKey, cancellationToken);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange, routingKey, cancellationToken);
         }
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
@@ -69,20 +69,20 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            return BasicPublishCoreAsync(cmd, basicProperties, body, body.Length, exchange.Value, routingKey.Value, cancellationToken);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner: null, exchange.Value, routingKey.Value, cancellationToken);
         }
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            bool mandatory, TProperties basicProperties, IMemoryOwner<byte> body, int bodyLength,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyLength, exchange.Value, routingKey.Value, cancellationToken);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange.Value, routingKey.Value, cancellationToken);
         }
 
         private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
-            TMethod cmd, TProperties basicProperties, ReadOnlyMemory<byte> body, int bodySize,
+            TMethod cmd, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
             string exchange, string routingKey, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -99,7 +99,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
 
                 using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, bodySize, basicProperties)
+                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
                     : default;
 
                 ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
@@ -107,64 +107,12 @@ namespace RabbitMQ.Client.Impl
                 BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
                 if (props is null)
                 {
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                    await ModelSendAsync(in cmd, in basicProperties, body, bodyOwner, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
                 {
-                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                bool exceptionWasHandled =
-                    MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
-                if (!exceptionWasHandled)
-                {
-                    throw;
-                }
-            }
-            finally
-            {
-                MaybeReleasePublisherConfirmationLock(lease);
-                await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
-            TMethod cmd, TProperties basicProperties, IMemoryOwner<byte> body, int bodyLength,
-            string exchange, string routingKey, CancellationToken cancellationToken)
-            where TMethod : struct, IOutgoingAmqpMethod
-            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-        {
-            PublisherConfirmationInfo? publisherConfirmationInfo = null;
-            RateLimitLease? lease =
-                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
-                    .ConfigureAwait(false);
-            try
-            {
-                publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
-
-                await MaybeEnforceFlowControlAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, bodyLength, basicProperties)
-                    : default;
-
-                ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
-
-                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
-                if (props is null)
-                {
-                    await ModelSendAsync(in cmd, in basicProperties, body, bodyLength, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await ModelSendAsync(in cmd, in props, body, bodyLength, cancellationToken)
+                    await ModelSendAsync(in cmd, in props, body, bodyOwner, cancellationToken)
                         .ConfigureAwait(false);
                 }
             }

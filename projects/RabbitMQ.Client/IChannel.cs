@@ -220,14 +220,14 @@ namespace RabbitMQ.Client
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="bodyOwner">An <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            bool mandatory, TProperties basicProperties, IMemoryOwner<byte> body, int bodyLength,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
@@ -257,14 +257,14 @@ namespace RabbitMQ.Client
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="bodyOwner">An <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            bool mandatory, TProperties basicProperties, IMemoryOwner<byte> body, int bodyLength,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
