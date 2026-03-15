@@ -103,7 +103,7 @@ namespace RabbitMQ.Client
         /// <param name="addr">The destination address.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="bodyOwner">An <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -113,12 +113,12 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync<T>(this IChannel channel,
             PublicationAddress addr,
             T basicProperties,
-            IMemoryOwner<byte> body,
-            int bodyLength,
+            ReadOnlyMemory<byte> body,
+            IDisposable bodyOwner,
             CancellationToken cancellationToken = default)
             where T : IReadOnlyBasicProperties, IAmqpHeader =>
             channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
-                mandatory: false, basicProperties: basicProperties, body: body, bodyLength: bodyLength,
+                mandatory: false, basicProperties: basicProperties, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace RabbitMQ.Client
         /// <param name="exchange">The exchange.</param>
         /// <param name="routingKey">The routing key.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="bodyOwner">An <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -160,11 +160,11 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync(this IChannel channel,
             string exchange,
             string routingKey,
-            IMemoryOwner<byte> body,
-            int bodyLength,
+            ReadOnlyMemory<byte> body,
+            IDisposable bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
-                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyLength: bodyLength,
+                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace RabbitMQ.Client
         /// <param name="exchange">The exchange.</param>
         /// <param name="routingKey">The routing key.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="bodyOwner">An <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -206,11 +206,11 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync(this IChannel channel,
             CachedString exchange,
             CachedString routingKey,
-            IMemoryOwner<byte> body,
-            int bodyLength,
+            ReadOnlyMemory<byte> body,
+            IDisposable bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
-                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyLength: bodyLength,
+                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
 
         /// <summary>
@@ -245,7 +245,7 @@ namespace RabbitMQ.Client
         /// <param name="routingKey">The routing key.</param>
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="bodyOwner">An <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -256,11 +256,11 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             bool mandatory,
-            IMemoryOwner<byte> body,
-            int bodyLength,
+            ReadOnlyMemory<byte> body,
+            IDisposable bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
-                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyLength: bodyLength,
+                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
 
         /// <summary>
@@ -295,7 +295,7 @@ namespace RabbitMQ.Client
         /// <param name="routingKey">The routing key.</param>
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyLength">The message body length.</param>
+        /// <param name="bodyOwner">An <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -306,11 +306,11 @@ namespace RabbitMQ.Client
             CachedString exchange,
             CachedString routingKey,
             bool mandatory,
-            IMemoryOwner<byte> body,
-            int bodyLength,
+            ReadOnlyMemory<byte> body,
+            IDisposable bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
-                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyLength: bodyLength,
+                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
 
         /// <summary>

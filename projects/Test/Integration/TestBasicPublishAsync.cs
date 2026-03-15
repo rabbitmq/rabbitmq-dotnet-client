@@ -100,7 +100,7 @@ namespace Test.Integration
             var body = new TrackedMemoryOwner(GetRandomBody(size));
 
             await _channel.BasicPublishAsync(string.Empty, q,
-                mandatory: true, body: body, body.Memory.Length);
+                mandatory: true, body: body.Memory, body);
 
             Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
             Assert.True(body.Disposed);
