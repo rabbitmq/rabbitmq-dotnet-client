@@ -144,7 +144,6 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-
             OutgoingFrame bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
             RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
             return Connection.WriteAsync(bytes, cancellationToken);

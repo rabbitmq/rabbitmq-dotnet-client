@@ -51,7 +51,7 @@ namespace RabbitMQ.Client
         {
             _methodAndHeader = methodAndHeader;
             _methodAndHeaderLength = methodAndHeaderLength;
-            _body = null;
+            _body = default;
             _bodyOwner = null;
             _channelNumber = 0;
             _maxBodyPayloadBytes = 0;
