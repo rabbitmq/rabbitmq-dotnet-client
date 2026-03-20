@@ -109,9 +109,10 @@ namespace RabbitMQ.Client
             if (memoryOwner is not null)
             {
                 memoryOwner.Dispose();
-                _bodyOwner?.Dispose();
-                _body = default;
             }
+            _bodyOwner?.Dispose();
+            _bodyOwner = null;
+            _body = default;
         }
     }
 }
