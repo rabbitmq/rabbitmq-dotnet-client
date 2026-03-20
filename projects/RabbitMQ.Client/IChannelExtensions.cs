@@ -114,7 +114,7 @@ namespace RabbitMQ.Client
             PublicationAddress addr,
             T basicProperties,
             ReadOnlyMemory<byte> body,
-            IDisposable bodyOwner,
+            IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where T : IReadOnlyBasicProperties, IAmqpHeader =>
             channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
@@ -161,7 +161,7 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             ReadOnlyMemory<byte> body,
-            IDisposable bodyOwner,
+            IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
@@ -207,7 +207,7 @@ namespace RabbitMQ.Client
             CachedString exchange,
             CachedString routingKey,
             ReadOnlyMemory<byte> body,
-            IDisposable bodyOwner,
+            IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
@@ -257,7 +257,7 @@ namespace RabbitMQ.Client
             string routingKey,
             bool mandatory,
             ReadOnlyMemory<byte> body,
-            IDisposable bodyOwner,
+            IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
@@ -307,7 +307,7 @@ namespace RabbitMQ.Client
             CachedString routingKey,
             bool mandatory,
             ReadOnlyMemory<byte> body,
-            IDisposable bodyOwner,
+            IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,

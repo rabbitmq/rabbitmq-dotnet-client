@@ -354,7 +354,7 @@ namespace RabbitMQ.Client.Impl
             bool mandatory,
             TProperties basicProperties,
             ReadOnlyMemory<byte> body,
-            IDisposable bodyOwner,
+            IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
@@ -371,7 +371,7 @@ namespace RabbitMQ.Client.Impl
             bool mandatory,
             TProperties basicProperties,
             ReadOnlyMemory<byte> body,
-            IDisposable bodyOwner,
+            IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);

@@ -227,7 +227,7 @@ namespace RabbitMQ.Client
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable bodyOwner,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
@@ -264,7 +264,7 @@ namespace RabbitMQ.Client
         /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable bodyOwner,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
