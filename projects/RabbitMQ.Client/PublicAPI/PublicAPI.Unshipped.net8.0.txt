@@ -1,0 +1,4 @@
+const RabbitMQ.Client.ExchangeType.ConsistentHash = "x-consistent-hash" -> string
+const RabbitMQ.Client.ExchangeType.LocalRandom = "x-local-random" -> string
+const RabbitMQ.Client.ExchangeType.ModulusHash = "x-modulus-hash" -> string
+const RabbitMQ.Client.ExchangeType.Random = "x-random" -> string
