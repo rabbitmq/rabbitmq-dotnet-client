@@ -64,7 +64,39 @@ namespace RabbitMQ.Client
         /// </summary>
         public const string Topic = "topic";
 
-        private static readonly string[] s_all = { Fanout, Direct, Topic, Headers };
+        /// <summary>
+        /// Exchange type used for consistent hash exchanges.
+        /// </summary>
+        /// <remarks>
+        /// Requires the <c>rabbitmq_consistent_hash_exchange</c> plugin to be enabled.
+        /// </remarks>
+        public const string ConsistentHash = "x-consistent-hash";
+
+        /// <summary>
+        /// Exchange type used for local random exchanges.
+        /// </summary>
+        /// <remarks>
+        /// Available in RabbitMQ 4.2.0 and later.
+        /// </remarks>
+        public const string LocalRandom = "x-local-random";
+
+        /// <summary>
+        /// Exchange type used for modulus hash exchanges.
+        /// </summary>
+        /// <remarks>
+        /// Available in RabbitMQ 4.3.0 and later.
+        /// </remarks>
+        public const string ModulusHash = "x-modulus-hash";
+
+        /// <summary>
+        /// Exchange type used for random exchanges.
+        /// </summary>
+        /// <remarks>
+        /// Requires the <c>rabbitmq_random_exchange</c> plugin to be enabled.
+        /// </remarks>
+        public const string Random = "x-random";
+
+        private static readonly string[] s_all = { Fanout, Direct, Topic, Headers, ConsistentHash, LocalRandom, ModulusHash, Random };
 
         /// <summary>
         /// Retrieve a collection containing all standard exchange types.
