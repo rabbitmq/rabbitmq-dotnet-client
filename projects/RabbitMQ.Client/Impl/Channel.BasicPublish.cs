@@ -87,49 +87,64 @@ namespace RabbitMQ.Client.Impl
             where TMethod : struct, IOutgoingAmqpMethod
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            PublisherConfirmationInfo? publisherConfirmationInfo = null;
-            RateLimitLease? lease =
-                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
-                    .ConfigureAwait(false);
+            // Track whether bodyOwner has been transferred to the OutgoingFrame (and thus to
+            // SocketFrameHandler, which will dispose it). If not, we must dispose it ourselves on
+            // any exception path to prevent a resource leak.
+            bool bodyOwnerTransferred = false;
             try
             {
-                publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
-
-                await MaybeEnforceFlowControlAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
-                    : default;
-
-                ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
-
-                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
-                if (props is null)
-                {
-                    await ModelSendAsync(in cmd, in basicProperties, body, bodyOwner, cancellationToken)
+                PublisherConfirmationInfo? publisherConfirmationInfo = null;
+                RateLimitLease? lease =
+                    await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
                         .ConfigureAwait(false);
-                }
-                else
+                try
                 {
-                    await ModelSendAsync(in cmd, in props, body, bodyOwner, cancellationToken)
+                    publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
+
+                    await MaybeEnforceFlowControlAsync(cancellationToken)
                         .ConfigureAwait(false);
+
+                    using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
+                        : default;
+
+                    ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
+
+                    BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
+                    bodyOwnerTransferred = true;
+                    if (props is null)
+                    {
+                        await ModelSendAsync(in cmd, in basicProperties, body, bodyOwner, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await ModelSendAsync(in cmd, in props, body, bodyOwner, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                bool exceptionWasHandled =
-                    MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
-                if (!exceptionWasHandled)
+                catch (Exception ex)
                 {
-                    throw;
+                    bool exceptionWasHandled =
+                        MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
+                    if (!exceptionWasHandled)
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    MaybeReleasePublisherConfirmationLock(lease);
+                    await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             finally
             {
-                MaybeReleasePublisherConfirmationLock(lease);
-                await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
-                    .ConfigureAwait(false);
+                if (!bodyOwnerTransferred)
+                {
+                    bodyOwner?.Dispose();
+                }
             }
         }
 
