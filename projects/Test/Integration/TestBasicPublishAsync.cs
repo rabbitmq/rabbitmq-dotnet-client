@@ -31,6 +31,7 @@
 
 using System;
 using System.Buffers;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -103,6 +104,35 @@ namespace Test.Integration
                 mandatory: true, body: body.Memory, body);
 
             Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
+            Assert.True(body.Disposed);
+        }
+
+        [Fact]
+        public async Task TestMemoryOwnerBodyDisposedWhenChannelAlreadyClosed()
+        {
+            var body = new TrackedMemoryOwner(GetRandomBody(1024));
+
+            await _channel.CloseAsync();
+
+            await Assert.ThrowsAnyAsync<Exception>(() =>
+                _channel.BasicPublishAsync(string.Empty, "queue",
+                    mandatory: false, body: body.Memory, body).AsTask());
+
+            Assert.True(body.Disposed);
+        }
+
+        [Fact]
+        public async Task TestMemoryOwnerBodyDisposedOnCancellation()
+        {
+            var body = new TrackedMemoryOwner(GetRandomBody(1024));
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            await Assert.ThrowsAnyAsync<Exception>(() =>
+                _channel.BasicPublishAsync(string.Empty, "queue",
+                    mandatory: false, body: body.Memory, body,
+                    cancellationToken: cts.Token).AsTask());
+
             Assert.True(body.Disposed);
         }
 
