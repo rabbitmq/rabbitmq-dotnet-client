@@ -237,7 +237,20 @@ namespace RabbitMQ.Client.Impl
                 return default;
             }
 
-            return _channelWriter.WriteAsync(frames, cancellationToken);
+            return WriteAsyncCore(frames, cancellationToken);
+        }
+
+        private async ValueTask WriteAsyncCore(OutgoingFrame frames, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _channelWriter.WriteAsync(frames, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                frames.Dispose();
+                throw;
+            }
         }
 
         private async Task WriteLoopAsync()
@@ -269,6 +282,13 @@ namespace RabbitMQ.Client.Impl
             {
                 ESLog.Error("Background socket write loop has crashed", ex);
                 throw;
+            }
+            finally
+            {
+                while (_channelReader.TryRead(out OutgoingFrame leftover))
+                {
+                    leftover.Dispose();
+                }
             }
         }
     }
