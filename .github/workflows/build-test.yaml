@@ -22,7 +22,7 @@ jobs:
         with:
           global-json-file: global.json     
       - name: Cache NuGet packages
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ~/.nuget/packages
@@ -63,7 +63,7 @@ jobs:
         with:
           global-json-file: global.json            
       - name: Cache installers
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
@@ -113,7 +113,7 @@ jobs:
         with:
           global-json-file: global.json            
       - name: Cache installers
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
@@ -154,7 +154,7 @@ jobs:
         with:
           global-json-file: global.json            
       - name: Cache NuGet packages
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ~/.nuget/packages
