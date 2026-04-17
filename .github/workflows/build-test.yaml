@@ -22,7 +22,7 @@ jobs:
         with:
           global-json-file: global.json     
       - name: Cache NuGet packages
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ~/.nuget/packages
@@ -39,7 +39,7 @@ jobs:
       - name: Unit Tests
         run: dotnet test "${{ github.workspace }}\projects\Test\Unit\Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Upload Build (Debug)
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rabbitmq-dotnet-client-build-win32
           path: |
@@ -63,7 +63,7 @@ jobs:
         with:
           global-json-file: global.json            
       - name: Cache installers
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
@@ -93,7 +93,7 @@ jobs:
         run: ${{ github.workspace }}\.ci\windows\gha-log-check.ps1
       - name: Maybe upload RabbitMQ and Toxiproxy logs
         if: failure()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rabbitmq-logs-integration-win32
           path: ~/AppData/Roaming/RabbitMQ/log/
@@ -113,7 +113,7 @@ jobs:
         with:
           global-json-file: global.json            
       - name: Cache installers
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           # Note: the cache path is relative to the workspace directory
           # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#using-the-cache-action
@@ -137,7 +137,7 @@ jobs:
             "${{ github.workspace }}\projects\Test\SequentialIntegration\SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rabbitmq-logs-sequential-integration-win32
           path: ~/AppData/Roaming/RabbitMQ/log/
@@ -154,7 +154,7 @@ jobs:
         with:
           global-json-file: global.json            
       - name: Cache NuGet packages
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ~/.nuget/packages
@@ -171,7 +171,7 @@ jobs:
       - name: Unit Tests
         run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Upload Build (Debug)
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rabbitmq-dotnet-client-build-ubuntu
           path: |
@@ -216,7 +216,7 @@ jobs:
         run: docker logs rabbitmq-dotnet-client-toxiproxy > ${{ github.workspace }}/.ci/ubuntu/log/toxiproxy.log
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rabbitmq-logs-integration-ubuntu
           path: ${{ github.workspace }}/.ci/ubuntu/log/
@@ -251,7 +251,7 @@ jobs:
                 "${{ github.workspace }}/projects/Test/SequentialIntegration/SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rabbitmq-logs-sequential-integration-ubuntu
           path: ${{ github.workspace }}/.ci/ubuntu/log/
