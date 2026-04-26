@@ -126,7 +126,11 @@ static async Task RunAsync(BenchOptions opt)
     };
 
     string queueName = $"gh-1913-bench-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(0, 1_000_000):D6}";
-    await channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+    var queueArgs = new Dictionary<string, object?>
+    {
+        ["x-queue-type"] = "quorum",
+    };
+    await channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: queueArgs);
 
     try
     {
