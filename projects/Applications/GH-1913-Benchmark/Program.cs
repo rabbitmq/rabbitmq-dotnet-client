@@ -101,7 +101,7 @@ static async Task RunAsync(BenchOptions opt)
 
     var channelOptions = new CreateChannelOptions(
         publisherConfirmationsEnabled: true,
-        publisherConfirmationTrackingEnabled: true,
+        publisherConfirmationTrackingEnabled: opt.Tracking,
         outstandingPublisherConfirmationsRateLimiter: null);
 
     await using IChannel channel = await conn.CreateChannelAsync(channelOptions);
@@ -126,9 +126,11 @@ static async Task RunAsync(BenchOptions opt)
     };
 
     string queueName = $"gh-1913-bench-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(0, 1_000_000):D6}";
-    var queueArgs = new Dictionary<string, object?>
+    Dictionary<string, object?>? queueArgs = opt.QueueType switch
     {
-        ["x-queue-type"] = "quorum",
+        "quorum" => new Dictionary<string, object?> { ["x-queue-type"] = "quorum" },
+        "classic" => null,
+        _ => throw new UsageException($"Unsupported --queue-type: '{opt.QueueType}' (expected 'classic' or 'quorum')."),
     };
     await channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: queueArgs);
 
@@ -234,6 +236,8 @@ static void EmitHeader(BenchOptions opt)
     Console.WriteLine($"  label: \"{opt.Label}\"");
     Console.WriteLine($"  uri: \"{opt.Uri}\"");
     Console.WriteLine($"  body_size: {opt.BodySize}");
+    Console.WriteLine($"  queue_type: \"{opt.QueueType}\"");
+    Console.WriteLine($"  tracking: {opt.Tracking.ToString().ToLowerInvariant()}");
     Console.WriteLine($"  warmup_seconds: {opt.WarmupSeconds}");
     Console.WriteLine($"  duration_seconds: {opt.DurationSeconds}");
     Console.WriteLine($"  iterations: {opt.Iterations}");
@@ -283,17 +287,24 @@ sealed class BenchOptions
     public int BodySize { get; init; } = 256;
     public int WarmupSeconds { get; init; } = 5;
     public int DurationSeconds { get; init; } = 30;
-    public int Iterations { get; init; } = 3;
+    public int Iterations { get; init; } = 5;
+    public string QueueType { get; init; } = "quorum";
+    public bool Tracking { get; init; } = false;
     public string Label { get; init; } = "unlabeled";
 
     public const string Usage =
         "Options:\n" +
-        "  --uri <amqp-uri>       AMQP URI (default amqp://guest:guest@localhost:5672/)\n" +
-        "  --body-size <bytes>    Message body size (default 256)\n" +
-        "  --warmup <seconds>     Warm-up duration (default 5)\n" +
-        "  --duration <seconds>   Measured iteration duration (default 30)\n" +
-        "  --iterations <count>   Number of measured iterations (default 3)\n" +
-        "  --label <text>         Free-form label emitted in output (default \"unlabeled\")";
+        "  --uri <amqp-uri>         AMQP URI (default amqp://guest:guest@localhost:5672/)\n" +
+        "  --body-size <bytes>      Message body size (default 256)\n" +
+        "  --warmup <seconds>       Warm-up duration (default 5)\n" +
+        "  --duration <seconds>     Measured iteration duration (default 30)\n" +
+        "  --iterations <count>     Number of measured iterations (default 5)\n" +
+        "  --queue-type <classic|quorum>\n" +
+        "                           Queue type to declare (default quorum)\n" +
+        "  --tracking               Enable publisher-confirm tracking\n" +
+        "                           (default disabled; each publish returns as soon as\n" +
+        "                           the frame is enqueued rather than awaiting the confirm)\n" +
+        "  --label <text>           Free-form label emitted in output (default \"unlabeled\")";
 
     public static BenchOptions Parse(string[] args)
     {
@@ -301,7 +312,9 @@ sealed class BenchOptions
         int bodySize = 256;
         int warmup = 5;
         int duration = 30;
-        int iterations = 3;
+        int iterations = 5;
+        string queueType = "quorum";
+        bool tracking = false;
         string label = "unlabeled";
 
         for (int i = 0; i < args.Length; i++)
@@ -323,6 +336,12 @@ sealed class BenchOptions
                 case "--iterations":
                     iterations = ParsePositive(RequireValue(args, ref i), nameof(Iterations));
                     break;
+                case "--queue-type":
+                    queueType = RequireValue(args, ref i);
+                    break;
+                case "--tracking":
+                    tracking = true;
+                    break;
                 case "--label":
                     label = RequireValue(args, ref i);
                     break;
@@ -341,6 +360,8 @@ sealed class BenchOptions
             WarmupSeconds = warmup,
             DurationSeconds = duration,
             Iterations = iterations,
+            QueueType = queueType,
+            Tracking = tracking,
             Label = label,
         };
     }
