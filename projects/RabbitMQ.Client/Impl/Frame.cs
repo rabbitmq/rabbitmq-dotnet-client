@@ -155,8 +155,8 @@ namespace RabbitMQ.Client.Impl
             public static OutgoingFrame GetHeartbeatFrame()
             {
                 // Is returned by SocketFrameHandler.WriteLoop
-                IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(FrameSize);
-                Payload.CopyTo(buffer.Memory.Span);
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(FrameSize);
+                Payload.CopyTo(buffer);
                 return new OutgoingFrame(buffer, FrameSize);
             }
         }
@@ -168,8 +168,8 @@ namespace RabbitMQ.Client.Impl
             int size = Method.FrameSize + method.GetRequiredBufferSize();
 
             // Will be returned by SocketFrameWriter.WriteLoop
-            IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(size);
-            int offset = Method.WriteTo(buffer.Memory.Span, channelNumber, ref method);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(size);
+            int offset = Method.WriteTo(buffer, channelNumber, ref method);
 
             System.Diagnostics.Debug.Assert(offset == size, $"Serialized to wrong size, expect {size}, offset {offset}");
             return new OutgoingFrame(buffer, size);
@@ -191,16 +191,15 @@ namespace RabbitMQ.Client.Impl
                            BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, bodyLength) + bodyLength;
 
                 // Will be returned by SocketFrameWriter.WriteLoop
-                IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(size);
-                Span<byte> bufferSpan = buffer.Memory.Span;
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(size);
 
-                int offset = Method.WriteTo(bufferSpan, channelNumber, ref method);
-                offset += Header.WriteTo(bufferSpan.Slice(offset), channelNumber, ref header, bodyLength);
+                int offset = Method.WriteTo(buffer, channelNumber, ref method);
+                offset += Header.WriteTo(buffer.AsSpan(offset), channelNumber, ref header, bodyLength);
                 ReadOnlySpan<byte> bodySpan = body.Span;
                 while (remainingBodyBytes > 0)
                 {
                     int payloadSize = remainingBodyBytes > maxBodyPayloadBytes ? maxBodyPayloadBytes : remainingBodyBytes;
-                    offset += BodySegment.WriteTo(bufferSpan.Slice(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, payloadSize));
+                    offset += BodySegment.WriteTo(buffer.AsSpan(offset), channelNumber, bodySpan.Slice(bodySpan.Length - remainingBodyBytes, payloadSize));
                     remainingBodyBytes -= payloadSize;
                 }
 
@@ -221,8 +220,8 @@ namespace RabbitMQ.Client.Impl
                 int totalSize = framingSize + body.Length + (BodySegment.FrameSize * bodyFramesCount);
 
                 // Rent a smaller buffer exclusively for the Method and Header
-                IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(framingSize);
-                Span<byte> bufferSpan = buffer.Memory.Span;
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(framingSize);
+                Span<byte> bufferSpan = buffer.AsSpan();
 
                 int offset = Method.WriteTo(bufferSpan, channelNumber, ref method);
                 offset += Header.WriteTo(bufferSpan.Slice(offset), channelNumber, ref header, body.Length);

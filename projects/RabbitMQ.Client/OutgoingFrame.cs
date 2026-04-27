@@ -1,4 +1,4 @@
-﻿// This source code is dual-licensed under the Apache License, version
+// This source code is dual-licensed under the Apache License, version
 // 2.0, and the Mozilla Public License, version 2.0.
 //
 // The APL v2.0:
@@ -38,7 +38,7 @@ namespace RabbitMQ.Client
 {
     internal struct OutgoingFrame : IDisposable
     {
-        private IMemoryOwner<byte>? _methodAndHeader;
+        private byte[]? _methodAndHeaderArray;
         private readonly int _methodAndHeaderLength;
         private ReadOnlyMemory<byte> _body;
         private IDisposable? _bodyOwner;
@@ -46,10 +46,10 @@ namespace RabbitMQ.Client
         private readonly ushort _channelNumber;
 
         internal OutgoingFrame(
-            IMemoryOwner<byte> methodAndHeader,
+            byte[] methodAndHeaderArray,
             int methodAndHeaderLength)
         {
-            _methodAndHeader = methodAndHeader;
+            _methodAndHeaderArray = methodAndHeaderArray;
             _methodAndHeaderLength = methodAndHeaderLength;
             _body = default;
             _bodyOwner = null;
@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
         }
 
         internal OutgoingFrame(
-            IMemoryOwner<byte> methodAndHeader,
+            byte[] methodAndHeaderArray,
             int methodAndHeaderLength,
             ReadOnlyMemory<byte> body,
             IDisposable? bodyOwner,
@@ -67,7 +67,7 @@ namespace RabbitMQ.Client
             int maxBodyPayloadBytes,
             int totalSize)
         {
-            _methodAndHeader = methodAndHeader;
+            _methodAndHeaderArray = methodAndHeaderArray;
             _methodAndHeaderLength = methodAndHeaderLength;
             _body = body;
             _bodyOwner = bodyOwner;
@@ -80,8 +80,8 @@ namespace RabbitMQ.Client
 
         internal readonly void WriteTo(IBufferWriter<byte> writer)
         {
-            Debug.Assert(_methodAndHeader is not null);
-            ReadOnlySpan<byte> methodAndHeader = _methodAndHeader!.Memory.Span.Slice(0, _methodAndHeaderLength);
+            Debug.Assert(_methodAndHeaderArray is not null);
+            ReadOnlySpan<byte> methodAndHeader = _methodAndHeaderArray.AsSpan(0, _methodAndHeaderLength);
             writer.Write(methodAndHeader);
 
             if (_body.Length == 0)
@@ -104,11 +104,11 @@ namespace RabbitMQ.Client
 
         public void Dispose()
         {
-            IMemoryOwner<byte>? memoryOwner = _methodAndHeader;
-            _methodAndHeader = null;
-            if (memoryOwner is not null)
+            byte[]? array = _methodAndHeaderArray;
+            _methodAndHeaderArray = null;
+            if (array is not null)
             {
-                memoryOwner.Dispose();
+                ArrayPool<byte>.Shared.Return(array);
             }
             _bodyOwner?.Dispose();
             _bodyOwner = null;
