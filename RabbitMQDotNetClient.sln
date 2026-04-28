@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34003.232
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -49,6 +49,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GH-1749", "projects\Applications\GH-1749\GH-1749.csproj", "{B3F17265-91A8-4BE1-AE64-132CB8BB6CDF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GH-1865", "projects\Applications\GH-1865\GH-1865.csproj", "{38CE721E-2801-AED1-DDF8-DC5F888C6C05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GH-1913-Benchmark", "projects\Applications\GH-1913-Benchmark\GH-1913-Benchmark.csproj", "{CAD217E2-2D49-4737-A831-3AAB81FB0092}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -120,6 +122,10 @@ Global
 		{38CE721E-2801-AED1-DDF8-DC5F888C6C05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38CE721E-2801-AED1-DDF8-DC5F888C6C05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38CE721E-2801-AED1-DDF8-DC5F888C6C05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAD217E2-2D49-4737-A831-3AAB81FB0092}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAD217E2-2D49-4737-A831-3AAB81FB0092}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAD217E2-2D49-4737-A831-3AAB81FB0092}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAD217E2-2D49-4737-A831-3AAB81FB0092}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -137,6 +143,7 @@ Global
 		{13149F73-2CDB-4ECF-BF2C-403860045751} = {D21B282C-49E6-4A30-887B-9626D94B8D69}
 		{B3F17265-91A8-4BE1-AE64-132CB8BB6CDF} = {D21B282C-49E6-4A30-887B-9626D94B8D69}
 		{38CE721E-2801-AED1-DDF8-DC5F888C6C05} = {D21B282C-49E6-4A30-887B-9626D94B8D69}
+		{CAD217E2-2D49-4737-A831-3AAB81FB0092} = {D21B282C-49E6-4A30-887B-9626D94B8D69}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3C6A0C44-FA63-4101-BBF9-2598641167D1}
