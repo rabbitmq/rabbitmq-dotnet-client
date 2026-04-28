@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -87,6 +89,66 @@ namespace Test.Integration
                 Assert.NotNull(prex.ReplyText);
                 Assert.Equal("NO_ROUTE", prex.ReplyText);
 
+            }
+        }
+
+        [Fact]
+        public async Task TestMemoryOwnerBody()
+        {
+            const int size = 1024;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            var body = new TrackedMemoryOwner(GetRandomBody(size));
+
+            await _channel.BasicPublishAsync(string.Empty, q,
+                mandatory: true, body: body.Memory, body);
+
+            Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
+            Assert.True(body.Disposed);
+        }
+
+        [Fact]
+        public async Task TestMemoryOwnerBodyDisposedWhenChannelAlreadyClosed()
+        {
+            var body = new TrackedMemoryOwner(GetRandomBody(1024));
+
+            await _channel.CloseAsync();
+
+            await Assert.ThrowsAnyAsync<Exception>(() =>
+                _channel.BasicPublishAsync(string.Empty, "queue",
+                    mandatory: false, body: body.Memory, body).AsTask());
+
+            Assert.True(body.Disposed);
+        }
+
+        [Fact]
+        public async Task TestMemoryOwnerBodyDisposedOnCancellation()
+        {
+            var body = new TrackedMemoryOwner(GetRandomBody(1024));
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            await Assert.ThrowsAnyAsync<Exception>(() =>
+                _channel.BasicPublishAsync(string.Empty, "queue",
+                    mandatory: false, body: body.Memory, body,
+                    cancellationToken: cts.Token).AsTask());
+
+            Assert.True(body.Disposed);
+        }
+
+        private class TrackedMemoryOwner : IMemoryOwner<byte>
+        {
+            public TrackedMemoryOwner(byte[] content)
+            {
+                Memory = content;
+            }
+
+            public Memory<byte> Memory { get; }
+            public bool Disposed { get; private set; }
+
+            public void Dispose()
+            {
+                Disposed = true;
             }
         }
     }

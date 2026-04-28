@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -128,23 +129,49 @@ namespace RabbitMQ.Client.Impl
                 ThrowAlreadyClosedException();
             }
 
-            RentedMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ChannelNumber);
+            OutgoingFrame bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ChannelNumber);
             RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
             return Connection.WriteAsync(bytes, cancellationToken);
         }
 
-        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken = default)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
             if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
             {
+                bodyOwner?.Dispose();
                 ThrowAlreadyClosedException();
             }
 
-            RentedMemory bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, ChannelNumber, Connection.MaxPayloadSize);
-            RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
-            return Connection.WriteAsync(bytes, cancellationToken);
+            // This try/catch covers the synchronous window between frame creation and the
+            // point where Connection.WriteAsync returns its ValueTask. Once that ValueTask
+            // is returned, ownership of `bodyOwner` has transferred to the frame, and any
+            // subsequent async fault is handled inside SocketFrameHandler.WriteAsyncCore.
+            //
+            // If SerializeToFrames throws, `bytes` is still the default OutgoingFrame (Size == 0);
+            // we must dispose `bodyOwner` directly because it was never captured.
+            // If PopulateMessageEnvelopeSize or a synchronous fault inside Connection.WriteAsync
+            // throws, `bytes` already owns `bodyOwner`; disposing the frame releases both.
+            OutgoingFrame bytes = default;
+            try
+            {
+                bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
+                RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+                return Connection.WriteAsync(bytes, cancellationToken);
+            }
+            catch
+            {
+                if (bytes.Size == 0)
+                {
+                    bodyOwner?.Dispose();
+                }
+                else
+                {
+                    bytes.Dispose();
+                }
+                throw;
+            }
         }
 
         private Task OnConnectionShutdownAsync(object? conn, ShutdownEventArgs reason)

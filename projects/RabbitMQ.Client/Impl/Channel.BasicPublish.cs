@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -44,117 +45,106 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly AsyncManualResetEvent _flowControlBlock = new(true);
 
-        public async ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            PublisherConfirmationInfo? publisherConfirmationInfo = null;
-            RateLimitLease? lease =
-                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
-                    .ConfigureAwait(false);
-            try
-            {
-                publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
-
-                await MaybeEnforceFlowControlAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
-                    : default;
-
-                ulong publishSequenceNumber = 0;
-                if (publisherConfirmationInfo is not null)
-                {
-                    publishSequenceNumber = publisherConfirmationInfo.PublishSequenceNumber;
-                }
-
-                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
-                if (props is null)
-                {
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                bool exceptionWasHandled =
-                    MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
-                if (!exceptionWasHandled)
-                {
-                    throw;
-                }
-            }
-            finally
-            {
-                MaybeReleasePublisherConfirmationLock(lease);
-                await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner: null, exchange, routingKey, cancellationToken);
         }
 
-        public async ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange, routingKey, cancellationToken);
+        }
+
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
-            PublisherConfirmationInfo? publisherConfirmationInfo = null;
-            RateLimitLease? lease =
-                await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
-                    .ConfigureAwait(false);
+            var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner: null, exchange.Value, routingKey.Value, cancellationToken);
+        }
+
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange.Value, routingKey.Value, cancellationToken);
+        }
+
+        private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
+            TMethod cmd, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
+            string exchange, string routingKey, CancellationToken cancellationToken)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            // Track whether bodyOwner has been transferred to the OutgoingFrame (and thus to
+            // SocketFrameHandler, which will dispose it). If not, we must dispose it ourselves on
+            // any exception path to prevent a resource leak.
+            bool bodyOwnerTransferred = false;
             try
             {
-                publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
-
-                await MaybeEnforceFlowControlAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.BasicPublish(routingKey.Value, exchange.Value, body.Length, basicProperties)
-                    : default;
-
-                ulong publishSequenceNumber = 0;
-                if (publisherConfirmationInfo is not null)
-                {
-                    publishSequenceNumber = publisherConfirmationInfo.PublishSequenceNumber;
-                }
-
-                BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
-                if (props is null)
-                {
-                    await ModelSendAsync(in cmd, in basicProperties, body, cancellationToken)
+                PublisherConfirmationInfo? publisherConfirmationInfo = null;
+                RateLimitLease? lease =
+                    await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
                         .ConfigureAwait(false);
-                }
-                else
+                try
                 {
-                    await ModelSendAsync(in cmd, in props, body, cancellationToken)
+                    publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
+
+                    await MaybeEnforceFlowControlAsync(cancellationToken)
                         .ConfigureAwait(false);
+
+                    using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
+                        : default;
+
+                    ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
+
+                    BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
+                    bodyOwnerTransferred = true;
+                    if (props is null)
+                    {
+                        await ModelSendAsync(in cmd, in basicProperties, body, bodyOwner, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await ModelSendAsync(in cmd, in props, body, bodyOwner, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                bool exceptionWasHandled =
-                    MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
-                if (!exceptionWasHandled)
+                catch (Exception ex)
                 {
-                    throw;
+                    bool exceptionWasHandled =
+                        MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
+                    if (!exceptionWasHandled)
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    MaybeReleasePublisherConfirmationLock(lease);
+                    await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             finally
             {
-                MaybeReleasePublisherConfirmationLock(lease);
-                await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
-                    .ConfigureAwait(false);
+                if (!bodyOwnerTransferred)
+                {
+                    bodyOwner?.Dispose();
+                }
             }
         }
 

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -349,6 +350,15 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, cancellationToken);
 
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            bool mandatory,
+            TProperties basicProperties,
+            ReadOnlyMemory<byte> body,
+            IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
+
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory,
             TProperties basicProperties,
@@ -356,6 +366,15 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
             => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, cancellationToken);
+
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            bool mandatory,
+            TProperties basicProperties,
+            ReadOnlyMemory<byte> body,
+            IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+            => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
 
         public Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global,
             CancellationToken cancellationToken)

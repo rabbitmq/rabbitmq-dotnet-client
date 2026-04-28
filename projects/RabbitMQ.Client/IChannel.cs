@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -219,6 +220,25 @@ namespace RabbitMQ.Client
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// </remarks>
+        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+
+        /// <summary>
+        /// Asynchronously publishes a message.
+        /// </summary>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message body.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -226,6 +246,25 @@ namespace RabbitMQ.Client
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+
+        /// <summary>
+        /// Asynchronously publishes a message.
+        /// </summary>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// </remarks>
+        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            bool mandatory, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
