@@ -243,6 +243,8 @@ namespace RabbitMQ.Client
         /// </summary>
         public TimeSpan SocketWriteTimeout { get; set; } = DefaultConnectionTimeout;
 
+        internal TimeSpan SocketFlushTimeout { get; set; } = TimeSpan.Zero;
+
         /// <summary>
         /// TLS options setting.
         /// </summary>
@@ -625,6 +627,11 @@ namespace RabbitMQ.Client
             if (SocketWriteTimeout > RequestedHeartbeat)
             {
                 fh.WriteTimeout = SocketWriteTimeout;
+            }
+
+            if (SocketFlushTimeout != default && fh is SocketFrameHandler sfh)
+            {
+                sfh.FlushTimeout = SocketFlushTimeout;
             }
 
             return fh;
