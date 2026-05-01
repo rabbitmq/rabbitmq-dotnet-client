@@ -136,6 +136,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        private TimeSpan _flushTimeout;
+
+        public TimeSpan FlushTimeout
+        {
+            set => _flushTimeout = value;
+        }
+
         public static async Task<SocketFrameHandler> CreateAsync(AmqpTcpEndpoint amqpTcpEndpoint, Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, CancellationToken cancellationToken)
         {
@@ -264,7 +271,7 @@ namespace RabbitMQ.Client.Impl
                         try
                         {
                             frames.WriteTo(_pipeWriter);
-                            await _pipeWriter.FlushAsync()
+                            await FlushPipeAsync()
                                 .ConfigureAwait(false);
                             RabbitMqClientEventSource.Log.CommandSent(frames.Size);
                         }
@@ -274,7 +281,7 @@ namespace RabbitMQ.Client.Impl
                         }
                     }
 
-                    await _pipeWriter.FlushAsync()
+                    await FlushPipeAsync()
                         .ConfigureAwait(false);
                 }
             }
@@ -289,6 +296,23 @@ namespace RabbitMQ.Client.Impl
                 {
                     leftover.Dispose();
                 }
+            }
+        }
+
+        // Flush the pipe writer, applying a cancellation timeout when configured.
+        // A non-default _flushTimeout allows tests (and production users) to bound
+        // how long an async socket write can stall before the write loop is crashed
+        // and blocked publishers are unblocked. See issue #1930.
+        private async ValueTask FlushPipeAsync()
+        {
+            if (_flushTimeout == default)
+            {
+                await _pipeWriter.FlushAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                using var cts = new CancellationTokenSource(_flushTimeout);
+                await _pipeWriter.FlushAsync(cts.Token).ConfigureAwait(false);
             }
         }
     }
