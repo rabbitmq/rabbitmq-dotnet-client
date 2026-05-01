@@ -54,6 +54,10 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Socket write timeout. System.Threading.Timeout.InfiniteTimeSpan signals "infinity".</summary>
         TimeSpan WriteTimeout { set; }
 
+        ///<summary>Async write flush timeout. When non-default, the write loop cancels
+        ///<c>PipeWriter.FlushAsync</c> after this interval. Default (zero) means no timeout.</summary>
+        TimeSpan FlushTimeout { set; }
+
         ValueTask CloseAsync(CancellationToken cancellationToken);
 
         ///<summary>Read a frame from the underlying

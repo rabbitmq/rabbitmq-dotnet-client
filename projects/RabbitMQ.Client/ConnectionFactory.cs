@@ -244,6 +244,14 @@ namespace RabbitMQ.Client
         public TimeSpan SocketWriteTimeout { get; set; } = DefaultConnectionTimeout;
 
         /// <summary>
+        /// Timeout for async socket write flush operations.
+        /// When non-default, the write loop cancels <see cref="System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)"/>
+        /// after this interval, crashing the write loop and unblocking any publishers
+        /// stuck waiting for channel capacity. Default (zero) means no async flush timeout.
+        /// </summary>
+        public TimeSpan SocketFlushTimeout { get; set; } = TimeSpan.Zero;
+
+        /// <summary>
         /// TLS options setting.
         /// </summary>
         public SslOption Ssl { get; set; } = new SslOption();
@@ -625,6 +633,11 @@ namespace RabbitMQ.Client
             if (SocketWriteTimeout > RequestedHeartbeat)
             {
                 fh.WriteTimeout = SocketWriteTimeout;
+            }
+
+            if (SocketFlushTimeout != default)
+            {
+                fh.FlushTimeout = SocketFlushTimeout;
             }
 
             return fh;

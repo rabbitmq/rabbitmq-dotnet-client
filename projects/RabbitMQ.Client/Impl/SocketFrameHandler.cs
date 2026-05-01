@@ -136,6 +136,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        private TimeSpan _flushTimeout;
+
+        public TimeSpan FlushTimeout
+        {
+            set => _flushTimeout = value;
+        }
+
         public static async Task<SocketFrameHandler> CreateAsync(AmqpTcpEndpoint amqpTcpEndpoint, Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, CancellationToken cancellationToken)
         {
@@ -240,16 +247,31 @@ namespace RabbitMQ.Client.Impl
             return WriteAsyncCore(frames, cancellationToken);
         }
 
-        private async ValueTask WriteAsyncCore(OutgoingFrame frames, CancellationToken cancellationToken)
+        private ValueTask WriteAsyncCore(OutgoingFrame frames, CancellationToken cancellationToken)
         {
-            try
+            ValueTask writeTask = _channelWriter.WriteAsync(frames, cancellationToken);
+            if (writeTask.IsCompletedSuccessfully)
             {
-                await _channelWriter.WriteAsync(frames, cancellationToken).ConfigureAwait(false);
+                return default;
             }
-            catch
+
+            // The channel accepted the frame asynchronously, or it rejected the
+            // write (e.g. because WriteLoopAsync completed the writer with an
+            // exception). In the rejection case `frames` never reached the
+            // reader, so this method owns the dispose. See issue #1930.
+            return AwaitAndDisposeOnFault(writeTask, frames);
+
+            static async ValueTask AwaitAndDisposeOnFault(ValueTask task, OutgoingFrame frames)
             {
-                frames.Dispose();
-                throw;
+                try
+                {
+                    await task.ConfigureAwait(false);
+                }
+                catch
+                {
+                    frames.Dispose();
+                    throw;
+                }
             }
         }
 
@@ -264,7 +286,7 @@ namespace RabbitMQ.Client.Impl
                         try
                         {
                             frames.WriteTo(_pipeWriter);
-                            await _pipeWriter.FlushAsync()
+                            await FlushPipeAsync()
                                 .ConfigureAwait(false);
                             RabbitMqClientEventSource.Log.CommandSent(frames.Size);
                         }
@@ -274,21 +296,50 @@ namespace RabbitMQ.Client.Impl
                         }
                     }
 
-                    await _pipeWriter.FlushAsync()
+                    await FlushPipeAsync()
                         .ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
             {
                 ESLog.Error("Background socket write loop has crashed", ex);
-                throw;
-            }
-            finally
-            {
+
+                // Fail both already-blocked and subsequent WriteAsync callers
+                // with ChannelClosedException(innerException: ex). Without
+                // this, producers block indefinitely on a full channel whose
+                // reader has died, and any holder of a publisher-confirm
+                // semaphore (Channel.BasicPublish.cs) blocks the shutdown
+                // handler in turn. See issue #1930.
+                //
+                // TryComplete rather than Complete: CloseAsync may have raced
+                // us and already completed the channel.
+                _channelWriter.TryComplete(ex);
+
+                // Drain any leftover frames so their pooled buffers return to
+                // the array pool rather than waiting for GC.
                 while (_channelReader.TryRead(out OutgoingFrame leftover))
                 {
                     leftover.Dispose();
                 }
+
+                throw;
+            }
+        }
+
+        // Flush the pipe writer, applying a cancellation timeout when configured.
+        // A non-default _flushTimeout allows tests (and production users) to bound
+        // how long an async socket write can stall before the write loop is crashed
+        // and blocked publishers are unblocked. See issue #1930.
+        private async ValueTask FlushPipeAsync()
+        {
+            if (_flushTimeout == default)
+            {
+                await _pipeWriter.FlushAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                using var cts = new CancellationTokenSource(_flushTimeout);
+                await _pipeWriter.FlushAsync(cts.Token).ConfigureAwait(false);
             }
         }
     }
