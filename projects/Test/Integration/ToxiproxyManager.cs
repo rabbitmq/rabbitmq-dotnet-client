@@ -20,6 +20,12 @@ namespace Integration
 
         private bool _disposedValue = false;
 
+        /// <summary>
+        /// The hostname clients should use to connect to the Toxiproxy server.
+        /// Defaults to <c>localhost</c>; overridden by <c>RABBITMQ_TOXIPROXY_HOST</c>.
+        /// </summary>
+        public string ProxyHost { get; private set; } = "localhost";
+
         public ToxiproxyManager(string testDisplayName, bool isRunningInCI, bool isWindows)
         {
             if (string.IsNullOrWhiteSpace(testDisplayName))
@@ -28,14 +34,6 @@ namespace Integration
             }
 
             _testDisplayName = testDisplayName;
-
-            /*
-             * Note:
-             * Do NOT set resetAllToxicsAndProxiesOnClose to true, because it will
-             * clear proxies being used by parallel TFM test runs
-             */
-            _proxyConnection = new Connection(resetAllToxicsAndProxiesOnClose: false);
-            _proxyClient = _proxyConnection.Client();
 
             // to start, assume everything is on localhost
             _proxy = new Proxy
@@ -59,6 +57,39 @@ namespace Integration
                     _proxy.Upstream = "rabbitmq-dotnet-client-rabbitmq:5672";
                 }
             }
+
+            // Allow Docker-based local development to override the upstream host.
+            // Set RABBITMQ_TOXIPROXY_UPSTREAM_HOST=<container-name-or-ip> when both
+            // Toxiproxy and RabbitMQ run in Docker and 127.0.0.1 refers to the
+            // Toxiproxy container's own loopback rather than the RabbitMQ container.
+            string upstreamHostOverride = Environment.GetEnvironmentVariable("RABBITMQ_TOXIPROXY_UPSTREAM_HOST");
+            if (!string.IsNullOrEmpty(upstreamHostOverride))
+            {
+                _proxy.Upstream = $"{upstreamHostOverride}:5672";
+            }
+
+            // Allow specifying the Toxiproxy management API host and the host that
+            // clients should use to connect to the proxy.  Useful when running tests
+            // from WSL2 using the Docker bridge IP (e.g. 172.26.0.3) to get a direct
+            // Linux-to-Linux TCP path that propagates TCP RST without any Windows
+            // port-forwarding proxy in between.
+            string toxiproxyHost = "127.0.0.1";
+            string proxyHostOverride = Environment.GetEnvironmentVariable("RABBITMQ_TOXIPROXY_HOST");
+            if (!string.IsNullOrEmpty(proxyHostOverride))
+            {
+                toxiproxyHost = proxyHostOverride;
+                ProxyHost = proxyHostOverride;
+                // Ensure the proxy listens on all interfaces so non-loopback clients connect.
+                _proxy.Listen = $"0.0.0.0:{ProxyPort}";
+            }
+
+            /*
+             * Note:
+             * Do NOT set resetAllToxicsAndProxiesOnClose to true, because it will
+             * clear proxies being used by parallel TFM test runs
+             */
+            _proxyConnection = new Connection(toxiproxyHost, resetAllToxicsAndProxiesOnClose: false);
+            _proxyClient = _proxyConnection.Client();
         }
 
         public async Task InitializeAsync()
