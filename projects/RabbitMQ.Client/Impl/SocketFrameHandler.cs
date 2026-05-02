@@ -252,9 +252,9 @@ namespace RabbitMQ.Client.Impl
             // write (e.g. because WriteLoopAsync completed the writer with an
             // exception). In the rejection case `frames` never reached the
             // reader, so this method owns the dispose. See issue #1930.
-            return AwaitAndDisposeOnFault(writeTask, frames);
+            return AwaitAndDisposeOnException(writeTask, frames);
 
-            static async ValueTask AwaitAndDisposeOnFault(ValueTask task, OutgoingFrame frames)
+            static async ValueTask AwaitAndDisposeOnException(ValueTask task, OutgoingFrame frames)
             {
                 try
                 {
