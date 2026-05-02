@@ -214,7 +214,7 @@ namespace Test.Integration
             };
 
             QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: string.Empty,
-                    passive: false, durable: false, exclusive: false, autoDelete: true, arguments: null);
+                    passive: false, durable: true, exclusive: false, autoDelete: true, arguments: null);
             string queueName = q.QueueName;
 
             Task pub = Task.Run(async () =>

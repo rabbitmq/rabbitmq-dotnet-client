@@ -48,7 +48,7 @@ namespace Test.Integration
         {
             await _channel.ExchangeDeclareAsync("src", ExchangeType.Direct, false, false);
             await _channel.ExchangeDeclareAsync("dest", ExchangeType.Direct, false, false);
-            string queue = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            string queue = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
 
             await _channel.ExchangeBindAsync("dest", "src", string.Empty);
             await _channel.QueueBindAsync(queue, "dest", string.Empty);

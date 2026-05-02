@@ -50,7 +50,7 @@ namespace Test.Integration
         {
             string q = GenerateQueueName();
 
-            QueueDeclareOk declareResult = await _channel.QueueDeclareAsync(q, false, false, false);
+            QueueDeclareOk declareResult = await _channel.QueueDeclareAsync(q, false, true, false);
             Assert.Equal(q, declareResult.QueueName);
 
             QueueDeclareOk passiveDeclareResult = await _channel.QueueDeclarePassiveAsync(q);
@@ -194,7 +194,7 @@ namespace Test.Integration
                                 // of thread interleaving. MK.
                                 await Task.Delay(RandomNext(5, 50));
                                 string q = GenerateQueueName();
-                                await _channel.QueueDeclareAsync(q, false, false, false);
+                                await _channel.QueueDeclareAsync(q, false, true, false);
                                 queueNames.Add(q);
                             }
                             catch (NotSupportedException e)

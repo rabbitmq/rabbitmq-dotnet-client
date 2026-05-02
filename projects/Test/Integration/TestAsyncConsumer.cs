@@ -215,7 +215,7 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, autoDelete: true);
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: true);
                 Assert.Equal(queueName, q.QueueName);
 
                 Task publishTask = Task.Run(async () =>
@@ -402,7 +402,7 @@ namespace Test.Integration
                     publishSyncSource.TrySetResult(true);
                 };
 
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName, false, false, false);
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName, false, true, false);
 
                 const string publish1 = "sync-hi-1";
                 byte[] _body = _encoding.GetBytes(publish1);
@@ -492,7 +492,7 @@ namespace Test.Integration
                 }
             };
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName, false, false, true);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(queueName, false, true, true);
 
             await _channel.BasicQosAsync(0, 1, false);
             await _channel.BasicConsumeAsync(queue: queueName, autoAck: false,
@@ -552,7 +552,7 @@ namespace Test.Integration
                 publishSyncSource.SetResult(true);
             };
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, false);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, true, false);
             string queueName = q.QueueName;
             const string publish1 = "sync-hi-1";
             byte[] _body = _encoding.GetBytes(publish1);
@@ -606,7 +606,7 @@ namespace Test.Integration
                 tasks.Add(Task.Run(async () =>
                 {
                     string q = GenerateQueueName();
-                    await _channel.QueueDeclareAsync(q, false, false, true);
+                    await _channel.QueueDeclareAsync(q, false, true, true);
                     var dummy = new AsyncEventingBasicConsumer(_channel);
                     string tag = await _channel.BasicConsumeAsync(q, true, dummy);
                     await _channel.BasicCancelAsync(tag);
