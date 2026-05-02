@@ -48,7 +48,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestConsumerRecoveryWithManyConsumers()
         {
-            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
+            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
             int n = 1024;
 
             for (int i = 0; i < n; i++)
@@ -73,7 +73,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestThatCancelledConsumerDoesNotReappearOnRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false)).QueueName;
+            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
             int n = 1024;
 
             for (int i = 0; i < n; i++)

@@ -48,7 +48,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestThatDeletedExchangeBindingsDontReappearOnRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
+            string q = (await _channel.QueueDeclareAsync("", true, false, false)).QueueName;
 
             string ex_source = GenerateExchangeName();
             string ex_destination = GenerateExchangeName();
@@ -102,7 +102,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestThatDeletedQueueBindingsDontReappearOnRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
+            string q = (await _channel.QueueDeclareAsync("", true, false, false)).QueueName;
 
             string ex_source = GenerateExchangeName();
             string ex_destination = GenerateExchangeName();
@@ -136,7 +136,7 @@ namespace Test.Integration.ConnectionRecovery
         public async Task TestThatDeletedQueuesDontReappearOnRecovery()
         {
             string q = "dotnet-client.recovery.q1";
-            await _channel.QueueDeclareAsync(q, false, false, false);
+            await _channel.QueueDeclareAsync(q, false, true, false);
             await _channel.QueueDeleteAsync(q);
 
             try
@@ -164,7 +164,7 @@ namespace Test.Integration.ConnectionRecovery
             string exchangeName = GenerateExchangeName();
             await _channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
 
-            var queueDeclareOk = await _channel.QueueDeclareAsync("", false, false, autoDelete: true);
+            var queueDeclareOk = await _channel.QueueDeclareAsync("", false, true, autoDelete: true);
             string queueName = queueDeclareOk.QueueName;
             await _channel.QueueBindAsync(queueName, exchangeName, routingKey: "key");
 
@@ -199,7 +199,7 @@ namespace Test.Integration.ConnectionRecovery
             {
                 await ch.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, autoDelete: true);
 
-                var queueDeclareOk = await ch.QueueDeclareAsync("", false, false, autoDelete: true);
+                var queueDeclareOk = await ch.QueueDeclareAsync("", false, true, autoDelete: true);
                 string queueName = queueDeclareOk.QueueName;
                 await ch.QueueBindAsync(queueName, exchangeName, routingKey: "key");
 

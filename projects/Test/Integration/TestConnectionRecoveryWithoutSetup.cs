@@ -115,7 +115,7 @@ namespace Test.Integration
             await using (IChannel ch = await c.CreateChannelAsync())
             {
                 string q = (await ch.QueueDeclareAsync(GenerateQueueName(),
-                    false, false, false)).QueueName;
+                    false, true, false)).QueueName;
                 var cons = new AsyncEventingBasicConsumer(ch);
                 await ch.BasicConsumeAsync(q, true, cons);
                 await AssertConsumerCountAsync(ch, q, 1);
@@ -148,7 +148,7 @@ namespace Test.Integration
             await using AutorecoveringConnection c = await CreateAutorecoveringConnectionAsync();
             await using (IChannel ch = await c.CreateChannelAsync())
             {
-                string q1 = (await ch.QueueDeclareAsync(q0, false, false, false)).QueueName;
+                string q1 = (await ch.QueueDeclareAsync(q0, false, true, false)).QueueName;
                 Assert.Equal(q0, q1);
 
                 var cons = new AsyncEventingBasicConsumer(ch);
@@ -292,8 +292,8 @@ namespace Test.Integration
             await using (IChannel ch = await conn.CreateChannelAsync(_createChannelOptions))
             {
                 await ch.ExchangeDeclareAsync(exchange, "direct");
-                await ch.QueueDeclareAsync(queueWithRecoveredConsumer, false, false, false);
-                await ch.QueueDeclareAsync(queueWithIgnoredConsumer, false, false, false);
+                await ch.QueueDeclareAsync(queueWithRecoveredConsumer, false, true, false);
+                await ch.QueueDeclareAsync(queueWithIgnoredConsumer, false, true, false);
                 await ch.QueueBindAsync(queueWithRecoveredConsumer, exchange, binding1);
                 await ch.QueueBindAsync(queueWithIgnoredConsumer, exchange, binding2);
                 await ch.QueuePurgeAsync(queueWithRecoveredConsumer);

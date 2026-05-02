@@ -55,7 +55,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestExchangeToExchangeBindingRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
+            string q = (await _channel.QueueDeclareAsync("", true, false, false)).QueueName;
 
             string ex_source = GenerateExchangeName();
             string ex_destination = GenerateExchangeName();

@@ -67,7 +67,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestServerNamedQueueRecovery()
         {
-            string q = (await _channel.QueueDeclareAsync("", false, false, false)).QueueName;
+            string q = (await _channel.QueueDeclareAsync("", false, true, false)).QueueName;
             string x = "amq.fanout";
             await _channel.QueueBindAsync(q, x, "");
 

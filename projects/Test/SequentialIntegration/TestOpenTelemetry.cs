@@ -305,7 +305,7 @@ namespace Test.SequentialIntegration
 
             try
             {
-                await _channel.QueueDeclareAsync(queue, false, false, false, null);
+                await _channel.QueueDeclareAsync(queue, false, true, false, null);
                 await _channel.BasicPublishAsync("", queue, true, basicProps, Encoding.UTF8.GetBytes(msg));
                 Baggage.ClearBaggage();
                 Assert.Null(Baggage.GetBaggage("TestItem"));

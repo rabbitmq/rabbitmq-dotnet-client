@@ -102,7 +102,7 @@ namespace Test.SequentialIntegration
             Assert.True(_channel.IsOpen);
 
             string queueName = GenerateQueueName();
-            RabbitMQ.Client.QueueDeclareOk queueDeclareOk = await _channel.QueueDeclareAsync(queue: queueName, exclusive: false, autoDelete: false);
+            RabbitMQ.Client.QueueDeclareOk queueDeclareOk = await _channel.QueueDeclareAsync(queue: queueName, exclusive: true, autoDelete: false);
             Assert.Equal(queueName, queueDeclareOk.QueueName);
 
             byte[] body = GetRandomBody(64);
@@ -189,7 +189,7 @@ namespace Test.SequentialIntegration
                 await _channel.ExchangeDeleteAsync(exchangeName);
 
                 await _channel.ExchangeDeclareAsync(exchange: exchangeName, type: "fanout");
-                await _channel.QueueDeclareAsync(queue: queueName, durable: false, exclusive: false, autoDelete: true, arguments: null);
+                await _channel.QueueDeclareAsync(queue: queueName, durable: false, exclusive: true, autoDelete: true, arguments: null);
                 await _channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: "");
 
                 await RestartServerAndWaitForRecoveryAsync();
@@ -218,7 +218,7 @@ namespace Test.SequentialIntegration
             string x = "tmp-fanout";
             await _channel.ExchangeDeleteAsync(x);
             await _channel.ExchangeDeclareAsync(exchange: x, type: "fanout");
-            string q = (await _channel.QueueDeclareAsync(queue: "", durable: false, exclusive: false, autoDelete: true, arguments: null)).QueueName;
+            string q = (await _channel.QueueDeclareAsync(queue: "", durable: false, exclusive: true, autoDelete: true, arguments: null)).QueueName;
             string nameBefore = q;
             string nameAfter = null;
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
