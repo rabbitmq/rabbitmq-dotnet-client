@@ -175,7 +175,13 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
                 try
                 {
-                    _channelWriter.Complete();
+                    // TryComplete rather than Complete: WriteLoopAsync may have
+                    // already completed the writer with an exception (see
+                    // issue #1930). Complete() would throw InvalidOperationException
+                    // in that race, the outer catch would swallow it, and
+                    // `await _writerTask` below would be skipped, leaving the
+                    // write-loop exception unobserved.
+                    _channelWriter.TryComplete();
                     if (_writerTask != null)
                     {
                         await _writerTask.ConfigureAwait(false);
