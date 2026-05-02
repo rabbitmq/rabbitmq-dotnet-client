@@ -52,14 +52,14 @@ namespace Test.Integration.ConnectionRecovery
             int n = 1024;
             for (int i = 0; i < n; i++)
             {
-                QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
+                QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false);
                 qs.Add(q.QueueName);
             }
             await CloseAndWaitForRecoveryAsync();
             Assert.True(_channel.IsOpen);
             foreach (string q in qs)
             {
-                await AssertQueueRecoveryAsync(_channel, q, false);
+                await AssertQueueRecoveryAsync(_channel, q, true);
                 await _channel.QueueDeleteAsync(q);
             }
         }

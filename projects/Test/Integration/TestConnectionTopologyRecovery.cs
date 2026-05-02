@@ -107,8 +107,8 @@ namespace Test.Integration
 
             IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
 
-            await ch.QueueDeclareAsync(queueToRecover, false, false, false);
-            await ch.QueueDeclareAsync(queueToIgnore, false, false, false);
+            await ch.QueueDeclareAsync(queueToRecover, true, false, false);
+            await ch.QueueDeclareAsync(queueToIgnore, true, false, false);
 
             await _channel.QueueDeleteAsync(queueToRecover);
             await _channel.QueueDeleteAsync(queueToIgnore);
@@ -358,7 +358,7 @@ namespace Test.Integration
                 QueueRecoveryExceptionHandlerAsync = async (rq, ex, connection) =>
                 {
                     await using IChannel channel = await connection.CreateChannelAsync();
-                    await channel.QueueDeclareAsync(rq.Name, false, false, false,
+                    await channel.QueueDeclareAsync(rq.Name, true, false, false,
                         noWait: false, arguments: changedQueueArguments);
                     await channel.CloseAsync();
                 }
@@ -372,12 +372,12 @@ namespace Test.Integration
             };
             IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
 
-            await ch.QueueDeclareAsync(queueToRecoverWithException, false, false, false);
-            await ch.QueueDeclareAsync(queueToRecoverSuccessfully, false, false, false);
+            await ch.QueueDeclareAsync(queueToRecoverWithException, true, false, false);
+            await ch.QueueDeclareAsync(queueToRecoverSuccessfully, true, false, false);
 
             await _channel.QueueDeleteAsync(queueToRecoverSuccessfully);
             await _channel.QueueDeleteAsync(queueToRecoverWithException);
-            await _channel.QueueDeclareAsync(queueToRecoverWithException, false, false, false,
+            await _channel.QueueDeclareAsync(queueToRecoverWithException, true, false, false,
                 noWait: false, arguments: changedQueueArguments);
 
             try

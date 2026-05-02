@@ -122,7 +122,7 @@ namespace Test.Integration
 
         private Task WithNonEmptyQueueAsync(Func<IChannel, string, Task> action, string msg)
         {
-            return WithTemporaryNonExclusiveQueueAsync(async (ch, q) =>
+            return WithTemporaryExclusiveQueueAsync(async (ch, q) =>
             {
                 await EnsureNotEmptyAsync(q, msg);
                 await action(ch, q);
@@ -131,7 +131,7 @@ namespace Test.Integration
 
         private Task WithEmptyQueueAsync(Func<IChannel, string, Task> action)
         {
-            return WithTemporaryNonExclusiveQueueAsync(async (channel, queue) =>
+            return WithTemporaryExclusiveQueueAsync(async (channel, queue) =>
             {
                 await channel.QueuePurgeAsync(queue);
                 await action(channel, queue);

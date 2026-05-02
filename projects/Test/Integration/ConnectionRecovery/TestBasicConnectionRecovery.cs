@@ -62,10 +62,10 @@ namespace Test.Integration.ConnectionRecovery
         public Task TestClientNamedQueueRecovery()
         {
             string s = "dotnet-client.test.recovery.q1";
-            return WithTemporaryNonExclusiveQueueAsync(_channel, async (m, q) =>
+            return WithTemporaryExclusiveQueueAsync(_channel, async (m, q) =>
             {
                 await CloseAndWaitForRecoveryAsync();
-                await AssertQueueRecoveryAsync(m, q, false);
+                await AssertQueueRecoveryAsync(m, q, true);
                 await _channel.QueueDeleteAsync(q);
             }, s);
         }

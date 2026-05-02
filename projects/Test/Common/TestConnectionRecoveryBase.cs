@@ -73,7 +73,7 @@ namespace Test
 
         protected async Task AssertExchangeRecoveryAsync(IChannel ch, string x)
         {
-            await WithTemporaryNonExclusiveQueueAsync(ch, async (_, q) =>
+            await WithTemporaryExclusiveQueueAsync(ch, async (_, q) =>
             {
                 string rk = "routing-key";
                 await ch.QueueBindAsync(q, x, rk);
@@ -87,18 +87,24 @@ namespace Test
             return AssertQueueRecoveryAsync(m, q, true);
         }
 
+        // Re-declares the queue in the same shape the caller originally used,
+        // then publishes and re-declares to count. On RabbitMQ 4.3+ the previous
+        // (durable: false, exclusive: false) combination is rejected by the
+        // `transient_nonexcl_queues` deprecated feature; non-exclusive callers
+        // must declare durable queues. See issue #1931.
         protected async Task AssertQueueRecoveryAsync(IChannel ch, string q, bool exclusive, IDictionary<string, object> arguments = null)
         {
             await ch.QueueDeclarePassiveAsync(q);
 
+            bool durable = !exclusive;
             RabbitMQ.Client.QueueDeclareOk ok1 = await ch.QueueDeclareAsync(queue: q, passive: false,
-                durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
+                durable: durable, exclusive: exclusive, autoDelete: false, arguments: arguments);
             Assert.Equal(0u, ok1.MessageCount);
 
             await ch.BasicPublishAsync("", q, _messageBody);
 
             RabbitMQ.Client.QueueDeclareOk ok2 = await ch.QueueDeclareAsync(queue: q, passive: false,
-                durable: false, exclusive: exclusive, autoDelete: false, arguments: arguments);
+                durable: durable, exclusive: exclusive, autoDelete: false, arguments: arguments);
             Assert.Equal(1u, ok2.MessageCount);
         }
 

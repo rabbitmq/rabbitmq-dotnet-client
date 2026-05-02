@@ -170,7 +170,7 @@ namespace Test.Integration.ConnectionRecovery
             await CloseAndWaitForRecoveryAsync();
             Assert.True(_channel.IsOpen);
 
-            await WithTemporaryNonExclusiveQueueAsync(_channel, (ch, q) =>
+            await WithTemporaryExclusiveQueueAsync(_channel, (ch, q) =>
             {
                 return ch.BasicPublishAsync("", q, _messageBody).AsTask();
             });

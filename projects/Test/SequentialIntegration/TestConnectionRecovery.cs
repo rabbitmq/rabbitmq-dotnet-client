@@ -169,10 +169,10 @@ namespace Test.SequentialIntegration
         public Task TestClientNamedQueueRecoveryOnServerRestart()
         {
             string s = "dotnet-client.test.recovery.q1";
-            return WithTemporaryNonExclusiveQueueAsync(_channel, async (m, q) =>
+            return WithTemporaryExclusiveQueueAsync(_channel, async (m, q) =>
             {
                 await RestartServerAndWaitForRecoveryAsync();
-                await AssertQueueRecoveryAsync(m, q, false);
+                await AssertQueueRecoveryAsync(m, q, true);
                 await _channel.QueueDeleteAsync(q);
             }, s);
         }
