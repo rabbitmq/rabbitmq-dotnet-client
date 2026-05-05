@@ -313,15 +313,16 @@ namespace RabbitMQ.Client.Impl
                 // TryComplete rather than Complete: CloseAsync may have raced
                 // us and already completed the channel.
                 _channelWriter.TryComplete(ex);
-
+                throw;
+            }
+            finally
+            {
                 // Drain any leftover frames so their pooled buffers return to
                 // the array pool rather than waiting for GC.
                 while (_channelReader.TryRead(out OutgoingFrame leftover))
                 {
                     leftover.Dispose();
                 }
-
-                throw;
             }
         }
     }
