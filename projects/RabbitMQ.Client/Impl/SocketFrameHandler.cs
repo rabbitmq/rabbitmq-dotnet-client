@@ -175,7 +175,13 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
                 try
                 {
-                    _channelWriter.Complete();
+                    // TryComplete rather than Complete: WriteLoopAsync may have
+                    // already completed the writer with an exception (see
+                    // issue #1930). Complete() would throw InvalidOperationException
+                    // in that race, the outer catch would swallow it, and
+                    // `await _writerTask` below would be skipped, leaving the
+                    // write-loop exception unobserved.
+                    _channelWriter.TryComplete();
                     if (_writerTask != null)
                     {
                         await _writerTask.ConfigureAwait(false);
@@ -240,16 +246,31 @@ namespace RabbitMQ.Client.Impl
             return WriteAsyncCore(frames, cancellationToken);
         }
 
-        private async ValueTask WriteAsyncCore(OutgoingFrame frames, CancellationToken cancellationToken)
+        private ValueTask WriteAsyncCore(OutgoingFrame frames, CancellationToken cancellationToken)
         {
-            try
+            ValueTask writeTask = _channelWriter.WriteAsync(frames, cancellationToken);
+            if (writeTask.IsCompletedSuccessfully)
             {
-                await _channelWriter.WriteAsync(frames, cancellationToken).ConfigureAwait(false);
+                return default;
             }
-            catch
+
+            // The channel accepted the frame asynchronously, or it rejected the
+            // write (e.g. because WriteLoopAsync completed the writer with an
+            // exception). In the rejection case `frames` never reached the
+            // reader, so this method owns the dispose. See issue #1930.
+            return AwaitAndDisposeOnException(writeTask, frames);
+
+            static async ValueTask AwaitAndDisposeOnException(ValueTask task, OutgoingFrame frames)
             {
-                frames.Dispose();
-                throw;
+                try
+                {
+                    await task.ConfigureAwait(false);
+                }
+                catch
+                {
+                    frames.Dispose();
+                    throw;
+                }
             }
         }
 
@@ -281,10 +302,23 @@ namespace RabbitMQ.Client.Impl
             catch (Exception ex)
             {
                 ESLog.Error("Background socket write loop has crashed", ex);
+
+                // Fail both already-blocked and subsequent WriteAsync callers
+                // with ChannelClosedException(innerException: ex). Without
+                // this, producers block indefinitely on a full channel whose
+                // reader has died, and any holder of a publisher-confirm
+                // semaphore (Channel.BasicPublish.cs) blocks the shutdown
+                // handler in turn. See issue #1930.
+                //
+                // TryComplete rather than Complete: CloseAsync may have raced
+                // us and already completed the channel.
+                _channelWriter.TryComplete(ex);
                 throw;
             }
             finally
             {
+                // Drain any leftover frames so their pooled buffers return to
+                // the array pool rather than waiting for GC.
                 while (_channelReader.TryRead(out OutgoingFrame leftover))
                 {
                     leftover.Dispose();
