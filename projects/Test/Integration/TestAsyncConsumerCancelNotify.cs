@@ -66,8 +66,8 @@ namespace Test.Integration
             string q1 = GenerateQueueName();
             string q2 = GenerateQueueName();
 
-            await _channel.QueueDeclareAsync(q1, false, false, false);
-            await _channel.QueueDeclareAsync(q2, false, false, false);
+            await _channel.QueueDeclareAsync(q1, false, true, false);
+            await _channel.QueueDeclareAsync(q2, false, true, false);
 
             AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(_channel);
             string consumerTag1 = await _channel.BasicConsumeAsync(q1, true, consumer);

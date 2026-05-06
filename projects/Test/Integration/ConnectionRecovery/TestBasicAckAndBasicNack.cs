@@ -71,7 +71,7 @@ namespace Test.Integration.ConnectionRecovery
             var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cons = new AckingBasicConsumer(_channel, TotalMessageCount, allMessagesSeenTcs);
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, false, false, false);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, true, false, false);
             string queueName = q.QueueName;
             Assert.Equal(queueName, _queueName);
 
@@ -94,7 +94,7 @@ namespace Test.Integration.ConnectionRecovery
             var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cons = new NackingBasicConsumer(_channel, TotalMessageCount, allMessagesSeenTcs);
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, false, false, false);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(_queueName, true, false, false);
             string queueName = q.QueueName;
             Assert.Equal(queueName, _queueName);
 
@@ -117,7 +117,7 @@ namespace Test.Integration.ConnectionRecovery
             var allMessagesSeenTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var cons = new RejectingBasicConsumer(_channel, TotalMessageCount, allMessagesSeenTcs);
 
-            string queueName = (await _channel.QueueDeclareAsync(_queueName, false, false, false)).QueueName;
+            string queueName = (await _channel.QueueDeclareAsync(_queueName, true, false, false)).QueueName;
             Assert.Equal(queueName, _queueName);
 
             await _channel.BasicQosAsync(0, 1, false);
@@ -137,7 +137,7 @@ namespace Test.Integration.ConnectionRecovery
         public async Task TestBasicAckAfterBasicGetAndChannelRecovery()
         {
             string q = GenerateQueueName();
-            await _channel.QueueDeclareAsync(q, false, false, false);
+            await _channel.QueueDeclareAsync(q, false, true, false);
             // create an offset
             await _channel.BasicPublishAsync("", q, _messageBody);
             await Task.Delay(50);
@@ -170,7 +170,7 @@ namespace Test.Integration.ConnectionRecovery
             await CloseAndWaitForRecoveryAsync();
             Assert.True(_channel.IsOpen);
 
-            await WithTemporaryNonExclusiveQueueAsync(_channel, (ch, q) =>
+            await WithTemporaryExclusiveQueueAsync(_channel, (ch, q) =>
             {
                 return ch.BasicPublishAsync("", q, _messageBody).AsTask();
             });

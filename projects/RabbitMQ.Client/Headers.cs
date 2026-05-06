@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace RabbitMQ.Client
 {
     /// <summary>
@@ -92,6 +94,7 @@ namespace RabbitMQ.Client
         /// x-queue-mode header.
         /// Available modes: "default" and "lazy"
         /// </summary>
+        [Obsolete("7.3.0 - classic queue v1 (CQv1) was removed in RabbitMQ 4.3.")]
         public const string XQueueMode = "x-queue-mode";
 
         // quorum

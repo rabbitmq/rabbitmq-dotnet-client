@@ -118,7 +118,7 @@ namespace Test.Integration.ConnectionRecovery
             for (int i = 0; i < 1000; i++)
             {
                 string q = Guid.NewGuid().ToString();
-                await _channel.QueueDeclareAsync(q, false, false, true);
+                await _channel.QueueDeclareAsync(q, false, true, true);
                 var dummy = new AsyncEventingBasicConsumer(_channel);
                 string tag = await _channel.BasicConsumeAsync(q, true, dummy);
                 await _channel.BasicCancelAsync(tag);

@@ -51,7 +51,7 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
         [InlineData(3)]
         public async Task TestRecoveringConsumerEventHandlers_Called(int iterations)
         {
-            RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
+            RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false);
             var cons = new AsyncEventingBasicConsumer(_channel);
             await _channel.BasicConsumeAsync(q, true, cons);
 
@@ -81,7 +81,7 @@ namespace Test.Integration.ConnectionRecovery.EventHandlerRecovery.Connection
                 { key, value }
             };
 
-            RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, false, false);
+            RabbitMQ.Client.QueueDeclareOk q = await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false);
             var cons = new AsyncEventingBasicConsumer(_channel);
             string expectedCTag = await _channel.BasicConsumeAsync(consumer: cons, queue: q, autoAck: false,
                 arguments: arguments, consumerTag: string.Empty);

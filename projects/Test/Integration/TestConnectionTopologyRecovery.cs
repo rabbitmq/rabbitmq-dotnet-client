@@ -58,7 +58,7 @@ namespace Test.Integration
             await using (IChannel ch = await _conn.CreateChannelAsync())
             {
                 await ch.ExchangeDeclareAsync(exchange: x, type: "fanout");
-                await ch.QueueDeclareAsync(q, false, false, false);
+                await ch.QueueDeclareAsync(q, false, true, false);
                 await ch.QueueBindAsync(q, x, rk);
                 await ch.CloseAsync();
             }
@@ -107,8 +107,8 @@ namespace Test.Integration
 
             IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
 
-            await ch.QueueDeclareAsync(queueToRecover, false, false, false);
-            await ch.QueueDeclareAsync(queueToIgnore, false, false, false);
+            await ch.QueueDeclareAsync(queueToRecover, true, false, false);
+            await ch.QueueDeclareAsync(queueToIgnore, true, false, false);
 
             await _channel.QueueDeleteAsync(queueToRecover);
             await _channel.QueueDeleteAsync(queueToIgnore);
@@ -216,8 +216,8 @@ namespace Test.Integration
             try
             {
                 await ch.ExchangeDeclareAsync(exchange, "direct");
-                await ch.QueueDeclareAsync(queueWithRecoveredBinding, false, false, false);
-                await ch.QueueDeclareAsync(queueWithIgnoredBinding, false, false, false);
+                await ch.QueueDeclareAsync(queueWithRecoveredBinding, true, false, false);
+                await ch.QueueDeclareAsync(queueWithIgnoredBinding, true, false, false);
                 await ch.QueueBindAsync(queueWithRecoveredBinding, exchange, bindingToRecover);
                 await ch.QueueBindAsync(queueWithIgnoredBinding, exchange, bindingToIgnore);
                 await ch.QueuePurgeAsync(queueWithRecoveredBinding);
@@ -280,8 +280,8 @@ namespace Test.Integration
             {
 
                 await ch.ExchangeDeclareAsync(exchange, "direct");
-                await ch.QueueDeclareAsync(queue1, false, false, false);
-                await ch.QueueDeclareAsync(queue2, false, false, false);
+                await ch.QueueDeclareAsync(queue1, true, false, false);
+                await ch.QueueDeclareAsync(queue2, true, false, false);
                 await ch.QueueBindAsync(queue1, exchange, binding1);
                 await ch.QueueBindAsync(queue2, exchange, binding2);
                 await ch.QueuePurgeAsync(queue1);
@@ -358,7 +358,7 @@ namespace Test.Integration
                 QueueRecoveryExceptionHandlerAsync = async (rq, ex, connection) =>
                 {
                     await using IChannel channel = await connection.CreateChannelAsync();
-                    await channel.QueueDeclareAsync(rq.Name, false, false, false,
+                    await channel.QueueDeclareAsync(rq.Name, true, false, false,
                         noWait: false, arguments: changedQueueArguments);
                     await channel.CloseAsync();
                 }
@@ -372,12 +372,12 @@ namespace Test.Integration
             };
             IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
 
-            await ch.QueueDeclareAsync(queueToRecoverWithException, false, false, false);
-            await ch.QueueDeclareAsync(queueToRecoverSuccessfully, false, false, false);
+            await ch.QueueDeclareAsync(queueToRecoverWithException, true, false, false);
+            await ch.QueueDeclareAsync(queueToRecoverSuccessfully, true, false, false);
 
             await _channel.QueueDeleteAsync(queueToRecoverSuccessfully);
             await _channel.QueueDeleteAsync(queueToRecoverWithException);
-            await _channel.QueueDeclareAsync(queueToRecoverWithException, false, false, false,
+            await _channel.QueueDeclareAsync(queueToRecoverWithException, true, false, false,
                 noWait: false, arguments: changedQueueArguments);
 
             try
@@ -478,7 +478,7 @@ namespace Test.Integration
                 BindingRecoveryExceptionHandlerAsync = async (b, ex, connection) =>
                 {
                     await using IChannel channel = await connection.CreateChannelAsync();
-                    await channel.QueueDeclareAsync(queueWithExceptionBinding, false, false, false);
+                    await channel.QueueDeclareAsync(queueWithExceptionBinding, true, false, false);
                     await channel.QueueBindAsync(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
                     await channel.CloseAsync();
                 }
@@ -495,10 +495,10 @@ namespace Test.Integration
             const string queueWithRecoveredBinding = "successfully.recovered.queue";
             const string bindingToRecoverSuccessfully = "successfully.recovered.binding";
 
-            await _channel.QueueDeclareAsync(queueWithExceptionBinding, false, false, false);
+            await _channel.QueueDeclareAsync(queueWithExceptionBinding, true, false, false);
 
             await ch.ExchangeDeclareAsync(exchange, "direct");
-            await ch.QueueDeclareAsync(queueWithRecoveredBinding, false, false, false);
+            await ch.QueueDeclareAsync(queueWithRecoveredBinding, true, false, false);
             await ch.QueueBindAsync(queueWithRecoveredBinding, exchange, bindingToRecoverSuccessfully);
             await ch.QueueBindAsync(queueWithExceptionBinding, exchange, bindingToRecoverWithException);
             await ch.QueuePurgeAsync(queueWithRecoveredBinding);
@@ -539,7 +539,7 @@ namespace Test.Integration
                 ConsumerRecoveryExceptionHandlerAsync = async (c, ex, connection) =>
                 {
                     await using IChannel channel = await connection.CreateChannelAsync();
-                    await channel.QueueDeclareAsync(queueWithExceptionConsumer, false, false, false);
+                    await channel.QueueDeclareAsync(queueWithExceptionConsumer, true, false, false);
                     await channel.CloseAsync();
 
                     // So topology recovery runs again. This time he missing queue should exist, making
@@ -560,7 +560,7 @@ namespace Test.Integration
                 // Note: no need to enable publisher confirmations as they are
                 // automatically enabled for channels
 
-                await _channel.QueueDeclareAsync(queueWithExceptionConsumer, false, false, false);
+                await _channel.QueueDeclareAsync(queueWithExceptionConsumer, true, false, false);
                 await _channel.QueuePurgeAsync(queueWithExceptionConsumer);
 
                 var recoveredConsumerReceivedTcs = new ManualResetEventSlim(false);

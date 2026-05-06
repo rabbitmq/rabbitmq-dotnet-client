@@ -462,30 +462,26 @@ namespace Test
             return $"{_testDisplayName}-queue-{Now}-{Guid.NewGuid()}";
         }
 
-        protected Task WithTemporaryNonExclusiveQueueAsync(Func<IChannel, string, Task> action)
+        protected Task WithTemporaryExclusiveQueueAsync(Func<IChannel, string, Task> action)
         {
-            return WithTemporaryNonExclusiveQueueAsync(_channel, action);
+            return WithTemporaryExclusiveQueueAsync(_channel, action);
         }
 
-        protected Task WithTemporaryNonExclusiveQueueAsync(IChannel channel, Func<IChannel, string, Task> action)
+        protected Task WithTemporaryExclusiveQueueAsync(IChannel channel, Func<IChannel, string, Task> action)
         {
-            return WithTemporaryNonExclusiveQueueAsync(channel, action, GenerateQueueName());
+            return WithTemporaryExclusiveQueueAsync(channel, action, GenerateQueueName());
         }
 
-        protected async Task WithTemporaryNonExclusiveQueueAsync(IChannel channel, Func<IChannel, string, Task> action, string queue)
+        protected async Task WithTemporaryExclusiveQueueAsync(IChannel channel, Func<IChannel, string, Task> action, string queue)
         {
-            try
-            {
-                await channel.QueueDeclareAsync(queue, false, false, false);
-                await action(channel, queue);
-            }
-            finally
-            {
-                await WithTemporaryChannelAsync(ch =>
-                {
-                    return ch.QueueDeleteAsync(queue);
-                });
-            }
+            // Exclusive queues are deleted by the broker when the declaring
+            // connection closes, so no explicit cleanup is needed.
+            //
+            // The previous `(durable: false, exclusive: false)` declaration
+            // is rejected by RabbitMQ 4.3+ as the `transient_nonexcl_queues`
+            // deprecated feature. See issue #1931.
+            await channel.QueueDeclareAsync(queue, durable: false, exclusive: true, autoDelete: false);
+            await action(channel, queue);
         }
 
         protected Task AssertMessageCountAsync(string q, uint count)

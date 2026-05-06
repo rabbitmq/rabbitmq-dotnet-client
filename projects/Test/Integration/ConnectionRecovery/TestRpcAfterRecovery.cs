@@ -50,7 +50,7 @@ namespace Test.Integration.ConnectionRecovery
         public async Task TestPublishRpcRightAfterReconnect()
         {
             string testQueueName = $"dotnet-client.test.{nameof(TestPublishRpcRightAfterReconnect)}";
-            await _channel.QueueDeclareAsync(testQueueName, false, false, false);
+            await _channel.QueueDeclareAsync(testQueueName, false, true, false);
             var replyConsumer = new AsyncEventingBasicConsumer(_channel);
             await _channel.BasicConsumeAsync("amq.rabbitmq.reply-to", true, replyConsumer);
             var properties = new BasicProperties();

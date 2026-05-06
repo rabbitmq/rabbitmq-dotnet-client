@@ -63,12 +63,12 @@ namespace Test.Integration.ConnectionRecovery
                 { "x-dead-letter-routing-key", "QueueTest" }
             };
 
-            await _channel.QueueDeclareAsync(testRetryQueueName, durable: false, exclusive: false, autoDelete: false, arguments);
+            await _channel.QueueDeclareAsync(testRetryQueueName, durable: false, exclusive: true, autoDelete: false, arguments);
 
             arguments["x-dead-letter-exchange"] = "tdi.wait.exchange";
             arguments["x-dead-letter-routing-key"] = "QueueTest";
 
-            await _channel.QueueDeclareAsync(testQueueName, durable: false, exclusive: false, autoDelete: false, arguments);
+            await _channel.QueueDeclareAsync(testQueueName, durable: false, exclusive: true, autoDelete: false, arguments);
 
             arguments.Remove("x-dead-letter-exchange");
             arguments.Remove("x-dead-letter-routing-key");

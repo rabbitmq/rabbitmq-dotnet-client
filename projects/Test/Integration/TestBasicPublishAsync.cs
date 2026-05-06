@@ -53,7 +53,7 @@ namespace Test.Integration
 
             var publishSyncSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
 
             var publishTask = Task.Run(async () =>
             {
@@ -97,7 +97,7 @@ namespace Test.Integration
         {
             const int size = 1024;
 
-            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, false, true);
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
             var body = new TrackedMemoryOwner(GetRandomBody(size));
 
             await _channel.BasicPublishAsync(string.Empty, q,

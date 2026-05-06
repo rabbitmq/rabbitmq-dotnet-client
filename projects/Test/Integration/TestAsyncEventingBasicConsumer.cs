@@ -94,7 +94,7 @@ namespace Test.Integration
             string routingKey = string.Empty;
 
             await _channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct);
-            await _channel.QueueDeclareAsync(queueName, false, false, true, null);
+            await _channel.QueueDeclareAsync(queueName, false, true, true, null);
             await _channel.QueueBindAsync(queueName, exchangeName, routingKey, null);
 
             _channel.CallbackExceptionAsync += ConsumerChannelOnCallbackExceptionAsync;
