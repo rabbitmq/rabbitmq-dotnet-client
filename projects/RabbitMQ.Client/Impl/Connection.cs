@@ -403,9 +403,10 @@ namespace RabbitMQ.Client.Framing
                 {
                     /*
                      * Note:
-                     * NotifyReceivedCloseOk will cancel the main loop
+                     * NotifyReceivedCloseOk will cancel the main loop for graceful closes.
+                     * For abort, cancel immediately so _mainLoopTask exits without the full timeout wait.
                      */
-                    MaybeTerminateMainloopAndStopHeartbeatTimers();
+                    MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: abort);
                 }
             }
 

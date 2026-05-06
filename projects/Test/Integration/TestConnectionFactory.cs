@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -394,6 +395,32 @@ namespace Test.Integration
             }
 
             Assert.True(passed, "FAIL did not see TaskCanceledException nor OperationCanceledException");
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionAsync_CancellationDuringHandshake_CompletesQuickly()
+        {
+            // Regression test for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1921
+            // When a CancellationToken fires during the AMQP handshake, CreateConnectionAsync
+            // must complete (with an exception) quickly, not hang for DefaultConnectionAbortTimeout (5s).
+            ConnectionFactory cf = CreateConnectionFactory();
+
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                // 50ms: enough for TCP to connect but fires during the AMQP handshake on localhost
+                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
+                await cf.CreateConnectionAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            sw.Stop();
+
+            // Before the fix, cleanup after a mid-handshake cancellation blocked for
+            // DefaultConnectionAbortTimeout (5s). Allow 3s to account for slow CI runners.
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(3),
+                $"CreateConnectionAsync took {sw.Elapsed.TotalSeconds:F1}s; expected < 3s (possible hang regression from gh-1921)");
         }
 
         [Fact]
