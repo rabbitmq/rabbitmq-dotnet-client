@@ -146,6 +146,12 @@ namespace RabbitMQ.Client.Framing
                     {
                         ESLog.Warn("Timeout while trying to stop background AutorecoveringConnection recovery loop.");
                     }
+                    else if (cancellationToken.IsCancellationRequested)
+                    {
+                        // cancellationToken was cancelled (possibly before this method was called).
+                        // The recovery loop has already been cancelled via _recoveryCancellationTokenSource
+                        // and will exit asynchronously without further action needed.
+                    }
                     else
                     {
                         throw;
