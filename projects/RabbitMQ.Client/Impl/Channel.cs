@@ -310,7 +310,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -354,7 +354,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -394,7 +394,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -989,7 +989,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch
                     {
-                        _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                        _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
                     }
                 }
@@ -1029,7 +1029,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -1073,7 +1073,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -1118,7 +1118,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -1151,7 +1151,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -1193,7 +1193,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (OperationCanceledException)
                     {
-                        _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                        _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
                     }
                 }
@@ -1244,7 +1244,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (OperationCanceledException)
                     {
-                        _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                        _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
                     }
                 }
@@ -1288,7 +1288,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (OperationCanceledException)
                     {
-                        _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                        _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
                     }
                 }
@@ -1333,7 +1333,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (OperationCanceledException)
                     {
-                        _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                        _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
                     }
                 }
@@ -1413,7 +1413,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (OperationCanceledException)
                     {
-                        _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                        _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
                     }
                 }
@@ -1456,7 +1456,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (OperationCanceledException)
                     {
-                        _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                        _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
                     }
                 }
@@ -1518,7 +1518,7 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (OperationCanceledException)
                     {
-                        _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                        _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
                     }
                 }
@@ -1552,7 +1552,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -1586,7 +1586,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -1618,7 +1618,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -1650,7 +1650,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }
@@ -1682,7 +1682,7 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (OperationCanceledException)
                 {
-                    _continuationQueue.RpcCanceled(k.HandledProtocolCommandIds);
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
                 }
             }

@@ -143,9 +143,12 @@ namespace RabbitMQ.Client.Impl
             return false;
         }
 
-        public void RpcCanceled(ProtocolCommandId[] protocolCommandIds)
+        public void RpcCanceled(bool responseReceived, ProtocolCommandId[] protocolCommandIds)
         {
-            _rpcCancellationQueue.Enqueue(protocolCommandIds);
+            if (!responseReceived)
+            {
+                _rpcCancellationQueue.Enqueue(protocolCommandIds);
+            }
         }
 
         public bool ShouldIgnoreCommand(ProtocolCommandId commandId)
