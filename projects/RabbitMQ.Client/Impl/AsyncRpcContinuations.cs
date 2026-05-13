@@ -98,7 +98,7 @@ namespace RabbitMQ.Client.Impl
             return _tcsConfiguredTaskAwaitable.GetAwaiter();
         }
 
-        public abstract ProtocolCommandId[] HandledProtocolCommandIds { get; }
+        public abstract ReadOnlySpan<ProtocolCommandId> HandledProtocolCommandIds { get; }
 
         public async Task HandleCommandAsync(IncomingCommand cmd)
         {
@@ -208,7 +208,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override ProtocolCommandId[] HandledProtocolCommandIds
+        public override ReadOnlySpan<ProtocolCommandId> HandledProtocolCommandIds
             => [ProtocolCommandId.ConnectionSecure, ProtocolCommandId.ConnectionTune];
 
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
@@ -248,8 +248,8 @@ namespace RabbitMQ.Client.Impl
             _expectedCommandId = expectedCommandId;
         }
 
-        public override ProtocolCommandId[] HandledProtocolCommandIds
-            => [_expectedCommandId];
+        public override ReadOnlySpan<ProtocolCommandId> HandledProtocolCommandIds
+            => new[] { _expectedCommandId };
 
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
         {
@@ -318,7 +318,7 @@ namespace RabbitMQ.Client.Impl
             _consumerDispatcher = consumerDispatcher;
         }
 
-        public override ProtocolCommandId[] HandledProtocolCommandIds
+        public override ReadOnlySpan<ProtocolCommandId> HandledProtocolCommandIds
             => [ProtocolCommandId.BasicConsumeOk];
 
         protected override async Task DoHandleCommandAsync(IncomingCommand cmd)
@@ -350,7 +350,7 @@ namespace RabbitMQ.Client.Impl
             _adjustDeliveryTag = adjustDeliveryTag;
         }
 
-        public override ProtocolCommandId[] HandledProtocolCommandIds
+        public override ReadOnlySpan<ProtocolCommandId> HandledProtocolCommandIds
             => [ProtocolCommandId.BasicGetOk, ProtocolCommandId.BasicGetEmpty];
 
         internal DateTime StartTime { get; } = DateTime.UtcNow;
@@ -468,7 +468,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override ProtocolCommandId[] HandledProtocolCommandIds
+        public override ReadOnlySpan<ProtocolCommandId> HandledProtocolCommandIds
             => [ProtocolCommandId.QueueDeclareOk];
 
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
@@ -511,7 +511,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override ProtocolCommandId[] HandledProtocolCommandIds
+        public override ReadOnlySpan<ProtocolCommandId> HandledProtocolCommandIds
             => [ProtocolCommandId.QueueDeleteOk];
 
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)
@@ -537,7 +537,7 @@ namespace RabbitMQ.Client.Impl
         {
         }
 
-        public override ProtocolCommandId[] HandledProtocolCommandIds
+        public override ReadOnlySpan<ProtocolCommandId> HandledProtocolCommandIds
             => [ProtocolCommandId.QueuePurgeOk];
 
         protected override Task DoHandleCommandAsync(IncomingCommand cmd)

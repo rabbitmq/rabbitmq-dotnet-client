@@ -30,9 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -67,8 +65,17 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        private const int CommandIdBufferLength = 2;
+
+        private struct LastTimedOutCommandIds
+        {
+            public ProtocolCommandId First;
+            public ProtocolCommandId Second;
+        }
+
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
-        private readonly Queue<ProtocolCommandId[]> _rpcCancellationQueue = new();
+        private LastTimedOutCommandIds _lastTimedOutCommandIds;
+        private int _lastTimedOutCommandIdsCount;
         private IRpcContinuation _outstandingRpc = s_tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
@@ -143,11 +150,28 @@ namespace RabbitMQ.Client.Impl
             return false;
         }
 
-        public void RpcCanceled(bool responseReceived, ProtocolCommandId[] protocolCommandIds)
+        public void RpcCanceled(bool responseReceived, ReadOnlySpan<ProtocolCommandId> protocolCommandIds)
         {
-            if (!responseReceived)
+            if (responseReceived)
             {
-                _rpcCancellationQueue.Enqueue(protocolCommandIds);
+                return;
+            }
+
+            if (protocolCommandIds.Length > CommandIdBufferLength)
+            {
+                throw new ArgumentOutOfRangeException(nameof(protocolCommandIds));
+            }
+
+            int count = protocolCommandIds.Length;
+            _lastTimedOutCommandIdsCount = count;
+            _lastTimedOutCommandIds = default;
+            if (count > 0)
+            {
+                _lastTimedOutCommandIds.First = protocolCommandIds[0];
+                if (count > 1)
+                {
+                    _lastTimedOutCommandIds.Second = protocolCommandIds[1];
+                }
             }
         }
 
@@ -156,18 +180,27 @@ namespace RabbitMQ.Client.Impl
             // rabbitmq/rabbitmq-dotnet-client#1802
             // This keeps track of ProtocolCommandId values from previous RPC
             // commands that have timed out.
-            bool rv = false;
+            LastTimedOutCommandIds last = _lastTimedOutCommandIds;
+            int count = _lastTimedOutCommandIdsCount;
+            _lastTimedOutCommandIds = default;
+            _lastTimedOutCommandIdsCount = 0;
 
-            if (_rpcCancellationQueue.Count > 0)
+            if (count == 0)
             {
-                ProtocolCommandId[] lastErroredCommandIds = _rpcCancellationQueue.Dequeue();
-                if (lastErroredCommandIds.Contains(commandId))
-                {
-                    rv = true;
-                }
+                return false;
             }
 
-            return rv;
+            if (commandId == last.First)
+            {
+                return true;
+            }
+
+            if (count > 1 && commandId == last.Second)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
