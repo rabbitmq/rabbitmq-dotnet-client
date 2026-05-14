@@ -32,6 +32,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -68,15 +69,19 @@ namespace RabbitMQ.Client.Impl
 
         private const int CommandIdBufferLength = 2;
 
-        private struct LastTimedOutCommandIds
+        // Two ProtocolCommandId values (each uint) laid out as a struct
+        // reinterpreted as a single long for lock-free atomic
+        // read-modify-write via Interlocked.Exchange.
+        // Since ProtocolCommandId: uint has no zero-valued member,
+        // default(LastTimedOutCommandIds) == 0 means "no timed-out command".
+        private readonly struct LastTimedOutCommandIds(ProtocolCommandId first, ProtocolCommandId second = 0)
         {
-            public ProtocolCommandId First;
-            public ProtocolCommandId Second;
+            public readonly ProtocolCommandId First = first;
+            public readonly ProtocolCommandId Second = second;
         }
 
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
-        private LastTimedOutCommandIds _lastTimedOutCommandIds;
-        private int _lastTimedOutCommandIdsCount;
+        private long _lastTimedOutCommandIds;
         private IRpcContinuation _outstandingRpc = s_tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
@@ -160,19 +165,11 @@ namespace RabbitMQ.Client.Impl
 
             // AMQP 0-9-1 RPCs handle at most 2 response command IDs
             // (e.g. BasicGetOk/BasicGetEmpty, ConnectionSecure/ConnectionTune)
-            Debug.Assert(protocolCommandIds.Length <= CommandIdBufferLength);
+            Debug.Assert(protocolCommandIds.Length is > 0 and <= CommandIdBufferLength);
 
-            int count = protocolCommandIds.Length;
-            _lastTimedOutCommandIdsCount = count;
-            _lastTimedOutCommandIds = default;
-            if (count > 0)
-            {
-                _lastTimedOutCommandIds.First = protocolCommandIds[0];
-                if (count > 1)
-                {
-                    _lastTimedOutCommandIds.Second = protocolCommandIds[1];
-                }
-            }
+            var ids = new LastTimedOutCommandIds(first: protocolCommandIds[0], second: protocolCommandIds.Length > 1 ? protocolCommandIds[1] : 0);
+
+            Interlocked.Exchange(ref _lastTimedOutCommandIds, Unsafe.As<LastTimedOutCommandIds, long>(ref ids));
         }
 
         public bool ShouldIgnoreCommand(ProtocolCommandId commandId)
@@ -180,12 +177,15 @@ namespace RabbitMQ.Client.Impl
             // rabbitmq/rabbitmq-dotnet-client#1802
             // This keeps track of ProtocolCommandId values from previous RPC
             // commands that have timed out.
-            LastTimedOutCommandIds last = _lastTimedOutCommandIds;
-            int count = _lastTimedOutCommandIdsCount;
-            _lastTimedOutCommandIds = default;
-            _lastTimedOutCommandIdsCount = 0;
+            long raw = Interlocked.Exchange(ref _lastTimedOutCommandIds, 0L);
 
-            return commandId == last.First || (count > 1 && commandId == last.Second);
+            if (raw == 0L)
+            {
+                return false;
+            }
+
+            var ids = Unsafe.As<long, LastTimedOutCommandIds>(ref raw);
+            return commandId == ids.First || (ids.Second != 0 && commandId == ids.Second);
         }
     }
 }
