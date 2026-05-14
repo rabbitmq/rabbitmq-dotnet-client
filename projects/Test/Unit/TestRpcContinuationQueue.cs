@@ -81,5 +81,82 @@ namespace Test.Unit
                 queue.Enqueue(inputContinuation1);
             });
         }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_NoTimedOutCommands_ReturnsFalse()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicAck));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_SingleTimedOutCommand_MatchesFirst()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_SingleTimedOutCommand_NoMatch()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicAck));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_TwoTimedOutCommands_MatchesFirst()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.BasicGetOk, ProtocolCommandId.BasicGetEmpty]);
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicGetOk));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_TwoTimedOutCommands_MatchesSecond()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.BasicGetOk, ProtocolCommandId.BasicGetEmpty]);
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicGetEmpty));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_TwoTimedOutCommands_NoMatch()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.BasicGetOk, ProtocolCommandId.BasicGetEmpty]);
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicAck));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_ConsumesTimedOutState()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+            // Second call should return false — the timed-out state was consumed
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_EmptyAfterConsume()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
+            // Consume with a non-matching command ID
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicAck));
+            // Now the timed-out state is consumed, any check returns false
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+        }
+
+        [Fact]
+        public void TestRpcCanceled_ResponseReceivedTrue_DoesNotRecord()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(true, [ProtocolCommandId.QueueDeclareOk]);
+            // Since responseReceived=true, no command IDs should be recorded
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+        }
     }
 }
