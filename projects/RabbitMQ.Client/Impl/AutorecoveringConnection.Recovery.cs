@@ -48,12 +48,19 @@ namespace RabbitMQ.Client.Framing
 
         private Task HandleConnectionShutdownAsync(object? _, ShutdownEventArgs args)
         {
+            ESLog.Info($"Connection shutdown received: initiator={args.Initiator}, code={args.ReplyCode}, text='{args.ReplyText}'");
+
             if (ShouldTriggerConnectionRecovery(args))
             {
                 var recoverTask = new Task<Task>(RecoverConnectionAsync);
                 if (Interlocked.CompareExchange(ref _recoveryTask, recoverTask.Unwrap(), null) is null)
                 {
+                    ESLog.Info("Scheduling connection recovery.");
                     recoverTask.Start();
+                }
+                else
+                {
+                    ESLog.Warn("Connection recovery is already in progress; new recovery attempt will be skipped.");
                 }
             }
 
@@ -65,6 +72,7 @@ namespace RabbitMQ.Client.Framing
                 {
                     if (args.ReplyCode == Constants.AccessRefused)
                     {
+                        ESLog.Warn("Connection recovery will not be attempted: peer closed the connection with 'access refused'.");
                         return false;
                     }
                     else
@@ -81,6 +89,7 @@ namespace RabbitMQ.Client.Framing
                      */
                     if (args is { Exception: ThreadAbortException, ReplyCode: Constants.InternalError })
                     {
+                        ESLog.Warn("Connection recovery will not be attempted: AppDomain is unloading.");
                         return false;
                     }
                     else
@@ -91,6 +100,7 @@ namespace RabbitMQ.Client.Framing
                     }
                 }
 
+                ESLog.Info("Connection recovery will not be attempted: shutdown was application-initiated.");
                 return false;
             }
         }
@@ -111,7 +121,7 @@ namespace RabbitMQ.Client.Framing
             }
             catch (OperationCanceledException)
             {
-                // expected when recovery cancellation token is set.
+                ESLog.Info("Connection recovery loop was cancelled.");
             }
             catch (Exception e)
             {
