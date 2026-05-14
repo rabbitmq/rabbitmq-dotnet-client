@@ -32,7 +32,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -69,15 +69,19 @@ namespace RabbitMQ.Client.Impl
 
         private const int CommandIdBufferLength = 2;
 
-        // Two ProtocolCommandId values (each uint) laid out as a struct
-        // reinterpreted as a single long for lock-free atomic
-        // read-modify-write via Interlocked.Exchange.
-        // Since ProtocolCommandId: uint has no zero-valued member,
-        // default(LastTimedOutCommandIds) == 0 means "no timed-out command".
-        private readonly struct LastTimedOutCommandIds(ProtocolCommandId first, ProtocolCommandId second = 0)
+        // Two ProtocolCommandId values (each uint) unioned with a single long
+        // so that Interlocked.Exchange can read/write both atomically.
+        // Since ProtocolCommandId : uint has no zero-valued member,
+        // default(LastTimedOutCommandIds).RawValue == 0L means "no timed-out command".
+        [StructLayout(LayoutKind.Explicit)]
+        private struct LastTimedOutCommandIds
         {
-            public readonly ProtocolCommandId First = first;
-            public readonly ProtocolCommandId Second = second;
+            [FieldOffset(0)]
+            public ProtocolCommandId First;
+            [FieldOffset(sizeof(ProtocolCommandId))]
+            public ProtocolCommandId Second;
+            [FieldOffset(0)]
+            public long RawValue;
         }
 
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
@@ -167,9 +171,13 @@ namespace RabbitMQ.Client.Impl
             // (e.g. BasicGetOk/BasicGetEmpty, ConnectionSecure/ConnectionTune)
             Debug.Assert(protocolCommandIds.Length is > 0 and <= CommandIdBufferLength);
 
-            var ids = new LastTimedOutCommandIds(first: protocolCommandIds[0], second: protocolCommandIds.Length > 1 ? protocolCommandIds[1] : 0);
+            var ids = new LastTimedOutCommandIds
+            {
+                First = protocolCommandIds[0],
+                Second = protocolCommandIds.Length > 1 ? protocolCommandIds[1] : default
+            };
 
-            Interlocked.Exchange(ref _lastTimedOutCommandIds, Unsafe.As<LastTimedOutCommandIds, long>(ref ids));
+            Interlocked.Exchange(ref _lastTimedOutCommandIds, ids.RawValue);
         }
 
         public bool ShouldIgnoreCommand(ProtocolCommandId commandId)
@@ -184,8 +192,8 @@ namespace RabbitMQ.Client.Impl
                 return false;
             }
 
-            var ids = Unsafe.As<long, LastTimedOutCommandIds>(ref raw);
-            return commandId == ids.First || (ids.Second != 0 && commandId == ids.Second);
+            var ids = new LastTimedOutCommandIds { RawValue = raw };
+            return commandId == ids.First || (ids.Second != default && commandId == ids.Second);
         }
     }
 }
