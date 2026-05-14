@@ -185,6 +185,11 @@ namespace RabbitMQ.Client.Impl
             // rabbitmq/rabbitmq-dotnet-client#1802
             // This keeps track of ProtocolCommandId values from previous RPC
             // commands that have timed out.
+            //
+            // Consume the timed-out state unconditionally, even when commandId does
+            // not match. This is safe because AMQP 0-9-1 enforces strict request-response
+            // ordering on a channel, so a late response is always the very next
+            // incoming command.
             long raw = Interlocked.Exchange(ref _lastTimedOutCommandIds, 0L);
 
             if (raw == 0L)
