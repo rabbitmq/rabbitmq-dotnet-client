@@ -599,7 +599,7 @@ namespace Test.Integration
         {
             await ValidateConsumerDispatchConcurrency();
 
-            AssertRecordedQueues((RabbitMQ.Client.Framing.AutorecoveringConnection)_conn, 0);
+            AssertRecordedQueues((RabbitMQ.Client.Impl.AutorecoveringConnection)_conn, 0);
             var tasks = new List<Task>();
             for (int i = 0; i < 256; i++)
             {
@@ -613,7 +613,7 @@ namespace Test.Integration
                 }));
             }
             await Task.WhenAll(tasks);
-            AssertRecordedQueues((RabbitMQ.Client.Framing.AutorecoveringConnection)_conn, 0);
+            AssertRecordedQueues((RabbitMQ.Client.Impl.AutorecoveringConnection)_conn, 0);
         }
 
         [Fact]

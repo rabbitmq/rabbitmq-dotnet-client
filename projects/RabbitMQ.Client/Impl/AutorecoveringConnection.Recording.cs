@@ -34,9 +34,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Framing
+namespace RabbitMQ.Client.Impl
 {
     internal sealed partial class AutorecoveringConnection
     {
