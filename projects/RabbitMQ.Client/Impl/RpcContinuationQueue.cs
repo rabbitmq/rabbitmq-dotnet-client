@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -157,10 +158,9 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
-            if (protocolCommandIds.Length > CommandIdBufferLength)
-            {
-                throw new ArgumentOutOfRangeException(nameof(protocolCommandIds));
-            }
+            // AMQP 0-9-1 RPCs handle at most 2 response command IDs
+            // (e.g. BasicGetOk/BasicGetEmpty, ConnectionSecure/ConnectionTune)
+            Debug.Assert(protocolCommandIds.Length <= CommandIdBufferLength);
 
             int count = protocolCommandIds.Length;
             _lastTimedOutCommandIdsCount = count;
@@ -185,22 +185,7 @@ namespace RabbitMQ.Client.Impl
             _lastTimedOutCommandIds = default;
             _lastTimedOutCommandIdsCount = 0;
 
-            if (count == 0)
-            {
-                return false;
-            }
-
-            if (commandId == last.First)
-            {
-                return true;
-            }
-
-            if (count > 1 && commandId == last.Second)
-            {
-                return true;
-            }
-
-            return false;
+            return commandId == last.First || (count > 1 && commandId == last.Second);
         }
     }
 }
