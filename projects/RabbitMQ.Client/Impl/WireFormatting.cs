@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace RabbitMQ.Client.Impl
@@ -48,20 +49,23 @@ namespace RabbitMQ.Client.Impl
         // by to produce the Decimal value; bits 24-30 are unused and must be zero;
         // and finally bit 31 indicates the sign of the Decimal value, 0 meaning
         // positive and 1 meaning negative.
-        readonly struct DecimalData
+        // [StructLayout(LayoutKind.Explicit)] overlays Value with the four component
+        // fields, replacing Unsafe.As reinterpret casts in ReadDecimal/WriteDecimal
+        // with type-safe field access. The CLR validates the layout at JIT time.
+        // The same pattern was applied to LastTimedOutCommandIds in PR #1939.
+        [StructLayout(LayoutKind.Explicit)]
+        private struct DecimalData
         {
-            public readonly uint Flags;
-            public readonly uint Hi;
-            public readonly uint Lo;
-            public readonly uint Mid;
-
-            internal DecimalData(uint flags, uint hi, uint lo, uint mid)
-            {
-                Flags = flags;
-                Hi = hi;
-                Lo = lo;
-                Mid = mid;
-            }
+            [FieldOffset(0)]
+            public decimal Value;
+            [FieldOffset(0)]
+            public uint Flags;
+            [FieldOffset(4)]
+            public uint Hi;
+            [FieldOffset(8)]
+            public uint Lo;
+            [FieldOffset(12)]
+            public uint Mid;
         }
 
         private static readonly UTF8Encoding UTF8 = new UTF8Encoding();
