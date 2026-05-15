@@ -50,8 +50,8 @@ namespace RabbitMQ.Client.Impl
             }
 
             uint unsignedMantissa = NetworkOrderDeserializer.ReadUInt32(span.Slice(1));
-            var data = new DecimalData(((uint)(scale << 16)) | unsignedMantissa & 0x80000000, 0, unsignedMantissa & 0x7FFFFFFF, 0);
-            return Unsafe.As<DecimalData, decimal>(ref data);
+            var data = new DecimalData { Flags = ((uint)(scale << 16)) | unsignedMantissa & 0x80000000, Lo = unsignedMantissa & 0x7FFFFFFF };
+            return data.Value;
         }
 
         public static IList? ReadArray(ReadOnlySpan<byte> span, out int bytesRead)

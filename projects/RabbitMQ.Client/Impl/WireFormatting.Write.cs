@@ -95,8 +95,7 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteDecimal(ref byte destination, decimal value)
         {
-            // Cast the decimal to our struct to avoid the decimal.GetBits allocations.
-            DecimalData data = Unsafe.As<decimal, DecimalData>(ref value);
+            var data = new DecimalData { Value = value };
             // According to the documentation :-
             //  - word 0: low-order "mantissa"
             //  - word 1, word 2: medium- and high-order "mantissa"
