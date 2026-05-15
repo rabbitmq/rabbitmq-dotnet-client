@@ -30,9 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -67,8 +67,25 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        private const int CommandIdBufferLength = 2;
+
+        // Two ProtocolCommandId values (each uint) unioned with a single long
+        // so that Interlocked.Exchange can read/write both atomically.
+        // Since ProtocolCommandId : uint has no zero-valued member,
+        // default(LastTimedOutCommandIds).RawValue == 0L means "no timed-out command".
+        [StructLayout(LayoutKind.Explicit)]
+        private struct LastTimedOutCommandIds
+        {
+            [FieldOffset(0)]
+            public ProtocolCommandId First;
+            [FieldOffset(sizeof(ProtocolCommandId))]
+            public ProtocolCommandId Second;
+            [FieldOffset(0)]
+            public long RawValue;
+        }
+
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
-        private readonly Queue<ProtocolCommandId[]> _rpcCancellationQueue = new();
+        private long _lastTimedOutCommandIds;
         private IRpcContinuation _outstandingRpc = s_tmp;
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
@@ -143,12 +160,24 @@ namespace RabbitMQ.Client.Impl
             return false;
         }
 
-        public void RpcCanceled(bool responseReceived, ProtocolCommandId[] protocolCommandIds)
+        public void RpcCanceled(bool responseReceived, ReadOnlySpan<ProtocolCommandId> protocolCommandIds)
         {
-            if (!responseReceived)
+            if (responseReceived)
             {
-                _rpcCancellationQueue.Enqueue(protocolCommandIds);
+                return;
             }
+
+            // AMQP 0-9-1 RPCs handle at most 2 response command IDs
+            // (e.g. BasicGetOk/BasicGetEmpty, ConnectionSecure/ConnectionTune)
+            Debug.Assert(protocolCommandIds.Length is > 0 and <= CommandIdBufferLength);
+
+            var ids = new LastTimedOutCommandIds
+            {
+                First = protocolCommandIds[0],
+                Second = protocolCommandIds.Length > 1 ? protocolCommandIds[1] : default
+            };
+
+            Interlocked.Exchange(ref _lastTimedOutCommandIds, ids.RawValue);
         }
 
         public bool ShouldIgnoreCommand(ProtocolCommandId commandId)
@@ -156,18 +185,20 @@ namespace RabbitMQ.Client.Impl
             // rabbitmq/rabbitmq-dotnet-client#1802
             // This keeps track of ProtocolCommandId values from previous RPC
             // commands that have timed out.
-            bool rv = false;
+            //
+            // Consume the timed-out state unconditionally, even when commandId does
+            // not match. This is safe because AMQP 0-9-1 enforces strict request-response
+            // ordering on a channel, so a late response is always the very next
+            // incoming command.
+            long raw = Interlocked.Exchange(ref _lastTimedOutCommandIds, 0L);
 
-            if (_rpcCancellationQueue.Count > 0)
+            if (raw == 0L)
             {
-                ProtocolCommandId[] lastErroredCommandIds = _rpcCancellationQueue.Dequeue();
-                if (lastErroredCommandIds.Contains(commandId))
-                {
-                    rv = true;
-                }
+                return false;
             }
 
-            return rv;
+            var ids = new LastTimedOutCommandIds { RawValue = raw };
+            return commandId == ids.First || (ids.Second != default && commandId == ids.Second);
         }
     }
 }
