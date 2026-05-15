@@ -36,10 +36,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Logging;
 
-namespace RabbitMQ.Client.Framing
+namespace RabbitMQ.Client.Impl
 {
     internal sealed partial class AutorecoveringConnection
     {

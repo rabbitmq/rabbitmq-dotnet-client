@@ -30,7 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
-using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing
 {

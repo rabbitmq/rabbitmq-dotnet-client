@@ -31,9 +31,9 @@
 
 using System;
 using System.Collections.Generic;
-using RabbitMQ.Client.Impl;
+using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Framing
+namespace RabbitMQ.Client.Impl
 {
     internal abstract class ProtocolBase : IProtocol
     {

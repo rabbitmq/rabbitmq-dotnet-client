@@ -34,6 +34,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 

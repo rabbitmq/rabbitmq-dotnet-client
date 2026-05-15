@@ -33,8 +33,9 @@ using System;
 using System.IO;
 using System.Threading;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Framing;
 
-namespace RabbitMQ.Client.Framing
+namespace RabbitMQ.Client.Impl
 {
     internal sealed partial class Connection
     {
