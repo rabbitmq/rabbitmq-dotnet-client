@@ -656,12 +656,12 @@ namespace RabbitMQ.Client
 
             if (false == string.IsNullOrEmpty(UserName))
             {
-                builder.UserName = UserName;
+                builder.UserName = Uri.EscapeDataString(UserName);
             }
 
             if (false == string.IsNullOrEmpty(Password))
             {
-                builder.Password = Password;
+                builder.Password = Uri.EscapeDataString(Password);
             }
 
             if (false == string.IsNullOrEmpty(VirtualHost))
@@ -709,15 +709,15 @@ namespace RabbitMQ.Client
             string userInfo = uri.UserInfo;
             if (!string.IsNullOrEmpty(userInfo))
             {
-                string[] userPass = userInfo.Split(':');
-                if (userPass.Length > 2)
+                int colonIndex = userInfo.IndexOf(':');
+                if (colonIndex == -1)
                 {
-                    throw new ArgumentException($"Bad user info in AMQP URI: {userInfo}");
+                    UserName = UriDecode(userInfo);
                 }
-                UserName = UriDecode(userPass[0]);
-                if (userPass.Length == 2)
+                else
                 {
-                    Password = UriDecode(userPass[1]);
+                    UserName = UriDecode(userInfo.Substring(0, colonIndex));
+                    Password = UriDecode(userInfo.Substring(colonIndex + 1));
                 }
             }
 
