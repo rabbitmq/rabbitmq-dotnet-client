@@ -272,5 +272,123 @@ namespace Test.Unit
 
             return factory.Uri;
         }
+
+        [Theory]
+        [InlineData("admin#123")]
+        [InlineData("admin:123")]
+        [InlineData("admin:pass:word")]
+        [InlineData("p@ssword")]
+        [InlineData("p word")]
+        [InlineData("p/word")]
+        [InlineData("p?word")]
+        [InlineData("p%word")]
+        [InlineData("#")]
+        [InlineData("##")]
+        [InlineData(":::")]
+        public void TestSetUri_PasswordWithSpecialCharacters(string password)
+        {
+            string user = "admin";
+            string host = "myhost";
+            int port = 5672;
+            string vhost = "/";
+
+            var uriString = $"amqp://{Uri.EscapeDataString(user)}:{Uri.EscapeDataString(password)}@{host}:{port}/%2F";
+            var uri = new Uri(uriString);
+
+            var factory = new ConnectionFactory { Uri = uri };
+
+            Assert.Equal(user, factory.UserName);
+            Assert.Equal(password, factory.Password);
+            Assert.Equal(host, factory.HostName);
+            Assert.Equal(port, factory.Port);
+            Assert.Equal(vhost, factory.VirtualHost);
+        }
+
+        [Theory]
+        [InlineData("admin#123")]
+        [InlineData("admin:123")]
+        [InlineData("admin:pass:word")]
+        [InlineData("p@ssword")]
+        [InlineData("p word")]
+        [InlineData("p/word")]
+        [InlineData("p?word")]
+        [InlineData("p%word")]
+        [InlineData("#")]
+        [InlineData("##")]
+        [InlineData(":::")]
+        public void TestGetUri_PasswordWithSpecialCharacters(string password)
+        {
+            var factory = new ConnectionFactory
+            {
+                UserName = "admin",
+                Password = password,
+                HostName = "myhost",
+                Port = 5672,
+                VirtualHost = "/"
+            };
+
+            Uri uri = factory.Uri;
+
+            var factory2 = new ConnectionFactory { Uri = uri };
+
+            Assert.Equal(factory.UserName, factory2.UserName);
+            Assert.Equal(factory.Password, factory2.Password);
+            Assert.Equal(factory.HostName, factory2.HostName);
+            Assert.Equal(factory.Port, factory2.Port);
+            Assert.Equal(factory.VirtualHost, factory2.VirtualHost);
+        }
+
+        [Theory]
+        [InlineData("adm#in")]
+        [InlineData("adm:in")]
+        [InlineData("adm@in")]
+        [InlineData("adm in")]
+        [InlineData("adm/in")]
+        public void TestSetUri_UserNameWithSpecialCharacters(string userName)
+        {
+            string password = "pass";
+            string host = "myhost";
+            int port = 5672;
+            string vhost = "/";
+
+            var uriString = $"amqp://{Uri.EscapeDataString(userName)}:{Uri.EscapeDataString(password)}@{host}:{port}/%2F";
+            var uri = new Uri(uriString);
+
+            var factory = new ConnectionFactory { Uri = uri };
+
+            Assert.Equal(userName, factory.UserName);
+            Assert.Equal(password, factory.Password);
+            Assert.Equal(host, factory.HostName);
+            Assert.Equal(port, factory.Port);
+            Assert.Equal(vhost, factory.VirtualHost);
+        }
+
+        [Theory]
+        [InlineData("adm#in")]
+        [InlineData("adm:in")]
+        [InlineData("adm@in")]
+        [InlineData("adm in")]
+        [InlineData("adm/in")]
+        public void TestGetUri_UserNameWithSpecialCharacters(string userName)
+        {
+            var factory = new ConnectionFactory
+            {
+                UserName = userName,
+                Password = "pass",
+                HostName = "myhost",
+                Port = 5672,
+                VirtualHost = "/"
+            };
+
+            Uri uri = factory.Uri;
+
+            var factory2 = new ConnectionFactory { Uri = uri };
+
+            Assert.Equal(factory.UserName, factory2.UserName);
+            Assert.Equal(factory.Password, factory2.Password);
+            Assert.Equal(factory.HostName, factory2.HostName);
+            Assert.Equal(factory.Port, factory2.Port);
+            Assert.Equal(factory.VirtualHost, factory2.VirtualHost);
+        }
     }
 }
