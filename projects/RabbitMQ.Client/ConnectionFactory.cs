@@ -710,7 +710,7 @@ namespace RabbitMQ.Client
             if (!string.IsNullOrEmpty(userInfo))
             {
                 int colonIndex = userInfo.IndexOf(':');
-                if (colonIndex == -1)
+                if (colonIndex < 0)
                 {
                     UserName = UriDecode(userInfo);
                 }
