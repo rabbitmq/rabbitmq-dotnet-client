@@ -353,17 +353,24 @@ namespace RabbitMQ.Client.Impl
                 await OnShutdownAsync(reason)
                     .ConfigureAwait(false);
 
-                await _session0.SetSessionClosingAsync(false, cts.Token)
-                    .ConfigureAwait(false);
-
                 try
                 {
+                    await _session0.SetSessionClosingAsync(false, cts.Token)
+                        .ConfigureAwait(false);
+
                     // Try to send connection.close wait for CloseOk in the MainLoop
                     if (false == _closed)
                     {
                         var method = new ConnectionClose(reason.ReplyCode, reason.ReplyText, 0, 0);
                         await _session0.TransmitAsync(method, cts.Token)
                             .ConfigureAwait(false);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    if (false == abort)
+                    {
+                        throw;
                     }
                 }
                 catch (System.Threading.Channels.ChannelClosedException)

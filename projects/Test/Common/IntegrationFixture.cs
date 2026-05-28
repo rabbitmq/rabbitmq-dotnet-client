@@ -36,6 +36,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,6 +53,7 @@ namespace Test
     {
         private static readonly bool s_isRunningInCI = false;
         private static readonly bool s_isVerbose = false;
+        private static readonly bool s_isNetFramework = false;
         private static int _connectionIdx = 0;
 
         private Exception _connectionCallbackException;
@@ -89,6 +91,7 @@ namespace Test
         {
             s_isRunningInCI = InitIsRunningInCI();
             s_isVerbose = InitIsVerbose();
+            s_isNetFramework = InitIsNetFramework();
 
             if (s_isRunningInCI)
             {
@@ -342,6 +345,11 @@ namespace Test
         protected static bool IsWindows
         {
             get { return Util.IsWindows; }
+        }
+
+        protected static bool IsNetFramework
+        {
+            get { return s_isNetFramework; }
         }
 
         protected static bool IsVerbose
@@ -615,6 +623,12 @@ namespace Test
             }
 
             return false;
+        }
+
+        private static bool InitIsNetFramework()
+        {
+            return RuntimeInformation.FrameworkDescription
+                .StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase);
         }
 
         private static int GetConnectionIdx()

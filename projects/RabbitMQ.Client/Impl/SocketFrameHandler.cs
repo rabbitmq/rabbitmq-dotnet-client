@@ -136,6 +136,16 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        private TimeSpan _flushTimeout;
+#if NET
+        private CancellationTokenSource? _flushTimeoutCts;
+#endif
+
+        internal TimeSpan FlushTimeout
+        {
+            set => _flushTimeout = value;
+        }
+
         public static async Task<SocketFrameHandler> CreateAsync(AmqpTcpEndpoint amqpTcpEndpoint, Func<AddressFamily, ITcpClient> socketFactory,
             TimeSpan connectionTimeout, CancellationToken cancellationToken)
         {
@@ -211,6 +221,9 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 _closingSemaphore.Dispose();
+#if NET
+                _flushTimeoutCts?.Dispose();
+#endif
                 _closed = true;
             }
         }
@@ -285,7 +298,7 @@ namespace RabbitMQ.Client.Impl
                         try
                         {
                             frames.WriteTo(_pipeWriter);
-                            await _pipeWriter.FlushAsync()
+                            await FlushPipeAsync()
                                 .ConfigureAwait(false);
                             RabbitMqClientEventSource.Log.CommandSent(frames.Size);
                         }
@@ -295,7 +308,7 @@ namespace RabbitMQ.Client.Impl
                         }
                     }
 
-                    await _pipeWriter.FlushAsync()
+                    await FlushPipeAsync()
                         .ConfigureAwait(false);
                 }
             }
@@ -324,6 +337,36 @@ namespace RabbitMQ.Client.Impl
                     leftover.Dispose();
                 }
             }
+        }
+
+        // Flush the pipe writer, applying a cancellation timeout when configured.
+        // A non-default _flushTimeout allows tests to bound how long an async socket
+        // write can stall before the write loop is crashed and blocked publishers are
+        // unblocked. See issue #1930.
+        private async ValueTask FlushPipeAsync()
+        {
+            if (_flushTimeout == default)
+            {
+                await _pipeWriter.FlushAsync().ConfigureAwait(false);
+                return;
+            }
+
+#if NET
+            // Reuse a single CTS across flushes to avoid allocating a new CTS and
+            // backing timer on every call. TryReset() recycles it when the previous
+            // flush completed before the timeout; if the timeout fired (CTS already
+            // cancelled) TryReset() returns false and we allocate a fresh one.
+            if (_flushTimeoutCts is null || !_flushTimeoutCts.TryReset())
+            {
+                _flushTimeoutCts?.Dispose();
+                _flushTimeoutCts = new CancellationTokenSource();
+            }
+            _flushTimeoutCts.CancelAfter(_flushTimeout);
+            await _pipeWriter.FlushAsync(_flushTimeoutCts.Token).ConfigureAwait(false);
+#else
+            using var cts = new CancellationTokenSource(_flushTimeout);
+            await _pipeWriter.FlushAsync(cts.Token).ConfigureAwait(false);
+#endif
         }
     }
 }
