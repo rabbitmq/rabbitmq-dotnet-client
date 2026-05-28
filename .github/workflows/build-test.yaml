@@ -18,7 +18,7 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           global-json-file: global.json     
       - name: Cache NuGet packages
@@ -59,7 +59,7 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           global-json-file: global.json            
       - name: Cache installers
@@ -109,7 +109,7 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           global-json-file: global.json            
       - name: Cache installers
@@ -150,7 +150,7 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           global-json-file: global.json            
       - name: Cache NuGet packages
@@ -188,7 +188,7 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           global-json-file: global.json            
       - name: Download Build (Debug)
@@ -229,7 +229,7 @@ jobs:
         with:
           submodules: true
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
         with:
           global-json-file: global.json            
       - name: Download Build (Debug)
