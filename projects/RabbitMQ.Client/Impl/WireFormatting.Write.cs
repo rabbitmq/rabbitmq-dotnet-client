@@ -373,19 +373,25 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteLongstr(ref byte destination, string val)
         {
-            static int GetBytes(ref byte destination, string val)
+            static int GetBytes(ref byte destination, string val, int byteCount)
             {
                 unsafe
                 {
                     fixed (char* chars = val)
                     fixed (byte* bytes = &destination)
                     {
-                        return UTF8.GetBytes(chars, val.Length, bytes, int.MaxValue);
+                        return UTF8.GetBytes(chars, val.Length, bytes, byteCount);
                     }
                 }
             }
 
-            int bytesWritten = string.IsNullOrEmpty(val) ? 0 : GetBytes(ref destination.GetOffset(4), val);
+            // Do not pass int.MaxValue as the destination byte count: the encoder
+            // computes "bytes + byteCount", which wraps around in 32-bit
+            // large-address-aware processes when the destination buffer is located
+            // above 0x80000000, throwing a spurious "output byte buffer is too
+            // small" ArgumentException. The exact byte count cannot wrap for a
+            // valid destination buffer, since the encoded bytes fit within it.
+            int bytesWritten = string.IsNullOrEmpty(val) ? 0 : GetBytes(ref destination.GetOffset(4), val, UTF8.GetByteCount(val));
             NetworkOrderSerializer.WriteUInt32(ref destination, (uint)bytesWritten);
             return bytesWritten + 4;
         }
