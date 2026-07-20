@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Framing
             offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _queue);
             offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _exchange);
             offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _routingKey);
-            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments);
+            return offset + WireFormatting.WriteTable(ref span.GetOffset(offset), _arguments, span.Length - offset);
         }
 
         public int GetRequiredBufferSize()

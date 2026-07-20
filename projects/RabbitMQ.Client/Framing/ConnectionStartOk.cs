@@ -54,7 +54,7 @@ namespace RabbitMQ.Client.Framing
 
         public int WriteTo(Span<byte> span)
         {
-            int offset = WireFormatting.WriteTable(ref span.GetStart(), _clientProperties);
+            int offset = WireFormatting.WriteTable(ref span.GetStart(), _clientProperties, span.Length);
             offset += WireFormatting.WriteShortstr(ref span.GetOffset(offset), _mechanism);
             offset += WireFormatting.WriteLongstr(ref span.GetOffset(offset), _response);
             return offset + WireFormatting.WriteShortstr(ref span.GetOffset(offset), _locale);

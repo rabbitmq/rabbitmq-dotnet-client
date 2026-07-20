@@ -64,7 +64,7 @@ namespace Test.Unit
             t["fieldarray"] = array;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(ref bytes.GetStart(), t);
+            WireFormatting.WriteTable(ref bytes.GetStart(), t, bytes.Length);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
             Assert.Equal(bytesNeeded, bytesRead);
             Assert.Equal(Encoding.UTF8.GetBytes("Hello"), nt["string"]);
@@ -88,7 +88,7 @@ namespace Test.Unit
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(ref bytes.GetStart(), t);
+            WireFormatting.WriteTable(ref bytes.GetStart(), t, bytes.Length);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
             Assert.Equal(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
@@ -108,7 +108,7 @@ namespace Test.Unit
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(ref bytes.GetStart(), t);
+            WireFormatting.WriteTable(ref bytes.GetStart(), t, bytes.Length);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out _);
             Assert.Equal(bytesNeeded, bytesRead);
             Check(bytes, new byte[] {
@@ -138,7 +138,7 @@ namespace Test.Unit
             t["V"] = null;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
-            WireFormatting.WriteTable(ref bytes.GetStart(), t);
+            WireFormatting.WriteTable(ref bytes.GetStart(), t, bytes.Length);
             int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
             Assert.Equal(bytesNeeded, bytesRead);
             Assert.Equal(typeof(byte), nt["B"].GetType()); Assert.Equal((byte)255, nt["B"]);

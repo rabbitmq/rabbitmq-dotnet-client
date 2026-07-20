@@ -188,7 +188,7 @@ namespace RabbitMQ.Client
             if (IsHeadersPresent())
             {
                 bitValue.SetBit(HeaderBit);
-                offset += WireFormatting.WriteTable(ref span.GetOffset(offset), Headers);
+                offset += WireFormatting.WriteTable(ref span.GetOffset(offset), Headers, span.Length - offset);
             }
 
             if (IsDeliveryModePresent())

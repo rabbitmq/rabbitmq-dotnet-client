@@ -68,12 +68,26 @@ namespace Test.Unit
 
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] memory = new byte[bytesNeeded];
-            int offset = WireFormatting.WriteTable(ref memory.GetStart(), t);
+            int offset = WireFormatting.WriteTable(ref memory.GetStart(), t, memory.Length);
             Assert.Equal(bytesNeeded, offset);
             Check(memory, new byte[] { 0x00, 0x00, 0x00, 0x0C,
                                    0x03, 0x61, 0x62, 0x63,
                                    0x53, 0x00, 0x00, 0x00,
                                    0x03, 0x64, 0x65, 0x66 });
+        }
+
+        [Fact]
+        public void TestLongstrWriterHonorsRemainingBufferLength()
+        {
+            var t = new Hashtable
+            {
+                ["key"] = "value"
+            };
+
+            byte[] memory = new byte[WireFormatting.GetTableByteCount(t)];
+
+            Assert.Throws<ArgumentException>(() =>
+                WireFormatting.WriteTable(ref memory.GetStart(), t, memory.Length - 1));
         }
 
         [Fact]
@@ -100,7 +114,7 @@ namespace Test.Unit
             t["x"] = x;
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] memory = new byte[bytesNeeded];
-            int offset = WireFormatting.WriteTable(ref memory.GetStart(), t);
+            int offset = WireFormatting.WriteTable(ref memory.GetStart(), t, memory.Length);
             Assert.Equal(bytesNeeded, offset);
             Check(memory, new byte[] { 0x00, 0x00, 0x00, 0x0E,
                                    0x01, 0x78, 0x46, 0x00,

@@ -39,17 +39,17 @@ namespace RabbitMQ.Benchmarks
         public override void SetUp()
         {
             _fieldNullBuffer = new byte[WireFormatting.GetFieldValueByteCount(null)];
-            WireFormatting.WriteFieldValue(ref _fieldNullBuffer.Span.GetStart(), null);
+            WireFormatting.WriteFieldValue(ref _fieldNullBuffer.Span.GetStart(), null, _fieldNullBuffer.Length);
             _fieldIntBuffer = new byte[WireFormatting.GetFieldValueByteCount(_intObject)];
-            WireFormatting.WriteFieldValue(ref _fieldIntBuffer.Span.GetStart(), _intObject);
+            WireFormatting.WriteFieldValue(ref _fieldIntBuffer.Span.GetStart(), _intObject, _fieldIntBuffer.Length);
             _fieldStringBuffer = new byte[WireFormatting.GetFieldValueByteCount(_shortString)];
-            WireFormatting.WriteFieldValue(ref _fieldStringBuffer.Span.GetStart(), _shortString);
+            WireFormatting.WriteFieldValue(ref _fieldStringBuffer.Span.GetStart(), _shortString, _fieldStringBuffer.Length);
             _fieldArrayBuffer = new byte[WireFormatting.GetFieldValueByteCount(_byteArray)];
-            WireFormatting.WriteFieldValue(ref _fieldArrayBuffer.Span.GetStart(), _byteArray);
+            WireFormatting.WriteFieldValue(ref _fieldArrayBuffer.Span.GetStart(), _byteArray, _fieldArrayBuffer.Length);
             _fieldDictBuffer = new byte[WireFormatting.GetFieldValueByteCount(_emptyDictionary)];
-            WireFormatting.WriteFieldValue(ref _fieldDictBuffer.Span.GetStart(), _emptyDictionary);
+            WireFormatting.WriteFieldValue(ref _fieldDictBuffer.Span.GetStart(), _emptyDictionary, _fieldDictBuffer.Length);
             _fieldBinaryTableValueBuffer = new byte[WireFormatting.GetFieldValueByteCount(_binaryTableValue)];
-            WireFormatting.WriteFieldValue(ref _fieldBinaryTableValueBuffer.Span.GetStart(), _binaryTableValue);
+            WireFormatting.WriteFieldValue(ref _fieldBinaryTableValueBuffer.Span.GetStart(), _binaryTableValue, _fieldBinaryTableValueBuffer.Length);
         }
 
         [Benchmark]
@@ -65,17 +65,17 @@ namespace RabbitMQ.Benchmarks
         [Benchmark]
         public object BinaryTableValueRead() => WireFormatting.ReadFieldValue(_fieldBinaryTableValueBuffer.Span, out int _);
         [Benchmark]
-        public int NullWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), null);
+        public int NullWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), null, _buffer.Length);
         [Benchmark]
-        public int IntWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _intObject);
+        public int IntWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _intObject, _buffer.Length);
         [Benchmark]
-        public int StringWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _shortString);
+        public int StringWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _shortString, _buffer.Length);
         [Benchmark]
-        public int ArrayWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _byteArray);
+        public int ArrayWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _byteArray, _buffer.Length);
         [Benchmark]
-        public int DictWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _emptyDictionary);
+        public int DictWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _emptyDictionary, _buffer.Length);
         [Benchmark]
-        public int BinaryTableValueWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _binaryTableValue);
+        public int BinaryTableValueWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _binaryTableValue, _buffer.Length);
         [Benchmark]
         public int NullGetSize() => WireFormatting.GetFieldValueByteCount(null);
         [Benchmark]
@@ -101,10 +101,10 @@ namespace RabbitMQ.Benchmarks
         {
             _array = new List<object> { "longstring", 1234, 12.34m, _timestamp };
             _emptyArrayBuffer = new byte[WireFormatting.GetArrayByteCount(_emptyArray)];
-            WireFormatting.WriteArray(ref _emptyArrayBuffer.Span.GetStart(), _emptyArray);
+            WireFormatting.WriteArray(ref _emptyArrayBuffer.Span.GetStart(), _emptyArray, _emptyArrayBuffer.Length);
 
             _populatedArrayBuffer = new byte[WireFormatting.GetArrayByteCount(_array)];
-            WireFormatting.WriteArray(ref _populatedArrayBuffer.Span.GetStart(), _array);
+            WireFormatting.WriteArray(ref _populatedArrayBuffer.Span.GetStart(), _array, _populatedArrayBuffer.Length);
         }
 
         [Benchmark]
@@ -114,10 +114,10 @@ namespace RabbitMQ.Benchmarks
         public IList ArrayReadPopulated() => WireFormatting.ReadArray(_populatedArrayBuffer.Span, out _);
 
         [Benchmark]
-        public int ArrayWriteEmpty() => WireFormatting.WriteArray(ref _buffer.Span.GetStart(), _emptyArray);
+        public int ArrayWriteEmpty() => WireFormatting.WriteArray(ref _buffer.Span.GetStart(), _emptyArray, _buffer.Length);
 
         [Benchmark]
-        public int ArrayWritePopulated() => WireFormatting.WriteArray(ref _buffer.Span.GetStart(), _array);
+        public int ArrayWritePopulated() => WireFormatting.WriteArray(ref _buffer.Span.GetStart(), _array, _buffer.Length);
 
         [Benchmark]
         public int ArrayGetSizeEmpty() => WireFormatting.GetArrayByteCount(_emptyArray);
@@ -147,10 +147,10 @@ namespace RabbitMQ.Benchmarks
             };
 
             _emptyDictionaryBuffer = new byte[WireFormatting.GetTableByteCount(_emptyDict)];
-            WireFormatting.WriteTable(ref _emptyDictionaryBuffer.Span.GetStart(), _emptyDict);
+            WireFormatting.WriteTable(ref _emptyDictionaryBuffer.Span.GetStart(), _emptyDict, _emptyDictionaryBuffer.Length);
 
             _populatedDictionaryBuffer = new byte[WireFormatting.GetTableByteCount(_populatedDict)];
-            WireFormatting.WriteTable(ref _populatedDictionaryBuffer.Span.GetStart(), _populatedDict);
+            WireFormatting.WriteTable(ref _populatedDictionaryBuffer.Span.GetStart(), _populatedDict, _populatedDictionaryBuffer.Length);
         }
 
         [Benchmark]
@@ -160,10 +160,10 @@ namespace RabbitMQ.Benchmarks
         public int TableReadPopulated() => WireFormatting.ReadDictionary(_populatedDictionaryBuffer.Span, out _);
 
         [Benchmark]
-        public int TableWriteEmpty() => WireFormatting.WriteTable(ref _buffer.Span.GetStart(), _emptyDict);
+        public int TableWriteEmpty() => WireFormatting.WriteTable(ref _buffer.Span.GetStart(), _emptyDict, _buffer.Length);
 
         [Benchmark]
-        public int TableWritePopulated() => WireFormatting.WriteTable(ref _buffer.Span.GetStart(), _populatedDict);
+        public int TableWritePopulated() => WireFormatting.WriteTable(ref _buffer.Span.GetStart(), _populatedDict, _buffer.Length);
 
         [Benchmark]
         public int TableGetSizeEmpty() => WireFormatting.GetTableByteCount(_emptyDict);
@@ -185,10 +185,10 @@ namespace RabbitMQ.Benchmarks
         public int LongstrReadPopulated() => WireFormatting.ReadLongstr(_populatedLongStringBuffer.Span, out _);
 
         [Benchmark]
-        public int LongstrWriteEmpty() => WireFormatting.WriteLongstr(ref _buffer.Span.GetStart(), string.Empty);
+        public int LongstrWriteEmpty() => WireFormatting.WriteLongstr(ref _buffer.Span.GetStart(), string.Empty, _buffer.Length);
 
         [Benchmark]
-        public int LongstrWritePopulated() => WireFormatting.WriteLongstr(ref _buffer.Span.GetStart(), _longString);
+        public int LongstrWritePopulated() => WireFormatting.WriteLongstr(ref _buffer.Span.GetStart(), _longString, _buffer.Length);
 
         [Benchmark]
         public int LongstrGetSizeEmpty() => WireFormatting.GetFieldValueByteCount(string.Empty);
@@ -199,7 +199,7 @@ namespace RabbitMQ.Benchmarks
         private static byte[] GenerateLongStringBuffer(string val)
         {
             byte[] _buffer = new byte[5 + Encoding.UTF8.GetByteCount(val)];
-            WireFormatting.WriteLongstr(ref _buffer.GetStart(), val);
+            WireFormatting.WriteLongstr(ref _buffer.GetStart(), val, _buffer.Length);
             return _buffer;
         }
     }
