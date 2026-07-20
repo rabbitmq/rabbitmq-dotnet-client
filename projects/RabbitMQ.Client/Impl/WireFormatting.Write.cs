@@ -373,8 +373,19 @@ namespace RabbitMQ.Client.Impl
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteLongstr(ref byte destination, string val)
         {
-            static int GetBytes(ref byte destination, string val, int byteCount)
+            static int GetBytes(ref byte destination, string val)
             {
+                // On 32-bit (large-address-aware) processes "bytes + int.MaxValue"
+                // wraps around whenever the destination buffer is located above
+                // 0x80000000, making the encoder throw a spurious "output byte
+                // buffer is too small" ArgumentException. Use the exact byte count
+                // there. On 64-bit the addition cannot overflow, so the original
+                // one-pass behavior is preserved; IntPtr.Size is a JIT-time
+                // constant, so the check itself is free.
+                int byteCount = IntPtr.Size == 4
+                    ? UTF8.GetByteCount(val)
+                    : int.MaxValue;
+
                 unsafe
                 {
                     fixed (char* chars = val)
@@ -385,13 +396,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            // Do not pass int.MaxValue as the destination byte count: the encoder
-            // computes "bytes + byteCount", which wraps around in 32-bit
-            // large-address-aware processes when the destination buffer is located
-            // above 0x80000000, throwing a spurious "output byte buffer is too
-            // small" ArgumentException. The exact byte count cannot wrap for a
-            // valid destination buffer, since the encoded bytes fit within it.
-            int bytesWritten = string.IsNullOrEmpty(val) ? 0 : GetBytes(ref destination.GetOffset(4), val, UTF8.GetByteCount(val));
+            int bytesWritten = string.IsNullOrEmpty(val) ? 0 : GetBytes(ref destination.GetOffset(4), val);
             NetworkOrderSerializer.WriteUInt32(ref destination, (uint)bytesWritten);
             return bytesWritten + 4;
         }
