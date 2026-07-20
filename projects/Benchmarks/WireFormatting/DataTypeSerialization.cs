@@ -25,6 +25,7 @@ namespace RabbitMQ.Benchmarks
     {
         private readonly object _intObject = 5;
         private readonly string _shortString = new string('x', 100);
+        private readonly string _longString = new string('x', 4096);
         private readonly byte[] _byteArray = new byte[0];
         private readonly Dictionary<string, object> _emptyDictionary = new Dictionary<string, object>();
         private readonly BinaryTableValue _binaryTableValue = new BinaryTableValue(new byte[0]);
@@ -70,6 +71,8 @@ namespace RabbitMQ.Benchmarks
         public int IntWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _intObject, _buffer.Length);
         [Benchmark]
         public int StringWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _shortString, _buffer.Length);
+        [Benchmark]
+        public int LongStringWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _longString, _buffer.Length);
         [Benchmark]
         public int ArrayWrite() => WireFormatting.WriteFieldValue(ref _buffer.Span.GetStart(), _byteArray, _buffer.Length);
         [Benchmark]
