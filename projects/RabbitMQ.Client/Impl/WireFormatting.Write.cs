@@ -375,12 +375,23 @@ namespace RabbitMQ.Client.Impl
         {
             static int GetBytes(ref byte destination, string val)
             {
+                // On 32-bit (large-address-aware) processes "bytes + int.MaxValue"
+                // wraps around whenever the destination buffer is located above
+                // 0x80000000, making the encoder throw a spurious "output byte
+                // buffer is too small" ArgumentException. Use the exact byte count
+                // there. On 64-bit the addition cannot overflow, so the original
+                // one-pass behavior is preserved; IntPtr.Size is a JIT-time
+                // constant, so the check itself is free.
+                int byteCount = IntPtr.Size == 4
+                    ? UTF8.GetByteCount(val)
+                    : int.MaxValue;
+
                 unsafe
                 {
                     fixed (char* chars = val)
                     fixed (byte* bytes = &destination)
                     {
-                        return UTF8.GetBytes(chars, val.Length, bytes, int.MaxValue);
+                        return UTF8.GetBytes(chars, val.Length, bytes, byteCount);
                     }
                 }
             }
