@@ -401,26 +401,49 @@ namespace Test.Integration
         public async Task TestCreateConnectionAsync_CancellationDuringHandshake_CompletesQuickly()
         {
             // Regression test for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1921
-            // When a CancellationToken fires during the AMQP handshake, CreateConnectionAsync
-            // must complete (with an exception) quickly, not hang for DefaultConnectionAbortTimeout (5s).
-            ConnectionFactory cf = CreateConnectionFactory();
-
-            var sw = Stopwatch.StartNew();
-            try
+            // When a CancellationToken fires while a connection is being opened,
+            // CreateConnectionAsync must complete (with an exception) quickly, not hang.
+            //
+            // Two distinct hang paths were possible, both surfacing as a wait for the full
+            // ContinuationTimeout while channel 0 was disposed:
+            //   1. Cancellation observed after the main loop started but before FinishCloseAsync
+            //      ran to shut down channel 0.
+            //   2. Cancellation observed before the main loop was even started (a very short
+            //      window right at the beginning of Connection.OpenAsync), so FinishCloseAsync
+            //      never ran at all.
+            // The second window is sub-millisecond, so sweep a range of short cancellation
+            // delays to exercise both. A large ContinuationTimeout makes any residual hang
+            // obvious (it would block for that long) rather than being masked by a short one.
+            var cf = new ConnectionFactory
             {
-                // 50ms: enough for TCP to connect but fires during the AMQP handshake on localhost
-                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
-                await cf.CreateConnectionAsync(cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            sw.Stop();
+                ContinuationTimeout = TimeSpan.FromSeconds(30),
+                HandshakeContinuationTimeout = TimeSpan.FromSeconds(30)
+            };
 
-            // Before the fix, cleanup after a mid-handshake cancellation blocked for
-            // DefaultConnectionAbortTimeout (5s). Allow 3s to account for slow CI runners.
-            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(3),
-                $"CreateConnectionAsync took {sw.Elapsed.TotalSeconds:F1}s; expected < 3s (possible hang regression from gh-1921)");
+            var delaysMicroseconds = new[] { 0, 100, 250, 500, 750, 1000, 1500, 2000, 5000, 50000 };
+            foreach (int delayMicroseconds in delaysMicroseconds)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        using var cts = new CancellationTokenSource(
+                            TimeSpan.FromTicks(delayMicroseconds * (TimeSpan.TicksPerMillisecond / 1000)));
+                        await using IConnection conn = await cf.CreateConnectionAsync(cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                    sw.Stop();
+
+                    // Before the fix, cleanup after cancellation blocked for the full
+                    // ContinuationTimeout (30s here). Allow 3s to account for slow CI runners.
+                    Assert.True(sw.Elapsed < TimeSpan.FromSeconds(3),
+                        $"CreateConnectionAsync took {sw.Elapsed.TotalSeconds:F1}s with a " +
+                        $"{delayMicroseconds}us cancellation delay; expected < 3s (hang regression from gh-1921)");
+                }
+            }
         }
 
         [Fact]
