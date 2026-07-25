@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    One-off repro for the Windows CI failures on the fix/gh-1921-cancellation
+    branch. NOT part of the solution or Build.csproj. Multi-targets the same
+    frameworks the win32 Integration job exercises so both failure modes can be
+    reproduced natively on Windows:
+
+      * net8.0  -> Dns.GetHostAddressesAsync receives the token; cancelling DNS
+                   on Windows throws SocketException (WSALookupServiceEnd), which
+                   SelectOneAsync rethrows wrapped in AggregateException.
+      * net472  -> netstandard2.0 build of the client; DNS gets no token and
+                   ConnectAsync uses .WaitAsync(token) (abandon-not-cancel).
+                   This is where the observed 10.2s stall showed up.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
+    <RootNamespace>GH_1921</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <!-- One-off repro: skip the repo's analyzer/ConfigureAwait enforcement. -->
+    <RunAnalyzers>false</RunAnalyzers>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../RabbitMQ.Client/RabbitMQ.Client.csproj" />
+  </ItemGroup>
+
+</Project>
