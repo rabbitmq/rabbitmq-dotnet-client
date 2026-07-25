@@ -148,9 +148,13 @@ namespace RabbitMQ.Client.Impl
                     }
                     else if (cancellationToken.IsCancellationRequested)
                     {
-                        // cancellationToken was cancelled (possibly before this method was called).
-                        // The recovery loop has already been cancelled via _recoveryCancellationTokenSource
-                        // and will exit asynchronously without further action needed.
+                        // The caller's cancellationToken fired (possibly before this method was
+                        // called), which aborted the WaitAsync above. We do NOT rethrow: a
+                        // caller-cancelled close should complete quietly rather than surface an
+                        // OperationCanceledException (this mirrors the abort path in
+                        // Connection.CloseAsync). Note the recovery loop has been signalled to
+                        // cancel via _recoveryCancellationTokenSource but is NOT awaited here, so
+                        // it may still be unwinding when this returns; cancellation is cooperative.
                     }
                     else
                     {
