@@ -6,15 +6,23 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 
 // One-off repro for the Windows CI failures seen on fix/gh-1921-cancellation.
+// Both failures are now fixed on this branch; this app was used to confirm each
+// one natively on Windows and is kept for future diagnosis of the same area.
 //
 // The strengthened regression test
 // (TestConnectionFactory.TestCreateConnectionAsync_CancellationDuringHandshake_CompletesQuickly)
-// passes on Linux (0 slow / 2100) but fails two different ways on the win32 job:
+// passed on Linux (0 slow / 2100) but originally failed two different ways on the
+// win32 job:
 //
-//   net8.0 : throws AggregateException(SocketException "WSALookupServiceEnd ...
-//            canceled") at ~3ms -- the test only catches OperationCanceledException,
-//            so the exception escapes and fails the test.
-//   net472 : one attempt at a 0us cancellation delay took 10.2s (> 3s bar).
+//   net8.0 : threw AggregateException(SocketException "WSALookupServiceEnd ...
+//            canceled") at ~3ms -- the test only caught OperationCanceledException,
+//            so the exception escaped and failed the test. Fixed by also catching
+//            BrokerUnreachableException (the wrapper the DNS-cancel SocketException
+//            reaches the caller as).
+//   net472 : one attempt at a 0us cancellation delay took 10.2s (> 3s bar) -- a
+//            real residual hang from a PipeReader.ReadAsync parked on the
+//            NetworkStream not observing main-loop cancellation. Fixed by
+//            force-closing the socket on abort (netstandard only).
 //
 // This app reproduces both: it sweeps the same cancellation delays, catches ALL
 // exceptions (recording their types), and reports the slowest attempt plus an

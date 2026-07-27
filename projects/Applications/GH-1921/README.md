@@ -10,7 +10,15 @@ Issue [#1921](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1921): `
 
 - **net8.0**: the attempt threw `AggregateException` wrapping a `SocketException` (`A call to WSALookupServiceEnd was made while this call was still processing. The call has been canceled.`) at ~3ms. On Windows, cancelling `Dns.GetHostAddressesAsync` (which receives the token on .NET) surfaces a `SocketException`; `EndpointResolverExtensions.SelectOneAsync` collects it and rethrows it wrapped in `AggregateException`. The test only caught `OperationCanceledException`, so the exception escaped and failed the test.
 
-- **net472**: one attempt at a 0us cancellation delay took 10.2s (over the test's 3s bar, but under the 30s `ContinuationTimeout`). The netstandard2.0 client does not pass the token to DNS, and `TcpClientAdapter.ConnectAsync` uses `socket.ConnectAsync(...).WaitAsync(token)` (abandon-not-cancel). Whether this is a real residual hang or a test artifact is the open question this app exists to answer.
+- **net472**: one attempt at a 0us cancellation delay took 10.2s (over the test's 3s bar, but under the 30s `ContinuationTimeout`). The netstandard2.0 client does not pass the token to DNS, and `TcpClientAdapter.ConnectAsync` uses `socket.ConnectAsync(...).WaitAsync(token)` (abandon-not-cancel).
+
+## Resolution
+
+Both failures are now fixed on this branch; this app was used to confirm each one natively on Windows.
+
+- **net8.0 (Failure A)** was a test-only gap: the fix was correct, but the regression test's `catch` only handled `OperationCanceledException`. The Windows DNS-cancel `SocketException` reaches the caller wrapped as `BrokerUnreachableException`, so the test now also catches that.
+
+- **net472 (Failure B)** was a genuine residual hang, not a test artifact. On .NET Framework a `PipeReader.ReadAsync` already parked on the `NetworkStream` does not observe cancellation of the main loop's token, so `MainLoop` never unwinds and channel 0 is never shut down. The fix force-closes the socket on abort (netstandard only) to unblock the parked read; see `CloseSocket` in `SocketFrameHandler` and the `#if NETSTANDARD` abort block in `Connection.CloseAsync`. Post-fix, the repro reports 0 slow attempts out of 200 with a worst case of ~0.2s.
 
 ## What it does
 
@@ -39,7 +47,7 @@ The optional first argument is the broker hostname (default `localhost`).
 
 ### Interpreting the output
 
-- **net8.0**: expect an `AggregateException[...] -> SocketException` entry in the histogram. That confirms the test-catch gap (Failure A): the fix is fine, the test's `catch` is too narrow.
-- **net472**: watch the `slow(>3s)` counts and the `WORST` line. Slow attempts here point at a genuine residual on the netstandard2.0 path (Failure B); all-fast attempts suggest the CI stall was an artifact (for example a slow runner or DNS).
+- **net8.0**: expect an `AggregateException[...] -> SocketException` entry in the histogram. This is Failure A: the fix is fine, and (before the test was broadened) the test's `catch` was too narrow to accept it.
+- **net472**: watch the `slow(>3s)` counts and the `WORST` line. Before the fix this path showed a genuine residual hang (Failure B); after the socket-close fix it reports 0 slow attempts.
 
 On Linux this app runs clean (0 slow, worst well under a second) and cannot reproduce either Windows failure; that is expected.
