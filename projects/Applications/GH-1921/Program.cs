@@ -51,6 +51,7 @@ double worstSeconds = 0;
 int worstDelayMicroseconds = -1;
 int totalSlow = 0;
 int totalRuns = 0;
+string? firstSlowDump = null;
 
 foreach (int delayMicroseconds in delaysMicroseconds)
 {
@@ -69,6 +70,7 @@ foreach (int delayMicroseconds in delaysMicroseconds)
         };
 
         var sw = Stopwatch.StartNew();
+        Exception? caught = null;
         try
         {
             using var cts = new CancellationTokenSource(
@@ -78,6 +80,7 @@ foreach (int delayMicroseconds in delaysMicroseconds)
         }
         catch (Exception ex)
         {
+            caught = ex;
             RecordException(DescribeException(ex));
         }
         sw.Stop();
@@ -86,7 +89,18 @@ foreach (int delayMicroseconds in delaysMicroseconds)
         double seconds = sw.Elapsed.TotalSeconds;
         if (seconds > maxSeconds) maxSeconds = seconds;
         if (seconds > worstSeconds) { worstSeconds = seconds; worstDelayMicroseconds = delayMicroseconds; }
-        if (seconds > slowThresholdSeconds) { slow++; totalSlow++; }
+        if (seconds > slowThresholdSeconds)
+        {
+            slow++;
+            totalSlow++;
+            // Dump full detail for the first slow attempt of the whole run so we can
+            // see exactly which await ate the time (data-gathering, not a fix).
+            if (firstSlowDump == null)
+            {
+                firstSlowDump = $"FIRST SLOW ATTEMPT: {seconds:F2}s at delay={delayMicroseconds}us, iteration {i}\n" +
+                    (caught != null ? caught.ToString() : "(no exception - opened then disposed)");
+            }
+        }
     }
 
     Console.WriteLine($"delay={delayMicroseconds,6}us   max={maxSeconds,7:F2}s   slow(>{slowThresholdSeconds:F0}s)={slow}/{iterationsPerDelay}");
@@ -99,6 +113,13 @@ Console.WriteLine("Exception types observed:");
 foreach (KeyValuePair<string, int> kv in exceptionHistogram)
 {
     Console.WriteLine($"  {kv.Value,5}x  {kv.Key}");
+}
+
+if (firstSlowDump != null)
+{
+    Console.WriteLine();
+    Console.WriteLine("=== first slow attempt detail ===");
+    Console.WriteLine(firstSlowDump);
 }
 
 void RecordException(string key)
