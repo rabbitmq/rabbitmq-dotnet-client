@@ -234,6 +234,22 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+#if NETSTANDARD
+        public void CloseSocket()
+        {
+            try
+            {
+                Gh1921Trace.Mark("FrameHandler.CloseSocket: begin _socket.Close");
+                _socket.Close();
+                Gh1921Trace.Mark("FrameHandler.CloseSocket: end _socket.Close");
+            }
+            catch
+            {
+                // ignore, we are aborting anyway
+            }
+        }
+#endif
+
         public ValueTask ReadFrameAsync(InboundFrame frame, CancellationToken mainLoopCancellationToken)
         {
             return InboundFrame.ReadFromPipeAsync(_pipeReader,

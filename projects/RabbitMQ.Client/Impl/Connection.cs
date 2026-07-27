@@ -442,6 +442,27 @@ namespace RabbitMQ.Client.Impl
                  * can never arrive. The abort timeout still bounds the wait.
                  */
                 CancellationToken mainLoopWaitToken = abort ? timeoutCts.Token : cts.Token;
+#if NETSTANDARD
+                /*
+                 * On .NET Framework, cancelling _mainLoopCts does not interrupt a
+                 * PipeReader.ReadAsync already parked on the NetworkStream (e.g. when
+                 * open is cancelled before the protocol header is sent, so no server
+                 * bytes ever arrive). MainLoop stays parked, _mainLoopTask never
+                 * completes, and this await would burn the full abort timeout before
+                 * the fallback below closes the socket. Worse, MainLoop never runs
+                 * FinishCloseAsync, so channel 0 is left open and a later dispose
+                 * stalls for a second timeout.
+                 *
+                 * For abort, close the socket up front: this unblocks the parked read
+                 * so MainLoop unwinds promptly and runs FinishCloseAsync (the single
+                 * authoritative frame-handler close and channel 0 shutdown). See
+                 * issue #1921.
+                 */
+                if (abort)
+                {
+                    _frameHandler.CloseSocket();
+                }
+#endif
                 Gh1921Trace.Mark($"CloseAsync: begin _mainLoopTask.WaitAsync (abort={abort})");
                 await _mainLoopTask.WaitAsync(mainLoopWaitToken)
                     .ConfigureAwait(false);

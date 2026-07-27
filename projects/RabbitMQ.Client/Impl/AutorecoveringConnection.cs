@@ -317,7 +317,7 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-#if NETSTANDARD2_0
+#if NETSTANDARD
                 _recoveryCancellationTokenSource.Cancel();
 #else
                 await _recoveryCancellationTokenSource.CancelAsync()
