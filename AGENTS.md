@@ -8,8 +8,7 @@ The RabbitMQ .NET Client is a comprehensive AMQP 0-9-1 client library for .NET, 
 - **Dual-licensed**: Apache License 2.0 and Mozilla Public License 2.0
 - **Target Frameworks**: .NET 8.0 and .NET Standard 2.0
 - **Language**: C# 12.0 with nullable reference types enabled
-- **Current Version**: 7.2.1 (in development)
-- **Latest Stable**: 7.2.0 (released November 2025)
+- **Versioning**: Derived from git tags via MinVer (no static version file). The latest release tag is `v7.2.1`.
 
 ## Major Version 7.x Changes
 
@@ -27,7 +26,7 @@ Version 7.x introduced breaking changes from version 6.x:
 
 #### 1. Connection Management (`IConnection` / `Connection`)
 
-**Location**: `projects/RabbitMQ.Client/Impl/Connection.cs`
+**Location**: `projects/RabbitMQ.Client/Impl/Connection.cs` (partial class, with `Connection.Commands.cs`, `Connection.Heartbeat.cs`, and `Connection.Receive.cs`)
 
 The connection layer manages the TCP connection to RabbitMQ broker:
 
@@ -413,28 +412,29 @@ Configurable TLS options:
 
 ## Known Issues and Limitations
 
-### Current Issues (as of 7.2.0)
+### Fixed in 7.2.1
 
-1. **Heartbeat Crashes**: Unhandled exceptions in heartbeat timer callbacks (addressed in 7.2.1)
-2. **Publisher Confirm Semaphore**: Unconditional semaphore release on cancellation (addressed in 7.2.1)
-3. **Channel Shutdown**: `TryComplete` needed instead of `Complete` during channel shutdown (addressed in 7.2.1)
-4. **Auto-delete Entity Recovery**: Recorded bindings not removed for auto-delete entities (addressed in 7.2.1)
+1. **Heartbeat Crashes**: Unhandled exceptions in heartbeat timer callbacks
+2. **Publisher Confirm Semaphore**: Unconditional semaphore release on cancellation
+3. **Channel Shutdown**: `TryComplete` needed instead of `Complete` during channel shutdown
+4. **Auto-delete Entity Recovery**: Recorded bindings not removed for auto-delete entities
 
 ### Design Limitations
 
 1. **Single Connection**: No built-in connection pooling
-2. **Channel Limit**: Maximum 2047 channels per connection
+2. **Channel Limit**: Maximum 2047 channels per connection (default `RequestedChannelMax`)
 3. **Frame Size**: Maximum frame size negotiated at connection time
 4. **Synchronous RPC**: Only one RPC operation per channel at a time
 
-## Future Directions (7.2.1)
+## Internal Documentation
 
-Based on the changelog and issue tracker:
+Deep-dive notes on subtle subsystems live in `docs/internal/`. When you learn
+something non-obvious about the client while debugging, add or update a doc
+there. Current docs:
 
-1. **Performance Improvements**: Further optimization of hot paths
-2. **Enhanced Observability**: More detailed metrics and tracing
-3. **API Refinements**: Minor API improvements based on feedback
-4. **Bug Fixes**: Addressing remaining edge cases in shutdown logic
+- `docs/internal/connection-shutdown-and-cancellation.md` - the connection /
+  channel-0 shutdown model, why cancellation during connection open could hang
+  (issue #1921), and the memory-dump-based diagnostic workflow used to find it.
 
 ## Development Guidelines
 

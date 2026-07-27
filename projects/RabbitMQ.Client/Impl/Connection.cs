@@ -227,16 +227,27 @@ namespace RabbitMQ.Client.Impl
 
         internal async ValueTask<IConnection> OpenAsync(CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             try
             {
                 RabbitMqClientEventSource.Log.ConnectionOpened();
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Note: this must happen *after* the frame handler is started
-                _mainLoopTask = Task.Run(MainLoop, cancellationToken);
+                /*
+                 * Note: this must happen *after* the frame handler is started, and it
+                 * must happen before any cancellation is observed below.
+                 *
+                 * MainLoop is what ultimately runs FinishCloseAsync, which is the only
+                 * code path that shuts down channel 0 (session 0 does not subscribe to
+                 * ConnectionShutdownAsync). If we allowed cancellation to be observed
+                 * before starting MainLoop, the failed-open cleanup would dispose an
+                 * already-open channel 0, whose abort would then hang for the full
+                 * ContinuationTimeout awaiting a channel.close-ok that can never arrive.
+                 *
+                 * We also intentionally do NOT pass cancellationToken to Task.Run: an
+                 * already-canceled token would produce a task that transitions straight
+                 * to Canceled without ever running MainLoop. MainLoop observes
+                 * cancellation via _mainLoopCts instead.
+                 */
+                _mainLoopTask = Task.Run(MainLoop);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -410,15 +421,47 @@ namespace RabbitMQ.Client.Impl
                 {
                     /*
                      * Note:
-                     * NotifyReceivedCloseOk will cancel the main loop
+                     * NotifyReceivedCloseOk will cancel the main loop for graceful closes.
+                     * For abort, cancel immediately so _mainLoopTask exits without the full timeout wait.
                      */
-                    MaybeTerminateMainloopAndStopHeartbeatTimers();
+                    MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: abort);
                 }
             }
 
             try
             {
-                await _mainLoopTask.WaitAsync(cts.Token)
+                /*
+                 * When aborting, we must let the main loop run to completion so that
+                 * FinishCloseAsync shuts down channel 0 (session 0 does not subscribe to
+                 * ConnectionShutdownAsync, so this is channel 0's only shutdown path).
+                 * A user cancellation token that has already fired must not short-circuit
+                 * this best-effort cleanup, otherwise a later dispose of channel 0 will
+                 * hang for the full ContinuationTimeout awaiting a channel.close-ok that
+                 * can never arrive. The abort timeout still bounds the wait.
+                 */
+                CancellationToken mainLoopWaitToken = abort ? timeoutCts.Token : cts.Token;
+#if NETSTANDARD
+                /*
+                 * On .NET Framework, cancelling _mainLoopCts does not interrupt a
+                 * PipeReader.ReadAsync already parked on the NetworkStream (e.g. when
+                 * open is cancelled before the protocol header is sent, so no server
+                 * bytes ever arrive). MainLoop stays parked, _mainLoopTask never
+                 * completes, and this await would burn the full abort timeout before
+                 * the fallback below closes the socket. Worse, MainLoop never runs
+                 * FinishCloseAsync, so channel 0 is left open and a later dispose
+                 * stalls for a second timeout.
+                 *
+                 * For abort, close the socket up front: this unblocks the parked read
+                 * so MainLoop unwinds promptly and runs FinishCloseAsync (the single
+                 * authoritative frame-handler close and channel 0 shutdown). See
+                 * issue #1921.
+                 */
+                if (abort)
+                {
+                    _frameHandler.CloseSocket();
+                }
+#endif
+                await _mainLoopTask.WaitAsync(mainLoopWaitToken)
                     .ConfigureAwait(false);
             }
             catch
