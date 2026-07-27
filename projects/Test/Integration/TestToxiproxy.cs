@@ -436,6 +436,7 @@ namespace Test.Integration
             await Task.Delay(TimeSpan.FromSeconds(1));
 
             bool sawContinuationTimeout = false;
+            TimeSpan originalContinuationTimeout = ch.ContinuationTimeout;
             try
             {
                 ch.ContinuationTimeout = TimeSpan.FromMilliseconds(5);
@@ -444,6 +445,13 @@ namespace Test.Integration
             catch (OperationCanceledException)
             {
                 sawContinuationTimeout = true;
+            }
+            finally
+            {
+                // Restore the continuation timeout so the cleanup CloseAsync below
+                // does not race the channel.close-ok round-trip against the 5 ms
+                // window used to force the timeout under test (see #1958).
+                ch.ContinuationTimeout = originalContinuationTimeout;
             }
 
             await _toxiproxyManager.RemoveToxicAsync(toxicName);
