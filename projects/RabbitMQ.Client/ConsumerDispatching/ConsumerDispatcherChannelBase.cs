@@ -223,7 +223,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         protected sealed override void ShutdownConsumer(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
         {
-            _writer.TryWrite(WorkStruct.CreateShutdown(consumer, reason, _shutdownCts));
+            _writer.TryWrite(WorkStruct.CreateShutdown(consumer, reason));
         }
 
         protected override Task InternalShutdownAsync()
@@ -247,7 +247,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public readonly ShutdownEventArgs? Reason;
             public readonly WorkType WorkType;
             public readonly CancellationToken CancellationToken;
-            private readonly CancellationTokenSource? _cancellationTokenSource;
 
             private WorkStruct(WorkType type, IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
                 : this()
@@ -256,17 +255,21 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 Consumer = consumer;
                 ConsumerTag = consumerTag;
                 CancellationToken = cancellationToken;
-                _cancellationTokenSource = null;
             }
 
-            private WorkStruct(IAsyncBasicConsumer consumer, ShutdownEventArgs reason, CancellationTokenSource? cancellationTokenSource)
+            private WorkStruct(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
                 : this()
             {
                 WorkType = WorkType.Shutdown;
                 Consumer = consumer;
                 Reason = reason;
-                CancellationToken = cancellationTokenSource?.Token ?? CancellationToken.None;
-                this._cancellationTokenSource = cancellationTokenSource;
+                // The shutdown handler's token must reflect only whether the shutdown
+                // operation itself was cancelled by the caller, so it flows directly
+                // from the shutdown reason. It must NOT be linked to the dispatcher's
+                // _shutdownCts: that source is cancelled by Quiesce() before shutdown
+                // work is dispatched (to cancel in-flight deliveries), which would make
+                // the handler's token always arrive already-cancelled (see #1888).
+                CancellationToken = reason.CancellationToken;
             }
 
             private WorkStruct(IAsyncBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
@@ -284,7 +287,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 Body = body;
                 Reason = null;
                 CancellationToken = cancellationToken;
-                _cancellationTokenSource = null;
             }
 
             public static WorkStruct CreateCancel(IAsyncBasicConsumer consumer, string consumerTag, CancellationTokenSource cancellationTokenSource)
@@ -302,28 +304,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 return new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag, cancellationTokenSource.Token);
             }
 
-            public static WorkStruct CreateShutdown(IAsyncBasicConsumer consumer, ShutdownEventArgs reason, CancellationTokenSource cancellationTokenSource)
+            public static WorkStruct CreateShutdown(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
             {
-                // Create a linked CTS so the shutdown args token reflects both dispatcher cancellation and any upstream token.
-                CancellationTokenSource? linked = null;
-                try
-                {
-                    if (reason.CancellationToken.CanBeCanceled)
-                    {
-                        linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, reason.CancellationToken);
-                    }
-                }
-                catch
-                {
-                    linked = null;
-                }
-
-                CancellationToken token = linked?.Token ?? cancellationTokenSource.Token;
-                ShutdownEventArgs argsWithToken = reason.Exception != null ?
-                    new ShutdownEventArgs(reason.Initiator, reason.ReplyCode, reason.ReplyText, reason.Exception, token) :
-                    new ShutdownEventArgs(reason.Initiator, reason.ReplyCode, reason.ReplyText, reason.ClassId, reason.MethodId, reason.Cause, token);
-
-                return new WorkStruct(consumer, argsWithToken, linked);
+                // The shutdown reason already carries the correct cancellation token (the
+                // token of the close operation, if any). It must be handed to the consumer
+                // as-is: linking it to the dispatcher's _shutdownCts here would make the
+                // handler's token always arrive already-cancelled, because Quiesce()
+                // cancels _shutdownCts before shutdown work is dispatched (see #1888).
+                return new WorkStruct(consumer, reason);
             }
 
             public static WorkStruct CreateDeliver(IAsyncBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
@@ -336,7 +324,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
             public void Dispose()
             {
                 Body.Dispose();
-                _cancellationTokenSource?.Dispose();
             }
         }
 
