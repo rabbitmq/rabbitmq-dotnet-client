@@ -434,6 +434,17 @@ namespace Test.Integration
                     }
                     catch (OperationCanceledException)
                     {
+                        // Cancellation observed by the open path; CreateConnectionAsync
+                        // rethrows it when the token was the cause. This is a timing
+                        // regression test: the only assertion is on elapsed time below,
+                        // so the exception itself is expected, not the thing under test.
+                    }
+                    catch (BrokerUnreachableException)
+                    {
+                        // CreateConnectionAsync wraps any non-cancellation failure from
+                        // the handshake in BrokerUnreachableException. On Windows a cancel
+                        // during DNS resolution surfaces as a SocketException that is
+                        // wrapped this way rather than as an OperationCanceledException.
                     }
                     sw.Stop();
 
