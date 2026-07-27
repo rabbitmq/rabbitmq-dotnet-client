@@ -632,14 +632,18 @@ namespace RabbitMQ.Client.Impl
             {
                 if (IsOpen)
                 {
+                    Gh1921Trace.Mark("Channel.DisposeAsyncCore: begin AbortAsync (IsOpen)");
                     await this.AbortAsync()
                         .ConfigureAwait(false);
+                    Gh1921Trace.Mark("Channel.DisposeAsyncCore: end AbortAsync");
                 }
 
                 if (_serverOriginatedChannelCloseTcs is not null)
                 {
+                    Gh1921Trace.Mark("Channel.DisposeAsyncCore: begin _serverOriginatedChannelCloseTcs.WaitAsync(5s)");
                     await _serverOriginatedChannelCloseTcs.Task.WaitAsync(InternalConstants.DefaultChannelDisposeTimeout)
                         .ConfigureAwait(false);
+                    Gh1921Trace.Mark("Channel.DisposeAsyncCore: end _serverOriginatedChannelCloseTcs.WaitAsync");
                 }
 
                 ConsumerDispatcher.Dispose();
