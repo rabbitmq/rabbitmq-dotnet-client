@@ -181,10 +181,8 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                Gh1921Trace.Mark("FrameHandler.CloseAsync: begin _closingSemaphore.WaitAsync");
                 await _closingSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
-                Gh1921Trace.Mark("FrameHandler.CloseAsync: acquired _closingSemaphore");
                 try
                 {
                     // TryComplete rather than Complete: WriteLoopAsync may have
@@ -196,9 +194,7 @@ namespace RabbitMQ.Client.Impl
                     _channelWriter.TryComplete();
                     if (_writerTask != null)
                     {
-                        Gh1921Trace.Mark("FrameHandler.CloseAsync: begin await _writerTask");
                         await _writerTask.ConfigureAwait(false);
-                        Gh1921Trace.Mark("FrameHandler.CloseAsync: end await _writerTask");
                     }
                     await _pipeWriter.CompleteAsync()
                         .ConfigureAwait(false);
@@ -212,9 +208,7 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    Gh1921Trace.Mark("FrameHandler.CloseAsync: begin _socket.Close");
                     _socket.Close();
-                    Gh1921Trace.Mark("FrameHandler.CloseAsync: end _socket.Close");
                 }
                 catch
                 {
@@ -239,9 +233,7 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                Gh1921Trace.Mark("FrameHandler.CloseSocket: begin _socket.Close");
                 _socket.Close();
-                Gh1921Trace.Mark("FrameHandler.CloseSocket: end _socket.Close");
             }
             catch
             {

@@ -265,11 +265,9 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    Gh1921Trace.Mark("OpenAsync.catch: begin abort CloseAsync");
                     var ea = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError, "FailedOpen", cancellationToken: cancellationToken);
                     await CloseAsync(ea, true,
                         InternalConstants.DefaultConnectionAbortTimeout).ConfigureAwait(false);
-                    Gh1921Trace.Mark("OpenAsync.catch: end abort CloseAsync");
                 }
                 catch { }
 
@@ -463,14 +461,11 @@ namespace RabbitMQ.Client.Impl
                     _frameHandler.CloseSocket();
                 }
 #endif
-                Gh1921Trace.Mark($"CloseAsync: begin _mainLoopTask.WaitAsync (abort={abort})");
                 await _mainLoopTask.WaitAsync(mainLoopWaitToken)
                     .ConfigureAwait(false);
-                Gh1921Trace.Mark("CloseAsync: end _mainLoopTask.WaitAsync (completed)");
             }
             catch
             {
-                Gh1921Trace.Mark("CloseAsync: _mainLoopTask.WaitAsync threw; begin _frameHandler.CloseAsync");
                 try
                 {
                     await _frameHandler.CloseAsync(cts.Token)
@@ -479,7 +474,6 @@ namespace RabbitMQ.Client.Impl
                 catch
                 {
                 }
-                Gh1921Trace.Mark("CloseAsync: end _frameHandler.CloseAsync");
 
                 if (false == abort)
                 {
@@ -589,18 +583,14 @@ namespace RabbitMQ.Client.Impl
             {
                 if (IsOpen)
                 {
-                    Gh1921Trace.Mark("Connection.DisposeAsync: begin AbortAsync (IsOpen)");
                     await this.AbortAsync()
                         .ConfigureAwait(false);
-                    Gh1921Trace.Mark("Connection.DisposeAsync: end AbortAsync");
                 }
 
                 _session0.Dispose();
 
-                Gh1921Trace.Mark("Connection.DisposeAsync: begin _channel0.DisposeAsync");
                 await _channel0.DisposeAsync()
                     .ConfigureAwait(false);
-                Gh1921Trace.Mark("Connection.DisposeAsync: end _channel0.DisposeAsync");
             }
             catch (OperationInterruptedException)
             {

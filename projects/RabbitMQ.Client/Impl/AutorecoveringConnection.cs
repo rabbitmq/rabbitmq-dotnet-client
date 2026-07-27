@@ -105,14 +105,11 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    Gh1921Trace.Mark("CreateAsync.catch: begin connection.CloseAsync");
                     await connection.CloseAsync(Constants.InternalError, "FailedOpen",
                         InternalConstants.DefaultConnectionCloseTimeout, true,
                         cancellationToken).ConfigureAwait(false);
-                    Gh1921Trace.Mark("CreateAsync.catch: end CloseAsync; begin DisposeAsync");
                     await connection.DisposeAsync()
                         .ConfigureAwait(false);
-                    Gh1921Trace.Mark("CreateAsync.catch: end DisposeAsync");
                 }
                 catch
                 {
