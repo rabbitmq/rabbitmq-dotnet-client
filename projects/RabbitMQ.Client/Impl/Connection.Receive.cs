@@ -225,6 +225,22 @@ namespace RabbitMQ.Client.Impl
 
             _channel0.MaybeSetConnectionStartException(reason.Exception!);
 
+            /*
+             * The reason minted by MainLoop carries _mainLoopCts.Token, and shutdown
+             * handlers are invoked SEQUENTIALLY. A handler that awaits
+             * args.CancellationToken (the documented way to observe "this connection is
+             * going away") would otherwise park on a token that only FinishCloseAsync
+             * cancels -- and MainLoop reaches FinishCloseAsync only after every handler
+             * returns. That is a deadlock: the handler waits out its own timeout while
+             * MainLoop waits on the handler.
+             *
+             * By the time we get here the connection is unrecoverably down and the close
+             * reason is set, so cancel the main loop token up front. Handlers then see an
+             * already-cancelled token and unwind immediately, which is the correct signal.
+             * See issue #1960.
+             */
+            MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: true);
+
             await OnShutdownAsync(reason).ConfigureAwait(false);
             LogCloseError($"unexpected connection closure: {message}", reason.Exception!);
         }
