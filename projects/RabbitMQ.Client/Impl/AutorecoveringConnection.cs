@@ -95,7 +95,7 @@ namespace RabbitMQ.Client.Impl
         {
             IFrameHandler fh = await endpoints.SelectOneAsync(config.FrameHandlerFactoryAsync, cancellationToken)
                 .ConfigureAwait(false);
-            connectionActivity.SetNetworkTags(fh);
+            connectionActivity?.SetNetworkTags(fh);
             Connection innerConnection = new(config, fh);
             AutorecoveringConnection connection = new(config, endpoints, innerConnection);
             try

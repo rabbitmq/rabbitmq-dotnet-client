@@ -552,17 +552,24 @@ namespace RabbitMQ.Client
             {
                 if (AutomaticRecoveryEnabled)
                 {
-                    connectionActivity?.SetTag("messaging.rabbitmq.connection.automatic_recovery", true);
+                    if (connectionActivity is { IsAllDataRequested: true })
+                    {
+                        connectionActivity.SetTag(RabbitMQActivitySource.RabbitMQConnectionAutomaticRecovery, true);
+                    }
+
                     return await AutorecoveringConnection.CreateAsync(config, endpointResolver, connectionActivity, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
                 {
+                    if (connectionActivity is { IsAllDataRequested: true })
+                    {
+                        connectionActivity.SetTag(RabbitMQActivitySource.RabbitMQConnectionAutomaticRecovery, false);
+                    }
 
-                    connectionActivity?.SetTag("messaging.rabbitmq.connection.automatic_recovery", false);
                     IFrameHandler frameHandler = await endpointResolver.SelectOneAsync(CreateFrameHandlerAsync, cancellationToken)
                         .ConfigureAwait(false);
-                    connectionActivity.SetNetworkTags(frameHandler);
+                    connectionActivity?.SetNetworkTags(frameHandler);
                     var c = new Connection(config, frameHandler);
                     return await c.OpenAsync(cancellationToken)
                         .ConfigureAwait(false);

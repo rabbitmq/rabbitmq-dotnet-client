@@ -33,6 +33,11 @@ namespace RabbitMQ.Client
         internal const string ProtocolVersion = "network.protocol.version";
         internal const string RabbitMQDeliveryTag = "messaging.rabbitmq.delivery_tag";
 
+        // These constants are specific to this client - the OpenTelemetry messaging
+        // conventions do not (yet) cover connection establishment.
+        internal const string RabbitMQConnectionIsReconnection = "messaging.rabbitmq.connection.is_reconnection";
+        internal const string RabbitMQConnectionAutomaticRecovery = "messaging.rabbitmq.connection.automatic_recovery";
+
         private static readonly string AssemblyVersion = typeof(RabbitMQActivitySource).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion ?? "";
@@ -80,7 +85,11 @@ namespace RabbitMQ.Client
 
             Activity? connectionActivity =
                 s_connectionSource.StartRabbitMQActivity("connection attempt", ActivityKind.Client);
-            connectionActivity?.SetTag("messaging.rabbitmq.connection.is_reconnection", isReconnection);
+            if (connectionActivity is { IsAllDataRequested: true })
+            {
+                connectionActivity.SetTag(RabbitMQConnectionIsReconnection, isReconnection);
+            }
+
             return connectionActivity;
         }
 

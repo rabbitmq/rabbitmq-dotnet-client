@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,8 +46,12 @@ namespace RabbitMQ.Client
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                using var tcpConnection = RabbitMQActivitySource.OpenTcpConnection();
-                tcpConnection?.SetServerTags(ep);
+                using Activity? tcpConnection = RabbitMQActivitySource.OpenTcpConnection();
+                if (tcpConnection is { IsAllDataRequested: true })
+                {
+                    tcpConnection.SetServerTags(ep);
+                }
+
                 try
                 {
                     return await selector(ep, cancellationToken).ConfigureAwait(false);
