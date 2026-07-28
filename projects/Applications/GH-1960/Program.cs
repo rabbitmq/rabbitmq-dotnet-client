@@ -52,6 +52,15 @@ using RabbitMQ.Client.Events;
 string host = args.Length > 0 ? args[0] : "localhost";
 int iterations = args.Length > 1 && int.TryParse(args[1], out int n) ? n : 50;
 
+// "force-race" simulates the cold-start JIT delay that makes the abort path lose
+// the SetCloseReason race, WITHOUT needing a cold process. It simply pauses
+// between the out-of-band frame-handler close and AbortAsync, so MainLoop always
+// wins the race and mints the Library reason. This reproduces the #1960 mechanism
+// deterministically on any platform/TFM (including Linux), which makes it usable
+// as a fast local gate; the cold-start loop (repro.ps1) remains the faithful
+// net472 reproduction.
+bool forceRace = args.Length > 2 && args[2].Equals("force-race", StringComparison.OrdinalIgnoreCase);
+
 string tfm =
 #if NET48_OR_GREATER || NET472
     "net472 (netstandard2.0 client)";
@@ -180,6 +189,13 @@ for (int i = 0; i < iterations; i++)
     // Out-of-band frame-handler close (same as the test).
     sw.Start();
     var closeTask = (ValueTask)closeFrameHandler.Invoke(conn, null)!;
+
+    if (forceRace)
+    {
+        // Stand in for the cold-start JIT delay on the abort path: give MainLoop
+        // time to observe the dead socket and win SetCloseReason first.
+        await Task.Delay(TimeSpan.FromMilliseconds(250));
+    }
 
     try
     {
