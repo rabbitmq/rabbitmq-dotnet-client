@@ -267,15 +267,30 @@ namespace RabbitMQ.Client.Impl
 
             if (_publisherConfirmationsEnabled)
             {
-                await _confirmSemaphore.WaitAsync(reason.CancellationToken)
-                    .ConfigureAwait(false);
-                try
+                /*
+                 * Note: do NOT pass reason.CancellationToken here. This is shutdown
+                 * cleanup whose whole job is to fault the outstanding confirmation TCS;
+                 * if the shutdown's own token is already cancelled we would throw out of
+                 * the wait and leave publisher-confirm waiters hanging forever. Bound the
+                 * wait with a timeout instead so a stuck semaphore cannot block shutdown.
+                 */
+                if (await _confirmSemaphore.WaitAsync(InternalConstants.DefaultConnectionAbortTimeout, CancellationToken.None)
+                    .ConfigureAwait(false))
                 {
-                    MaybeSetExceptionOnConfirmsTcs(reason);
+                    try
+                    {
+                        MaybeSetExceptionOnConfirmsTcs(reason);
+                    }
+                    finally
+                    {
+                        _confirmSemaphore.Release();
+                    }
                 }
-                finally
+                else
                 {
-                    _confirmSemaphore.Release();
+                    // Could not acquire the lock; still fault the TCS so waiters observe
+                    // the shutdown rather than hanging.
+                    MaybeSetExceptionOnConfirmsTcs(reason);
                 }
             }
         }

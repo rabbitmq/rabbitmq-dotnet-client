@@ -1,6 +1,6 @@
 # Connection Shutdown, Channel 0, and Cancellation
 
-This document captures the connection/channel shutdown model of the 7.x client, with emphasis on the areas that are subtle enough to have produced real hangs (notably issue #1921). It is written for maintainers who need to reason about what happens when a connection open is cancelled or aborted, and how channel 0 gets torn down.
+This document captures the connection/channel shutdown model of the 7.x client, with emphasis on the areas that are subtle enough to have produced real hangs (notably issues #1921 and #1960). It is written for maintainers who need to reason about what happens when a connection open is cancelled or aborted, how channel 0 gets torn down, and which cancellation token a shutdown handler actually receives.
 
 ## The central fact: channel 0 is special
 
@@ -181,6 +181,57 @@ Measured effect on a delay-sweep repro (cancellation timer swept across 0-50ms, 
 | Fixes 1-3 only, Windows net472          | 10.2s      | present         |
 | + fix 4 (Windows net472)                | ~0.2s      | 0 / 200         |
 
+## Issue #1960: shutdown handlers deadlock on the main loop token
+
+A second, independent cancellation defect in the same subsystem. It surfaced as an intermittent `integration-win32` failure in `TestConnectionShutdown.TestAbortWithSocketClosedOutOfBandAndCancellation`, timing out at that test's 6s wait.
+
+### The race
+
+`SetCloseReason` uses `Interlocked.CompareExchange`, so the **first writer wins** and every later path is a no-op. When a socket dies out of band and the application aborts at roughly the same moment, two paths compete:
+
+| | Winner | Reason minted | Token carried by `ShutdownEventArgs` |
+| --- | --- | --- | --- |
+| Path A | abort caller | `Application` / 200 | the **caller's** token |
+| Path B | `MainLoop` (dead socket) | `Library` / 541 | `_mainLoopCts.Token` |
+
+Path A is healthy: the caller's token fires on its own schedule, independent of the shutdown machinery.
+
+### Why Path B self-deadlocked
+
+`OnShutdownAsync` invokes shutdown handlers **sequentially** (`AsyncEventingWrapper.InvokeAsync`) and awaits each one. Meanwhile `_mainLoopCts` is cancelled only by `FinishCloseAsync` - which `MainLoop` reaches only *after* `HandleMainLoopExceptionAsync` returns, i.e. after every handler has completed.
+
+So a handler that awaits `args.CancellationToken` - the documented way to observe "this connection is going away" - parked on a token that nobody could cancel until the handler itself returned. The handler waited out its own timeout while `MainLoop` waited on the handler. Worse, because invocation is sequential, no *later* handler could run either, which is why the test's `ConnectionShutdownAsync` fallback could not rescue the TCS.
+
+### The fix
+
+Cancel the main loop token *before* invoking the handlers, in `HandleMainLoopExceptionAsync` (`Connection.Receive.cs`):
+
+```csharp
+MaybeTerminateMainloopAndStopHeartbeatTimers(cancelMainLoop: true);
+await OnShutdownAsync(reason).ConfigureAwait(false);
+```
+
+By that point the close reason is set and the connection is unrecoverably down, so an already-cancelled token is the *correct* signal: handlers unwind immediately instead of waiting for a liveness that will never return.
+
+Note this touches **only** the Library / dead-connection path. It does not conflict with the #1888 invariant (`ConsumerDispatcherChannelBase`) that a shutdown token must not *always* arrive already-cancelled - that constraint concerns the Application close path, where the caller's token is still passed through untouched.
+
+### Two traps worth remembering
+
+1. **`IsOpen` is defined as `CloseReason is null`.** The first fix attempt added the cancellation to `Connection.CloseAsync`'s lost-the-race branch and was **dead code**: `AutorecoveringConnection.CloseAsync` only calls into the inner connection via `CloseInnerConnectionAsync()`, which is guarded on `_innerConnection.IsOpen` - already `false` once `MainLoop` set the reason. The repro, not the reasoning, caught this. Re-run the reproduction after every "obvious" fix.
+
+2. **A pre-cancelled shutdown token breaks code that awaits on it.** Making Path B's token arrive already-cancelled exposed a latent bug in `Channel.PublisherConfirms.cs`: `MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync` did `_confirmSemaphore.WaitAsync(reason.CancellationToken)`, which *throws* on a cancelled token - so `MaybeSetExceptionOnConfirmsTcs` never ran and publisher-confirm waiters hung forever. Shutdown **cleanup** must not be gated on the shutdown's own token; it now uses a bounded wait with `CancellationToken.None` and faults the TCS even if the semaphore cannot be acquired. When changing token semantics, audit every consumer of `ShutdownEventArgs.CancellationToken`.
+
+### Reproducing it
+
+Not net472-specific, despite appearances. net472 merely *loses the race reliably* on a cold process: the abort path (`AutorecoveringConnection.CloseAsync -> StopRecoveryLoopAsync -> Connection.CloseAsync -> SetCloseReason`) takes ~10ms un-JITted versus ~0.1ms warm, and that latency is the entire race window. Iterations 2..N in one process all win the race, so an in-process loop shows at most `1/N` - which is why this looked like a rare flake for so long.
+
+Two gates, in `projects/Applications/GH-1960/`:
+
+- **`force-race` mode** - delays between the out-of-band socket close and `AbortAsync`, standing in for the JIT latency. Deterministic on any platform and TFM, including Linux/net8.0. The fast local gate: 5/5 fail pre-fix (~6.25s each), 0/5 post-fix (~0.25s each).
+- **`repro.ps1`** - the faithful reproduction: builds net472 once, then runs one *cold* iteration per fresh process. Measured 20/20 failures pre-fix, 0/20 post-fix on native Windows.
+
+The token state in the app's output is the discriminating signal: `cancellable,not-yet` on a `Library/541` reason is the bug; `cancellable,already-cancelled` is the fix.
+
 ## Relevant timeouts
 
 These are easy to confuse; distinguishing which one a hang tracks is the key diagnostic signal.
@@ -226,6 +277,14 @@ This bug was intermittent (sub-millisecond timing window) and involved suspended
 6. **Prove the fix with the regression test both ways.** Revert only the suspected fix, confirm the strengthened test fails for the full `ContinuationTimeout`, then restore and confirm it passes. This guards against a test that passes for the wrong reason.
 
 ## Testing
+
+### #1960
+
+`TestConnectionShutdown.TestAbortCancellationWhenMainLoopWinsCloseReasonRace_GH1960` is the deterministic counterpart to `TestAbortWithSocketClosedOutOfBandAndCancellation`. It delays before `AbortAsync` so `MainLoop` wins the reason race on every platform and TFM, rather than relying on cold-start JIT latency that only net472 provides.
+
+It asserts more than "the TCS completed": it asserts the channel shutdown handler was released **by its own cancellation token** and not by the `ConnectionShutdownAsync` fallback. Without that assertion the test would pass on a build where the handler is still parked, since the fallback also completes the TCS. Verified to fail at the 6s bar with the fix reverted.
+
+### #1921
 
 The regression test (`projects/Test/Integration/TestConnectionFactory.cs::TestCreateConnectionAsync_CancellationDuringHandshake_CompletesQuickly`) sweeps short cancellation delays (0us .. 50ms) with a 30s `ContinuationTimeout` and asserts each attempt completes in under 3s. The wide `ContinuationTimeout` is deliberate: it makes a regression manifest as a ~30s stall rather than a subtle few-second delay that a slow CI runner could mask.
 
