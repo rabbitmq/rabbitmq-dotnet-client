@@ -97,7 +97,7 @@ for (int i = 0; i < iterations; i++)
         if (closeFrameHandler is null)
         {
             Console.WriteLine($"[FATAL] could not find CloseFrameHandlerAsync on {conn.GetType().FullName}");
-            return;
+            return 2;
         }
     }
 
@@ -253,6 +253,24 @@ foreach (KeyValuePair<string, int> kv in channelReasonHistogram)
 {
     Console.WriteLine($"  {kv.Value,5}x  {kv.Key}");
 }
+
+// Machine-readable PASS/FAIL line and a non-zero exit code on any timeout, so a
+// fresh-process loop (one cold iteration per process) can tally results without
+// parsing histograms. The GH-1960 bug is a COLD-START race (only the first
+// connection after process start loses it, because the abort code path is not
+// yet JIT-compiled), so `-- localhost 1` in a fresh-process loop is the
+// deterministic gate: pre-fix it should FAIL ~every run, post-fix PASS ~every run.
+Console.WriteLine();
+if (timeouts == 0)
+{
+    Console.WriteLine($"RESULT: PASS ({iterations} iteration(s), 0 timeouts)");
+}
+else
+{
+    Console.WriteLine($"RESULT: FAIL ({timeouts}/{iterations} timeouts, worst {worstTcsSeconds:F2}s)");
+}
+
+return timeouts == 0 ? 0 : 1;
 
 static void Record(Dictionary<string, int> histogram, string key)
 {

@@ -81,6 +81,37 @@ The optional first argument is the broker hostname (default `localhost`); the
 optional second is the iteration count (default 50). Raise the iteration count if
 the flake is infrequent.
 
+### Cold-start gate (deterministic)
+
+The failure is a **cold-start race**, not a random flake: only the *first*
+connection after process start loses it, because the abort code path
+(`AutorecoveringConnection.CloseAsync -> StopRecoveryLoopAsync -> Connection.CloseAsync
+-> SetCloseReason`) has not yet been JIT-compiled and takes ~10ms on net472, which
+is the entire race window. The already-warm MainLoop wins `SetCloseReason` with a
+`Library` reason first and starts automatic recovery inside that window. Once the
+abort path is JIT-warm it reaches `SetCloseReason` in ~0.1ms and wins every time,
+so iterations 2..N in a single process all pass. This is why the in-process loop
+shows only "1/200": iteration 0 is the only cold one.
+
+To exercise the race deterministically, run **one iteration per fresh process** in
+a loop. The app prints a final `RESULT: PASS|FAIL` line and returns a non-zero
+exit code on any timeout, so the loop can tally results:
+
+PowerShell (native Windows, net472):
+
+```powershell
+$fail = 0
+for ($i = 0; $i -lt 20; $i++) {
+    dotnet run -c Release -f net472 --project projects\Applications\GH-1960 -- localhost 1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { $fail++ }
+}
+"cold-start failures: $fail / 20"
+```
+
+Pre-fix this should fail ~20/20 (every process is cold). Post-fix it should pass
+~20/20. Use `--no-build` after the first build to keep each process cold at the
+CLR level without rebuilding.
+
 ### Interpreting the output
 
 - **Linux control (either TFM):** every attempt should complete via
