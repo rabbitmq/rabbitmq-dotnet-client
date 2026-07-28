@@ -243,7 +243,7 @@ namespace RabbitMQ.Client
 
         internal static void PopulateMessageEnvelopeSize(Activity? activity, int size)
         {
-            if (activity?.IsAllDataRequested ?? false)
+            if (activity != null && activity.IsAllDataRequested && PublisherHasListeners)
             {
                 activity.SetTag(MessagingEnvelopeSize, size);
             }
