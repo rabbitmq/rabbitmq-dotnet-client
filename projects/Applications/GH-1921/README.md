@@ -1,12 +1,12 @@
 # GH-1921 cancellation repro
 
-A standalone console app that reproduces the Windows-only test failures seen on the `fix/gh-1921-cancellation` branch, where a `CancellationToken` fires while a connection is being opened.
+A standalone console app that reproduces the Windows-only test failures seen while fixing issue #1921, where a `CancellationToken` fires while a connection is being opened. The fix shipped in #1936; this app is retained as a regression gate.
 
 This app is **not** part of `RabbitMQDotNetClient.sln` or `Build.csproj`, so it does not affect the main build or CI. It references the local `RabbitMQ.Client` project directly.
 
 ## Background
 
-Issue [#1921](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1921): `CreateConnectionAsync(token)` could hang for the full `ContinuationTimeout` when `token` fired during connection open. The fix on this branch resolves the hang on Linux (the integration test sweeps short cancellation delays and sees 0 slow attempts out of 2100), but the strengthened test failed two different ways on the `integration-win32` CI job, one per target framework:
+Issue [#1921](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1921): `CreateConnectionAsync(token)` could hang for the full `ContinuationTimeout` when `token` fired during connection open. The fix resolved the hang on Linux (the integration test sweeps short cancellation delays and sees 0 slow attempts out of 2100), but the strengthened test then failed two different ways on the `integration-win32` CI job, one per target framework:
 
 - **net8.0**: the attempt threw `AggregateException` wrapping a `SocketException` (`A call to WSALookupServiceEnd was made while this call was still processing. The call has been canceled.`) at ~3ms. On Windows, cancelling `Dns.GetHostAddressesAsync` (which receives the token on .NET) surfaces a `SocketException`; `EndpointResolverExtensions.SelectOneAsync` collects it and rethrows it wrapped in `AggregateException`. The test only caught `OperationCanceledException`, so the exception escaped and failed the test.
 
@@ -14,7 +14,7 @@ Issue [#1921](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1921): `
 
 ## Resolution
 
-Both failures are now fixed on this branch; this app was used to confirm each one natively on Windows.
+Both failures are fixed; this app was used to confirm each one natively on Windows.
 
 - **net8.0 (Failure A)** was a test-only gap: the fix was correct, but the regression test's `catch` only handled `OperationCanceledException`. The Windows DNS-cancel `SocketException` reaches the caller wrapped as `BrokerUnreachableException`, so the test now also catches that.
 

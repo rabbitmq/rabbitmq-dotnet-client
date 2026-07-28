@@ -131,7 +131,7 @@ See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 If you want to contribute a non-trivial change, please submit a signed
 copy of our [Contributor Agreement][ca-agreement] around the time you
 submit your pull request. This will make it much easier (in some
-cases, possible) for the RabbitMQ team at Pivotal to merge your
+cases, possible) for the RabbitMQ team at Broadcom to merge your
 contribution.
 
 ## Where to Ask Questions
@@ -141,5 +141,5 @@ If something isn't clear, feel free to ask on our [mailing list][rmq-users].
 [rmq-collect-env]: https://github.com/rabbitmq/support-tools/blob/master/scripts/rabbitmq-collect-env
 [git-commit-msgs]: https://chris.beams.io/posts/git-commit/
 [rmq-users]: https://groups.google.com/forum/#!forum/rabbitmq-users
-[ca-agreement]: https://cla.pivotal.io/sign/rabbitmq
+[ca-agreement]: https://github.com/rabbitmq/cla
 [github-fork]: https://help.github.com/articles/fork-a-repo/

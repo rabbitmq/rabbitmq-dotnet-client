@@ -3,7 +3,7 @@
 [![GitHub Actions rabbitmq-dotnet-client](https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/workflows/main.yaml/badge.svg)](https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/workflows/main.yaml)
 [![CodeQL](https://github.com/rabbitmq/rabbitmq-dotnet-client/workflows/CodeQL/badge.svg)](https://github.com/rabbitmq/rabbitmq-dotnet-client/actions/workflows/codeql.yml)
 
-This repository contains source code of the [RabbitMQ .NET client](https://www.rabbitmq.com/dotnet.html).
+This repository contains source code of the [RabbitMQ .NET client](https://www.rabbitmq.com/client-libraries/dotnet).
 The client is maintained by the [RabbitMQ team at Broadcom](https://github.com/rabbitmq/).
 
 
