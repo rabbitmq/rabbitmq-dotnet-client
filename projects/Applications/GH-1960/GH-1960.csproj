@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    One-off repro for the net472-only flaky test
+    Test.Integration.TestConnectionShutdown.TestAbortWithSocketClosedOutOfBandAndCancellation
+    (issue #1960). NOT part of the solution or Build.csproj.
+
+    The test closes the frame handler out of band, then AbortAsync(cts.Token)
+    with a 1s token, and waits up to 6s for a ChannelShutdownAsync handler whose
+    parked Task.Delay(1min, args.CancellationToken) must be cancelled. It times
+    out intermittently on the net472 (netstandard2.0) client on the integration
+    win32 CI job.
+
+    Multi-targets the same frameworks the win32 Integration job exercises so the
+    flake can be reproduced natively on Windows. The netstandard2.0 client
+    (net472) is the affected one; net8.0 is included as a control.
+
+    This app calls the internal AutorecoveringConnection.CloseFrameHandlerAsync()
+    via reflection (the same out-of-band close the test uses); it is not on the
+    InternalsVisibleTo list and does not modify the client to get access.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
+    <RootNamespace>GH_1960</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <!-- One-off repro: skip the repo's analyzer/ConfigureAwait enforcement. -->
+    <RunAnalyzers>false</RunAnalyzers>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../RabbitMQ.Client/RabbitMQ.Client.csproj" />
+  </ItemGroup>
+
+</Project>
