@@ -58,7 +58,17 @@ namespace RabbitMQ.Client
                 }
                 catch (OperationCanceledException ex)
                 {
+                    /*
+                     * Note: this attempt failed, so its activity must be marked as such.
+                     * Without the explicit status, an unset status is treated as success by
+                     * tracing backends, and the attached exception event is easy to miss.
+                     *
+                     * The *parent* connection activity is deliberately left alone here: if a
+                     * later endpoint succeeds, the overall operation succeeded, and only the
+                     * individual attempt failed.
+                     */
                     tcpConnection?.AddException(ex);
+                    tcpConnection?.SetStatus(ActivityStatusCode.Error);
                     if (cancellationToken.IsCancellationRequested)
                     {
                         throw;
@@ -69,6 +79,7 @@ namespace RabbitMQ.Client
                 catch (Exception e)
                 {
                     tcpConnection?.AddException(e);
+                    tcpConnection?.SetStatus(ActivityStatusCode.Error);
                     exceptions.Add(e);
                 }
             }
