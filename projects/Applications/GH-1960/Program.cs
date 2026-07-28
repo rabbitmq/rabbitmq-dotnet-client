@@ -103,25 +103,44 @@ for (int i = 0; i < iterations; i++)
 
     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
     var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+    var sw = new Stopwatch();
 
     // Data captured by the channel shutdown handler.
     string channelReason = "(handler never invoked)";
     bool channelTokenCanBeCanceled = false;
     bool channelTokenCancelledOnEntry = false;
+    double channelHandlerEnteredAt = -1;
+    double channelTokenFiredAt = -1;
+    // Identity of the reason objects, to see whether the channel and connection
+    // handlers receive the SAME ShutdownEventArgs (i.e. the same close reason
+    // propagated) or two different reason objects (a race between close paths).
+    int channelReasonId = -1;
+    int connReasonId = -1;
     string completionCause = "TIMEOUT (6s)";
-    var sw = new Stopwatch();
+    double abortReturnedAt = -1;
+    int recoveryStarted = 0;
+    int recoveryError = 0;
+
+    // Detect whether the out-of-band close kicked off the autorecovery loop, which
+    // races the abort. There is no "recovery started" event, so RecoverySucceeded /
+    // RecoveryError are the observable proxies.
+    conn.RecoverySucceededAsync += (c, ea) => { Interlocked.Increment(ref recoveryStarted); return Task.CompletedTask; };
+    conn.ConnectionRecoveryErrorAsync += (c, ea) => { Interlocked.Increment(ref recoveryError); return Task.CompletedTask; };
 
     channel.ChannelShutdownAsync += async (ch, ea) =>
     {
+        channelHandlerEnteredAt = sw.Elapsed.TotalSeconds;
         channelReason = $"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}";
         channelTokenCanBeCanceled = ea.CancellationToken.CanBeCanceled;
         channelTokenCancelledOnEntry = ea.CancellationToken.IsCancellationRequested;
+        channelReasonId = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(ea);
         try
         {
             await Task.Delay(TimeSpan.FromMinutes(1), ea.CancellationToken);
         }
         catch (OperationCanceledException)
         {
+            channelTokenFiredAt = sw.Elapsed.TotalSeconds;
             if (tcs.TrySetResult(true))
             {
                 completionCause = "channel-delay-cancelled";
@@ -131,6 +150,7 @@ for (int i = 0; i < iterations; i++)
 
     conn.ConnectionShutdownAsync += (c, ea) =>
     {
+        connReasonId = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(ea);
         if (tcs.TrySetResult(true))
         {
             completionCause = "connection-fallback";
@@ -139,9 +159,9 @@ for (int i = 0; i < iterations; i++)
     };
 
     // Out-of-band frame-handler close (same as the test).
+    sw.Start();
     var closeTask = (ValueTask)closeFrameHandler.Invoke(conn, null)!;
 
-    sw.Start();
     try
     {
         await conn.AbortAsync(cts.Token);
@@ -150,6 +170,7 @@ for (int i = 0; i < iterations; i++)
     {
         // AbortAsync is best-effort; the test does not expect it to throw.
     }
+    abortReturnedAt = sw.Elapsed.TotalSeconds;
 
     // Wait up to 6s for the TCS, exactly like the test's _waitSpan.
     Task completed = await Task.WhenAny(tcs.Task, Task.Delay(TimeSpan.FromSeconds(6)));
@@ -171,8 +192,18 @@ for (int i = 0; i < iterations; i++)
         : "NOT-cancellable";
     Record(channelReasonHistogram, $"{channelReason}  [{canceledInfo}]");
 
+    // Only spell out the extra timing/identity detail for the interesting (slow or
+    // fallback) attempts so the common 1s case stays a one-liner.
+    bool interesting = tcsSeconds > 1.5 || completionCause != "channel-delay-cancelled";
+    string sameReason = (channelReasonId != -1 && channelReasonId == connReasonId) ? "same-reason-obj"
+        : (connReasonId == -1 ? "conn-handler-not-run" : "DIFFERENT-reason-objs");
+    string detail = interesting
+        ? $"  | chEnter={channelHandlerEnteredAt:F2}s tokFired={channelTokenFiredAt:F2}s abortRet={abortReturnedAt:F2}s"
+          + $" recSucc={recoveryStarted} recErr={recoveryError} {sameReason}"
+        : "";
+
     Console.WriteLine(
-        $"#{i,3}  {completionCause,-24}  tcs={tcsSeconds,6:F2}s  channelReason={channelReason}  token={canceledInfo}");
+        $"#{i,3}  {completionCause,-24}  tcs={tcsSeconds,6:F2}s  channelReason={channelReason}  token={canceledInfo}{detail}");
 }
 
 Console.WriteLine();
