@@ -95,22 +95,20 @@ shows only "1/200": iteration 0 is the only cold one.
 
 To exercise the race deterministically, run **one iteration per fresh process** in
 a loop. The app prints a final `RESULT: PASS|FAIL` line and returns a non-zero
-exit code on any timeout, so the loop can tally results:
-
-PowerShell (native Windows, net472):
+exit code on any timeout, so the loop can tally results. Use `repro.ps1`
+(native Windows PowerShell); it builds net472 once, then runs one cold iteration
+per fresh process and tallies the failures:
 
 ```powershell
-$fail = 0
-for ($i = 0; $i -lt 20; $i++) {
-    dotnet run -c Release -f net472 --project projects\Applications\GH-1960 -- localhost 1 | Out-Null
-    if ($LASTEXITCODE -ne 0) { $fail++ }
-}
-"cold-start failures: $fail / 20"
+.\projects\Applications\GH-1960\repro.ps1
+.\projects\Applications\GH-1960\repro.ps1 -Host_ localhost -Count 50
+.\projects\Applications\GH-1960\repro.ps1 -Trace   # also emit GH1960_TRACE stderr
 ```
 
 Pre-fix this should fail ~20/20 (every process is cold). Post-fix it should pass
-~20/20. Use `--no-build` after the first build to keep each process cold at the
-CLR level without rebuilding.
+~20/20. The script builds first and then uses `--no-build` inside the loop, which
+keeps each process cold at the CLR level without rebuilding — do not skip the
+build step, or the loop silently measures stale binaries.
 
 ### Interpreting the output
 
