@@ -1,6 +1,6 @@
 # GH-1960 abort-cancellation flake repro
 
-A standalone console app that reproduces the net472-only flaky test
+A standalone console app that reproduces the flaky test
 `Test.Integration.TestConnectionShutdown.TestAbortWithSocketClosedOutOfBandAndCancellation`
 (issue [#1960](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1960)).
 
@@ -15,33 +15,40 @@ The test closes the frame handler out of band, then calls `AbortAsync(cts.Token)
 with a 1s token, and waits up to 6s for a `ChannelShutdownAsync` handler whose
 parked `Task.Delay(1min, args.CancellationToken)` must be cancelled. It
 intermittently times out at the 6s wait on the net472 (netstandard2.0) client on
-the `integration-win32` CI job, and cannot be reproduced on Linux/WSL.
+the `integration-win32` CI job.
 
-## The load-bearing question (why this app gathers data instead of applying a fix)
+## Root cause (confirmed)
 
-Reading the abort path in `Connection.CloseAsync` and `Connection.Receive.cs`
-surfaces a race between two shutdown paths, either of which can win `SetCloseReason`:
+Two shutdown paths race to win `SetCloseReason` (first writer wins, via
+`Interlocked.CompareExchange`):
 
 - **Path A (abort caller):** `AbortAsync(cts.Token)` -> `Connection.CloseAsync`
   sets the close reason and awaits `OnShutdownAsync(reason)`. The channel's
-  shutdown handler then receives the abort's **1s token**, and its parked
-  `Task.Delay` cancels at ~1s. The TCS completes. Healthy.
+  shutdown handler receives the abort's **1s token**, its parked `Task.Delay`
+  cancels at ~1s, the TCS completes. Healthy.
 - **Path B (main loop):** the out-of-band socket close makes `MainLoop` hit
-  end-of-stream first and build its own `ShutdownEventArgs(Library, ...,
+  end-of-stream first and mint its own `ShutdownEventArgs(Library, ...,
   _mainLoopCts.Token)` (`Connection.Receive.cs`), winning `SetCloseReason`. The
-  abort then finds the reason already set and skips `OnShutdownAsync`. The
-  channel handler instead sees a **`Library`-initiated** reason carrying
-  `_mainLoopCts.Token`. Its parked `Task.Delay` only cancels if/when that token
-  fires. And because shutdown handlers run **sequentially**
-  (`AsyncEventingWrapper.InvokeAsync`), the test's `ConnectionShutdownAsync`
-  fallback cannot complete the TCS while the channel handler is parked.
+  abort then finds the reason already set and skips `OnShutdownAsync`.
 
-So the discriminating question is: **on a timeout, which shutdown reason did the
-channel handler receive, and was its token cancellable and cancelled in time?**
-That is fully observable from the event args, so this app measures it rather than
-guessing a fix. Per the project's debugging discipline, a fix to this
-timing-sensitive shutdown code should only be proposed after native-Windows
-net472 data confirms the mechanism.
+Path B was a **self-deadlock**. `HandleMainLoopExceptionAsync` -> `OnShutdownAsync`
+invokes shutdown handlers **sequentially** (`AsyncEventingWrapper.InvokeAsync`). A
+handler awaiting `args.CancellationToken` -- the documented way to observe "this
+connection is going away" -- parked on a token that only `FinishCloseAsync`
+cancels, and MainLoop reaches `FinishCloseAsync` only *after* every handler
+returns. So the handler waited out its own 1-minute delay while MainLoop waited on
+the handler, and the test's `ConnectionShutdownAsync` fallback could not run either
+(sequential invocation). Automatic recovery is not involved.
+
+The fix cancels the main loop token *before* invoking the shutdown handlers, so
+they observe an already-cancelled token and unwind immediately. See
+`Connection.Receive.cs` and the regression test
+`TestAbortCancellationWhenMainLoopWinsCloseReasonRace_GH1960`.
+
+**Not net472-specific.** net472 merely loses the race reliably on a cold process
+(the abort path takes ~10ms un-JITted vs ~0.1ms warm). The same deadlock
+reproduces on Linux/net8.0 once MainLoop is made to win the race -- see the
+`force-race` mode below.
 
 ## What it does
 
@@ -67,10 +74,8 @@ Unlike the test, it records per attempt and as histograms:
 
 ## Running it
 
-Build and run under **both** target frameworks on **native Windows** (not WSL,
-since the flake only manifests on the net472 client on native Windows). A broker
-must be reachable; the RabbitMQ Docker container running under WSL publishes 5672
-to the Windows host, so `localhost` works.
+A broker must be reachable; the RabbitMQ Docker container running under WSL
+publishes 5672 to the Windows host, so `localhost` works from native Windows too.
 
 ```
 dotnet run -c Release -f net8.0  -- localhost 50
@@ -78,20 +83,38 @@ dotnet run -c Release -f net472  -- localhost 50
 ```
 
 The optional first argument is the broker hostname (default `localhost`); the
-optional second is the iteration count (default 50). Raise the iteration count if
-the flake is infrequent.
+optional second is the iteration count (default 50).
 
-### Cold-start gate (deterministic)
+Note that a plain in-process loop is a **weak** gate: only iteration 0 is cold, so
+it shows at most `1/N` even pre-fix. Use one of the two deterministic modes below.
 
-The failure is a **cold-start race**, not a random flake: only the *first*
-connection after process start loses it, because the abort code path
+### force-race mode (deterministic, any platform / TFM)
+
+Passing `force-race` as the third argument inserts a delay between the
+out-of-band frame-handler close and `AbortAsync`, standing in for the cold-start
+JIT latency. MainLoop then wins `SetCloseReason` every time, so the deadlock
+reproduces on any platform and TFM -- including Linux/net8.0 -- without needing a
+cold process. This is the fast local gate:
+
+```
+dotnet run -c Release -f net8.0 -- localhost 5 force-race
+```
+
+Pre-fix: 5/5 timeouts, ~6.25s each, channel token `cancellable,not-yet`.
+Post-fix: 0/5, ~0.25s each, channel token `cancellable,already-cancelled`.
+
+### Cold-start gate (deterministic, net472 on native Windows)
+
+This is the faithful reproduction of the CI failure. On net472 the failure is a
+**cold-start race**, not a random flake: only the *first* connection after process
+start loses it, because the abort code path
 (`AutorecoveringConnection.CloseAsync -> StopRecoveryLoopAsync -> Connection.CloseAsync
--> SetCloseReason`) has not yet been JIT-compiled and takes ~10ms on net472, which
-is the entire race window. The already-warm MainLoop wins `SetCloseReason` with a
-`Library` reason first and starts automatic recovery inside that window. Once the
-abort path is JIT-warm it reaches `SetCloseReason` in ~0.1ms and wins every time,
-so iterations 2..N in a single process all pass. This is why the in-process loop
-shows only "1/200": iteration 0 is the only cold one.
+-> SetCloseReason`) has not yet been JIT-compiled and takes ~10ms, which is the
+entire race window. The already-warm MainLoop wins `SetCloseReason` with a
+`Library` reason inside that window. Once the abort path is JIT-warm it reaches
+`SetCloseReason` in ~0.1ms and wins every time, so iterations 2..N in a single
+process all pass. This is why the in-process loop shows only "1/200": iteration 0
+is the only cold one.
 
 To exercise the race deterministically, run **one iteration per fresh process** in
 a loop. The app prints a final `RESULT: PASS|FAIL` line and returns a non-zero
@@ -102,21 +125,25 @@ per fresh process and tallies the failures:
 ```powershell
 .\projects\Applications\GH-1960\repro.ps1
 .\projects\Applications\GH-1960\repro.ps1 -Host_ localhost -Count 50
-.\projects\Applications\GH-1960\repro.ps1 -Trace   # also emit GH1960_TRACE stderr
 ```
 
-Pre-fix this should fail ~20/20 (every process is cold). Post-fix it should pass
-~20/20. The script builds first and then uses `--no-build` inside the loop, which
-keeps each process cold at the CLR level without rebuilding — do not skip the
-build step, or the loop silently measures stale binaries.
+Measured: **20/20 failures pre-fix, 0/20 post-fix.** The script builds first and
+then uses `--no-build` inside the loop, which keeps each process cold at the CLR
+level without rebuilding — do not skip the build step, or the loop silently
+measures stale binaries.
 
 ### Interpreting the output
 
-- **Linux control (either TFM):** every attempt should complete via
-  `channel-delay-cancelled` at ~1s, seeing `Application/200/Connection close
-  forced` with a cancellable token (Path A). 0 timeouts. Confirmed on Linux.
-- **net472 on Windows:** watch the `TIMEOUTS` count. If a timeout attempt shows a
-  `Library/...` channel reason (Path B won) and/or a token that is not cancellable
-  or not cancelled in time, that confirms the mechanism above and points the fix
-  at making the abort's cancellation reach the channel handler even when MainLoop
-  wins the reason race.
+- **Path A (healthy):** the attempt completes via `channel-delay-cancelled` at
+  ~1s, seeing `Application/200/Connection close forced` with a
+  `cancellable,not-yet` token — the abort won the reason race and its own 1s token
+  released the handler.
+- **Path B, fixed:** `channel-delay-cancelled` promptly, seeing `Library/541/...`
+  with a `cancellable,already-cancelled` token — MainLoop won the race but
+  cancelled the token before invoking handlers.
+- **Path B, broken:** `TIMEOUT (6s)` with a `Library/541/...` reason and a
+  `cancellable,not-yet` token. This is the #1960 deadlock; the handler is parked on
+  a token nobody will cancel until it returns.
+- A `connection-fallback` completion also indicates a problem: it means the channel
+  handler was never released by its own token. The regression test asserts against
+  this.

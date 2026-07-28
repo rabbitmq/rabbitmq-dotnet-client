@@ -140,8 +140,6 @@ namespace RabbitMQ.Client.Impl
                 }
                 else
                 {
-                    Gh1960Trace.Mark(
-                        $"Channel#{ChannelNumber}.ChannelShutdownAsync.add on CLOSED channel: invoking handler immediately", CloseReason);
                     value(this, CloseReason);
                 }
             }
@@ -192,8 +190,6 @@ namespace RabbitMQ.Client.Impl
 
         protected void TakeOver(Channel other)
         {
-            Gh1960Trace.Mark(
-                $"Channel#{ChannelNumber}.TakeOver from Channel#{other.ChannelNumber}: moving {other._channelShutdownAsyncWrapper.HandlerCount} shutdown handler(s); this.CloseReason={Gh1960Trace.Describe(CloseReason)} other.CloseReason={Gh1960Trace.Describe(other.CloseReason)}");
             _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
             _basicNacksAsyncWrapper.Takeover(other._basicNacksAsyncWrapper);
             _basicReturnAsyncWrapper.Takeover(other._basicReturnAsyncWrapper);
@@ -509,13 +505,10 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         private async Task OnChannelShutdownAsync(ShutdownEventArgs reason)
         {
-            Gh1960Trace.Mark(
-                $"Channel#{ChannelNumber}.OnChannelShutdownAsync invoking {_channelShutdownAsyncWrapper.HandlerCount} handler(s)", reason);
             _continuationQueue.HandleChannelShutdown(reason);
 
             await _channelShutdownAsyncWrapper.InvokeAsync(this, reason)
                 .ConfigureAwait(false);
-            Gh1960Trace.Mark($"Channel#{ChannelNumber}.OnChannelShutdownAsync handlers returned", reason);
 
             await MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync(reason)
                 .ConfigureAwait(false);

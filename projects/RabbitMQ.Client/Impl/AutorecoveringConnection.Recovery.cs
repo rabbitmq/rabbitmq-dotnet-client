@@ -53,17 +53,8 @@ namespace RabbitMQ.Client.Impl
                 var recoverTask = new Task<Task>(RecoverConnectionAsync);
                 if (Interlocked.CompareExchange(ref _recoveryTask, recoverTask.Unwrap(), null) is null)
                 {
-                    Gh1960Trace.Mark("HandleConnectionShutdownAsync: STARTING recovery loop", args);
                     recoverTask.Start();
                 }
-                else
-                {
-                    Gh1960Trace.Mark("HandleConnectionShutdownAsync: recovery already running", args);
-                }
-            }
-            else
-            {
-                Gh1960Trace.Mark("HandleConnectionShutdownAsync: recovery NOT triggered", args);
             }
 
             return Task.CompletedTask;
@@ -112,13 +103,10 @@ namespace RabbitMQ.Client.Impl
                 bool success;
                 do
                 {
-                    Gh1960Trace.Mark($"RecoverConnectionAsync: begin Task.Delay(NetworkRecoveryInterval) token.cancelled={token.IsCancellationRequested}");
                     await Task.Delay(_config.NetworkRecoveryInterval, token)
                         .ConfigureAwait(false);
-                    Gh1960Trace.Mark($"RecoverConnectionAsync: delay elapsed, begin TryPerformAutomaticRecoveryAsync token.cancelled={token.IsCancellationRequested}");
                     success = await TryPerformAutomaticRecoveryAsync(token)
                         .ConfigureAwait(false);
-                    Gh1960Trace.Mark($"RecoverConnectionAsync: TryPerformAutomaticRecoveryAsync returned success={success} token.cancelled={token.IsCancellationRequested}");
                 } while (false == success && false == token.IsCancellationRequested);
             }
             catch (OperationCanceledException)
@@ -143,7 +131,6 @@ namespace RabbitMQ.Client.Impl
         private async ValueTask StopRecoveryLoopAsync(CancellationToken cancellationToken)
         {
             Task? task = _recoveryTask;
-            Gh1960Trace.Mark($"StopRecoveryLoopAsync: _recoveryTask is {(task is null ? "NULL (recovery not observed - will NOT cancel)" : "present (cancelling + awaiting)")}");
             if (task != null)
             {
                 _recoveryCancellationTokenSource.Cancel();

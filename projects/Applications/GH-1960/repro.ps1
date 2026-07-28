@@ -1,15 +1,14 @@
 <#
 .SYNOPSIS
-    Cold-start gate for issue #1960 (net472-only abort/recovery race).
+    Cold-start gate for issue #1960 (abort loses the SetCloseReason race).
 
 .DESCRIPTION
-    The #1960 failure is a COLD-START race: only the first connection after
-    process start loses it, because the abort code path is not yet JIT-compiled
-    and takes ~10ms on net472 -- the window in which the already-warm MainLoop
-    wins SetCloseReason with a Library reason and starts automatic recovery.
-    Warm iterations win the race in ~0.1ms, so an in-process loop only ever
-    shows "1/N". To exercise the race deterministically, run ONE iteration per
-    FRESH process.
+    On net472 the #1960 failure is a COLD-START race: only the first connection
+    after process start loses it, because the abort code path is not yet
+    JIT-compiled and takes ~10ms -- the window in which the already-warm MainLoop
+    wins SetCloseReason with a Library reason. Warm iterations win the race in
+    ~0.1ms, so an in-process loop only ever shows "1/N". To exercise the race
+    deterministically here, run ONE iteration per FRESH process.
 
     This script builds the repro ONCE, then runs it -Count times as separate
     processes (one cold iteration each) and tallies the non-zero exit codes the
@@ -17,25 +16,24 @@
 
     Pre-fix: expect ~Count/Count failures. Post-fix: expect ~0/Count.
 
+    The underlying bug is NOT net472-specific -- it is a sequential-shutdown-handler
+    deadlock on _mainLoopCts.Token. `dotnet run ... -- <host> <n> force-race`
+    reproduces it on any platform and TFM without needing a cold process; net472
+    just loses the race reliably. See README.md.
+
 .PARAMETER Host_
     Broker hostname (default: localhost).
 
 .PARAMETER Count
     Number of fresh-process runs (default: 20).
 
-.PARAMETER Trace
-    Enable the GH1960_TRACE library instrumentation (stderr). Off by default so
-    the tally stays clean; turn on to inspect a specific run.
-
 .EXAMPLE
     .\repro.ps1
     .\repro.ps1 -Host_ localhost -Count 50
-    .\repro.ps1 -Trace
 #>
 param(
     [string] $Host_ = 'localhost',
-    [int]    $Count = 20,
-    [switch] $Trace
+    [int]    $Count = 20
 )
 
 $ErrorActionPreference = 'Stop'
@@ -47,8 +45,6 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "BUILD FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
     exit 1
 }
-
-if ($Trace) { $env:GH1960_TRACE = '1' } else { Remove-Item Env:\GH1960_TRACE -ErrorAction SilentlyContinue }
 
 $fail = 0
 for ($i = 0; $i -lt $Count; $i++) {

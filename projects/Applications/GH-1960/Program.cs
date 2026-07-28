@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-// One-off repro for issue #1960: the net472-only flaky test
+// One-off repro for issue #1960: the flaky test
 // Test.Integration.TestConnectionShutdown.TestAbortWithSocketClosedOutOfBandAndCancellation.
 //
 // The test:
@@ -21,17 +21,17 @@ using RabbitMQ.Client.Events;
 //   5. await _conn.AbortAsync(cts.Token)
 //   6. waits up to 6s for the TCS, then up to 6s for the frame-handler close.
 //
-// It intermittently times out at the 6s TCS wait on the net472 (netstandard2.0)
-// client on the integration-win32 CI job, and cannot be reproduced on Linux/WSL.
+// It intermittently timed out at the 6s TCS wait on the net472 (netstandard2.0)
+// client on the integration-win32 CI job.
 //
-// GATHER DATA, DO NOT ASSUME A FIX. The load-bearing question raised by reading
-// the abort path in Connection.CloseAsync / Connection.Receive.cs is: when the
-// out-of-band socket close makes MainLoop win SetCloseReason first, the channel
-// shutdown handler receives a Library-initiated reason carrying _mainLoopCts.Token
-// instead of the abort's 1s token, so its parked Task.Delay may never cancel in
-// the 6s window; and because shutdown handlers run SEQUENTIALLY
-// (AsyncEventingWrapper), the ConnectionShutdownAsync fallback cannot complete
-// the TCS while the channel handler is parked. This app records, per attempt:
+// CONFIRMED MECHANISM: when the out-of-band socket close makes MainLoop win
+// SetCloseReason first, the channel shutdown handler receives a Library-initiated
+// reason carrying _mainLoopCts.Token instead of the abort's 1s token. That token is
+// only cancelled by FinishCloseAsync, which MainLoop reaches only AFTER every
+// shutdown handler returns -- and handlers run SEQUENTIALLY (AsyncEventingWrapper).
+// So the parked handler waited out its own 1 minute delay while MainLoop waited on
+// it, and the ConnectionShutdownAsync fallback could not run either. See README.md.
+// This app records, per attempt:
 //
 //   * which shutdown reason the CHANNEL handler saw: Initiator (Application vs
 //     Library), ReplyCode, ReplyText
@@ -40,14 +40,16 @@ using RabbitMQ.Client.Events;
 //     or "TIMEOUT (6s)"
 //   * elapsed time to TCS completion
 //
-// Run under BOTH frameworks on native Windows against a reachable broker (the WSL
-// docker container publishes 5672 to the Windows host, so `localhost` works):
+// Run against a reachable broker (the WSL docker container publishes 5672 to the
+// Windows host, so `localhost` works from native Windows too):
 //
 //   dotnet run -c Release -f net8.0   -- localhost
 //   dotnet run -c Release -f net472   -- localhost
 //
 // The optional first argument is the broker hostname (default localhost). The
-// optional second argument is the iteration count (default 50).
+// optional second argument is the iteration count (default 50). The optional third
+// argument "force-race" makes MainLoop win the race deterministically on any
+// platform/TFM (see below); repro.ps1 is the faithful net472 cold-start gate.
 
 string host = args.Length > 0 ? args[0] : "localhost";
 int iterations = args.Length > 1 && int.TryParse(args[1], out int n) ? n : 50;
@@ -130,12 +132,6 @@ for (int i = 0; i < iterations; i++)
     int recoveryStarted = 0;
     int recoveryError = 0;
 
-    // Record EVERY channel-handler invocation (recovery may swap the inner channel
-    // and invoke the handler more than once). Each entry pairs with a "reason#<id>"
-    // in the GH1960_TRACE library output, so the two logs can be cross-referenced.
-    var channelInvocations = new List<string>();
-    var invocationsLock = new object();
-
     // Detect whether the out-of-band close kicked off the autorecovery loop, which
     // races the abort. There is no "recovery started" event, so RecoverySucceeded /
     // RecoveryError are the observable proxies.
@@ -144,24 +140,11 @@ for (int i = 0; i < iterations; i++)
 
     channel.ChannelShutdownAsync += async (ch, ea) =>
     {
-        double enteredAt = sw.Elapsed.TotalSeconds;
-        int reasonId = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(ea);
-        bool canCancel = ea.CancellationToken.CanBeCanceled;
-        bool cancelledOnEntry = ea.CancellationToken.IsCancellationRequested;
-        lock (invocationsLock)
-        {
-            channelInvocations.Add(
-                $"enter={enteredAt:F2}s reason#{reasonId} {ea.Initiator}/{ea.ReplyCode} token(canCancel={canCancel},cancelled={cancelledOnEntry})");
-        }
-        // First invocation still populates the single-value fields the summary uses.
-        if (channelHandlerEnteredAt < 0)
-        {
-            channelHandlerEnteredAt = enteredAt;
-            channelReason = $"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}";
-            channelTokenCanBeCanceled = canCancel;
-            channelTokenCancelledOnEntry = cancelledOnEntry;
-            channelReasonId = reasonId;
-        }
+        channelHandlerEnteredAt = sw.Elapsed.TotalSeconds;
+        channelReason = $"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}";
+        channelTokenCanBeCanceled = ea.CancellationToken.CanBeCanceled;
+        channelTokenCancelledOnEntry = ea.CancellationToken.IsCancellationRequested;
+        channelReasonId = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(ea);
         try
         {
             await Task.Delay(TimeSpan.FromMinutes(1), ea.CancellationToken);
@@ -239,20 +222,6 @@ for (int i = 0; i < iterations; i++)
 
     Console.WriteLine(
         $"#{i,3}  {completionCause,-24}  tcs={tcsSeconds,6:F2}s  channelReason={channelReason}  token={canceledInfo}{detail}");
-
-    // For interesting attempts, dump every channel-handler invocation so a
-    // recovery-driven double-invoke (fresh inner channel) is visible and each
-    // line's reason#<id> cross-references the GH1960_TRACE library output.
-    if (interesting)
-    {
-        List<string> snapshot;
-        lock (invocationsLock) { snapshot = new List<string>(channelInvocations); }
-        Console.WriteLine($"       channel handler invoked {snapshot.Count}x:");
-        foreach (string inv in snapshot)
-        {
-            Console.WriteLine($"         - {inv}");
-        }
-    }
 }
 
 Console.WriteLine();

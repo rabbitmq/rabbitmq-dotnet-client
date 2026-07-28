@@ -94,14 +94,10 @@ namespace RabbitMQ.Client.Impl
 
         public Task CloseAsync(ShutdownEventArgs reason, bool notify = true)
         {
-            bool won = Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
-            if (won)
+            if (Interlocked.CompareExchange(ref _closeReason, reason, null) is null)
             {
                 RabbitMqClientEventSource.Log.ChannelClosed();
             }
-
-            Gh1960Trace.Mark(
-                $"SessionBase#{ChannelNumber}.CloseAsync notify={notify} storedIsIncoming={won} incoming={Gh1960Trace.Describe(reason)} propagating={Gh1960Trace.Describe(CloseReason)}");
 
             if (notify)
             {
