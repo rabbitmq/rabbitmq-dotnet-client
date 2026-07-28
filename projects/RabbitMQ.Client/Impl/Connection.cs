@@ -354,6 +354,7 @@ namespace RabbitMQ.Client.Impl
             if (false == SetCloseReason(reason))
             {
                 // close reason is already set
+                Gh1960Trace.Mark($"Connection.CloseAsync(abort={abort}): reason already set, SKIPPING OnShutdownAsync; incoming={Gh1960Trace.Describe(reason)} winner={Gh1960Trace.Describe(CloseReason)}");
                 if (false == abort)
                 {
                     ThrowAlreadyClosedException(CloseReason!);
@@ -361,6 +362,7 @@ namespace RabbitMQ.Client.Impl
             }
             else
             {
+                Gh1960Trace.Mark($"Connection.CloseAsync(abort={abort}): won reason race, propagating via OnShutdownAsync", reason);
                 await OnShutdownAsync(reason)
                     .ConfigureAwait(false);
 
@@ -530,7 +532,9 @@ namespace RabbitMQ.Client.Impl
                 throw new ArgumentNullException(nameof(reason));
             }
 
-            return Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+            bool won = Interlocked.CompareExchange(ref _closeReason, reason, null) is null;
+            Gh1960Trace.Mark($"Connection.SetCloseReason won={won}", won ? reason : CloseReason);
+            return won;
         }
 
         private void LogCloseError(string error, Exception ex)

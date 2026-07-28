@@ -121,6 +121,12 @@ for (int i = 0; i < iterations; i++)
     int recoveryStarted = 0;
     int recoveryError = 0;
 
+    // Record EVERY channel-handler invocation (recovery may swap the inner channel
+    // and invoke the handler more than once). Each entry pairs with a "reason#<id>"
+    // in the GH1960_TRACE library output, so the two logs can be cross-referenced.
+    var channelInvocations = new List<string>();
+    var invocationsLock = new object();
+
     // Detect whether the out-of-band close kicked off the autorecovery loop, which
     // races the abort. There is no "recovery started" event, so RecoverySucceeded /
     // RecoveryError are the observable proxies.
@@ -129,11 +135,24 @@ for (int i = 0; i < iterations; i++)
 
     channel.ChannelShutdownAsync += async (ch, ea) =>
     {
-        channelHandlerEnteredAt = sw.Elapsed.TotalSeconds;
-        channelReason = $"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}";
-        channelTokenCanBeCanceled = ea.CancellationToken.CanBeCanceled;
-        channelTokenCancelledOnEntry = ea.CancellationToken.IsCancellationRequested;
-        channelReasonId = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(ea);
+        double enteredAt = sw.Elapsed.TotalSeconds;
+        int reasonId = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(ea);
+        bool canCancel = ea.CancellationToken.CanBeCanceled;
+        bool cancelledOnEntry = ea.CancellationToken.IsCancellationRequested;
+        lock (invocationsLock)
+        {
+            channelInvocations.Add(
+                $"enter={enteredAt:F2}s reason#{reasonId} {ea.Initiator}/{ea.ReplyCode} token(canCancel={canCancel},cancelled={cancelledOnEntry})");
+        }
+        // First invocation still populates the single-value fields the summary uses.
+        if (channelHandlerEnteredAt < 0)
+        {
+            channelHandlerEnteredAt = enteredAt;
+            channelReason = $"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}";
+            channelTokenCanBeCanceled = canCancel;
+            channelTokenCancelledOnEntry = cancelledOnEntry;
+            channelReasonId = reasonId;
+        }
         try
         {
             await Task.Delay(TimeSpan.FromMinutes(1), ea.CancellationToken);
@@ -204,6 +223,20 @@ for (int i = 0; i < iterations; i++)
 
     Console.WriteLine(
         $"#{i,3}  {completionCause,-24}  tcs={tcsSeconds,6:F2}s  channelReason={channelReason}  token={canceledInfo}{detail}");
+
+    // For interesting attempts, dump every channel-handler invocation so a
+    // recovery-driven double-invoke (fresh inner channel) is visible and each
+    // line's reason#<id> cross-references the GH1960_TRACE library output.
+    if (interesting)
+    {
+        List<string> snapshot;
+        lock (invocationsLock) { snapshot = new List<string>(channelInvocations); }
+        Console.WriteLine($"       channel handler invoked {snapshot.Count}x:");
+        foreach (string inv in snapshot)
+        {
+            Console.WriteLine($"         - {inv}");
+        }
+    }
 }
 
 Console.WriteLine();

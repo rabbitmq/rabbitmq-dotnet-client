@@ -76,6 +76,7 @@ namespace RabbitMQ.Client.Impl
                     "End of stream",
                     exception: eose,
                     cancellationToken: mainLoopToken);
+                Gh1960Trace.Mark("MainLoop mint EndOfStream", ea);
                 await HandleMainLoopExceptionAsync(ea)
                     .ConfigureAwait(false);
             }

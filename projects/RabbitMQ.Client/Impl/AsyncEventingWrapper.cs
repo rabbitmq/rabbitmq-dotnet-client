@@ -14,6 +14,9 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsEmpty => _eventHandler is null;
 
+        // TEMPORARY (GH1960 diagnostic): number of subscribed handlers.
+        public readonly int HandlerCount => _eventHandler?.GetInvocationList().Length ?? 0;
+
         public AsyncEventingWrapper(string context, Func<Exception, string, CancellationToken, Task> onException)
         {
             _eventHandler = null;

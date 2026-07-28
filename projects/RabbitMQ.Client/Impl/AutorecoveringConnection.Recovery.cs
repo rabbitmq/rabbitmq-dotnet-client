@@ -53,8 +53,17 @@ namespace RabbitMQ.Client.Impl
                 var recoverTask = new Task<Task>(RecoverConnectionAsync);
                 if (Interlocked.CompareExchange(ref _recoveryTask, recoverTask.Unwrap(), null) is null)
                 {
+                    Gh1960Trace.Mark("HandleConnectionShutdownAsync: STARTING recovery loop", args);
                     recoverTask.Start();
                 }
+                else
+                {
+                    Gh1960Trace.Mark("HandleConnectionShutdownAsync: recovery already running", args);
+                }
+            }
+            else
+            {
+                Gh1960Trace.Mark("HandleConnectionShutdownAsync: recovery NOT triggered", args);
             }
 
             return Task.CompletedTask;
