@@ -157,6 +157,76 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task TestAbortCancellationWhenMainLoopWinsCloseReasonRace_GH1960()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1960
+             *
+             * Deterministic version of TestAbortWithSocketClosedOutOfBandAndCancellation.
+             * That test only fails when the abort path loses the SetCloseReason race to
+             * MainLoop, which in practice needed a cold net472 process (the abort path is
+             * not yet JIT-compiled, and that latency is the whole race window). Delaying
+             * before AbortAsync makes MainLoop win every time, on every platform and TFM.
+             *
+             * MainLoop then mints a Library reason carrying _mainLoopCts.Token and invokes
+             * the shutdown handlers sequentially. Before the fix, a handler awaiting
+             * args.CancellationToken parked on a token that only FinishCloseAsync cancels
+             * -- and MainLoop reaches FinishCloseAsync only after the handlers return, so
+             * the handler waited out its full delay while MainLoop waited on the handler.
+             */
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            bool completedViaConnectionShutdown = false;
+
+            _channel.ChannelShutdownAsync += async (channel, args) =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(1), args.CancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    tcs.TrySetResult(true);
+                }
+            };
+
+            _conn.ConnectionShutdownAsync += (c, args) =>
+            {
+                if (tcs.TrySetResult(true))
+                {
+                    completedViaConnectionShutdown = true;
+                }
+                return Task.CompletedTask;
+            };
+
+            var conn = (AutorecoveringConnection)_conn;
+            ValueTask frameHandlerCloseTask = conn.CloseFrameHandlerAsync();
+
+            try
+            {
+                // Let MainLoop observe the dead socket and win SetCloseReason.
+                await Task.Delay(TimeSpan.FromMilliseconds(250));
+
+                await _conn.AbortAsync(cts.Token);
+                await WaitAllAsync(tcs, frameHandlerCloseTask);
+
+                /*
+                 * The channel handler's own cancellation must be what releases it. If the
+                 * ConnectionShutdownAsync fallback completed the TCS instead, the parked
+                 * handler was never cancelled and the deadlock is still present.
+                 */
+                Assert.False(completedViaConnectionShutdown,
+                    "channel shutdown handler must be released by its own cancellation token, " +
+                    "not by the ConnectionShutdownAsync fallback");
+            }
+            finally
+            {
+                _conn = null;
+                _channel = null;
+            }
+        }
+
+        [Fact]
         public async Task TestDisposedWithSocketClosedOutOfBand()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
