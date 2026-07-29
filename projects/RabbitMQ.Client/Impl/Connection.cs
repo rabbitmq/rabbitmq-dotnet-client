@@ -553,7 +553,11 @@ namespace RabbitMQ.Client.Impl
 
         internal ValueTask WriteAsync(OutgoingFrame frames, CancellationToken cancellationToken)
         {
-            Activity.Current.SetNetworkTags(_frameHandler);
+            if (RabbitMQActivitySource.PublisherHasListeners)
+            {
+                Activity.Current.SetNetworkTags(_frameHandler);
+            }
+
             return _frameHandler.WriteAsync(frames, cancellationToken);
         }
 

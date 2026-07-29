@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,49 +42,54 @@ namespace RabbitMQ.Client
         public static async Task<T> SelectOneAsync<T>(this IEndpointResolver resolver,
             Func<AmqpTcpEndpoint, CancellationToken, Task<T>> selector, CancellationToken cancellationToken)
         {
-            var t = default(T);
             var exceptions = new List<Exception>();
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                using Activity? tcpConnection = RabbitMQActivitySource.OpenTcpConnection();
+                if (tcpConnection is { IsAllDataRequested: true })
+                {
+                    tcpConnection.SetServerTags(ep);
+                }
+
                 try
                 {
-                    t = await selector(ep, cancellationToken).ConfigureAwait(false);
-                    if (t!.Equals(default(T)) == false)
-                    {
-                        return t;
-                    }
+                    return await selector(ep, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException ex)
                 {
+                    /*
+                     * Note: this attempt failed, so its activity must be marked as such.
+                     * Without the explicit status, an unset status is treated as success by
+                     * tracing backends, and the attached exception event is easy to miss.
+                     *
+                     * The *parent* connection activity is deliberately left alone here: if a
+                     * later endpoint succeeds, the overall operation succeeded, and only the
+                     * individual attempt failed.
+                     */
+                    tcpConnection?.AddException(ex);
+                    tcpConnection?.SetStatus(ActivityStatusCode.Error);
                     if (cancellationToken.IsCancellationRequested)
                     {
                         throw;
                     }
-                    else
-                    {
-                        exceptions.Add(ex);
-                    }
+
+                    exceptions.Add(ex);
                 }
                 catch (Exception e)
                 {
+                    tcpConnection?.AddException(e);
+                    tcpConnection?.SetStatus(ActivityStatusCode.Error);
                     exceptions.Add(e);
                 }
             }
 
-            if (EqualityComparer<T>.Default.Equals(t!, default!))
+            if (exceptions.Count > 0)
             {
-                if (exceptions.Count > 0)
-                {
-                    throw new AggregateException(exceptions);
-                }
-                else
-                {
-                    throw new InvalidOperationException(InternalConstants.BugFound);
-                }
+                throw new AggregateException(exceptions);
             }
 
-            return t!;
+            throw new InvalidOperationException(InternalConstants.BugFound);
         }
     }
 }

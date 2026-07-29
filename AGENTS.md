@@ -475,13 +475,16 @@ there. Current docs:
 - **System.IO.Pipelines**: High-performance I/O
 - **System.Threading.RateLimiting**: Publisher confirms rate limiting
 - **Nullable**: Build-time only (`PrivateAssets="all"`), for nullable attributes
+- **System.Diagnostics.DiagnosticSource**: Activity support. Referenced for *all*
+  target frameworks, not just netstandard2.0: `net8.0` has `Activity` built in,
+  but the connection-tracing code calls `Activity.AddException`, which was only
+  added in .NET 9, so the package supplies it.
 
 Note: `System.Threading.Channels` backs the consumer work queue but is built into
 net8.0; it is only an explicit package reference for netstandard2.0 (below).
 
 ### .NET Standard 2.0 Additional Dependencies
 
-- **System.Diagnostics.DiagnosticSource**: Activity support
 - **System.Memory**: Span/Memory types
 - **System.Threading.Channels**: Async channels
 - **Microsoft.Bcl.AsyncInterfaces**: IAsyncDisposable

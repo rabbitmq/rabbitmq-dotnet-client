@@ -38,6 +38,7 @@ using System.Threading.Tasks;
 
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -378,6 +379,118 @@ namespace Test.SequentialIntegration
                 AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessageId, messageId);
                 AssertStringTagEquals(receiveActivity, RabbitMQActivitySource.MessageId, messageId);
             }
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionRegisterAnActivity()
+        {
+            using ActivityRecorder connectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "connection attempt");
+            using ActivityRecorder tcpConnectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "tcp connection attempt");
+            tcpConnectionRecorder.VerifyParent = false;
+            ConnectionFactory cf = CreateConnectionFactory();
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            var connectionActivity = connectionRecorder.VerifyActivityRecordedOnce();
+            connectionActivity.HasTag("network.peer.address");
+            connectionActivity.HasTag("network.local.address");
+            connectionActivity.HasTag("server.address");
+            connectionActivity.HasTag("client.address");
+            connectionActivity.HasTag("network.peer.port");
+            connectionActivity.HasTag("network.local.port");
+            connectionActivity.HasTag("server.port");
+            connectionActivity.HasTag("client.port");
+            connectionActivity.HasTag("network.type");
+            var tcpConnectionActivity = tcpConnectionRecorder.VerifyActivityRecordedOnce();
+            tcpConnectionActivity.HasTag("server.port");
+            tcpConnectionActivity.HasTag("server.address");
+            Assert.Equal(connectionActivity, tcpConnectionActivity.Parent);
+            await conn.CloseAsync();
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionWithFailureRecordException()
+        {
+            using ActivityRecorder recorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "connection attempt");
+            using ActivityRecorder tcpConnectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "tcp connection attempt");
+            tcpConnectionRecorder.VerifyParent = false;
+            ConnectionFactory cf = CreateConnectionFactory();
+            var unreachablePort = 1234;
+            var ep = new AmqpTcpEndpoint("localhost", unreachablePort);
+            var exception = await Assert.ThrowsAsync<BrokerUnreachableException>(() =>
+            {
+                return cf.CreateConnectionAsync(new List<AmqpTcpEndpoint> { ep });
+            });
+            Activity connectionActivity = recorder.VerifyActivityRecordedOnce();
+            connectionActivity.HasRecordedException(exception);
+            connectionActivity.IsInError();
+            Activity tcpConnectionActivity = tcpConnectionRecorder.VerifyActivityRecordedOnce();
+            tcpConnectionActivity.HasRecordedException("RabbitMQ.Client.Exceptions.ConnectFailureException");
+            tcpConnectionActivity.IsInError();
+        }
+
+        [Fact]
+        public async Task TestCreateConnectionWithFailoverRecordsErrorOnlyOnTheFailedAttempt()
+        {
+            using ActivityRecorder connectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "connection attempt");
+            using ActivityRecorder tcpConnectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "tcp connection attempt");
+            tcpConnectionRecorder.VerifyParent = false;
+
+            ConnectionFactory cf = CreateConnectionFactory();
+
+            const int unreachablePort = 1234;
+            AmqpTcpEndpoint reachableEndpoint = cf.Endpoint;
+            var unreachableEndpoint = new AmqpTcpEndpoint(reachableEndpoint.HostName, unreachablePort);
+
+            /*
+             * The DefaultEndpointResolver shuffles the endpoint list on every attempt, which
+             * would make this test flaky - the reachable endpoint could be tried first, so only
+             * one TCP attempt would ever happen. Use a resolver that preserves order so the
+             * unreachable endpoint is always tried first.
+             */
+            var endpoints = new List<AmqpTcpEndpoint> { unreachableEndpoint, reachableEndpoint };
+            cf.EndpointResolverFactory = _ => new OrderedEndpointResolver(endpoints);
+
+            await using (IConnection conn = await cf.CreateConnectionAsync(endpoints))
+            {
+                await conn.CloseAsync();
+            }
+
+            /*
+             * The first endpoint is unreachable and the second one is not, so the overall
+             * operation succeeded. Only the failed attempt is flagged as an error - marking
+             * the parent as failed too would report a successful CreateConnectionAsync as a
+             * failure, and failing over across endpoints is expected behavior.
+             */
+            Activity connectionActivity = connectionRecorder.VerifyActivityRecordedOnce();
+            Assert.Equal(ActivityStatusCode.Unset, connectionActivity.Status);
+            Assert.Empty(connectionActivity.Events);
+
+            tcpConnectionRecorder.VerifyActivityRecorded(2);
+            List<Activity> tcpActivities = tcpConnectionRecorder.FinishedActivities.ToList();
+
+            Activity failedAttempt = Assert.Single(tcpActivities,
+                a => unreachablePort.Equals(a.GetTagItem("server.port")));
+            failedAttempt.HasRecordedException("RabbitMQ.Client.Exceptions.ConnectFailureException");
+            failedAttempt.IsInError();
+
+            Activity successfulAttempt = Assert.Single(tcpActivities,
+                a => reachableEndpoint.Port.Equals(a.GetTagItem("server.port")));
+            Assert.Equal(ActivityStatusCode.Unset, successfulAttempt.Status);
+            Assert.Empty(successfulAttempt.Events);
+        }
+
+        private sealed class OrderedEndpointResolver : IEndpointResolver
+        {
+            private readonly IEnumerable<AmqpTcpEndpoint> _endpoints;
+
+            public OrderedEndpointResolver(IEnumerable<AmqpTcpEndpoint> endpoints) => _endpoints = endpoints;
+
+            public IEnumerable<AmqpTcpEndpoint> All() => _endpoints;
         }
     }
 }

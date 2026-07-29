@@ -67,6 +67,7 @@
     <PackageReference Include="System.IO.Pipelines" />
     <PackageReference Include="System.Threading.RateLimiting" />
     <PackageReference Include="Nullable" PrivateAssets="all" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
@@ -76,7 +77,6 @@
       * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
       * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1594
     -->
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
     <PackageReference Include="System.Memory" />
     <PackageReference Include="System.Threading.Channels" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />

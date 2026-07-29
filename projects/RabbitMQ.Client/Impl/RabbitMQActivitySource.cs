@@ -33,6 +33,11 @@ namespace RabbitMQ.Client
         internal const string ProtocolVersion = "network.protocol.version";
         internal const string RabbitMQDeliveryTag = "messaging.rabbitmq.delivery_tag";
 
+        // These constants are specific to this client - the OpenTelemetry messaging
+        // conventions do not (yet) cover connection establishment.
+        internal const string RabbitMQConnectionIsReconnection = "messaging.rabbitmq.connection.is_reconnection";
+        internal const string RabbitMQConnectionAutomaticRecovery = "messaging.rabbitmq.connection.automatic_recovery";
+
         private static readonly string AssemblyVersion = typeof(RabbitMQActivitySource).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion ?? "";
@@ -43,10 +48,15 @@ namespace RabbitMQ.Client
         private static readonly ActivitySource s_subscriberSource =
             new ActivitySource(SubscriberSourceName, AssemblyVersion);
 
+        private static readonly ActivitySource s_connectionSource =
+            new ActivitySource(ConnectionSourceName, AssemblyVersion);
+
         public const string PublisherSourceName = "RabbitMQ.Client.Publisher";
         public const string SubscriberSourceName = "RabbitMQ.Client.Subscriber";
+        public const string ConnectionSourceName = "RabbitMQ.Client.Connection";
 
-        public static Action<Activity, IDictionary<string, object?>> ContextInjector { get; set; } = DefaultContextInjector;
+        public static Action<Activity, IDictionary<string, object?>> ContextInjector { get; set; } =
+            DefaultContextInjector;
 
         public static Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor { get; set; } =
             DefaultContextExtractor;
@@ -65,6 +75,33 @@ namespace RabbitMQ.Client
             new KeyValuePair<string, object?>(ProtocolName, "amqp"),
             new KeyValuePair<string, object?>(ProtocolVersion, "0.9.1")
         };
+
+        internal static Activity? OpenConnection(bool isReconnection)
+        {
+            if (!s_connectionSource.HasListeners())
+            {
+                return null;
+            }
+
+            Activity? connectionActivity =
+                s_connectionSource.StartRabbitMQActivity("connection attempt", ActivityKind.Client);
+            if (connectionActivity is { IsAllDataRequested: true })
+            {
+                connectionActivity.SetTag(RabbitMQConnectionIsReconnection, isReconnection);
+            }
+
+            return connectionActivity;
+        }
+
+        internal static Activity? OpenTcpConnection()
+        {
+            if (!s_connectionSource.HasListeners())
+            {
+                return null;
+            }
+
+            return s_connectionSource.StartRabbitMQActivity("tcp connection attempt", ActivityKind.Client);
+        }
 
         internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize, IReadOnlyBasicProperties basicProperties,
             ActivityContext linkedContext = default)
@@ -87,7 +124,6 @@ namespace RabbitMQ.Client
             }
 
             return activity;
-
         }
 
         internal static Activity? BasicGetEmpty(string queue)
@@ -224,7 +260,7 @@ namespace RabbitMQ.Client
 
         internal static void SetNetworkTags(this Activity? activity, IFrameHandler frameHandler)
         {
-            if (PublisherHasListeners && activity != null && activity.IsAllDataRequested)
+            if (activity?.IsAllDataRequested ?? false)
             {
                 switch (frameHandler.RemoteEndPoint.AddressFamily)
                 {
@@ -235,15 +271,7 @@ namespace RabbitMQ.Client
                         activity.SetTag("network.type", "ipv4");
                         break;
                 }
-
-                if (!string.IsNullOrEmpty(frameHandler.Endpoint.HostName))
-                {
-                    activity
-                        .SetTag("server.address", frameHandler.Endpoint.HostName);
-                }
-
-                activity
-                    .SetTag("server.port", frameHandler.Endpoint.Port);
+                activity.SetServerTags(frameHandler.Endpoint);
 
                 if (frameHandler.RemoteEndPoint is IPEndPoint ipEndpoint)
                 {
@@ -269,6 +297,18 @@ namespace RabbitMQ.Client
                         .SetTag("network.local.port", localEndpoint.Port);
                 }
             }
+        }
+
+        internal static void SetServerTags(this Activity activity, AmqpTcpEndpoint endpoint)
+        {
+            if (!string.IsNullOrEmpty(endpoint.HostName))
+            {
+                activity
+                    .SetTag("server.address", endpoint.HostName);
+            }
+
+            activity
+                .SetTag("server.port", endpoint.Port);
         }
 
         private static void DefaultContextInjector(Activity sendActivity, IDictionary<string, object?> props)
