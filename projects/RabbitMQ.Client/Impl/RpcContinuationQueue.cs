@@ -141,9 +141,10 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void HandleChannelShutdown(ShutdownEventArgs reason)
         {
-            // No further frames will arrive on this channel, so any late responses
-            // still being waited for will never show up. Drop them so that a recovered
-            // channel does not start out expecting to discard commands.
+            // No further frames will arrive on this channel, so the recorded entries can
+            // never be consumed: this queue belongs to a single Channel, and a channel
+            // being recovered gets a brand new one. Release them rather than keeping them
+            // alive for as long as something holds a reference to the dead channel.
             // Note: ConcurrentQueue<T>.Clear() is not available on netstandard2.0.
             while (_timedOutRpcs.TryDequeue(out _))
             {

@@ -304,9 +304,9 @@ namespace Test.Unit
             queue.HandleChannelShutdown(new ShutdownEventArgs(ShutdownInitiator.Library,
                 Constants.ReplySuccess, "test shutdown"));
 
-            // No further frames arrive on a shut down channel, so a recovered channel
-            // must not start out expecting to discard commands. Probe the newest entry
-            // first: probing the oldest would consume the sole slot of a single-entry
+            // No further frames arrive on a shut down channel, so the recorded entries can
+            // never be consumed and are released instead. Probe the newest entry first:
+            // probing the oldest would consume the sole slot of a single-entry
             // implementation and mask a missing drain.
             Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
             Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));

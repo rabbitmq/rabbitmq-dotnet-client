@@ -46,6 +46,12 @@ namespace Test.Unit
         // arbitrary number of queued operations before its own frame is written. The
         // continuation timeout therefore does not start at construction; Channel starts
         // it once the RPC semaphore has been acquired and the operation can run.
+        //
+        // These are wall-clock tests, so they are written so that load can only ever make
+        // them pass: every assertion is one-sided in the safe direction. The simulated wait
+        // is comfortably longer than the timeout, and the one elapsed-time assertion has a
+        // floor rather than a ceiling, so a delay that overruns is harmless while a timer
+        // that fires early cannot happen. Do not tighten these towards each other.
         private static readonly TimeSpan s_continuationTimeout = TimeSpan.FromSeconds(2);
         private static readonly TimeSpan s_simulatedSemaphoreWait = TimeSpan.FromSeconds(5);
 
