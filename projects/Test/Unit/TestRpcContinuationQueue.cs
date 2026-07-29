@@ -104,7 +104,8 @@ namespace Test.Unit
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
             queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
-            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicAck));
+            // Another RPC response, so the mismatch path is what is exercised here
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
         }
 
         [Fact]
@@ -128,7 +129,8 @@ namespace Test.Unit
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
             queue.RpcCanceled(false, [ProtocolCommandId.BasicGetOk, ProtocolCommandId.BasicGetEmpty]);
-            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicAck));
+            // Another RPC response, so the mismatch path is what is exercised here
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
         }
 
         [Fact]
@@ -146,8 +148,9 @@ namespace Test.Unit
         {
             RpcContinuationQueue queue = new RpcContinuationQueue();
             queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
-            // Consume with a non-matching command ID
-            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicAck));
+            // Consume with a non-matching command ID. It must be another RPC response:
+            // a server-originated frame deliberately does not consume an entry (#1964).
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
             // Now the timed-out state is consumed, any check returns false
             Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
         }
@@ -194,6 +197,51 @@ namespace Test.Unit
             Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
             Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
             Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
+        }
+
+        // rabbitmq/rabbitmq-dotnet-client#1964
+        // Server-originated frames interleave freely with the request-response stream.
+        // Consuming an entry for one of them discarded the record of a timed-out RPC,
+        // so its late response then reached an unrelated continuation.
+        [Theory]
+        [InlineData(ProtocolCommandId.BasicDeliver)]
+        [InlineData(ProtocolCommandId.BasicAck)]
+        [InlineData(ProtocolCommandId.BasicNack)]
+        [InlineData(ProtocolCommandId.BasicReturn)]
+        [InlineData(ProtocolCommandId.BasicCancel)]
+        [InlineData(ProtocolCommandId.ChannelFlow)]
+        [InlineData(ProtocolCommandId.ConnectionBlocked)]
+        [InlineData(ProtocolCommandId.ConnectionUnblocked)]
+        // Note: internal because ProtocolCommandId is internal; xUnit discovers it either way
+        internal void TestShouldIgnoreCommand_ServerOriginatedFrameDoesNotConsumeEntry(
+            ProtocolCommandId serverOriginated)
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
+
+            Assert.False(queue.ShouldIgnoreCommand(serverOriginated));
+
+            // The timed-out RPC's record must survive, otherwise its late response is
+            // matched against whichever continuation is outstanding by then
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_ChannelCloseOkStillAbsorbed()
+        {
+            // ChannelCloseOk is dispatched by Channel, but it is a real RPC response and
+            // so may arrive late like any other
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.ChannelCloseOk]);
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ChannelCloseOk));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_ConnectionSecureAndTuneStillAbsorbed()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+            queue.RpcCanceled(false, [ProtocolCommandId.ConnectionSecure, ProtocolCommandId.ConnectionTune]);
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ConnectionTune));
         }
 
         [Fact]

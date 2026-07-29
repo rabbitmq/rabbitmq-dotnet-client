@@ -203,6 +203,18 @@ namespace RabbitMQ.Client.Impl
             // This keeps track of ProtocolCommandId values from previous RPC
             // commands that have timed out, so that their late responses are
             // discarded rather than matched against a later continuation.
+
+            // rabbitmq/rabbitmq-dotnet-client#1964
+            // Server-originated frames are not part of the request-response stream and
+            // interleave freely with it, so they must not consume an entry. Doing so
+            // discarded the record of a timed-out RPC whenever a delivery or an ack
+            // happened to arrive first, and the late response then reached an unrelated
+            // continuation, which is the very failure this record exists to prevent.
+            if (IsServerOriginated(commandId))
+            {
+                return false;
+            }
+
             // AMQP 0-9-1 enforces strict request-response ordering on a channel, so late
             // responses arrive in the order the requests were sent. Only the oldest
             // outstanding entry can match; consume it either way, since a non-match means
@@ -213,6 +225,56 @@ namespace RabbitMQ.Client.Impl
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Whether the broker sends this command of its own accord, rather than as the
+        /// response to a request this channel made.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Derived from the <c>switch</c> in <c>Channel.DispatchCommandAsync</c>, which is
+        /// the authority on this distinction: <c>Channel.HandleCommandAsync</c> calls
+        /// <c>ShouldIgnoreCommand</c> and then <c>DispatchCommandAsync</c>, and the latter
+        /// returns <c>true</c> for exactly those commands it handles itself and <c>false</c>
+        /// from its <c>default</c> case, meaning "this is an RPC response, hand it to the
+        /// outstanding continuation". The list below is that switch's cases, minus the three
+        /// exceptions named next.
+        /// </para>
+        /// <para>
+        /// <c>ChannelCloseOk</c>, <c>ConnectionSecure</c> and <c>ConnectionTune</c> are
+        /// deliberately absent even though <c>DispatchCommandAsync</c> handles them. They
+        /// are also genuine RPC responses: <c>ChannelCloseAsyncRpcContinuation</c> names the
+        /// first as its expected reply, and <c>ConnectionSecureOrTuneAsyncRpcContinuation</c>
+        /// names the other two. They can therefore arrive late like any other reply and must
+        /// still be absorbable, so deciding membership purely from "does dispatch handle it"
+        /// would silently stop absorbing them.
+        /// </para>
+        /// <para>
+        /// So: keep this in step with <c>DispatchCommandAsync</c> when commands are added
+        /// there, but ask of each one whether any continuation ever waits on it, not just
+        /// whether dispatch handles it.
+        /// </para>
+        /// </remarks>
+        private static bool IsServerOriginated(ProtocolCommandId commandId)
+        {
+            switch (commandId)
+            {
+                case ProtocolCommandId.BasicAck:
+                case ProtocolCommandId.BasicCancel:
+                case ProtocolCommandId.BasicDeliver:
+                case ProtocolCommandId.BasicNack:
+                case ProtocolCommandId.BasicReturn:
+                case ProtocolCommandId.ChannelClose:
+                case ProtocolCommandId.ChannelFlow:
+                case ProtocolCommandId.ConnectionBlocked:
+                case ProtocolCommandId.ConnectionClose:
+                case ProtocolCommandId.ConnectionStart:
+                case ProtocolCommandId.ConnectionUnblocked:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }
