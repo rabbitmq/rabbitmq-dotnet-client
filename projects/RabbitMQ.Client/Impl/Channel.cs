@@ -990,11 +990,18 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
+                    // rabbitmq/rabbitmq-dotnet-client#1964
+                    // Send before the try whose catch records a timed-out RPC, so a write
+                    // failure (cancellation, IOException, AlreadyClosedException) does not
+                    // record an entry for a request that never reached the wire. Order-based
+                    // late-response matching would then desync permanently. Only a failure
+                    // while awaiting the response, by which point the frame is sent, should
+                    // record.
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+
                     try
                     {
-                        await ModelSendAsync(in method, k.CancellationToken)
-                            .ConfigureAwait(false);
-
                         AssertResultIsTrue(await k);
                     }
                     catch
@@ -1426,11 +1433,17 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
+                    // rabbitmq/rabbitmq-dotnet-client#1964
+                    // Send before the try whose catch records a timed-out RPC, so a
+                    // cancellation during the write does not record an entry for a request
+                    // that never reached the wire. Order-based late-response matching would
+                    // then desync permanently. Only a cancellation while awaiting the
+                    // response, by which point the frame is sent, should record.
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+
                     try
                     {
-                        await ModelSendAsync(in method, k.CancellationToken)
-                            .ConfigureAwait(false);
-
                         QueueDeclareOk result = await k;
                         if (false == passive)
                         {
