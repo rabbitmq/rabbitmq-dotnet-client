@@ -121,6 +121,15 @@ namespace RabbitMQ.Client.Impl
         /// <c>CancellationToken</c> still aborts the wait at any point.
         /// </para>
         /// <para>
+        /// Call this as the first statement inside the <c>try</c> whose <c>finally</c>
+        /// releases the channel's RPC semaphore, not between the wait and the <c>try</c>.
+        /// A throw from here would otherwise leak the semaphore permanently and deadlock
+        /// every subsequent RPC on the channel. Nothing can throw today, since
+        /// <c>ObjectDisposedException</c> is caught below and the constructor already
+        /// validated the same <c>TimeSpan</c>, so this is about not leaving the hazard
+        /// lying around.
+        /// </para>
+        /// <para>
         /// See rabbitmq/rabbitmq-dotnet-client#1964.
         /// </para>
         /// </remarks>

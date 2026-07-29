@@ -125,13 +125,13 @@ namespace RabbitMQ.Client.Impl
                 bool enqueued = false;
                 var k = new ConfirmSelectAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
 
-                // There is no semaphore wait to exclude here, since the caller already
-                // holds it, so the timeout starts right away. It must still be started
-                // explicitly: continuations are constructed unarmed. See #1964.
-                k.StartTimeout();
-
                 try
                 {
+                    // There is no semaphore wait to exclude here, since the caller already
+                    // holds it, so the timeout starts right away. It must still be started
+                    // explicitly: continuations are constructed unarmed. See #1964.
+                    k.StartTimeout();
+
                     if (_nextPublishSeqNo == 0UL)
                     {
                         if (_publisherConfirmationTrackingEnabled)
