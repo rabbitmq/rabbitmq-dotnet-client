@@ -93,6 +93,36 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        /// <summary>
+        /// Restart the continuation timeout, discarding any time already elapsed.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The timeout starts at construction so that waiting for the channel's RPC
+        /// semaphore is bounded. Once the semaphore is acquired the operation has not
+        /// yet been sent, so the time spent queued behind other RPCs must not be
+        /// charged against it. Callers restart the timeout at that point, giving the
+        /// operation itself the full <c>ContinuationTimeout</c>.
+        /// </para>
+        /// <para>
+        /// See rabbitmq/rabbitmq-dotnet-client#1964. Doing otherwise makes concurrent
+        /// operations on one channel time out spuriously under load, because a
+        /// continuation can exhaust its entire budget before its method frame is
+        /// written.
+        /// </para>
+        /// </remarks>
+        public void RestartTimeout()
+        {
+            try
+            {
+                _continuationTimeoutCancellationTokenSource.CancelAfter(_continuationTimeout);
+            }
+            catch (ObjectDisposedException)
+            {
+                // The continuation is already done with; nothing to reschedule.
+            }
+        }
+
         public ConfiguredTaskAwaitable<T>.ConfiguredTaskAwaiter GetAwaiter()
         {
             return _tcsConfiguredTaskAwaitable.GetAwaiter();

@@ -30,9 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -69,24 +69,35 @@ namespace RabbitMQ.Client.Impl
 
         private const int CommandIdBufferLength = 2;
 
-        // Two ProtocolCommandId values (each uint) unioned with a single long
-        // so that Interlocked.Exchange can read/write both atomically.
-        // Since ProtocolCommandId : uint has no zero-valued member,
-        // default(LastTimedOutCommandIds).RawValue == 0L means "no timed-out command".
-        [StructLayout(LayoutKind.Explicit)]
-        private struct LastTimedOutCommandIds
-        {
-            [FieldOffset(0)]
-            public ProtocolCommandId First;
-            [FieldOffset(sizeof(ProtocolCommandId))]
-            public ProtocolCommandId Second;
-            [FieldOffset(0)]
-            public long RawValue;
-        }
-
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
-        private long _lastTimedOutCommandIds;
+
+        // rabbitmq/rabbitmq-dotnet-client#1964
+        // Every timed-out RPC leaves a late response in flight, and several can be
+        // outstanding at once: the channel's RPC semaphore serializes requests, but
+        // nothing makes the broker's replies arrive before the next request is sent.
+        // A single-slot record therefore loses responses, and the survivors get
+        // matched against an unrelated continuation ("Received unexpected command
+        // of type ...!"). Queue one entry per timed-out RPC instead.
+        private readonly ConcurrentQueue<TimedOutRpc> _timedOutRpcs = new ConcurrentQueue<TimedOutRpc>();
+
         private IRpcContinuation _outstandingRpc = s_tmp;
+
+        private readonly struct TimedOutRpc
+        {
+            public TimedOutRpc(ProtocolCommandId first, ProtocolCommandId second)
+            {
+                First = first;
+                Second = second;
+            }
+
+            public ProtocolCommandId First { get; }
+            public ProtocolCommandId Second { get; }
+
+            public bool Matches(ProtocolCommandId commandId)
+            {
+                return commandId == First || (Second != default && commandId == Second);
+            }
+        }
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
         ///<remarks>
@@ -118,6 +129,14 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void HandleChannelShutdown(ShutdownEventArgs reason)
         {
+            // No further frames will arrive on this channel, so any late responses
+            // still being waited for will never show up. Drop them so that a recovered
+            // channel does not start out expecting to discard commands.
+            // Note: ConcurrentQueue<T>.Clear() is not available on netstandard2.0.
+            while (_timedOutRpcs.TryDequeue(out _))
+            {
+            }
+
             using (IRpcContinuation c = Next())
             {
                 c.HandleChannelShutdown(reason);
@@ -171,34 +190,29 @@ namespace RabbitMQ.Client.Impl
             // (e.g. BasicGetOk/BasicGetEmpty, ConnectionSecure/ConnectionTune)
             Debug.Assert(protocolCommandIds.Length is > 0 and <= CommandIdBufferLength);
 
-            var ids = new LastTimedOutCommandIds
-            {
-                First = protocolCommandIds[0],
-                Second = protocolCommandIds.Length > 1 ? protocolCommandIds[1] : default
-            };
+            var timedOut = new TimedOutRpc(
+                protocolCommandIds[0],
+                protocolCommandIds.Length > 1 ? protocolCommandIds[1] : default);
 
-            Interlocked.Exchange(ref _lastTimedOutCommandIds, ids.RawValue);
+            _timedOutRpcs.Enqueue(timedOut);
         }
 
         public bool ShouldIgnoreCommand(ProtocolCommandId commandId)
         {
             // rabbitmq/rabbitmq-dotnet-client#1802
             // This keeps track of ProtocolCommandId values from previous RPC
-            // commands that have timed out.
-            //
-            // Consume the timed-out state unconditionally, even when commandId does
-            // not match. This is safe because AMQP 0-9-1 enforces strict request-response
-            // ordering on a channel, so a late response is always the very next
-            // incoming command.
-            long raw = Interlocked.Exchange(ref _lastTimedOutCommandIds, 0L);
-
-            if (raw == 0L)
+            // commands that have timed out, so that their late responses are
+            // discarded rather than matched against a later continuation.
+            // AMQP 0-9-1 enforces strict request-response ordering on a channel, so late
+            // responses arrive in the order the requests were sent. Only the oldest
+            // outstanding entry can match; consume it either way, since a non-match means
+            // that response is never coming.
+            if (_timedOutRpcs.TryDequeue(out TimedOutRpc timedOut))
             {
-                return false;
+                return timedOut.Matches(commandId);
             }
 
-            var ids = new LastTimedOutCommandIds { RawValue = raw };
-            return commandId == ids.First || (ids.Second != default && commandId == ids.Second);
+            return false;
         }
     }
 }

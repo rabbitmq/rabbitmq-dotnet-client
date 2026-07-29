@@ -31,6 +31,8 @@
 
 using System;
 using System.Threading;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
 using Xunit;
@@ -157,6 +159,60 @@ namespace Test.Unit
             queue.RpcCanceled(true, [ProtocolCommandId.QueueDeclareOk]);
             // Since responseReceived=true, no command IDs should be recorded
             Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+        }
+
+        // rabbitmq/rabbitmq-dotnet-client#1964
+        // Consecutive timeouts each leave a late response in flight. A single-slot
+        // record kept only the newest, so the older responses were matched against
+        // an unrelated continuation ("Received unexpected command of type ...!").
+        [Fact]
+        public void TestShouldIgnoreCommand_ConsecutiveTimeouts_IgnoresEveryLateResponse()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+
+            queue.RpcCanceled(false, [ProtocolCommandId.ExchangeDeclareOk]);
+            queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
+            queue.RpcCanceled(false, [ProtocolCommandId.BasicGetOk, ProtocolCommandId.BasicGetEmpty]);
+
+            // Late responses arrive in the order the requests were sent
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.BasicGetEmpty));
+
+            // All three have now been absorbed
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
+        }
+
+        [Fact]
+        public void TestShouldIgnoreCommand_ConsecutiveTimeouts_SameCommandId()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+
+            queue.RpcCanceled(false, [ProtocolCommandId.ExchangeDeclareOk]);
+            queue.RpcCanceled(false, [ProtocolCommandId.ExchangeDeclareOk]);
+
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
+        }
+
+        [Fact]
+        public void TestHandleChannelShutdown_DiscardsPendingTimedOutCommands()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+
+            queue.RpcCanceled(false, [ProtocolCommandId.ExchangeDeclareOk]);
+            queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
+
+            queue.HandleChannelShutdown(new ShutdownEventArgs(ShutdownInitiator.Library,
+                Constants.ReplySuccess, "test shutdown"));
+
+            // No further frames arrive on a shut down channel, so a recovered channel
+            // must not start out expecting to discard commands. Probe the newest entry
+            // first: probing the oldest would consume the sole slot of a single-entry
+            // implementation and mask a missing drain.
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.QueueDeclareOk));
+            Assert.False(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
         }
     }
 }
