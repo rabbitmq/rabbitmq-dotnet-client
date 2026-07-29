@@ -49,6 +49,10 @@ namespace Test.Unit
         private static readonly TimeSpan s_continuationTimeout = TimeSpan.FromSeconds(2);
         private static readonly TimeSpan s_simulatedSemaphoreWait = TimeSpan.FromSeconds(1);
 
+        // Half of s_simulatedSemaphoreWait, stated rather than divided: the TimeSpan
+        // division operators do not exist on net472, which Unit also targets.
+        private static readonly TimeSpan s_restartMargin = TimeSpan.FromMilliseconds(500);
+
         [Fact]
         public async Task TestRestartTimeout_GivesTheOperationTheFullTimeout()
         {
@@ -71,7 +75,7 @@ namespace Test.Unit
 
             // Without the restart the continuation expires at s_continuationTimeout.
             // With it, the deadline moves out by the time spent queued.
-            TimeSpan floor = s_continuationTimeout + (s_simulatedSemaphoreWait / 2);
+            TimeSpan floor = s_continuationTimeout + s_restartMargin;
             Assert.True(stopwatch.Elapsed > floor,
                 $"expected the continuation to survive past {floor}, but it expired after {stopwatch.Elapsed}");
         }
