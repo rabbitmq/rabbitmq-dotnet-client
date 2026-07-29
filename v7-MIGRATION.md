@@ -32,11 +32,11 @@ been removed.
 ## Consuming messages
 
 When a message is delivered to your code via the
-`AsyncEventingBasicConsumer.Received` event or by sub-classing
-`DefaultAsyncConsumer`, please note that the `ReadOnlyMemory<byte>` that
+`AsyncEventingBasicConsumer.ReceivedAsync` event or by sub-classing
+`AsyncDefaultBasicConsumer`, please note that the `ReadOnlyMemory<byte>` that
 represents the message body is owned by this library, and that memory is only
-valid for application use within the context of the executing `Received` event
-or `HandleBasicDeliver` method.
+valid for application use within the context of the executing `ReceivedAsync`
+event or `HandleBasicDeliverAsync` method.
 
 If you wish to use this data _outside_ of these methods, you **MUST** copy the
 data for your use:

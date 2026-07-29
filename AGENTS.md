@@ -44,7 +44,7 @@ The connection layer manages the TCP connection to RabbitMQ broker:
 
 #### 2. Automatic Recovery (`AutorecoveringConnection`)
 
-**Location**: `projects/RabbitMQ.Client/Impl/AutorecoveringConnection.cs`
+**Location**: `projects/RabbitMQ.Client/Impl/AutorecoveringConnection.cs` (partial class, with `AutorecoveringConnection.Recording.cs` and `AutorecoveringConnection.Recovery.cs`)
 
 Wraps `Connection` to provide automatic recovery from network failures:
 
@@ -367,17 +367,18 @@ rabbitmq-dotnet-client/
 **Location**: `projects/RabbitMQ.Client/Logging/`
 
 - **EventSource**: `RabbitMqClientEventSource` for ETW/EventPipe
-- **Counters**: Connection count, channel count, published messages
+- **Counters**: connection/channel open counts, byte and AMQP method rates
 - **Structured Logging**: Exception details with context
 
 ### Metrics
 
-Available via EventSource counters:
-- Active connections
-- Active channels
-- Messages published
-- Messages consumed
-- Bytes sent/received
+Available via EventSource counters (`net8.0` only - the counters are inside an
+`#if NET` block, so the netstandard2.0 build has none):
+
+- `total-connections-opened`, `current-open-connections`
+- `total-channels-opened`, `current-open-channels`
+- `bytes-sent-rate`, `bytes-received-rate`
+- `AMQP-method-sent-rate`, `AMQP-method-received-rate`
 
 ### Tracing
 
@@ -408,7 +409,9 @@ Configurable TLS options:
 
 - **ICredentialsProvider**: Abstraction for credential sources
 - **BasicCredentialsProvider**: Static credentials
-- **OAuth2CredentialsProvider**: Dynamic token refresh
+- **OAuth2ClientCredentialsProvider**: Dynamic token refresh (in
+  `projects/RabbitMQ.Client.OAuth2/OAuth2CredentialsProvider.cs`; note the class
+  name does not match the file name)
 
 ## Known Issues and Limitations
 
@@ -434,7 +437,10 @@ there. Current docs:
 
 - `docs/internal/connection-shutdown-and-cancellation.md` - the connection /
   channel-0 shutdown model, why cancellation during connection open could hang
-  (issue #1921), and the memory-dump-based diagnostic workflow used to find it.
+  (issue #1921), why shutdown handlers could deadlock on the main loop token
+  when MainLoop wins the close-reason race (issue #1960), which cancellation
+  token a shutdown handler actually receives on each close path, and the
+  memory-dump-based diagnostic workflow used to find these.
 
 ## Development Guidelines
 
@@ -468,7 +474,10 @@ there. Current docs:
 
 - **System.IO.Pipelines**: High-performance I/O
 - **System.Threading.RateLimiting**: Publisher confirms rate limiting
-- **System.Threading.Channels**: Consumer work queue
+- **Nullable**: Build-time only (`PrivateAssets="all"`), for nullable attributes
+
+Note: `System.Threading.Channels` backs the consumer work queue but is built into
+net8.0; it is only an explicit package reference for netstandard2.0 (below).
 
 ### .NET Standard 2.0 Additional Dependencies
 
