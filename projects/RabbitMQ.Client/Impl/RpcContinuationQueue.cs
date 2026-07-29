@@ -69,6 +69,18 @@ namespace RabbitMQ.Client.Impl
 
         private const int CommandIdBufferLength = 2;
 
+        // rabbitmq/rabbitmq-dotnet-client#1964
+        // Upper bound on recorded timed-out RPCs. Entries are only removed by an inbound
+        // command or by channel shutdown, so a channel that receives no frames at all (a
+        // publish-only channel with publisher confirmations disabled) would otherwise grow
+        // this without limit while RPCs keep timing out against an unresponsive broker.
+        //
+        // The bound is deliberately generous. Only one RPC runs per channel at a time, so
+        // with the default 20 second ContinuationTimeout a channel can record roughly three
+        // entries per minute, and reaching this many takes about three quarters of an hour
+        // of uninterrupted timeouts. A channel in that state has much larger problems.
+        private const int MaxTimedOutRpcs = 128;
+
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
 
         // rabbitmq/rabbitmq-dotnet-client#1964
@@ -195,6 +207,19 @@ namespace RabbitMQ.Client.Impl
                 protocolCommandIds.Length > 1 ? protocolCommandIds[1] : default);
 
             _timedOutRpcs.Enqueue(timedOut);
+
+            // rabbitmq/rabbitmq-dotnet-client#1964
+            // Keep the record bounded. The oldest entry is the one whose response is most
+            // overdue and so the least likely to still arrive, which makes it the right one
+            // to give up on. Dropping it costs only that this library no longer recognizes
+            // that particular late response, so it would surface as "Received unexpected
+            // command of type ...!" exactly as it did before #1802.
+            //
+            // Best effort: RpcCanceled is only reached from the RPC-issuing path, which is
+            // serialized on the channel's RPC semaphore, so at most one caller trims here.
+            while (_timedOutRpcs.Count > MaxTimedOutRpcs && _timedOutRpcs.TryDequeue(out _))
+            {
+            }
         }
 
         public bool ShouldIgnoreCommand(ProtocolCommandId commandId)

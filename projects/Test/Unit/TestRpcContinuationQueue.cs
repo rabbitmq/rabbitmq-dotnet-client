@@ -244,6 +244,55 @@ namespace Test.Unit
             Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ConnectionTune));
         }
 
+        // rabbitmq/rabbitmq-dotnet-client#1964
+        // Entries are only removed by an inbound command or by channel shutdown, so a
+        // channel that receives no frames at all would grow this record without limit
+        // while RPCs keep timing out. The record is capped, dropping the oldest entries.
+        [Fact]
+        public void TestRpcCanceled_IsBounded()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+
+            const int recorded = 500;
+            for (int i = 0; i < recorded; i++)
+            {
+                queue.RpcCanceled(false, [ProtocolCommandId.ExchangeDeclareOk]);
+            }
+
+            // Drain by feeding matching responses until the record is empty. An unbounded
+            // record would absorb all 500.
+            int absorbed = 0;
+            while (queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk))
+            {
+                absorbed++;
+                Assert.True(absorbed <= recorded,
+                    "draining did not terminate, so the record is not bounded");
+            }
+
+            Assert.True(absorbed < recorded,
+                $"expected the record to be capped, but it absorbed all {absorbed} entries");
+        }
+
+        [Fact]
+        public void TestRpcCanceled_BoundDropsTheOldestEntries()
+        {
+            RpcContinuationQueue queue = new RpcContinuationQueue();
+
+            // One distinguishable entry first, so it is the oldest and therefore the first
+            // to be given up on once the bound is exceeded.
+            queue.RpcCanceled(false, [ProtocolCommandId.QueueDeclareOk]);
+
+            for (int i = 0; i < 500; i++)
+            {
+                queue.RpcCanceled(false, [ProtocolCommandId.ExchangeDeclareOk]);
+            }
+
+            // If the oldest entry had survived it would still be at the head, and matching
+            // ExchangeDeclareOk against it would consume it and return false. Returning
+            // true proves it was dropped rather than something newer.
+            Assert.True(queue.ShouldIgnoreCommand(ProtocolCommandId.ExchangeDeclareOk));
+        }
+
         [Fact]
         public void TestHandleChannelShutdown_DiscardsPendingTimedOutCommands()
         {
