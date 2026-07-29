@@ -42,66 +42,95 @@ namespace Test.Unit
     public class TestAsyncRpcContinuation
     {
         // rabbitmq/rabbitmq-dotnet-client#1964
-        // A continuation's timeout starts at construction, which bounds the wait for
-        // the channel's RPC semaphore. Once the semaphore is acquired the operation
-        // still has not been sent, so the time spent queued must not be charged
-        // against it. Channel restarts the timeout at that point.
+        // Only one RPC runs per channel at a time, so a caller can sit behind an
+        // arbitrary number of queued operations before its own frame is written. The
+        // continuation timeout therefore does not start at construction; Channel starts
+        // it once the RPC semaphore has been acquired and the operation can run.
         private static readonly TimeSpan s_continuationTimeout = TimeSpan.FromSeconds(2);
-        private static readonly TimeSpan s_simulatedSemaphoreWait = TimeSpan.FromSeconds(1);
-
-        // Half of s_simulatedSemaphoreWait, stated rather than divided: the TimeSpan
-        // division operators do not exist on net472, which Unit also targets.
-        private static readonly TimeSpan s_restartMargin = TimeSpan.FromMilliseconds(500);
+        private static readonly TimeSpan s_simulatedSemaphoreWait = TimeSpan.FromSeconds(5);
 
         [Fact]
-        public async Task TestRestartTimeout_GivesTheOperationTheFullTimeout()
+        public async Task TestTimeoutDoesNotStartAtConstruction()
         {
             using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
                 s_continuationTimeout, CancellationToken.None);
 
-            var stopwatch = Stopwatch.StartNew();
+            // Stand in for a long wait on the channel's RPC semaphore. This is more
+            // than twice s_continuationTimeout, so an armed-at-construction
+            // continuation would already be cancelled by now.
+            await Task.Delay(s_simulatedSemaphoreWait);
+
+            Assert.False(k.CancellationToken.IsCancellationRequested);
+        }
+
+        [Fact]
+        public async Task TestStartTimeoutGivesTheOperationTheFullTimeout()
+        {
+            using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
+                s_continuationTimeout, CancellationToken.None);
 
             await Task.Delay(s_simulatedSemaphoreWait);
 
-            // Precondition: the continuation must still be live, otherwise the delay
-            // above overran the timeout and the test measures nothing
-            Assert.False(k.CancellationToken.IsCancellationRequested);
-
-            k.RestartTimeout();
+            var stopwatch = Stopwatch.StartNew();
+            k.StartTimeout();
 
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await k);
 
             stopwatch.Stop();
 
-            // Without the restart the continuation expires at s_continuationTimeout.
-            // With it, the deadline moves out by the time spent queued.
-            TimeSpan floor = s_continuationTimeout + s_restartMargin;
+            // The operation gets the full budget measured from StartTimeout, not from
+            // construction. Allow generous slack for timer resolution and CI load; the
+            // point is that the queueing delay was not charged to the operation, which
+            // would show up as expiry well under s_continuationTimeout.
+            TimeSpan floor = TimeSpan.FromMilliseconds(1500);
             Assert.True(stopwatch.Elapsed > floor,
-                $"expected the continuation to survive past {floor}, but it expired after {stopwatch.Elapsed}");
+                $"expected the operation to get its full timeout from StartTimeout, " +
+                $"but it expired after only {stopwatch.Elapsed}");
         }
 
         [Fact]
-        public async Task TestRestartTimeout_StillTimesOut()
+        public async Task TestStartTimeoutStillTimesOut()
         {
             using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
                 s_continuationTimeout, CancellationToken.None);
 
-            k.RestartTimeout();
+            k.StartTimeout();
 
-            // Restarting must not disarm the timeout, only reschedule it
+            // Starting the timeout must actually arm it, otherwise a stuck operation
+            // would hang its caller forever
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await k);
         }
 
         [Fact]
-        public void TestRestartTimeout_AfterDisposeDoesNotThrow()
+        public void TestStartTimeoutAfterDisposeDoesNotThrow()
         {
             var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
                 s_continuationTimeout, CancellationToken.None);
             k.Dispose();
 
-            // A continuation that has already completed may still be restarted by a
+            // A continuation that has already completed may still be started by a
             // racing caller; that must not surface an ObjectDisposedException
-            k.RestartTimeout();
+            k.StartTimeout();
+        }
+
+        [Fact]
+        public void TestCallerTokenStillCancelsBeforeTimeoutStarts()
+        {
+            using var cts = new CancellationTokenSource();
+            using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
+                s_continuationTimeout, cts.Token);
+
+            // Before StartTimeout the caller's own token is the only thing bounding the
+            // wait for the RPC semaphore, so it must still surface through the token
+            // Channel passes to WaitAsync.
+            cts.Cancel();
+
+            Assert.True(k.CancellationToken.IsCancellationRequested);
+
+            // Note: this deliberately does not await k. The continuation's task is
+            // completed by a response, a channel shutdown, or the timeout callback, and
+            // the caller's token is not registered against it. That is why StartTimeout
+            // must be called before the operation is awaited, which Channel always does.
         }
     }
 }

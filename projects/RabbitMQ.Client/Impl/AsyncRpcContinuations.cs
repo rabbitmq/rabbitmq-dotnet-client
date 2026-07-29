@@ -64,7 +64,13 @@ namespace RabbitMQ.Client.Impl
              * version of CancellationTokenSource can't be reset prior to checking
              * in to the ObjectPool
              */
-            _continuationTimeoutCancellationTokenSource = new CancellationTokenSource(continuationTimeout);
+            // rabbitmq/rabbitmq-dotnet-client#1964
+            // Deliberately unarmed: StartTimeout() arms it once the operation can
+            // actually be issued. Arming here would charge the wait for the channel's
+            // RPC semaphore against the operation's own budget, and it could not be
+            // undone afterwards, because CancelAfter on an already-cancelled source
+            // does nothing.
+            _continuationTimeoutCancellationTokenSource = new CancellationTokenSource();
             _continuationTimeoutCancellationToken = _continuationTimeoutCancellationTokenSource.Token;
 
 #if NET
@@ -94,24 +100,31 @@ namespace RabbitMQ.Client.Impl
         }
 
         /// <summary>
-        /// Restart the continuation timeout, discarding any time already elapsed.
+        /// Start the continuation timeout. Called once the operation is able to run,
+        /// which is immediately after the channel's RPC semaphore has been acquired.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The timeout starts at construction so that waiting for the channel's RPC
-        /// semaphore is bounded. Once the semaphore is acquired the operation has not
-        /// yet been sent, so the time spent queued behind other RPCs must not be
-        /// charged against it. Callers restart the timeout at that point, giving the
-        /// operation itself the full <c>ContinuationTimeout</c>.
+        /// The timeout deliberately does not start at construction. Only one RPC runs
+        /// per channel at a time, so a caller may sit behind an arbitrary number of
+        /// queued operations before its own method frame can be written. Charging that
+        /// queueing delay against the operation makes concurrent operations on one
+        /// channel time out spuriously under load, and contradicts the documented
+        /// meaning of <c>IConnectionFactory.ContinuationTimeout</c>: "Amount of time
+        /// protocol operations (e.g. queue.declare) are allowed to take" - the
+        /// operation, not the wait ahead of it.
         /// </para>
         /// <para>
-        /// See rabbitmq/rabbitmq-dotnet-client#1964. Doing otherwise makes concurrent
-        /// operations on one channel time out spuriously under load, because a
-        /// continuation can exhaust its entire budget before its method frame is
-        /// written.
+        /// This does not let a caller block forever. Whichever operation holds the
+        /// semaphore has its own timeout armed, so it releases within roughly
+        /// <c>ContinuationTimeout</c> of acquiring it, and the caller's own
+        /// <c>CancellationToken</c> still aborts the wait at any point.
+        /// </para>
+        /// <para>
+        /// See rabbitmq/rabbitmq-dotnet-client#1964.
         /// </para>
         /// </remarks>
-        public void RestartTimeout()
+        public void StartTimeout()
         {
             try
             {
@@ -119,7 +132,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch (ObjectDisposedException)
             {
-                // The continuation is already done with; nothing to reschedule.
+                // The continuation is already done with; nothing to schedule.
             }
         }
 

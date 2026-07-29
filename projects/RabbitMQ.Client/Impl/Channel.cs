@@ -223,9 +223,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 ChannelShutdownAsync += k.OnConnectionShutdownAsync;
@@ -292,9 +290,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -340,9 +336,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -390,9 +384,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -983,9 +975,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 var method = new BasicCancel(consumerTag, noWait);
@@ -1036,9 +1026,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -1074,9 +1062,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -1132,9 +1118,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -1170,9 +1154,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -1208,9 +1190,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 var method = new ExchangeBind(destination, source, routingKey, noWait, arguments);
@@ -1264,9 +1244,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 var method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, false, noWait, arguments);
@@ -1311,9 +1289,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 var method = new ExchangeDelete(exchange, ifUnused, Nowait: noWait);
@@ -1360,9 +1336,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 var method = new ExchangeUnbind(destination, source, routingKey, noWait, arguments);
@@ -1430,9 +1404,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 var method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, noWait, arguments);
@@ -1491,9 +1463,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 var method = new QueueBind(queue, exchange, routingKey, noWait, arguments);
@@ -1555,9 +1525,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 var method = new QueueDelete(queue, ifUnused, ifEmpty, noWait);
@@ -1603,9 +1571,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -1641,9 +1607,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -1677,9 +1641,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -1713,9 +1675,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
@@ -1749,9 +1709,7 @@ namespace RabbitMQ.Client.Impl
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
 
-            // The operation has not been sent yet, so time spent queued behind other
-            // RPCs must not count against its timeout. See #1964.
-            k.RestartTimeout();
+            k.StartTimeout();
             try
             {
                 enqueued = Enqueue(k);
