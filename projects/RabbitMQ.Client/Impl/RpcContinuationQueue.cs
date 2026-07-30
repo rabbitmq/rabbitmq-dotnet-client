@@ -90,7 +90,7 @@ namespace RabbitMQ.Client.Impl
         // A single-slot record therefore loses responses, and the survivors get
         // matched against an unrelated continuation ("Received unexpected command
         // of type ...!"). Queue one entry per timed-out RPC instead.
-        private readonly ConcurrentQueue<TimedOutRpc> _timedOutRpcs = new ConcurrentQueue<TimedOutRpc>();
+        private ConcurrentQueue<TimedOutRpc> _timedOutRpcs = new ConcurrentQueue<TimedOutRpc>();
 
         private IRpcContinuation _outstandingRpc = s_tmp;
 
@@ -145,10 +145,12 @@ namespace RabbitMQ.Client.Impl
             // never be consumed: this queue belongs to a single Channel, and a channel
             // being recovered gets a brand new one. Release them rather than keeping them
             // alive for as long as something holds a reference to the dead channel.
-            // Note: ConcurrentQueue<T>.Clear() is not available on netstandard2.0.
-            while (_timedOutRpcs.TryDequeue(out _))
-            {
-            }
+            //
+            // Detach the whole queue rather than draining it. A concurrent RpcCanceled may
+            // still enqueue into the detached instance, which is harmless precisely because
+            // those records no longer need to be observed. This also avoids depending on
+            // ConcurrentQueue<T>.Clear(), which does not exist on netstandard2.0.
+            Interlocked.Exchange(ref _timedOutRpcs, new ConcurrentQueue<TimedOutRpc>());
 
             using (IRpcContinuation c = Next())
             {
