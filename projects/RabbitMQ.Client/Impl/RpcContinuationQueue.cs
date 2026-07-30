@@ -216,10 +216,16 @@ namespace RabbitMQ.Client.Impl
             // that particular late response, so it would surface as "Received unexpected
             // command of type ...!" exactly as it did before #1802.
             //
-            // Best effort: RpcCanceled is only reached from the RPC-issuing path, which is
-            // serialized on the channel's RPC semaphore, so at most one caller trims here.
-            while (_timedOutRpcs.Count > MaxTimedOutRpcs && _timedOutRpcs.TryDequeue(out _))
+            // A single dequeue is sufficient, and that is an invariant rather than a
+            // shortcut: every call site holds the channel's RPC semaphore, a
+            // SemaphoreSlim(1, 1), and enqueues exactly one entry, while dequeues run on
+            // the receive path and only ever shrink the queue. So the bound can be exceeded
+            // by at most one, and a loop here would imply an overshoot that cannot happen.
+            // Count is not a cheap field read once the queue spans segments, but this runs
+            // only when an RPC has just timed out, which is already an exceptional path.
+            if (_timedOutRpcs.Count > MaxTimedOutRpcs)
             {
+                _timedOutRpcs.TryDequeue(out _);
             }
         }
 
