@@ -104,7 +104,7 @@ namespace Test.Integration
                 mandatory: true, body: body.Memory, body);
 
             Assert.Equal((uint)1, await _channel.QueuePurgeAsync(q));
-            Assert.True(body.Disposed);
+            await body.AssertDisposedExactlyOnceAsync();
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace Test.Integration
                 _channel.BasicPublishAsync(string.Empty, "queue",
                     mandatory: false, body: body.Memory, body).AsTask());
 
-            Assert.True(body.Disposed);
+            await body.AssertDisposedExactlyOnceAsync();
         }
 
         [Fact]
@@ -133,22 +133,269 @@ namespace Test.Integration
                     mandatory: false, body: body.Memory, body,
                     cancellationToken: cts.Token).AsTask());
 
-            Assert.True(body.Disposed);
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        [Fact]
+        public async Task TestSequenceBodyRoundTrip()
+        {
+            const int Size = 1024;
+            const int SegmentSize = 128;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
+            var body = new TrackedSequenceOwner(GetRandomBody(Size), SegmentSize);
+            Assert.False(body.Sequence.IsSingleSegment);
+
+            await _channel.BasicPublishAsync(string.Empty, q.QueueName,
+                mandatory: true, basicProperties: new BasicProperties(), body: body.Sequence, bodyOwner: body);
+
+            BasicGetResult getResult = await _channel.BasicGetAsync(q.QueueName, true);
+            Assert.NotNull(getResult);
+            Assert.Equal(body.Content, getResult.Body.ToArray());
+
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        [Fact]
+        public async Task TestSequenceBodyRoundTripWithExtensionOverload()
+        {
+            const int Size = 1024;
+            const int SegmentSize = 100;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
+            var body = new TrackedSequenceOwner(GetRandomBody(Size), SegmentSize);
+
+            // (Extension method) overload: no exchange/properties boilerplate.
+            await _channel.BasicPublishAsync(string.Empty, q.QueueName, body.Sequence, body);
+
+            BasicGetResult getResult = await _channel.BasicGetAsync(q.QueueName, true);
+            Assert.NotNull(getResult);
+            Assert.Equal(body.Content, getResult.Body.ToArray());
+
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        [Fact]
+        public async Task TestSequenceBodyRoundTripWithCachedString()
+        {
+            const int Size = 2048;
+            const int SegmentSize = 333;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
+            CachedString exchange = new CachedString(string.Empty);
+            CachedString routingKey = new CachedString(q.QueueName);
+            var body = new TrackedSequenceOwner(GetRandomBody(Size), SegmentSize);
+
+            await _channel.BasicPublishAsync(exchange, routingKey,
+                mandatory: true, basicProperties: new BasicProperties(), body: body.Sequence, bodyOwner: body);
+
+            BasicGetResult getResult = await _channel.BasicGetAsync(q.QueueName, true);
+            Assert.NotNull(getResult);
+            Assert.Equal(body.Content, getResult.Body.ToArray());
+
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        [Fact]
+        public async Task TestSequenceBodySpanningMultipleFramesAndSegments()
+        {
+            /*
+             * A body larger than the negotiated frame size is split into several body frames, and
+             * those frame boundaries do not line up with the segment boundaries of the sequence.
+             */
+            const int SegmentSize = 4099;
+            int size = _conn.FrameMax == 0 ? 512 * 1024 : (int)_conn.FrameMax * 3;
+
+            byte[] content = GetLargeBody(size);
+            var body = new TrackedSequenceOwner(content, SegmentSize);
+            Assert.False(body.Sequence.IsSingleSegment);
+            if (_conn.FrameMax > 0)
+            {
+                Assert.True(body.Sequence.Length > _conn.FrameMax);
+            }
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, false, true, true);
+
+            await _channel.BasicPublishAsync(string.Empty, q.QueueName,
+                mandatory: true, basicProperties: new BasicProperties(), body: body.Sequence, bodyOwner: body);
+
+            BasicGetResult getResult = await _channel.BasicGetAsync(q.QueueName, true);
+            Assert.NotNull(getResult);
+            Assert.Equal(body.Content, getResult.Body.ToArray());
+
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        [Fact]
+        public async Task TestSequenceBodyRoundTripWithoutPublisherConfirmations()
+        {
+            const int Size = 4096;
+            const int SegmentSize = 512;
+
+            var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,
+                publisherConfirmationTrackingEnabled: false);
+            await using IChannel channel = await _conn.CreateChannelAsync(options);
+
+            QueueDeclareOk q = await channel.QueueDeclareAsync(string.Empty, false, true, true);
+            var body = new TrackedSequenceOwner(GetRandomBody(Size), SegmentSize);
+
+            await channel.BasicPublishAsync(string.Empty, q.QueueName,
+                mandatory: false, basicProperties: new BasicProperties(), body: body.Sequence, bodyOwner: body);
+
+            // Without publisher confirmations the publish returns before the broker has replied,
+            // so wait for the write loop to release the body.
+            await body.AssertDisposedExactlyOnceAsync();
+
+            BasicGetResult getResult = await channel.BasicGetAsync(q.QueueName, true);
+            Assert.NotNull(getResult);
+            Assert.Equal(body.Content, getResult.Body.ToArray());
+        }
+
+        [Fact]
+        public async Task TestSequenceOwnerBodyDisposedWhenChannelAlreadyClosed()
+        {
+            var body = new TrackedSequenceOwner(GetRandomBody(1024), 128);
+
+            await _channel.CloseAsync();
+
+            await Assert.ThrowsAnyAsync<Exception>(() =>
+                _channel.BasicPublishAsync(string.Empty, "queue",
+                    mandatory: false, basicProperties: new BasicProperties(),
+                    body: body.Sequence, bodyOwner: body).AsTask());
+
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        [Fact]
+        public async Task TestSequenceOwnerBodyDisposedOnCancellation()
+        {
+            var body = new TrackedSequenceOwner(GetRandomBody(1024), 128);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            await Assert.ThrowsAnyAsync<Exception>(() =>
+                _channel.BasicPublishAsync(string.Empty, "queue",
+                    mandatory: false, basicProperties: new BasicProperties(),
+                    body: body.Sequence, bodyOwner: body,
+                    cancellationToken: cts.Token).AsTask());
+
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        [Fact]
+        public async Task TestSequenceOwnerBodyDisposedOnBasicReturn()
+        {
+            string routingKey = Guid.NewGuid().ToString();
+            var body = new TrackedSequenceOwner(GetRandomBody(1024), 128);
+
+            PublishReturnException prex = await Assert.ThrowsAsync<PublishReturnException>(() =>
+                _channel.BasicPublishAsync(exchange: string.Empty, routingKey: routingKey,
+                    mandatory: true, basicProperties: new BasicProperties(),
+                    body: body.Sequence, bodyOwner: body).AsTask());
+
+            Assert.True(prex.IsReturn);
+            Assert.Equal("NO_ROUTE", prex.ReplyText);
+
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        [Fact]
+        public async Task TestSequenceBodyIsRejectedWhenLongerThanIntMaxValue()
+        {
+            var body = new TrackedSequenceOwner(ReadOnlySequenceFactory.CreateUnbacked(segmentCount: 3));
+            Assert.True(body.Sequence.Length > int.MaxValue);
+
+            ArgumentOutOfRangeException ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                _channel.BasicPublishAsync(string.Empty, "queue",
+                    mandatory: false, basicProperties: new BasicProperties(),
+                    body: body.Sequence, bodyOwner: body).AsTask());
+
+            Assert.Equal("body", ex.ParamName);
+            await body.AssertDisposedExactlyOnceAsync();
+        }
+
+        private static byte[] GetLargeBody(int size)
+        {
+            byte[] body = new byte[size];
+            for (int i = 0; i < size; i++)
+            {
+                body[i] = (byte)(i % 251);
+            }
+            return body;
         }
 
         private class TrackedMemoryOwner : IMemoryOwner<byte>
         {
+            private readonly DisposalTracker _tracker = new DisposalTracker();
+
             public TrackedMemoryOwner(byte[] content)
             {
                 Memory = content;
             }
 
             public Memory<byte> Memory { get; }
-            public bool Disposed { get; private set; }
+            public bool Disposed => _tracker.DisposeCount > 0;
+
+            public void Dispose() => _tracker.Dispose();
+
+            public Task AssertDisposedExactlyOnceAsync() => _tracker.AssertDisposedExactlyOnceAsync();
+        }
+
+        private class TrackedSequenceOwner : IDisposable
+        {
+            private readonly DisposalTracker _tracker = new DisposalTracker();
+
+            public TrackedSequenceOwner(byte[] content, int segmentSize)
+            {
+                Content = content;
+                Sequence = ReadOnlySequenceFactory.CreateSegmented(content, segmentSize);
+            }
+
+            public TrackedSequenceOwner(ReadOnlySequence<byte> sequence)
+            {
+                Content = Array.Empty<byte>();
+                Sequence = sequence;
+            }
+
+            public byte[] Content { get; }
+            public ReadOnlySequence<byte> Sequence { get; }
+
+            public void Dispose() => _tracker.Dispose();
+
+            public Task AssertDisposedExactlyOnceAsync() => _tracker.AssertDisposedExactlyOnceAsync();
+        }
+
+        /// <summary>
+        /// Counts disposals of a message body owner. Disposal can happen asynchronously, on the
+        /// socket write loop, so tests wait for it instead of asserting immediately.
+        /// </summary>
+        private class DisposalTracker
+        {
+            private static readonly TimeSpan s_disposalTimeout = TimeSpan.FromSeconds(10);
+            private static readonly TimeSpan s_extraDisposalWindow = TimeSpan.FromMilliseconds(250);
+
+            private readonly TaskCompletionSource<bool> _disposed =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            private int _disposeCount;
+
+            public int DisposeCount => Volatile.Read(ref _disposeCount);
 
             public void Dispose()
             {
-                Disposed = true;
+                Interlocked.Increment(ref _disposeCount);
+                _disposed.TrySetResult(true);
+            }
+
+            public async Task AssertDisposedExactlyOnceAsync()
+            {
+                Task completed = await Task.WhenAny(_disposed.Task, Task.Delay(s_disposalTimeout));
+                Assert.True(ReferenceEquals(completed, _disposed.Task),
+                    $"the message body owner was not disposed within {s_disposalTimeout}");
+
+                // Give any erroneous second disposal a chance to show up.
+                await Task.Delay(s_extraDisposalWindow);
+                Assert.Equal(1, DisposeCount);
             }
         }
     }
