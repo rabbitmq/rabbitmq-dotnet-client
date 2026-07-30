@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Impl
 
         ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken) where T : struct, IOutgoingAmqpMethod;
 
-        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
+        ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, in ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader;
     }

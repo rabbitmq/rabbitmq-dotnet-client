@@ -51,7 +51,7 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner: null, exchange, routingKey, cancellationToken);
+            return BasicPublishCoreAsync(cmd, basicProperties, new ReadOnlySequence<byte>(body), bodyOwner: null, exchange, routingKey, cancellationToken);
         }
 
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
@@ -60,7 +60,7 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
-            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange, routingKey, cancellationToken);
+            return BasicPublishCoreAsync(cmd, basicProperties, new ReadOnlySequence<byte>(body), bodyOwner, exchange, routingKey, cancellationToken);
         }
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
@@ -69,7 +69,7 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
-            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner: null, exchange.Value, routingKey.Value, cancellationToken);
+            return BasicPublishCoreAsync(cmd, basicProperties, new ReadOnlySequence<byte>(body), bodyOwner: null, exchange.Value, routingKey.Value, cancellationToken);
         }
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
@@ -78,11 +78,47 @@ namespace RabbitMQ.Client.Impl
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
+            return BasicPublishCoreAsync(cmd, basicProperties, new ReadOnlySequence<byte>(body), bodyOwner, exchange.Value, routingKey.Value, cancellationToken);
+        }
+
+        public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            bool mandatory, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            ValidateBodyLength(body, bodyOwner);
+            var cmd = new BasicPublish(exchange, routingKey, mandatory, default);
+            return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange, routingKey, cancellationToken);
+        }
+
+        public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            bool mandatory, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            ValidateBodyLength(body, bodyOwner);
+            var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
             return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange.Value, routingKey.Value, cancellationToken);
         }
 
+        /// <summary>
+        /// A message body must be addressable with an <see cref="int"/>, both because that is the
+        /// limit of a single AMQP content header and because the set of frames used to send it is
+        /// allocated as one contiguous block. Ownership of <paramref name="bodyOwner"/> has already
+        /// been transferred by the caller, so it has to be disposed here when the body is rejected.
+        /// </summary>
+        private static void ValidateBodyLength(in ReadOnlySequence<byte> body, IDisposable? bodyOwner)
+        {
+            if (body.Length > int.MaxValue)
+            {
+                bodyOwner?.Dispose();
+                throw new ArgumentOutOfRangeException(nameof(body), body.Length,
+                    $"Message body of {body.Length} bytes exceeds the maximum of {int.MaxValue} bytes.");
+            }
+        }
+
         private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
-            TMethod cmd, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
+            TMethod cmd, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             string exchange, string routingKey, CancellationToken cancellationToken)
             where TMethod : struct, IOutgoingAmqpMethod
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -105,7 +141,7 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
 
                     using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
+                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, (int)body.Length, basicProperties)
                         : default;
 
                     ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
