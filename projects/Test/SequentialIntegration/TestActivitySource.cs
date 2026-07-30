@@ -536,7 +536,7 @@ namespace Test.SequentialIntegration
              * sees anything and the ambient activity does not exist that early. The
              * publish span is started while appActivity is current, so it must be its
              * child: scoping the tags to the publisher source must not also detach the
-             * span from the caller's trace.
+             * span from the caller's trace. See issue #1967.
              */
             Assert.Same(appActivity, publishActivity.Parent);
         }

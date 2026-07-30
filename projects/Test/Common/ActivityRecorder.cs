@@ -147,28 +147,18 @@ namespace Test
 
         public static void HasRecordedException(this Activity activity, string exceptionTypeName)
         {
-            var exceptionEvent = activity.Events.First();
-            Assert.Equal("exception", exceptionEvent.Name);
+            /*
+             * Assert exactly one exception event so duplicate recordings are caught.
+             * A publish whose send failed on a closed connection used to record the
+             * same exception twice (once in the send catch, once when the confirmation
+             * await re-raised it), which Events.First() alone does not detect.
+             * See issue #1967.
+             */
+            var exceptionEvents = activity.Events.Where(e => e.Name == "exception").ToList();
+            Assert.Single(exceptionEvents);
+            ActivityEvent exceptionEvent = exceptionEvents[0];
             Assert.Equal(exceptionTypeName,
                 exceptionEvent.Tags.SingleOrDefault(t => t.Key == "exception.type").Value);
-        }
-
-        /// <summary>
-        /// Assert that exactly one exception event was recorded, of the given type.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="HasRecordedException(Activity, string)"/> only inspects the first
-        /// event, so it cannot see a failure recorded twice on one span. The publish
-        /// path is the case that matters: a handled send exception is stored on the
-        /// confirmation task and re-raised when it is awaited, so both the inner catch
-        /// and the one in the finally see it. See
-        /// rabbitmq/rabbitmq-dotnet-client#1967.
-        /// </remarks>
-        public static void HasRecordedExceptionOnce(this Activity activity, string exceptionTypeName)
-        {
-            ActivityEvent[] exceptionEvents = activity.Events.Where(e => e.Name == "exception").ToArray();
-            Assert.Equal(exceptionTypeName,
-                Assert.Single(exceptionEvents).Tags.SingleOrDefault(t => t.Key == "exception.type").Value);
         }
 
         public static void IsInError(this Activity activity)
@@ -185,7 +175,7 @@ namespace Test
         /// </summary>
         public static void RecordsFailure(this Activity activity, Type exceptionType)
         {
-            activity.HasRecordedExceptionOnce(exceptionType.ToString());
+            activity.HasRecordedException(exceptionType.ToString());
             activity.IsInError();
             activity.HasTag("error.type", exceptionType.FullName);
         }
