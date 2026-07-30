@@ -575,17 +575,15 @@ namespace RabbitMQ.Client
                         .ConfigureAwait(false);
                 }
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Caller-initiated cancellation is not a connection failure.
+                throw;
+            }
             catch (OperationCanceledException ex)
             {
                 connectionActivity.SetActivityError(ex);
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    throw;
-                }
-                else
-                {
-                    throw new BrokerUnreachableException(ex);
-                }
+                throw new BrokerUnreachableException(ex);
             }
             catch (Exception ex)
             {

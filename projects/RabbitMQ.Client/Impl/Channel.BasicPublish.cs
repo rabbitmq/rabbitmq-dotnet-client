@@ -141,8 +141,21 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception ex)
                 {
-                    sendActivity.SetActivityError(ex);
-                    recordedSendError = ex;
+                    /*
+                     * Caller-initiated cancellation is not a publish failure, so it is
+                     * not recorded on the span. Confirmation tracking still needs the
+                     * cleanup below (faulting the TCS, decrementing the sequence number),
+                     * which is why this is an inline guard rather than a `when` filter:
+                     * a filter that skipped this catch would skip the cleanup too.
+                     * See issue #1967.
+                     */
+                    bool isCallerCancellation =
+                        ex is OperationCanceledException && cancellationToken.IsCancellationRequested;
+                    if (!isCallerCancellation)
+                    {
+                        sendActivity.SetActivityError(ex);
+                        recordedSendError = ex;
+                    }
 
                     bool exceptionWasHandled =
                         MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
@@ -166,6 +179,12 @@ namespace RabbitMQ.Client.Impl
                     {
                         await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
                             .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        // Caller-initiated cancellation during the confirmation await is
+                        // not a publish failure. See issue #1967.
+                        throw;
                     }
                     catch (Exception ex) when (!ReferenceEquals(ex, recordedSendError))
                     {
