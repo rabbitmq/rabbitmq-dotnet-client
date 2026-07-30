@@ -29,8 +29,11 @@ run against the netstandard2.0 client build.
 
 ## Two signatures
 
-- **FAIL** - the test failed. The log tells you the exception type;
-  `OperationCanceledException` is #1968, anything else is a different problem.
+- **FAIL** - the test failed. This is **not** automatically #1968. The script groups
+  failures by reason and says so explicitly when none of them is an
+  `OperationCanceledException`. Two things to watch for: an unrelated failure masks
+  #1968 completely, because the run never reaches the close timeout; and a
+  deterministic 100% rate is by definition not #1968, which is intermittent.
 - **slow** - the test passed, but its reported duration exceeded `-SlowSeconds`.
   Worth counting separately because `Connection.CloseAsync` raises any non-abort
   timeout below `InternalConstants.DefaultConnectionCloseTimeout` (30s) up to 30s,
@@ -38,8 +41,11 @@ run against the netstandard2.0 client build.
   timeout is approaching the failure however it ends. Healthy runs finish in well
   under a second, so the 5s default is generous.
 
-Durations come from the `dotnet test` summary line rather than from process wall
-clock, which is dominated by ~15s of per-iteration startup.
+Durations come from `dotnet test` output rather than from process wall clock, which
+is dominated by ~15s of per-iteration startup. A failing run leaves the summary
+`Duration:` field empty and reports the time on a per-test line instead, so the
+per-test line is preferred with the summary as a fallback. Getting this wrong loses
+the duration on exactly the runs that matter.
 
 ## Running it
 
@@ -59,11 +65,27 @@ turned out to be a cold-start race on net472 that an in-process loop under-repor
 as 1/N. It also means each iteration costs roughly 15s of startup, so a run of 25
 takes several minutes.
 
-Logs are kept only for failing and slow runs. To classify the failures:
+Logs are kept only for failing and slow runs; passing runs are cleaned up. The
+script classifies failures itself, so reading the logs is only needed when it
+reports a reason as unrecognized.
 
-```powershell
-Select-String OperationCanceledException $env:TEMP\GH-1968\*.log
+## Status: blocked by a different net472 failure
+
+The first Windows run of this script came back 10/10 failures, none of them #1968:
+
 ```
+Assert.IsAssignableFrom() Failure: Value is an incompatible type
+Expected: typeof(System.IO.IOException)
+Actual:   typeof(System.ObjectDisposedException)
+```
+
+That is `TestConnectionShutdown.cs:73`, inside the `AlreadyClosedException` catch, so
+the close threw the expected exception type but with the wrong `InnerException`. It is
+deterministic and fast (~86ms, not the ~30s a close timeout would take), which makes
+it a separate bug from the intermittent #1968.
+
+Until that is fixed, #1968 cannot be measured here at all: the assertion fails long
+before the run reaches the close timeout.
 
 ## Open questions on the issue
 

@@ -12,8 +12,12 @@
     binaries run against the netstandard2.0 client build.
 
     Two signatures, both reported:
-      * FAIL  - the test itself failed. Check the saved log for the exception type;
-                OperationCanceledException is #1968, anything else is not.
+      * FAIL  - the test failed. This is NOT automatically #1968. Only a failure whose
+                exception is OperationCanceledException is; the script prints the
+                distinct failure reasons it saw so an unrelated failure is obvious.
+                A deterministic 100% failure rate is a different bug by definition,
+                since #1968 is intermittent, and it masks #1968 entirely because the
+                run never reaches the timeout.
       * slow  - the test passed but its reported duration exceeded -SlowSeconds.
                 Connection.CloseAsync raises any non-abort timeout below 30s up to 30s,
                 so the test's own 6s _waitSpan is ignored and a run that waits out the
@@ -79,31 +83,95 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Pulls the duration out of the summary line, e.g.
-#   Passed!  - Failed: 0, Passed: 1, ... Duration: 158 ms - Integration.dll (net472)
-# The unit varies (ms, s, m), so capture it and normalize. A "1 m 5 s" duration
-# truncates to 60s, which is fine: this only feeds a threshold comparison, and
-# anything reported in minutes is far past any threshold worth setting.
-function Get-ReportedSeconds {
-    param([string] $Path)
+# Sums every value/unit pair in a duration string, so "1 m 5 s" is 65 rather than 60.
+function ConvertTo-Seconds {
+    param([string] $Text)
 
-    $match = Select-String -LiteralPath $Path -Pattern 'Duration:\s+([\d.,]+)\s*(ms|s|m)\b' |
-        Select-Object -First 1
-    if (-not $match) {
+    if ([string]::IsNullOrWhiteSpace($Text)) {
         return $null
     }
 
-    $value = [double]::Parse($match.Matches[0].Groups[1].Value.Replace(',', ''),
-        [System.Globalization.CultureInfo]::InvariantCulture)
-    switch ($match.Matches[0].Groups[2].Value) {
-        'ms' { return $value / 1000.0 }
-        's'  { return $value }
-        'm'  { return $value * 60.0 }
+    $total = 0.0
+    $found = $false
+    foreach ($m in [regex]::Matches($Text, '(\d+(?:[.,]\d+)?)\s*(ms|s|m|h)\b')) {
+        $value = [double]::Parse($m.Groups[1].Value.Replace(',', ''),
+            [System.Globalization.CultureInfo]::InvariantCulture)
+        switch ($m.Groups[2].Value) {
+            'ms' { $total += $value / 1000.0 }
+            's'  { $total += $value }
+            'm'  { $total += $value * 60.0 }
+            'h'  { $total += $value * 3600.0 }
+        }
+        $found = $true
     }
+
+    if ($found) { return $total } else { return $null }
+}
+
+# Two sources, because neither alone covers both outcomes:
+#
+#   pass:  Passed!  - Failed: 0, ... Duration: 98 ms - Integration.dll (net472)
+#   fail:    Failed Test.Integration...TestName [86 ms]
+#            Failed!  - Failed: 1, ... Duration:  - Integration.dll (net472)
+#
+# A failing run leaves the summary Duration field EMPTY and reports the time on a
+# per-test line instead. Reading only the summary therefore lost the duration on
+# exactly the runs that matter, which is the signal that separates a ~30s close
+# timeout from a fast assertion failure. Prefer the per-test line, since it is the
+# test's own time rather than the assembly's, and fall back to the summary.
+function Get-ReportedSeconds {
+    param([string] $Path)
+
+    $lines = @(Get-Content -LiteralPath $Path)
+
+    foreach ($line in $lines) {
+        if ($line -match '^\s+(?:Failed|Passed)\s+\S+\s+\[(.+?)\]\s*$') {
+            $secs = ConvertTo-Seconds -Text $Matches[1]
+            if ($null -ne $secs) {
+                return $secs
+            }
+        }
+    }
+
+    foreach ($line in $lines) {
+        if ($line -match 'Duration:\s*(.*?)\s+-\s+\S+\.dll') {
+            $secs = ConvertTo-Seconds -Text $Matches[1]
+            if ($null -ne $secs) {
+                return $secs
+            }
+        }
+    }
+
+    return $null
+}
+
+# Extracts a short reason for a failing run, so the summary can distinguish an
+# actual #1968 timeout from an unrelated failure without opening every log.
+function Get-FailureReason {
+    param([string] $Path)
+
+    if (Select-String -LiteralPath $Path -Pattern 'OperationCanceledException' -Quiet) {
+        return 'OperationCanceledException (#1968)'
+    }
+
+    $assert = Select-String -LiteralPath $Path -Pattern '^\s*Actual:\s+(.+)$' |
+        Select-Object -First 1
+    if ($assert) {
+        return 'assertion, actual ' + $assert.Matches[0].Groups[1].Value.Trim()
+    }
+
+    $err = Select-String -LiteralPath $Path -Pattern '^\s*Error Message:\s*$' -Context 0, 1 |
+        Select-Object -First 1
+    if ($err -and $err.Context.PostContext.Count -gt 0) {
+        return $err.Context.PostContext[0].Trim()
+    }
+
+    return 'unrecognized, see log'
 }
 
 $fail = 0
 $slow = 0
+$reasons = @{}
 for ($i = 1; $i -le $Count; $i++) {
     $log = Join-Path $LogDirectory ("run-{0:d3}.log" -f $i)
     dotnet test -c Release -f net472 --no-build $proj `
@@ -127,7 +195,9 @@ for ($i = 1; $i -le $Count; $i++) {
 
     if ($exit -ne 0) {
         $fail++
-        Write-Host ("run {0,3}: FAIL  {1}s  {2}" -f $i, $shown, $log) -ForegroundColor Red
+        $reason = Get-FailureReason -Path $log
+        if ($reasons.ContainsKey($reason)) { $reasons[$reason]++ } else { $reasons[$reason] = 1 }
+        Write-Host ("run {0,3}: FAIL  {1}s  {2}" -f $i, $shown, $reason) -ForegroundColor Red
     } elseif ($null -eq $secs -or $secs -gt $SlowSeconds) {
         $slow++
         Write-Host ("run {0,3}: slow  {1}s  {2}" -f $i, $shown, $log) -ForegroundColor Yellow
@@ -140,8 +210,27 @@ for ($i = 1; $i -le $Count; $i++) {
 Write-Host ""
 $color = if ($fail -eq 0 -and $slow -eq 0) { 'Green' } else { 'Yellow' }
 Write-Host ("failures: {0} / {1}    slow passes: {2} / {1}" -f $fail, $Count, $slow) -ForegroundColor $color
+
+if ($fail -gt 0) {
+    Write-Host ""
+    Write-Host "failure reasons:" -ForegroundColor Magenta
+    foreach ($entry in $reasons.GetEnumerator() | Sort-Object -Property Value -Descending) {
+        Write-Host ("  {0,3}x  {1}" -f $entry.Value, $entry.Key)
+    }
+
+    $is1968 = $reasons.Keys | Where-Object { $_ -like '*#1968*' }
+    if (-not $is1968) {
+        Write-Host ""
+        Write-Host "None of these are #1968, which is an OperationCanceledException." -ForegroundColor Yellow
+        Write-Host "Fix the failure above first; while it fails the run never reaches the" -ForegroundColor Yellow
+        Write-Host "close timeout, so #1968 cannot be observed at all." -ForegroundColor Yellow
+    } elseif ($fail -eq $Count) {
+        Write-Host ""
+        Write-Host "A 100% rate is suspicious for #1968, which is intermittent." -ForegroundColor Yellow
+    }
+}
+
 if ($fail -gt 0 -or $slow -gt 0) {
-    $glob = Join-Path $LogDirectory '*.log'
+    Write-Host ""
     Write-Host "logs: $LogDirectory" -ForegroundColor Magenta
-    Write-Host "classify: Select-String OperationCanceledException $glob" -ForegroundColor Magenta
 }
