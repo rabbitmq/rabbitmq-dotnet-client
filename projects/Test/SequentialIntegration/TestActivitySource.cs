@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client;
@@ -409,6 +410,57 @@ namespace Test.SequentialIntegration
 
             Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
             publishActivity.RecordsFailure(typeof(AlreadyClosedException));
+        }
+
+        [Fact]
+        public async Task TestCallerCancellationIsNotRecordedAsPublishFailure_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * Once publish failures are recorded on the send activity, a publish the
+             * caller cancels is not a failure of the publish and must not be recorded
+             * as one. Without the guard the cancelled publish ended status=Error with a
+             * TaskCanceledException event, so an app cancelling its own publishes traced
+             * as a stream of publish errors.
+             *
+             * With confirmations enabled the publish parks awaiting the broker's
+             * confirmation, which BasicPublishCoreAsync awaits in its finally - after the
+             * send activity has been created. Blocking the connection holds off that
+             * confirmation, so cancelling the token throws OperationCanceledException
+             * from that await deterministically, with no dependence on broker timing.
+             * That is the window the finally's cancellation guard covers; removing it
+             * fails this test with an Error status on the span.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            using var cts = new CancellationTokenSource();
+
+            try
+            {
+                await BlockAsync();
+
+                ValueTask publishTask = _channel.BasicPublishAsync("", "no-such-queue", true,
+                    Encoding.UTF8.GetBytes("cancel me"), cts.Token);
+
+                // The publish is now parked in the flow-control wait with its span open.
+                cts.Cancel();
+
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => publishTask.AsTask());
+            }
+            finally
+            {
+                await UnblockAsync();
+            }
+
+            Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
+            Assert.NotEqual(ActivityStatusCode.Error, publishActivity.Status);
+            Assert.DoesNotContain(publishActivity.Events, e => e.Name == "exception");
+            publishActivity.HasNoTag("error.type");
         }
 
         [Fact]
