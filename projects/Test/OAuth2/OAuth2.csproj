@@ -36,4 +36,16 @@
     <PackageReference Include="WireMock.Net" />
   </ItemGroup>
 
+  <!--
+    RequestFormMatcher uses HttpUtility from System.Web, which is not part of the
+    default net472 reference set. This used to compile only by accident: WireMock.Net
+    1.6.9 pulled in Scriban.Signed 2.1.4, whose nuspec declares a System.Web
+    frameworkAssembly, so the reference arrived transitively. Newer Scriban dropped
+    that declaration, so reference it directly rather than depending on a test
+    package's dependency graph.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
+    <Reference Include="System.Web" />
+  </ItemGroup>
+
 </Project>
