@@ -3,13 +3,23 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
-    <PackageVersion Include="EasyNetQ.Management.Client" Version="3.0.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="EasyNetQ.Management.Client" Version="3.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageVersion Include="Nullable" Version="1.3.1" />
+    <!--
+      Note: do NOT upgrade the OpenTelemetry.Api dependency unless necessary.
+      1.15.3 is the oldest version without known vulnerabilities: GHSA-g94r-2vxg-569j
+      affects >= 0.5.0-beta.2, < 1.15.3. See
+      https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1728#issuecomment-5124632838
+    -->
     <PackageVersion Include="OpenTelemetry.Api" Version="1.15.3" />
+    <!--
+      Note: test-only (SequentialIntegration), but kept in step with OpenTelemetry.Api
+      above so the tests exercise the same OpenTelemetry version the library ships against.
+    -->
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.15.3" />
-    <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.Collections.Immutable" Version="10.0.10" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="9.0.4" />
     <!--
       Note: do NOT upgrade the System.IO.Pipelines dependency unless necessary
@@ -17,22 +27,72 @@
     -->
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
+    <!--
+      Note: do NOT upgrade the System.Text.Json dependency unless necessary.
+      RabbitMQ.Client.OAuth2 references this, so it is a floor for consumers even
+      though the test projects use it too.
+    -->
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="8.0.0" />
-    <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
-    <PackageVersion Include="WireMock.Net" Version="1.6.9" />
-    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="10.0.10" />
+    <!--
+      Note: do NOT upgrade WireMock.Net past 2.1.0 while System.Text.Json is pinned at
+      8.0.5 above. Only projects/Test/OAuth2 uses WireMock, and on net472 it drags in
+      System.Text.Json through two transitive paths, both of which trip NU1605:
+      * 2.2.0 and later: Scriban.Signed -> System.Text.Json >= 10.0.8, and
+        JsonPath.Net -> Json.More.Net -> System.Text.Json >= 10.0.5.
+      Since System.Text.Json is a floor for RabbitMQ.Client.OAuth2 consumers it cannot
+      move to satisfy a test-only package, so WireMock is what stays put.
+
+      This only breaks on Windows: the test projects add net472 there, and the
+      System.Text.Json PackageReference in the OAuth2 test project is itself
+      net472-only, so a Linux build resolves neither and restores clean.
+    -->
+    <PackageVersion Include="WireMock.Net" Version="2.1.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
-    <PackageVersion Include="Xunit.SkippableFact" Version="1.5.23" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="Xunit.SkippableFact" Version="1.5.61" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFramework)=='netstandard2.0'">
     <!--
-      Note: do NOT upgrade these dependencies unless necessary
+      Note: do NOT upgrade these dependencies unless necessary.
+
+      A PackageVersion here is a *floor* imposed on every downstream consumer, since
+      NuGet resolves to the lowest applicable version. For a shipping library that means
+      the correct choice is the oldest supported version without known vulnerabilities,
+      not the newest: a needlessly high floor constrains consumers who combine this
+      client with other libraries. "Necessary" therefore means a vulnerability or an API
+      this client actually needs, not merely that a newer version exists.
+
+      These are also the netstandard2.0-only dependencies, so they are exactly the ones
+      reaching the consumers least able to absorb a bump: .NET Framework, where net462 is
+      the minimum supported version.
+
       See:
       * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1481#pullrequestreview-1847905299
+        (where this rule was argued out and adopted)
       * https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1594
+        (which walked back an automated `dotnet outdated -u` bump to match)
+    -->
+    <!--
+      System.Memory in particular must stay at 4.5.5, and bumping it in isolation
+      would accomplish nothing anyway: System.IO.Pipelines 8.0.0 already depends on
+      System.Memory 4.5.5 on both netstandard2.0 and net462, so that is the version a
+      consumer resolves whether or not it is listed here. Verified against the released
+      RabbitMQ.Client 7.2.1: consumers resolve exactly 4.5.5 on net472 and netstandard2.0.
+
+      The reference is kept even though it is redundant, because the client uses Span
+      and Memory directly. Listing it keeps that requirement explicit rather than
+      leaving the floor to be moved silently by a future System.IO.Pipelines bump.
+
+      4.5.5 has no known vulnerabilities and is not deprecated, so there is no reason to
+      move. Going to 4.6.x would raise three transitive floors for every netstandard2.0
+      and net462 consumer with no benefit: System.Buffers 4.5.1 -> 4.6.1,
+      System.Numerics.Vectors 4.4.0 -> 4.6.1, and, most disruptively,
+      System.Runtime.CompilerServices.Unsafe 4.5.3 -> 6.1.2. 4.6.x also replaces
+      lib/net461 with lib/net462.
     -->
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Threading.Channels" Version="8.0.0" />
@@ -40,8 +100,22 @@
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(IsPackable)'=='true'">
+    <!--
+      Note: do NOT upgrade PublicApiAnalyzers past 3.3.4 while global.json pins the
+      8.0.x SDK. The analyzer runs inside csc, so it is capped by the compiler that
+      SDK ships (Roslyn 4.8), and the next release after 3.3.4 is 4.14.0:
+      * 5.0.0 and later reference Roslyn 4.12 and fail with CS9057.
+      * 4.14.0 needs System.Collections.Immutable 9.0.0 in the compiler host and
+        fails to load with CS8032.
+      Raising this therefore requires moving to a newer SDK first.
+    -->
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
-    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-    <GlobalPackageReference Include="MinVer" Version="6.0.0" />
+    <!--
+      Note: do NOT upgrade SourceLink past 10.0.110. 10.0.200 added a transitive
+      dependency on System.IO.Hashing, which requires System.Memory >= 4.6.3 and so
+      trips NU1605 against the deliberate System.Memory 4.5.5 pin above.
+    -->
+    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.110" />
+    <GlobalPackageReference Include="MinVer" Version="7.0.0" />
   </ItemGroup>
 </Project>

@@ -68,7 +68,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="[6.0.0,)" PrivateAssets="All" />
+    <!--
+      Kept in step with the MinVer version in projects/Directory.Packages.props. This
+      project sets ManagePackageVersionsCentrally to false, so that file does not
+      apply here and the version has to be repeated.
+
+      PrivateAssets="All" is what keeps MinVer, a build-time only tool, out of the
+      generated nuspec. Note that it leaked into the shipped RabbitMQ.Client.OAuth2
+      2.0.0 package as a real dependency despite this; that was a pack-time issue
+      since resolved, but it is worth checking the nuspec after changing this.
+    -->
+    <PackageReference Include="MinVer" Version="[7.0.0,)" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

@@ -49,7 +49,7 @@ namespace RabbitMQ.Benchmarks
         public ushort Channel { get; set; }
 
         [Benchmark]
-        internal OutgoingFrame BasicAckWrite() => Framing.SerializeToFrames(ref _basicAck, Channel);
+        public int BasicAckWrite() => Framing.SerializeToFrames(ref _basicAck, Channel).Size;
     }
 
     [Config(typeof(Config))]
@@ -71,13 +71,13 @@ namespace RabbitMQ.Benchmarks
         public int FrameMax { get; set; }
 
         [Benchmark]
-        internal OutgoingFrame BasicPublishWriteNonEmpty() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _body, bodyOwner: null, Channel, FrameMax);
+        public int BasicPublishWriteNonEmpty() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _body, bodyOwner: null, Channel, FrameMax).Size;
 
         [Benchmark]
-        internal OutgoingFrame BasicPublishWrite() => Framing.SerializeToFrames(ref _basicPublish, ref _propertiesEmpty, _bodyEmpty, bodyOwner: null, Channel, FrameMax);
+        public int BasicPublishWrite() => Framing.SerializeToFrames(ref _basicPublish, ref _propertiesEmpty, _bodyEmpty, bodyOwner: null, Channel, FrameMax).Size;
 
         [Benchmark]
-        internal OutgoingFrame BasicPublishMemoryWrite() => Framing.SerializeToFrames(ref _basicPublishMemory, ref _propertiesEmpty, _bodyEmpty, bodyOwner: null, Channel, FrameMax);
+        public int BasicPublishMemoryWrite() => Framing.SerializeToFrames(ref _basicPublishMemory, ref _propertiesEmpty, _bodyEmpty, bodyOwner: null, Channel, FrameMax).Size;
     }
 
     [Config(typeof(Config))]
@@ -90,6 +90,6 @@ namespace RabbitMQ.Benchmarks
         public ushort Channel { get; set; }
 
         [Benchmark]
-        internal OutgoingFrame ChannelCloseWrite() => Framing.SerializeToFrames(ref _channelClose, Channel);
+        public int ChannelCloseWrite() => Framing.SerializeToFrames(ref _channelClose, Channel).Size;
     }
 }
