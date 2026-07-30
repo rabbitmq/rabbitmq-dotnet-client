@@ -354,6 +354,16 @@ namespace RabbitMQ.Client
                 return;
             }
 
+            /*
+             * All three signals fire together so they stay consistent across sampling
+             * levels. AddException and SetStatus are cheap and already execute when
+             * IsAllDataRequested is false (a listener sampling PropagationData still
+             * receives the event and the status), so gating error.type - a single
+             * string tag - would record the expensive signals and drop the cheap one.
+             * That left a span marked Error with an exception event but no error.type,
+             * which is the only Stable attribute in the messaging convention. See
+             * issue #1967.
+             */
             activity.AddException(exception);
             activity.SetStatus(ActivityStatusCode.Error, exception.Message);
             activity.SetTag(ErrorType, exception.GetType().FullName);
