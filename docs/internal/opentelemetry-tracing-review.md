@@ -4,6 +4,20 @@ This document records a full review of the client's OpenTelemetry tracing implem
 
 Read this before changing anything under `RabbitMQActivitySource`, `RabbitMQ.Client.OpenTelemetry`, or the `Activity.Current` call sites in `SessionBase` / `Connection`.
 
+## Status
+
+The findings were split into three groups, because they carry very different risk:
+
+| Group | Content | Status |
+|---|---|---|
+| A | Behavioural defects: ambient-span pollution, failures never recorded, untagged `tcp connection attempt`, the null-`Headers` extractor path, a wrong comment | **Fixed.** Sections below are marked `FIXED` individually. |
+| B | Semantic-convention conformance. Each one changes emitted span names or attributes, and several break existing test assertions. | Open |
+| C | Public API: per-provider tracing configuration. Must land before #1923. | Open |
+
+Group A was separated out precisely because none of it changes a conforming attribute value or span name, so it can ship without a downstream consumer having to re-key anything. Groups B and C build on this branch as stacked PRs.
+
+One observable change did come with Group A: the `publish` span now starts before flow control rather than after, so its duration includes any flow-control blocking. Nothing became slower, but publish-latency dashboards will shift.
+
 ## The three activity sources
 
 | Source | Spans | Created in |
@@ -32,7 +46,11 @@ In 7.2.1 that check was `PublisherHasListeners && activity != null && activity.I
 
 That is why `TestCreateConnectionRegisterAnActivity` passes while subscribing to `RabbitMQ.Client.Connection` alone. It is working by design, not by luck. Do not "restore" the publisher gate inside `SetNetworkTags`.
 
-## Defect: ambient-span pollution (`Activity.Current`)
+Group A kept that shape. The publisher gate now lives in `SetNetworkTagsOnAmbientPublisherActivity`, a separate wrapper for the one ambient caller, so `SetNetworkTags` itself stays usable by the connection sites on a known-owned activity.
+
+Group A also made `OpenTcpConnection` take its `AmqpTcpEndpoint` and set the server tags itself. It was the only activity factory returning a bare activity and relying on its call site to tag it, which made it the one place a new caller could silently produce an untagged span. Covered by `TestTcpConnectionActivityHasServerTags_GH1967`.
+
+## Defect: ambient-span pollution (`Activity.Current`) - FIXED
 
 There are exactly three `Activity.Current` reads in the client:
 
@@ -63,7 +81,13 @@ This is **pre-existing**, not a regression from the connection-tracing work. `v7
 
 The fix has to distinguish "this is my span" from "this is the caller's span". Passing the owned activity down from `Channel.BasicPublish.cs` is the direct route; checking `activity.Source` against the client's sources is the cheaper one.
 
-## Defect: failed operations never record an error
+**Fixed** by the cheaper route: `RabbitMQActivitySource.IsPublisherActivity` tests `ReferenceEquals(activity.Source, s_publisherSource)`, and the two ambient call sites now go through `SetNetworkTagsOnAmbientPublisherActivity` / `PopulateMessageEnvelopeSizeOnAmbientPublisherActivity`, which read `Activity.Current` internally so the cheap `HasListeners()` test guards the `AsyncLocal` read.
+
+The check is against the **publisher source specifically**, not "any activity from this library". That distinction is load-bearing: the connection spans are ours too, but they are not publish operations, so gating on the library as a whole would leave `connection attempt` still carrying `messaging.message.envelope.size` from the handshake frames. Connection spans keep getting their network tags from the direct `SetNetworkTags` calls described above.
+
+Regression coverage: `TestAmqpOperationsDoNotTagAnUnrelatedAmbientActivity_GH1967` (asserts 11 absent tags on an app-owned span, then asserts the library's own `publish` span still gets them - this is an ownership check, not a blanket removal) and `TestConnectionActivityHasNoMessagingEnvelopeSize_GH1967`.
+
+## Defect: failed operations never record an error - FIXED
 
 Activity **disposal** is correct everywhere - every creation site uses `using`, including the error paths through `BasicPublishCoreAsync`.
 
@@ -77,6 +101,17 @@ Activity **status** is not. No publisher or subscriber span ever records an erro
 The connection spans get this right - `IEndpointResolverExtensions.cs:40-95` calls both `AddException` and `SetStatus(ActivityStatusCode.Error)` - so the inconsistency is internal to one implementation.
 
 Related: `error.type` is the only **Stable** attribute in the RabbitMQ semantic convention and is Conditionally Required "if and only if the messaging operation has failed". The client sets it nowhere.
+
+**Fixed** via a single `SetActivityError(this Activity?, Exception)` helper that sets all three of the exception event, `SetStatus(Error)`, and `error.type`. All three are needed: a tracing backend reads an unset status as success, so a span carrying only an exception event still counts as a successful operation in error-rate queries. The helper also replaced the five hand-rolled `AddException` + `SetStatus` pairs on the connection spans, so publisher, subscriber and connection spans now report failures uniformly.
+
+Two subtleties found while fixing this:
+
+- **The publish failure surfaces from the `finally`, not the `try`.** `PublishReturnException` for an unroutable mandatory publish comes out of `MaybeEndPublisherConfirmationTrackingAsync` via `MaybeWaitForConfirmationAsync`, which runs in the `finally` because the confirmation is only awaited once the send has been issued. Moving the `using` out of the inner try and adding a `catch` is therefore *not* sufficient on its own - the confirmation await needs its own try/catch. This was the primary verified case, so a fix without it would have looked complete and covered nothing.
+- **A handled exception still marks the span `Error`.** If `MaybeHandleExceptionWithEnabledPublisherConfirmations` swallows, `SetActivityError` has already run. This is deliberate: the publish did fail, it was just reported through the confirmation mechanism instead of by throwing. Revisit if that proves noisy in practice.
+
+If both the `try` and the `finally` throw, the span gets two exception events. That is accurate, but note `ActivityAssert.HasRecordedException` only inspects `Events.First()`.
+
+Regression coverage: `TestPublishFailureIsRecordedOnTheSendActivity_GH1967` (mandatory publish to an exchange with no matching binding, which specifically exercises the `finally` path) and `TestConsumerFailureIsRecordedOnTheDeliverActivity_GH1967`. Both go through `ActivityAssert.RecordsFailure`, which asserts all three signals at once.
 
 ## Defect: tracing configuration is process-global, last writer wins
 
@@ -157,10 +192,10 @@ Opt-In means "SHOULD NOT be collected by default". The client always emits both 
 
 `DefaultContextGetter` handles only `byte[]`, which is *not* a defect: the broker returns header values as `byte[]` on the wire. It would only matter for an in-process carrier, which does not arise.
 
-Two cosmetic notes:
+Two cosmetic notes, both **fixed** in Group A:
 
-- `OpenTelemetryContextExtractor` passes `props.Headers` to `Propagators.DefaultTextMapPropagator.Extract` with no null check, unlike `DefaultContextExtractor` which returns early. With null headers the getter dereferences null once per propagator field; the outcome is correct only because `catch (Exception)` swallows it. That blanket catch is load-bearing rather than defensive, and its logger line is commented out, so a genuine extraction failure is silent.
-- `DefaultContextSetter`'s comment says "Only propagate headers if they haven't already been set"; the code assigns unconditionally. The overwrite is arguably the right behaviour - the comment is wrong.
+- `OpenTelemetryContextExtractor` passed `props.Headers` to `Propagators.DefaultTextMapPropagator.Extract` with no null check, unlike `DefaultContextExtractor` which returns early. With null headers the getter dereferenced null once per propagator field; the outcome was correct only because `catch (Exception)` swallowed it. That blanket catch was load-bearing rather than defensive, and its logger line was commented out, so a genuine extraction failure was silent. Now: an early return for null `Headers`, a `carrier != null` guard in the getter, and a comment explaining that the catch is now defensive-only (a custom `IDictionary` reaching the header table could still throw from `TryGetValue`, and a failed extraction must not fail the delivery). No test - the pre-existing catch already produced the right outcome, so there is no observable behaviour to assert.
+- `DefaultContextSetter`'s comment said "Only propagate headers if they haven't already been set"; the code assigns unconditionally. The overwrite is the right behaviour - the comment was wrong, and now says so.
 
 ## Consumer concurrency: no defects found
 
@@ -179,14 +214,27 @@ No mis-parenting, no context bleed across dispatch slots.
 
 ## Test coverage gaps
 
-`TestActivitySource.cs` (9 tests) and `TestOpenTelemetry.cs` (4 tests) both live in `SequentialIntegration`, because `ActivityRecorder` and the activity sources are process-global. `TestOpenTelemetry.cs` drives the real SDK (`Sdk.CreateTracerProviderBuilder`, `AddRabbitMQInstrumentation`, `AddInMemoryExporter`); `TestActivitySource.cs` uses a bare `ActivityListener`.
+`TestActivitySource.cs` and `TestOpenTelemetry.cs` (4 tests) both live in `SequentialIntegration`, because `ActivityRecorder` and the activity sources are process-global. `TestOpenTelemetry.cs` drives the real SDK (`Sdk.CreateTracerProviderBuilder`, `AddRabbitMQInstrumentation`, `AddInMemoryExporter`); `TestActivitySource.cs` uses a bare `ActivityListener`.
 
-- **Error status** is asserted only on connection spans. Nothing asserts that a `publish` or `deliver` span records a failure.
-- **Ambient-span pollution** has no coverage at all. `ActivityAssert.HasNoTag` exists and is used nowhere.
-- **Two assertions lock in the span-kind gap.** `TestOpenTelemetry.cs:349` and `TestActivitySource.cs:347` both assert `ActivityKind.Consumer` for the `fetch` span. Fixing the span kind requires updating them.
+Group A closed the first two gaps, adding five `_GH1967` tests to `TestActivitySource.cs` and an `ActivityAssert.RecordsFailure` helper:
+
+- ~~**Error status** is asserted only on connection spans.~~ Now asserted on `publish` and `deliver`.
+- ~~**Ambient-span pollution** has no coverage at all. `ActivityAssert.HasNoTag` exists and is used nowhere.~~ `HasNoTag` is now used for 11 tags in the ambient test and for `messaging.message.envelope.size` on the connection span.
+
+Still open, and both belong to Group B:
+
+- **Two assertions lock in the span-kind gap.** `TestOpenTelemetry.cs` and `TestActivitySource.cs` both assert `ActivityKind.Consumer` for the `fetch` span. Fixing the span kind requires updating them.
 - **One assertion locks in the destination gap.** `TestActivitySource.cs` asserts `messaging.destination.name == "amq.default"` for the default-exchange case.
 
 `ActivityRecorder.ShouldListenTo` is an exact source-name match, so a recorder constructed with `ConnectionSourceName` cannot see publisher or subscriber spans. Keep that in mind when reasoning about which tests would catch which regression.
+
+### `ActivityRecorder` matches on span name, and the routing key is in it by default
+
+`UseRoutingKeyAsOperationName` defaults to **`true`**, so a publish span is named `publish <routing-key>`, not `publish`. `ActivityRecorder` matches `activity.OperationName` exactly, so a recorder built for `"publish"` records **zero** activities under the default configuration and fails with `Expected: 1 / Actual: 0` - no hint that the name is the problem.
+
+Three of the five new tests hit this. Any new test that constructs a recorder with a bare operation name needs `TestActivitySource.PlainOperationNames`, a `using` scope that sets the flag false and **restores the previous value on dispose**.
+
+The restore matters beyond politeness. None of the pre-existing tests restore this flag or `TracingOptions` after mutating them, so test outcomes depend on execution order, and `TestOpenTelemetry.TestDefaultTracingOptions` asserts the default is `true` - it would fail if an earlier test left it `false`. That is Group C's defect (process-global configuration, last writer wins) reproducing inside our own test suite, which is a reasonable argument for fixing it.
 
 ## Documentation gap
 
@@ -196,7 +244,7 @@ No mis-parenting, no context bleed across dispatch slots.
 
 - Activity disposal on every path, including the error branches through `BasicPublishCoreAsync`.
 - `HasListeners()` / `IsAllDataRequested` guard pairing at all activity-creation sites.
-- Exception recording on the connection spans (`IEndpointResolverExtensions.cs:40-95` sets both the event and the status, and deliberately leaves the parent connection activity alone when a later endpoint succeeds).
+- Exception recording on the connection spans (`IEndpointResolverExtensions.cs` sets both the event and the status, and deliberately leaves the parent connection activity alone when a later endpoint succeeds - Group A preserved that, routing it through `SetActivityError` and picking up `error.type` in the process).
 - Public API surface parity between `net8.0` and `netstandard2.0`.
 - `RabbitMQ.Client.OpenTelemetry` packaging: TFMs, signing, SourceLink, and the `otel-` MinVer prefix for independent versioning.
 - The `OpenTelemetry.Api` 1.15.3 pin, which is the oldest version without GHSA-g94r-2vxg-569j.
