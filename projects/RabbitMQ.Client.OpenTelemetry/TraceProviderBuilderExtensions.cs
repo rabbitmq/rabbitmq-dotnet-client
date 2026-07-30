@@ -30,6 +30,18 @@ namespace OpenTelemetry.Trace
 
         private static ActivityContext OpenTelemetryContextExtractor(IReadOnlyBasicProperties props)
         {
+            /*
+             * A message with no headers at all has nothing to extract. Returning early
+             * matters: without it the getter below is called once per propagator field
+             * with a null carrier, and the correct result depends entirely on its
+             * catch block swallowing a NullReferenceException. This mirrors the
+             * null check in RabbitMQActivitySource.DefaultContextExtractor.
+             */
+            if (props.Headers is null)
+            {
+                return default;
+            }
+
             // Extract the PropagationContext of the upstream parent from the message headers.
             var parentContext = Propagators.DefaultTextMapPropagator.Extract(default, props.Headers, OpenTelemetryContextGetter);
             Baggage.Current = parentContext.Baggage;
@@ -38,16 +50,25 @@ namespace OpenTelemetry.Trace
 
         private static IEnumerable<string> OpenTelemetryContextGetter(IDictionary<string, object> carrier, string key)
         {
+            /*
+             * Defensive only. The caller null-checks Headers, and a malformed value is
+             * handled by the `is byte[]` test rather than by throwing, so this catch is
+             * no longer load-bearing for any known input. It stays because a custom
+             * IDictionary implementation supplied through a header table could throw
+             * from TryGetValue, and a failed context extraction must not fail the
+             * delivery.
+             */
             try
             {
-                if (carrier.TryGetValue(key, out object value) && value is byte[] bytes)
+                if (carrier != null && carrier.TryGetValue(key, out object value) && value is byte[] bytes)
                 {
                     return new[] { Encoding.UTF8.GetString(bytes) };
                 }
             }
             catch (Exception)
             {
-                //this.logger.LogError(ex, "Failed to extract trace context.");
+                // Ignored: an unparseable carrier yields an unparented span, which is
+                // strictly better than propagating the failure to the consumer.
             }
 
             return Enumerable.Empty<string>();

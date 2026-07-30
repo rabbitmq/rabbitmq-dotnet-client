@@ -33,6 +33,10 @@ namespace RabbitMQ.Client
         internal const string ProtocolVersion = "network.protocol.version";
         internal const string RabbitMQDeliveryTag = "messaging.rabbitmq.delivery_tag";
 
+        // error.type is the only Stable attribute in the messaging convention, and is
+        // Conditionally Required "if and only if the messaging operation has failed".
+        internal const string ErrorType = "error.type";
+
         // These constants are specific to this client - the OpenTelemetry messaging
         // conventions do not (yet) cover connection establishment.
         internal const string RabbitMQConnectionIsReconnection = "messaging.rabbitmq.connection.is_reconnection";
@@ -69,6 +73,27 @@ namespace RabbitMQ.Client
         public static RabbitMQTracingOptions TracingOptions { get; set; } = new RabbitMQTracingOptions();
         internal static bool PublisherHasListeners => s_publisherSource.HasListeners();
 
+        /*
+         * Both PopulateMessageEnvelopeSize and Connection.WriteAsync tag whatever
+         * Activity.Current happens to be, because the frame-writing path has no
+         * reference to the publish activity it belongs to. Without this check, any
+         * AMQP method issued inside an unrelated ambient activity stamps messaging
+         * and network tags onto a span this library does not own - an app's own
+         * span, or an ASP.NET request span, picking up server.address and friends
+         * from an incidental QueueDeclare.
+         *
+         * The test is publisher-source ownership specifically, not "any activity
+         * from this library". The connection spans are ours too, but they are not
+         * publish operations: gating on the library as a whole would leave the
+         * "connection attempt" span carrying messaging.message.envelope.size from
+         * the handshake frames. Connection spans get their network tags from the
+         * direct SetNetworkTags calls at the three connection call sites.
+         */
+        private static bool IsPublisherActivity(Activity? activity)
+        {
+            return activity is not null && ReferenceEquals(activity.Source, s_publisherSource);
+        }
+
         internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
         {
             new KeyValuePair<string, object?>(MessagingSystem, "rabbitmq"),
@@ -93,14 +118,21 @@ namespace RabbitMQ.Client
             return connectionActivity;
         }
 
-        internal static Activity? OpenTcpConnection()
+        internal static Activity? OpenTcpConnection(AmqpTcpEndpoint endpoint)
         {
             if (!s_connectionSource.HasListeners())
             {
                 return null;
             }
 
-            return s_connectionSource.StartRabbitMQActivity("tcp connection attempt", ActivityKind.Client);
+            Activity? activity =
+                s_connectionSource.StartRabbitMQActivity("tcp connection attempt", ActivityKind.Client);
+            if (activity is { IsAllDataRequested: true })
+            {
+                activity.SetServerTags(endpoint);
+            }
+
+            return activity;
         }
 
         internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize, IReadOnlyBasicProperties basicProperties,
@@ -250,11 +282,75 @@ namespace RabbitMQ.Client
             }
         }
 
-        internal static void PopulateMessageEnvelopeSize(Activity? activity, int size)
+        /*
+         * As with SetNetworkTagsOnAmbientPublisherActivity, this reads Activity.Current
+         * itself so the cheap HasListeners() test guards the AsyncLocal read on a path
+         * that runs for every AMQP method transmitted.
+         */
+        internal static void PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(int size)
         {
-            if (activity != null && activity.IsAllDataRequested && PublisherHasListeners)
+            if (!PublisherHasListeners)
+            {
+                return;
+            }
+
+            Activity? activity = Activity.Current;
+            if (activity != null && activity.IsAllDataRequested && IsPublisherActivity(activity))
             {
                 activity.SetTag(MessagingEnvelopeSize, size);
+            }
+        }
+
+        /*
+         * Tag the ambient activity from the frame-writing path. Unlike SetNetworkTags,
+         * this must not touch an activity this library does not own. See
+         * IsPublisherActivity.
+         *
+         * This reads Activity.Current itself rather than taking it as an argument:
+         * that is an AsyncLocal read on a path that runs for every frame written, so
+         * the cheap HasListeners() test comes first. With no publisher listeners the
+         * source cannot have produced the ambient activity anyway.
+         */
+        internal static void SetNetworkTagsOnAmbientPublisherActivity(IFrameHandler frameHandler)
+        {
+            if (!PublisherHasListeners)
+            {
+                return;
+            }
+
+            Activity? activity = Activity.Current;
+            if (IsPublisherActivity(activity))
+            {
+                activity.SetNetworkTags(frameHandler);
+            }
+        }
+
+        /*
+         * Record a failed messaging operation on its span.
+         *
+         * Tracing backends treat an unset status as success, so a span that merely
+         * carries an exception event still reads as a successful operation in
+         * error-rate queries. Every failure path therefore needs all three of:
+         * the exception event, an Error status, and error.type.
+         *
+         * error.type is the fully-qualified exception type name, which is what the
+         * convention prescribes when there is no lower-cardinality domain-specific
+         * value to use. The connection spans do the same thing via SetActivityError,
+         * so publisher, subscriber and connection spans report failures uniformly.
+         */
+        internal static void SetActivityError(this Activity? activity, Exception exception)
+        {
+            if (activity is null)
+            {
+                return;
+            }
+
+            activity.AddException(exception);
+            activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+
+            if (activity.IsAllDataRequested)
+            {
+                activity.SetTag(ErrorType, exception.GetType().FullName);
             }
         }
 
@@ -350,7 +446,11 @@ namespace RabbitMQ.Client
                 return;
             }
 
-            // Only propagate headers if they haven't already been set
+            /*
+             * Overwrite unconditionally. The client's own context is the authoritative
+             * one for the span it just created, so a caller-supplied traceparent in the
+             * same header table is replaced rather than preserved.
+             */
             carrierDictionary[name] = value;
         }
 

@@ -32,10 +32,26 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                         using (Activity? activity = RabbitMQActivitySource.Deliver(work.RoutingKey!, work.Exchange!,
                                             work.DeliveryTag, work.BasicProperties!, work.Body.Size))
                                         {
-                                            await work.Consumer.HandleBasicDeliverAsync(
-                                                work.ConsumerTag!, work.DeliveryTag, work.Redelivered,
-                                                work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory, work.CancellationToken)
-                                                .ConfigureAwait(false);
+                                            /*
+                                             * Record a throwing consumer callback on the deliver span
+                                             * before rethrowing to the reporting catch below. Without
+                                             * this the span is disposed on the way out and ends
+                                             * status=Unset with no exception event, so a consumer that
+                                             * throws on every message still traces as fully
+                                             * successful. See issue #1967.
+                                             */
+                                            try
+                                            {
+                                                await work.Consumer.HandleBasicDeliverAsync(
+                                                    work.ConsumerTag!, work.DeliveryTag, work.Redelivered,
+                                                    work.Exchange!, work.RoutingKey!, work.BasicProperties!, work.Body.Memory, work.CancellationToken)
+                                                    .ConfigureAwait(false);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                activity.SetActivityError(e);
+                                                throw;
+                                            }
                                         }
                                         break;
                                     case WorkType.Cancel:

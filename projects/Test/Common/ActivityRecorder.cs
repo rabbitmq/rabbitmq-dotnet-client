@@ -158,6 +158,19 @@ namespace Test
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
         }
 
+        /// <summary>
+        /// Assert that a failed operation is fully reported: the exception event, an
+        /// Error status, and error.type. A tracing backend treats an unset status as
+        /// success, so all three are needed for the failure to be visible.
+        /// See rabbitmq/rabbitmq-dotnet-client#1967.
+        /// </summary>
+        public static void RecordsFailure(this Activity activity, Type exceptionType)
+        {
+            activity.HasRecordedException(exceptionType.ToString());
+            activity.IsInError();
+            activity.HasTag("error.type", exceptionType.FullName);
+        }
+
         public static void HasNoTag(this Activity activity, string name)
         {
             bool contains = activity.TagObjects.Any(t => t.Key == name);
