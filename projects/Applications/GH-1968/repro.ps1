@@ -18,13 +18,15 @@
                 A deterministic 100% failure rate is a different bug by definition,
                 since #1968 is intermittent, and it masks #1968 entirely because the
                 run never reaches the timeout.
-      * slow  - the test passed but its reported duration exceeded -SlowSeconds.
+      * slow  - the test passed but its duration exceeded -SlowSeconds.
                 Connection.CloseAsync raises any non-abort timeout below 30s up to 30s,
                 so the test's own 6s _waitSpan is ignored and a run that waits out the
                 full timeout is approaching the failure regardless of how it ends.
-                This reads the duration out of the `dotnet test` summary line rather
-                than timing the process, since process wall clock is dominated by
-                startup overhead.
+                This is the test's own duration from the trx, not process wall clock,
+                which is dominated by startup overhead.
+
+    Outcome, duration and failure message all come from the trx (`--logger trx`), so
+    nothing here depends on console formatting.
 
     One `dotnet test` per iteration, so every iteration is a fresh process. That is
     deliberate: issue #1960 was a cold-start race on net472 that an in-process loop
@@ -33,23 +35,32 @@
     Requires a broker reachable at localhost:5672. The test fixture hardcodes that
     and has no host override, so under WSL2 this depends on localhost forwarding.
 
+.PARAMETER Configuration
+    Build configuration (default: Debug, which is what CI uses). CI's
+    integration-win32 job builds Debug and passes this test on net472, so Debug is
+    the configuration to match when comparing against a known-green baseline. Pass
+    Release to check for configuration-dependent behaviour.
+
 .PARAMETER Count
     Number of runs (default: 25).
 
 .PARAMETER SlowSeconds
-    Reported test duration above which a passing run is flagged as slow (default: 5).
+    Test duration above which a passing run is flagged as slow (default: 5).
     Healthy runs finish in well under a second.
 
 .PARAMETER LogDirectory
-    Where to write per-run logs (default: a GH-1968 directory under the temp path).
-    Only failing and slow runs are kept.
+    Where to write per-run trx and console logs (default: a GH-1968 directory under
+    the temp path). Only failing and slow runs are kept.
 
 .EXAMPLE
     .\repro.ps1
     .\repro.ps1 -Count 100 -SlowSeconds 2
+    .\repro.ps1 -Configuration Release -Count 10
 #>
 [CmdletBinding(PositionalBinding = $false)]
 param(
+    [ValidateSet('Debug', 'Release')]
+    [string] $Configuration = 'Debug',
     [int]    $Count = 25,
     [int]    $SlowSeconds = 5,
     [string] $LogDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) 'GH-1968')
@@ -62,9 +73,9 @@ Set-StrictMode -Version Latest
 # here, not an error, so a non-zero exit must not terminate the loop.
 $PSNativeCommandUseErrorActionPreference = $false
 
-# $IsWindows only exists on PowerShell Core. On Windows PowerShell 5.1 it is
-# absent, and absent means Windows, so check the edition before dereferencing it
-# under Set-StrictMode.
+# $IsWindows exists only on PowerShell Core, where this normally runs. Under Windows
+# PowerShell it is absent, and absent means Windows, so the edition is checked first to
+# avoid dereferencing an undefined variable under Set-StrictMode.
 if ($PSVersionTable.PSEdition -eq 'Core' -and -not $IsWindows) {
     Write-Host "net472 is Windows-only, so this script cannot reproduce #1968 here." -ForegroundColor Red
     exit 1
@@ -75,95 +86,89 @@ $proj = Join-Path $repoRoot 'projects\Test\Integration\Integration.csproj'
 $testName = 'TestCleanClosureWithSocketClosedOutOfBand'
 
 New-Item -ItemType Directory -Force -Path $LogDirectory | Out-Null
+# XmlDocument.Load resolves relative paths against the process working directory,
+# not PowerShell's, so make this absolute before handing it out.
+$LogDirectory = (Resolve-Path -LiteralPath $LogDirectory).Path
 
-Write-Host "Building Integration (net472, Release) once..." -ForegroundColor Magenta
-dotnet build -c Release -f net472 $proj | Out-Null
+Write-Host "Building Integration (net472, $Configuration) once..." -ForegroundColor Magenta
+dotnet build -c $Configuration -f net472 $proj | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "BUILD FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
     exit 1
 }
 
-# Sums every value/unit pair in a duration string, so "1 m 5 s" is 65 rather than 60.
-function ConvertTo-Seconds {
-    param([string] $Text)
+# Reads one test's outcome, duration and failure message out of a trx. Console output
+# is unusable for this: at default verbosity a net472 pass prints no per-test line and
+# leaves the summary Duration field empty, and a failure reports its time on a per-test
+# line instead of in the summary. The trx has a duration attribute either way.
+function Get-TestResult {
+    param([string] $Path, [string] $TestName)
 
-    if ([string]::IsNullOrWhiteSpace($Text)) {
-        return $null
-    }
+    $doc = New-Object System.Xml.XmlDocument
+    $doc.Load($Path)
 
-    $total = 0.0
-    $found = $false
-    foreach ($m in [regex]::Matches($Text, '(\d+(?:[.,]\d+)?)\s*(ms|s|m|h)\b')) {
-        $value = [double]::Parse($m.Groups[1].Value.Replace(',', ''),
-            [System.Globalization.CultureInfo]::InvariantCulture)
-        switch ($m.Groups[2].Value) {
-            'ms' { $total += $value / 1000.0 }
-            's'  { $total += $value }
-            'm'  { $total += $value * 60.0 }
-            'h'  { $total += $value * 3600.0 }
+    $ns = New-Object System.Xml.XmlNamespaceManager($doc.NameTable)
+    $ns.AddNamespace('t', 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010')
+
+    foreach ($node in $doc.SelectNodes('//t:UnitTestResult', $ns)) {
+        if ($node.GetAttribute('testName') -notlike "*$TestName*") {
+            continue
         }
-        $found = $true
-    }
 
-    if ($found) { return $total } else { return $null }
-}
-
-# Two sources, because neither alone covers both outcomes:
-#
-#   pass:  Passed!  - Failed: 0, ... Duration: 98 ms - Integration.dll (net472)
-#   fail:    Failed Test.Integration...TestName [86 ms]
-#            Failed!  - Failed: 1, ... Duration:  - Integration.dll (net472)
-#
-# A failing run leaves the summary Duration field EMPTY and reports the time on a
-# per-test line instead. Reading only the summary therefore lost the duration on
-# exactly the runs that matter, which is the signal that separates a ~30s close
-# timeout from a fast assertion failure. Prefer the per-test line, since it is the
-# test's own time rather than the assembly's, and fall back to the summary.
-function Get-ReportedSeconds {
-    param([string] $Path)
-
-    $lines = @(Get-Content -LiteralPath $Path)
-
-    foreach ($line in $lines) {
-        if ($line -match '^\s+(?:Failed|Passed)\s+\S+\s+\[(.+?)\]\s*$') {
-            $secs = ConvertTo-Seconds -Text $Matches[1]
-            if ($null -ne $secs) {
-                return $secs
+        # duration is an invariant "00:00:00.0275298", present on passes and failures
+        # alike. Parsed defensively so a format change degrades to an unknown timing
+        # rather than terminating the loop.
+        $seconds = $null
+        $duration = $node.GetAttribute('duration')
+        if ($duration) {
+            try {
+                $seconds = ([TimeSpan]::Parse($duration,
+                    [System.Globalization.CultureInfo]::InvariantCulture)).TotalSeconds
+            } catch {
+                $seconds = $null
             }
         }
-    }
 
-    foreach ($line in $lines) {
-        if ($line -match 'Duration:\s*(.*?)\s+-\s+\S+\.dll') {
-            $secs = ConvertTo-Seconds -Text $Matches[1]
-            if ($null -ne $secs) {
-                return $secs
-            }
+        # ErrorInfo is absent on a pass.
+        $message = ''
+        $stack = ''
+        $messageNode = $node.SelectSingleNode('t:Output/t:ErrorInfo/t:Message', $ns)
+        if ($messageNode) { $message = $messageNode.InnerText }
+        $stackNode = $node.SelectSingleNode('t:Output/t:ErrorInfo/t:StackTrace', $ns)
+        if ($stackNode) { $stack = $stackNode.InnerText }
+
+        return [pscustomobject] @{
+            Outcome = $node.GetAttribute('outcome')
+            Seconds = $seconds
+            Message = $message
+            Stack   = $stack
         }
     }
 
     return $null
 }
 
-# Extracts a short reason for a failing run, so the summary can distinguish an
-# actual #1968 timeout from an unrelated failure without opening every log.
+# Shortens a failure to one line, so the summary can distinguish an actual #1968
+# timeout from an unrelated failure without opening every log.
 function Get-FailureReason {
-    param([string] $Path)
+    param($Result)
 
-    if (Select-String -LiteralPath $Path -Pattern 'OperationCanceledException' -Quiet) {
+    $text = $Result.Message + "`n" + $Result.Stack
+
+    if ($text -match 'OperationCanceledException') {
         return 'OperationCanceledException (#1968)'
     }
 
-    $assert = Select-String -LiteralPath $Path -Pattern '^\s*Actual:\s+(.+)$' |
-        Select-Object -First 1
-    if ($assert) {
-        return 'assertion, actual ' + $assert.Matches[0].Groups[1].Value.Trim()
+    # xunit's assertion messages put the offending type or value on an "Actual:" line,
+    # which identifies the failure far better than the first line does.
+    if ($text -match '(?m)^\s*Actual:\s+(.+)$') {
+        return 'assertion, actual ' + $Matches[1].Trim()
     }
 
-    $err = Select-String -LiteralPath $Path -Pattern '^\s*Error Message:\s*$' -Context 0, 1 |
-        Select-Object -First 1
-    if ($err -and $err.Context.PostContext.Count -gt 0) {
-        return $err.Context.PostContext[0].Trim()
+    foreach ($line in $Result.Message -split "`r?`n") {
+        if (-not [string]::IsNullOrWhiteSpace($line)) {
+            return $line.Trim()
+        }
     }
 
     return 'unrecognized, see log'
@@ -171,45 +176,77 @@ function Get-FailureReason {
 
 $fail = 0
 $slow = 0
+$unknown = 0
 $reasons = @{}
 for ($i = 1; $i -le $Count; $i++) {
-    $log = Join-Path $LogDirectory ("run-{0:d3}.log" -f $i)
-    dotnet test -c Release -f net472 --no-build $proj `
-        --filter "FullyQualifiedName~$testName" *>&1 |
+    $stem = "run-{0:d3}" -f $i
+    $log = Join-Path $LogDirectory "$stem.log"
+    $trx = Join-Path $LogDirectory "$stem.trx"
+
+    Remove-Item -LiteralPath $trx -ErrorAction SilentlyContinue
+
+    dotnet test -c $Configuration -f net472 --no-build $proj `
+        --filter "FullyQualifiedName~$testName" `
+        --results-directory $LogDirectory `
+        --logger "trx;LogFileName=$stem.trx" *>&1 |
         Out-File -LiteralPath $log -Encoding utf8
     $exit = $LASTEXITCODE
 
-    # A filter that matches nothing exits 0 and prints no summary, which would otherwise
-    # read as a clean run repeated -Count times. Fail loudly instead.
-    if (Select-String -LiteralPath $log -Pattern 'No test matches the given testcase filter' -Quiet) {
-        Write-Host "Filter '$testName' matched no tests. Was the test renamed?" -ForegroundColor Red
+    $result = $null
+    if (Test-Path -LiteralPath $trx) {
+        $result = Get-TestResult -Path $trx -TestName $testName
+    }
+
+    # No result for this test means either a filter that matched nothing, which exits 0
+    # and writes a trx with no UnitTestResult nodes, so it would otherwise read as a
+    # clean run repeated -Count times, or a test host that died before writing a trx.
+    # Neither is a measurement, so stop rather than tally it.
+    if ($null -eq $result) {
+        Write-Host ("run {0,3}: no result for '{1}' (exit {2})" -f $i, $testName, $exit) -ForegroundColor Red
+        Write-Host "Was the test renamed, or did the test host crash?" -ForegroundColor Red
         Write-Host "log: $log" -ForegroundColor Red
         exit 1
     }
 
-    $secs = Get-ReportedSeconds -Path $log
+    # A skipped test is NotExecuted with no ErrorInfo, so counting it as a failure would
+    # invent a reason for something that never ran.
+    if ($result.Outcome -eq 'NotExecuted') {
+        Write-Host ("run {0,3}: '{1}' was skipped, so nothing was measured." -f $i, $testName) -ForegroundColor Red
+        Write-Host "log: $log" -ForegroundColor Red
+        exit 1
+    }
 
-    # A run whose duration cannot be parsed is not treated as a pass: it means the run
-    # never got as far as a summary line, which is itself worth looking at.
+    $secs = $result.Seconds
     $shown = if ($null -eq $secs) { '     ?' } else { '{0,6:n2}' -f $secs }
 
-    if ($exit -ne 0) {
+    if ($result.Outcome -ne 'Passed') {
         $fail++
-        $reason = Get-FailureReason -Path $log
+        $reason = Get-FailureReason -Result $result
         if ($reasons.ContainsKey($reason)) { $reasons[$reason]++ } else { $reasons[$reason] = 1 }
-        Write-Host ("run {0,3}: FAIL  {1}s  {2}" -f $i, $shown, $reason) -ForegroundColor Red
-    } elseif ($null -eq $secs -or $secs -gt $SlowSeconds) {
+        Write-Host ("run {0,3}: {1}  {2}s  {3}" -f $i, $result.Outcome.ToUpperInvariant(), $shown, $reason) `
+            -ForegroundColor Red
+    } elseif ($null -eq $secs) {
+        # Kept distinct from slow rather than lumped in with it: an unparsed duration
+        # means the timing is unknown, not that it was long, and calling it slow
+        # reports a signal that was never measured.
+        $unknown++
+        Write-Host ("run {0,3}: pass, no duration in trx  {1}" -f $i, $trx) -ForegroundColor Yellow
+    } elseif ($secs -gt $SlowSeconds) {
         $slow++
         Write-Host ("run {0,3}: slow  {1}s  {2}" -f $i, $shown, $log) -ForegroundColor Yellow
     } else {
         Write-Host ("run {0,3}: pass  {1}s" -f $i, $shown) -ForegroundColor DarkGray
-        Remove-Item -LiteralPath $log -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $log, $trx -ErrorAction SilentlyContinue
     }
 }
 
 Write-Host ""
 $color = if ($fail -eq 0 -and $slow -eq 0) { 'Green' } else { 'Yellow' }
-Write-Host ("failures: {0} / {1}    slow passes: {2} / {1}" -f $fail, $Count, $slow) -ForegroundColor $color
+Write-Host ("{0}, net472    failures: {1} / {2}    slow passes: {3} / {2}" -f `
+    $Configuration, $fail, $Count, $slow) -ForegroundColor $color
+if ($unknown -gt 0) {
+    Write-Host ("{0} run(s) passed with no duration recorded." -f $unknown) -ForegroundColor Yellow
+}
 
 if ($fail -gt 0) {
     Write-Host ""
@@ -230,7 +267,13 @@ if ($fail -gt 0) {
     }
 }
 
-if ($fail -gt 0 -or $slow -gt 0) {
+if ($fail -gt 0 -and $Configuration -eq 'Release') {
+    Write-Host ""
+    Write-Host "This was a Release run. CI builds Debug and passes this test on net472," -ForegroundColor Magenta
+    Write-Host "so compare against -Configuration Debug before concluding anything." -ForegroundColor Magenta
+}
+
+if ($fail -gt 0 -or $slow -gt 0 -or $unknown -gt 0) {
     Write-Host ""
     Write-Host "logs: $LogDirectory" -ForegroundColor Magenta
 }

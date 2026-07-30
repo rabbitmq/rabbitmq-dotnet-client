@@ -34,18 +34,26 @@ run against the netstandard2.0 client build.
   `OperationCanceledException`. Two things to watch for: an unrelated failure masks
   #1968 completely, because the run never reaches the close timeout; and a
   deterministic 100% rate is by definition not #1968, which is intermittent.
-- **slow** - the test passed, but its reported duration exceeded `-SlowSeconds`.
-  Worth counting separately because `Connection.CloseAsync` raises any non-abort
-  timeout below `InternalConstants.DefaultConnectionCloseTimeout` (30s) up to 30s,
-  so the test's own 6s `_waitSpan` is ignored. A run that waits out the full
-  timeout is approaching the failure however it ends. Healthy runs finish in well
-  under a second, so the 5s default is generous.
+- **slow** - the test passed, but its duration exceeded `-SlowSeconds`. Worth
+  counting separately because `Connection.CloseAsync` raises any non-abort timeout
+  below `InternalConstants.DefaultConnectionCloseTimeout` (30s) up to 30s, so the
+  test's own 6s `_waitSpan` is ignored. A run that waits out the full timeout is
+  approaching the failure however it ends. Healthy runs finish in well under a
+  second, so the 5s default is generous.
 
-Durations come from `dotnet test` output rather than from process wall clock, which
-is dominated by ~15s of per-iteration startup. A failing run leaves the summary
-`Duration:` field empty and reports the time on a per-test line instead, so the
-per-test line is preferred with the summary as a fallback. Getting this wrong loses
-the duration on exactly the runs that matter.
+Outcome, duration and failure message all come from the trx (`--logger trx`), so
+nothing depends on console formatting. That matters because the console output is
+genuinely unusable for this: at default verbosity a net472 **pass** prints no
+per-test line and leaves the summary `Duration:` field empty, while a **failure**
+reports its time on a per-test line and also leaves the summary empty. Both cases
+were misparsed before switching to the trx. The trx carries a `duration` attribute
+either way, and it is the test's own time rather than process wall clock, which is
+dominated by ~15s of per-iteration startup.
+
+A trx with no `UnitTestResult` for the test is treated as a hard error rather than a
+clean run, which covers both a renamed test (a filter matching nothing still exits 0)
+and a test host that died before writing results. A skipped test is likewise an error,
+not a pass.
 
 ## Running it
 
@@ -57,7 +65,14 @@ localhost forwarding from the Docker container started by
 ```powershell
 .\projects\Applications\GH-1968\repro.ps1
 .\projects\Applications\GH-1968\repro.ps1 -Count 100 -SlowSeconds 2
+.\projects\Applications\GH-1968\repro.ps1 -Configuration Release -Count 10
 ```
+
+`-Configuration` defaults to `Debug`, matching CI. This is not cosmetic: CI's
+`integration-win32` job builds Debug and **passes** this test on net472, so Debug is
+the only configuration with a known-green baseline to compare against. An earlier
+version of this script defaulted to Release, copied from `GH-1960/repro.ps1`, which
+made a Release-only failure look like a general one.
 
 It builds net472 once, then uses `--no-build` in the loop. One `dotnet test` per
 iteration means every iteration is a fresh process, which is deliberate: #1960
@@ -65,13 +80,14 @@ turned out to be a cold-start race on net472 that an in-process loop under-repor
 as 1/N. It also means each iteration costs roughly 15s of startup, so a run of 25
 takes several minutes.
 
-Logs are kept only for failing and slow runs; passing runs are cleaned up. The
-script classifies failures itself, so reading the logs is only needed when it
+Logs and trx files are kept only for failing and slow runs; passing runs are cleaned
+up. The script classifies failures itself, so reading the logs is only needed when it
 reports a reason as unrecognized.
 
 ## Status: blocked by a different net472 failure
 
-The first Windows run of this script came back 10/10 failures, none of them #1968:
+Windows Release runs of this script came back 9/10 and 10/10 failures, none of them
+#1968:
 
 ```
 Assert.IsAssignableFrom() Failure: Value is an incompatible type
@@ -81,11 +97,27 @@ Actual:   typeof(System.ObjectDisposedException)
 
 That is `TestConnectionShutdown.cs:73`, inside the `AlreadyClosedException` catch, so
 the close threw the expected exception type but with the wrong `InnerException`. It is
-deterministic and fast (~86ms, not the ~30s a close timeout would take), which makes
-it a separate bug from the intermittent #1968.
+deterministic and fast (~70-100ms, not the ~30s a close timeout would take), which
+makes it a separate bug from the intermittent #1968.
 
-Until that is fixed, #1968 cannot be measured here at all: the assertion fails long
-before the run reaches the close timeout.
+Until that is understood, #1968 cannot be measured here at all: the assertion fails
+long before the run reaches the close timeout.
+
+Both of those runs were Release, whereas CI builds Debug and passes this test on
+net472 (verified in run 30542231661, on a commit that contains the #1734 tracing
+merge, which logs `Passed ... TestCleanClosureWithSocketClosedOutOfBand [2 ms]` from
+`bin\Debug\net472\`). Configuration is the one systematic difference between CI and
+those local runs, which is why the default is now Debug. The open question is whether
+the `ObjectDisposedException` is Release-only, so run both:
+
+```powershell
+.\projects\Applications\GH-1968\repro.ps1 -Count 5
+.\projects\Applications\GH-1968\repro.ps1 -Configuration Release -Count 5
+```
+
+If Debug passes and Release fails, it is a real configuration-dependent bug and wants
+its own issue. If Debug fails too, suspect a stale `bin\` after branch switching
+before suspecting the client.
 
 ## Open questions on the issue
 
@@ -98,5 +130,7 @@ A rate does not settle these, but it informs them:
    true. Cancelling `_mainLoopCts` does not interrupt a `PipeReader.ReadAsync`
    parked on a `NetworkStream` on .NET Framework, which is issue
    [#1921](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1921).
-3. Whether the 30s floor overriding a caller-supplied 6s timeout is intended.
-   Answerable from history without a repro.
+Whether the 30s floor overriding a caller-supplied 6s timeout is intended was the
+third question. It was answerable from history without a repro, and is now filed
+separately as
+[#1973](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1973).
