@@ -16,7 +16,22 @@ The findings were split into three groups, because they carry very different ris
 
 Group A was separated out precisely because none of it changes a conforming attribute value or span name, so it can ship without a downstream consumer having to re-key anything. Groups B and C build on this branch as stacked PRs.
 
-One observable change did come with Group A: the `publish` span now starts before flow control rather than after, so its duration includes any flow-control blocking. Nothing became slower, but publish-latency dashboards will shift.
+### One observable change did come with Group A: publish-span duration
+
+Moving the `using` out of the inner `try` was necessary to record failures at all, but it also put the `finally` inside the activity's scope - and the `finally` is where the publisher confirmation is awaited. The span therefore now covers the full publish-and-confirm round trip rather than just handing frames to the socket.
+
+**Measured**, 300 warm iterations with publisher confirmations and tracking enabled:
+
+| | span p50 | span p95 | span/wall p50 ratio |
+|---|---|---|---|
+| `main` | 37us | 117us | 0.047 |
+| Group A | 372us | 728us | 0.960 |
+
+The span went from ~5% of the wall-clock publish call to ~96% of it - about a 10x increase in reported duration. Nothing became slower: wall-clock publish time was the same order in both runs (p50 776us on `main`, 388us on Group A), and that gap is run-to-run noise between two separate probe processes, not a speedup.
+
+End-to-end is the more useful semantic, and it is what a consumer would expect a `publish` span to cover when confirmations are enabled. But it is a visible change and belongs in the 7.3.0 release notes: publish-latency dashboards keyed on this span will jump by roughly an order of magnitude on upgrade.
+
+An earlier version of this document described this as only "the span now starts before flow control, so its duration includes any flow-control blocking." That understated it considerably - the earlier start is the minor half, the confirmation await is the dominant one.
 
 ## The three activity sources
 
@@ -109,9 +124,27 @@ Two subtleties found while fixing this:
 - **The publish failure surfaces from the `finally`, not the `try`.** `PublishReturnException` for an unroutable mandatory publish comes out of `MaybeEndPublisherConfirmationTrackingAsync` via `MaybeWaitForConfirmationAsync`, which runs in the `finally` because the confirmation is only awaited once the send has been issued. Moving the `using` out of the inner try and adding a `catch` is therefore *not* sufficient on its own - the confirmation await needs its own try/catch. This was the primary verified case, so a fix without it would have looked complete and covered nothing.
 - **A handled exception still marks the span `Error`.** If `MaybeHandleExceptionWithEnabledPublisherConfirmations` swallows, `SetActivityError` has already run. This is deliberate: the publish did fail, it was just reported through the confirmation mechanism instead of by throwing. Revisit if that proves noisy in practice.
 
-If both the `try` and the `finally` throw, the span gets two exception events. That is accurate, but note `ActivityAssert.HasRecordedException` only inspects `Events.First()`.
+### The two catches recorded one failure twice
 
-Regression coverage: `TestPublishFailureIsRecordedOnTheSendActivity_GH1967` (mandatory publish to an exchange with no matching binding, which specifically exercises the `finally` path) and `TestConsumerFailureIsRecordedOnTheDeliverActivity_GH1967`. Both go through `ActivityAssert.RecordsFailure`, which asserts all three signals at once.
+The first version of the fix, having established that both the inner `catch` and the `finally` need to record, then double-recorded on a common path. Publishing on a **closed connection** with confirmations and tracking both enabled produces `events=2`, the same `AlreadyClosedException` twice, because:
+
+1. The send throws `AlreadyClosedException`; the inner `catch` records it.
+2. `MaybeHandleException` calls `_publisherConfirmationTcs.SetException(ex)` and returns `true`, so the publish counts as handled and does *not* rethrow there.
+3. The `finally` awaits that same TCS, which re-raises the identical exception instance (`TaskCompletionSource` rethrows through `ExceptionDispatchInfo`), and the `finally`'s `catch` records it again.
+
+**Verified.** Closed-connection publish gives `events=2` with `AlreadyClosedException` twice; an unroutable mandatory publish correctly gives `events=1`, because there the exception originates in the confirmation await and the inner catch never sees it.
+
+Both paths therefore have to stay, but the duplicate has to be suppressed. **Fixed** by tracking the exception the inner catch recorded and comparing by reference in the `finally`: `ReferenceEquals` is exactly right here because the TCS re-raises the same instance, so it suppresses the duplicate while still recording a genuinely different exception from the confirmation await.
+
+The tests did not catch this, because `ActivityAssert.HasRecordedException` only inspects `Events.First()`. Added `HasRecordedExceptionOnce`, which asserts `Assert.Single` over the `"exception"` events, and pointed `RecordsFailure` at it - so all five failure tests now assert the count, not just the first event.
+
+### `SetActivityError` gated its three signals inconsistently
+
+`AddException` and `SetStatus` were unconditional while `error.type` sat behind `IsAllDataRequested`. **Verified** with a listener sampling `PropagationData`: the span got the exception event and the `Error` status but no `error.type`.
+
+That is backwards on cost. `AddException` allocates an `ActivityEvent` with a tag list; `error.type` is one string already in hand. The split recorded the expensive signal on spans the listener asked not to fill in and dropped the cheap one. **Fixed** by putting all three behind one `IsAllDataRequested` test - a span that is not AllData is not exported, so nothing observable is lost, and it keeps the allocation off the per-delivery consumer path when nothing is recording.
+
+Regression coverage: `TestPublishFailureIsRecordedOnTheSendActivity_GH1967` (mandatory publish to an exchange with no matching binding, which specifically exercises the `finally` path), `TestPublishFailureIsRecordedOnceWhenHandledByConfirmations_GH1967` (closed-connection publish, the duplicate-event path - requires *both* confirmations and tracking, or the exception is never handled and never resurfaces), and `TestConsumerFailureIsRecordedOnTheDeliverActivity_GH1967`. All go through `ActivityAssert.RecordsFailure`, which asserts all three signals plus the event count.
 
 ## Defect: tracing configuration is process-global, last writer wins
 
@@ -216,10 +249,16 @@ No mis-parenting, no context bleed across dispatch slots.
 
 `TestActivitySource.cs` and `TestOpenTelemetry.cs` (4 tests) both live in `SequentialIntegration`, because `ActivityRecorder` and the activity sources are process-global. `TestOpenTelemetry.cs` drives the real SDK (`Sdk.CreateTracerProviderBuilder`, `AddRabbitMQInstrumentation`, `AddInMemoryExporter`); `TestActivitySource.cs` uses a bare `ActivityListener`.
 
-Group A closed the first two gaps, adding five `_GH1967` tests to `TestActivitySource.cs` and an `ActivityAssert.RecordsFailure` helper:
+Group A closed the first two gaps, adding six `_GH1967` tests to `TestActivitySource.cs`, one to `TestOpenTelemetry.cs`, and the `ActivityAssert.RecordsFailure` / `HasRecordedExceptionOnce` helpers:
 
 - ~~**Error status** is asserted only on connection spans.~~ Now asserted on `publish` and `deliver`.
-- ~~**Ambient-span pollution** has no coverage at all. `ActivityAssert.HasNoTag` exists and is used nowhere.~~ `HasNoTag` is now used for 11 tags in the ambient test and for `messaging.message.envelope.size` on the connection span.
+- ~~**Ambient-span pollution** has no coverage at all. `ActivityAssert.HasNoTag` exists and is used nowhere.~~ `HasNoTag` is now used for 11 tags in the ambient test, for three more after a publish in the same ambient scope, and for `messaging.message.envelope.size` on the connection span.
+
+Three gaps found by the review of the Group A branch itself, all now closed:
+
+- **Exception event *count* was unasserted,** so the duplicate-recording defect above went unnoticed. `HasRecordedExceptionOnce` fixes this; see that section.
+- **Span parenting was unasserted.** All the new recorders set `VerifyParent = false`, which is unavoidable through the recorder - `ExpectedParent` has to be set before the recorder sees anything, and the ambient activity does not exist that early. `TestAmqpOperationsDoNotTagAnUnrelatedAmbientActivity_GH1967` now asserts `Assert.Same(appActivity, publishActivity.Parent)` directly instead, so scoping the tags to the publisher source cannot silently detach the publish span from the caller's trace. A detached span would show `Parent is null`, so the assertion is not vacuous.
+- **The null-`Headers` extractor guard had no test.** `TestContextExtractorHandlesPropertiesWithNoHeaders_GH1967` pins the observable contract (no headers extracts to `default`, without throwing). Note this test would also have passed *before* the fix, because swallowing the `NullReferenceException` reached the same result. What it protects is the outcome if someone later narrows or removes that blanket `catch`, which the fix makes safe to do.
 
 Still open, and both belong to Group B:
 
