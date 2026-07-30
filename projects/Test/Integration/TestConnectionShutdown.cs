@@ -100,6 +100,43 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task TestConcurrentFrameHandlerCloseDoesNotHang_GH1968()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1968
+             *
+             * SocketFrameHandler.CloseAsync used to dispose _closingSemaphore in its
+             * finally block without ever releasing it. A second closer already parked
+             * in WaitAsync then stayed pending forever -- a disposed SemaphoreSlim
+             * does not fault or cancel its pending async waiters, not even via their
+             * own cancellation token.
+             *
+             * That is reachable in normal operation because MainLoop's FinishCloseAsync
+             * is itself a closer. When it lost this race it never returned, so
+             * _mainLoopTask never completed and Connection.CloseAsync waited out its
+             * full 30s DefaultConnectionCloseTimeout before throwing a bare
+             * OperationCanceledException -- the 30-second net472 CI failure in #1968.
+             *
+             * Two direct closes are the minimal deterministic form of that race.
+             */
+            var c = (AutorecoveringConnection)_conn;
+
+            ValueTask first = c.CloseFrameHandlerAsync();
+            ValueTask second = c.CloseFrameHandlerAsync();
+
+            try
+            {
+                Task both = Task.WhenAll(first.AsTask(), second.AsTask());
+                await both.WaitAsync(_waitSpan);
+            }
+            finally
+            {
+                _conn = null;
+                _channel = null;
+            }
+        }
+
+        [Fact]
         public async Task TestAbortWithSocketClosedOutOfBand()
         {
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
