@@ -108,6 +108,15 @@ namespace RabbitMQ.Client.Impl
                 using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
                     ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
                     : default;
+                /*
+                 * Tracks the exception (if any) already recorded on sendActivity by the
+                 * catch below, so the finally's confirmation-await catch does not record
+                 * the same instance twice. When MaybeHandleExceptionWithEnabledPublisherConfirmations
+                 * faults the confirm TCS, the finally's await re-raises that exception;
+                 * without this guard a publish whose send failed (e.g. on a closed
+                 * connection) recorded the same exception twice. See issue #1967.
+                 */
+                Exception? recordedSendError = null;
                 try
                 {
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
@@ -133,6 +142,7 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception ex)
                 {
                     sendActivity.SetActivityError(ex);
+                    recordedSendError = ex;
 
                     bool exceptionWasHandled =
                         MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
@@ -157,7 +167,7 @@ namespace RabbitMQ.Client.Impl
                         await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
                             .ConfigureAwait(false);
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (!ReferenceEquals(ex, recordedSendError))
                     {
                         sendActivity.SetActivityError(ex);
                         throw;
