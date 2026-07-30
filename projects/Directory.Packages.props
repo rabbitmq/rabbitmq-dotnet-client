@@ -36,7 +36,20 @@
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="8.0.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="10.0.10" />
-    <PackageVersion Include="WireMock.Net" Version="2.13.0" />
+    <!--
+      Note: do NOT upgrade WireMock.Net past 2.1.0 while System.Text.Json is pinned at
+      8.0.5 above. Only projects/Test/OAuth2 uses WireMock, and on net472 it drags in
+      System.Text.Json through two transitive paths, both of which trip NU1605:
+      * 2.2.0 and later: Scriban.Signed -> System.Text.Json >= 10.0.8, and
+        JsonPath.Net -> Json.More.Net -> System.Text.Json >= 10.0.5.
+      Since System.Text.Json is a floor for RabbitMQ.Client.OAuth2 consumers it cannot
+      move to satisfy a test-only package, so WireMock is what stays put.
+
+      This only breaks on Windows: the test projects add net472 there, and the
+      System.Text.Json PackageReference in the OAuth2 test project is itself
+      net472-only, so a Linux build resolves neither and restores clean.
+    -->
+    <PackageVersion Include="WireMock.Net" Version="2.1.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
