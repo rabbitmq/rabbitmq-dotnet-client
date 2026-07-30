@@ -278,8 +278,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
-                connectionActivity?.AddException(e);
-                connectionActivity?.SetStatus(ActivityStatusCode.Error);
+                connectionActivity.SetActivityError(e);
                 ESLog.Error("Connection recovery exception.", e);
                 // Trigger recovery error events
                 if (!_connectionRecoveryErrorAsyncWrapper.IsEmpty)

@@ -97,16 +97,23 @@ namespace RabbitMQ.Client.Impl
                 RateLimitLease? lease =
                     await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
                         .ConfigureAwait(false);
+                /*
+                 * The send activity is declared out here, rather than inside the try
+                 * below, so the catch can record the failure on it. With the `using`
+                 * scoped to the inner try the span was already disposed by the time
+                 * the catch ran, so no publish failure was ever reported: the span
+                 * ended status=Unset with no exception event, which tracing backends
+                 * read as a successful publish. See issue #1967.
+                 */
+                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
+                    : default;
                 try
                 {
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
 
                     await MaybeEnforceFlowControlAsync(cancellationToken)
                         .ConfigureAwait(false);
-
-                    using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
-                        : default;
 
                     ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
 
@@ -125,6 +132,8 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception ex)
                 {
+                    sendActivity.SetActivityError(ex);
+
                     bool exceptionWasHandled =
                         MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
                     if (!exceptionWasHandled)
@@ -135,8 +144,24 @@ namespace RabbitMQ.Client.Impl
                 finally
                 {
                     MaybeReleasePublisherConfirmationLock(lease);
-                    await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
-                        .ConfigureAwait(false);
+
+                    /*
+                     * This await is the one that surfaces a nack or an unroutable
+                     * mandatory publish (PublishException), so it is a publish failure
+                     * like any other and belongs on the span. It cannot simply be
+                     * wrapped by the catch above, because it runs in the finally: the
+                     * confirmation is only awaited once the send has been issued.
+                     */
+                    try
+                    {
+                        await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        sendActivity.SetActivityError(ex);
+                        throw;
+                    }
                 }
             }
             finally

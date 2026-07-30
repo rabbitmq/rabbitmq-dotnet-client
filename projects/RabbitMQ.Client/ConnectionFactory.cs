@@ -577,8 +577,7 @@ namespace RabbitMQ.Client
             }
             catch (OperationCanceledException ex)
             {
-                connectionActivity?.SetStatus(ActivityStatusCode.Error);
-                connectionActivity?.AddException(ex);
+                connectionActivity.SetActivityError(ex);
                 if (cancellationToken.IsCancellationRequested)
                 {
                     throw;
@@ -591,8 +590,7 @@ namespace RabbitMQ.Client
             catch (Exception ex)
             {
                 var brokerUnreachableException = new BrokerUnreachableException(ex);
-                connectionActivity?.SetStatus(ActivityStatusCode.Error);
-                connectionActivity?.AddException(brokerUnreachableException);
+                connectionActivity.SetActivityError(brokerUnreachableException);
                 throw brokerUnreachableException;
             }
         }
