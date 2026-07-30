@@ -70,7 +70,16 @@ namespace Test.Integration
             }
             catch (AlreadyClosedException ex)
             {
-                Assert.IsAssignableFrom<IOException>(ex.InnerException);
+                /*
+                 * Both are legitimate for a socket closed out of band, since the type
+                 * depends on whether the close beat the main loop's next read. .NET
+                 * always wraps the ObjectDisposedException in an IOException, but .NET
+                 * Framework does not, so on net472 the bare one surfaces. See
+                 * ClosingLoopAsync, which likewise catches both.
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1974
+                 */
+                Assert.True(ex.InnerException is IOException or ObjectDisposedException,
+                    $"unexpected inner exception: {ex.InnerException}");
             }
             catch (ChannelClosedException)
             {
