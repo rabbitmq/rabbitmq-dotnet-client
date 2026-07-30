@@ -147,8 +147,16 @@ namespace Test
 
         public static void HasRecordedException(this Activity activity, string exceptionTypeName)
         {
-            var exceptionEvent = activity.Events.First();
-            Assert.Equal("exception", exceptionEvent.Name);
+            /*
+             * Assert exactly one exception event so duplicate recordings are caught.
+             * A publish whose send failed on a closed connection used to record the
+             * same exception twice (once in the send catch, once when the confirmation
+             * await re-raised it), which Events.First() alone does not detect.
+             * See issue #1967.
+             */
+            var exceptionEvents = activity.Events.Where(e => e.Name == "exception").ToList();
+            Assert.Single(exceptionEvents);
+            ActivityEvent exceptionEvent = exceptionEvents[0];
             Assert.Equal(exceptionTypeName,
                 exceptionEvent.Tags.SingleOrDefault(t => t.Key == "exception.type").Value);
         }

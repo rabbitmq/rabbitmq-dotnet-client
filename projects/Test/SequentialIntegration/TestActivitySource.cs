@@ -480,6 +480,15 @@ namespace Test.SequentialIntegration
             publishActivity.HasTag("messaging.message.envelope.size");
             publishActivity.HasTag("server.port");
             publishActivity.HasTag("network.peer.address");
+
+            /*
+             * The publish runs after the app activity's scope has ended, so it has no
+             * parent. Asserting that pins the one parenting relationship this test can
+             * speak to: the library's publish span must not attach to an ambient span
+             * it does not belong to. The ownership fix is about tags, but a parenting
+             * regression on the frame-writing path would show up here. See issue #1967.
+             */
+            Assert.Null(publishActivity.Parent);
         }
 
         [Fact]
