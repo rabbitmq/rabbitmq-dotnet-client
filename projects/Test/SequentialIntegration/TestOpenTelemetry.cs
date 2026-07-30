@@ -94,6 +94,36 @@ namespace Test.SequentialIntegration
             Assert.True(RabbitMQActivitySource.TracingOptions.UsePublisherAsParent);
         }
 
+        [Fact]
+        public void TestContextExtractorHandlesPropertiesWithNoHeaders_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * OpenTelemetryContextExtractor passed props.Headers straight to the
+             * propagator, so a message published with no headers at all called the
+             * getter once per propagator field with a null carrier. It worked only
+             * because the getter's blanket catch swallowed the resulting
+             * NullReferenceException.
+             *
+             * This pins the observable contract - no headers extracts to no context,
+             * without throwing - rather than the mechanism. It would also have passed
+             * before the fix, because swallowing the NRE reached the same result. What
+             * it protects is the outcome if someone later narrows or removes that
+             * catch, which the fix makes safe to do.
+             */
+            using var tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation()
+                .Build();
+
+            var propsWithNoHeaders = new BasicProperties();
+            Assert.Null(propsWithNoHeaders.Headers);
+
+            ActivityContext extracted = RabbitMQActivitySource.ContextExtractor(propsWithNoHeaders);
+
+            Assert.Equal(default, extracted);
+        }
+
         [Theory]
         [InlineData(true, true)]
         [InlineData(true, false)]

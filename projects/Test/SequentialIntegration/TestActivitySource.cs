@@ -370,6 +370,48 @@ namespace Test.SequentialIntegration
         }
 
         [Fact]
+        public async Task TestPublishFailureIsRecordedOnceWhenHandledByConfirmations_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * Recording the failure in both the inner catch and the one in the finally
+             * used to double-record it on this path. Publishing on a closed connection
+             * throws from the send, the inner catch hands the exception to the
+             * confirmation task (so the publish counts as handled and does not
+             * rethrow there), and awaiting that task in the finally re-raises the same
+             * instance - one failure, recorded twice.
+             *
+             * Publisher confirmations *and* tracking are both required to reproduce:
+             * without tracking there is no task to store the exception on, so it is
+             * never handled and never resurfaces.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+
+            var channelOptions = new CreateChannelOptions(
+                publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync(channelOptions);
+
+            await conn.CloseAsync();
+
+            await Assert.ThrowsAsync<AlreadyClosedException>(() =>
+                ch.BasicPublishAsync("", "no-such-queue", true,
+                    Encoding.UTF8.GetBytes("after close")).AsTask());
+
+            Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
+            publishActivity.RecordsFailure(typeof(AlreadyClosedException));
+        }
+
+        [Fact]
         public async Task TestConsumerFailureIsRecordedOnTheDeliverActivity_GH1967()
         {
             /*
@@ -445,41 +487,58 @@ namespace Test.SequentialIntegration
 
             string queue = $"queue-{Guid.NewGuid()}";
 
-            using (Activity appActivity = appSource.StartActivity("app-operation"))
-            {
-                Assert.NotNull(appActivity);
-                Assert.Same(appActivity, Activity.Current);
+            // Kept alive past the AMQP calls so the parenting assertion at the end can
+            // compare against it.
+            using Activity appActivity = appSource.StartActivity("app-operation");
+            Assert.NotNull(appActivity);
+            Assert.Same(appActivity, Activity.Current);
 
-                await _channel.QueueDeclareAsync(queue, false, true, false, null);
-                await _channel.QueueDeclarePassiveAsync(queue);
-                await _channel.BasicQosAsync(0, 1, false);
-
-                /*
-                 * Every tag either path would have written. The network tags come from
-                 * Connection.WriteAsync, the envelope size from SessionBase.
-                 */
-                appActivity.HasNoTag("messaging.message.envelope.size");
-                appActivity.HasNoTag("messaging.system");
-                appActivity.HasNoTag("network.type");
-                appActivity.HasNoTag("server.address");
-                appActivity.HasNoTag("server.port");
-                appActivity.HasNoTag("network.peer.address");
-                appActivity.HasNoTag("network.peer.port");
-                appActivity.HasNoTag("client.address");
-                appActivity.HasNoTag("client.port");
-                appActivity.HasNoTag("network.local.address");
-                appActivity.HasNoTag("network.local.port");
-            }
+            await _channel.QueueDeclareAsync(queue, false, true, false, null);
+            await _channel.QueueDeclarePassiveAsync(queue);
+            await _channel.BasicQosAsync(0, 1, false);
 
             /*
-             * The library's own publish span must still get the tags - this is an
-             * ownership check, not a blanket removal.
+             * Every tag either path would have written. The network tags come from
+             * Connection.WriteAsync, the envelope size from SessionBase.
+             */
+            appActivity.HasNoTag("messaging.message.envelope.size");
+            appActivity.HasNoTag("messaging.system");
+            appActivity.HasNoTag("network.type");
+            appActivity.HasNoTag("server.address");
+            appActivity.HasNoTag("server.port");
+            appActivity.HasNoTag("network.peer.address");
+            appActivity.HasNoTag("network.peer.port");
+            appActivity.HasNoTag("client.address");
+            appActivity.HasNoTag("client.port");
+            appActivity.HasNoTag("network.local.address");
+            appActivity.HasNoTag("network.local.port");
+
+            /*
+             * Publish inside the same ambient scope. The library's own publish span must
+             * still get the tags - this is an ownership check, not a blanket removal -
+             * and the app's span must still come out clean, even though a publish is
+             * exactly the operation whose tags it was previously stealing.
              */
             await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes("hi"));
+
+            appActivity.HasNoTag("messaging.message.envelope.size");
+            appActivity.HasNoTag("server.port");
+            appActivity.HasNoTag("network.peer.address");
+
             Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
             publishActivity.HasTag("messaging.message.envelope.size");
             publishActivity.HasTag("server.port");
             publishActivity.HasTag("network.peer.address");
+
+            /*
+             * Parenting is asserted here rather than through the recorder's
+             * VerifyParent, because ExpectedParent has to be set before the recorder
+             * sees anything and the ambient activity does not exist that early. The
+             * publish span is started while appActivity is current, so it must be its
+             * child: scoping the tags to the publisher source must not also detach the
+             * span from the caller's trace.
+             */
+            Assert.Same(appActivity, publishActivity.Parent);
         }
 
         [Fact]

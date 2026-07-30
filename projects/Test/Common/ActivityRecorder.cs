@@ -153,20 +153,39 @@ namespace Test
                 exceptionEvent.Tags.SingleOrDefault(t => t.Key == "exception.type").Value);
         }
 
+        /// <summary>
+        /// Assert that exactly one exception event was recorded, of the given type.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="HasRecordedException(Activity, string)"/> only inspects the first
+        /// event, so it cannot see a failure recorded twice on one span. The publish
+        /// path is the case that matters: a handled send exception is stored on the
+        /// confirmation task and re-raised when it is awaited, so both the inner catch
+        /// and the one in the finally see it. See
+        /// rabbitmq/rabbitmq-dotnet-client#1967.
+        /// </remarks>
+        public static void HasRecordedExceptionOnce(this Activity activity, string exceptionTypeName)
+        {
+            ActivityEvent[] exceptionEvents = activity.Events.Where(e => e.Name == "exception").ToArray();
+            Assert.Equal(exceptionTypeName,
+                Assert.Single(exceptionEvents).Tags.SingleOrDefault(t => t.Key == "exception.type").Value);
+        }
+
         public static void IsInError(this Activity activity)
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
         }
 
         /// <summary>
-        /// Assert that a failed operation is fully reported: the exception event, an
-        /// Error status, and error.type. A tracing backend treats an unset status as
-        /// success, so all three are needed for the failure to be visible.
+        /// Assert that a failed operation is fully reported: exactly one exception
+        /// event, an Error status, and error.type. A tracing backend treats an unset
+        /// status as success, so all three are needed for the failure to be visible,
+        /// and one failure should appear once.
         /// See rabbitmq/rabbitmq-dotnet-client#1967.
         /// </summary>
         public static void RecordsFailure(this Activity activity, Type exceptionType)
         {
-            activity.HasRecordedException(exceptionType.ToString());
+            activity.HasRecordedExceptionOnce(exceptionType.ToString());
             activity.IsInError();
             activity.HasTag("error.type", exceptionType.FullName);
         }

@@ -108,6 +108,18 @@ namespace RabbitMQ.Client.Impl
                 using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
                     ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
                     : default;
+
+                /*
+                 * The exception already recorded on sendActivity, if any.
+                 *
+                 * When the catch below hands an exception to the confirmation TCS,
+                 * awaiting that TCS in the finally re-raises the very same instance
+                 * (TaskCompletionSource rethrows via ExceptionDispatchInfo), so both
+                 * catches see one failure and would record it twice. Comparing by
+                 * reference suppresses only that duplicate: a genuinely different
+                 * exception from the confirmation await is still recorded.
+                 */
+                Exception? recordedException = null;
                 try
                 {
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
@@ -133,6 +145,7 @@ namespace RabbitMQ.Client.Impl
                 catch (Exception ex)
                 {
                     sendActivity.SetActivityError(ex);
+                    recordedException = ex;
 
                     bool exceptionWasHandled =
                         MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
@@ -159,7 +172,11 @@ namespace RabbitMQ.Client.Impl
                     }
                     catch (Exception ex)
                     {
-                        sendActivity.SetActivityError(ex);
+                        if (!ReferenceEquals(ex, recordedException))
+                        {
+                            sendActivity.SetActivityError(ex);
+                        }
+
                         throw;
                     }
                 }

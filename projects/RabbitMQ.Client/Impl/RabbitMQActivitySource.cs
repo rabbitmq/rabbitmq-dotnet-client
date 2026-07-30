@@ -337,21 +337,26 @@ namespace RabbitMQ.Client
          * convention prescribes when there is no lower-cardinality domain-specific
          * value to use. The connection spans do the same thing via SetActivityError,
          * so publisher, subscriber and connection spans report failures uniformly.
+         *
+         * All three are behind one IsAllDataRequested test. Splitting them - as an
+         * earlier version of this helper did, gating only error.type - inverts the
+         * cost: AddException allocates an ActivityEvent with a tag list, while
+         * error.type is a single string already in hand, so the expensive signal
+         * was recorded on spans the listener had asked not to fill in and the cheap
+         * one was dropped. A span that is not AllData is not exported, so nothing
+         * observable is lost by skipping all three. This also keeps the allocation
+         * off the per-delivery consumer path when no one is recording.
          */
         internal static void SetActivityError(this Activity? activity, Exception exception)
         {
-            if (activity is null)
+            if (activity is null || !activity.IsAllDataRequested)
             {
                 return;
             }
 
             activity.AddException(exception);
             activity.SetStatus(ActivityStatusCode.Error, exception.Message);
-
-            if (activity.IsAllDataRequested)
-            {
-                activity.SetTag(ErrorType, exception.GetType().FullName);
-            }
+            activity.SetTag(ErrorType, exception.GetType().FullName);
         }
 
         internal static void SetNetworkTags(this Activity? activity, IFrameHandler frameHandler)
