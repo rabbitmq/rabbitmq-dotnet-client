@@ -52,6 +52,11 @@ namespace RabbitMQ.Client
                 {
                     return await selector(ep, cancellationToken).ConfigureAwait(false);
                 }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Caller-initiated cancellation is not a connection attempt failure.
+                    throw;
+                }
                 catch (OperationCanceledException ex)
                 {
                     /*
@@ -64,11 +69,6 @@ namespace RabbitMQ.Client
                      * individual attempt failed.
                      */
                     tcpConnection.SetActivityError(ex);
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        throw;
-                    }
-
                     exceptions.Add(ex);
                 }
                 catch (Exception e)
