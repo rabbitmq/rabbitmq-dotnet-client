@@ -338,32 +338,22 @@ namespace RabbitMQ.Client
          * value to use. The connection spans do the same thing via SetActivityError,
          * so publisher, subscriber and connection spans report failures uniformly.
          *
-         * All three are behind one IsAllDataRequested test. Splitting them - as an
-         * earlier version of this helper did, gating only error.type - inverts the
-         * cost: AddException allocates an ActivityEvent with a tag list, while
-         * error.type is a single string already in hand, so the expensive signal
-         * was recorded on spans the listener had asked not to fill in and the cheap
-         * one was dropped. A span that is not AllData is not exported, so nothing
-         * observable is lost by skipping all three. This also keeps the allocation
-         * off the per-delivery consumer path when no one is recording.
+         * All three signals fire together so they stay consistent across sampling
+         * levels, gated only on a null activity. AddException and SetStatus already
+         * execute when IsAllDataRequested is false - a listener sampling
+         * PropagationData still receives the event and the status - so gating
+         * error.type alone, as an earlier version of this helper did, recorded the
+         * expensive signals and dropped the cheap one: a span marked Error with an
+         * exception event but no error.type, which is the only Stable attribute in
+         * the messaging convention. See issue #1967.
          */
         internal static void SetActivityError(this Activity? activity, Exception exception)
         {
-            if (activity is null || !activity.IsAllDataRequested)
+            if (activity is null)
             {
                 return;
             }
 
-            /*
-             * All three signals fire together so they stay consistent across sampling
-             * levels. AddException and SetStatus are cheap and already execute when
-             * IsAllDataRequested is false (a listener sampling PropagationData still
-             * receives the event and the status), so gating error.type - a single
-             * string tag - would record the expensive signals and drop the cheap one.
-             * That left a span marked Error with an exception event but no error.type,
-             * which is the only Stable attribute in the messaging convention. See
-             * issue #1967.
-             */
             activity.AddException(exception);
             activity.SetStatus(ActivityStatusCode.Error, exception.Message);
             activity.SetTag(ErrorType, exception.GetType().FullName);
