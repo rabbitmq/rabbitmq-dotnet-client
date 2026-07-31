@@ -232,6 +232,45 @@ Two gates, in `projects/Applications/GH-1960/`:
 
 The token state in the app's output is the discriminating signal: `cancellable,not-yet` on a `Library/541` reason is the bug; `cancellable,already-cancelled` is the fix.
 
+## Issue #1968: a disposed `SemaphoreSlim` strands the second frame-handler closer
+
+This one presented as a flaky net472 test - `TestCleanClosureWithSocketClosedOutOfBand` failing after exactly 30s with a bare `OperationCanceledException` - and was filed as `S-needs-investigation`. It is a library bug, and the platform and the test were both red herrings.
+
+### The mechanism
+
+`SocketFrameHandler.CloseAsync` acquired `_closingSemaphore` and, in its `finally`, **disposed** it without ever releasing it. `SemaphoreSlim` grants disposal no special meaning for pending async waiters: a second `CloseAsync` already parked in `WaitAsync` when the first disposes the semaphore stays pending **forever**.
+
+Verified directly, and worth internalising because it is counter-intuitive - all three wait forms hang, so a timeout is not an escape hatch:
+
+| Wait form | Outcome after the semaphore is disposed |
+|---|---|
+| `WaitAsync(token)` with a 3s CTS | still pending at 8s |
+| `WaitAsync(TimeSpan.FromSeconds(3))` | still pending at 8s |
+| `WaitAsync(3s, token)` | still pending at 8s |
+
+Not even the waiter's own cancellation token releases it. `Dispose()` itself does not throw, so the first closer sees nothing wrong.
+
+### Why that reaches a user-visible 30s stall
+
+`MainLoop`'s `FinishCloseAsync` calls `_frameHandler.CloseAsync`, so it is itself one of the concurrent closers. When it lost this race it never returned, which means:
+
+1. `MainLoop` never completes, so `_mainLoopTask` never completes.
+2. `Connection.CloseAsync` waits on `_mainLoopTask` (`Connection.cs:464`) and burns its full timeout.
+3. That timeout is `InternalConstants.DefaultConnectionCloseTimeout` (30s), **not** the caller's 6s - a non-abort close floors the caller's value at 30s.
+4. On netstandard2.0 the throwing frame is `TaskExtensions.DoWaitAsync`, which is inside `#if !NET`, so it surfaces as a bare `OperationCanceledException`.
+
+Item 4 is the only platform-specific part, and it affects the *exception type*, not the hang. The 30-second duration was the tell that this tracked the close timeout rather than a merely-slow close.
+
+### The fix
+
+Release the semaphore instead of disposing it, and set `_closed` before releasing so the next waiter returns rather than repeating the close. A `WaitAsync` that faults now returns instead of proceeding - it must not run the close body without holding the semaphore. `SemaphoreSlim` only requires disposal once `AvailableWaitHandle` has been read, and this one never exposes it, so nothing leaks.
+
+`_closed` is also now `volatile`. Both `CloseAsync` and `WriteAsync` read it outside any lock, on a field written by whichever thread happens to own the close, so those reads need acquire semantics rather than a value the JIT may keep in a register. The store paired with `Release()` is already ordered by the semaphore; the fast-path reads are not. `Connection._closed` (`Connection.cs:51`) is `volatile` for the same reason.
+
+### The same anti-pattern elsewhere
+
+`MainSession.Dispose` (`_closingSemaphore`) and `Channel` (`_rpcSemaphore`, `_confirmSemaphore`) also dispose semaphores that other code paths wait on. Those are not known to strand a caller today, but the hazard is identical, and a timeout on the wait does not mitigate it. Tracked as issue #1976; audit these before adding any new concurrent path through channel or session close.
+
 ## Relevant timeouts
 
 These are easy to confuse; distinguishing which one a hang tracks is the key diagnostic signal.
@@ -283,6 +322,10 @@ This bug was intermittent (sub-millisecond timing window) and involved suspended
 `TestConnectionShutdown.TestAbortCancellationWhenMainLoopWinsCloseReasonRace_GH1960` is the deterministic counterpart to `TestAbortWithSocketClosedOutOfBandAndCancellation`. It delays before `AbortAsync` so `MainLoop` wins the reason race on every platform and TFM, rather than relying on cold-start JIT latency that only net472 provides.
 
 It asserts more than "the TCS completed": it asserts the channel shutdown handler was released **by its own cancellation token** and not by the `ConnectionShutdownAsync` fallback. Without that assertion the test would pass on a build where the handler is still parked, since the fallback also completes the TCS. Verified to fail at the 6s bar with the fix reverted.
+
+### #1968
+
+`TestConnectionShutdown.TestConcurrentFrameHandlerCloseDoesNotHang_GH1968` calls `CloseFrameHandlerAsync()` twice concurrently, which is the minimal deterministic form of the `MainLoop` race. Two direct closes are used rather than trying to time the real race, and the result is not platform-specific: verified failing at the 6s bar on net8.0/Linux with the fix reverted (`TimeoutException`), passing in ~140ms with it. The pre-fix signature is a task left in `WaitingForActivation` indefinitely.
 
 ### #1921
 

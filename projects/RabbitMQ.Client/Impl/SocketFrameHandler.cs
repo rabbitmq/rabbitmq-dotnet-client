@@ -55,7 +55,10 @@ namespace RabbitMQ.Client.Impl
         private readonly PipeReader _pipeReader;
         private Task? _writerTask;
 
-        private bool _closed;
+        // volatile for the unsynchronized fast-path reads at the top of
+        // CloseAsync and WriteAsync. The read inside CloseAsync's critical
+        // section is already ordered by the semaphore.
+        private volatile bool _closed;
 
         private static ReadOnlyMemory<byte> Amqp091ProtocolHeader => new byte[] { (byte)'A', (byte)'M', (byte)'Q', (byte)'P', 0, 0, 9, 1 };
 
@@ -183,6 +186,26 @@ namespace RabbitMQ.Client.Impl
             {
                 await _closingSemaphore.WaitAsync(cancellationToken)
                     .ConfigureAwait(false);
+            }
+            catch
+            {
+                /*
+                 * Either the caller's token fired or another closer disposed the
+                 * semaphore. Both mean this call does not own the close, and the
+                 * owner sets _closed. Returning is correct: it must NOT fall
+                 * through to the close body without holding the semaphore.
+                 */
+                return;
+            }
+
+            try
+            {
+                if (_closed)
+                {
+                    // A concurrent closer finished while we waited.
+                    return;
+                }
+
                 try
                 {
                     // TryComplete rather than Complete: WriteLoopAsync may have
@@ -214,17 +237,32 @@ namespace RabbitMQ.Client.Impl
                 {
                     // ignore, we are closing anyway
                 }
-            }
-            catch
-            {
-            }
-            finally
-            {
-                _closingSemaphore.Dispose();
+
 #if NET
                 _flushTimeoutCts?.Dispose();
 #endif
+            }
+            finally
+            {
+                /*
+                 * Set _closed before releasing so the next waiter sees the close
+                 * as done and returns rather than repeating it.
+                 *
+                 * The semaphore is deliberately NOT disposed. Disposing it while a
+                 * concurrent CloseAsync is parked in WaitAsync leaves that waiter
+                 * pending forever -- not even its own cancellation token releases
+                 * it, which was verified directly. MainLoop's FinishCloseAsync is
+                 * one such concurrent closer, so a frame-handler close racing it
+                 * stranded MainLoop, _mainLoopTask never completed, and
+                 * Connection.CloseAsync burned its full 30s timeout before
+                 * surfacing a bare OperationCanceledException. See issue #1968.
+                 *
+                 * SemaphoreSlim only needs disposal when AvailableWaitHandle has
+                 * been read, and this one never exposes it, so there is nothing
+                 * to reclaim.
+                 */
                 _closed = true;
+                _closingSemaphore.Release();
             }
         }
 
