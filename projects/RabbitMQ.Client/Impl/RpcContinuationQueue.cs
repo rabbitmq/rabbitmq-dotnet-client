@@ -30,9 +30,9 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -69,24 +69,47 @@ namespace RabbitMQ.Client.Impl
 
         private const int CommandIdBufferLength = 2;
 
-        // Two ProtocolCommandId values (each uint) unioned with a single long
-        // so that Interlocked.Exchange can read/write both atomically.
-        // Since ProtocolCommandId : uint has no zero-valued member,
-        // default(LastTimedOutCommandIds).RawValue == 0L means "no timed-out command".
-        [StructLayout(LayoutKind.Explicit)]
-        private struct LastTimedOutCommandIds
-        {
-            [FieldOffset(0)]
-            public ProtocolCommandId First;
-            [FieldOffset(sizeof(ProtocolCommandId))]
-            public ProtocolCommandId Second;
-            [FieldOffset(0)]
-            public long RawValue;
-        }
+        // rabbitmq/rabbitmq-dotnet-client#1964
+        // Upper bound on recorded timed-out RPCs. Entries are only removed by an inbound
+        // command or by channel shutdown, so a channel that receives no frames at all (a
+        // publish-only channel with publisher confirmations disabled) would otherwise grow
+        // this without limit while RPCs keep timing out against an unresponsive broker.
+        //
+        // The bound is deliberately generous. Only one RPC runs per channel at a time, so
+        // with the default 20 second ContinuationTimeout a channel can record roughly three
+        // entries per minute, and reaching this many takes about three quarters of an hour
+        // of uninterrupted timeouts. A channel in that state has much larger problems.
+        private const int MaxTimedOutRpcs = 128;
 
         private static readonly EmptyRpcContinuation s_tmp = new EmptyRpcContinuation();
-        private long _lastTimedOutCommandIds;
+
+        // rabbitmq/rabbitmq-dotnet-client#1964
+        // Every timed-out RPC leaves a late response in flight, and several can be
+        // outstanding at once: the channel's RPC semaphore serializes requests, but
+        // nothing makes the broker's replies arrive before the next request is sent.
+        // A single-slot record therefore loses responses, and the survivors get
+        // matched against an unrelated continuation ("Received unexpected command
+        // of type ...!"). Queue one entry per timed-out RPC instead.
+        private ConcurrentQueue<TimedOutRpc> _timedOutRpcs = new ConcurrentQueue<TimedOutRpc>();
+
         private IRpcContinuation _outstandingRpc = s_tmp;
+
+        private readonly struct TimedOutRpc
+        {
+            public TimedOutRpc(ProtocolCommandId first, ProtocolCommandId second)
+            {
+                First = first;
+                Second = second;
+            }
+
+            public ProtocolCommandId First { get; }
+            public ProtocolCommandId Second { get; }
+
+            public bool Matches(ProtocolCommandId commandId)
+            {
+                return commandId == First || (Second != default && commandId == Second);
+            }
+        }
 
         ///<summary>Enqueue a continuation, marking a pending RPC.</summary>
         ///<remarks>
@@ -118,6 +141,17 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         public void HandleChannelShutdown(ShutdownEventArgs reason)
         {
+            // No further frames will arrive on this channel, so the recorded entries can
+            // never be consumed: this queue belongs to a single Channel, and a channel
+            // being recovered gets a brand new one. Release them rather than keeping them
+            // alive for as long as something holds a reference to the dead channel.
+            //
+            // Detach the whole queue rather than draining it. A concurrent RpcCanceled may
+            // still enqueue into the detached instance, which is harmless precisely because
+            // those records no longer need to be observed. This also avoids depending on
+            // ConcurrentQueue<T>.Clear(), which does not exist on netstandard2.0.
+            Interlocked.Exchange(ref _timedOutRpcs, new ConcurrentQueue<TimedOutRpc>());
+
             using (IRpcContinuation c = Next())
             {
                 c.HandleChannelShutdown(reason);
@@ -171,34 +205,110 @@ namespace RabbitMQ.Client.Impl
             // (e.g. BasicGetOk/BasicGetEmpty, ConnectionSecure/ConnectionTune)
             Debug.Assert(protocolCommandIds.Length is > 0 and <= CommandIdBufferLength);
 
-            var ids = new LastTimedOutCommandIds
-            {
-                First = protocolCommandIds[0],
-                Second = protocolCommandIds.Length > 1 ? protocolCommandIds[1] : default
-            };
+            var timedOut = new TimedOutRpc(
+                protocolCommandIds[0],
+                protocolCommandIds.Length > 1 ? protocolCommandIds[1] : default);
 
-            Interlocked.Exchange(ref _lastTimedOutCommandIds, ids.RawValue);
+            _timedOutRpcs.Enqueue(timedOut);
+
+            // rabbitmq/rabbitmq-dotnet-client#1964
+            // Keep the record bounded. The oldest entry is the one whose response is most
+            // overdue and so the least likely to still arrive, which makes it the right one
+            // to give up on. Dropping it costs only that this library no longer recognizes
+            // that particular late response, so it would surface as "Received unexpected
+            // command of type ...!" exactly as it did before #1802.
+            //
+            // A single dequeue is sufficient, and that is an invariant rather than a
+            // shortcut: every call site holds the channel's RPC semaphore, a
+            // SemaphoreSlim(1, 1), and enqueues exactly one entry, while dequeues run on
+            // the receive path and only ever shrink the queue. So the bound can be exceeded
+            // by at most one, and a loop here would imply an overshoot that cannot happen.
+            // Count is not a cheap field read once the queue spans segments, but this runs
+            // only when an RPC has just timed out, which is already an exceptional path.
+            if (_timedOutRpcs.Count > MaxTimedOutRpcs)
+            {
+                _timedOutRpcs.TryDequeue(out _);
+            }
         }
 
         public bool ShouldIgnoreCommand(ProtocolCommandId commandId)
         {
             // rabbitmq/rabbitmq-dotnet-client#1802
             // This keeps track of ProtocolCommandId values from previous RPC
-            // commands that have timed out.
-            //
-            // Consume the timed-out state unconditionally, even when commandId does
-            // not match. This is safe because AMQP 0-9-1 enforces strict request-response
-            // ordering on a channel, so a late response is always the very next
-            // incoming command.
-            long raw = Interlocked.Exchange(ref _lastTimedOutCommandIds, 0L);
+            // commands that have timed out, so that their late responses are
+            // discarded rather than matched against a later continuation.
 
-            if (raw == 0L)
+            // rabbitmq/rabbitmq-dotnet-client#1964
+            // Server-originated frames are not part of the request-response stream and
+            // interleave freely with it, so they must not consume an entry. Doing so
+            // discarded the record of a timed-out RPC whenever a delivery or an ack
+            // happened to arrive first, and the late response then reached an unrelated
+            // continuation, which is the very failure this record exists to prevent.
+            if (IsServerOriginated(commandId))
             {
                 return false;
             }
 
-            var ids = new LastTimedOutCommandIds { RawValue = raw };
-            return commandId == ids.First || (ids.Second != default && commandId == ids.Second);
+            // AMQP 0-9-1 enforces strict request-response ordering on a channel, so late
+            // responses arrive in the order the requests were sent. Only the oldest
+            // outstanding entry can match; consume it either way, since a non-match means
+            // that response is never coming.
+            if (_timedOutRpcs.TryDequeue(out TimedOutRpc timedOut))
+            {
+                return timedOut.Matches(commandId);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Whether the broker sends this command of its own accord, rather than as the
+        /// response to a request this channel made.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Derived from the <c>switch</c> in <c>Channel.DispatchCommandAsync</c>, which is
+        /// the authority on this distinction: <c>Channel.HandleCommandAsync</c> calls
+        /// <c>ShouldIgnoreCommand</c> and then <c>DispatchCommandAsync</c>, and the latter
+        /// returns <c>true</c> for exactly those commands it handles itself and <c>false</c>
+        /// from its <c>default</c> case, meaning "this is an RPC response, hand it to the
+        /// outstanding continuation". The list below is that switch's cases, minus the three
+        /// exceptions named next.
+        /// </para>
+        /// <para>
+        /// <c>ChannelCloseOk</c>, <c>ConnectionSecure</c> and <c>ConnectionTune</c> are
+        /// deliberately absent even though <c>DispatchCommandAsync</c> handles them. They
+        /// are also genuine RPC responses: <c>ChannelCloseAsyncRpcContinuation</c> names the
+        /// first as its expected reply, and <c>ConnectionSecureOrTuneAsyncRpcContinuation</c>
+        /// names the other two. They can therefore arrive late like any other reply and must
+        /// still be absorbable, so deciding membership purely from "does dispatch handle it"
+        /// would silently stop absorbing them.
+        /// </para>
+        /// <para>
+        /// So: keep this in step with <c>DispatchCommandAsync</c> when commands are added
+        /// there, but ask of each one whether any continuation ever waits on it, not just
+        /// whether dispatch handles it.
+        /// </para>
+        /// </remarks>
+        private static bool IsServerOriginated(ProtocolCommandId commandId)
+        {
+            switch (commandId)
+            {
+                case ProtocolCommandId.BasicAck:
+                case ProtocolCommandId.BasicCancel:
+                case ProtocolCommandId.BasicDeliver:
+                case ProtocolCommandId.BasicNack:
+                case ProtocolCommandId.BasicReturn:
+                case ProtocolCommandId.ChannelClose:
+                case ProtocolCommandId.ChannelFlow:
+                case ProtocolCommandId.ConnectionBlocked:
+                case ProtocolCommandId.ConnectionClose:
+                case ProtocolCommandId.ConnectionStart:
+                case ProtocolCommandId.ConnectionUnblocked:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }

@@ -127,6 +127,11 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
+                    // There is no semaphore wait to exclude here, since the caller already
+                    // holds it, so the timeout starts right away. It must still be started
+                    // explicitly: continuations are constructed unarmed. See #1964.
+                    k.StartTimeout();
+
                     if (_nextPublishSeqNo == 0UL)
                     {
                         if (_publisherConfirmationTrackingEnabled)

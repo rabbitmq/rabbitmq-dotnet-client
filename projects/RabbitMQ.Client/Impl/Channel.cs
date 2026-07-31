@@ -222,8 +222,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 ChannelShutdownAsync += k.OnConnectionShutdownAsync;
                 enqueued = Enqueue(k);
                 ConsumerDispatcher.Quiesce();
@@ -287,8 +290,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 try
@@ -331,8 +337,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 try
@@ -377,8 +386,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new ChannelOpen();
@@ -966,8 +978,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 var method = new BasicCancel(consumerTag, noWait);
 
                 if (noWait)
@@ -980,14 +995,18 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
+                    // rabbitmq/rabbitmq-dotnet-client#1964
+                    // Send outside the try: cancelling the write must not record a
+                    // timed-out RPC for a request that never reached the wire, which
+                    // would desync order-based late-response matching permanently.
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+
                     try
                     {
-                        await ModelSendAsync(in method, k.CancellationToken)
-                            .ConfigureAwait(false);
-
                         AssertResultIsTrue(await k);
                     }
-                    catch
+                    catch (OperationCanceledException)
                     {
                         _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
@@ -1015,8 +1034,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive, false, arguments);
@@ -1027,7 +1049,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     return await k;
                 }
-                catch
+                catch (OperationCanceledException)
                 {
                     _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
@@ -1049,8 +1071,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new BasicGet(queue, autoAck);
@@ -1103,8 +1128,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 byte[] newSecretBytes = Encoding.UTF8.GetBytes(newSecret);
@@ -1137,8 +1165,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new BasicQos(prefetchSize, prefetchCount, global);
@@ -1171,8 +1202,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 var method = new ExchangeBind(destination, source, routingKey, noWait, arguments);
 
                 if (noWait)
@@ -1223,8 +1257,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 var method = new ExchangeDeclare(exchange, type, passive, durable, autoDelete, false, noWait, arguments);
                 if (noWait)
                 {
@@ -1266,8 +1303,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 var method = new ExchangeDelete(exchange, ifUnused, Nowait: noWait);
 
                 if (noWait)
@@ -1311,8 +1351,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 var method = new ExchangeUnbind(destination, source, routingKey, noWait, arguments);
 
                 if (noWait)
@@ -1377,8 +1420,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 var method = new QueueDeclare(queue, passive, durable, exclusive, autoDelete, noWait, arguments);
 
                 if (noWait)
@@ -1398,11 +1444,15 @@ namespace RabbitMQ.Client.Impl
                 {
                     enqueued = Enqueue(k);
 
+                    // rabbitmq/rabbitmq-dotnet-client#1964
+                    // Send outside the try: cancelling the write must not record a
+                    // timed-out RPC for a request that never reached the wire, which
+                    // would desync order-based late-response matching permanently.
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+
                     try
                     {
-                        await ModelSendAsync(in method, k.CancellationToken)
-                            .ConfigureAwait(false);
-
                         QueueDeclareOk result = await k;
                         if (false == passive)
                         {
@@ -1434,8 +1484,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 var method = new QueueBind(queue, exchange, routingKey, noWait, arguments);
 
                 if (noWait)
@@ -1494,8 +1547,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 var method = new QueueDelete(queue, ifUnused, ifEmpty, noWait);
 
                 if (noWait)
@@ -1538,8 +1594,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new QueuePurge(queue, false);
@@ -1572,8 +1631,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new QueueUnbind(queue, exchange, routingKey, arguments);
@@ -1604,8 +1666,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new TxCommit();
@@ -1636,8 +1701,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new TxRollback();
@@ -1668,8 +1736,11 @@ namespace RabbitMQ.Client.Impl
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
+
             try
             {
+                k.StartTimeout();
+
                 enqueued = Enqueue(k);
 
                 var method = new TxSelect();
