@@ -447,7 +447,7 @@ namespace Test.SequentialIntegration
                 ValueTask publishTask = _channel.BasicPublishAsync("", "no-such-queue", true,
                     Encoding.UTF8.GetBytes("cancel me"), cts.Token);
 
-                // The publish is now parked in the flow-control wait with its span open.
+                // The publish is now parked in the confirmation await with its span open.
                 cts.Cancel();
 
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(() => publishTask.AsTask());
