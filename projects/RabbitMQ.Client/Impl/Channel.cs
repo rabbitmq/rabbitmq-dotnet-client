@@ -996,12 +996,9 @@ namespace RabbitMQ.Client.Impl
                     enqueued = Enqueue(k);
 
                     // rabbitmq/rabbitmq-dotnet-client#1964
-                    // Send before the try whose catch records a timed-out RPC, so a write
-                    // failure (cancellation, IOException, AlreadyClosedException) does not
-                    // record an entry for a request that never reached the wire. Order-based
-                    // late-response matching would then desync permanently. Only a failure
-                    // while awaiting the response, by which point the frame is sent, should
-                    // record.
+                    // Send outside the try: cancelling the write must not record a
+                    // timed-out RPC for a request that never reached the wire, which
+                    // would desync order-based late-response matching permanently.
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
@@ -1009,7 +1006,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         AssertResultIsTrue(await k);
                     }
-                    catch
+                    catch (OperationCanceledException)
                     {
                         _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                         throw;
@@ -1052,7 +1049,7 @@ namespace RabbitMQ.Client.Impl
                 {
                     return await k;
                 }
-                catch
+                catch (OperationCanceledException)
                 {
                     _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
                     throw;
@@ -1448,11 +1445,9 @@ namespace RabbitMQ.Client.Impl
                     enqueued = Enqueue(k);
 
                     // rabbitmq/rabbitmq-dotnet-client#1964
-                    // Send before the try whose catch records a timed-out RPC, so a
-                    // cancellation during the write does not record an entry for a request
-                    // that never reached the wire. Order-based late-response matching would
-                    // then desync permanently. Only a cancellation while awaiting the
-                    // response, by which point the frame is sent, should record.
+                    // Send outside the try: cancelling the write must not record a
+                    // timed-out RPC for a request that never reached the wire, which
+                    // would desync order-based late-response matching permanently.
                     await ModelSendAsync(in method, k.CancellationToken)
                         .ConfigureAwait(false);
 
