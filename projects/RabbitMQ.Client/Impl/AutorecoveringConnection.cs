@@ -341,9 +341,25 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
+                    /*
+                     * _recordedEntitiesSemaphore and _channelsSemaphore are
+                     * deliberately NOT disposed. Disposing a SemaphoreSlim while
+                     * another task is parked in WaitAsync leaves that waiter pending
+                     * forever: it does not fault, it does not cancel, and neither the
+                     * waiter's own token nor its wait timeout releases it. Both are
+                     * awaited from the recording and recovery paths, which run
+                     * concurrently with disposal, and a recovery attempt parked on
+                     * either one would never return. Issue #1968 is the confirmed
+                     * instance of this pattern.
+                     *
+                     * _recoveryCancellationTokenSource is still disposed: unlike
+                     * SemaphoreSlim here, a CancellationTokenSource owns a timer and
+                     * registrations that need reclaiming, and cancelling it above
+                     * already released anything waiting on its token.
+                     *
+                     * See issue #1976.
+                     */
                     _channels.Clear();
-                    _recordedEntitiesSemaphore.Dispose();
-                    _channelsSemaphore.Dispose();
                     _recoveryCancellationTokenSource.Dispose();
                 }
                 catch

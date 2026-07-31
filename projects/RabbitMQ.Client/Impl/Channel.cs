@@ -602,8 +602,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     try
                     {
-                        _rpcSemaphore.Dispose();
-                        _confirmSemaphore.Dispose();
+                        // _rpcSemaphore and _confirmSemaphore are deliberately not
+                        // disposed here. See DisposeAsyncCoreAsync and issue #1976.
                         MaybeSetExceptionOnConfirmsTcs();
                     }
                     catch
@@ -664,15 +664,30 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                try
-                {
-                    _rpcSemaphore.Dispose();
-                    _confirmSemaphore.Dispose();
-                }
-                catch
-                {
-                }
-
+                /*
+                 * _rpcSemaphore and _confirmSemaphore are deliberately NOT disposed.
+                 * Disposing a SemaphoreSlim while another task is parked in WaitAsync
+                 * leaves that waiter pending forever: it does not fault, it does not
+                 * cancel, and neither the waiter's own token nor its wait timeout
+                 * releases it.
+                 *
+                 * Both have concurrent waiters. _rpcSemaphore is awaited by every RPC
+                 * on this channel under the continuation's linked token, so disposing
+                 * it during an in-flight RPC strands that RPC permanently and the
+                 * ContinuationTimeout does not shake it loose. _confirmSemaphore is
+                 * awaited on the publish path and, during shutdown cleanup, with a 5s
+                 * timeout added specifically so a stuck semaphore cannot block
+                 * shutdown - reasoning that does not survive the semaphore being
+                 * disposed rather than merely held.
+                 *
+                 * Issue #1968 is the confirmed instance of this pattern: the same
+                 * dispose-without-release on SocketFrameHandler's semaphore stranded
+                 * MainLoop and cost a full 30s connection-close timeout.
+                 *
+                 * SemaphoreSlim only needs disposal once AvailableWaitHandle has been
+                 * read, and neither of these ever exposes it, so there is nothing to
+                 * reclaim. See issue #1976.
+                 */
                 _disposed = true;
             }
         }

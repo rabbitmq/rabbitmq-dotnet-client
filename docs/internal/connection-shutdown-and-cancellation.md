@@ -267,9 +267,34 @@ Release the semaphore instead of disposing it, and set `_closed` before releasin
 
 `_closed` is also now `volatile`. Both `CloseAsync` and `WriteAsync` read it outside any lock, on a field written by whichever thread happens to own the close, so those reads need acquire semantics rather than a value the JIT may keep in a register. The store paired with `Release()` is already ordered by the semaphore; the fast-path reads are not. `Connection._closed` (`Connection.cs:51`) is `volatile` for the same reason.
 
-### The same anti-pattern elsewhere
+## Issue #1976: the same anti-pattern everywhere else
 
-`MainSession.Dispose` (`_closingSemaphore`) and `Channel` (`_rpcSemaphore`, `_confirmSemaphore`) also dispose semaphores that other code paths wait on. Those are not known to strand a caller today, but the hazard is identical, and a timeout on the wait does not mitigate it. Tracked as issue #1976; audit these before adding any new concurrent path through channel or session close.
+#1968 fixed one instance. An audit for the rest found **six** `SemaphoreSlim` fields in the client and **seven** disposal calls across three types - two more sites than the issue's own audit claimed, because it recorded `AutorecoveringConnection`'s two semaphores as never disposed when in fact both were.
+
+| Field | Disposed in | Concurrent waiters |
+|---|---|---|
+| `MainSession._closingSemaphore` | `MainSession.Dispose` | `SetSessionClosingAsync` |
+| `Channel._rpcSemaphore` | `Dispose(bool)` and `DisposeAsyncCoreAsync` | ~20 RPC sites |
+| `Channel._confirmSemaphore` | `Dispose(bool)` and `DisposeAsyncCoreAsync` | publish path, shutdown cleanup |
+| `AutorecoveringConnection._recordedEntitiesSemaphore` | `DisposeAsync` | ~30 recording sites |
+| `AutorecoveringConnection._channelsSemaphore` | `DisposeAsync` | 4 sites |
+| `SocketFrameHandler._closingSemaphore` | (fixed in #1968) | `CloseAsync` |
+
+All seven disposal calls were removed. Proving no waiter can be parked at each of these sites is more expensive than simply not disposing, and there is nothing to reclaim: `SemaphoreSlim` only requires disposal once `AvailableWaitHandle` has been read, and no site in this client ever exposes it.
+
+`MainSession._closingSemaphore` is the closest analogue of #1968 and reachable the same way. `Connection.DisposeAsync` disposes the session after `AbortAsync` (`Connection.cs:594`), while `MainLoop`'s `FinishCloseAsync` independently calls `SetSessionClosingAsync`; if the latter is parked on the semaphore when disposal runs, `MainLoop` never returns. The `DefaultConnectionAbortTimeout` on that wait does not mitigate it - see the table above.
+
+`Channel`'s two are worth noting for the same reason. `_rpcSemaphore` is awaited under the continuation's linked token, so `ContinuationTimeout` will not shake a stranded RPC loose. `_confirmSemaphore` is awaited during shutdown cleanup with a 5s timeout added *specifically* so a stuck semaphore cannot block shutdown - reasoning that does not survive the semaphore being disposed rather than merely held.
+
+`_recoveryCancellationTokenSource.Dispose()` in `AutorecoveringConnection.DisposeAsync` was deliberately **kept**. A `CancellationTokenSource` is genuinely different: it owns a timer and registrations that need reclaiming, and cancelling it already released anything waiting on its token.
+
+`MainSession._disposed` is now `volatile`, matching `_closing` and `_closeIsServerInitiated` beside it - `SetSessionClosingAsync` reads it from whichever thread reaches it, and disposal writes it from another.
+
+### Testing this
+
+`projects/Test/Integration/TestSemaphoreDisposal.cs`. The race is not deterministically forceable from the public API at every site, so the tests assert the invariant that makes it impossible: after a full dispose, every semaphore is still usable. `Wait(0)` throws `ObjectDisposedException` on a disposed instance and returns immediately otherwise, so it detects disposal without blocking - note that `CurrentCount` does *not* throw and cannot be used for this. A third test reflects over the assembly and fails if the set of `SemaphoreSlim` fields changes, so adding one forces a decision about its disposal.
+
+Two things to know if you extend these tests. `AutorecoveringChannel.DisposeAsync` does not dispose its inner channel, so disposing the `IChannel` that `CreateChannelAsync` returns never reaches `Channel`'s dispose path at all - the test disposes `InnerChannel` directly. And use `BindingFlags.DeclaredOnly` when enumerating: `_rpcSemaphore` is `protected`, so `RecoveryAwareChannel` otherwise reports it a second time.
 
 ## Relevant timeouts
 
@@ -326,6 +351,10 @@ It asserts more than "the TCS completed": it asserts the channel shutdown handle
 ### #1968
 
 `TestConnectionShutdown.TestConcurrentFrameHandlerCloseDoesNotHang_GH1968` calls `CloseFrameHandlerAsync()` twice concurrently, which is the minimal deterministic form of the `MainLoop` race. Two direct closes are used rather than trying to time the real race, and the result is not platform-specific: verified failing at the 6s bar on net8.0/Linux with the fix reverted (`TimeoutException`), passing in ~140ms with it. The pre-fix signature is a task left in `WaitingForActivation` indefinitely.
+
+### #1976
+
+`projects/Test/Integration/TestSemaphoreDisposal.cs` - see "Testing this" under #1976 above. Verified to fail with the fix reverted, naming all five reachable disposal sites across the two runtime tests, while `SocketFrameHandler._closingSemaphore` still passes because #1968 already fixed it.
 
 ### #1921
 

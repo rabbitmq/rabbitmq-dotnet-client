@@ -47,7 +47,11 @@ namespace RabbitMQ.Client.Impl
         private volatile bool _closeIsServerInitiated;
         private volatile bool _closing;
         private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
-        private bool _disposed = false;
+
+        // volatile to match _closing and _closeIsServerInitiated above: read in
+        // SetSessionClosingAsync from whichever thread reaches it, written by
+        // whichever thread disposes.
+        private volatile bool _disposed = false;
 
         public MainSession(Connection connection, uint maxBodyLength)
             : base(connection, 0, maxBodyLength)
@@ -137,17 +141,25 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
-            try
-            {
-                _closingSemaphore.Dispose();
-            }
-            catch
-            {
-            }
-            finally
-            {
-                _disposed = true;
-            }
+            /*
+             * _closingSemaphore is deliberately NOT disposed. Disposing a
+             * SemaphoreSlim while another task is parked in WaitAsync leaves that
+             * waiter pending forever: it does not fault, it does not cancel, and
+             * neither the waiter's own token nor its wait timeout releases it.
+             *
+             * That is reachable here. Connection.DisposeAsync calls this after
+             * AbortAsync, while MainLoop's FinishCloseAsync independently calls
+             * SetSessionClosingAsync; if the latter is parked on the semaphore when
+             * this runs, MainLoop never returns. That is exactly the mechanism that
+             * stranded MainLoop in issue #1968, where Connection.CloseAsync then
+             * burned its full 30s timeout. The DefaultConnectionAbortTimeout on the
+             * wait does not mitigate it.
+             *
+             * SemaphoreSlim only needs disposal once AvailableWaitHandle has been
+             * read, and this one never exposes it, so there is nothing to reclaim.
+             * See issue #1976.
+             */
+            _disposed = true;
         }
     }
 }
