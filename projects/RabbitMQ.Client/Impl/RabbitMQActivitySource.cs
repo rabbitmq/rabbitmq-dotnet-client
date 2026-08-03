@@ -33,8 +33,8 @@ namespace RabbitMQ.Client
         internal const string ProtocolVersion = "network.protocol.version";
         internal const string RabbitMQDeliveryTag = "messaging.rabbitmq.delivery_tag";
 
-        // error.type is the only Stable attribute in the messaging convention, and is
-        // Conditionally Required "if and only if the messaging operation has failed".
+        // error.type is Stable in the messaging convention, and is Conditionally
+        // Required "if and only if the messaging operation has failed".
         internal const string ErrorType = "error.type";
 
         // These constants are specific to this client - the OpenTelemetry messaging
@@ -328,24 +328,36 @@ namespace RabbitMQ.Client
         /*
          * Record a failed messaging operation on its span.
          *
+         * The OpenTelemetry "Recording errors" document prescribes exactly this set
+         * for an operation that ends with an error: set the span status code to
+         * Error, set error.type, and set the status description to the exception
+         * message when the failure is an exception. The messaging conventions defer
+         * to it ("Span status SHOULD follow the Recording Errors document"), and the
+         * status code MUST be left unset when the operation succeeded, which is why
+         * this is only called on failure paths.
+         *
          * Tracing backends treat an unset status as success, so a span that merely
          * carries an exception event still reads as a successful operation in
-         * error-rate queries. Every failure path therefore needs all three of:
-         * the exception event, an Error status, and error.type.
-         *
-         * error.type is the fully-qualified exception type name, which is what the
-         * convention prescribes when there is no lower-cardinality domain-specific
-         * value to use. The connection spans do the same thing via SetActivityError,
-         * so publisher, subscriber and connection spans report failures uniformly.
+         * error-rate queries. error.type is Stable in the messaging convention and
+         * is what error-rate queries key off; it is set to the fully-qualified
+         * exception type name, which is what the convention prescribes when there
+         * is no lower-cardinality domain-specific value to use. The connection spans
+         * use this same helper, so publisher, subscriber and connection spans report
+         * failures uniformly.
          *
          * All three signals fire together so they stay consistent across sampling
          * levels, gated only on a null activity. AddException and SetStatus already
          * execute when IsAllDataRequested is false - a listener sampling
          * PropagationData still receives the event and the status - so gating
          * error.type alone, as an earlier version of this helper did, recorded the
-         * expensive signals and dropped the cheap one: a span marked Error with an
-         * exception event but no error.type, which is the only Stable attribute in
-         * the messaging convention. See issue #1967.
+         * expensive signals and dropped the cheap one that queries actually use.
+         *
+         * The exception event is the one signal here on a deprecation path: the
+         * exceptions-on-spans convention is deprecated in favour of recording
+         * exceptions as log records, and Activity.AddException is expected to follow.
+         * The status and error.type are unaffected by that change. Keeping all three
+         * in one helper is what makes the eventual migration a single edit. See
+         * issues #1967 and #1992.
          */
         internal static void SetActivityError(this Activity? activity, Exception exception)
         {

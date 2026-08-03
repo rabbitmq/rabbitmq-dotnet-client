@@ -115,14 +115,36 @@ Activity **status** is not. No publisher or subscriber span ever records an erro
 
 The connection spans get this right - `IEndpointResolverExtensions.cs:40-95` calls both `AddException` and `SetStatus(ActivityStatusCode.Error)` - so the inconsistency is internal to one implementation.
 
-Related: `error.type` is the only **Stable** attribute in the RabbitMQ semantic convention and is Conditionally Required "if and only if the messaging operation has failed". The client sets it nowhere.
+Related: `error.type` is **Stable** in the RabbitMQ semantic convention and is Conditionally Required "if and only if the messaging operation has failed". The client sets it nowhere.
 
 **Fixed** via a single `SetActivityError(this Activity?, Exception)` helper that sets all three of the exception event, `SetStatus(Error)`, and `error.type`. All three are needed: a tracing backend reads an unset status as success, so a span carrying only an exception event still counts as a successful operation in error-rate queries. The helper also replaced the five hand-rolled `AddException` + `SetStatus` pairs on the connection spans, so publisher, subscriber and connection spans now report failures uniformly.
+
+This set is not just defensible, it is what the spec prescribes. `docs/general/recording-errors.md` is the governing document, and `messaging-spans.md` defers to it ("Span status SHOULD follow the Recording Errors document"). Verbatim from `recording-errors.md`:
+
+> [Span Status Code] MUST be left unset if the instrumented operation has ended without any errors.
+>
+> When the operation ends with an error, instrumentation:
+>
+> - SHOULD set the span status code to `Error`
+> - SHOULD set the `error.type` attribute
+> - SHOULD set the span status description when it has additional information about the error [...] When the operation fails with an exception, the span status description SHOULD be set to the exception message.
+
+`SetActivityError` does exactly those three, including passing `exception.Message` as the status description. The MUST-leave-unset clause is also why the helper is only ever called from failure paths, and why nothing sets a status on success.
 
 Two subtleties found while fixing this:
 
 - **The publish failure surfaces from the `finally`, not the `try`.** `PublishReturnException` for an unroutable mandatory publish comes out of `MaybeEndPublisherConfirmationTrackingAsync` via `MaybeWaitForConfirmationAsync`, which runs in the `finally` because the confirmation is only awaited once the send has been issued. Moving the `using` out of the inner try and adding a `catch` is therefore *not* sufficient on its own - the confirmation await needs its own try/catch. This was the primary verified case, so a fix without it would have looked complete and covered nothing.
 - **A handled exception still marks the span `Error`.** If `MaybeHandleExceptionWithEnabledPublisherConfirmations` swallows, `SetActivityError` has already run. This is deliberate: the publish did fail, it was just reported through the confirmation mechanism instead of by throwing. Revisit if that proves noisy in practice.
+
+  There is spec text cutting against this, and it should be argued rather than ignored. `recording-errors.md` says "Errors that were retried or handled (allowing an operation to complete gracefully) SHOULD NOT be recorded on spans or metrics that describe this operation", and the deprecation of `exception.escaped` rests on the same reasoning ("It's no longer recommended to record exceptions that are handled and do not escape the scope of a span"). The argument for keeping the `Error` status is the parenthetical: the operation did *not* complete gracefully. A nacked or returned publish is a failed publish, and the caller learns about it through the confirmation task rather than through a throw from `BasicPublishAsync`. That is unlike the spec's own example, where `ResourceAlreadyExistsException` means the resource exists and `createIfNotExists` succeeded in its contract. The failure here is real and the reporting channel is the only thing that differs, so `error.type` on the span is the accurate signal. This is a judgment call against soft spec guidance, not a conformance defect, and it is worth revisiting if it proves noisy.
+
+### Caller-initiated cancellation is not an error
+
+Contributed by @danielmarbach in #1982 and merged into the Group A branch. When the caller's own token is what cancelled the operation, the span rethrows without a status, exception event, or `error.type`. His argument was a comparison with ASP.NET Core's hosting layer, which treats every exception identically because it has no token to consult; this client does have the token, so it can make the distinction.
+
+The specification independently supports this, from a source neither of us cited at the time. `exceptions-logs.md` assigns DEBUG severity to "exceptions that don't indicate an actual issue", and its worked example is exactly this case: "an exception indicating that a request was cancelled on the client side". An operation the caller cancelled on purpose is not a failure of the operation.
+
+Note this is the *opposite* judgment from the handled-exception call above, and the two are consistent: cancellation means no failure occurred, while a nack means a failure occurred and was reported through a different channel.
 
 ### The two catches recorded one failure twice
 
@@ -142,7 +164,9 @@ The tests did not catch this, because `ActivityAssert.HasRecordedException` only
 
 `AddException` and `SetStatus` were unconditional while `error.type` sat behind `IsAllDataRequested`. **Verified** with a listener sampling `PropagationData`: the span got the exception event and the `Error` status but no `error.type`. A `PropagationData` span (`IsAllDataRequested=false`, `Recorded=false`) is still delivered to `ActivityStopped` with those signals intact - sampling suppresses neither tags nor exception events - so the gate dropped `error.type` from a span the listener did receive.
 
-`error.type` is the only Stable attribute in the messaging convention, so dropping it is the wrong signal to lose, and it is the cheap one: `AddException` allocates an `ActivityEvent` with a tag list, while `error.type` is one string already in hand. **Fixed** by making all three unconditional, gated only on `activity is null` - they now stay consistent across sampling levels, and the whole helper is skipped upstream (via `HasListeners` / `IsAllDataRequested` at the call sites) when nothing is recording.
+`error.type` is Stable in the messaging convention and is what error-rate queries key off, so dropping it is the wrong signal to lose, and it is the cheap one: `AddException` allocates an `ActivityEvent` with a tag list, while `error.type` is one string already in hand. **Fixed** by making all three unconditional, gated only on `activity is null` - they now stay consistent across sampling levels, and the whole helper is skipped upstream (via `HasListeners` / `IsAllDataRequested` at the call sites) when nothing is recording.
+
+Note that `error.type` is not the *only* Stable attribute in the messaging convention, as an earlier draft of this document and of the code comment claimed. The producer-span table in `messaging-spans.md` also marks `server.address` and `server.port` Stable, and the consumer tables add `network.peer.address` and `network.peer.port`. The conclusion is unchanged - `error.type` is Stable, is `Conditionally Required` "if and only if the messaging operation has failed", and was set nowhere before this work - but the "only Stable attribute" phrasing was wrong and is corrected here and in `RabbitMQActivitySource`.
 
 Regression coverage: `TestPublishFailureIsRecordedOnTheSendActivity_GH1967` (mandatory publish to an exchange with no matching binding, which specifically exercises the `finally` path), `TestPublishFailureIsRecordedOnceWhenHandledByConfirmations_GH1967` (closed-connection publish, the duplicate-event path - requires *both* confirmations and tracking, or the exception is never handled and never resurfaces), and `TestConsumerFailureIsRecordedOnTheDeliverActivity_GH1967`. All go through `ActivityAssert.RecordsFailure`, which asserts all three signals plus the event count.
 
@@ -165,11 +189,46 @@ The statics are also unvalidated, so `ContextInjector = null` makes every subseq
 
 Because these members shipped in 7.2.1, removing them is a breaking change. Adding a per-provider path alongside them is not.
 
+## Exception events are on a deprecation path
+
+Raised by @tmasternak on #1978 and verified against the raw specification markdown, not the rendered site.
+
+`docs/exceptions/exceptions-spans.md` is marked **Status: Deprecated**, directing readers to `exceptions-logs.md`. `exception.escaped` is deprecated outright. Both documents carry the same normative migration block for existing instrumentations that record exceptions as span events:
+
+> - SHOULD introduce an environment variable `OTEL_SEMCONV_EXCEPTION_SIGNAL_OPT_IN` supporting the following values:
+>   - `logs` - emit exceptions as logs only.
+>   - `logs/dup` - emit both span events and logs, allowing for a phased rollout.
+>   - The default behavior (in the absence of one of these values) is to continue emitting exceptions as span events (existing behavior).
+> - SHOULD maintain (security patching at a minimum) their existing major version for at least six months after it starts emitting both sets of conventions.
+> - MAY drop the environment variable in their next major version and emit exceptions as logs only.
+
+Scope of the impact on this client: of the three signals `SetActivityError` sets, only `AddException` is affected. The `Error` status and `error.type` are prescribed by `recording-errors.md` and are unaffected. The deprecation is of the *recording API*, not of the ability to view events on spans - the SDK is expected to offer routing log-based events back onto spans.
+
+Nothing in the .NET stack supports this yet, verified rather than assumed:
+
+- On `System.Diagnostics.DiagnosticSource` 9.0.4, which this client references, none of `Activity.AddException`, `Activity.AddEvent` or `Activity.SetStatus` carries `[Obsolete]` or an experimental attribute. `RecordException` does not exist in .NET.
+- `OTEL_SEMCONV_EXCEPTION_SIGNAL_OPT_IN` appears in no OpenTelemetry .NET assembly, including `OpenTelemetry.Api` 1.17.0, the current release.
+- `OpenTelemetry.Instrumentation.AspNetCore` 1.17.0 still records exceptions via `Activity.AddException` behind its `RecordException` option.
+
+So 7.3.0 keeps span events. `RabbitMQ.Client` 7.x is a stable major version and the guidance for those is to stay behaviorally compatible for now.
+
+### Where the migration will actually be difficult
+
+Two consequences, the second of which is a real defect in this client:
+
+**No logging seam in the core.** `RabbitMQ.Client` has no `ILogger` dependency and logs through `EventSource`, which is not an OTel Logs API bridge. The core does, however, already have the right pattern: `RabbitMQActivitySource.ContextExtractor` and `ContextInjector` are settable static delegates the core calls and `AddRabbitMQInstrumentation` populates. An exception-recording delegate would follow that precedent, keeping the core free of a logging abstraction and letting the OpenTelemetry package decide between a span event and a `LogRecord`. That shape is easier to settle before `RabbitMQ.Client.OpenTelemetry` ships 1.0.0 (#1728) than after.
+
+**The consumer callback exception is reported outside the `deliver` span's scope.** `exceptions-logs.md` states that "Exception events emitted by instrumentations that also record spans for the same operation MUST be associated with the corresponding span context." In `AsyncConsumerDispatcher`, the `deliver` activity's `using` scope closes at line 55, but `OnCallbackExceptionAsync` - the user-facing report of that same exception - fires at line 77, outside it. **Verified** with a probe reproducing that exact nesting: at the `OnCallbackExceptionAsync` call site, `Activity.Current` has reverted to the enclosing activity, and the `deliver` span is already stopped.
+
+This costs nothing today, because the span event is added inside the scope at line 52 while the activity is still current. It becomes a MUST violation the moment exceptions are emitted as log records, because an application logging from its `CallbackException` handler would stamp the wrong `SpanId`, or none. The fix is to move the reporting `catch` inside the activity scope. Deliberately *not* done in the Group A PR: it is a scope change with no present-day symptom, so it belongs with the migration work and its own test.
+
+Tracked in #1992.
+
 ## Semantic-convention gaps
 
-Checked against the specification at `main`: `model/messaging/registry.yaml`, `docs/messaging/messaging-spans.md`, `docs/messaging/rabbitmq.md`.
+Checked against the specification at `main`: `model/messaging/registry.yaml`, `docs/messaging/messaging-spans.md`, `docs/messaging/rabbitmq.md`, `docs/general/recording-errors.md`, `docs/exceptions/exceptions-spans.md`, `docs/exceptions/exceptions-logs.md`.
 
-Stability context: every `messaging.*` attribute is **Development**, none is Stable. `error.type` is Stable. So attribute-level changes are low-risk from the specification's own standpoint, and the client's attribute-name constants are `internal`.
+Stability context: every `messaging.*` attribute is **Development**, none is Stable. The Stable attributes appearing in the messaging span tables are all borrowed from other registries: `error.type`, `server.address`, `server.port`, and on the consumer tables `network.peer.address` and `network.peer.port`. So `messaging.*`-level changes are low-risk from the specification's own standpoint, and the client's attribute-name constants are `internal`.
 
 ### Span kind for `receive`
 
