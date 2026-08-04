@@ -44,6 +44,9 @@ namespace Test.Unit
     /// Covers how topology recovery classifies a failure to recover a single entity: skip it and
     /// carry on, or abandon the whole recovery attempt and retry it.
     /// </summary>
+    /// <remarks>
+    /// See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1993
+    /// </remarks>
     public class TestTopologyRecoveryExceptionClassification
     {
         private static readonly ShutdownEventArgs s_shutdownArgs =
@@ -62,14 +65,14 @@ namespace Test.Unit
                 new TimeoutException(), notCancelled));
         }
 
-        // rabbitmq/rabbitmq-dotnet-client: a protocol operation that ran past ContinuationTimeout
-        // completes its continuation as cancelled, so it arrives here as an
-        // OperationCanceledException rather than a TimeoutException. It must still be retried: the
-        // frame is already on the wire and the broker can apply it after the client gave up. Getting
-        // this wrong leaves a consumer registered on the broker that the client never wired up, and
-        // the queue silently stops being consumed.
+        // A protocol operation that ran past ContinuationTimeout completes its continuation as
+        // cancelled, so it arrives here as an OperationCanceledException rather than a
+        // TimeoutException. It must still be retried: the frame is already on the wire and the
+        // broker can apply it after the client gave up. Getting this wrong leaves a consumer
+        // registered on the broker that the client never wired up, and the queue silently stops
+        // being consumed. See #1993.
         [Fact]
-        public void TestOperationCanceledIsRetriedWhenRecoveryWasNotCancelled()
+        public void TestOperationCanceledIsRetriedWhenRecoveryWasNotCancelled_GH1993()
         {
             Assert.True(AutorecoveringConnection.ShouldRetryRecoveryAfter(
                 new OperationCanceledException(), CancellationToken.None));
@@ -78,7 +81,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void TestOperationCanceledIsNotRetriedWhenRecoveryWasCancelled()
+        public void TestOperationCanceledIsNotRetriedWhenRecoveryWasCancelled_GH1993()
         {
             using var cts = new CancellationTokenSource();
             cts.Cancel();

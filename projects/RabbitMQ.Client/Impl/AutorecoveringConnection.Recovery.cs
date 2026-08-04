@@ -212,6 +212,8 @@ namespace RabbitMQ.Client.Impl
                  * without being acked. With a non-zero prefetch the broker then waits forever for an
                  * acknowledgement that cannot come, and the queue stops being consumed for good -
                  * silently, on a connection and channel that both still report IsOpen.
+                 *
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1993
                  */
                 case OperationCanceledException:
                     return false == recoveryCancellationToken.IsCancellationRequested;
