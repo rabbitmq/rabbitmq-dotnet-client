@@ -154,16 +154,62 @@ namespace RabbitMQ.Client.Framing
             }
         }
 
-        private static void HandleTopologyRecoveryException(TopologyRecoveryException e)
+        private static void HandleTopologyRecoveryException(TopologyRecoveryException e,
+            CancellationToken recoveryCancellationToken)
         {
             ESLog.Error("Topology recovery exception", e);
-            if (e.InnerException is AlreadyClosedException ||
-                    (e.InnerException is OperationInterruptedException) ||
-                    (e.InnerException is TimeoutException))
+            if (ShouldRetryRecoveryAfter(e.InnerException, recoveryCancellationToken))
             {
                 throw e;
             }
             ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivity, ignoring it", e);
+        }
+
+        /// <summary>
+        /// Decides whether a failure to recover a single topology entity means the whole recovery
+        /// attempt has to be abandoned and retried, rather than skipped over.
+        /// </summary>
+        /// <remarks>
+        /// The distinction that matters is whether the broker may still act on the request after the
+        /// client has given up on it. If it may, the client's view of the connection is no longer
+        /// trustworthy and recovery must not be reported as successful.
+        /// </remarks>
+        internal static bool ShouldRetryRecoveryAfter(Exception? topologyRecoveryInnerException,
+            CancellationToken recoveryCancellationToken)
+        {
+            switch (topologyRecoveryInnerException)
+            {
+                // Known connectivity problems. The connection is gone, so nothing was applied.
+                case AlreadyClosedException:
+                case OperationInterruptedException:
+                case TimeoutException:
+                    return true;
+
+                /*
+                 * A protocol operation that ran past ContinuationTimeout completes its continuation
+                 * as cancelled (AsyncRpcContinuation.HandleContinuationTimeout), so by type alone it
+                 * is indistinguishable from the caller cancelling recovery. Tell them apart with the
+                 * recovery token: if recovery itself was not cancelled, the operation timed out.
+                 *
+                 * A timed-out operation must be retried, because its frame is already on the wire and
+                 * the broker can still apply it after the client has stopped waiting. The case that
+                 * brought this to light is basic.consume against a quorum queue that has lost quorum:
+                 * the queue cannot answer until it elects a new leader, which can take longer than the
+                 * 20s default. Skipping it leaves the broker with a registered, active consumer that
+                 * the client never added to the channel's ConsumerDispatcher, so from then on every
+                 * delivery for that consumer tag resolves to the FallbackConsumer and is discarded
+                 * without being acked. With a non-zero prefetch the broker then waits forever for an
+                 * acknowledgement that cannot come, and the queue stops being consumed for good -
+                 * silently, on a connection and channel that both still report IsOpen.
+                 *
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1993
+                 */
+                case OperationCanceledException:
+                    return false == recoveryCancellationToken.IsCancellationRequested;
+
+                default:
+                    return false;
+            }
         }
 
         private async ValueTask<bool> TryPerformAutomaticRecoveryAsync(CancellationToken cancellationToken)
@@ -328,7 +374,7 @@ namespace RabbitMQ.Client.Framing
                     }
                     else
                     {
-                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering exchange '{recordedExchange}'", ex));
+                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering exchange '{recordedExchange}'", ex), cancellationToken);
                     }
                 }
             }
@@ -419,7 +465,7 @@ namespace RabbitMQ.Client.Framing
                     }
                     else
                     {
-                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering queue '{recordedQueue}'", ex));
+                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering queue '{recordedQueue}'", ex), cancellationToken);
                     }
                 }
 
@@ -494,7 +540,7 @@ namespace RabbitMQ.Client.Framing
                     }
                     else
                     {
-                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering binding between {binding.Source} and {binding.Destination}", ex));
+                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering binding between {binding.Source} and {binding.Destination}", ex), cancellationToken);
                     }
                 }
             }
@@ -574,7 +620,7 @@ namespace RabbitMQ.Client.Framing
                     }
                     else
                     {
-                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering consumer {oldTag} on queue {consumer.Queue}", ex));
+                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering consumer {oldTag} on queue {consumer.Queue}", ex), cancellationToken);
                     }
                 }
             }
