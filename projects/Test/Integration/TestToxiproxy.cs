@@ -37,7 +37,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Integration;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Impl;
 using Toxiproxy.Net.Toxics;
 using Xunit;
 using Xunit.Abstractions;
@@ -730,6 +732,169 @@ namespace Test.Integration
                 // channel and connection disposal, keeping teardown fast.
                 cts.Cancel();
             }
+        }
+
+        // Regression test for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1993
+        //
+        // The bug: when the basic.consume issued during consumer recovery runs past
+        // ContinuationTimeout, its continuation completes as *cancelled*, so it reaches
+        // HandleTopologyRecoveryException as an OperationCanceledException rather than a
+        // TimeoutException. That type was not in the retry list, so the exception was swallowed and
+        // recovery reported success. Meanwhile the broker had registered the consumer, but the
+        // client never added it to the new channel's ConsumerDispatcher, so every subsequent
+        // delivery resolved to the FallbackConsumer and was dropped unacked. The queue silently
+        // stopped being consumed, on a connection and channel that both still report IsOpen.
+        //
+        // The fix: classify OperationCanceledException as retryable unless recovery itself was
+        // cancelled, so the recovery attempt fails, the inner connection is aborted (clearing the
+        // broker-side consumer), and the recovery loop tries again.
+        //
+        // Test strategy: stall only the recovery basic.consume, not the initial connect.
+        //   1. Connect and consume normally through the proxy.
+        //   2. Disable the proxy to sever the connection, then re-enable it so recovery can
+        //      reconnect and get as far as recovering the consumer.
+        //   3. The RecoveringConsumerAsync event fires immediately before
+        //      RecordedConsumer.RecoverAsync, so the handler adds a Rate=0 downstream
+        //      BandwidthToxic there. The recovery basic.consume goes out but its consume-ok can
+        //      never come back, so it hits the 2 s ContinuationTimeout: exactly the #1993 trigger.
+        //   4. Remove the toxic so the *next* recovery attempt can succeed.
+        //   5. Assert deliveries resume. Before the fix, recovery reported success with the
+        //      consumer never wired up and no message was ever delivered.
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestConsumerRecoveryContinuationTimeoutIsRetried_GH1993()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(_proxyHost, _proxyPort);
+            cf.AutomaticRecoveryEnabled = true;
+            cf.TopologyRecoveryEnabled = true;
+            cf.NetworkRecoveryInterval = TimeSpan.FromSeconds(1);
+            // Long enough that the initial connect and the recovery handshake complete
+            // comfortably, short enough that the stalled recovery basic.consume gives up
+            // well inside WaitSpan.
+            cf.ContinuationTimeout = TimeSpan.FromSeconds(2);
+            // Keep the broker from closing the connection while the toxic is in place.
+            cf.RequestedHeartbeat = TimeSpan.FromSeconds(600);
+
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+
+            // A non-zero prefetch is what makes the original bug permanent: the broker waits
+            // forever for acks that the dropped deliveries can never produce.
+            await ch.BasicQosAsync(0, 1, false);
+
+            // Durable and non-exclusive: this broker rejects transient non-exclusive queues
+            // (the deprecated transient_nonexcl_queues feature), and an exclusive queue would be
+            // deleted and re-declared underneath the two recovery attempts this test drives.
+            QueueDeclareOk q = await ch.QueueDeclareAsync(GenerateQueueName(), true, false, false);
+
+            try
+            {
+                await RunConsumerRecoveryContinuationTimeoutBodyAsync(cf, conn, ch, q);
+            }
+            finally
+            {
+                // The queue is durable, so it outlives the connection. Delete it even when the
+                // test fails, otherwise a failing run leaves a queue behind on the broker.
+                try
+                {
+                    await ch.QueueDeleteAsync(q.QueueName);
+                }
+                catch (Exception ex)
+                {
+                    _output.WriteLine($"[WARNING] could not delete queue {q.QueueName}: {ex}");
+                }
+            }
+
+            await ch.CloseAsync();
+            await conn.CloseAsync();
+        }
+
+        private async Task RunConsumerRecoveryContinuationTimeoutBodyAsync(ConnectionFactory cf,
+            IConnection conn, IChannel ch, QueueDeclareOk q)
+        {
+            var deliveredAfterRecoveryTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var recoverySucceededTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var consumer = new AsyncEventingBasicConsumer(ch);
+            consumer.ReceivedAsync += async (o, ea) =>
+            {
+                await ch.BasicAckAsync(ea.DeliveryTag, false);
+                deliveredAfterRecoveryTcs.TrySetResult(true);
+            };
+            await ch.BasicConsumeAsync(q.QueueName, false, consumer);
+
+            conn.RecoverySucceededAsync += (o, ea) =>
+            {
+                recoverySucceededTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            // Stall the recovery basic.consume the first time a consumer is recovered. Rate=0
+            // downstream means the consume frame reaches the broker but the consume-ok never
+            // reaches the client, so the continuation times out.
+            string toxicName = $"rmq-recovery-consume-bandwidth-{Now}-{GenerateShortUuid()}";
+            int toxicAdded = 0;
+            int consumerRecoveryAttempts = 0;
+            ((AutorecoveringConnection)conn).RecoveringConsumerAsync += async (o, ea) =>
+            {
+                Interlocked.Increment(ref consumerRecoveryAttempts);
+
+                if (Interlocked.CompareExchange(ref toxicAdded, 1, 0) != 0)
+                {
+                    // Only the first recovery attempt is sabotaged; later attempts must succeed.
+                    return;
+                }
+
+                var bandwidthToxic = new BandwidthToxic
+                {
+                    Name = toxicName,
+                    Toxicity = 1.0,
+                    Stream = ToxicDirection.DownStream
+                };
+                bandwidthToxic.Attributes.Rate = 0;
+                await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
+            };
+
+            // Sever the connection, then restore it so recovery can proceed.
+            await _toxiproxyManager.DisableAsync();
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            await _toxiproxyManager.EnableAsync();
+
+            // Wait until the sabotaged recovery attempt has run, then clear the toxic so the
+            // retry can complete. Without the fix, no retry happens: recovery reports success
+            // after swallowing the cancellation.
+            while (Volatile.Read(ref toxicAdded) == 0)
+            {
+                await Task.Delay(100);
+            }
+
+            // The stalled basic.consume must be given time to hit ContinuationTimeout before the
+            // toxic is removed, otherwise the consume-ok arrives in time and the test is vacuous.
+            await Task.Delay(cf.ContinuationTimeout + TimeSpan.FromSeconds(1));
+            await _toxiproxyManager.RemoveToxicAsync(toxicName);
+
+            await recoverySucceededTcs.Task.WaitAsync(WaitSpan);
+
+            // The real assertion: the recovered consumer is actually wired into the new channel's
+            // ConsumerDispatcher. Before the fix this publish was delivered to the
+            // FallbackConsumer and dropped, so this wait timed out.
+            await ch.BasicPublishAsync("", q.QueueName, GetRandomBody(64));
+            await deliveredAfterRecoveryTcs.Task.WaitAsync(WaitSpan);
+
+            Assert.True(await deliveredAfterRecoveryTcs.Task);
+
+            // Guard against a vacuous pass. Delivery could also resume if the first recovery
+            // attempt had simply succeeded (toxic added too late to stall the consume), in which
+            // case this test would prove nothing about the retry. Consumer recovery must have been
+            // attempted at least twice: once sabotaged, then again after the retry.
+            Assert.True(Volatile.Read(ref consumerRecoveryAttempts) >= 2,
+                $"expected at least 2 consumer recovery attempts, saw {Volatile.Read(ref consumerRecoveryAttempts)}: " +
+                "the first attempt was not stalled, so the retry path was never exercised");
         }
 
         private static async Task PublishIgnoringErrorsAsync(IChannel ch, string queueName, byte[] body,
