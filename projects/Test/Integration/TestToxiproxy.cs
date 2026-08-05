@@ -38,7 +38,6 @@ using Integration;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Impl;
 using Toxiproxy.Net.Toxics;
 using Xunit;
 using Xunit.Abstractions;
@@ -485,7 +484,7 @@ namespace Test.Integration
             Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
 
             ConnectionFactory cf = CreateConnectionFactory();
-            cf.Endpoint = new AmqpTcpEndpoint(_proxyHost, _proxyPort);
+            cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), _proxyPort);
             cf.AutomaticRecoveryEnabled = true;
             cf.TopologyRecoveryEnabled = true;
             cf.NetworkRecoveryInterval = TimeSpan.FromSeconds(1);
@@ -558,7 +557,7 @@ namespace Test.Integration
             string toxicName = $"rmq-recovery-consume-bandwidth-{Now}-{GenerateShortUuid()}";
             int toxicAdded = 0;
             int consumerRecoveryAttempts = 0;
-            ((AutorecoveringConnection)conn).RecoveringConsumerAsync += async (o, ea) =>
+            ((RabbitMQ.Client.Framing.AutorecoveringConnection)conn).RecoveringConsumerAsync += async (o, ea) =>
             {
                 Interlocked.Increment(ref consumerRecoveryAttempts);
 
