@@ -1,5 +1,18 @@
 # Changelog
 
+## [v7.2.2](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.2.2) (2026-08-05)
+
+[Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.2.1...v7.2.2)
+
+**Fixed bugs:**
+
+- Topology recovery silently loses the consumer when `basic.consume` exceeds `ContinuationTimeout` [\#1993](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1993)
+
+**Merged pull requests:**
+
+- Fix URI round-trip for credentials containing special characters [\#1944](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1944) ([lukebakken](https://github.com/lukebakken))
+- Retry recovery when a topology operation times out [\#1994](https://github.com/rabbitmq/rabbitmq-dotnet-client/pull/1994) ([ansd](https://github.com/ansd))
+
 ## [v7.2.1](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.2.1) (2026-02-25)
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.2.0...v7.2.1)
