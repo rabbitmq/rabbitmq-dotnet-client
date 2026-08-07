@@ -302,10 +302,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (body.IsSingleSegment)
             {
-                /*
-                 * Contiguous bodies - including the sequence-wrapped ReadOnlyMemory<byte> bodies
-                 * used by the memory based publish overloads - take the span based path unchanged.
-                 */
+                // Fast path for contiguous bodies
                 return SerializeToFrames(ref method, ref header, body.First, bodyOwner, channelNumber, maxBodyPayloadBytes);
             }
 
