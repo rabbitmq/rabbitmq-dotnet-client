@@ -31,6 +31,7 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
@@ -295,7 +296,6 @@ namespace RabbitMQ.Client.Impl
         /// ownership is transferred to the returned <see cref="OutgoingFrame"/>, which writes the
         /// segments straight to the wire and disposes <paramref name="bodyOwner"/> afterwards.
         /// </remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OutgoingFrame SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, in ReadOnlySequence<byte> body, IDisposable? bodyOwner, ushort channelNumber, int maxBodyPayloadBytes)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
@@ -363,7 +363,6 @@ namespace RabbitMQ.Client.Impl
         /// <exception cref="ArgumentOutOfRangeException">
         /// The body, or the set of frames required to send it, exceeds <see cref="int.MaxValue"/> bytes.
         /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetTotalFrameSetSize(int framingSize, long bodyLength, int maxBodyPayloadBytes)
         {
             if (bodyLength <= int.MaxValue)
@@ -381,7 +380,10 @@ namespace RabbitMQ.Client.Impl
             return 0; // unreachable
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+#if NET
+        [System.Diagnostics.StackTraceHidden]
+#endif
         private static void ThrowBodyTooLarge(int framingSize, long bodyLength, int maxBodyPayloadBytes)
         {
             long totalSize = framingSize + bodyLength +
