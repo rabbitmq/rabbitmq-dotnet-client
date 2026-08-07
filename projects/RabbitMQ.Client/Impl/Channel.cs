@@ -544,6 +544,14 @@ namespace RabbitMQ.Client.Impl
             return Session.TransmitAsync(in method, in header, body, bodyOwner, cancellationToken);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected ValueTask ModelSendAsync<TMethod, THeader>(in TMethod method, in THeader header, ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            return Session.TransmitAsync(in method, in header, body, bodyOwner, cancellationToken);
+        }
+
         internal Task OnCallbackExceptionAsync(CallbackExceptionEventArgs args)
         {
             return _callbackExceptionAsyncWrapper.InvokeAsync(this, args);

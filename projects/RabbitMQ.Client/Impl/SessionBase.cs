@@ -177,6 +177,37 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken = default)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
+            {
+                bodyOwner?.Dispose();
+                ThrowAlreadyClosedException();
+            }
+
+            OutgoingFrame bytes = default;
+            try
+            {
+                bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
+                RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+                return Connection.WriteAsync(bytes, cancellationToken);
+            }
+            catch
+            {
+                if (bytes.Size == 0)
+                {
+                    bodyOwner?.Dispose();
+                }
+                else
+                {
+                    bytes.Dispose();
+                }
+                throw;
+            }
+        }
+
         private Task OnConnectionShutdownAsync(object? conn, ShutdownEventArgs reason)
         {
             return CloseAsync(reason);
