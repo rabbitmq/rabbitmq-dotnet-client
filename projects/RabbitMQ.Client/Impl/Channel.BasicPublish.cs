@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            bool mandatory, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            bool mandatory, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
@@ -185,6 +185,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // NOTE: BasicPublishCoreAsync is an async method so we can't pass the ReadOnlySequence<byte> body as reference with in/ref
         private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
             TMethod cmd, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             string exchange, string routingKey, CancellationToken cancellationToken)
