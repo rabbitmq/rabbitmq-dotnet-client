@@ -33,6 +33,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO.Pipelines;
+using System.Linq;
 using RabbitMQ.Client;
 using Xunit;
 
@@ -246,6 +247,114 @@ namespace Test.Unit
             }
             return body;
         }
+
+        [Fact]
+        public void BodySegmentWriteToWithExactSizeBufferWriter()
+        {
+            // Verifies that BodySegment.WriteTo requests enough space for the 8-byte header write.
+            // The frame header is 7 bytes but written with a single 64-bit store, so GetSpan must
+            // request at least 8 bytes. An IBufferWriter that returns exactly the requested size
+            // would corrupt memory if the +1 were removed from GetSpan(StartPayload + 1).
+            byte[] body = GetBody(32);
+            var sequence = new ReadOnlySequence<byte>(body);
+
+            var writer = new ExactSizeBufferWriter();
+            int bytesWritten = RabbitMQ.Client.Impl.Framing.BodySegment.WriteTo(writer, Channel, sequence);
+
+            Assert.Equal(body.Length + 8, bytesWritten); // 7 header + payload + 1 end marker
+
+            byte[] result = writer.ToArray();
+            Assert.Equal(bytesWritten, result.Length);
+
+            // Verify frame structure: type byte, channel, payload length, payload, end marker
+            Assert.Equal(Constants.FrameBody, result[0]);
+            Assert.Equal(0, result[1]);    // channel high byte
+            Assert.Equal(Channel, result[2]); // channel low byte
+            int payloadLength = (result[3] << 24) | (result[4] << 16) | (result[5] << 8) | result[6];
+            Assert.Equal(body.Length, payloadLength);
+            Assert.Equal(body, result.AsSpan(7, body.Length).ToArray());
+            Assert.Equal(Constants.FrameEnd, result.Last());
+        }
+
+        /// <summary>
+        /// An <see cref="IBufferWriter{T}"/> that returns exactly the requested number of bytes,
+        /// exercising the contract that callers must not write beyond what they asked for.
+        /// </summary>
+#nullable enable
+        private sealed class ExactSizeBufferWriter : IBufferWriter<byte>
+        {
+            private readonly List<byte[]> _segments = new();
+            private byte[]? _current;
+            private int _currentOffset;
+
+            public void Advance(int count)
+            {
+                if (_current is null)
+                    throw new InvalidOperationException("Advance called without a preceding GetSpan/GetMemory.");
+                if (count > _current.Length - _currentOffset)
+                    throw new InvalidOperationException(
+                        $"Advanced {count} bytes but only {_current.Length - _currentOffset} were available.");
+
+                _currentOffset += count;
+                if (_currentOffset == _current.Length)
+                {
+                    _segments.Add(_current);
+                    _current = null;
+                    _currentOffset = 0;
+                }
+            }
+
+            public Memory<byte> GetMemory(int sizeHint = 0)
+            {
+                FlushPartialCurrent();
+                _current = new byte[sizeHint == 0 ? 1 : sizeHint];
+                _currentOffset = 0;
+                return _current;
+            }
+
+            public Span<byte> GetSpan(int sizeHint = 0)
+            {
+                FlushPartialCurrent();
+                _current = new byte[sizeHint == 0 ? 1 : sizeHint];
+                _currentOffset = 0;
+                return _current;
+            }
+
+            public byte[] ToArray()
+            {
+                FlushPartialCurrent();
+                int totalLength = 0;
+                foreach (byte[] segment in _segments)
+                    totalLength += segment.Length;
+
+                byte[] result = new byte[totalLength];
+                int offset = 0;
+                foreach (byte[] segment in _segments)
+                {
+                    segment.CopyTo(result, offset);
+                    offset += segment.Length;
+                }
+                return result;
+            }
+
+            private void FlushPartialCurrent()
+            {
+                if (_current is not null && _currentOffset > 0)
+                {
+                    byte[] partial = new byte[_currentOffset];
+                    Array.Copy(_current, 0, partial, 0, _currentOffset);
+                    _segments.Add(partial);
+                    _current = null;
+                    _currentOffset = 0;
+                }
+                else
+                {
+                    _current = null;
+                    _currentOffset = 0;
+                }
+            }
+        }
+#nullable restore
 
         private sealed class TrackingDisposable : IDisposable
         {
