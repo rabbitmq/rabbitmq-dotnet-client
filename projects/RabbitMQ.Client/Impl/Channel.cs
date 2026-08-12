@@ -280,6 +280,11 @@ namespace RabbitMQ.Client.Impl
             var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ConnectionOpenOk,
                 HandshakeContinuationTimeout, cancellationToken);
 
+            // Unlike the sibling Connection*Async methods, the semaphore is
+            // acquired inside the try (guarded by semaphoreAcquired) so that a
+            // cancellation of WaitAsync during connection open still reaches the
+            // finally and disposes k. Acquiring it outside the try, as the
+            // siblings do, leaks k's CancellationTokenSource on that path.
             try
             {
                 await _rpcSemaphore.WaitAsync(k.CancellationToken)
