@@ -331,7 +331,7 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync<T>(this IChannel channel,
             PublicationAddress addr,
             T basicProperties,
-            ReadOnlySequence<byte> body,
+            in ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where T : IReadOnlyBasicProperties, IAmqpHeader =>
@@ -357,7 +357,7 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync(this IChannel channel,
             string exchange,
             string routingKey,
-            ReadOnlySequence<byte> body,
+            in ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
@@ -384,7 +384,7 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             bool mandatory,
-            ReadOnlySequence<byte> body,
+            in ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
@@ -409,7 +409,7 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync(this IChannel channel,
             CachedString exchange,
             CachedString routingKey,
-            ReadOnlySequence<byte> body,
+            in ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
@@ -436,7 +436,7 @@ namespace RabbitMQ.Client
             CachedString exchange,
             CachedString routingKey,
             bool mandatory,
-            ReadOnlySequence<byte> body,
+            in ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
