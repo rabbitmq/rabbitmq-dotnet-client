@@ -318,6 +318,14 @@ namespace RabbitMQ.Client.Impl
         }
     }
 
+    internal sealed class ConnectionOpenAsyncRpcContinuation : SimpleAsyncRpcContinuation
+    {
+        public ConnectionOpenAsyncRpcContinuation(TimeSpan continuationTimeout, CancellationToken cancellationToken)
+            : base(ProtocolCommandId.ConnectionOpenOk, continuationTimeout, cancellationToken)
+        {
+        }
+    }
+
     internal sealed class BasicCancelAsyncRpcContinuation : SimpleAsyncRpcContinuation
     {
         private readonly string _consumerTag;
