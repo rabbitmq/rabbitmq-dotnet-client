@@ -283,7 +283,7 @@ namespace RabbitMQ.Client.Impl
             {
                 await _rpcSemaphore.WaitAsync(k.CancellationToken)
                     .ConfigureAwait(false);
-                Volatile.Write(ref semaphoreAcquired, true);
+                semaphoreAcquired = true;
 
                 k.StartTimeout();
 
@@ -315,7 +315,7 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 MaybeDisposeContinuation(continuationEnqueued, k);
-                if (Volatile.Read(ref semaphoreAcquired))
+                if (semaphoreAcquired)
                 {
                     _rpcSemaphore.Release();
                 }
