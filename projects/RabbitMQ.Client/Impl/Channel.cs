@@ -277,7 +277,8 @@ namespace RabbitMQ.Client.Impl
         {
             bool continuationEnqueued = false;
             bool semaphoreAcquired = false;
-            var k = new ConnectionOpenAsyncRpcContinuation(HandshakeContinuationTimeout, cancellationToken);
+            var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ConnectionOpenOk,
+                HandshakeContinuationTimeout, cancellationToken);
 
             try
             {
