@@ -275,7 +275,7 @@ namespace RabbitMQ.Client.Impl
 
         internal async ValueTask ConnectionOpenAsync(string virtualHost, CancellationToken cancellationToken)
         {
-            bool enqueued = false;
+            bool continuationEnqueued = false;
             bool semaphoreAcquired = false;
             var k = new ConnectionOpenAsyncRpcContinuation(HandshakeContinuationTimeout, cancellationToken);
 
@@ -283,11 +283,11 @@ namespace RabbitMQ.Client.Impl
             {
                 await _rpcSemaphore.WaitAsync(k.CancellationToken)
                     .ConfigureAwait(false);
-                semaphoreAcquired = true;
+                Volatile.Write(ref semaphoreAcquired, true);
 
                 k.StartTimeout();
 
-                enqueued = Enqueue(k);
+                continuationEnqueued = Enqueue(k);
 
                 try
                 {
@@ -314,8 +314,8 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                MaybeDisposeContinuation(enqueued, k);
-                if (semaphoreAcquired)
+                MaybeDisposeContinuation(continuationEnqueued, k);
+                if (Volatile.Read(ref semaphoreAcquired))
                 {
                     _rpcSemaphore.Release();
                 }
