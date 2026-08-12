@@ -335,7 +335,7 @@ namespace RabbitMQ.Client.Impl
             {
                 // Rent a smaller buffer exclusively for the Method and Header
                 byte[] buffer = ArrayPool<byte>.Shared.Rent(framingSize);
-                Span<byte> bufferSpan = buffer.AsSpan(framingSize);
+                Span<byte> bufferSpan = buffer.AsSpan(0, framingSize);
 
                 int offset = Method.WriteTo(bufferSpan, channelNumber, ref method);
                 offset += Header.WriteTo(bufferSpan.Slice(offset), channelNumber, ref header, bodyLength);
