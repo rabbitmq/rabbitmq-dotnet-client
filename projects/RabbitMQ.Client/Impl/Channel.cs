@@ -275,11 +275,57 @@ namespace RabbitMQ.Client.Impl
 
         internal async ValueTask ConnectionOpenAsync(string virtualHost, CancellationToken cancellationToken)
         {
-            using var timeoutTokenSource = new CancellationTokenSource(HandshakeContinuationTimeout);
-            using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
-            var method = new ConnectionOpen(virtualHost);
-            // Note: must be awaited or else the timeoutTokenSource instance will be disposed
-            await ModelSendAsync(in method, lts.Token).ConfigureAwait(false);
+            bool continuationEnqueued = false;
+            bool semaphoreAcquired = false;
+            var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ConnectionOpenOk,
+                HandshakeContinuationTimeout, cancellationToken);
+
+            // Unlike the sibling Connection*Async methods, the semaphore is
+            // acquired inside the try (guarded by semaphoreAcquired) so that a
+            // cancellation of WaitAsync during connection open still reaches the
+            // finally and disposes k. Acquiring it outside the try, as the
+            // siblings do, leaks k's CancellationTokenSource on that path.
+            try
+            {
+                await _rpcSemaphore.WaitAsync(k.CancellationToken)
+                    .ConfigureAwait(false);
+                semaphoreAcquired = true;
+
+                k.StartTimeout();
+
+                continuationEnqueued = Enqueue(k);
+
+                try
+                {
+                    var method = new ConnectionOpen(virtualHost);
+                    await ModelSendAsync(in method, k.CancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (AlreadyClosedException)
+                {
+                    // let continuation throw OperationInterruptedException,
+                    // which is a much more suitable exception before connection
+                    // negotiation finishes
+                }
+
+                try
+                {
+                    AssertResultIsTrue(await k);
+                }
+                catch (OperationCanceledException)
+                {
+                    _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
+                    throw;
+                }
+            }
+            finally
+            {
+                MaybeDisposeContinuation(continuationEnqueued, k);
+                if (semaphoreAcquired)
+                {
+                    _rpcSemaphore.Release();
+                }
+            }
         }
 
         internal async ValueTask<ConnectionSecureOrTune> ConnectionSecureOkAsync(byte[] response,
