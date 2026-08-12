@@ -107,6 +107,7 @@ namespace RabbitMQ.Client.Impl
         /// allocated as one contiguous block. Ownership of <paramref name="bodyOwner"/> has already
         /// been transferred by the caller, so it has to be disposed here when the body is rejected.
         /// A stricter total-frame-set-size check in <see cref="Framing.GetTotalFrameSetSize"/> guards further downstream.
+        /// This check is kept here as well so an oversize body is rejected synchronously, before a publisher confirmation sequence number is consumed.
         /// </summary>
         private static void ValidateBodyLength(in ReadOnlySequence<byte> body, IDisposable? bodyOwner)
         {
