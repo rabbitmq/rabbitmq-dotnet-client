@@ -253,8 +253,9 @@ namespace Test.Unit
         {
             // Verifies that BodySegment.WriteTo requests enough space for the 8-byte header write.
             // The frame header is 7 bytes but written with a single 64-bit store, so GetSpan must
-            // request at least 8 bytes. An IBufferWriter that returns exactly the requested size
-            // would corrupt memory if the +1 were removed from GetSpan(StartPayload + 1).
+            // request at least 8 bytes. ExactSizeBufferWriter hands back exactly the requested size
+            // over a sentinel guard region, so dropping the +1 from GetSpan(StartPayload + 1) makes
+            // the 8-byte store overrun the guard and this test throw.
             byte[] body = GetBody(32);
             var sequence = new ReadOnlySequence<byte>(body);
 
@@ -283,22 +284,32 @@ namespace Test.Unit
 #nullable enable
         private sealed class ExactSizeBufferWriter : IBufferWriter<byte>
         {
+            // Each rented buffer exposes exactly the requested size but is backed by GuardLength
+            // extra sentinel bytes. A write past the requested size lands in the guard region and
+            // is caught on the next Advance/flush, so a caller that under-requests (for example,
+            // dropping the +1 from GetSpan(StartPayload + 1)) fails loudly instead of silently
+            // writing past the span.
+            private const int GuardLength = 4;
+            private const byte GuardByte = 0xAB;
+
             private readonly List<byte[]> _segments = new();
             private byte[]? _current;
+            private int _usable;
             private int _currentOffset;
 
             public void Advance(int count)
             {
                 if (_current is null)
                     throw new InvalidOperationException("Advance called without a preceding GetSpan/GetMemory.");
-                if (count > _current.Length - _currentOffset)
+                if (count > _usable - _currentOffset)
                     throw new InvalidOperationException(
-                        $"Advanced {count} bytes but only {_current.Length - _currentOffset} were available.");
+                        $"Advanced {count} bytes but only {_usable - _currentOffset} were available.");
 
+                VerifyGuardIntact();
                 _currentOffset += count;
-                if (_currentOffset == _current.Length)
+                if (_currentOffset == _usable)
                 {
-                    _segments.Add(_current);
+                    _segments.Add(_current.AsSpan(0, _usable).ToArray());
                     _current = null;
                     _currentOffset = 0;
                 }
@@ -306,18 +317,14 @@ namespace Test.Unit
 
             public Memory<byte> GetMemory(int sizeHint = 0)
             {
-                FlushPartialCurrent();
-                _current = new byte[sizeHint == 0 ? 1 : sizeHint];
-                _currentOffset = 0;
-                return _current;
+                Rent(sizeHint);
+                return _current!.AsMemory(0, _usable);
             }
 
             public Span<byte> GetSpan(int sizeHint = 0)
             {
-                FlushPartialCurrent();
-                _current = new byte[sizeHint == 0 ? 1 : sizeHint];
-                _currentOffset = 0;
-                return _current;
+                Rent(sizeHint);
+                return _current!.AsSpan(0, _usable);
             }
 
             public byte[] ToArray()
@@ -337,18 +344,33 @@ namespace Test.Unit
                 return result;
             }
 
+            private void Rent(int sizeHint)
+            {
+                FlushPartialCurrent();
+                _usable = sizeHint == 0 ? 1 : sizeHint;
+                _current = new byte[_usable + GuardLength];
+                for (int i = _usable; i < _current.Length; i++)
+                    _current[i] = GuardByte;
+                _currentOffset = 0;
+            }
+
+            private void VerifyGuardIntact()
+            {
+                for (int i = _usable; i < _current!.Length; i++)
+                {
+                    if (_current[i] != GuardByte)
+                        throw new InvalidOperationException(
+                            $"Write overran the requested {_usable}-byte span into the guard region at offset {i}.");
+                }
+            }
+
             private void FlushPartialCurrent()
             {
-                if (_current is not null && _currentOffset > 0)
+                if (_current is not null)
                 {
-                    byte[] partial = new byte[_currentOffset];
-                    Array.Copy(_current, 0, partial, 0, _currentOffset);
-                    _segments.Add(partial);
-                    _current = null;
-                    _currentOffset = 0;
-                }
-                else
-                {
+                    VerifyGuardIntact();
+                    if (_currentOffset > 0)
+                        _segments.Add(_current.AsSpan(0, _currentOffset).ToArray());
                     _current = null;
                     _currentOffset = 0;
                 }
