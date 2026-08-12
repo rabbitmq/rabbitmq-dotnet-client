@@ -118,6 +118,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // Deliberately kept parallel to the ReadOnlySequence overload below rather than unified: a
+        // dedicated ReadOnlyMemory path keeps the memory publish hot path from wrapping the body in
+        // a ReadOnlySequence, which is the cost the split exists to avoid.
         private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
             TMethod cmd, TProperties basicProperties, ReadOnlyMemory<byte> body, IDisposable? bodyOwner,
             string exchange, string routingKey, CancellationToken cancellationToken)
