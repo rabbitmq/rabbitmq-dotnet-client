@@ -288,6 +288,11 @@ namespace RabbitMQ.Client
         /// Every segment of <paramref name="body"/> must stay valid and unmodified until then, and
         /// the caller must not reuse, mutate or release that memory itself.
         /// </para>
+        /// <para>
+        /// Passing <c>null</c> for <paramref name="bodyOwner"/> is permitted, but the body is then
+        /// copied into a single pooled buffer instead of being written directly from the supplied
+        /// segments, which forgoes the zero-copy benefit of this overload.
+        /// </para>
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
@@ -313,6 +318,11 @@ namespace RabbitMQ.Client
         /// exactly once: after the message has been written to the wire, or when publication fails.
         /// Every segment of <paramref name="body"/> must stay valid and unmodified until then, and
         /// the caller must not reuse, mutate or release that memory itself.
+        /// </para>
+        /// <para>
+        /// Passing <c>null</c> for <paramref name="bodyOwner"/> is permitted, but the body is then
+        /// copied into a single pooled buffer instead of being written directly from the supplied
+        /// segments, which forgoes the zero-copy benefit of this overload.
         /// </para>
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
