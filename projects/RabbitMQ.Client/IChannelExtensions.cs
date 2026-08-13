@@ -314,6 +314,136 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="addr">The destination address.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message body, which may be spread over several segments.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// The publication occurs with mandatory=false.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// Ownership of <paramref name="bodyOwner"/> is transferred to the client, which disposes it exactly once.
+        /// </remarks>
+        public static ValueTask BasicPublishAsync<T>(this IChannel channel,
+            PublicationAddress addr,
+            T basicProperties,
+            in ReadOnlySequence<byte> body,
+            IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where T : IReadOnlyBasicProperties, IAmqpHeader =>
+            channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
+                mandatory: false, basicProperties: basicProperties, body: body, bodyOwner: bodyOwner,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="body">The message body, which may be spread over several segments.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// The publication occurs with mandatory=false and empty BasicProperties.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// Ownership of <paramref name="bodyOwner"/> is transferred to the client, which disposes it exactly once.
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            string exchange,
+            string routingKey,
+            in ReadOnlySequence<byte> body,
+            IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="body">The message body, which may be spread over several segments.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// The publication occurs with empty BasicProperties.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// Ownership of <paramref name="bodyOwner"/> is transferred to the client, which disposes it exactly once.
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            string exchange,
+            string routingKey,
+            bool mandatory,
+            in ReadOnlySequence<byte> body,
+            IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="body">The message body, which may be spread over several segments.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// The publication occurs with mandatory=false and empty BasicProperties.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// Ownership of <paramref name="bodyOwner"/> is transferred to the client, which disposes it exactly once.
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            CachedString exchange,
+            CachedString routingKey,
+            in ReadOnlySequence<byte> body,
+            IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
+                cancellationToken);
+
+        /// <summary>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="body">The message body, which may be spread over several segments.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// The publication occurs with empty BasicProperties.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// Ownership of <paramref name="bodyOwner"/> is transferred to the client, which disposes it exactly once.
+        /// </remarks>
+        public static ValueTask BasicPublishAsync(this IChannel channel,
+            CachedString exchange,
+            CachedString routingKey,
+            bool mandatory,
+            in ReadOnlySequence<byte> body,
+            IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default) =>
+            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+                mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
+                cancellationToken);
+
+        /// <summary>
         /// Asynchronously declare a queue.
         /// </summary>
         public static Task<QueueDeclareOk> QueueDeclareAsync(this IChannel channel,

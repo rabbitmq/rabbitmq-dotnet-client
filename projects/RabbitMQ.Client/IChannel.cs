@@ -269,6 +269,68 @@ namespace RabbitMQ.Client
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
         /// <summary>
+        /// Asynchronously publishes a message with a body made up of one or more discontiguous
+        /// memory segments.
+        /// </summary>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message body, which may be spread over several segments. The segments are written to the wire in order, without being copied into a contiguous buffer first.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// <para>
+        /// Ownership of <paramref name="bodyOwner"/> is transferred to the client, which disposes it
+        /// exactly once: after the message has been written to the wire, or when publication fails.
+        /// Every segment of <paramref name="body"/> must stay valid and unmodified until then, and
+        /// the caller must not reuse, mutate or release that memory itself.
+        /// </para>
+        /// <para>
+        /// Passing <c>null</c> for <paramref name="bodyOwner"/> is permitted, but the body is then
+        /// copied into a single pooled buffer instead of being written directly from the supplied
+        /// segments, which forgoes the zero-copy benefit of this overload.
+        /// </para>
+        /// </remarks>
+        ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
+            bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+
+        /// <summary>
+        /// Asynchronously publishes a message with a body made up of one or more discontiguous
+        /// memory segments.
+        /// </summary>
+        /// <param name="exchange">The exchange.</param>
+        /// <param name="routingKey">The routing key.</param>
+        /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
+        /// <param name="basicProperties">The message properties.</param>
+        /// <param name="body">The message body, which may be spread over several segments. The segments are written to the wire in order, without being copied into a contiguous buffer first.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="cancellationToken">CancellationToken for this operation.</param>
+        /// <remarks>
+        /// Routing key must be shorter than 255 bytes.
+        /// Throws <see cref="Exceptions.PublishException"/> if a nack or basic.return is returned for the message.
+        /// <para>
+        /// Ownership of <paramref name="bodyOwner"/> is transferred to the client, which disposes it
+        /// exactly once: after the message has been written to the wire, or when publication fails.
+        /// Every segment of <paramref name="body"/> must stay valid and unmodified until then, and
+        /// the caller must not reuse, mutate or release that memory itself.
+        /// </para>
+        /// <para>
+        /// Passing <c>null</c> for <paramref name="bodyOwner"/> is permitted, but the body is then
+        /// copied into a single pooled buffer instead of being written directly from the supplied
+        /// segments, which forgoes the zero-copy benefit of this overload.
+        /// </para>
+        /// </remarks>
+        ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
+            bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            CancellationToken cancellationToken = default)
+            where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
+
+        /// <summary>
         /// Configures QoS parameters of the Basic content-class.
         /// </summary>
         /// <param name="prefetchSize">Size of the prefetch in bytes.</param>

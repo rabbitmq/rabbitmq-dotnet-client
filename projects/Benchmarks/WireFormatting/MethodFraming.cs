@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Text;
 
 using BenchmarkDotNet.Attributes;
@@ -63,6 +64,9 @@ namespace RabbitMQ.Benchmarks
         private BasicProperties _properties = new BasicProperties { AppId = "Application id", MessageId = "Random message id" };
         private readonly ReadOnlyMemory<byte> _bodyEmpty = ReadOnlyMemory<byte>.Empty;
         private readonly ReadOnlyMemory<byte> _body = new byte[512];
+        private readonly ReadOnlySequence<byte> _bodySingleSegment = new ReadOnlySequence<byte>(new byte[512]);
+        private readonly ReadOnlySequence<byte> _bodyMultiSegment = CreateSegmentedBody(segmentCount: 8, segmentSize: 64);
+        private readonly IDisposable _bodyOwner = new NoOpBodyOwner();
 
         [Params(0)]
         public ushort Channel { get; set; }
@@ -78,6 +82,60 @@ namespace RabbitMQ.Benchmarks
 
         [Benchmark]
         public int BasicPublishMemoryWrite() => Framing.SerializeToFrames(ref _basicPublishMemory, ref _propertiesEmpty, _bodyEmpty, bodyOwner: null, Channel, FrameMax).Size;
+
+        [Benchmark]
+        public int BasicPublishWriteNonEmptyWithOwner() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _body, _bodyOwner, Channel, FrameMax).Size;
+
+        [Benchmark]
+        public int BasicPublishWriteSingleSegmentSequence() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _bodySingleSegment, bodyOwner: null, Channel, FrameMax).Size;
+
+        [Benchmark]
+        public int BasicPublishWriteSingleSegmentSequenceWithOwner() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _bodySingleSegment, _bodyOwner, Channel, FrameMax).Size;
+
+        [Benchmark]
+        public int BasicPublishWriteMultiSegmentSequence() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _bodyMultiSegment, bodyOwner: null, Channel, FrameMax).Size;
+
+        [Benchmark]
+        public int BasicPublishWriteMultiSegmentSequenceWithOwner() => Framing.SerializeToFrames(ref _basicPublish, ref _properties, _bodyMultiSegment, _bodyOwner, Channel, FrameMax).Size;
+
+        private static ReadOnlySequence<byte> CreateSegmentedBody(int segmentCount, int segmentSize)
+        {
+            var first = new BodySegment(new byte[segmentSize]);
+            BodySegment last = first;
+            for (int i = 1; i < segmentCount; i++)
+            {
+                last = last.Append(new byte[segmentSize]);
+            }
+
+            return new ReadOnlySequence<byte>(first, 0, last, segmentSize);
+        }
+
+        private sealed class BodySegment : ReadOnlySequenceSegment<byte>
+        {
+            public BodySegment(ReadOnlyMemory<byte> memory)
+            {
+                Memory = memory;
+                RunningIndex = 0;
+            }
+
+            public BodySegment Append(ReadOnlyMemory<byte> memory)
+            {
+                var segment = new BodySegment(memory) { RunningIndex = RunningIndex + Memory.Length };
+                Next = segment;
+                return segment;
+            }
+        }
+
+        /// <summary>
+        /// The benchmarks measure framing only and never write or dispose the frame, so the body
+        /// owner just has to be a non-null <see cref="IDisposable"/> to select the zero-copy path.
+        /// </summary>
+        private sealed class NoOpBodyOwner : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
     }
 
     [Config(typeof(Config))]

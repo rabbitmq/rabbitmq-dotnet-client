@@ -40,7 +40,7 @@ namespace RabbitMQ.Client
     {
         private byte[]? _methodAndHeaderArray;
         private readonly int _methodAndHeaderLength;
-        private ReadOnlyMemory<byte> _body;
+        private ReadOnlySequence<byte> _body;
         private IDisposable? _bodyOwner;
         private readonly int _maxBodyPayloadBytes;
         private readonly ushort _channelNumber;
@@ -66,6 +66,19 @@ namespace RabbitMQ.Client
             ushort channelNumber,
             int maxBodyPayloadBytes,
             int totalSize)
+            : this(methodAndHeaderArray, methodAndHeaderLength, new ReadOnlySequence<byte>(body),
+                  bodyOwner, channelNumber, maxBodyPayloadBytes, totalSize)
+        {
+        }
+
+        internal OutgoingFrame(
+            byte[] methodAndHeaderArray,
+            int methodAndHeaderLength,
+            in ReadOnlySequence<byte> body,
+            IDisposable? bodyOwner,
+            ushort channelNumber,
+            int maxBodyPayloadBytes,
+            int totalSize)
         {
             _methodAndHeaderArray = methodAndHeaderArray;
             _methodAndHeaderLength = methodAndHeaderLength;
@@ -84,21 +97,36 @@ namespace RabbitMQ.Client
             ReadOnlySpan<byte> methodAndHeader = _methodAndHeaderArray.AsSpan(0, _methodAndHeaderLength);
             writer.Write(methodAndHeader);
 
-            if (_body.Length == 0)
+            long remainingBodyBytes = _body.Length;
+            if (remainingBodyBytes == 0)
             {
                 return;
             }
 
-            ReadOnlySpan<byte> bodySpan = _body.Span;
-            int remainingBodyBytes = bodySpan.Length;
-            int bodyOffset = 0;
+            if (_body.IsSingleSegment)
+            {
+                ReadOnlySpan<byte> bodySpan = _body.First.Span;
+                int bodyOffset = 0;
 
+                while (bodyOffset < bodySpan.Length)
+                {
+                    int payloadSize = Math.Min(bodySpan.Length - bodyOffset, _maxBodyPayloadBytes);
+                    BodySegment.WriteTo(writer, _channelNumber, bodySpan.Slice(bodyOffset, payloadSize));
+                    bodyOffset += payloadSize;
+                }
+
+                return;
+            }
+
+            // Multi-segment body: body frame boundaries are independent of segment boundaries,
+            // so each frame payload is sliced out of the sequence and may itself span segments.
+            ReadOnlySequence<byte> remainingBody = _body;
             while (remainingBodyBytes > 0)
             {
-                int payloadSize = remainingBodyBytes > _maxBodyPayloadBytes ? _maxBodyPayloadBytes : remainingBodyBytes;
-                BodySegment.WriteTo(writer, _channelNumber, bodySpan.Slice(bodyOffset, payloadSize));
+                int payloadSize = (int)Math.Min(remainingBodyBytes, _maxBodyPayloadBytes);
+                BodySegment.WriteTo(writer, _channelNumber, remainingBody.Slice(0, payloadSize));
+                remainingBody = remainingBody.Slice(payloadSize);
                 remainingBodyBytes -= payloadSize;
-                bodyOffset += payloadSize;
             }
         }
 
