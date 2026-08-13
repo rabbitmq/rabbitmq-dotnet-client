@@ -97,16 +97,32 @@ namespace RabbitMQ.Client.Impl
                 RateLimitLease? lease =
                     await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
                         .ConfigureAwait(false);
+                /*
+                 * The send activity is declared out here, rather than inside the try
+                 * below, so the catch can record the failure on it. With the `using`
+                 * scoped to the inner try the span was already disposed by the time
+                 * the catch ran, so no publish failure was ever reported: the span
+                 * ended status=Unset with no exception event, which tracing backends
+                 * read as a successful publish. See issue #1967.
+                 */
+                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
+                    : default;
+                /*
+                 * Tracks the exception (if any) already recorded on sendActivity by the
+                 * catch below, so the finally's confirmation-await catch does not record
+                 * the same instance twice. When MaybeHandleExceptionWithEnabledPublisherConfirmations
+                 * faults the confirm TCS, the finally's await re-raises that exception;
+                 * without this guard a publish whose send failed (e.g. on a closed
+                 * connection) recorded the same exception twice. See issue #1967.
+                 */
+                Exception? recordedSendError = null;
                 try
                 {
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
 
                     await MaybeEnforceFlowControlAsync(cancellationToken)
                         .ConfigureAwait(false);
-
-                    using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
-                        : default;
 
                     ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
 
@@ -125,6 +141,34 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception ex)
                 {
+                    /*
+                     * Caller-initiated cancellation is not a publish failure, so it is
+                     * not recorded on the span. Confirmation tracking still needs the
+                     * cleanup below (faulting the TCS, decrementing the sequence number),
+                     * which is why this is an inline guard rather than a `when` filter:
+                     * a filter that skipped this catch would skip the cleanup too.
+                     * See issue #1967.
+                     */
+                    bool isCallerCancellation =
+                        ex is OperationCanceledException && cancellationToken.IsCancellationRequested;
+                    if (!isCallerCancellation)
+                    {
+                        sendActivity.SetActivityError(ex);
+                        recordedSendError = ex;
+                    }
+
+                    /*
+                     * "Handled" here means the exception was routed onto the publisher
+                     * confirmation task, not that it was swallowed: the finally below
+                     * awaits that task and re-raises the same instance to the caller. So
+                     * recording the error above is correct even when exceptionWasHandled
+                     * is true - the publish failed and the caller sees it, just through
+                     * the confirmation channel rather than a throw from here. This is not
+                     * the spec's "handled or retried and completed gracefully" exemption,
+                     * which is for operations that recover; a faulted publish never does.
+                     * Every path that records Error is one the caller observes as a
+                     * failure. See issue #1967.
+                     */
                     bool exceptionWasHandled =
                         MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
                     if (!exceptionWasHandled)
@@ -135,8 +179,30 @@ namespace RabbitMQ.Client.Impl
                 finally
                 {
                     MaybeReleasePublisherConfirmationLock(lease);
-                    await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
-                        .ConfigureAwait(false);
+
+                    /*
+                     * This await is the one that surfaces a nack or an unroutable
+                     * mandatory publish (PublishException), so it is a publish failure
+                     * like any other and belongs on the span. It cannot simply be
+                     * wrapped by the catch above, because it runs in the finally: the
+                     * confirmation is only awaited once the send has been issued.
+                     */
+                    try
+                    {
+                        await MaybeEndPublisherConfirmationTrackingAsync(publisherConfirmationInfo, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        // Caller-initiated cancellation during the confirmation await is
+                        // not a publish failure. See issue #1967.
+                        throw;
+                    }
+                    catch (Exception ex) when (!ReferenceEquals(ex, recordedSendError))
+                    {
+                        sendActivity.SetActivityError(ex);
+                        throw;
+                    }
                 }
             }
             finally

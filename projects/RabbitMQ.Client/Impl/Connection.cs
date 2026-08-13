@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -553,10 +552,7 @@ namespace RabbitMQ.Client.Impl
 
         internal ValueTask WriteAsync(OutgoingFrame frames, CancellationToken cancellationToken)
         {
-            if (RabbitMQActivitySource.PublisherHasListeners)
-            {
-                Activity.Current.SetNetworkTags(_frameHandler);
-            }
+            RabbitMQActivitySource.SetNetworkTagsOnAmbientPublisherActivity(_frameHandler);
 
             return _frameHandler.WriteAsync(frames, cancellationToken);
         }

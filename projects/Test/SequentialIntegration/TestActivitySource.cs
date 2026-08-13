@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client;
@@ -303,6 +304,357 @@ namespace Test.SequentialIntegration
             {
                 await _channel.QueueDeleteAsync(queue);
             }
+        }
+
+        /// <summary>
+        /// Scopes UseRoutingKeyAsOperationName to false, restoring it on dispose.
+        /// </summary>
+        /// <remarks>
+        /// It defaults to true, which appends the routing key to the span name. The tests
+        /// below match spans by name via <see cref="ActivityRecorder"/>, so they need the
+        /// plain name. Restoring on dispose keeps this from becoming one more test that
+        /// leaves process-global tracing state mutated for whatever runs next - see the
+        /// public-API discussion on rabbitmq/rabbitmq-dotnet-client#1967.
+        /// </remarks>
+        private sealed class PlainOperationNames : IDisposable
+        {
+            private readonly bool _previous;
+
+            public PlainOperationNames()
+            {
+                _previous = RabbitMQActivitySource.UseRoutingKeyAsOperationName;
+                RabbitMQActivitySource.UseRoutingKeyAsOperationName = false;
+            }
+
+            public void Dispose() => RabbitMQActivitySource.UseRoutingKeyAsOperationName = _previous;
+        }
+
+        [Fact]
+        public async Task TestPublishFailureIsRecordedOnTheSendActivity_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * The `using Activity? sendActivity` in BasicPublishCoreAsync used to be
+             * scoped to the inner try, so both the catch and the confirmation await in
+             * the finally ran after the span was disposed. Publish failures were
+             * therefore never recorded: the span ended status=Unset with no exception
+             * event, which every tracing backend reads as a successful publish.
+             *
+             * A mandatory publish to an exchange with no matching binding is the
+             * cleanest trigger, and it specifically covers the finally path, since
+             * PublishException surfaces from the confirmation await rather than from
+             * the send itself.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            string exchange = $"exchange-{Guid.NewGuid()}";
+            await _channel.ExchangeDeclareAsync(exchange, ExchangeType.Direct, autoDelete: true);
+
+            try
+            {
+                await Assert.ThrowsAsync<PublishReturnException>(() =>
+                    _channel.BasicPublishAsync(exchange, "no-such-routing-key", mandatory: true,
+                        Encoding.UTF8.GetBytes("unroutable")).AsTask());
+
+                Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
+                publishActivity.RecordsFailure(typeof(PublishReturnException));
+            }
+            finally
+            {
+                await _channel.ExchangeDeleteAsync(exchange);
+            }
+        }
+
+        [Fact]
+        public async Task TestPublishFailureIsRecordedOnceWhenHandledByConfirmations_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * Recording the failure in both the inner catch and the one in the finally
+             * used to double-record it on this path. Publishing on a closed connection
+             * throws from the send, the inner catch hands the exception to the
+             * confirmation task (so the publish counts as handled and does not
+             * rethrow there), and awaiting that task in the finally re-raises the same
+             * instance - one failure, recorded twice.
+             *
+             * Publisher confirmations *and* tracking are both required to reproduce:
+             * without tracking there is no task to store the exception on, so it is
+             * never handled and never resurfaces.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+
+            var channelOptions = new CreateChannelOptions(
+                publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true);
+
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync(channelOptions);
+
+            await conn.CloseAsync();
+
+            await Assert.ThrowsAsync<AlreadyClosedException>(() =>
+                ch.BasicPublishAsync("", "no-such-queue", true,
+                    Encoding.UTF8.GetBytes("after close")).AsTask());
+
+            Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
+            publishActivity.RecordsFailure(typeof(AlreadyClosedException));
+        }
+
+        [Fact]
+        public async Task TestCallerCancellationIsNotRecordedAsPublishFailure_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * Once publish failures are recorded on the send activity, a publish the
+             * caller cancels is not a failure of the publish and must not be recorded
+             * as one. Without the guard the cancelled publish ended status=Error with a
+             * TaskCanceledException event, so an app cancelling its own publishes traced
+             * as a stream of publish errors.
+             *
+             * With confirmations enabled the publish parks awaiting the broker's
+             * confirmation, which BasicPublishCoreAsync awaits in its finally - after the
+             * send activity has been created. Blocking the connection holds off that
+             * confirmation, so cancelling the token throws OperationCanceledException
+             * from that await deterministically, with no dependence on broker timing.
+             * That is the window the finally's cancellation guard covers; removing it
+             * fails this test with an Error status on the span.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            using var cts = new CancellationTokenSource();
+
+            try
+            {
+                await BlockAsync();
+
+                ValueTask publishTask = _channel.BasicPublishAsync("", "no-such-queue", true,
+                    Encoding.UTF8.GetBytes("cancel me"), cts.Token);
+
+                // The publish is now parked in the confirmation await with its span open.
+                cts.Cancel();
+
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => publishTask.AsTask());
+            }
+            finally
+            {
+                await UnblockAsync();
+            }
+
+            Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
+            Assert.NotEqual(ActivityStatusCode.Error, publishActivity.Status);
+            Assert.DoesNotContain(publishActivity.Events, e => e.Name == "exception");
+            publishActivity.HasNoTag("error.type");
+        }
+
+        [Fact]
+        public async Task TestConsumerFailureIsRecordedOnTheDeliverActivity_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * Same defect on the consume side: AsyncConsumerDispatcher's reporting
+             * catch sits outside the deliver activity's `using`, so a consumer callback
+             * that threw was reported via CallbackExceptionAsync but left the deliver
+             * span status=Unset with no exception event. A consumer failing on every
+             * message traced as completely healthy.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder deliverRecorder =
+                new(RabbitMQActivitySource.SubscriberSourceName, "deliver");
+            deliverRecorder.VerifyParent = false;
+
+            string queue = $"queue-{Guid.NewGuid()}";
+            await _channel.QueueDeclareAsync(queue, false, true, false, null);
+
+            var callbackExceptionTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _channel.CallbackExceptionAsync += (_, _) =>
+            {
+                callbackExceptionTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            consumer.ReceivedAsync += (_, _) =>
+                throw new InvalidOperationException("consumer callback failed on purpose");
+
+            await _channel.BasicConsumeAsync(queue, autoAck: true, consumer: consumer);
+            await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes("hi"));
+
+            await callbackExceptionTcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+            Activity deliverActivity = deliverRecorder.VerifyActivityRecordedOnce();
+            deliverActivity.RecordsFailure(typeof(InvalidOperationException));
+        }
+
+        [Fact]
+        public async Task TestAmqpOperationsDoNotTagAnUnrelatedAmbientActivity_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * SessionBase.TransmitAsync and Connection.WriteAsync tag whatever
+             * Activity.Current happens to be, because the frame-writing path has no
+             * reference to the publish activity it belongs to. With no ownership check,
+             * any AMQP method issued inside an unrelated ambient activity stamped
+             * messaging and network tags onto a span this library does not own - an
+             * app's own span, or an ASP.NET request span, picking up server.address and
+             * messaging.message.envelope.size from an incidental QueueDeclare.
+             *
+             * The publisher source must have listeners for this to reproduce, which is
+             * what the recorder here provides.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            using var appSource = new ActivitySource("TestApp.GH1967");
+            using var appListener = new ActivityListener
+            {
+                ShouldListenTo = source => source.Name == "TestApp.GH1967",
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) =>
+                    ActivitySamplingResult.AllDataAndRecorded
+            };
+            ActivitySource.AddActivityListener(appListener);
+
+            string queue = $"queue-{Guid.NewGuid()}";
+
+            // Kept alive past the AMQP calls so the parenting assertion at the end can
+            // compare against it.
+            using Activity appActivity = appSource.StartActivity("app-operation");
+            Assert.NotNull(appActivity);
+            Assert.Same(appActivity, Activity.Current);
+
+            await _channel.QueueDeclareAsync(queue, false, true, false, null);
+            await _channel.QueueDeclarePassiveAsync(queue);
+            await _channel.BasicQosAsync(0, 1, false);
+
+            /*
+             * Every tag either path would have written. The network tags come from
+             * Connection.WriteAsync, the envelope size from SessionBase.
+             */
+            appActivity.HasNoTag("messaging.message.envelope.size");
+            appActivity.HasNoTag("messaging.system");
+            appActivity.HasNoTag("network.type");
+            appActivity.HasNoTag("server.address");
+            appActivity.HasNoTag("server.port");
+            appActivity.HasNoTag("network.peer.address");
+            appActivity.HasNoTag("network.peer.port");
+            appActivity.HasNoTag("client.address");
+            appActivity.HasNoTag("client.port");
+            appActivity.HasNoTag("network.local.address");
+            appActivity.HasNoTag("network.local.port");
+
+            /*
+             * Publish inside the same ambient scope. The library's own publish span must
+             * still get the tags - this is an ownership check, not a blanket removal -
+             * and the app's span must still come out clean, even though a publish is
+             * exactly the operation whose tags it was previously stealing.
+             */
+            await _channel.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes("hi"));
+
+            appActivity.HasNoTag("messaging.message.envelope.size");
+            appActivity.HasNoTag("server.port");
+            appActivity.HasNoTag("network.peer.address");
+
+            Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
+            publishActivity.HasTag("messaging.message.envelope.size");
+            publishActivity.HasTag("server.port");
+            publishActivity.HasTag("network.peer.address");
+
+            /*
+             * Parenting is asserted here rather than through the recorder's
+             * VerifyParent, because ExpectedParent has to be set before the recorder
+             * sees anything and the ambient activity does not exist that early. The
+             * publish span is started while appActivity is current, so it must be its
+             * child: scoping the tags to the publisher source must not also detach the
+             * span from the caller's trace. See issue #1967.
+             */
+            Assert.Same(appActivity, publishActivity.Parent);
+        }
+
+        [Fact]
+        public async Task TestConnectionActivityHasNoMessagingEnvelopeSize_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * The client's own "connection attempt" span used to pick up
+             * messaging.message.envelope.size from the handshake frames, because it was
+             * Activity.Current while they were transmitted. It is a connection span,
+             * not a publish operation, so a messaging attribute has no business on it.
+             *
+             * This is why the ownership check tests the publisher source specifically
+             * rather than "any activity from this library".
+             */
+            using ActivityRecorder connectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "connection attempt");
+            connectionRecorder.VerifyParent = false;
+
+            // The publisher source must have listeners, or the tagging path is skipped
+            // entirely and the test would pass without exercising the check.
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            await using (IConnection conn = await cf.CreateConnectionAsync())
+            {
+                await conn.CloseAsync();
+            }
+
+            Activity connectionActivity = connectionRecorder.VerifyActivityRecordedOnce();
+            connectionActivity.HasNoTag("messaging.message.envelope.size");
+
+            // Network tags still belong on it, from the direct SetNetworkTags call.
+            connectionActivity.HasTag("server.port");
+        }
+
+        [Fact]
+        public async Task TestTcpConnectionActivityHasServerTags_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * OpenTcpConnection was the only activity factory returning a bare activity
+             * with no tag block; the server tags were set by the call site instead.
+             * Folding them into the factory keeps every factory in this file
+             * self-consistent, so a new call site cannot forget them.
+             */
+            using ActivityRecorder tcpConnectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "tcp connection attempt");
+            tcpConnectionRecorder.VerifyParent = false;
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            await using (IConnection conn = await cf.CreateConnectionAsync())
+            {
+                await conn.CloseAsync();
+            }
+
+            Activity tcpActivity = tcpConnectionRecorder.VerifyActivityRecordedOnce();
+            // cf.Port is still the UseDefaultPort sentinel; Endpoint.Port resolves it.
+            tcpActivity.HasTag("server.port", cf.Endpoint.Port);
+            tcpActivity.HasTag("messaging.system", "rabbitmq");
         }
 
         private static ActivityListener StartActivityListener(List<Activity> activities)
