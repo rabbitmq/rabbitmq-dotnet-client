@@ -157,6 +157,18 @@ namespace RabbitMQ.Client.Impl
                         recordedSendError = ex;
                     }
 
+                    /*
+                     * "Handled" here means the exception was routed onto the publisher
+                     * confirmation task, not that it was swallowed: the finally below
+                     * awaits that task and re-raises the same instance to the caller. So
+                     * recording the error above is correct even when exceptionWasHandled
+                     * is true - the publish failed and the caller sees it, just through
+                     * the confirmation channel rather than a throw from here. This is not
+                     * the spec's "handled or retried and completed gracefully" exemption,
+                     * which is for operations that recover; a faulted publish never does.
+                     * Every path that records Error is one the caller observes as a
+                     * failure. See issue #1967.
+                     */
                     bool exceptionWasHandled =
                         MaybeHandleExceptionWithEnabledPublisherConfirmations(publisherConfirmationInfo, ex);
                     if (!exceptionWasHandled)

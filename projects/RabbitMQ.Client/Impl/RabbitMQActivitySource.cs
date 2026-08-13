@@ -352,6 +352,13 @@ namespace RabbitMQ.Client
          * error.type alone, as an earlier version of this helper did, recorded the
          * expensive signals and dropped the cheap one that queries actually use.
          *
+         * AddException is the only allocating signal (it builds an ActivityEvent) and
+         * fires even on a PropagationData-sampled span. That is deliberate, not an
+         * oversight: it is left unguarded rather than placed behind IsAllDataRequested
+         * because failure paths are not hot, so the allocation never lands on a hot
+         * path, and splitting it out would reintroduce the inconsistency above and turn
+         * the logs migration below into a three-site edit instead of one.
+         *
          * The exception event is the one signal here on a deprecation path: the
          * exceptions-on-spans convention is deprecated in favour of recording
          * exceptions as log records, and Activity.AddException is expected to follow.
