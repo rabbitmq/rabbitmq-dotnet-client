@@ -43,6 +43,8 @@ namespace RabbitMQ.Client.Impl
 {
     internal sealed partial class AutorecoveringConnection
     {
+        // TODO: Use Lock once update to .NET 9+
+        // https://learn.microsoft.com/en-us/dotnet/api/system.threading.lock?view=net-10.0
         private readonly object _recoverySync = new object();
         private Task? _recoveryTask;
         private bool _recoveryPendingRequest;
