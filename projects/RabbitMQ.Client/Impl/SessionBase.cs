@@ -54,7 +54,9 @@ namespace RabbitMQ.Client.Impl
             ChannelNumber = channelNumber;
             if (channelNumber != 0)
             {
-                connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
+                // Subscribe before other event handlers to make sure that session is cleared
+                // before we raise connection closed event.
+                connection.ConnectionShutdown0Async += OnConnectionShutdownAsync;
             }
             RabbitMqClientEventSource.Log.ChannelOpened();
         }
