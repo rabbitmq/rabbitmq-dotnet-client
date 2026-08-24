@@ -52,8 +52,22 @@ namespace RabbitMQ.Client.Impl
         {
             if (ShouldTriggerConnectionRecovery(args))
             {
+                // Safe to lock here: no await runs while the lock is held (this method is
+                // not async), so Monitor is entered and released on the same thread. An
+                // await inside a lock is a C# compile error precisely because it would
+                // break that thread affinity.
                 lock (_recoverySync)
                 {
+                    if (_disposed)
+                    {
+                        // Disposal has begun; _recoveryCancellationTokenSource may already be
+                        // disposed, so do not start a new recovery task. This is best-effort
+                        // (DisposeAsync does not take _recoverySync); RecoverConnectionAsync
+                        // still tolerates a disposed source by capturing the token inside its
+                        // try.
+                        return Task.CompletedTask;
+                    }
+
                     if (_recoveryTask == null)
                     {
                         var recoverTask = new Task<Task>(RecoverConnectionAsync);
@@ -109,14 +123,19 @@ namespace RabbitMQ.Client.Impl
 
         private async Task RecoverConnectionAsync()
         {
-            // Capture early, so concurrent source disposal wouldn't throw
-            CancellationToken token = _recoveryCancellationTokenSource.Token;
-
             bool retryRecovery = true;
             while (retryRecovery)
             {
                 try
                 {
+                    // Capture the token inside the try. If _recoveryCancellationTokenSource
+                    // was already disposed (a shutdown notification racing with DisposeAsync),
+                    // reading Token throws ObjectDisposedException; catching it here logs it
+                    // and lets the finally clear _recoveryTask, rather than faulting this task
+                    // unobserved and leaving _recoveryTask non-null (which would permanently
+                    // block further recovery).
+                    CancellationToken token = _recoveryCancellationTokenSource.Token;
+
                     // Re-check if connection is not opened already, as we could execute it multiple times.
                     bool success = IsOpen;
                     while (false == success && false == token.IsCancellationRequested && false == _disposed)
@@ -137,6 +156,9 @@ namespace RabbitMQ.Client.Impl
                 }
                 finally
                 {
+                    // Safe to lock inside this async method: the lock body has no await
+                    // (all awaits are in the try above), so Monitor is entered and released
+                    // on the same thread.
                     lock (_recoverySync)
                     {
                         /*
@@ -170,7 +192,21 @@ namespace RabbitMQ.Client.Impl
             // as there could be a race condition that starts a new recovery task right after we checked.
             // It's safer to cancel it, so even if a new task is created - it will be a nop.
             _recoveryCancellationTokenSource.Cancel();
-            Task? task = _recoveryTask;
+
+            // Read _recoveryTask under _recoverySync so we serialize with
+            // HandleConnectionShutdownAsync: if it is concurrently starting a task, we wait
+            // for it to publish _recoveryTask and then await that task. Any task started
+            // strictly after this read sees the already-cancelled token and is a nop.
+            //
+            // Safe to lock inside this async method: the lock body only reads a field and
+            // holds no await (the WaitAsync below runs after the lock is released), so
+            // Monitor is entered and released on the same thread.
+            Task? task;
+            lock (_recoverySync)
+            {
+                task = _recoveryTask;
+            }
+
             if (task != null)
             {
                 using var timeoutTokenSource = new CancellationTokenSource(_config.RequestedConnectionTimeout);
