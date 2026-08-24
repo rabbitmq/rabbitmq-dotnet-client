@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
@@ -47,6 +48,48 @@ namespace Test.Integration.ConnectionRecovery
         {
             Assert.True(_conn.IsOpen);
             await CloseAndWaitForRecoveryAsync();
+            Assert.True(_conn.IsOpen);
+        }
+
+        /// <summary>
+        /// Only one recovery loop runs at a time, and the RecoverySucceededAsync handlers are awaited
+        /// as part of it. A connection can therefore be shut down again after it was recovered but
+        /// before the loop that recovered it has finished. That shutdown has to result in another
+        /// recovery, otherwise the connection stays down for good.
+        /// </summary>
+        [Fact]
+        public async Task TestShutdownWhileRecoveryLoopIsStillRunningIsRecovered()
+        {
+            var firstRecoveryStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseFirstRecovery = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var secondRecoveryFinished = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            int recoveryCount = 0;
+            _conn.RecoverySucceededAsync += async (_, _) =>
+            {
+                if (Interlocked.Increment(ref recoveryCount) == 1)
+                {
+                    firstRecoveryStarted.TrySetResult(true);
+                    await releaseFirstRecovery.Task;
+                }
+                else
+                {
+                    secondRecoveryFinished.TrySetResult(true);
+                }
+            };
+
+            await CloseConnectionAsync(_conn);
+            await WaitAsync(firstRecoveryStarted, "first connection recovery");
+
+            // The connection has been recovered, but the loop that recovered it is held inside the
+            // handler above and so is still considered to be running.
+            TaskCompletionSource<bool> secondShutdown = PrepareForShutdown(_conn);
+            await CloseConnectionAsync(_conn);
+            await WaitAsync(secondShutdown, "second connection shutdown");
+
+            releaseFirstRecovery.TrySetResult(true);
+
+            await WaitAsync(secondRecoveryFinished, "second connection recovery");
             Assert.True(_conn.IsOpen);
         }
 
