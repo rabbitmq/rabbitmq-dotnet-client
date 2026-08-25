@@ -75,8 +75,8 @@ namespace RabbitMQ.Client.Impl
             _connectionUnblockedAsyncWrapper =
                 new AsyncEventingWrapper<AsyncEventArgs>("OnConnectionUnblocked", onExceptionAsync);
 
-            _connectionShutdown0AsyncWrapper =
-                new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown0", onExceptionAsync);
+            _preConnectionShutdownAsyncWrapper =
+                new AsyncEventingWrapper<ShutdownEventArgs>("OnPreShutdown", onExceptionAsync);
 
             _connectionShutdownAsyncWrapper =
                 new AsyncEventingWrapper<ShutdownEventArgs>("OnShutdown", onExceptionAsync);
@@ -161,54 +161,51 @@ namespace RabbitMQ.Client.Impl
         private AsyncEventingWrapper<RecoveringConsumerEventArgs> _consumerAboutToBeRecoveredAsyncWrapper;
 
         /// <summary>
-        /// Like <see cref="ConnectionShutdownAsync"/>, but handlers are executed before it.
-        /// Is used to prioritize internal handlers.
+        /// Like <see cref="ConnectionShutdownAsync"/>, but its handlers run first, before the
+        /// public <see cref="ConnectionShutdownAsync"/> handlers (see <c>OnShutdownAsync</c>).
+        /// Used to let internal handlers (notably per-channel <see cref="SessionBase"/> teardown)
+        /// clear their state before application code and automatic recovery observe the shutdown.
         /// </summary>
-        internal event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdown0Async
+        internal event AsyncEventHandler<ShutdownEventArgs> PreConnectionShutdownAsync
         {
-            add
-            {
-                ThrowIfDisposed();
-                ShutdownEventArgs? reason = CloseReason;
-                if (reason is null)
-                {
-                    _connectionShutdown0AsyncWrapper.AddHandler(value);
-                }
-                else
-                {
-                    value(this, reason);
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                _connectionShutdown0AsyncWrapper.RemoveHandler(value);
-            }
+            add => AddConnectionShutdownHandler(ref _preConnectionShutdownAsyncWrapper, value);
+            remove => RemoveConnectionShutdownHandler(ref _preConnectionShutdownAsyncWrapper, value);
         }
-        private AsyncEventingWrapper<ShutdownEventArgs> _connectionShutdown0AsyncWrapper;
+        private AsyncEventingWrapper<ShutdownEventArgs> _preConnectionShutdownAsyncWrapper;
 
         public event AsyncEventHandler<ShutdownEventArgs> ConnectionShutdownAsync
         {
-            add
-            {
-                ThrowIfDisposed();
-                ShutdownEventArgs? reason = CloseReason;
-                if (reason is null)
-                {
-                    _connectionShutdownAsyncWrapper.AddHandler(value);
-                }
-                else
-                {
-                    value(this, reason);
-                }
-            }
-            remove
-            {
-                ThrowIfDisposed();
-                _connectionShutdownAsyncWrapper.RemoveHandler(value);
-            }
+            add => AddConnectionShutdownHandler(ref _connectionShutdownAsyncWrapper, value);
+            remove => RemoveConnectionShutdownHandler(ref _connectionShutdownAsyncWrapper, value);
         }
         private AsyncEventingWrapper<ShutdownEventArgs> _connectionShutdownAsyncWrapper;
+
+        /// <summary>
+        /// Shared add logic for the connection-shutdown events. If the connection is already
+        /// closed, the handler is invoked immediately with the existing close reason; otherwise
+        /// it is registered on <paramref name="wrapper"/>.
+        /// </summary>
+        private void AddConnectionShutdownHandler(ref AsyncEventingWrapper<ShutdownEventArgs> wrapper,
+            AsyncEventHandler<ShutdownEventArgs> value)
+        {
+            ThrowIfDisposed();
+            ShutdownEventArgs? reason = CloseReason;
+            if (reason is null)
+            {
+                wrapper.AddHandler(value);
+            }
+            else
+            {
+                value(this, reason);
+            }
+        }
+
+        private void RemoveConnectionShutdownHandler(ref AsyncEventingWrapper<ShutdownEventArgs> wrapper,
+            AsyncEventHandler<ShutdownEventArgs> value)
+        {
+            ThrowIfDisposed();
+            wrapper.RemoveHandler(value);
+        }
 
         /// <summary>
         /// This event is never fired by non-recovering connections but it is a part of the <see cref="IConnection"/> interface.
@@ -251,7 +248,7 @@ namespace RabbitMQ.Client.Impl
             _callbackExceptionAsyncWrapper.Takeover(other._callbackExceptionAsyncWrapper);
             _connectionBlockedAsyncWrapper.Takeover(other._connectionBlockedAsyncWrapper);
             _connectionUnblockedAsyncWrapper.Takeover(other._connectionUnblockedAsyncWrapper);
-            _connectionShutdown0AsyncWrapper.Takeover(other._connectionShutdown0AsyncWrapper);
+            _preConnectionShutdownAsyncWrapper.Takeover(other._preConnectionShutdownAsyncWrapper);
             _connectionShutdownAsyncWrapper.Takeover(other._connectionShutdownAsyncWrapper);
             _consumerAboutToBeRecoveredAsyncWrapper.Takeover(other._consumerAboutToBeRecoveredAsyncWrapper);
         }
@@ -268,7 +265,7 @@ namespace RabbitMQ.Client.Impl
                  *
                  * MainLoop is what ultimately runs FinishCloseAsync, which is the only
                  * code path that shuts down channel 0 (session 0 does not subscribe to
-                 * ConnectionShutdownAsync). If we allowed cancellation to be observed
+                 * the connection-shutdown events). If we allowed cancellation to be observed
                  * before starting MainLoop, the failed-open cleanup would dispose an
                  * already-open channel 0, whose abort would then hang for the full
                  * ContinuationTimeout awaiting a channel.close-ok that can never arrive.
@@ -551,7 +548,14 @@ namespace RabbitMQ.Client.Impl
         private async Task OnShutdownAsync(ShutdownEventArgs reason)
         {
             ThrowIfDisposed();
-            await _connectionShutdown0AsyncWrapper.InvokeAsync(this, reason).ConfigureAwait(false);
+
+            // Invariant: pre-shutdown handlers run to completion before any public
+            // ConnectionShutdownAsync handler. Per-channel SessionBase teardown subscribes to
+            // PreConnectionShutdownAsync so every session is closed before application code and
+            // AutorecoveringConnection.HandleConnectionShutdownAsync (a public handler) observe
+            // the shutdown and start recovery. The two sequential awaits are what enforce the
+            // ordering; do not merge them into a single event.
+            await _preConnectionShutdownAsyncWrapper.InvokeAsync(this, reason).ConfigureAwait(false);
             await _connectionShutdownAsyncWrapper.InvokeAsync(this, reason).ConfigureAwait(false);
         }
 
