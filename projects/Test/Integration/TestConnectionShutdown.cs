@@ -402,6 +402,58 @@ namespace Test.Integration
             await _channel.DisposeAsync();
         }
 
+        [Fact]
+        public async Task TestChannelShutdownFiresOnceWhenChannelClosedBeforeConnection_GH2005()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#2005
+             *
+             * A channel's SessionBase subscribes to Connection.PreConnectionShutdownAsync in
+             * its constructor and must unsubscribe in OnSessionShutdownAsync when the channel
+             * closes. A regression subscribed to PreConnectionShutdownAsync but unsubscribed
+             * from the public ConnectionShutdownAsync, so the unsubscribe was a no-op: a channel
+             * closed while its connection stayed open leaked its session handler onto the
+             * connection, and that handler re-fired the channel's shutdown when the connection
+             * later closed.
+             *
+             * A non-recovering connection is used so the channel's ChannelShutdownAsync maps
+             * directly to the underlying session shutdown, with no recovery wrapper in between.
+             * The connection close broadcasts PreConnectionShutdownAsync synchronously (awaited)
+             * inside CloseAsync, so any second fire has already happened once CloseAsync returns.
+             */
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+
+            IConnection conn = await CreateConnectionAsyncWithRetries(cf);
+            try
+            {
+                IChannel channel = await conn.CreateChannelAsync();
+
+                int shutdownCount = 0;
+                var firstShutdownTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                channel.ChannelShutdownAsync += (_, _) =>
+                {
+                    Interlocked.Increment(ref shutdownCount);
+                    firstShutdownTcs.TrySetResult(true);
+                    return Task.CompletedTask;
+                };
+
+                // Close the channel while the connection stays open. This fires the channel
+                // shutdown once and must unsubscribe the session from PreConnectionShutdownAsync.
+                await channel.CloseAsync();
+                await WaitAsync(firstShutdownTcs, "channel shutdown");
+                Assert.Equal(1, Volatile.Read(ref shutdownCount));
+
+                // Closing the connection must not re-fire the already-closed channel's shutdown.
+                await conn.CloseAsync();
+                Assert.Equal(1, Volatile.Read(ref shutdownCount));
+            }
+            finally
+            {
+                await conn.DisposeAsync();
+            }
+        }
+
         private async Task WaitAllAsync(TaskCompletionSource<bool> tcs, ValueTask frameHandlerCloseTask)
         {
             await WaitAsync(tcs, _waitSpan, "channel shutdown");
