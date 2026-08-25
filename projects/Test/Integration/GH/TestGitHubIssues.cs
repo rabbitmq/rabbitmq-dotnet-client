@@ -377,5 +377,102 @@ namespace Test.Integration.GH
                 }
             }
         }
+
+        [Fact]
+        public async Task TestConnectionShutdownHandlerAheadOfSessionDoesNotDeadlock_GH2005()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#2005
+             *
+             * An application subscribes to ConnectionShutdownAsync when it creates the connection
+             * - before any channel exists, so its handler sits ahead of every SessionBase in the
+             * shutdown invocation list - and that handler takes a lock which is also held across
+             * an RPC. When the socket dies while a Basic.Consume is outstanding, the two used to
+             * deadlock: the shutdown walk ran the application handler first, it blocked on the
+             * lock, the lock holder was awaiting the consume, and only the session handler (later
+             * in the list) could fault that consume - but the walk never reached it.
+             *
+             * The fix runs session teardown on the internal PreConnectionShutdownAsync event,
+             * which Connection.OnShutdownAsync awaits to completion before the public
+             * ConnectionShutdownAsync handlers. The session faults the outstanding consume first,
+             * releasing the lock, so the application handler completes.
+             *
+             * ConsumeOkSwallowingProxy makes this deterministic: it drops the connection the
+             * instant the broker answers the consume, so the consume RPC is always outstanding
+             * when the shutdown handlers run. Automatic recovery is disabled to keep the test
+             * focused on the first-disconnect ordering and to avoid a recovery loop against the
+             * killed proxy. A deadlock manifests as this test timing out on the awaits below.
+             */
+            Assert.Null(_connFactory);
+            Assert.Null(_conn);
+            Assert.Null(_channel);
+
+            using var proxy = new ConsumeOkSwallowingProxy("localhost", 5672, s => _output.WriteLine(s));
+            proxy.Start();
+
+            _connFactory = CreateConnectionFactory();
+            _connFactory.AutomaticRecoveryEnabled = false;
+            _connFactory.HostName = "localhost";
+            _connFactory.Port = proxy.ListenPort;
+
+            _conn = await _connFactory.CreateConnectionAsync();
+
+            var registryLock = new SemaphoreSlim(1, 1);
+            var shutdownHandlerReturned = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            // Subscribed before any channel exists, so (in the single-event world this fixes) it
+            // is ahead of every session. It takes the same lock the consume caller holds.
+            _conn.ConnectionShutdownAsync += async (_, _) =>
+            {
+                await registryLock.WaitAsync();
+                try
+                {
+                    // The cleanup an application would do here; the point is that it needs the lock.
+                }
+                finally
+                {
+                    registryLock.Release();
+                }
+
+                shutdownHandlerReturned.TrySetResult(true);
+            };
+
+            _channel = await _conn.CreateChannelAsync();
+            QueueDeclareOk q = await _channel.QueueDeclareAsync(string.Empty, durable: true,
+                exclusive: false, autoDelete: false);
+
+            // Not awaited: the proxy drops the connection the moment the broker answers, so this
+            // consume stays outstanding while the shutdown handlers run.
+            Task consuming = ConsumeHoldingLockAsync(_channel, q.QueueName, registryLock);
+
+            // If the ordering invariant holds, the outstanding consume is faulted by session
+            // shutdown (so it completes) and the application handler acquires the lock and returns.
+            // Either await hanging for WaitSpan is the deadlock signal.
+            try
+            {
+                await consuming.WaitAsync(WaitSpan);
+                Assert.Fail("expected the outstanding consume to be faulted by connection shutdown");
+            }
+            catch (OperationInterruptedException)
+            {
+                // expected: the in-flight consume RPC is faulted when the session shuts down
+            }
+
+            await shutdownHandlerReturned.Task.WaitAsync(WaitSpan);
+        }
+
+        private static async Task ConsumeHoldingLockAsync(IChannel channel, string queue, SemaphoreSlim registryLock)
+        {
+            await registryLock.WaitAsync();
+            try
+            {
+                await channel.BasicConsumeAsync(queue, autoAck: false,
+                    consumer: new AsyncEventingBasicConsumer(channel));
+            }
+            finally
+            {
+                registryLock.Release();
+            }
+        }
     }
 }
