@@ -111,7 +111,9 @@ namespace Test.Integration.GH
             {
                 while (true)
                 {
-                    int read = await from.GetStream().ReadAsync(buffer);
+                    // Use the (byte[], int, int) overloads: the Memory<byte>-based Stream
+                    // overloads do not exist on net472, which this project also targets.
+                    int read = await from.GetStream().ReadAsync(buffer, 0, buffer.Length);
                     if (read == 0)
                     {
                         break;
@@ -119,7 +121,7 @@ namespace Test.Integration.GH
 
                     if (!inspect)
                     {
-                        await to.GetStream().WriteAsync(buffer.AsMemory(0, read));
+                        await to.GetStream().WriteAsync(buffer, 0, read);
                         continue;
                     }
 
@@ -148,7 +150,7 @@ namespace Test.Integration.GH
                             return;
                         }
 
-                        await to.GetStream().WriteAsync(frame);
+                        await to.GetStream().WriteAsync(frame, 0, frame.Length);
                     }
                 }
             }
