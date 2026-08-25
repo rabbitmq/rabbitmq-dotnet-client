@@ -8,7 +8,7 @@ Every connection has a hidden channel/session pair on channel number 0 (`_channe
 
 The single most important and least obvious fact about shutdown:
 
-> **Session 0 does not subscribe to `Connection.ConnectionShutdownAsync`.**
+> **Session 0 does not subscribe to either connection-shutdown event.**
 
 See `SessionBase` construction:
 
@@ -20,13 +20,15 @@ protected SessionBase(Connection connection, ushort channelNumber)
     ChannelNumber = channelNumber;
     if (channelNumber != 0)
     {
-        connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
+        connection.PreConnectionShutdownAsync += OnConnectionShutdownAsync;
     }
     ...
 }
 ```
 
-Application channels (channel number != 0) are shut down automatically when the connection shuts down, because their session is wired to `ConnectionShutdownAsync`. That event handler chain ends in `Channel.OnSessionShutdownAsync -> OnChannelShutdownAsync -> _continuationQueue.HandleChannelShutdown(reason)`, which faults any pending RPC continuation with an `OperationInterruptedException`.
+Application channels (channel number != 0) are shut down automatically when the connection shuts down, because their session is wired to `PreConnectionShutdownAsync`. That event handler chain ends in `Channel.OnSessionShutdownAsync -> OnChannelShutdownAsync -> _continuationQueue.HandleChannelShutdown(reason)`, which faults any pending RPC continuation with an `OperationInterruptedException`.
+
+`PreConnectionShutdownAsync` is an internal event that fires *before* the public `ConnectionShutdownAsync`: `Connection.OnShutdownAsync` awaits every pre-shutdown handler to completion, then awaits the public handlers. The ordering is load-bearing - it guarantees every application session is closed before `AutorecoveringConnection.HandleConnectionShutdownAsync` (a public handler) starts automatic recovery. The subscribe in the `SessionBase` constructor and the unsubscribe in `OnSessionShutdownAsync` must target the same event; a mismatch leaks every closed session's handler onto the connection for its lifetime and re-fires session shutdown when the connection later closes.
 
 Channel 0 has **no such wiring**. Its only shutdown path is `Connection.FinishCloseAsync`:
 
