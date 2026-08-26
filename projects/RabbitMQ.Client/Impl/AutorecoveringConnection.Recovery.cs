@@ -72,9 +72,16 @@ namespace RabbitMQ.Client.Impl
 
                     if (_recoveryTask == null)
                     {
-                        var recoverTask = new Task<Task>(RecoverConnectionAsync);
-                        _recoveryTask = recoverTask.Unwrap();
-                        recoverTask.Start();
+                        // Run the recovery loop on the thread pool. Assigning the task
+                        // returned by Task.Run (rather than invoking RecoverConnectionAsync
+                        // directly) guarantees _recoveryTask is set before the loop's finally
+                        // can run: a direct call executes inline while we hold _recoverySync,
+                        // and if recovery completes synchronously the finally would clear
+                        // _recoveryTask before this assignment resurrected a completed task
+                        // into it, permanently wedging recovery. Task.Run also uses
+                        // TaskScheduler.Default rather than the ambient TaskScheduler.Current
+                        // that a bare Task.Start() would capture.
+                        _recoveryTask = Task.Run(RecoverConnectionAsync);
                     }
                     else
                     {
