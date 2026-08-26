@@ -54,7 +54,10 @@ namespace RabbitMQ.Client.Impl
             ChannelNumber = channelNumber;
             if (channelNumber != 0)
             {
-                connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
+                // Subscribe to the pre-shutdown event so the session is cleared before the public
+                // ConnectionShutdownAsync handlers run (see Connection.OnShutdownAsync). This must
+                // be paired with the matching unsubscribe in OnSessionShutdownAsync.
+                connection.PreConnectionShutdownAsync += OnConnectionShutdownAsync;
             }
             RabbitMqClientEventSource.Log.ChannelOpened();
         }
@@ -181,7 +184,7 @@ namespace RabbitMQ.Client.Impl
 
         private Task OnSessionShutdownAsync(ShutdownEventArgs reason)
         {
-            Connection.ConnectionShutdownAsync -= OnConnectionShutdownAsync;
+            Connection.PreConnectionShutdownAsync -= OnConnectionShutdownAsync;
             return _sessionShutdownAsyncWrapper.InvokeAsync(this, reason);
         }
 
