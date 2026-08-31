@@ -131,7 +131,7 @@ namespace RabbitMQ.Client.Impl
             /// a (potentially) multi-segment sequence.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int WriteTo(Span<byte> span, ushort channel, in ReadOnlySequence<byte> body)
+            public static int WriteTo(Span<byte> span, ushort channel, ReadOnlySequence<byte> body)
             {
                 const int StartBodyArgument = StartPayload;
                 System.Diagnostics.Debug.Assert(body.Length <= int.MaxValue - BaseFrameSize);
@@ -158,7 +158,7 @@ namespace RabbitMQ.Client.Impl
             /// writer for a span covering the whole payload: the frame header, each segment and
             /// the end marker are written independently.
             /// </summary>
-            public static int WriteTo(IBufferWriter<byte> bufferWriter, ushort channel, in ReadOnlySequence<byte> body)
+            public static int WriteTo(IBufferWriter<byte> bufferWriter, ushort channel, ReadOnlySequence<byte> body)
             {
                 System.Diagnostics.Debug.Assert(body.Length <= int.MaxValue - BaseFrameSize);
                 int payloadLength = (int)body.Length;
@@ -296,7 +296,7 @@ namespace RabbitMQ.Client.Impl
         /// ownership is transferred to the returned <see cref="OutgoingFrame"/>, which writes the
         /// segments straight to the wire and disposes <paramref name="bodyOwner"/> afterwards.
         /// </remarks>
-        public static OutgoingFrame SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, in ReadOnlySequence<byte> body, IDisposable? bodyOwner, ushort channelNumber, int maxBodyPayloadBytes)
+        public static OutgoingFrame SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlySequence<byte> body, IDisposable? bodyOwner, ushort channelNumber, int maxBodyPayloadBytes)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {

@@ -137,7 +137,7 @@ namespace RabbitMQ.Client.Impl
             return Connection.WriteAsync(bytes, cancellationToken);
         }
 
-        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, in ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken = default)
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken = default)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {

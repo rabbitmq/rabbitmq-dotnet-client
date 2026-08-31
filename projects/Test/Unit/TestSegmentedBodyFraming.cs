@@ -183,7 +183,7 @@ namespace Test.Unit
             Assert.Equal(1, owner.DisposeCount);
         }
 
-        private static OutgoingFrame CreateFrame(in ReadOnlySequence<byte> body, int maxBodyPayloadBytes,
+        private static OutgoingFrame CreateFrame(ReadOnlySequence<byte> body, int maxBodyPayloadBytes,
             IDisposable bodyOwner = null)
         {
             // OutgoingFrame.Dispose returns this array to the shared pool, so it must be rented.

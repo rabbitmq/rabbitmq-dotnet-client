@@ -196,7 +196,7 @@ namespace Test.Unit
             });
         }
 
-        private static void AssertSizeMatchesBytesWritten(in ReadOnlySequence<byte> body,
+        private static void AssertSizeMatchesBytesWritten(ReadOnlySequence<byte> body,
             IDisposable bodyOwner, int maxBodyPayloadBytes)
         {
             var method = new BasicPublish(Exchange, RoutingKey, false, false);
@@ -209,7 +209,7 @@ namespace Test.Unit
             Assert.Equal(size, WriteToArray(frame).Length);
         }
 
-        private static byte[] SerializeToArray(in ReadOnlySequence<byte> body, IDisposable bodyOwner,
+        private static byte[] SerializeToArray(ReadOnlySequence<byte> body, IDisposable bodyOwner,
             int maxBodyPayloadBytes)
         {
             var method = new BasicPublish(Exchange, RoutingKey, false, false);

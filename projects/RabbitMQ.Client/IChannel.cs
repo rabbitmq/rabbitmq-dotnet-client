@@ -268,6 +268,10 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
+        // The ReadOnlySequence<byte> body is intentionally passed by value, not by `in`. Although the
+        // struct is 24 bytes, the async publish core must take it by value regardless (async methods
+        // cannot have `in` parameters), so `in` here would save at most one copy while making the
+        // by-reference form part of the public API. See PR #1983 for the discussion.
         /// <summary>
         /// Asynchronously publishes a message with a body made up of one or more discontiguous
         /// memory segments.
@@ -295,7 +299,7 @@ namespace RabbitMQ.Client
         /// </para>
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            bool mandatory, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 
@@ -326,7 +330,7 @@ namespace RabbitMQ.Client
         /// </para>
         /// </remarks>
         ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            bool mandatory, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader;
 

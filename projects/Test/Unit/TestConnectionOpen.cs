@@ -288,7 +288,7 @@ namespace Test.Unit
             }
 
             public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header,
-                in ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
+                ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
                 where TMethod : struct, IOutgoingAmqpMethod
                 where THeader : IAmqpHeader
             {

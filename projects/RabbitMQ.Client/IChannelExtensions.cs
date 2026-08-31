@@ -314,7 +314,7 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <param name="addr">The destination address.</param>
@@ -331,7 +331,7 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync<T>(this IChannel channel,
             PublicationAddress addr,
             T basicProperties,
-            in ReadOnlySequence<byte> body,
+            ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where T : IReadOnlyBasicProperties, IAmqpHeader =>
@@ -340,7 +340,7 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <param name="exchange">The exchange.</param>
@@ -357,7 +357,7 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync(this IChannel channel,
             string exchange,
             string routingKey,
-            in ReadOnlySequence<byte> body,
+            ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
@@ -365,7 +365,7 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <param name="exchange">The exchange.</param>
@@ -384,7 +384,7 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             bool mandatory,
-            in ReadOnlySequence<byte> body,
+            ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
@@ -392,7 +392,7 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <param name="exchange">The exchange.</param>
@@ -409,7 +409,7 @@ namespace RabbitMQ.Client
         public static ValueTask BasicPublishAsync(this IChannel channel,
             CachedString exchange,
             CachedString routingKey,
-            in ReadOnlySequence<byte> body,
+            ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
@@ -417,7 +417,7 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>
-        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, in ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
+        /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <param name="exchange">The exchange.</param>
@@ -436,7 +436,7 @@ namespace RabbitMQ.Client
             CachedString exchange,
             CachedString routingKey,
             bool mandatory,
-            in ReadOnlySequence<byte> body,
+            ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default) =>
             channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,

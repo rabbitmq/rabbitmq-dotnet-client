@@ -74,7 +74,7 @@ namespace RabbitMQ.Client
         internal OutgoingFrame(
             byte[] methodAndHeaderArray,
             int methodAndHeaderLength,
-            in ReadOnlySequence<byte> body,
+            ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             ushort channelNumber,
             int maxBodyPayloadBytes,

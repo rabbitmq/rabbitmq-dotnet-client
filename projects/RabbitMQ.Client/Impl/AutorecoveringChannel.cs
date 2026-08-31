@@ -379,7 +379,7 @@ namespace RabbitMQ.Client.Impl
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory,
             TProperties basicProperties,
-            in ReadOnlySequence<byte> body,
+            ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -388,7 +388,7 @@ namespace RabbitMQ.Client.Impl
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory,
             TProperties basicProperties,
-            in ReadOnlySequence<byte> body,
+            ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader

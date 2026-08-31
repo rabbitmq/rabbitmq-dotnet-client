@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
-            bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            bool mandatory, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
@@ -92,7 +92,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
-            bool mandatory, TProperties basicProperties, in ReadOnlySequence<byte> body, IDisposable? bodyOwner,
+            bool mandatory, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Impl
         /// A stricter total-frame-set-size check in <see cref="Framing.GetTotalFrameSetSize"/> guards further downstream.
         /// This check is kept here as well so an oversize body is rejected synchronously, before a publisher confirmation sequence number is consumed.
         /// </summary>
-        private static void ValidateBodyLength(in ReadOnlySequence<byte> body, IDisposable? bodyOwner)
+        private static void ValidateBodyLength(ReadOnlySequence<byte> body, IDisposable? bodyOwner)
         {
             if (body.Length > int.MaxValue)
             {
@@ -189,7 +189,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        // NOTE: BasicPublishCoreAsync is an async method so we can't pass the ReadOnlySequence<byte> body as reference with in/ref
+        // NOTE: BasicPublishCoreAsync is an async method, so the ReadOnlySequence<byte> body cannot be
+        // passed by reference (async methods cannot have in/ref parameters); it is taken by value here.
+        // The public overloads also take the body by value rather than by `in`: because this core copies
+        // it regardless, `in` on the public API would have saved at most one 24-byte copy while
+        // constraining the signature (for example, blocking a future move to a truly async forwarder).
         private async ValueTask BasicPublishCoreAsync<TMethod, TProperties>(
             TMethod cmd, TProperties basicProperties, ReadOnlySequence<byte> body, IDisposable? bodyOwner,
             string exchange, string routingKey, CancellationToken cancellationToken)
