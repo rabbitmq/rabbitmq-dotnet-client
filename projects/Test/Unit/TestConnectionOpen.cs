@@ -32,6 +32,7 @@
 #nullable enable
 
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -279,6 +280,15 @@ namespace Test.Unit
 
             public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header,
                 ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
+                where TMethod : struct, IOutgoingAmqpMethod
+                where THeader : IAmqpHeader
+            {
+                bodyOwner?.Dispose();
+                throw new NotSupportedException();
+            }
+
+            public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header,
+                ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
                 where TMethod : struct, IOutgoingAmqpMethod
                 where THeader : IAmqpHeader
             {

@@ -137,7 +137,7 @@ namespace RabbitMQ.Client.Impl
             return Connection.WriteAsync(bytes, cancellationToken);
         }
 
-        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken = default)
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken = default)
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
@@ -156,6 +156,37 @@ namespace RabbitMQ.Client.Impl
             // we must dispose `bodyOwner` directly because it was never captured.
             // If PopulateMessageEnvelopeSize or a synchronous fault inside Connection.WriteAsync
             // throws, `bytes` already owns `bodyOwner`; disposing the frame releases both.
+            OutgoingFrame bytes = default;
+            try
+            {
+                bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
+                RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+                return Connection.WriteAsync(bytes, cancellationToken);
+            }
+            catch
+            {
+                if (bytes.Size == 0)
+                {
+                    bodyOwner?.Dispose();
+                }
+                else
+                {
+                    bytes.Dispose();
+                }
+                throw;
+            }
+        }
+
+        public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header, ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken = default)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
+            {
+                bodyOwner?.Dispose();
+                ThrowAlreadyClosedException();
+            }
+
             OutgoingFrame bytes = default;
             try
             {

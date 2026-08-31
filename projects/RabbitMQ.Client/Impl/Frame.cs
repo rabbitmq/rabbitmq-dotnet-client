@@ -31,6 +31,7 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
@@ -125,6 +126,22 @@ namespace RabbitMQ.Client.Impl
                 return body.Length + BaseFrameSize;
             }
 
+            /// <summary>
+            /// Writes a single body frame into a contiguous destination, gathering the payload from
+            /// a (potentially) multi-segment sequence.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static int WriteTo(Span<byte> span, ushort channel, ReadOnlySequence<byte> body)
+            {
+                const int StartBodyArgument = StartPayload;
+                System.Diagnostics.Debug.Assert(body.Length <= int.MaxValue - BaseFrameSize);
+                int payloadLength = (int)body.Length;
+                NetworkOrderSerializer.WriteUInt64(ref span.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
+                body.CopyTo(span.Slice(StartBodyArgument));
+                span[StartPayload + payloadLength] = Constants.FrameEnd;
+                return payloadLength + BaseFrameSize;
+            }
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int WriteTo(IBufferWriter<byte> bufferWriter, ushort channel, ReadOnlySpan<byte> body)
             {
@@ -133,6 +150,41 @@ namespace RabbitMQ.Client.Impl
                 int offset = WriteTo(span, channel, body);
                 bufferWriter.Advance(offset);
                 return offset;
+            }
+
+            /// <summary>
+            /// Writes a single body frame whose payload is (potentially) spread over several
+            /// segments. Unlike the <see cref="ReadOnlySpan{T}"/> overload this never asks the
+            /// writer for a span covering the whole payload: the frame header, each segment and
+            /// the end marker are written independently.
+            /// </summary>
+            public static int WriteTo(IBufferWriter<byte> bufferWriter, ushort channel, ReadOnlySequence<byte> body)
+            {
+                System.Diagnostics.Debug.Assert(body.Length <= int.MaxValue - BaseFrameSize);
+                int payloadLength = (int)body.Length;
+
+                /*
+                 * The 7 byte frame header is written with a single 64 bit store (the 8th byte
+                 * belongs to the payload), so request one extra byte and commit only the 7 bytes
+                 * that make up the header.
+                 */
+                Span<byte> headerSpan = bufferWriter.GetSpan(StartPayload + 1);
+                NetworkOrderSerializer.WriteUInt64(ref headerSpan.GetStart(), ((ulong)Constants.FrameBody << 56) | ((ulong)channel << 40) | ((ulong)payloadLength << 8));
+                bufferWriter.Advance(StartPayload);
+
+                foreach (ReadOnlyMemory<byte> segment in body)
+                {
+                    if (segment.Length > 0)
+                    {
+                        bufferWriter.Write(segment.Span);
+                    }
+                }
+
+                Span<byte> endMarkerSpan = bufferWriter.GetSpan(1);
+                endMarkerSpan[0] = Constants.FrameEnd;
+                bufferWriter.Advance(1);
+
+                return payloadLength + BaseFrameSize;
             }
         }
 
@@ -180,15 +232,16 @@ namespace RabbitMQ.Client.Impl
             where TMethod : struct, IOutgoingAmqpMethod
             where THeader : IAmqpHeader
         {
+            int framingSize = Method.FrameSize + Header.FrameSize +
+                              method.GetRequiredBufferSize() + header.GetRequiredBufferSize();
+
             if (bodyOwner is null)
             {
                 // Packs method, header, and body frames into a single buffer. The body is copied
                 // into the buffer because the caller retains ownership of the ReadOnlyMemory<byte>.
                 int bodyLength = body.Length;
                 int remainingBodyBytes = bodyLength;
-                int size = Method.FrameSize + Header.FrameSize +
-                           method.GetRequiredBufferSize() + header.GetRequiredBufferSize() +
-                           BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, bodyLength) + bodyLength;
+                int size = GetTotalFrameSetSize(framingSize, bodyLength, maxBodyPayloadBytes);
 
                 // Will be returned by SocketFrameWriter.WriteLoop
                 byte[] buffer = ArrayPool<byte>.Shared.Rent(size);
@@ -211,13 +264,8 @@ namespace RabbitMQ.Client.Impl
                 // Zero-copy path: ownership of body is transferred to the OutgoingFrame, which
                 // disposes it after writing. Method and header are packed into a separate buffer;
                 // the body is written directly to the wire without an intermediate copy.
-                // Calculate ONLY the Method and Header framing size
-                int framingSize = Method.FrameSize + Header.FrameSize +
-                                  method.GetRequiredBufferSize() + header.GetRequiredBufferSize();
-
                 // Pre-calculate total final sequence size
-                int bodyFramesCount = GetBodyFrameCount(maxBodyPayloadBytes, body.Length);
-                int totalSize = framingSize + body.Length + (BodySegment.FrameSize * bodyFramesCount);
+                int totalSize = GetTotalFrameSetSize(framingSize, body.Length, maxBodyPayloadBytes);
 
                 // Rent a smaller buffer exclusively for the Method and Header
                 byte[] buffer = ArrayPool<byte>.Shared.Rent(framingSize);
@@ -239,15 +287,141 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        /// <summary>
+        /// Serializes a method, header and a (potentially non-contiguous) body into a set of AMQP frames.
+        /// </summary>
+        /// <remarks>
+        /// When <paramref name="bodyOwner"/> is <c>null</c> the body is copied into a single pooled
+        /// buffer, because the caller retains ownership of the memory backing the sequence. Otherwise
+        /// ownership is transferred to the returned <see cref="OutgoingFrame"/>, which writes the
+        /// segments straight to the wire and disposes <paramref name="bodyOwner"/> afterwards.
+        /// </remarks>
+        public static OutgoingFrame SerializeToFrames<TMethod, THeader>(ref TMethod method, ref THeader header, ReadOnlySequence<byte> body, IDisposable? bodyOwner, ushort channelNumber, int maxBodyPayloadBytes)
+            where TMethod : struct, IOutgoingAmqpMethod
+            where THeader : IAmqpHeader
+        {
+            if (body.IsSingleSegment)
+            {
+                // Fast path for contiguous bodies
+                return SerializeToFrames(ref method, ref header, body.First, bodyOwner, channelNumber, maxBodyPayloadBytes);
+            }
+
+            int framingSize = Method.FrameSize + Header.FrameSize +
+                              method.GetRequiredBufferSize() + header.GetRequiredBufferSize();
+            int totalSize = GetTotalFrameSetSize(framingSize, body.Length, maxBodyPayloadBytes);
+            int bodyLength = (int)body.Length;
+
+            if (bodyOwner is null)
+            {
+                // Will be returned by SocketFrameWriter.WriteLoop
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(totalSize);
+
+                int offset = Method.WriteTo(buffer, channelNumber, ref method);
+                offset += Header.WriteTo(buffer.AsSpan(offset), channelNumber, ref header, bodyLength);
+
+                // Body frame boundaries are independent of the sequence segment boundaries.
+                ReadOnlySequence<byte> remainingBody = body;
+                while (!remainingBody.IsEmpty)
+                {
+                    int payloadSize = remainingBody.Length > maxBodyPayloadBytes ? maxBodyPayloadBytes : (int)remainingBody.Length;
+                    offset += BodySegment.WriteTo(buffer.AsSpan(offset), channelNumber, remainingBody.Slice(0, payloadSize));
+                    remainingBody = remainingBody.Slice(payloadSize);
+                }
+
+                System.Diagnostics.Debug.Assert(offset == totalSize, $"Serialized to wrong size, expect {totalSize}, offset {offset}");
+                return new OutgoingFrame(buffer, totalSize);
+            }
+            else
+            {
+                // Rent a smaller buffer exclusively for the Method and Header
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(framingSize);
+                Span<byte> bufferSpan = buffer.AsSpan(0, framingSize);
+
+                int offset = Method.WriteTo(bufferSpan, channelNumber, ref method);
+                offset += Header.WriteTo(bufferSpan.Slice(offset), channelNumber, ref header, bodyLength);
+
+                System.Diagnostics.Debug.Assert(offset == framingSize, $"Serialized to wrong size, expect {framingSize}, offset {offset}");
+
+                return new OutgoingFrame(
+                    buffer,
+                    framingSize,
+                    body,
+                    bodyOwner,
+                    channelNumber,
+                    maxBodyPayloadBytes,
+                    totalSize);
+            }
+        }
+
+        /// <summary>
+        /// Computes the total size of the method, header and body frames, validating that both the
+        /// body and the resulting frame set can be addressed with an <see cref="int"/>.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// The body, or the set of frames required to send it, exceeds <see cref="int.MaxValue"/> bytes.
+        /// </exception>
+        private static int GetTotalFrameSetSize(int framingSize, long bodyLength, int maxBodyPayloadBytes)
+        {
+            if (bodyLength <= int.MaxValue)
+            {
+                int length = (int)bodyLength;
+                long totalSize = (long)framingSize + length +
+                                 ((long)BodySegment.FrameSize * GetBodyFrameCount(maxBodyPayloadBytes, length));
+                if (totalSize <= int.MaxValue)
+                {
+                    return (int)totalSize;
+                }
+            }
+
+            ThrowBodyTooLarge(framingSize, bodyLength, maxBodyPayloadBytes);
+            return 0; // unreachable
+        }
+
+        [DoesNotReturn]
+#if NET
+        [System.Diagnostics.StackTraceHidden]
+#endif
+        private static void ThrowBodyTooLarge(int framingSize, long bodyLength, int maxBodyPayloadBytes)
+        {
+            long totalSize = framingSize + bodyLength +
+                             (BodySegment.FrameSize * GetBodyFrameCountAsLong(maxBodyPayloadBytes, bodyLength));
+
+            throw new ArgumentOutOfRangeException("body", bodyLength,
+                $"Message body of {bodyLength} bytes requires {totalSize} bytes of AMQP frames, " +
+                $"which exceeds the maximum of {int.MaxValue} bytes " +
+                $"(negotiated maximum body payload per frame: {maxBodyPayloadBytes} bytes).");
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetBodyFrameCount(int maxPayloadBytes, int length)
         {
+            if (length == 0)
+            {
+                return 0;
+            }
+
             if (maxPayloadBytes == int.MaxValue)
             {
                 return 1;
             }
 
-            return (length + maxPayloadBytes - 1) / maxPayloadBytes;
+            // Written as (length - 1) / max + 1 so that it cannot overflow for a length close to int.MaxValue.
+            return ((length - 1) / maxPayloadBytes) + 1;
+        }
+
+        private static long GetBodyFrameCountAsLong(int maxPayloadBytes, long length)
+        {
+            if (length == 0)
+            {
+                return 0;
+            }
+
+            if (maxPayloadBytes == int.MaxValue)
+            {
+                return 1;
+            }
+
+            return ((length - 1) / maxPayloadBytes) + 1;
         }
     }
 
