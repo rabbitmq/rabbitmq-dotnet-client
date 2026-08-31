@@ -37,24 +37,58 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Impl
 {
     internal sealed partial class AutorecoveringConnection
     {
+        // TODO: Use Lock once update to .NET 9+
+        // https://learn.microsoft.com/en-us/dotnet/api/system.threading.lock?view=net-10.0
+        private readonly object _recoverySync = new object();
         private Task? _recoveryTask;
+        private bool _recoveryPendingRequest;
         private readonly CancellationTokenSource _recoveryCancellationTokenSource = new CancellationTokenSource();
 
         private Task HandleConnectionShutdownAsync(object? _, ShutdownEventArgs args)
         {
             if (ShouldTriggerConnectionRecovery(args))
             {
-                var recoverTask = new Task<Task>(RecoverConnectionAsync);
-                if (Interlocked.CompareExchange(ref _recoveryTask, recoverTask.Unwrap(), null) is null)
+                // Safe to lock here: no await runs while the lock is held (this method is
+                // not async), so Monitor is entered and released on the same thread. An
+                // await inside a lock is a C# compile error precisely because it would
+                // break that thread affinity.
+                lock (_recoverySync)
                 {
-                    recoverTask.Start();
+                    if (_disposed)
+                    {
+                        // Disposal has begun; _recoveryCancellationTokenSource may already be
+                        // disposed, so do not start a new recovery task. This is best-effort
+                        // (DisposeAsync does not take _recoverySync); RecoverConnectionAsync
+                        // still tolerates a disposed source by capturing the token inside its
+                        // try.
+                        return Task.CompletedTask;
+                    }
+
+                    if (_recoveryTask == null)
+                    {
+                        // Run the recovery loop on the thread pool. Assigning the task
+                        // returned by Task.Run (rather than invoking RecoverConnectionAsync
+                        // directly) guarantees _recoveryTask is set before the loop's finally
+                        // can run: a direct call executes inline while we hold _recoverySync,
+                        // and if recovery completes synchronously the finally would clear
+                        // _recoveryTask before this assignment resurrected a completed task
+                        // into it, permanently wedging recovery. Task.Run also uses
+                        // TaskScheduler.Default rather than the ambient TaskScheduler.Current
+                        // that a bare Task.Start() would capture.
+                        _recoveryTask = Task.Run(RecoverConnectionAsync);
+                    }
+                    else
+                    {
+                        // Notify current recovery task about new recovery request,
+                        // as there is no other task to catch it.
+                        _recoveryPendingRequest = true;
+                    }
                 }
             }
 
@@ -98,30 +132,62 @@ namespace RabbitMQ.Client.Impl
 
         private async Task RecoverConnectionAsync()
         {
-            try
+            bool retryRecovery = true;
+            while (retryRecovery)
             {
-                CancellationToken token = _recoveryCancellationTokenSource.Token;
-                bool success;
-                do
+                try
                 {
-                    await Task.Delay(_config.NetworkRecoveryInterval, token)
-                        .ConfigureAwait(false);
-                    success = await TryPerformAutomaticRecoveryAsync(token)
-                        .ConfigureAwait(false);
-                } while (false == success && false == token.IsCancellationRequested);
-            }
-            catch (OperationCanceledException)
-            {
-                // expected when recovery cancellation token is set.
-            }
-            catch (Exception e)
-            {
-                ESLog.Error("Main recovery loop threw unexpected exception.", e);
-            }
-            finally
-            {
-                // clear recovery task
-                _recoveryTask = null;
+                    // Capture the token inside the try. If _recoveryCancellationTokenSource
+                    // was already disposed (a shutdown notification racing with DisposeAsync),
+                    // reading Token throws ObjectDisposedException; catching it here logs it
+                    // and lets the finally clear _recoveryTask, rather than faulting this task
+                    // unobserved and leaving _recoveryTask non-null (which would permanently
+                    // block further recovery).
+                    CancellationToken token = _recoveryCancellationTokenSource.Token;
+
+                    // Re-check if connection is not opened already, as we could execute it multiple times.
+                    bool success = IsOpen;
+                    while (false == success && false == token.IsCancellationRequested && false == _disposed)
+                    {
+                        await Task.Delay(_config.NetworkRecoveryInterval, token)
+                            .ConfigureAwait(false);
+                        success = await TryPerformAutomaticRecoveryAsync(token)
+                            .ConfigureAwait(false);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // expected when recovery cancellation token is set.
+                }
+                catch (Exception e)
+                {
+                    ESLog.Error("Main recovery loop threw unexpected exception.", e);
+                }
+                finally
+                {
+                    // Safe to lock inside this async method: the lock body has no await
+                    // (all awaits are in the try above), so Monitor is entered and released
+                    // on the same thread.
+                    lock (_recoverySync)
+                    {
+                        /*
+                         * It is possible that the re-opened connection was again shut down while we executed recovery method above.
+                         * In those cases the shutdown callback didn't enqueue a new recovery task, so recovery will not happen.
+                         * There could be a delay between opening the connection and returning from the recovery method,
+                         * so there is a race-condition that could lead to a permanently never recovered connection.
+                         */
+                        if (_recoveryPendingRequest)
+                        {
+                            _recoveryPendingRequest = false;
+                            retryRecovery = true;
+                        }
+                        else
+                        {
+                            _recoveryTask = null;
+                            retryRecovery = false;
+                        }
+                    }
+                }
             }
         }
 
@@ -131,10 +197,27 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         private async ValueTask StopRecoveryLoopAsync(CancellationToken cancellationToken)
         {
-            Task? task = _recoveryTask;
+            // We have to cancel the token regardless of whether there is a task,
+            // as there could be a race condition that starts a new recovery task right after we checked.
+            // It's safer to cancel it, so even if a new task is created - it will be a nop.
+            _recoveryCancellationTokenSource.Cancel();
+
+            // Read _recoveryTask under _recoverySync so we serialize with
+            // HandleConnectionShutdownAsync: if it is concurrently starting a task, we wait
+            // for it to publish _recoveryTask and then await that task. Any task started
+            // strictly after this read sees the already-cancelled token and is a nop.
+            //
+            // Safe to lock inside this async method: the lock body only reads a field and
+            // holds no await (the WaitAsync below runs after the lock is released), so
+            // Monitor is entered and released on the same thread.
+            Task? task;
+            lock (_recoverySync)
+            {
+                task = _recoveryTask;
+            }
+
             if (task != null)
             {
-                _recoveryCancellationTokenSource.Cancel();
                 using var timeoutTokenSource = new CancellationTokenSource(_config.RequestedConnectionTimeout);
                 using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
                 try
