@@ -139,16 +139,21 @@ namespace RabbitMQ.Client.Impl
                     await MaybeAcquirePublisherConfirmationLockAsync(cancellationToken)
                         .ConfigureAwait(false);
                 /*
-                 * The send activity is declared out here, rather than inside the try
-                 * below, so the catch can record the failure on it. With the `using`
-                 * scoped to the inner try the span was already disposed by the time
-                 * the catch ran, so no publish failure was ever reported: the span
-                 * ended status=Unset with no exception event, which tracing backends
-                 * read as a successful publish. See issue #1967.
+                 * sendActivity is declared before the try, not with a `using` scoped to
+                 * it, so two properties hold at once. First, the catch and the finally's
+                 * confirmation-await catch can record a publish failure on it; with the
+                 * `using` scoped to the inner try the span was already disposed by the
+                 * time the catch ran, so no failure was reported and the span ended
+                 * status=Unset, which tracing backends read as a successful publish.
+                 * Second, it is assigned as the first statement inside the try (below)
+                 * rather than out here, so that if starting the activity throws - a user
+                 * ActivityListener callback can - the inner finally still runs and
+                 * releases the publisher-confirmation lock acquired above. Created out
+                 * here, a throw would skip that finally, leak the semaphore, and deadlock
+                 * the next publish on this channel. It is disposed in that finally, after
+                 * the confirmation await. See issue #1967.
                  */
-                using Activity? sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                    ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
-                    : default;
+                Activity? sendActivity = null;
                 /*
                  * Tracks the exception (if any) already recorded on sendActivity by the
                  * catch below, so the finally's confirmation-await catch does not record
@@ -160,6 +165,10 @@ namespace RabbitMQ.Client.Impl
                 Exception? recordedSendError = null;
                 try
                 {
+                    sendActivity = RabbitMQActivitySource.PublisherHasListeners
+                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
+                        : default;
+
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
 
                     await MaybeEnforceFlowControlAsync(cancellationToken)
@@ -243,6 +252,12 @@ namespace RabbitMQ.Client.Impl
                     {
                         sendActivity.SetActivityError(ex);
                         throw;
+                    }
+                    finally
+                    {
+                        // Dispose here, not via `using`, so the span outlives the
+                        // confirmation await above whose catch may record on it.
+                        sendActivity?.Dispose();
                     }
                 }
             }
