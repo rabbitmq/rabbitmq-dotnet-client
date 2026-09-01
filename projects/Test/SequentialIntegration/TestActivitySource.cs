@@ -426,11 +426,13 @@ namespace Test.SequentialIntegration
              *
              * With confirmations enabled the publish parks awaiting the broker's
              * confirmation, which BasicPublishCoreAsync awaits in its finally - after the
-             * send activity has been created. Blocking the connection holds off that
-             * confirmation, so cancelling the token throws OperationCanceledException
-             * from that await deterministically, with no dependence on broker timing.
-             * That is the window the finally's cancellation guard covers; removing it
-             * fails this test with an Error status on the span.
+             * send activity has been created. The test publishes while blocked (the
+             * broker then stops reading the socket, so the mandatory publish parks in
+             * that await instead of being returned as unroutable) and waits for the
+             * connection.blocked notification to confirm the publish has parked before
+             * cancelling the token, which throws OperationCanceledException from the
+             * await. That is the window the finally's cancellation guard covers; removing
+             * it fails this test with an Error status on the span.
              */
             using var plainNames = new PlainOperationNames();
 
@@ -440,12 +442,34 @@ namespace Test.SequentialIntegration
 
             using var cts = new CancellationTokenSource();
 
+            var connectionBlockedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Task OnConnectionBlockedAsync(object sender, ConnectionBlockedEventArgs args)
+            {
+                connectionBlockedTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            }
+            _conn.ConnectionBlockedAsync += OnConnectionBlockedAsync;
+
             try
             {
                 await BlockAsync();
 
+                // Publish while blocked. The broker has stopped reading the socket, so the
+                // mandatory publish parks in the confirmation await rather than being
+                // returned as unroutable, and it is the publish that makes the broker send
+                // the connection.blocked notification.
                 ValueTask publishTask = _channel.BasicPublishAsync("", "no-such-queue", true,
                     Encoding.UTF8.GetBytes("cancel me"), cts.Token);
+
+                /*
+                 * Wait for the blocked notification to confirm the publish has parked
+                 * before cancelling. Relying on BlockAsync's fixed settle time alone let a
+                 * slow CI run process the publish before the memory alarm engaged,
+                 * returning the unroutable mandatory message and surfacing a
+                 * PublishReturnException instead of the OperationCanceledException this
+                 * test asserts.
+                 */
+                await connectionBlockedTcs.Task.WaitAsync(WaitSpan);
 
                 // The publish is now parked in the confirmation await with its span open.
                 cts.Cancel();
@@ -454,6 +478,7 @@ namespace Test.SequentialIntegration
             }
             finally
             {
+                _conn.ConnectionBlockedAsync -= OnConnectionBlockedAsync;
                 await UnblockAsync();
             }
 
