@@ -580,13 +580,13 @@ namespace RabbitMQ.Client
                 // Caller-initiated cancellation is not a connection failure.
                 throw;
             }
-            catch (OperationCanceledException ex)
-            {
-                connectionActivity.SetActivityError(ex);
-                throw new BrokerUnreachableException(ex);
-            }
             catch (Exception ex)
             {
+                // Every non-caller-cancellation failure surfaces to the caller as
+                // BrokerUnreachableException, including a non-caller OperationCanceledException
+                // (e.g. a connect timeout). Record that same type on the span so error.type
+                // matches what the caller observes rather than splitting one outcome across
+                // two buckets. See issue #1967.
                 var brokerUnreachableException = new BrokerUnreachableException(ex);
                 connectionActivity.SetActivityError(brokerUnreachableException);
                 throw brokerUnreachableException;
