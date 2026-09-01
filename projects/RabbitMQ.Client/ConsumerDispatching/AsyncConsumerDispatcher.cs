@@ -49,7 +49,20 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                             }
                                             catch (Exception e)
                                             {
-                                                activity.SetActivityError(e);
+                                                /*
+                                                 * Shutdown cancels the dispatcher token
+                                                 * (Quiesce -> _shutdownCts.Cancel), so a
+                                                 * cancellation-aware consumer throwing
+                                                 * OperationCanceledException on shutdown is not a
+                                                 * delivery failure and is not recorded on the span,
+                                                 * matching the publish and connection paths. The
+                                                 * rethrow is unchanged: the outer catch still reports
+                                                 * it via OnCallbackExceptionAsync. See issue #1967.
+                                                 */
+                                                if (!(e is OperationCanceledException && work.CancellationToken.IsCancellationRequested))
+                                                {
+                                                    activity.SetActivityError(e);
+                                                }
                                                 throw;
                                             }
                                         }
