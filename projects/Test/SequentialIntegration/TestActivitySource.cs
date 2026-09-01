@@ -84,6 +84,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
+            using var tracingOptions = new TracingOptionsScope();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -122,6 +123,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
+            using var tracingOptions = new TracingOptionsScope();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -162,6 +164,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
+            using var tracingOptions = new TracingOptionsScope();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -205,6 +208,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false, false)]
         public async Task TestPublisherAndBasicGetActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent, bool useMessageId)
         {
+            using var tracingOptions = new TracingOptionsScope();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -241,6 +245,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithCachedStringsAndBasicGetActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
+            using var tracingOptions = new TracingOptionsScope();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -277,6 +282,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithPublicationAddressAndBasicGetActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
+            using var tracingOptions = new TracingOptionsScope();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -327,6 +333,31 @@ namespace Test.SequentialIntegration
             }
 
             public void Dispose() => RabbitMQActivitySource.UseRoutingKeyAsOperationName = _previous;
+        }
+
+        /// <summary>
+        /// Captures UseRoutingKeyAsOperationName and UsePublisherAsParent on construction
+        /// and restores both on dispose. The parameterized tracing-tag tests set these
+        /// process-global options to their theory inputs; without restoring them the last
+        /// case leaves them mutated for whatever test runs next in the same process - see
+        /// the public-API discussion on rabbitmq/rabbitmq-dotnet-client#1967.
+        /// </summary>
+        private sealed class TracingOptionsScope : IDisposable
+        {
+            private readonly bool _useRoutingKeyAsOperationName;
+            private readonly bool _usePublisherAsParent;
+
+            public TracingOptionsScope()
+            {
+                _useRoutingKeyAsOperationName = RabbitMQActivitySource.UseRoutingKeyAsOperationName;
+                _usePublisherAsParent = RabbitMQActivitySource.TracingOptions.UsePublisherAsParent;
+            }
+
+            public void Dispose()
+            {
+                RabbitMQActivitySource.UseRoutingKeyAsOperationName = _useRoutingKeyAsOperationName;
+                RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = _usePublisherAsParent;
+            }
         }
 
         [Fact]
