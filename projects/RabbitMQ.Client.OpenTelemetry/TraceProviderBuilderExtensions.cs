@@ -36,9 +36,16 @@ namespace OpenTelemetry.Trace
              * with a null carrier, and the correct result depends entirely on its
              * catch block swallowing a NullReferenceException. This mirrors the
              * null check in RabbitMQActivitySource.DefaultContextExtractor.
+             *
+             * Baggage.Current is reset first: it is AsyncLocal-backed and the consumer
+             * dispatcher processes deliveries sequentially on one async flow, so a
+             * header-less delivery must not inherit the previous message's baggage.
+             * The non-early path below resets it via parentContext.Baggage; this branch
+             * has to do it explicitly. See issue #1967.
              */
             if (props.Headers is null)
             {
+                Baggage.Current = default;
                 return default;
             }
 

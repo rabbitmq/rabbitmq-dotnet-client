@@ -106,11 +106,14 @@ namespace Test.SequentialIntegration
              * because the getter's blanket catch swallowed the resulting
              * NullReferenceException.
              *
-             * This pins the observable contract - no headers extracts to no context,
-             * without throwing - rather than the mechanism. It would also have passed
-             * before the fix, because swallowing the NRE reached the same result. What
-             * it protects is the outcome if someone later narrows or removes that
-             * catch, which the fix makes safe to do.
+             * This pins two observable contracts. First, no headers extracts to no
+             * context without throwing - that half would also have passed before the
+             * fix, because swallowing the NRE reached the same result, and it protects
+             * the outcome if someone later narrows or removes that catch. Second, a
+             * header-less extract resets ambient baggage: Baggage.Current is AsyncLocal
+             * and the dispatcher reuses one async flow across deliveries, so without the
+             * reset a header-less message would inherit the previous message's baggage.
+             * That half fails on the pre-fix early return, which skipped the reset.
              */
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation()
@@ -119,9 +122,20 @@ namespace Test.SequentialIntegration
             var propsWithNoHeaders = new BasicProperties();
             Assert.Null(propsWithNoHeaders.Headers);
 
-            ActivityContext extracted = RabbitMQActivitySource.ContextExtractor(propsWithNoHeaders);
+            Baggage.SetBaggage("TestItem", "should-be-cleared");
+            Assert.Equal("should-be-cleared", Baggage.GetBaggage("TestItem"));
 
-            Assert.Equal(default, extracted);
+            try
+            {
+                ActivityContext extracted = RabbitMQActivitySource.ContextExtractor(propsWithNoHeaders);
+
+                Assert.Equal(default, extracted);
+                Assert.Null(Baggage.GetBaggage("TestItem"));
+            }
+            finally
+            {
+                Baggage.ClearBaggage();
+            }
         }
 
         [Theory]
