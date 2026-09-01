@@ -191,7 +191,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
-                RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+                RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size);
                 return Connection.WriteAsync(bytes, cancellationToken);
             }
             catch
