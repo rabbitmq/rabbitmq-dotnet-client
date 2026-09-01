@@ -604,6 +604,88 @@ namespace Test.SequentialIntegration
         }
 
         [Fact]
+        public async Task TestShutdownCancellationIsNotRecordedOnTheDeliverActivity_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * Once consumer failures are recorded on the deliver activity, a consumer
+             * that throws OperationCanceledException because the dispatcher's shutdown
+             * token fired is not a delivery failure and must not be recorded as one, the
+             * same exemption the publish and connection spans make. The delivery carries
+             * that shutdown token, which Quiesce cancels on shutdown, so a
+             * cancellation-aware consumer parked on it throws when the channel closes.
+             * Without the guard the deliver span ends status=Error, so shutting down such
+             * a consumer traces a burst of spurious delivery failures.
+             *
+             * A custom IAsyncBasicConsumer is required to reach the guard:
+             * AsyncEventingBasicConsumer's event wrapper swallows
+             * OperationCanceledException, so it never propagates to the dispatcher.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder deliverRecorder =
+                new(RabbitMQActivitySource.SubscriberSourceName, "deliver");
+            deliverRecorder.VerifyParent = false;
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            IChannel ch = await conn.CreateChannelAsync();
+
+            string queue = $"queue-{Guid.NewGuid()}";
+            await ch.QueueDeclareAsync(queue, false, true, false, null);
+
+            var inFlightTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var consumer = new ShutdownCancellationConsumer(ch, inFlightTcs);
+
+            await ch.BasicConsumeAsync(queue, autoAck: true, consumer: consumer);
+            await ch.BasicPublishAsync("", queue, true, Encoding.UTF8.GetBytes("hi"));
+
+            await inFlightTcs.Task.WaitAsync(WaitSpan);
+
+            // CloseAsync quiesces the dispatcher (cancelling the shutdown token, which
+            // makes the parked consumer throw) and awaits its shutdown, so the deliver
+            // span has stopped by the time this returns.
+            await ch.CloseAsync();
+
+            Activity deliverActivity = deliverRecorder.VerifyActivityRecordedOnce();
+            Assert.NotEqual(ActivityStatusCode.Error, deliverActivity.Status);
+            Assert.DoesNotContain(deliverActivity.Events, e => e.Name == "exception");
+            deliverActivity.HasNoTag("error.type");
+        }
+
+        /// <summary>
+        /// A consumer that parks each delivery on the dispatcher cancellation token and
+        /// throws OperationCanceledException when it fires. Implemented directly rather
+        /// than via AsyncEventingBasicConsumer, whose event wrapper swallows
+        /// OperationCanceledException before it reaches the dispatcher.
+        /// </summary>
+        private sealed class ShutdownCancellationConsumer : AsyncDefaultBasicConsumer
+        {
+            private readonly TaskCompletionSource<bool> _inFlight;
+
+            public ShutdownCancellationConsumer(IChannel channel, TaskCompletionSource<bool> inFlight)
+                : base(channel)
+            {
+                _inFlight = inFlight;
+            }
+
+            public override async Task HandleBasicDeliverAsync(string consumerTag, ulong deliveryTag,
+                bool redelivered, string exchange, string routingKey, IReadOnlyBasicProperties properties,
+                ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
+            {
+                // Signal that the delivery is in flight (its span is open), then park on the
+                // dispatcher shutdown token so closing the channel throws from here.
+                _inFlight.TrySetResult(true);
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+        }
+
+        [Fact]
         public async Task TestAmqpOperationsDoNotTagAnUnrelatedAmbientActivity_GH1967()
         {
             /*
