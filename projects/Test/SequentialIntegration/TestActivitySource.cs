@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -391,6 +392,47 @@ namespace Test.SequentialIntegration
                 await Assert.ThrowsAsync<PublishReturnException>(() =>
                     _channel.BasicPublishAsync(exchange, "no-such-routing-key", mandatory: true,
                         Encoding.UTF8.GetBytes("unroutable")).AsTask());
+
+                Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
+                publishActivity.RecordsFailure(typeof(PublishReturnException));
+            }
+            finally
+            {
+                await _channel.ExchangeDeleteAsync(exchange);
+            }
+        }
+
+        [Fact]
+        public async Task TestReadOnlySequencePublishFailureIsRecordedOnTheSendActivity_GH1967()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1967
+             *
+             * The ReadOnlySequence<byte> publish overloads route through their own
+             * BasicPublishCoreAsync, separate from the ReadOnlyMemory one. That core
+             * initially received none of the failure-recording fixes, so a failed
+             * ReadOnlySequence publish ended the span status=Unset and traced as a
+             * success. This mirrors TestPublishFailureIsRecordedOnTheSendActivity_GH1967
+             * but publishes through the ReadOnlySequence overload; a single-segment
+             * sequence is enough because it exercises the same core, and the failure
+             * still surfaces from the confirmation await in the finally.
+             */
+            using var plainNames = new PlainOperationNames();
+
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            string exchange = $"exchange-{Guid.NewGuid()}";
+            await _channel.ExchangeDeclareAsync(exchange, ExchangeType.Direct, autoDelete: true);
+
+            var body = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes("unroutable"));
+
+            try
+            {
+                await Assert.ThrowsAsync<PublishReturnException>(() =>
+                    _channel.BasicPublishAsync(exchange, "no-such-routing-key", mandatory: true,
+                        body, bodyOwner: null).AsTask());
 
                 Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
                 publishActivity.RecordsFailure(typeof(PublishReturnException));
