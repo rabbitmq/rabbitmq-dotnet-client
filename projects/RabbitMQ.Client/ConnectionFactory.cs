@@ -575,24 +575,20 @@ namespace RabbitMQ.Client
                         .ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                connectionActivity?.SetStatus(ActivityStatusCode.Error);
-                connectionActivity?.AddException(ex);
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    throw;
-                }
-                else
-                {
-                    throw new BrokerUnreachableException(ex);
-                }
+                // Caller-initiated cancellation is not a connection failure.
+                throw;
             }
             catch (Exception ex)
             {
+                // Every non-caller-cancellation failure surfaces to the caller as
+                // BrokerUnreachableException, including a non-caller OperationCanceledException
+                // (e.g. a connect timeout). Record that same type on the span so error.type
+                // matches what the caller observes rather than splitting one outcome across
+                // two buckets. See issue #1967.
                 var brokerUnreachableException = new BrokerUnreachableException(ex);
-                connectionActivity?.SetStatus(ActivityStatusCode.Error);
-                connectionActivity?.AddException(brokerUnreachableException);
+                connectionActivity.SetActivityError(brokerUnreachableException);
                 throw brokerUnreachableException;
             }
         }

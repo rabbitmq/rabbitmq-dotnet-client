@@ -147,8 +147,16 @@ namespace Test
 
         public static void HasRecordedException(this Activity activity, string exceptionTypeName)
         {
-            var exceptionEvent = activity.Events.First();
-            Assert.Equal("exception", exceptionEvent.Name);
+            /*
+             * Assert exactly one exception event so duplicate recordings are caught.
+             * A publish whose send failed on a closed connection used to record the
+             * same exception twice (once in the send catch, once when the confirmation
+             * await re-raised it), which Events.First() alone does not detect.
+             * See issue #1967.
+             */
+            var exceptionEvents = activity.Events.Where(e => e.Name == "exception").ToList();
+            Assert.Single(exceptionEvents);
+            ActivityEvent exceptionEvent = exceptionEvents[0];
             Assert.Equal(exceptionTypeName,
                 exceptionEvent.Tags.SingleOrDefault(t => t.Key == "exception.type").Value);
         }
@@ -156,6 +164,20 @@ namespace Test
         public static void IsInError(this Activity activity)
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        }
+
+        /// <summary>
+        /// Assert that a failed operation is fully reported: exactly one exception
+        /// event, an Error status, and error.type. A tracing backend treats an unset
+        /// status as success, so all three are needed for the failure to be visible,
+        /// and one failure should appear once.
+        /// See rabbitmq/rabbitmq-dotnet-client#1967.
+        /// </summary>
+        public static void RecordsFailure(this Activity activity, Type exceptionType)
+        {
+            activity.HasRecordedException(exceptionType.ToString());
+            activity.IsInError();
+            activity.HasTag("error.type", exceptionType.FullName);
         }
 
         public static void HasNoTag(this Activity activity, string name)

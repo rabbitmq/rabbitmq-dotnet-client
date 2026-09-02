@@ -46,15 +46,16 @@ namespace RabbitMQ.Client
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                using Activity? tcpConnection = RabbitMQActivitySource.OpenTcpConnection();
-                if (tcpConnection is { IsAllDataRequested: true })
-                {
-                    tcpConnection.SetServerTags(ep);
-                }
+                using Activity? tcpConnectionActivity = RabbitMQActivitySource.OpenTcpConnection(ep);
 
                 try
                 {
                     return await selector(ep, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Caller-initiated cancellation is not a connection attempt failure.
+                    throw;
                 }
                 catch (OperationCanceledException ex)
                 {
@@ -67,19 +68,12 @@ namespace RabbitMQ.Client
                      * later endpoint succeeds, the overall operation succeeded, and only the
                      * individual attempt failed.
                      */
-                    tcpConnection?.AddException(ex);
-                    tcpConnection?.SetStatus(ActivityStatusCode.Error);
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        throw;
-                    }
-
+                    tcpConnectionActivity.SetActivityError(ex);
                     exceptions.Add(ex);
                 }
                 catch (Exception e)
                 {
-                    tcpConnection?.AddException(e);
-                    tcpConnection?.SetStatus(ActivityStatusCode.Error);
+                    tcpConnectionActivity.SetActivityError(e);
                     exceptions.Add(e);
                 }
             }

@@ -31,7 +31,6 @@
 
 using System;
 using System.Buffers;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -133,7 +132,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             OutgoingFrame bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ChannelNumber);
-            RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+            RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size);
             return Connection.WriteAsync(bytes, cancellationToken);
         }
 
@@ -154,13 +153,14 @@ namespace RabbitMQ.Client.Impl
             //
             // If SerializeToFrames throws, `bytes` is still the default OutgoingFrame (Size == 0);
             // we must dispose `bodyOwner` directly because it was never captured.
-            // If PopulateMessageEnvelopeSize or a synchronous fault inside Connection.WriteAsync
-            // throws, `bytes` already owns `bodyOwner`; disposing the frame releases both.
+            // If PopulateMessageEnvelopeSizeOnAmbientPublisherActivity or a synchronous
+            // fault inside Connection.WriteAsync throws, `bytes` already owns
+            // `bodyOwner`; disposing the frame releases both.
             OutgoingFrame bytes = default;
             try
             {
                 bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
-                RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+                RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size);
                 return Connection.WriteAsync(bytes, cancellationToken);
             }
             catch
@@ -191,7 +191,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
-                RabbitMQActivitySource.PopulateMessageEnvelopeSize(Activity.Current, bytes.Size);
+                RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size);
                 return Connection.WriteAsync(bytes, cancellationToken);
             }
             catch
