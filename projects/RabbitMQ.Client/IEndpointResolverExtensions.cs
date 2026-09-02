@@ -46,7 +46,7 @@ namespace RabbitMQ.Client
             foreach (AmqpTcpEndpoint ep in resolver.All())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                using Activity? tcpConnection = RabbitMQActivitySource.OpenTcpConnection(ep);
+                using Activity? tcpConnectionActivity = RabbitMQActivitySource.OpenTcpConnection(ep);
 
                 try
                 {
@@ -68,12 +68,12 @@ namespace RabbitMQ.Client
                      * later endpoint succeeds, the overall operation succeeded, and only the
                      * individual attempt failed.
                      */
-                    tcpConnection.SetActivityError(ex);
+                    tcpConnectionActivity.SetActivityError(ex);
                     exceptions.Add(ex);
                 }
                 catch (Exception e)
                 {
-                    tcpConnection.SetActivityError(e);
+                    tcpConnectionActivity.SetActivityError(e);
                     exceptions.Add(e);
                 }
             }
