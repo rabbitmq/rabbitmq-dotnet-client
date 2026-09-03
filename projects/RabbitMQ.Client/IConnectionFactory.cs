@@ -184,6 +184,15 @@ namespace RabbitMQ.Client
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
         /// timing out.
         /// </summary>
+        /// <remarks>
+        /// An operation that reaches this limit completes as <b>cancelled</b>: the awaiter sees an
+        /// <see cref="System.OperationCanceledException"/> (in practice a
+        /// <see cref="System.Threading.Tasks.TaskCanceledException"/>), not a
+        /// <see cref="System.TimeoutException"/>. It is therefore indistinguishable by type from the
+        /// caller cancelling, so code that needs to tell the two apart has to check its own
+        /// cancellation token. Note that 6.x threw <see cref="System.TimeoutException"/> here. See
+        /// issue #1996.
+        /// </remarks>
         TimeSpan ContinuationTimeout { get; set; }
 
         /// <summary>
