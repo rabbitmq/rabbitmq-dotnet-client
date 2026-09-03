@@ -44,6 +44,10 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
+// This file deliberately exercises the deprecated process-wide tracing configuration on
+// RabbitMQActivitySource, which is retained for back-compat behind [Obsolete]. See issue #1981.
+#pragma warning disable CS0618
+
 namespace Test.SequentialIntegration
 {
     public class TestOpenTelemetry : SequentialIntegrationFixture
@@ -92,6 +96,52 @@ namespace Test.SequentialIntegration
             Assert.True(RabbitMQActivitySource.UseRoutingKeyAsOperationName);
             Assert.True(RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName);
             Assert.True(RabbitMQActivitySource.TracingOptions.UsePublisherAsParent);
+        }
+
+        [Fact]
+        public async Task TestConnectionFactoryTracingOptionsAreUsedPerConnection_GH1981()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1981
+             *
+             * Tracing configuration set on a ConnectionFactory is captured by the
+             * connections it creates and used for their spans, without disturbing the
+             * process-wide statics. Here the factory turns UseRoutingKeyAsOperationName
+             * off while the global default stays on, so a publish span produced by a
+             * connection from this factory is named "publish" (no routing key appended),
+             * and the static default is unchanged.
+             */
+            var exportedItems = new List<Activity>();
+            ConnectionFactory cf = CreateConnectionFactory();
+
+            // Use the opposite of whatever the process-wide default currently is, so the assertion
+            // proves the connection used its factory's value rather than the global one, independent
+            // of any global state a prior test left behind.
+            bool globalBefore = RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName;
+            bool factoryValue = !globalBefore;
+
+            using TracerProvider tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation(cf, options => options.UseRoutingKeyAsOperationName = factoryValue)
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+
+            string queueName;
+            await using (IConnection conn = await cf.CreateConnectionAsync())
+            await using (IChannel ch = await conn.CreateChannelAsync(_createChannelOptions))
+            {
+                queueName = (await ch.QueueDeclareAsync()).QueueName;
+                await ch.BasicPublishAsync(string.Empty, queueName, Encoding.UTF8.GetBytes("hi"));
+            }
+
+            tracer.ForceFlush(5000);
+
+            Activity publish = Assert.Single(exportedItems,
+                a => a.OperationName == "publish" || a.OperationName.StartsWith("publish ", StringComparison.Ordinal));
+            string expected = factoryValue ? $"publish {queueName}" : "publish";
+            Assert.Equal(expected, publish.OperationName);
+
+            // The per-connection path must not touch the process-wide default.
+            Assert.Equal(globalBefore, RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName);
         }
 
         [Fact]
@@ -432,3 +482,4 @@ namespace Test.SequentialIntegration
         }
     }
 }
+#pragma warning restore CS0618
