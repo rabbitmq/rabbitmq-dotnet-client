@@ -336,7 +336,10 @@ namespace RabbitMQ.Client.Impl
                 && operationInterrupted.ShutdownReason is not null
                 && IsSoftError(operationInterrupted.ShutdownReason.ReplyCode);
 
-            // The AMQP 0-9-1 soft errors, which close a channel rather than the connection.
+            // The soft (channel-level) errors a topology recovery operation can be refused with;
+            // these close a channel rather than the connection. 311 (content-too-large) and 313
+            // (no-consumers) are AMQP soft errors too, but they are basic.publish / basic.return
+            // codes that never close a channel during topology recovery, so they cannot appear here.
             static bool IsSoftError(ushort replyCode)
             {
                 switch (replyCode)
@@ -363,6 +366,12 @@ namespace RabbitMQ.Client.Impl
                     "resolve. The recovery attempt will be retried.", e);
                 throw e;
             }
+
+            // Parity with the no-handler path's "Will not retry recovery" log: record that a handler
+            // ran and the failure is final, so an entity a handler could not actually repair is not
+            // dropped without a trace.
+            ESLog.Info("Topology recovery exception was handled by a recovery exception handler and " +
+                "does not require the recovery attempt to be retried.", e);
         }
 
         /// <summary>
