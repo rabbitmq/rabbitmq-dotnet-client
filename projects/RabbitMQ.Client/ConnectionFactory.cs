@@ -182,6 +182,20 @@ namespace RabbitMQ.Client
         /// </para></remarks>
         public ushort ConsumerDispatchConcurrency { get; set; } = Constants.DefaultConsumerDispatchConcurrency;
 
+        /// <summary>
+        /// Tracing configuration for connections created by this factory: the span-shaping options
+        /// and the trace-context propagation delegates.
+        /// </summary>
+        /// <remarks>
+        /// Each connection captures these when it is created, so a connection is unaffected by later
+        /// changes to the factory. When left <see langword="null"/> (the default), a connection
+        /// instead captures the process-wide statics on <see cref="RabbitMQActivitySource"/>, which
+        /// is how the deprecated global configuration path continues to work. This is the preferred
+        /// replacement for those statics: the configuration is owned by the connection that performs
+        /// the traced operations rather than by process-wide state.
+        /// </remarks>
+        public RabbitMQTracingOptions? TracingOptions { get; set; }
+
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
 
@@ -619,6 +633,7 @@ namespace RabbitMQ.Client
                 HandshakeContinuationTimeout,
                 RequestedConnectionTimeout,
                 ConsumerDispatchConcurrency,
+                TracingOptions?.Clone(),
                 CreateFrameHandlerAsync);
         }
 

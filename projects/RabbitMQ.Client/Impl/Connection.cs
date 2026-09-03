@@ -110,6 +110,13 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsOpen => CloseReason is null;
 
+        /// <summary>
+        /// The tracing configuration captured for this connection when it was created. Channels read
+        /// it so their publish, get, and deliver spans reflect this connection's configuration rather
+        /// than the process-wide statics. See issue #1981.
+        /// </summary>
+        internal RabbitMQTracingOptions? TracingOptions => _config.TracingOptions;
+
         public int LocalPort => _frameHandler.LocalPort;
         public int RemotePort => _frameHandler.RemotePort;
 
