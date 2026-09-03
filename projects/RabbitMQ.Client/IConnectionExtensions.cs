@@ -12,10 +12,9 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// Note that all active channels and sessions will be
-        /// closed if this method is called. It will wait for the in-progress
-        /// close operation to complete. This method will not return to the caller
-        /// until the shutdown is complete. If the connection is already closed
-        /// (or closing), then this method will do nothing.
+        /// closed if this method is called. It will wait up to 30 seconds for the
+        /// in-progress close operation to complete, then forces the socket closed. If the
+        /// connection is already closed (or closing), then this method will do nothing.
         /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
         /// </remarks>
         public static Task CloseAsync(this IConnection connection, CancellationToken cancellationToken = default)
@@ -58,6 +57,12 @@ namespace RabbitMQ.Client
         /// <para>
         /// To wait infinitely for the close operations to complete use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>.
         /// </para>
+        /// <para>
+        /// A finite timeout shorter than 30 seconds is raised to 30 seconds, because the
+        /// timeout also bounds the close handshake itself and cutting that short leaves the
+        /// connection only partly shut down. Use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>
+        /// to wait without a bound.
+        /// </para>
         /// </remarks>
         public static Task CloseAsync(this IConnection connection, TimeSpan timeout)
         {
@@ -95,7 +100,8 @@ namespace RabbitMQ.Client
         /// Note that all active channels and sessions will be closed if this method is called.
         /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection, CancellationToken)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
-        ///This method waits infinitely for the in-progress close operation to complete.
+        /// This method waits up to 5 seconds for the in-progress close operation to complete,
+        /// then forces the socket closed.
         /// </remarks>
         public static Task AbortAsync(this IConnection connection)
         {
@@ -110,7 +116,8 @@ namespace RabbitMQ.Client
         /// Note that all active channels and sessions will be closed if this method is called.
         /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection, CancellationToken)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
-        ///This method waits infinitely for the in-progress close operation to complete.
+        /// This method waits up to 5 seconds for the in-progress close operation to complete,
+        /// then forces the socket closed.
         /// </remarks>
         public static Task AbortAsync(this IConnection connection, CancellationToken cancellationToken = default)
         {
@@ -166,7 +173,13 @@ namespace RabbitMQ.Client
         /// for all the in-progress close operations to complete.
         /// If timeout is reached and the close operations haven't finished, then socket is forced to close.
         /// <para>
-        /// To wait infinitely for the close operations to complete use <see cref="Timeout.Infinite"/>.
+        /// An abort is always bounded, so unlike <see cref="CloseAsync(IConnection,TimeSpan)"/>
+        /// it does not honour <see cref="Timeout.InfiniteTimeSpan"/>: an unbounded abort
+        /// would make the forced socket close above unreachable, defeating the best-effort
+        /// guarantee that abort exists to provide. A timeout shorter than 5 seconds, or an
+        /// unbounded one, is resolved to 5 seconds, because the timeout also bounds the
+        /// close handshake itself and cutting that short leaves the connection only partly
+        /// shut down.
         /// </para>
         /// </remarks>
         public static Task AbortAsync(this IConnection connection, TimeSpan timeout)

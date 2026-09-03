@@ -258,7 +258,7 @@ Not even the waiter's own cancellation token releases it. `Dispose()` itself doe
 
 1. `MainLoop` never completes, so `_mainLoopTask` never completes.
 2. `Connection.CloseAsync` waits on `_mainLoopTask` (`Connection.cs:464`) and burns its full timeout.
-3. That timeout is `InternalConstants.DefaultConnectionCloseTimeout` (30s), **not** the caller's 6s - a non-abort close floors the caller's value at 30s.
+3. That timeout is `InternalConstants.DefaultConnectionCloseTimeout` (30s), **not** the caller's 6s - a non-abort close floors the caller's value at 30s. `Connection.ResolveCloseTimeout` is where that resolution happens, and the floor is deliberate: the timeout feeds the same linked `CancellationTokenSource` as the caller's token, so a shorter value cancels the close handshake itself rather than bounding the wait for it, which is the `ObjectDisposedException` of #1802. The one exemption is that a graceful close honours `Timeout.InfiniteTimeSpan` (see #1973), and in exactly this stranded-`MainLoop` scenario that means there is no escape hatch at all - the wait never ends and the forced socket close below is never reached. An abort deliberately does *not* take that exemption, so it stays bounded at 5s and its forced socket close still runs.
 4. On netstandard2.0 the throwing frame is `TaskExtensions.DoWaitAsync`, which is inside `#if !NET`, so it surfaces as a bare `OperationCanceledException`.
 
 Item 4 is the only platform-specific part, and it affects the *exception type*, not the hang. The 30-second duration was the tell that this tracked the close timeout rather than a merely-slow close.
