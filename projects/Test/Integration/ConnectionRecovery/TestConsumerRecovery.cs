@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -86,6 +87,61 @@ namespace Test.Integration.ConnectionRecovery
             await CloseAndWaitForRecoveryAsync();
             Assert.True(_channel.IsOpen);
             await AssertConsumerCountAsync(q, 0);
+        }
+
+        [Fact]
+        public async Task TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#2006
+             *
+             * AsyncDefaultBasicConsumer.ShutdownReason documents itself as null unless the channel
+             * has shut down. Recovery re-registers the consumer, so it starts receiving deliveries
+             * again, but the reason recorded when the connection dropped was never cleared. The
+             * consumer therefore went on reporting a shutdown that was over, indefinitely, which is
+             * misleading for anything using it to decide whether the consumer is healthy.
+             */
+            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+
+            /*
+             * HandleBasicConsumeOkAsync runs on the consumer dispatcher, so it has not necessarily
+             * happened by the time BasicConsumeAsync returns. Both the initial state and the state
+             * after recovery therefore have to be observed from the registration event rather than
+             * read straight after the call, otherwise this test races the dispatcher.
+             */
+            var firstRegistrationTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var registrationAfterRecoveryTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            int registrations = 0;
+            consumer.RegisteredAsync += (sender, ea) =>
+            {
+                // The first registration is the original BasicConsumeAsync below; the second is
+                // recovery re-registering the consumer.
+                if (Interlocked.Increment(ref registrations) == 1)
+                {
+                    firstRegistrationTcs.TrySetResult(true);
+                }
+                else
+                {
+                    registrationAfterRecoveryTcs.TrySetResult(true);
+                }
+                return Task.CompletedTask;
+            };
+
+            await _channel.BasicConsumeAsync(q, true, consumer);
+            await WaitAsync(firstRegistrationTcs, "consumer registered");
+
+            Assert.True(consumer.IsRunning);
+            Assert.Null(consumer.ShutdownReason);
+
+            await CloseAndWaitForRecoveryAsync();
+            await WaitAsync(registrationAfterRecoveryTcs, "consumer re-registered after recovery");
+
+            Assert.True(_channel.IsOpen);
+            Assert.True(consumer.IsRunning);
+            Assert.Null(consumer.ShutdownReason);
         }
     }
 }
