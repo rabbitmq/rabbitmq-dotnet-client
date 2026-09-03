@@ -63,6 +63,11 @@ namespace RabbitMQ.Client
         /// connection only partly shut down. Use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>
         /// to wait without a bound.
         /// </para>
+        /// <para>
+        /// A value too large for the runtime timer (above roughly 24.86 days on .NET Framework or
+        /// roughly 49.7 days on modern .NET, including <see cref="TimeSpan.MaxValue"/>) is treated
+        /// the same as <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> rather than throwing.
+        /// </para>
         /// </remarks>
         public static Task CloseAsync(this IConnection connection, TimeSpan timeout)
         {
@@ -176,8 +181,9 @@ namespace RabbitMQ.Client
         /// An abort is always bounded, so unlike <see cref="CloseAsync(IConnection,TimeSpan)"/>
         /// it does not honour <see cref="Timeout.InfiniteTimeSpan"/>: an unbounded abort
         /// would make the forced socket close above unreachable, defeating the best-effort
-        /// guarantee that abort exists to provide. A timeout shorter than 5 seconds, or an
-        /// unbounded one, is resolved to 5 seconds, because the timeout also bounds the
+        /// guarantee that abort exists to provide. A timeout shorter than 5 seconds, an
+        /// unbounded one, or one too large for the runtime timer (which is treated as
+        /// unbounded), is resolved to 5 seconds, because the timeout also bounds the
         /// close handshake itself and cutting that short leaves the connection only partly
         /// shut down.
         /// </para>

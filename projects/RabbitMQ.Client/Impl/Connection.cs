@@ -535,9 +535,9 @@ namespace RabbitMQ.Client.Impl
         /// A timeout too large for <see cref="CancellationTokenSource"/> to accept is
         /// treated as a request to wait without a bound, which is what such a value means
         /// in practice. Passing it through instead would throw
-        /// <see cref="ArgumentOutOfRangeException"/> out of the constructor below before
-        /// the close reason is set, leaving the connection fully open with no shutdown
-        /// attempted.
+        /// <see cref="ArgumentOutOfRangeException"/> from the <see cref="CancellationTokenSource"/>
+        /// constructor in the close path before the close reason is set, leaving the connection
+        /// fully open with no shutdown attempted.
         /// </para>
         /// </remarks>
         internal static TimeSpan ResolveCloseTimeout(TimeSpan timeout, bool abort)
@@ -573,11 +573,22 @@ namespace RabbitMQ.Client.Impl
         }
 
         /// <summary>
-        /// The largest delay <see cref="CancellationTokenSource"/> accepts; anything above
-        /// this throws <see cref="ArgumentOutOfRangeException"/>. Roughly 49.7 days.
+        /// The largest delay a <see cref="CancellationTokenSource"/> accepts, chosen to be safe on
+        /// every runtime the build can load on; a larger timeout is treated as unbounded rather
+        /// than thrown. The netstandard2.0 build can load on .NET Framework, whose constructor
+        /// rejects any delay above <see cref="int.MaxValue"/> milliseconds (roughly 24.86 days)
+        /// with <see cref="ArgumentOutOfRangeException"/>, so it uses that floor. A runtime that
+        /// accepts more - .NET Core and later allow up to <c>uint.MaxValue - 1</c> milliseconds,
+        /// roughly 49.7 days - still treats a delay in the gap as unbounded, a harmless
+        /// over-approximation for so extreme a value. The net8.0 build uses the larger limit.
         /// </summary>
+#if NETSTANDARD
+        private static readonly TimeSpan MaxCancellationTokenSourceDelay =
+            TimeSpan.FromMilliseconds(int.MaxValue);
+#else
         private static readonly TimeSpan MaxCancellationTokenSourceDelay =
             TimeSpan.FromMilliseconds(uint.MaxValue - 1);
+#endif
 
         internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason)
         {

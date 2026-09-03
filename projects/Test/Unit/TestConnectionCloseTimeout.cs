@@ -103,11 +103,13 @@ namespace Test.Unit
         public void OverLargeCloseTimeoutBecomesInfiniteRatherThanThrowing_GH1973()
         {
             /*
-             * CancellationTokenSource rejects a delay above roughly 49.7 days. Passing
-             * TimeSpan.MaxValue through would throw out of its constructor before the close
-             * reason is set, leaving the connection fully open. Such a value means "wait
-             * forever", so it resolves to InfiniteTimeSpan for a graceful close and to the
-             * bounded floor for an abort.
+             * CancellationTokenSource rejects a delay above its ceiling, which differs by runtime
+             * (roughly 24.86 days on .NET Framework, roughly 49.7 days on modern .NET). Passing a
+             * larger value through would throw out of its constructor before the close reason is
+             * set, leaving the connection fully open. Such a value means "wait forever", so it
+             * resolves to InfiniteTimeSpan for a graceful close and to the bounded floor for an
+             * abort. The values here exceed both ceilings, so they clamp on every runtime; the
+             * per-runtime boundary is exercised separately.
              */
             Assert.Equal(Timeout.InfiniteTimeSpan,
                 Connection.ResolveCloseTimeout(TimeSpan.MaxValue, abort: false));
@@ -116,6 +118,26 @@ namespace Test.Unit
 
             Assert.Equal(InternalConstants.DefaultConnectionAbortTimeout,
                 Connection.ResolveCloseTimeout(TimeSpan.MaxValue, abort: true));
+        }
+
+        [Fact]
+        public void TimeoutBetweenTheRuntimeCeilingsResolvesPerRuntime_GH1973()
+        {
+            /*
+             * FromDays(30) sits above the .NET Framework CancellationTokenSource ceiling
+             * (roughly 24.86 days) but below the modern .NET ceiling (roughly 49.7 days), so it is
+             * over-large only on .NET Framework. It must clamp to unbounded there and pass through
+             * unchanged on modern .NET, matching each runtime's actual CancellationTokenSource
+             * limit. This is the case a single, uniform ceiling would get wrong on one runtime.
+             */
+            TimeSpan thirtyDays = TimeSpan.FromDays(30);
+#if NETFRAMEWORK
+            Assert.Equal(Timeout.InfiniteTimeSpan,
+                Connection.ResolveCloseTimeout(thirtyDays, abort: false));
+#else
+            Assert.Equal(thirtyDays,
+                Connection.ResolveCloseTimeout(thirtyDays, abort: false));
+#endif
         }
 
         [Fact]
@@ -130,6 +152,10 @@ namespace Test.Unit
             {
                 Timeout.InfiniteTimeSpan, TimeSpan.Zero, TimeSpan.FromSeconds(6),
                 TimeSpan.FromSeconds(60), TimeSpan.FromMilliseconds(-2),
+                // FromDays(30) is above the .NET Framework CancellationTokenSource limit
+                // (~24.86 days) but below the modern .NET limit, so it is what catches a
+                // miscalibrated MaxCancellationTokenSourceDelay on net472. See #1973.
+                TimeSpan.FromDays(30),
                 TimeSpan.FromDays(60), TimeSpan.MaxValue, TimeSpan.MinValue
             };
 

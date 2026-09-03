@@ -238,7 +238,10 @@ namespace RabbitMQ.Client
         /// graceful close therefore resolves anything under 30 seconds to 30 seconds, and an
         /// abort resolves anything under 5 seconds to 5 seconds. A graceful close accepts
         /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> to wait without a bound;
-        /// an abort is always bounded and resolves it to 5 seconds.
+        /// an abort is always bounded and resolves it to 5 seconds. A value too large for the
+        /// runtime timer (above roughly 24.86 days on .NET Framework or roughly 49.7 days on
+        /// modern .NET, including <see cref="TimeSpan.MaxValue"/>) is treated the same as
+        /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> rather than throwing.
         /// </param>
         /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
         /// <param name="cancellationToken">Cancellation token</param>
