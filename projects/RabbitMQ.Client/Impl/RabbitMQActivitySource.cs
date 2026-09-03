@@ -59,19 +59,97 @@ namespace RabbitMQ.Client
         public const string SubscriberSourceName = "RabbitMQ.Client.Subscriber";
         public const string ConnectionSourceName = "RabbitMQ.Client.Connection";
 
-        public static Action<Activity, IDictionary<string, object?>> ContextInjector { get; set; } =
-            DefaultContextInjector;
+        // The process-wide default a connection captures when its factory set no TracingOptions.
+        // Its injector/extractor default to the client's Default* delegates; the deprecated statics
+        // below read and write those same slots, so there is a single source of the fallback.
+        private static RabbitMQTracingOptions s_tracingOptions = new RabbitMQTracingOptions();
 
-        public static Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor { get; set; } =
-            DefaultContextExtractor;
+        // Applied to the four members below. They are process-wide mutable state that is
+        // shared across every connection, which is the wrong owner for configuration that
+        // belongs to the connection performing the operation. A connection now captures
+        // ConnectionFactory.TracingOptions at creation; these remain as the default a
+        // connection captures when the factory set none, so existing code keeps working.
+        private const string ObsoleteMessage =
+            "Process-wide tracing configuration is deprecated. Configure " +
+            "ConnectionFactory.TracingOptions instead, which is owned by the connection that " +
+            "performs the traced operations. These members will be removed in a future major " +
+            "version. See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981.";
 
+        /// <summary>
+        /// Delegate that injects the current <see cref="Activity"/> context into a published
+        /// message's headers. Assigning <see langword="null"/> throws <see cref="ArgumentNullException"/>.
+        /// </summary>
+        [Obsolete(ObsoleteMessage)]
+        public static Action<Activity, IDictionary<string, object?>> ContextInjector
+        {
+            get => s_tracingOptions.ContextInjector;
+            set => s_tracingOptions.ContextInjector = value;
+        }
+
+        /// <summary>
+        /// Delegate that extracts the upstream <see cref="ActivityContext"/> from a received
+        /// message's properties. Assigning <see langword="null"/> throws <see cref="ArgumentNullException"/>.
+        /// </summary>
+        [Obsolete(ObsoleteMessage)]
+        public static Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor
+        {
+            get => s_tracingOptions.ContextExtractor;
+            set => s_tracingOptions.ContextExtractor = value;
+        }
+
+        /// <summary>
+        /// When <see langword="true"/> (the default), the routing key is appended to publish and
+        /// delivery span names. Shortcut for
+        /// <see cref="RabbitMQTracingOptions.UseRoutingKeyAsOperationName"/> on <see cref="TracingOptions"/>.
+        /// </summary>
+        [Obsolete(ObsoleteMessage)]
         public static bool UseRoutingKeyAsOperationName
         {
-            get => TracingOptions.UseRoutingKeyAsOperationName;
-            set => TracingOptions.UseRoutingKeyAsOperationName = value;
+            get => s_tracingOptions.UseRoutingKeyAsOperationName;
+            set => s_tracingOptions.UseRoutingKeyAsOperationName = value;
         }
-        public static RabbitMQTracingOptions TracingOptions { get; set; } = new RabbitMQTracingOptions();
+
+        /// <summary>
+        /// The options applied to every tracing span this client produces when a connection factory
+        /// set no <see cref="ConnectionFactory.TracingOptions"/>. Assigning <see langword="null"/>
+        /// throws <see cref="ArgumentNullException"/>.
+        /// </summary>
+        /// <remarks>
+        /// Assigning copies the span-shaping options
+        /// (<see cref="RabbitMQTracingOptions.UseRoutingKeyAsOperationName"/> and
+        /// <see cref="RabbitMQTracingOptions.UsePublisherAsParent"/>) from the given instance; it does
+        /// not adopt the instance or its <see cref="RabbitMQTracingOptions.ContextInjector"/> /
+        /// <see cref="RabbitMQTracingOptions.ContextExtractor"/>. Before per-connection ownership those
+        /// delegates were independent process-wide statics, so assigning this property never disturbed
+        /// them; the copy preserves that, so a previously configured injector or extractor keeps
+        /// working. Set the delegates through <see cref="ContextInjector"/> / <see cref="ContextExtractor"/>.
+        /// </remarks>
+        [Obsolete(ObsoleteMessage)]
+        public static RabbitMQTracingOptions TracingOptions
+        {
+            get => s_tracingOptions;
+            set
+            {
+                if (value is null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                s_tracingOptions.UseRoutingKeyAsOperationName = value.UseRoutingKeyAsOperationName;
+                s_tracingOptions.UsePublisherAsParent = value.UsePublisherAsParent;
+            }
+        }
         internal static bool PublisherHasListeners => s_publisherSource.HasListeners();
+        internal static bool SubscriberHasListeners => s_subscriberSource.HasListeners();
+
+        /*
+         * A connection captures its factory's RabbitMQTracingOptions, or null when the factory set
+         * none. Null resolves to the process-wide default, read live at each operation, exactly as
+         * before per-connection configuration existed - this is what keeps the deprecated global path
+         * working. Callers resolve once and read all options from the returned instance. See #1981.
+         */
+        internal static RabbitMQTracingOptions ResolveTracingOptions(RabbitMQTracingOptions? tracing)
+            => tracing ?? s_tracingOptions;
 
         /*
          * Both PopulateMessageEnvelopeSize and Connection.WriteAsync tag whatever
@@ -136,19 +214,20 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize, IReadOnlyBasicProperties basicProperties,
-            ActivityContext linkedContext = default)
+            RabbitMQTracingOptions? tracing, ActivityContext linkedContext = default)
         {
             if (!s_publisherSource.HasListeners())
             {
                 return null;
             }
 
+            RabbitMQTracingOptions effective = ResolveTracingOptions(tracing);
             Activity? activity = linkedContext == default
                 ? s_publisherSource.StartRabbitMQActivity(
-                    UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
+                    effective.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
                     ActivityKind.Producer)
                 : s_publisherSource.StartLinkedRabbitMQActivity(
-                    UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
+                    effective.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
                     ActivityKind.Producer, linkedContext);
             if (activity != null && activity.IsAllDataRequested)
             {
@@ -158,7 +237,7 @@ namespace RabbitMQ.Client
             return activity;
         }
 
-        internal static Activity? BasicGetEmpty(string queue)
+        internal static Activity? BasicGetEmpty(string queue, RabbitMQTracingOptions? tracing)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -166,7 +245,7 @@ namespace RabbitMQ.Client
             }
 
             Activity? activity = s_subscriberSource.StartRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGetEmpty} {queue}" : MessagingOperationNameBasicGetEmpty,
+                ResolveTracingOptions(tracing).UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGetEmpty} {queue}" : MessagingOperationNameBasicGetEmpty,
                 ActivityKind.Consumer);
             if (activity != null && activity.IsAllDataRequested)
             {
@@ -180,7 +259,7 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? BasicGet(string routingKey, string exchange, ulong deliveryTag,
-            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize)
+            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, RabbitMQTracingOptions? tracing)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -188,11 +267,12 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = ContextExtractor(readOnlyBasicProperties);
-            ActivityContext parentContext = TracingOptions.UsePublisherAsParent ? linkedContext : default;
+            RabbitMQTracingOptions effective = ResolveTracingOptions(tracing);
+            ActivityContext linkedContext = effective.ContextExtractor(readOnlyBasicProperties);
+            ActivityContext parentContext = effective.UsePublisherAsParent ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
+                effective.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
                 linkedContext, parentContext);
 
 
@@ -206,7 +286,7 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? Deliver(string routingKey, string exchange, ulong deliveryTag,
-            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize)
+            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, RabbitMQTracingOptions? tracing)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -214,11 +294,12 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = ContextExtractor(readOnlyBasicProperties);
-            ActivityContext parentContext = TracingOptions.UsePublisherAsParent ? linkedContext : default;
+            RabbitMQTracingOptions effective = ResolveTracingOptions(tracing);
+            ActivityContext linkedContext = effective.ContextExtractor(readOnlyBasicProperties);
+            ActivityContext parentContext = effective.UsePublisherAsParent ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,
+                effective.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,
                 ActivityKind.Consumer, linkedContext, parentContext);
             if (activity != null && activity.IsAllDataRequested)
             {
@@ -431,12 +512,12 @@ namespace RabbitMQ.Client
                 .SetTag("server.port", endpoint.Port);
         }
 
-        private static void DefaultContextInjector(Activity sendActivity, IDictionary<string, object?> props)
+        internal static void DefaultContextInjector(Activity sendActivity, IDictionary<string, object?> props)
         {
             DistributedContextPropagator.Current.Inject(sendActivity, props, DefaultContextSetter);
         }
 
-        private static ActivityContext DefaultContextExtractor(IReadOnlyBasicProperties props)
+        internal static ActivityContext DefaultContextExtractor(IReadOnlyBasicProperties props)
         {
             if (props.Headers == null)
             {

@@ -29,8 +29,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                 switch (work.WorkType)
                                 {
                                     case WorkType.Deliver:
-                                        using (Activity? activity = RabbitMQActivitySource.Deliver(work.RoutingKey!, work.Exchange!,
-                                            work.DeliveryTag, work.BasicProperties!, work.Body.Size))
+                                        // Gate on listeners before touching _channel.TracingOptions so a delivery
+                                        // pays nothing (and does not walk Session.Connection) when tracing is off.
+                                        Activity? activity = RabbitMQActivitySource.SubscriberHasListeners
+                                            ? RabbitMQActivitySource.Deliver(work.RoutingKey!, work.Exchange!,
+                                                work.DeliveryTag, work.BasicProperties!, work.Body.Size, _channel.TracingOptions)
+                                            : null;
+                                        using (activity)
                                         {
                                             /*
                                              * Record a throwing consumer callback on the deliver span

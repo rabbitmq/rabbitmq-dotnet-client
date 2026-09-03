@@ -17,3 +17,9 @@ static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, string! exchange, string! routingKey, System.ReadOnlyMemory<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync<T>(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.PublicationAddress! addr, T basicProperties, System.Buffers.ReadOnlySequence<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync<T>(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.PublicationAddress! addr, T basicProperties, System.ReadOnlyMemory<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+RabbitMQ.Client.ConnectionFactory.TracingOptions.get -> RabbitMQ.Client.RabbitMQTracingOptions?
+RabbitMQ.Client.ConnectionFactory.TracingOptions.set -> void
+RabbitMQ.Client.RabbitMQTracingOptions.ContextInjector.get -> System.Action<System.Diagnostics.Activity!, System.Collections.Generic.IDictionary<string!, object?>!>!
+RabbitMQ.Client.RabbitMQTracingOptions.ContextInjector.set -> void
+RabbitMQ.Client.RabbitMQTracingOptions.ContextExtractor.get -> System.Func<RabbitMQ.Client.IReadOnlyBasicProperties!, System.Diagnostics.ActivityContext>!
+RabbitMQ.Client.RabbitMQTracingOptions.ContextExtractor.set -> void

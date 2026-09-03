@@ -64,6 +64,15 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
+        /// <summary>
+        /// The tracing configuration the owning connection captured at creation, or null when the
+        /// factory set none and the deprecated process-wide statics apply. Read on the publish, get,
+        /// and deliver paths so those spans reflect this connection's configuration. Resolved lazily
+        /// through the session rather than captured in the constructor, so a channel built over a test
+        /// session that supplies no connection is not forced to touch it. See issue #1981.
+        /// </summary>
+        internal RabbitMQTracingOptions? TracingOptions => Session.Connection.TracingOptions;
+
         private bool _disposed;
         private int _isDisposing;
 
@@ -1155,11 +1164,16 @@ namespace RabbitMQ.Client.Impl
                 {
                     BasicGetResult? result = await k;
 
-                    using Activity? activity = result != null
-                        ? RabbitMQActivitySource.BasicGet(result.RoutingKey,
-                            result.Exchange,
-                            result.DeliveryTag, result.BasicProperties, result.Body.Length)
-                        : RabbitMQActivitySource.BasicGetEmpty(queue);
+                    // Gate on listeners before reading TracingOptions (which walks Session.Connection),
+                    // matching the publish path and honouring the "no connection is touched when tracing
+                    // is off" contract on Channel.TracingOptions.
+                    using Activity? activity = RabbitMQActivitySource.SubscriberHasListeners
+                        ? (result != null
+                            ? RabbitMQActivitySource.BasicGet(result.RoutingKey,
+                                result.Exchange,
+                                result.DeliveryTag, result.BasicProperties, result.Body.Length, TracingOptions)
+                            : RabbitMQActivitySource.BasicGetEmpty(queue, TracingOptions))
+                        : null;
 
                     activity?.SetStartTime(k.StartTime);
 
