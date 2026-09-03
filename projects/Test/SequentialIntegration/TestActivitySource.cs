@@ -44,6 +44,10 @@ using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
 
+// This file deliberately exercises the deprecated process-wide tracing configuration on
+// RabbitMQActivitySource, which is retained for back-compat behind [Obsolete]. See issue #1981.
+#pragma warning disable CS0618
+
 namespace Test.SequentialIntegration
 {
     public class TestActivitySource : SequentialIntegrationFixture
@@ -1026,3 +1030,4 @@ namespace Test.SequentialIntegration
         }
     }
 }
+#pragma warning restore CS0618
