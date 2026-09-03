@@ -41,6 +41,16 @@ namespace RabbitMQ.Client
         /// If our <see cref="IChannel"/> shuts down, this property will contain a description of the reason for the
         /// shutdown. Otherwise it will contain null. See <see cref="ShutdownEventArgs"/>.
         /// </summary>
+        /// <remarks>
+        /// It is cleared when the broker confirms a registration of this consumer, which includes
+        /// automatic recovery re-registering it after a connection drop. A consumer that the channel
+        /// recovered but the client did not re-register, because topology recovery is disabled or a
+        /// <see cref="TopologyRecoveryFilter"/> excluded it, keeps the reason from the shutdown that
+        /// stopped it. With a <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/> above one,
+        /// this and <see cref="IsRunning"/> are set from concurrent dispatcher workers and so are not
+        /// guaranteed to agree with each other under a registration racing a shutdown. See
+        /// issues #2006 and #2016.
+        /// </remarks>
         public ShutdownEventArgs? ShutdownReason { get; private set; }
 
         /// <summary>
@@ -79,6 +89,15 @@ namespace RabbitMQ.Client
         public virtual Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
             _consumerTags.Add(consumerTag);
+            /*
+             * Clear any reason left over from an earlier shutdown. The broker has accepted this
+             * registration, so the channel is serving the consumer again and ShutdownReason has to
+             * be null, as that property documents. This matters most after automatic recovery, which
+             * re-registers the consumer through this same path: without the reset the consumer went
+             * on reporting the shutdown that triggered the recovery, indefinitely and even while it
+             * was happily receiving deliveries. See issue #2006.
+             */
+            ShutdownReason = null;
             IsRunning = true;
             return Task.CompletedTask;
         }
