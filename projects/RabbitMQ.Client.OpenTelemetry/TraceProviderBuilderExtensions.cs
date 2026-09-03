@@ -11,21 +11,88 @@ namespace OpenTelemetry.Trace
 
     public static class OpenTelemetryExtensions
     {
-        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder, Action<RabbitMQTracingOptions> configure)
-        {
-            var options = new RabbitMQTracingOptions();
-            configure?.Invoke(options);
-            RabbitMQActivitySource.TracingOptions = options;
+        private const string ProcessWideObsoleteMessage =
+            "This overload installs OpenTelemetry propagation on the deprecated process-wide tracing " +
+            "statics on RabbitMQActivitySource, which are shared across every connection. Use " +
+            "AddRabbitMQInstrumentation(TracerProviderBuilder, ConnectionFactory, Action<RabbitMQTracingOptions>), " +
+            "which owns the configuration on the connection that performs the traced operations. " +
+            "See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981.";
 
-            RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
-            RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
+        /// <summary>
+        /// Configures a <see cref="ConnectionFactory"/> so that connections it creates propagate
+        /// trace context with OpenTelemetry, and subscribes this builder to the client's activity
+        /// sources. This is the preferred path: the configuration is owned by the connection that
+        /// performs the traced operations rather than by process-wide state.
+        /// </summary>
+        /// <remarks>
+        /// Installs the OpenTelemetry inject/extract delegates on the factory's
+        /// <see cref="ConnectionFactory.TracingOptions"/>, replacing any custom propagation delegates
+        /// already set (installing OpenTelemetry propagation is this method's purpose), while carrying
+        /// over the factory's other tracing options. <paramref name="configure"/> then lets the caller
+        /// adjust the result, and the builder is subscribed to <c>RabbitMQ.Client.*</c>. A fresh options
+        /// instance is assigned to the factory, so any instance the caller already held is not mutated,
+        /// and connections created by the factory after this call capture the configuration; connections
+        /// created before it are unaffected.
+        /// </remarks>
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder,
+            ConnectionFactory connectionFactory, Action<RabbitMQTracingOptions> configure = null)
+        {
+            if (connectionFactory is null)
+            {
+                throw new ArgumentNullException(nameof(connectionFactory));
+            }
+
+            RabbitMQTracingOptions existing = connectionFactory.TracingOptions;
+            var options = new RabbitMQTracingOptions
+            {
+                ContextInjector = OpenTelemetryContextInjector,
+                ContextExtractor = OpenTelemetryContextExtractor
+            };
+            if (existing != null)
+            {
+                options.UseRoutingKeyAsOperationName = existing.UseRoutingKeyAsOperationName;
+                options.UsePublisherAsParent = existing.UsePublisherAsParent;
+            }
+            configure?.Invoke(options);
+            connectionFactory.TracingOptions = options;
+
             builder.AddSource("RabbitMQ.Client.*");
             return builder;
         }
 
+        /// <summary>
+        /// Subscribes this builder to the client's activity sources and installs the OpenTelemetry
+        /// propagation delegates as the process-wide default.
+        /// </summary>
+        /// <remarks>
+        /// This overload configures the deprecated process-wide statics on
+        /// <see cref="RabbitMQActivitySource"/>, which every connection that has not been given its
+        /// own <see cref="ConnectionFactory.TracingOptions"/> will capture. Prefer the overload that
+        /// takes a <see cref="ConnectionFactory"/>, which owns the configuration on the connection
+        /// itself. See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981.
+        /// </remarks>
+        [Obsolete(ProcessWideObsoleteMessage)]
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder, Action<RabbitMQTracingOptions> configure)
+        {
+            var options = new RabbitMQTracingOptions();
+            configure?.Invoke(options);
+
+#pragma warning disable CS0618 // deprecated process-wide configuration, kept working for back-compat
+            RabbitMQActivitySource.TracingOptions = options;
+            RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
+            RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
+#pragma warning restore CS0618
+
+            builder.AddSource("RabbitMQ.Client.*");
+            return builder;
+        }
+
+        [Obsolete(ProcessWideObsoleteMessage)]
         public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder)
         {
-            return AddRabbitMQInstrumentation(builder, null);
+#pragma warning disable CS0618 // this overload is itself the deprecated process-wide path
+            return AddRabbitMQInstrumentation(builder, (Action<RabbitMQTracingOptions>)null);
+#pragma warning restore CS0618
         }
 
         private static ActivityContext OpenTelemetryContextExtractor(IReadOnlyBasicProperties props)
