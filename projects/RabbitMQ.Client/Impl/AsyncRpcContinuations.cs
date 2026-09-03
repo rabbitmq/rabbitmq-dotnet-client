@@ -172,16 +172,17 @@ namespace RabbitMQ.Client.Impl
                 }
                 else if (_continuationTimeoutCancellationToken.IsCancellationRequested)
                 {
+                    /*
+                     * A continuation that outran ContinuationTimeout completes as cancelled, so the
+                     * awaiter sees an OperationCanceledException and cannot tell a timeout from the
+                     * caller cancelling. Callers that need to distinguish the two have to compare
+                     * against their own token, which is what topology recovery does. See issue #1996.
+                     */
 #if NET
-                    if (_tcs.TrySetCanceled(_continuationTimeoutCancellationToken))
+                    _tcs.TrySetCanceled(_continuationTimeoutCancellationToken);
 #else
-                    if (_tcs.TrySetCanceled())
+                    _tcs.TrySetCanceled();
 #endif
-                    {
-                        // Cancellation was successful, does this mean we set a TimeoutException
-                        // in the same manner as BlockingCell used to
-                        _tcs.TrySetException(GetTimeoutException());
-                    }
                 }
                 else
                 {
@@ -223,34 +224,24 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        /*
+         * Note that this reports the timeout as cancellation, not as a TimeoutException. A
+         * TaskCompletionSource completes once, so the TrySetCanceled here is the whole result; an
+         * attempt to also set an exception afterwards can never reach the awaiter. See issue #1996.
+         */
 #if NET
-        private void HandleContinuationTimeout(object? state, CancellationToken cancellationToken)
+        private static void HandleContinuationTimeout(object? state, CancellationToken cancellationToken)
         {
             var tcs = (TaskCompletionSource<T>)state!;
-            if (tcs.TrySetCanceled(cancellationToken))
-            {
-                tcs.TrySetException(GetTimeoutException());
-            }
+            tcs.TrySetCanceled(cancellationToken);
         }
 #else
-        private void HandleContinuationTimeout(object state)
+        private static void HandleContinuationTimeout(object state)
         {
             var tcs = (TaskCompletionSource<T>)state;
-            if (tcs.TrySetCanceled())
-            {
-                tcs.TrySetException(GetTimeoutException());
-            }
+            tcs.TrySetCanceled();
         }
 #endif
-
-        private TimeoutException GetTimeoutException()
-        {
-            // TODO
-            // Cancellation was successful, does this mean we set a TimeoutException
-            // in the same manner as BlockingCell used to
-            string msg = $"operation '{GetType().FullName}' timed out after {_continuationTimeout}";
-            return new TimeoutException(msg);
-        }
     }
 
     internal sealed class ConnectionSecureOrTuneAsyncRpcContinuation : AsyncRpcContinuation<ConnectionSecureOrTune>
