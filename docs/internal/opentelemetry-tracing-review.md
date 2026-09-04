@@ -12,7 +12,7 @@ The findings were split into three groups, because they carry very different ris
 |---|---|---|
 | A | Behavioural defects: ambient-span pollution, failures never recorded, untagged `tcp connection attempt`, the null-`Headers` extractor path, a wrong comment | **Fixed.** Sections below are marked `FIXED` individually. |
 | B | Semantic-convention conformance. Each one changes emitted span names or attributes, and several break existing test assertions. | Open |
-| C | Public API: per-provider tracing configuration. Must land before #1923. | Open |
+| C | Public API: per-connection tracing configuration (`ConnectionFactory.TracingOptions`), replacing the process-global statics. Must land before #1923. | PR #2009 |
 
 Group A was separated out precisely because none of it changes a conforming attribute value or span name, so it can ship without a downstream consumer having to re-key anything. Groups B and C build on this branch as stacked PRs.
 
@@ -200,6 +200,16 @@ This is not a memory-safety problem. 181,425 publishes with a concurrent writer 
 The statics are also unvalidated, so `ContextInjector = null` makes every subsequent publish throw `NullReferenceException` from inside the client.
 
 Because these members shipped in 7.2.1, removing them is a breaking change. Adding a per-provider path alongside them is not.
+
+### Resolution (per-connection ownership, PR #2009)
+
+Per-`TracerProvider` configuration is not achievable: one `ActivitySource` produces a single `Activity` shared by every provider, and one publish injects a single set of headers, so span shape and the propagation delegates cannot differ per provider. @danielmarbach's review reframed the fix around the right owner instead: the connection that performs the operation, not a provider and not process-wide state.
+
+`ConnectionFactory.TracingOptions` (a `RabbitMQTracingOptions`, now also carrying the injector and extractor delegates) is captured into `ConnectionConfig` at `CreateConnectionAsync` and read on the publish, get, and deliver paths via `Channel.TracingOptions` (which resolves lazily through `Session.Connection`, so a channel over a test session that supplies no connection is not forced to touch it). The `RabbitMQActivitySource` span methods take a nullable `RabbitMQTracingOptions` and the `Resolve*` helpers fall back to the statics when it is null.
+
+The statics stay functional as that fallback and are marked `[Obsolete]` (removal at a major). Crucially the fallback is read **live**, not snapshotted: a connection whose factory set no options reads the statics at each operation, exactly as before, so the deprecated global path's behaviour is unchanged. Only a factory that sets its own `TracingOptions` gets an immutable per-connection snapshot. The null-setter validation from the earlier iteration is retained on both the statics and `RabbitMQTracingOptions`.
+
+The OpenTelemetry package gains `AddRabbitMQInstrumentation(this TracerProviderBuilder, ConnectionFactory, ...)`, which sets the OTel delegates on the factory's `TracingOptions` and subscribes the builder; the builder-only overloads remain for the global path.
 
 ## Exception events are on a deprecation path
 

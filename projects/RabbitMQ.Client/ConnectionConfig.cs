@@ -143,6 +143,14 @@ namespace RabbitMQ.Client
 
         internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;
 
+        /// <summary>
+        /// A snapshot of the factory's <see cref="ConnectionFactory.TracingOptions"/> taken when this
+        /// connection was created, or <see langword="null"/> when the factory set none. Null means the
+        /// connection falls back to the deprecated process-wide statics on
+        /// <see cref="RabbitMQActivitySource"/>, read live at each operation.
+        /// </summary>
+        internal readonly RabbitMQTracingOptions? TracingOptions;
+
         internal ConnectionConfig(string virtualHost, string userName, string password,
             ICredentialsProvider? credentialsProvider,
             IEnumerable<IAuthMechanismFactory> authMechanisms,
@@ -150,7 +158,8 @@ namespace RabbitMQ.Client
             ushort maxChannelCount, uint maxFrameSize, uint maxInboundMessageBodySize, bool topologyRecoveryEnabled,
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
-            ushort consumerDispatchConcurrency, Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
+            ushort consumerDispatchConcurrency, RabbitMQTracingOptions? tracingOptions,
+            Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
         {
             VirtualHost = virtualHost;
             UserName = userName;
@@ -171,6 +180,7 @@ namespace RabbitMQ.Client
             HandshakeContinuationTimeout = handshakeContinuationTimeout;
             RequestedConnectionTimeout = requestedConnectionTimeout;
             ConsumerDispatchConcurrency = consumerDispatchConcurrency;
+            TracingOptions = tracingOptions;
             FrameHandlerFactoryAsync = frameHandlerFactoryAsync;
         }
     }
