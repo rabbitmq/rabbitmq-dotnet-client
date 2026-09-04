@@ -542,16 +542,28 @@ namespace RabbitMQ.Client.Impl
         /// </remarks>
         internal static TimeSpan ResolveCloseTimeout(TimeSpan timeout, bool abort)
         {
-            if (timeout > MaxCancellationTokenSourceDelay)
+            if (timeout > s_maxCancellationTokenSourceDelay)
             {
-                timeout = Timeout.InfiniteTimeSpan;
+                /*
+                 * Clamp rather than treat as unbounded. A caller asking for more time than the
+                 * timer can express means "as long as possible", and clamping keeps that a bound:
+                 * promoting it to InfiniteTimeSpan instead would silently convert a bounded wait
+                 * into one that nothing can end, and would make the abort branch below
+                 * non-monotonic (more time requested yielding the 5 second floor).
+                 */
+                timeout = s_maxCancellationTokenSourceDelay;
             }
-
-            bool unbounded = timeout == Timeout.InfiniteTimeSpan;
 
             if (abort)
             {
-                if (unbounded || timeout < InternalConstants.DefaultConnectionAbortTimeout)
+                /*
+                 * An abort is never unbounded: its wait on the main loop uses this timeout alone,
+                 * with the caller's token deliberately neutralized, so an unbounded abort would
+                 * make the forced socket close unreachable. A finite value above the floor is
+                 * honoured as given, however large.
+                 */
+                if (timeout == Timeout.InfiniteTimeSpan
+                    || timeout < InternalConstants.DefaultConnectionAbortTimeout)
                 {
                     return InternalConstants.DefaultConnectionAbortTimeout;
                 }
@@ -559,9 +571,9 @@ namespace RabbitMQ.Client.Impl
                 return timeout;
             }
 
-            if (unbounded)
+            if (timeout == Timeout.InfiniteTimeSpan)
             {
-                return Timeout.InfiniteTimeSpan;
+                return timeout;
             }
 
             if (timeout < InternalConstants.DefaultConnectionCloseTimeout)
@@ -573,20 +585,27 @@ namespace RabbitMQ.Client.Impl
         }
 
         /// <summary>
-        /// The largest delay a <see cref="CancellationTokenSource"/> accepts, chosen to be safe on
-        /// every runtime the build can load on; a larger timeout is treated as unbounded rather
-        /// than thrown. The netstandard2.0 build can load on .NET Framework, whose constructor
-        /// rejects any delay above <see cref="int.MaxValue"/> milliseconds (roughly 24.86 days)
-        /// with <see cref="ArgumentOutOfRangeException"/>, so it uses that floor. A runtime that
-        /// accepts more - .NET Core and later allow up to <c>uint.MaxValue - 1</c> milliseconds,
-        /// roughly 49.7 days - still treats a delay in the gap as unbounded, a harmless
-        /// over-approximation for so extreme a value. The net8.0 build uses the larger limit.
+        /// The largest delay a <see cref="CancellationTokenSource"/> accepts, chosen per build so
+        /// that every runtime the build can load on accepts it. A larger timeout is clamped to
+        /// this value rather than thrown.
+        /// <para>
+        /// The ceiling is selected by the target framework of the build, not by the runtime in
+        /// use. The netstandard2.0 build can load on .NET Framework, whose constructor rejects any
+        /// delay above <see cref="int.MaxValue"/> milliseconds (roughly 24.86 days) with
+        /// <see cref="ArgumentOutOfRangeException"/>, so that build uses the lower ceiling for
+        /// every runtime it loads on, including .NET Core and later, which would accept up to
+        /// <c>uint.MaxValue - 1</c> milliseconds (roughly 49.7 days). The net8.0 build uses the
+        /// higher one. Clamping rather than promoting to
+        /// <see cref="Timeout.InfiniteTimeSpan"/> keeps the difference harmless: a caller on the
+        /// netstandard2.0 build asking for 30 days gets a bound of roughly 24.86 days instead of
+        /// 30, rather than an unbounded wait.
+        /// </para>
         /// </summary>
 #if NETSTANDARD
-        private static readonly TimeSpan MaxCancellationTokenSourceDelay =
+        internal static readonly TimeSpan s_maxCancellationTokenSourceDelay =
             TimeSpan.FromMilliseconds(int.MaxValue);
 #else
-        private static readonly TimeSpan MaxCancellationTokenSourceDelay =
+        internal static readonly TimeSpan s_maxCancellationTokenSourceDelay =
             TimeSpan.FromMilliseconds(uint.MaxValue - 1);
 #endif
 
