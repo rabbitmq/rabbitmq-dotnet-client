@@ -298,6 +298,22 @@ All seven disposal calls were removed. Proving no waiter can be parked at each o
 
 Two things to know if you extend these tests. `AutorecoveringChannel.DisposeAsync` does not dispose its inner channel, so disposing the `IChannel` that `CreateChannelAsync` returns never reaches `Channel`'s dispose path at all - the test disposes `InnerChannel` directly. And use `BindingFlags.DeclaredOnly` when enumerating: `_rpcSemaphore` is `protected`, so `RecoveryAwareChannel` otherwise reports it a second time.
 
+## Issue #1997: every recovery operation must carry the recovery token
+
+Topology recovery runs `RecoverAsync` on `RecordedExchange`, `RecordedQueue`, `RecordedBinding` and `RecordedConsumer`, and each must receive the recovery cancellation token, which is `AutorecoveringConnection._recoveryCancellationTokenSource.Token` and is cancelled only by `CloseAsync` / `DisposeAsync`. Note the shapes differ: exchange, queue and binding recovery each open a dedicated channel, declare or bind, then close it, so three operations per entity, while consumer recovery reuses the channel being recovered. Recovery also issues RPCs outside these four methods, notably the `basic.qos` and `tx.select` replays in `AutorecoveringChannel.AutomaticallyRecoverAsync`, and those must carry the token too; the reflection test in `projects/Test/Unit/TestRecordedEntityRecovery.cs` pins only the four `RecoverAsync` methods.
+
+`RecordedConsumer.RecoverAsync` did not take a token, so its `basic.consume` ran with `CancellationToken.None`.
+
+**What that actually cost, which is not what it looks like.** Cancelling an RPC's token does *not* shorten the wait for its reply. Only the continuation's own timeout token is registered against the `TaskCompletionSource` (`AsyncRpcContinuations.cs`, `UnsafeRegister(HandleContinuationTimeout, _tcs)`); the caller's token goes solely into `_linkedCancellationTokenSource`, which is exposed as `CancellationToken` but never registered against the TCS nor awaited, and linked-source propagation is parent to child, so cancelling the caller's token does not cancel the timeout source either. `TestAsyncRpcContinuation` states this outright. So once `basic.consume` is on the wire, the wait for `basic.consume-ok` runs to the broker's reply or to `ContinuationTimeout`, before and after this fix alike.
+
+The real cost was earlier in the method. `Channel.BasicConsumeAsync` does `await _rpcSemaphore.WaitAsync(k.CancellationToken)` *before* `k.StartTimeout()`, deliberately, so that queueing behind another RPC is not charged against this operation's budget (#1964). That wait's only bounds are the holder releasing within roughly its own `ContinuationTimeout`, and the caller's token. With `CancellationToken.None` the second bound did not exist, and because `AutomaticallyRecoverAsync` assigns `_innerChannel = newChannel` *before* recovering consumers (deliberately, for #1140), application RPCs already contend for that same semaphore. Under sustained application traffic the recovery `basic.consume` could park there for an unbounded multiple of `ContinuationTimeout`. That is the window the token closes.
+
+One consequence of threading it. The token becomes part of the continuation's linked token, which `DoHandleCommandAsync` hands to `HandleBasicConsumeOkAsync`, and that method opens with `ThrowIfCancellationRequested()`. So a `basic.consume-ok` arriving after recovery was cancelled is now refused and the consumer is removed from the dispatcher, where previously it was accepted. This is bounded rather than a leak: the recovery token is cancelled only by close or dispose, so the connection is going away and the broker discards its consumers with it.
+
+The classification added for #1993 is unaffected and still needed. A protocol operation that outruns `ContinuationTimeout` completes its continuation as cancelled, so an `OperationCanceledException` is ambiguous by type alone, and `ShouldRetryRecoveryAfter` still has to consult the recovery token to tell a timeout (retry) from a cancelled recovery (do not retry).
+
+Known related hazard, not fixed by #1997: the entity-recovery loops follow a "release `_recordedEntitiesSemaphore`, await application code, re-acquire with `WaitAsync(cancellationToken)`" pattern. If the token is already cancelled the re-acquire throws, because `SemaphoreSlim.WaitAsync` observes the token before it looks at the count, so the loop escapes without holding the semaphore and the outer `finally` in `TryPerformAutomaticRecoveryAsync` releases one it does not hold, raising `SemaphoreFullException` on a `SemaphoreSlim(1, 1)` that replaces the real cancellation. Which handler is needed to reach it differs per loop: the exchange and binding loops need a `TopologyRecoveryExceptionHandler` whose condition matches, the queue loop needs only a `QueueNameChangedAfterRecovery` handler, and the consumer loop needed nothing at all until its release was guarded on `_recoveringConsumerAsyncWrapper.IsEmpty` here. The remaining paths are tracked with the custom-handler work in #1995.
+
 ## Relevant timeouts
 
 These are easy to confuse; distinguishing which one a hang tracks is the key diagnostic signal.
@@ -363,6 +379,12 @@ It asserts more than "the TCS completed": it asserts the channel shutdown handle
 The regression test (`projects/Test/Integration/TestConnectionFactory.cs::TestCreateConnectionAsync_CancellationDuringHandshake_CompletesQuickly`) sweeps short cancellation delays (0us .. 50ms) with a 30s `ContinuationTimeout` and asserts each attempt completes in under 3s. The wide `ContinuationTimeout` is deliberate: it makes a regression manifest as a ~30s stall rather than a subtle few-second delay that a slow CI runner could mask.
 
 The test is a timing assertion and does not assert a specific exception type. It catches the only two exceptions `CreateConnectionAsync` can surface: `OperationCanceledException` (rethrown when the token was the cause) and `BrokerUnreachableException` (the wrapper for any other handshake failure, including the Windows DNS-cancel `SocketException`). Anything else escapes and fails the test.
+
+### #1997
+
+`projects/Test/Unit/TestRecordedEntityRecovery.cs` pins the set of entity `RecoverAsync` methods and requires each to take a *required* `CancellationToken`, so adding an entity, or defaulting the token, is a deliberate act. Verified by mutation: making the token optional fails the test.
+
+This is a signature check, not a behavioural one, so unlike the other entries here it cannot be proven both ways against a stall: it cannot detect a method that accepts the token and then ignores it, and nothing currently exercises the cancellation latency the fix improves. `TestToxiproxy.TestConsumerRecoveryContinuationTimeoutIsRetried_GH1993` already builds the necessary state (a `RecoveringConsumerAsync` handler plus a `Rate=0` toxic so the consume goes out but the reply cannot return), so adding a concurrent close with a stopwatch assertion there is the natural way to close this gap.
 
 ### Running against a local broker
 
