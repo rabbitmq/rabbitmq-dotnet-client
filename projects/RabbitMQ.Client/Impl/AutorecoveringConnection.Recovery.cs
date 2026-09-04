@@ -256,6 +256,15 @@ namespace RabbitMQ.Client.Impl
             {
                 throw e;
             }
+            if (recoveryCancellationToken.IsCancellationRequested)
+            {
+                // Recovery was cancelled by close or dispose. Saying this is "not a known problem
+                // with connectivity" would send an operator chasing a broker or topology fault
+                // during an ordinary shutdown, once per entity still being recovered.
+                ESLog.Info($"Recovery of a topology entity was abandoned because the connection is closing: {e.Message}");
+                return;
+            }
+
             ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivity, ignoring it", e);
         }
 
@@ -641,8 +650,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // No defaults on either parameter, unlike the sibling recovery loops which never had them.
+        // Omitting recordedEntitiesSemaphoreHeld throws below, but a defaulted token would silently
+        // substitute CancellationToken.None and reintroduce #1997 at a future second call site.
         internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, IChannel channelToUse,
-            bool recordedEntitiesSemaphoreHeld = false, CancellationToken cancellationToken = default)
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -661,22 +673,36 @@ namespace RabbitMQ.Client.Impl
                     continue;
                 }
 
-                try
+                /*
+                 * Only release the semaphore if there is actually a handler to invoke, as the
+                 * sibling loops do. Releasing unconditionally meant the re-acquire ran for every
+                 * recorded consumer, and SemaphoreSlim.WaitAsync observes an already-cancelled token
+                 * before it looks at the count, so a recovery cancelled by close or dispose escaped
+                 * this loop without holding the semaphore. The outer finally then released one it
+                 * did not hold, raising SemaphoreFullException on a SemaphoreSlim(1, 1), which
+                 * replaced the real cancellation and turned an orderly shutdown into an
+                 * internal-error abort. With this guard that path needs a registered
+                 * RecoveringConsumerAsync handler rather than merely two recorded consumers.
+                 */
+                if (false == _recoveringConsumerAsyncWrapper.IsEmpty)
                 {
-                    _recordedEntitiesSemaphore.Release();
-                    await _recoveringConsumerAsyncWrapper.InvokeAsync(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments, cancellationToken))
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                    try
+                    {
+                        _recordedEntitiesSemaphore.Release();
+                        await _recoveringConsumerAsyncWrapper.InvokeAsync(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments, cancellationToken))
+                            .ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
 
                 string oldTag = consumer.ConsumerTag;
                 try
                 {
-                    string newTag = await consumer.RecoverAsync(channelToUse)
+                    string newTag = await consumer.RecoverAsync(channelToUse, cancellationToken)
                         .ConfigureAwait(false);
                     RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
                     UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
