@@ -48,6 +48,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
         private bool _disposed;
         private readonly CancellationTokenSource _shutdownCts = new CancellationTokenSource();
 
+        /*
+         * Captured once, here, rather than read from _shutdownCts on every work item.
+         * CancellationTokenSource.Token throws ObjectDisposedException once the source has been
+         * disposed, even if it was cancelled first, while a token already copied out stays
+         * usable. Reading it per work item meant a Dispose() racing an inbound frame threw from
+         * the frame-receive loop, which no caller on that path catches, tearing down the whole
+         * connection rather than the one channel. See issue #1988.
+         */
+        private readonly CancellationToken _shutdownToken;
+
         internal ConsumerDispatcherChannelBase(Impl.Channel channel, ushort concurrency)
         {
             _channel = channel;
@@ -61,6 +71,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
              * See docs/internal/consumer-dispatch-concurrency.md and #2035.
              */
             _concurrency = concurrency == 0 ? InternalConstants.MinConsumerDispatchConcurrency : concurrency;
+            _shutdownToken = _shutdownCts.Token;
 
             var channelOpts = new System.Threading.Channels.UnboundedChannelOptions
             {
@@ -102,7 +113,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 try
                 {
                     AddConsumer(consumer, consumerTag);
-                    WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag, _shutdownCts);
+                    WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag, _shutdownToken);
                     await _writer.WriteAsync(work, cancellationToken)
                         .ConfigureAwait(false);
                 }
@@ -123,7 +134,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
-                var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, _shutdownCts);
+                var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, _shutdownToken);
                 await _writer.WriteAsync(work, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -136,7 +147,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
-                WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag, _shutdownCts);
+                WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag, _shutdownToken);
                 await _writer.WriteAsync(work, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -149,7 +160,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
-                WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag, _shutdownCts);
+                WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag, _shutdownToken);
                 await _writer.WriteAsync(work, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -298,19 +309,19 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 CancellationToken = cancellationToken;
             }
 
-            public static WorkStruct CreateCancel(IAsyncBasicConsumer consumer, string consumerTag, CancellationTokenSource cancellationTokenSource)
+            public static WorkStruct CreateCancel(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
             {
-                return new WorkStruct(WorkType.Cancel, consumer, consumerTag, cancellationTokenSource.Token);
+                return new WorkStruct(WorkType.Cancel, consumer, consumerTag, cancellationToken);
             }
 
-            public static WorkStruct CreateCancelOk(IAsyncBasicConsumer consumer, string consumerTag, CancellationTokenSource cancellationTokenSource)
+            public static WorkStruct CreateCancelOk(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
             {
-                return new WorkStruct(WorkType.CancelOk, consumer, consumerTag, cancellationTokenSource.Token);
+                return new WorkStruct(WorkType.CancelOk, consumer, consumerTag, cancellationToken);
             }
 
-            public static WorkStruct CreateConsumeOk(IAsyncBasicConsumer consumer, string consumerTag, CancellationTokenSource cancellationTokenSource)
+            public static WorkStruct CreateConsumeOk(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
             {
-                return new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag, cancellationTokenSource.Token);
+                return new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag, cancellationToken);
             }
 
             public static WorkStruct CreateShutdown(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
@@ -324,10 +335,10 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
 
             public static WorkStruct CreateDeliver(IAsyncBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body, CancellationTokenSource cancellationTokenSource)
+                string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body, CancellationToken cancellationToken)
             {
                 return new WorkStruct(consumer, consumerTag, deliveryTag, redelivered,
-                    exchange, routingKey, basicProperties, body, cancellationTokenSource.Token);
+                    exchange, routingKey, basicProperties, body, cancellationToken);
             }
 
             public void Dispose()
