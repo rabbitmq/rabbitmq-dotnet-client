@@ -231,7 +231,22 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="reasonCode">The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).</param>
         /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
-        /// <param name="timeout"></param>
+        /// <param name="timeout">
+        /// How long to wait for the in-progress close operations to complete before the
+        /// socket is forced closed. The timeout also bounds the close handshake itself, so a
+        /// value too short to complete it leaves the connection only partly shut down: a
+        /// graceful close therefore resolves anything under 30 seconds to 30 seconds, and an
+        /// abort resolves anything under 5 seconds to 5 seconds. A graceful close accepts
+        /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> to wait without a bound, and
+        /// nothing can end that wait: no timer is armed and <paramref name="cancellationToken"/> is
+        /// ignored while the connection is open. An abort is never unbounded and resolves
+        /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> to 5 seconds, but honours a
+        /// larger finite value as given. A value too large for the timer, including
+        /// <see cref="TimeSpan.MaxValue"/>, is clamped to the largest supported bound rather than
+        /// throwing; that limit is roughly 24.86 days for the netstandard2.0 build of this library
+        /// and roughly 49.7 days for the net8.0 build, selected by the build your application
+        /// resolves rather than by the runtime it executes on.
+        /// </param>
         /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
         /// <param name="cancellationToken">Cancellation token</param>
         Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,

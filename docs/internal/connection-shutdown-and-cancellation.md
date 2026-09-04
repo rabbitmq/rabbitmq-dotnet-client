@@ -257,8 +257,8 @@ Not even the waiter's own cancellation token releases it. `Dispose()` itself doe
 `MainLoop`'s `FinishCloseAsync` calls `_frameHandler.CloseAsync`, so it is itself one of the concurrent closers. When it lost this race it never returned, which means:
 
 1. `MainLoop` never completes, so `_mainLoopTask` never completes.
-2. `Connection.CloseAsync` waits on `_mainLoopTask` (`Connection.cs:464`) and burns its full timeout.
-3. That timeout is `InternalConstants.DefaultConnectionCloseTimeout` (30s), **not** the caller's 6s - a non-abort close floors the caller's value at 30s.
+2. `Connection.CloseAsync` waits on `_mainLoopTask` (in `Connection.CloseAsync`, near the end of its `try`) and burns its full timeout.
+3. That timeout is `InternalConstants.DefaultConnectionCloseTimeout` (30s), **not** the caller's 6s - a non-abort close floors the caller's value at 30s. `Connection.ResolveCloseTimeout` is where that resolution happens, and the floor is deliberate: the timeout feeds the same linked `CancellationTokenSource` as the caller's token, so a shorter value cancels the close handshake itself rather than bounding the wait for it, which is the `ObjectDisposedException` of #1802. The one exemption is that a graceful close honours `Timeout.InfiniteTimeSpan` (see #1973), and in exactly this stranded-`MainLoop` scenario that means there is no escape hatch at all: the wait never ends, no timer is armed, the caller's token is neutralized while the connection is open, and the `finally` has already disposed the heartbeat read timer that would otherwise cancel `_mainLoopCts`. An abort deliberately does *not* take that exemption, so it stays bounded at 5s. Note what the abort's bound does *not* buy on modern .NET: the `_frameHandler.CloseSocket()` that unparks a stranded read is inside `#if NETSTANDARD`, and the fallback in the `catch` calls `_frameHandler.CloseAsync(cts.Token)` with the very token whose firing produced the `catch`, which `SocketFrameHandler.CloseAsync` observes on its first `await` and returns from without closing the socket. So on a timeout the "forced socket close" is a no-op except on the netstandard2.0 abort path. That is pre-existing and is tracked separately.
 4. On netstandard2.0 the throwing frame is `TaskExtensions.DoWaitAsync`, which is inside `#if !NET`, so it surfaces as a bare `OperationCanceledException`.
 
 Item 4 is the only platform-specific part, and it affects the *exception type*, not the hang. The 30-second duration was the tell that this tracked the close timeout rather than a merely-slow close.
@@ -307,10 +307,12 @@ These are easy to confuse; distinguishing which one a hang tracks is the key dia
 | `ContinuationTimeout`                      | 20s     | Max wait for an RPC reply (e.g. `channel.close-ok`) |
 | `HandshakeContinuationTimeout`             | 10s     | Continuation timeout during the AMQP handshake      |
 | `InternalConstants.DefaultConnectionAbortTimeout` | 5s | Time budget for an abort                       |
-| `InternalConstants.DefaultConnectionCloseTimeout` | 30s | Time budget for a graceful close               |
+| `InternalConstants.DefaultConnectionCloseTimeout` | 30s | Time budget for a graceful close, and the floor a smaller value is raised to |
 | `InternalConstants.DefaultChannelDisposeTimeout`  | 5s  | Wait for server-originated channel close on dispose |
+| `Connection.s_maxCancellationTokenSourceDelay` | 24.86d or 49.7d | Largest bound the timer accepts; a larger close timeout is clamped to it. Which value applies is set by the build (netstandard2.0 or net8.0), not the runtime |
+| `Timeout.InfiniteTimeSpan` as a graceful close timeout | none | **No budget at all.** A graceful close honours it (#1973), so a hang here matches no duration; an abort resolves it to 5s |
 
-A hang whose duration matches `ContinuationTimeout` (not the 5s abort timeout) points at an un-completed RPC continuation - the channel-0 abort described here. A stacked pair of 5s stalls (~10s) on .NET Framework points at cause 4: the abort-timeout wait plus a subsequent channel-0 dispose timeout.
+A close that hangs with no duration matching any row is the `Timeout.InfiniteTimeSpan` case in the last row; do not rule out the close path just because no timeout value fits. A hang whose duration matches `ContinuationTimeout` (not the 5s abort timeout) points at an un-completed RPC continuation - the channel-0 abort described here. A stacked pair of 5s stalls (~10s) on .NET Framework points at cause 4: the abort-timeout wait plus a subsequent channel-0 dispose timeout.
 
 ## Diagnostic method
 

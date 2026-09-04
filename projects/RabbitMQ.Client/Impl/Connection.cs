@@ -359,15 +359,7 @@ namespace RabbitMQ.Client.Impl
         {
             CancellationToken cancellationToken = reason.CancellationToken;
 
-            if (abort && timeout < InternalConstants.DefaultConnectionAbortTimeout)
-            {
-                timeout = InternalConstants.DefaultConnectionAbortTimeout;
-            }
-
-            if (false == abort && timeout < InternalConstants.DefaultConnectionCloseTimeout)
-            {
-                timeout = InternalConstants.DefaultConnectionCloseTimeout;
-            }
+            timeout = ResolveCloseTimeout(timeout, abort);
 
             if (IsOpen)
             {
@@ -508,6 +500,114 @@ namespace RabbitMQ.Client.Impl
                 }
             }
         }
+
+        /// <summary>
+        /// Determines the timeout a close or abort operation actually gets.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The floors on finite timeouts are deliberate rather than a lower bound on how
+        /// quickly a caller may close. The timeout feeds the same linked
+        /// <see cref="CancellationTokenSource"/> as the caller's own token, so a zero or
+        /// very small value cancels the close handshake itself instead of merely bounding
+        /// the wait for it: the client stops waiting for <c>connection.close-ok</c> while
+        /// shutdown is still tearing things down, which is the
+        /// <see cref="ObjectDisposedException"/> reported in issue #1802. They are the
+        /// timeout-side counterpart of neutralizing the caller's token while the
+        /// connection is still open, and were added in the same change.
+        /// </para>
+        /// <para>
+        /// A graceful close exempts <see cref="Timeout.InfiniteTimeSpan"/>. It means "take
+        /// as long as needed", which is strictly more time than the floor allows, so it
+        /// cannot cause the truncation the floor exists to prevent. Because it is negative
+        /// it compares as less than the floor, so without this exemption it was lowered to
+        /// a finite 30 seconds and the behaviour documented on the public close overloads
+        /// was unreachable. See issue #1973.
+        /// </para>
+        /// <para>
+        /// An abort does not get that exemption, and stays bounded. Its wait on the main
+        /// loop uses the timeout alone, with the caller's token deliberately neutralized,
+        /// so an unbounded abort makes the forced socket close in the surrounding handler
+        /// unreachable and can hang for good when the main loop is stranded. That defeats
+        /// the best-effort, never-throw contract abort exists to provide.
+        /// </para>
+        /// <para>
+        /// A timeout too large for <see cref="CancellationTokenSource"/> to accept is
+        /// treated as a request to wait without a bound, which is what such a value means
+        /// in practice. Passing it through instead would throw
+        /// <see cref="ArgumentOutOfRangeException"/> from the <see cref="CancellationTokenSource"/>
+        /// constructor in the close path before the close reason is set, leaving the connection
+        /// fully open with no shutdown attempted.
+        /// </para>
+        /// </remarks>
+        internal static TimeSpan ResolveCloseTimeout(TimeSpan timeout, bool abort)
+        {
+            if (timeout > s_maxCancellationTokenSourceDelay)
+            {
+                /*
+                 * Clamp rather than treat as unbounded. A caller asking for more time than the
+                 * timer can express means "as long as possible", and clamping keeps that a bound:
+                 * promoting it to InfiniteTimeSpan instead would silently convert a bounded wait
+                 * into one that nothing can end, and would make the abort branch below
+                 * non-monotonic (more time requested yielding the 5 second floor).
+                 */
+                timeout = s_maxCancellationTokenSourceDelay;
+            }
+
+            if (abort)
+            {
+                /*
+                 * An abort is never unbounded: its wait on the main loop uses this timeout alone,
+                 * with the caller's token deliberately neutralized, so an unbounded abort would
+                 * make the forced socket close unreachable. A finite value above the floor is
+                 * honoured as given, however large.
+                 */
+                if (timeout == Timeout.InfiniteTimeSpan
+                    || timeout < InternalConstants.DefaultConnectionAbortTimeout)
+                {
+                    return InternalConstants.DefaultConnectionAbortTimeout;
+                }
+
+                return timeout;
+            }
+
+            if (timeout == Timeout.InfiniteTimeSpan)
+            {
+                return timeout;
+            }
+
+            if (timeout < InternalConstants.DefaultConnectionCloseTimeout)
+            {
+                return InternalConstants.DefaultConnectionCloseTimeout;
+            }
+
+            return timeout;
+        }
+
+        /// <summary>
+        /// The largest delay a <see cref="CancellationTokenSource"/> accepts, chosen per build so
+        /// that every runtime the build can load on accepts it. A larger timeout is clamped to
+        /// this value rather than thrown.
+        /// <para>
+        /// The ceiling is selected by the target framework of the build, not by the runtime in
+        /// use. The netstandard2.0 build can load on .NET Framework, whose constructor rejects any
+        /// delay above <see cref="int.MaxValue"/> milliseconds (roughly 24.86 days) with
+        /// <see cref="ArgumentOutOfRangeException"/>, so that build uses the lower ceiling for
+        /// every runtime it loads on, including .NET Core and later, which would accept up to
+        /// <c>uint.MaxValue - 1</c> milliseconds (roughly 49.7 days). The net8.0 build uses the
+        /// higher one. Clamping rather than promoting to
+        /// <see cref="Timeout.InfiniteTimeSpan"/> keeps the difference harmless: a caller on the
+        /// netstandard2.0 build asking for 30 days gets a bound of roughly 24.86 days instead of
+        /// 30, rather than an unbounded wait.
+        /// </para>
+        /// </summary>
+#if NETSTANDARD
+        internal static readonly TimeSpan s_maxCancellationTokenSourceDelay =
+            TimeSpan.FromMilliseconds(int.MaxValue);
+#else
+        internal static readonly TimeSpan s_maxCancellationTokenSourceDelay =
+            TimeSpan.FromMilliseconds(uint.MaxValue - 1);
+#endif
 
         internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason)
         {
