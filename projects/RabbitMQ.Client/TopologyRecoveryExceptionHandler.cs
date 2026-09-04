@@ -6,6 +6,23 @@ namespace RabbitMQ.Client
     /// <summary>
     /// Custom logic for handling topology recovery exceptions that match the specified filters.
     /// </summary>
+    /// <remarks>
+    /// A handler runs when recovering an entity fails and the matching condition accepts the
+    /// exception, and returning normally does <b>not</b> unconditionally mean the failure is
+    /// resolved. Once the handler has run, the failure is classified: a refusal the broker will
+    /// simply give again, which in practice means only <c>precondition-failed</c>, is treated as
+    /// final and recovery carries on, while a failure the broker may still act on, such as a
+    /// timeout, a request that was never transmitted, or anything seen once the connection has
+    /// gone, fails the recovery attempt so it is retried. Before this, a configured handler
+    /// swallowed the exception outright and recovery reported success even when the entity was
+    /// never recovered. See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1995.
+    /// <para>
+    /// Two consequences for handler authors. A handler must be idempotent: because the attempt can
+    /// be retried, it can be invoked again for the same entity, and there is no return value with
+    /// which to report "handled, do not retry". Throwing from a handler still forces a retry
+    /// directly, which is the long-standing way to ask for one explicitly.
+    /// </para>
+    /// </remarks>
     public class TopologyRecoveryExceptionHandler
     {
         private static readonly Func<IRecordedExchange, Exception, bool> s_defaultExchangeExceptionCondition = (e, ex) => true;
