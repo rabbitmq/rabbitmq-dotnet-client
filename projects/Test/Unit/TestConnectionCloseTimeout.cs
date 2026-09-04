@@ -85,10 +85,13 @@ namespace Test.Unit
         public void NegativeTimeoutOtherThanInfiniteIsRaisedToTheFloor_GH1973(int milliseconds)
         {
             /*
-             * The exemption must match Timeout.InfiniteTimeSpan exactly, and no other
-             * negative value. Any other negative delay is rejected by the
-             * CancellationTokenSource constructor, so it must not reach it. Without this
-             * case, loosening the check to `timeout < TimeSpan.Zero` would still pass.
+             * The exemption must match Timeout.InfiniteTimeSpan exactly, and no other negative
+             * value, because the floors are what keep every other negative away from the
+             * CancellationTokenSource. Do not assume the constructor would reject them: it
+             * validates (long)delay.TotalMilliseconds >= -1, which truncates toward zero, so
+             * anything strictly between -2ms and 0 is accepted and cancels within milliseconds,
+             * which is the truncated-handshake failure of #1802 with no exception to flag it.
+             * Without this case, loosening the check to `timeout < TimeSpan.Zero` would still pass.
              */
             TimeSpan timeout = TimeSpan.FromMilliseconds(milliseconds);
             Assert.NotEqual(Timeout.InfiniteTimeSpan, timeout);
@@ -100,44 +103,65 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void OverLargeCloseTimeoutBecomesInfiniteRatherThanThrowing_GH1973()
+        public void OverLargeCloseTimeoutIsClampedRatherThanThrowing_GH1973()
         {
             /*
-             * CancellationTokenSource rejects a delay above its ceiling, which differs by runtime
-             * (roughly 24.86 days on .NET Framework, roughly 49.7 days on modern .NET). Passing a
-             * larger value through would throw out of its constructor before the close reason is
-             * set, leaving the connection fully open. Such a value means "wait forever", so it
-             * resolves to InfiniteTimeSpan for a graceful close and to the bounded floor for an
-             * abort. The values here exceed both ceilings, so they clamp on every runtime; the
-             * per-runtime boundary is exercised separately.
+             * CancellationTokenSource rejects a delay above its ceiling, so passing a larger value
+             * through would throw out of its constructor before the close reason is set, leaving
+             * the connection fully open. Such a value means "as long as possible", so it is clamped
+             * to the ceiling. It is deliberately NOT promoted to InfiniteTimeSpan: that would turn
+             * a bounded wait into one nothing can end, and would make the abort branch
+             * non-monotonic.
              */
-            Assert.Equal(Timeout.InfiniteTimeSpan,
+            Assert.Equal(Connection.s_maxCancellationTokenSourceDelay,
                 Connection.ResolveCloseTimeout(TimeSpan.MaxValue, abort: false));
-            Assert.Equal(Timeout.InfiniteTimeSpan,
+            Assert.Equal(Connection.s_maxCancellationTokenSourceDelay,
                 Connection.ResolveCloseTimeout(TimeSpan.FromDays(60), abort: false));
 
-            Assert.Equal(InternalConstants.DefaultConnectionAbortTimeout,
+            // An abort honours a large finite value as given, once clamped; only an unbounded or
+            // too-small request resolves to the 5 second floor.
+            Assert.Equal(Connection.s_maxCancellationTokenSourceDelay,
                 Connection.ResolveCloseTimeout(TimeSpan.MaxValue, abort: true));
         }
 
         [Fact]
-        public void TimeoutBetweenTheRuntimeCeilingsResolvesPerRuntime_GH1973()
+        public void ResolutionIsMonotonicAcrossTheCeiling_GH1973()
         {
             /*
-             * FromDays(30) sits above the .NET Framework CancellationTokenSource ceiling
-             * (roughly 24.86 days) but below the modern .NET ceiling (roughly 49.7 days), so it is
-             * over-large only on .NET Framework. It must clamp to unbounded there and pass through
-             * unchanged on modern .NET, matching each runtime's actual CancellationTokenSource
-             * limit. This is the case a single, uniform ceiling would get wrong on one runtime.
+             * Asking for more time must never yield less. When an over-large value was promoted to
+             * InfiniteTimeSpan, an abort of 49 days resolved to 49 days while 50 days resolved to
+             * the 5 second floor: a 5-order-of-magnitude reversal from one extra day.
              */
-            TimeSpan thirtyDays = TimeSpan.FromDays(30);
-#if NETFRAMEWORK
-            Assert.Equal(Timeout.InfiniteTimeSpan,
-                Connection.ResolveCloseTimeout(thirtyDays, abort: false));
-#else
-            Assert.Equal(thirtyDays,
-                Connection.ResolveCloseTimeout(thirtyDays, abort: false));
-#endif
+            TimeSpan ceiling = Connection.s_maxCancellationTokenSourceDelay;
+            TimeSpan justUnder = ceiling - TimeSpan.FromDays(1);
+
+            foreach (bool abort in new[] { false, true })
+            {
+                Assert.True(Connection.ResolveCloseTimeout(ceiling + TimeSpan.FromDays(1), abort)
+                    >= Connection.ResolveCloseTimeout(justUnder, abort),
+                    $"resolution went backwards across the ceiling (abort: {abort})");
+            }
+        }
+
+        [Fact]
+        public void TheCeilingItselfIsAcceptedAndOneTickAboveIsClamped_GH1973()
+        {
+            /*
+             * The guard is `timeout > ceiling`, so the ceiling itself must pass through and the
+             * smallest value above it must clamp. Without these two inputs the guard's boundary is
+             * untested: mutating the ceiling to a value the runtime rejects, or the comparison to
+             * >=, left the whole suite green, while the first of those reintroduces the
+             * ArgumentOutOfRangeException-before-shutdown bug this test file exists for.
+             */
+            TimeSpan ceiling = Connection.s_maxCancellationTokenSourceDelay;
+
+            Assert.Equal(ceiling, Connection.ResolveCloseTimeout(ceiling, abort: false));
+            Assert.Equal(ceiling,
+                Connection.ResolveCloseTimeout(ceiling + TimeSpan.FromTicks(1), abort: false));
+
+            // The ceiling must be a value CancellationTokenSource actually accepts on this runtime.
+            using var cts = new CancellationTokenSource(ceiling);
+            Assert.False(cts.IsCancellationRequested);
         }
 
         [Fact]
@@ -164,10 +188,19 @@ namespace Test.Unit
                 foreach (bool abort in new[] { false, true })
                 {
                     TimeSpan resolved = Connection.ResolveCloseTimeout(input, abort);
+
+                    /*
+                     * Assert on the resolved value, not on cts.IsCancellationRequested. On .NET
+                     * Framework a zero delay arms a timer rather than completing the source
+                     * immediately, so reading the flag there is a race that reports false even for
+                     * a resolution that cancels microseconds later. A resolution must be either
+                     * unbounded or strictly positive.
+                     */
+                    Assert.True(resolved == Timeout.InfiniteTimeSpan || resolved > TimeSpan.Zero,
+                        $"resolved timeout {resolved} for input {input} (abort: {abort}) would " +
+                        "cancel the close handshake rather than bound the wait for it");
+
                     using var cts = new CancellationTokenSource(resolved);
-                    Assert.False(cts.IsCancellationRequested,
-                        $"resolved timeout {resolved} for input {input} (abort: {abort}) " +
-                        "produced an already-cancelled token, which would cancel the close handshake");
                 }
             }
         }
