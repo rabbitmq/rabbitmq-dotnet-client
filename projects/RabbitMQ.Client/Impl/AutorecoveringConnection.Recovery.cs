@@ -303,26 +303,49 @@ namespace RabbitMQ.Client.Impl
         }
 
         /// <summary>
-        /// Whether the exception carries a definitive per-channel refusal from the broker, leaving
-        /// nothing in flight and nothing a retry could change.
+        /// Whether the exception carries a refusal the broker will give again, leaving nothing in
+        /// flight and nothing a retry could change.
         /// </summary>
         /// <remarks>
-        /// Two things have to hold beyond the reply code, and neither is implied by it.
+        /// Only <see cref="Constants.PreconditionFailed"/> qualifies. The usual case is redeclaring
+        /// an entity with different arguments, which is exactly what these handlers are installed to
+        /// repair, and the broker's answer does not change on a retry.
+        ///
+        /// The other channel-level refusals are deliberately excluded, because in this client they
+        /// are transient rather than final. <see cref="Constants.ResourceLocked"/> and
+        /// <see cref="Constants.AccessRefused"/> are what the broker answers while an exclusive queue
+        /// is still owned by the connection that just died: <c>NetworkRecoveryInterval</c> defaults to
+        /// 5 seconds while the broker needs roughly two missed heartbeat intervals to reap that owner,
+        /// so a client that reconnects promptly hits them routinely and a retry succeeds once the
+        /// owner is gone. <see cref="Constants.NotFound"/> is likewise transient when the missing
+        /// entity is one this same pass has yet to declare, or skipped. Treating any of them as final
+        /// would permanently drop the entity, and everything bound to it, while recovery reported
+        /// success, which would make a connection with a handler installed strictly worse than one
+        /// without.
+        ///
+        /// Two further conditions have to hold, and neither is implied by the reply code.
         ///
         /// The request must actually have been sent. <see cref="AlreadyClosedException"/> derives from
         /// <see cref="OperationInterruptedException"/> and is thrown by
         /// <c>SessionBase.ThrowAlreadyClosedException</c> carrying the *channel's* close reason, so it
         /// can present a soft reply code while the operation was never transmitted at all. That entity
-        /// is definitely un-recovered and only a retry can fix it. This matters in practice because
-        /// consumer recovery shares one channel across every consumer on it: once an earlier entity
-        /// closes that channel, the rest fail this way, and treating them as final would report
-        /// recovery successful with a closed channel and unrecovered consumers.
+        /// is definitely un-recovered and only a retry can fix it.
         ///
         /// The connection must still be usable. A soft reply code identifies a channel error only
         /// when the connection survived; the same codes appear on connection-level closes, which is
         /// why <c>ShouldTriggerConnectionRecovery</c> above has to special-case a peer-initiated
-        /// <see cref="Constants.AccessRefused"/>. If the connection is gone, nothing was applied and
-        /// everything has to be retried.
+        /// <see cref="Constants.AccessRefused"/>. If the connection is gone, the whole attempt is
+        /// abandoned anyway.
+        ///
+        /// Restricting this to <see cref="Constants.PreconditionFailed"/> also keeps consumer recovery
+        /// safe. Consumers on one channel all recover on that shared channel, so a refusal classified
+        /// final there would close the channel and leave the consumers after it failing with
+        /// <see cref="AlreadyClosedException"/>, which forces a retry that reproduces the same refusal
+        /// indefinitely. <c>basic.consume</c> is refused with
+        /// <see cref="Constants.NotFound"/>, <see cref="Constants.AccessRefused"/> or
+        /// <see cref="Constants.ResourceLocked"/> and never with
+        /// <see cref="Constants.PreconditionFailed"/>, so no consumer refusal is classified final at
+        /// all; exchange, queue and binding recovery each use their own throwaway channel.
         /// </remarks>
         private static bool BrokerRefusalIsFinal(Exception? topologyRecoveryInnerException,
             bool connectionIsOpen)
@@ -334,25 +357,7 @@ namespace RabbitMQ.Client.Impl
 
             return topologyRecoveryInnerException is OperationInterruptedException operationInterrupted
                 && operationInterrupted.ShutdownReason is not null
-                && IsSoftError(operationInterrupted.ShutdownReason.ReplyCode);
-
-            // The soft (channel-level) errors a topology recovery operation can be refused with;
-            // these close a channel rather than the connection. 311 (content-too-large) and 313
-            // (no-consumers) are AMQP soft errors too, but they are basic.publish / basic.return
-            // codes that never close a channel during topology recovery, so they cannot appear here.
-            static bool IsSoftError(ushort replyCode)
-            {
-                switch (replyCode)
-                {
-                    case Constants.AccessRefused:
-                    case Constants.NotFound:
-                    case Constants.ResourceLocked:
-                    case Constants.PreconditionFailed:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
+                && operationInterrupted.ShutdownReason.ReplyCode == Constants.PreconditionFailed;
         }
 
         private void ThrowIfHandledExceptionStillRequiresRetry(TopologyRecoveryException e,
@@ -367,11 +372,16 @@ namespace RabbitMQ.Client.Impl
                 throw e;
             }
 
-            // Parity with the no-handler path's "Will not retry recovery" log: record that a handler
-            // ran and the failure is final, so an entity a handler could not actually repair is not
-            // dropped without a trace.
+            /*
+             * Record that a handler ran and the failure is final, so an entity a handler could not
+             * actually repair is not dropped without a trace. ESLog has no Info(string, Exception)
+             * overload, only Info(string, params object[]): passing the exception there binds to the
+             * params overload and string.Format drops it, because the message has no placeholder. So
+             * interpolate the identifying detail into the message, as the no-handler path does.
+             */
             ESLog.Info("Topology recovery exception was handled by a recovery exception handler and " +
-                "does not require the recovery attempt to be retried.", e);
+                $"does not require the recovery attempt to be retried: {e.Message}, inner " +
+                $"{e.InnerException?.GetType().FullName}");
         }
 
         /// <summary>
