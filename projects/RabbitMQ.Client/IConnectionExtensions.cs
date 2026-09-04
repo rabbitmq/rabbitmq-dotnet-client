@@ -11,11 +11,17 @@ namespace RabbitMQ.Client
         /// Asynchronously close this connection and all its channels.
         /// </summary>
         /// <remarks>
-        /// Note that all active channels and sessions will be
-        /// closed if this method is called. It will wait up to 30 seconds for the
-        /// in-progress close operation to complete, then forces the socket closed. If the
-        /// connection is already closed (or closing), then this method will do nothing.
-        /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
+        /// Note that all active channels and sessions will be closed if this method is called.
+        /// It waits 30 seconds for the in-progress close operation to complete and throws if that
+        /// elapses: an <see cref="OperationCanceledException"/> (a
+        /// <see cref="System.Threading.Tasks.TaskCanceledException"/> on .NET) rather than
+        /// <see cref="IOException"/>, which signals a socket closed unexpectedly. Note that a
+        /// connection returned by <see cref="ConnectionFactory"/> with automatic recovery enabled,
+        /// the default, first stops its recovery loop on a separate budget of
+        /// <see cref="ConnectionFactory.RequestedConnectionTimeout"/>, so the total time can
+        /// exceed 30 seconds. On a connection that is already closed this does nothing when
+        /// automatic recovery is enabled, and throws <see cref="Exceptions.AlreadyClosedException"/>
+        /// when it is not.
         /// </remarks>
         public static Task CloseAsync(this IConnection connection, CancellationToken cancellationToken = default)
         {
@@ -64,9 +70,20 @@ namespace RabbitMQ.Client
         /// to wait without a bound.
         /// </para>
         /// <para>
-        /// A value too large for the runtime timer (above roughly 24.86 days on .NET Framework or
-        /// roughly 49.7 days on modern .NET, including <see cref="TimeSpan.MaxValue"/>) is treated
-        /// the same as <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> rather than throwing.
+        /// A value too large for the timer, including <see cref="TimeSpan.MaxValue"/>, is clamped to
+        /// the largest supported bound rather than throwing. That limit depends on which build of
+        /// this library your application resolves, not on the runtime it executes on: roughly 24.86
+        /// days for the netstandard2.0 build, which is what .NET Framework and .NET versions before
+        /// 8 load, and roughly 49.7 days for the net8.0 build.
+        /// </para>
+        /// <para>
+        /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> waits without any bound, and
+        /// nothing else can end that wait: no timer is armed, and a
+        /// <see cref="CancellationToken"/> passed to the underlying
+        /// <see cref="IConnection.CloseAsync(ushort, string, TimeSpan, bool, CancellationToken)"/>
+        /// is deliberately ignored while the connection is open, so that a close already under way
+        /// is not truncated. Use it only when waiting indefinitely for the peer's reply is what you
+        /// want.
         /// </para>
         /// </remarks>
         public static Task CloseAsync(this IConnection connection, TimeSpan timeout)
@@ -105,8 +122,12 @@ namespace RabbitMQ.Client
         /// Note that all active channels and sessions will be closed if this method is called.
         /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection, CancellationToken)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
-        /// This method waits up to 5 seconds for the in-progress close operation to complete,
-        /// then forces the socket closed.
+        /// This method waits 5 seconds for the in-progress close operation to complete and then
+        /// attempts to close the socket, and unlike a graceful close it does not rethrow when that
+        /// wait elapses. Note that a connection returned by <see cref="ConnectionFactory"/> with
+        /// automatic recovery enabled, the default, first stops its recovery loop on a separate
+        /// budget of <see cref="ConnectionFactory.RequestedConnectionTimeout"/>, so the total time
+        /// can exceed 5 seconds.
         /// </remarks>
         public static Task AbortAsync(this IConnection connection)
         {
@@ -121,8 +142,12 @@ namespace RabbitMQ.Client
         /// Note that all active channels and sessions will be closed if this method is called.
         /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection, CancellationToken)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
-        /// This method waits up to 5 seconds for the in-progress close operation to complete,
-        /// then forces the socket closed.
+        /// This method waits 5 seconds for the in-progress close operation to complete and then
+        /// attempts to close the socket, and unlike a graceful close it does not rethrow when that
+        /// wait elapses. Note that a connection returned by <see cref="ConnectionFactory"/> with
+        /// automatic recovery enabled, the default, first stops its recovery loop on a separate
+        /// budget of <see cref="ConnectionFactory.RequestedConnectionTimeout"/>, so the total time
+        /// can exceed 5 seconds.
         /// </remarks>
         public static Task AbortAsync(this IConnection connection, CancellationToken cancellationToken = default)
         {
@@ -181,11 +206,11 @@ namespace RabbitMQ.Client
         /// An abort is always bounded, so unlike <see cref="CloseAsync(IConnection,TimeSpan)"/>
         /// it does not honour <see cref="Timeout.InfiniteTimeSpan"/>: an unbounded abort
         /// would make the forced socket close above unreachable, defeating the best-effort
-        /// guarantee that abort exists to provide. A timeout shorter than 5 seconds, an
-        /// unbounded one, or one too large for the runtime timer (which is treated as
-        /// unbounded), is resolved to 5 seconds, because the timeout also bounds the
-        /// close handshake itself and cutting that short leaves the connection only partly
-        /// shut down.
+        /// guarantee that abort exists to provide. A timeout shorter than 5 seconds, or an
+        /// unbounded one, is resolved to 5 seconds, because the timeout also bounds the close
+        /// handshake itself and cutting that short leaves the connection only partly shut down. A
+        /// finite value above 5 seconds is honoured as given, however large, after being clamped to
+        /// the largest bound the timer supports.
         /// </para>
         /// </remarks>
         public static Task AbortAsync(this IConnection connection, TimeSpan timeout)
