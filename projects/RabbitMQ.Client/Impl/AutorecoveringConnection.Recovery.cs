@@ -260,6 +260,131 @@ namespace RabbitMQ.Client.Impl
         }
 
         /// <summary>
+        /// Decides whether an exception a custom <see cref="TopologyRecoveryExceptionHandler"/> has
+        /// already run for still has to fail the whole recovery attempt.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A configured handler used to be the end of the story: its branch swallowed the exception
+        /// and recovery went on to report success. That reopened issue #1993 for anyone who installed
+        /// one, because <see cref="ShouldRetryRecoveryAfter"/> was only consulted on the branch
+        /// without a handler. The default conditions are all
+        /// <c>(entity, exception) =&gt; true</c>, so merely installing a handler, without also
+        /// narrowing its condition, routed every exception away from that check, including the
+        /// continuation timeouts it exists to catch.
+        /// </para>
+        /// <para>
+        /// The classification cannot simply be reused here, because it is deliberately coarse about
+        /// <see cref="OperationInterruptedException"/>: it treats every one as a connectivity problem
+        /// on the reasoning that the connection is gone and nothing was applied. That does not hold
+        /// for a soft error, which is a channel error in the AMQP 0-9-1 sense. There the broker
+        /// closed one channel with a reply code explaining why it refused this specific operation and
+        /// left the connection intact, so its refusal is final, no request is left for it to act on,
+        /// and retrying the attempt cannot change the outcome. The usual case is
+        /// <see cref="Constants.PreconditionFailed"/> from redeclaring an entity with different
+        /// arguments, which is the very thing recovery exception handlers are installed to repair, so
+        /// forcing a retry there would penalise the case this mechanism exists for.
+        /// </para>
+        /// <para>
+        /// So the handler still runs first and still sees every exception its condition matches, and
+        /// afterwards the attempt is failed only for a failure the broker may still act on: a
+        /// timeout, or a connection that is gone. See issue #1995.
+        /// </para>
+        /// </remarks>
+        internal static bool ShouldRetryAfterHandledRecoveryException(Exception? topologyRecoveryInnerException,
+            bool connectionIsOpen, CancellationToken recoveryCancellationToken)
+        {
+            if (BrokerRefusalIsFinal(topologyRecoveryInnerException, connectionIsOpen))
+            {
+                return false;
+            }
+
+            return ShouldRetryRecoveryAfter(topologyRecoveryInnerException, recoveryCancellationToken);
+        }
+
+        /// <summary>
+        /// Whether the exception carries a refusal the broker will give again, leaving nothing in
+        /// flight and nothing a retry could change.
+        /// </summary>
+        /// <remarks>
+        /// Only <see cref="Constants.PreconditionFailed"/> qualifies. The usual case is redeclaring
+        /// an entity with different arguments, which is exactly what these handlers are installed to
+        /// repair, and the broker's answer does not change on a retry.
+        ///
+        /// The other channel-level refusals are deliberately excluded, because in this client they
+        /// are transient rather than final. <see cref="Constants.ResourceLocked"/> and
+        /// <see cref="Constants.AccessRefused"/> are what the broker answers while an exclusive queue
+        /// is still owned by the connection that just died: <c>NetworkRecoveryInterval</c> defaults to
+        /// 5 seconds while the broker needs roughly two missed heartbeat intervals to reap that owner,
+        /// so a client that reconnects promptly hits them routinely and a retry succeeds once the
+        /// owner is gone. <see cref="Constants.NotFound"/> is likewise transient when the missing
+        /// entity is one this same pass has yet to declare, or skipped. Treating any of them as final
+        /// would permanently drop the entity, and everything bound to it, while recovery reported
+        /// success, which would make a connection with a handler installed strictly worse than one
+        /// without.
+        ///
+        /// Two further conditions have to hold, and neither is implied by the reply code.
+        ///
+        /// The request must actually have been sent. <see cref="AlreadyClosedException"/> derives from
+        /// <see cref="OperationInterruptedException"/> and is thrown by
+        /// <c>SessionBase.ThrowAlreadyClosedException</c> carrying the *channel's* close reason, so it
+        /// can present a soft reply code while the operation was never transmitted at all. That entity
+        /// is definitely un-recovered and only a retry can fix it.
+        ///
+        /// The connection must still be usable. A soft reply code identifies a channel error only
+        /// when the connection survived; the same codes appear on connection-level closes, which is
+        /// why <c>ShouldTriggerConnectionRecovery</c> above has to special-case a peer-initiated
+        /// <see cref="Constants.AccessRefused"/>. If the connection is gone, the whole attempt is
+        /// abandoned anyway.
+        ///
+        /// Restricting this to <see cref="Constants.PreconditionFailed"/> also keeps consumer recovery
+        /// safe. Consumers on one channel all recover on that shared channel, so a refusal classified
+        /// final there would close the channel and leave the consumers after it failing with
+        /// <see cref="AlreadyClosedException"/>, which forces a retry that reproduces the same refusal
+        /// indefinitely. <c>basic.consume</c> is refused with
+        /// <see cref="Constants.NotFound"/>, <see cref="Constants.AccessRefused"/> or
+        /// <see cref="Constants.ResourceLocked"/> and never with
+        /// <see cref="Constants.PreconditionFailed"/>, so no consumer refusal is classified final at
+        /// all; exchange, queue and binding recovery each use their own throwaway channel.
+        /// </remarks>
+        private static bool BrokerRefusalIsFinal(Exception? topologyRecoveryInnerException,
+            bool connectionIsOpen)
+        {
+            if (false == connectionIsOpen || topologyRecoveryInnerException is AlreadyClosedException)
+            {
+                return false;
+            }
+
+            return topologyRecoveryInnerException is OperationInterruptedException operationInterrupted
+                && operationInterrupted.ShutdownReason is not null
+                && operationInterrupted.ShutdownReason.ReplyCode == Constants.PreconditionFailed;
+        }
+
+        private void ThrowIfHandledExceptionStillRequiresRetry(TopologyRecoveryException e,
+            CancellationToken recoveryCancellationToken)
+        {
+            if (ShouldRetryAfterHandledRecoveryException(e.InnerException,
+                _innerConnection?.IsOpen == true, recoveryCancellationToken))
+            {
+                ESLog.Error("Topology recovery exception was passed to a recovery exception handler, " +
+                    "but indicates a failure the broker may still act on, which the handler cannot " +
+                    "resolve. The recovery attempt will be retried.", e);
+                throw e;
+            }
+
+            /*
+             * Record that a handler ran and the failure is final, so an entity a handler could not
+             * actually repair is not dropped without a trace. ESLog has no Info(string, Exception)
+             * overload, only Info(string, params object[]): passing the exception there binds to the
+             * params overload and string.Format drops it, because the message has no placeholder. So
+             * interpolate the identifying detail into the message, as the no-handler path does.
+             */
+            ESLog.Info("Topology recovery exception was handled by a recovery exception handler and " +
+                $"does not require the recovery attempt to be retried: {e.Message}, inner " +
+                $"{e.InnerException?.GetType().FullName}");
+        }
+
+        /// <summary>
         /// Decides whether a failure to recover a single topology entity means the whole recovery
         /// attempt has to be abandoned and retried, rather than skipped over.
         /// </summary>
@@ -451,6 +576,8 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception ex)
                 {
+                    var topologyRecoveryException = new TopologyRecoveryException($"Caught an exception while recovering exchange '{recordedExchange}'", ex);
+
                     if (_config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition(recordedExchange, ex))
                     {
@@ -466,10 +593,13 @@ namespace RabbitMQ.Client.Impl
                             await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                                 .ConfigureAwait(false);
                         }
+
+                        ThrowIfHandledExceptionStillRequiresRetry(topologyRecoveryException,
+                            cancellationToken);
                     }
                     else
                     {
-                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering exchange '{recordedExchange}'", ex), cancellationToken);
+                        HandleTopologyRecoveryException(topologyRecoveryException, cancellationToken);
                     }
                 }
             }
@@ -542,6 +672,8 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception ex)
                 {
+                    var topologyRecoveryException = new TopologyRecoveryException($"Caught an exception while recovering queue '{recordedQueue}'", ex);
+
                     if (_config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition(recordedQueue, ex))
                     {
@@ -557,10 +689,13 @@ namespace RabbitMQ.Client.Impl
                             await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                                 .ConfigureAwait(false);
                         }
+
+                        ThrowIfHandledExceptionStillRequiresRetry(topologyRecoveryException,
+                            cancellationToken);
                     }
                     else
                     {
-                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering queue '{recordedQueue}'", ex), cancellationToken);
+                        HandleTopologyRecoveryException(topologyRecoveryException, cancellationToken);
                     }
                 }
 
@@ -617,6 +752,8 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception ex)
                 {
+                    var topologyRecoveryException = new TopologyRecoveryException($"Caught an exception while recovering binding between {binding.Source} and {binding.Destination}", ex);
+
                     if (_config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition(binding, ex))
                     {
@@ -632,10 +769,13 @@ namespace RabbitMQ.Client.Impl
                             await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                                 .ConfigureAwait(false);
                         }
+
+                        ThrowIfHandledExceptionStillRequiresRetry(topologyRecoveryException,
+                            cancellationToken);
                     }
                     else
                     {
-                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering binding between {binding.Source} and {binding.Destination}", ex), cancellationToken);
+                        HandleTopologyRecoveryException(topologyRecoveryException, cancellationToken);
                     }
                 }
             }
@@ -698,6 +838,8 @@ namespace RabbitMQ.Client.Impl
                 }
                 catch (Exception ex)
                 {
+                    var topologyRecoveryException = new TopologyRecoveryException($"Caught an exception while recovering consumer {oldTag} on queue {consumer.Queue}", ex);
+
                     if (_config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition(consumer, ex))
                     {
@@ -712,10 +854,13 @@ namespace RabbitMQ.Client.Impl
                             await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                                 .ConfigureAwait(false);
                         }
+
+                        ThrowIfHandledExceptionStillRequiresRetry(topologyRecoveryException,
+                            cancellationToken);
                     }
                     else
                     {
-                        HandleTopologyRecoveryException(new TopologyRecoveryException($"Caught an exception while recovering consumer {oldTag} on queue {consumer.Queue}", ex), cancellationToken);
+                        HandleTopologyRecoveryException(topologyRecoveryException, cancellationToken);
                     }
                 }
             }
