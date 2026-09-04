@@ -132,6 +132,15 @@ namespace RabbitMQ.Client
             base.Dispose(disposing);
         }
 
+        /*
+         * RateLimiter.DisposeAsync runs DisposeAsyncCore and then Dispose(disposing: false), so
+         * without this override the inner limiter is never released on the async path: the
+         * Dispose(bool) body above is gated on `disposing`, which is false there. A limiter
+         * disposed with `await DisposeAsync()` stayed fully usable and kept handing out leases,
+         * so a use-after-dispose was undetectable.
+         */
+        protected override ValueTask DisposeAsyncCore() => _concurrencyLimiter.DisposeAsync();
+
         private int CalculateDelay()
         {
             RateLimiterStatistics? rateLimiterStatistics = _concurrencyLimiter.GetStatistics();
