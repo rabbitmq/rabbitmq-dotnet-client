@@ -114,78 +114,105 @@ namespace Test.Unit
          * failure the broker may still act on.
          */
 
-        [Theory]
-        [InlineData(Constants.AccessRefused)]
-        [InlineData(Constants.NotFound)]
-        [InlineData(Constants.ResourceLocked)]
-        [InlineData(Constants.PreconditionFailed)]
-        public void TestHandledSoftErrorIsNotRetried_GH1995(int replyCode)
+        [Fact]
+        public void TestHandledPreconditionFailedIsNotRetried_GH1995()
         {
             /*
-             * A soft error is a channel error: the broker closed one channel to say it refused this
-             * specific operation and left the connection alone. The refusal is final and nothing is
-             * left in flight, so once a handler has dealt with it there is nothing to retry. The
-             * common case is precondition-failed from redeclaring an entity with different
-             * arguments, which is what these handlers are usually installed to repair.
+             * precondition-failed is the one refusal the broker will give again: the usual case is
+             * redeclaring an entity with different arguments, which is what these handlers are
+             * installed to repair. Once the handler has dealt with it there is nothing to retry.
              *
              * Note the deliberate difference from the classification used when no handler is
-             * configured, asserted below: that one treats every OperationInterruptedException as a
+             * configured, asserted here too: that one treats every OperationInterruptedException as a
              * connectivity problem.
              */
-            var softError = new OperationInterruptedException(
-                new ShutdownEventArgs(ShutdownInitiator.Peer, (ushort)replyCode, "test"));
+            var preconditionFailed = new OperationInterruptedException(
+                new ShutdownEventArgs(ShutdownInitiator.Peer, Constants.PreconditionFailed, "test"));
 
             Assert.False(AutorecoveringConnection.ShouldRetryAfterHandledRecoveryException(
-                softError, connectionIsOpen: true, CancellationToken.None));
+                preconditionFailed, connectionIsOpen: true, CancellationToken.None));
 
             Assert.True(AutorecoveringConnection.ShouldRetryRecoveryAfter(
-                softError, CancellationToken.None));
+                preconditionFailed, CancellationToken.None));
         }
 
         [Theory]
         [InlineData(Constants.AccessRefused)]
         [InlineData(Constants.NotFound)]
         [InlineData(Constants.ResourceLocked)]
-        [InlineData(Constants.PreconditionFailed)]
-        public void TestHandledNeverSentOperationIsRetriedDespiteSoftReplyCode_GH1995(int replyCode)
+        public void TestHandledTransientRefusalIsRetried_GH1995(int replyCode)
+        {
+            /*
+             * These channel-level refusals are transient in this client, so they must NOT be treated
+             * as final. resource-locked and access-refused are what the broker answers while an
+             * exclusive queue is still owned by the connection that just died, and NetworkRecoveryInterval
+             * defaults to 5 seconds while the broker needs roughly two missed heartbeat intervals to
+             * reap that owner, so a prompt reconnect hits them routinely and a retry succeeds. not-found
+             * is transient when the missing entity is one this same pass has yet to declare, or skipped.
+             *
+             * Classifying any of them final permanently dropped the entity, and everything bound to it,
+             * while recovery reported success, making a connection with a handler installed strictly
+             * worse than one without. It also livelocked consumer recovery, because consumers share one
+             * channel: a refusal classified final there closes the channel, and the consumers after it
+             * then fail with AlreadyClosedException, which forces a retry that reproduces the same
+             * refusal forever.
+             */
+            var transient = new OperationInterruptedException(
+                new ShutdownEventArgs(ShutdownInitiator.Peer, (ushort)replyCode, "test"));
+
+            Assert.True(AutorecoveringConnection.ShouldRetryAfterHandledRecoveryException(
+                transient, connectionIsOpen: true, CancellationToken.None));
+        }
+
+        [Fact]
+        public void TestHandledNeverSentOperationIsRetriedDespitePreconditionFailed_GH1995()
         {
             /*
              * AlreadyClosedException derives from OperationInterruptedException and carries the
-             * channel's close reason, so it can present a soft reply code even though the operation
+             * channel's close reason, so it can present precondition-failed even though the operation
              * was never transmitted. The entity is therefore definitely un-recovered and only a retry
-             * can fix it.
-             *
-             * This is reachable in practice: consumer recovery shares one channel across every
-             * consumer on it, so once an earlier entity closes that channel the rest fail this way.
-             * Treating them as final would report recovery successful with a closed channel and
-             * unrecovered consumers, which is the silent failure this work exists to prevent.
+             * can fix it. Without the AlreadyClosedException guard this would be classified final.
              */
             var neverSent = new AlreadyClosedException(
-                new ShutdownEventArgs(ShutdownInitiator.Peer, (ushort)replyCode, "test"));
+                new ShutdownEventArgs(ShutdownInitiator.Peer, Constants.PreconditionFailed, "test"));
 
             Assert.True(AutorecoveringConnection.ShouldRetryAfterHandledRecoveryException(
                 neverSent, connectionIsOpen: true, CancellationToken.None));
         }
 
-        [Theory]
-        [InlineData(Constants.AccessRefused)]
-        [InlineData(Constants.NotFound)]
-        [InlineData(Constants.ResourceLocked)]
-        [InlineData(Constants.PreconditionFailed)]
-        public void TestHandledSoftReplyCodeIsRetriedWhenTheConnectionIsGone_GH1995(int replyCode)
+        [Fact]
+        public void TestHandledPreconditionFailedIsRetriedWhenTheConnectionIsGone_GH1995()
         {
             /*
-             * A soft reply code identifies a channel error only when the connection survived. The
-             * same codes appear on connection-level closes, which is why ShouldTriggerConnectionRecovery
-             * has to special-case a peer-initiated access-refused. With the connection gone nothing
-             * was applied and everything has to be retried.
+             * The same reply codes appear on connection-level closes, where nothing was applied, so
+             * the connection-open requirement is what separates a channel refusal from a dead
+             * connection. Without it this would be classified final.
              */
-            var softError = new OperationInterruptedException(
-                new ShutdownEventArgs(ShutdownInitiator.Peer, (ushort)replyCode, "test"));
+            var whileClosed = new OperationInterruptedException(
+                new ShutdownEventArgs(ShutdownInitiator.Peer, Constants.PreconditionFailed, "test"));
 
             Assert.True(AutorecoveringConnection.ShouldRetryAfterHandledRecoveryException(
-                softError, connectionIsOpen: false, CancellationToken.None));
+                whileClosed, connectionIsOpen: false, CancellationToken.None));
         }
+
+        [Fact]
+        public void TestClassifierRequiresTheInnerExceptionNotTheWrapper_GH1995()
+        {
+            /*
+             * The call sites pass e.InnerException, not the TopologyRecoveryException wrapper. Passing
+             * the wrapper would fall to the default arm and report "do not retry" for every failure,
+             * silently reopening #1993 for handler users, so pin the distinction here.
+             */
+            var preconditionFailed = new OperationInterruptedException(
+                new ShutdownEventArgs(ShutdownInitiator.Peer, Constants.PreconditionFailed, "test"));
+            var wrapper = new TopologyRecoveryException("wrapped", preconditionFailed);
+
+            Assert.False(AutorecoveringConnection.ShouldRetryAfterHandledRecoveryException(
+                wrapper, connectionIsOpen: true, CancellationToken.None));
+            Assert.True(AutorecoveringConnection.ShouldRetryAfterHandledRecoveryException(
+                wrapper.InnerException, connectionIsOpen: false, CancellationToken.None));
+        }
+
 
         [Fact]
         public void TestHandledFailureTheBrokerMayStillActOnIsRetried_GH1995()
