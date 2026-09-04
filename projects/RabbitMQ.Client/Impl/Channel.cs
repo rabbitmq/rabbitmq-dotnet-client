@@ -649,15 +649,14 @@ namespace RabbitMQ.Client.Impl
                     _serverOriginatedChannelCloseTcs?.Task.Wait(InternalConstants.DefaultChannelDisposeTimeout);
 
                     ConsumerDispatcher.Dispose();
-
-                    _outstandingPublisherConfirmationsRateLimiter?.Dispose();
                 }
                 finally
                 {
                     try
                     {
-                        // _rpcSemaphore and _confirmSemaphore are deliberately not
-                        // disposed here. See DisposeAsyncCoreAsync and issue #1976.
+                        // Neither _rpcSemaphore / _confirmSemaphore nor the
+                        // publisher-confirmation rate limiter are disposed here. See
+                        // DisposeAsyncCoreAsync, and issues #1976 and #1988.
                         MaybeSetExceptionOnConfirmsTcs();
                     }
                     catch
@@ -709,16 +708,27 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 ConsumerDispatcher.Dispose();
-
-                if (_outstandingPublisherConfirmationsRateLimiter is not null)
-                {
-                    await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
-                        .ConfigureAwait(false);
-                }
             }
             finally
             {
                 /*
+                 * The publisher-confirmation rate limiter is deliberately NOT disposed.
+                 * It belongs to the CreateChannelOptions instance it came from, not to any
+                 * one channel: a caller-supplied limiter is shared across every channel
+                 * created from those options, and for a recovering channel the same options
+                 * are reused for every recovery, so the replacement channel publishes
+                 * through the very limiter its predecessor would have disposed. Disposing
+                 * it per channel therefore broke the survivors, and the next
+                 * confirm-tracked publish threw ObjectDisposedException.
+                 *
+                 * The lifetime is the caller's. The library-created default (the
+                 * ThrottlingRateLimiter on CreateChannelOptions, used when the caller
+                 * supplies no options) is left to the garbage collector: it wraps a
+                 * ConcurrencyLimiter, which holds no timer and no unmanaged handle, so
+                 * there is nothing to reclaim. This is the same reasoning as the
+                 * semaphores below, and it applies with more force here because the
+                 * limiter has concurrent waiters on the publish path. See issue #1988.
+                 *
                  * _rpcSemaphore and _confirmSemaphore are deliberately NOT disposed.
                  * Disposing a SemaphoreSlim while another task is parked in WaitAsync
                  * leaves that waiter pending forever: it does not fault, it does not
