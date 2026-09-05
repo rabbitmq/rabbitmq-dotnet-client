@@ -31,6 +31,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -484,6 +485,102 @@ namespace Test.Integration
             Skip.IfNot(IsRunningInCI,
                 $"only {blockedCount}/{publishCount} publishes blocked, so this environment did not " +
                 "stall the write loop and the scenario under test cannot be reached here");
+        }
+
+        // Behavioural coverage for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1996
+        //
+        // A continuation that outruns ContinuationTimeout completes as cancelled, and the two close
+        // paths then diverge in a way the public docs describe but nothing tested: a graceful close
+        // rethrows the cancellation, while an abort swallows it and returns successfully after
+        // waiting out the full budget. Neither a unit test nor a signature check can catch that,
+        // because the outcome depends on what Channel.CloseAsync does with the exception once it is
+        // raised; only driving a real close past its budget shows it.
+        //
+        // A small ContinuationTimeout alone is not enough: measured against this broker over
+        // loopback, a channel.close-ok comes back inside 5 ms, so a timing-only version of this test
+        // passes without ever exercising a timeout. Rate=0 downstream is what makes it deterministic,
+        // the same technique TestRpcContinuationTimeout_GH1802 uses: channel.close reaches the
+        // broker, its close-ok can never reach the client.
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestGracefulCloseThrowsWhileAbortSwallowsAContinuationTimeout_GH1996()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(_proxyHost, _proxyPort);
+            cf.AutomaticRecoveryEnabled = false;
+            cf.TopologyRecoveryEnabled = false;
+            cf.ContinuationTimeout = TimeSpan.FromSeconds(2);
+            // Keep the broker from closing the connection while the toxic is in place, and keep the
+            // client's own heartbeat reader from tearing it down before the closes are observed.
+            cf.RequestedHeartbeat = TimeSpan.FromSeconds(600);
+
+            await using IConnection conn = await cf.CreateConnectionAsync();
+
+            // Both channels have to exist before the stall: channel.open-ok cannot return either.
+            IChannel gracefulCh = await conn.CreateChannelAsync();
+            IChannel abortCh = await conn.CreateChannelAsync();
+
+            string toxicName = $"rmq-close-timeout-bandwidth-{Now}-{GenerateShortUuid()}";
+            var bandwidthToxic = new BandwidthToxic
+            {
+                Name = toxicName,
+                Toxicity = 1.0,
+                Stream = ToxicDirection.DownStream
+            };
+            bandwidthToxic.Attributes.Rate = 0;
+
+            /*
+             * The cancellation timer and Stopwatch do not share a clock source, so the timer can
+             * fire a fraction of a millisecond before Stopwatch reports the full budget; an observed
+             * run came in at 1.9996853s against 2s. Allow that skew. The guard stays decisive
+             * because a close that does not time out returns in single-digit milliseconds, three
+             * orders of magnitude below this floor.
+             */
+            TimeSpan minimumWait = cf.ContinuationTimeout - TimeSpan.FromMilliseconds(100);
+
+            try
+            {
+                await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                // A graceful close rethrows, and the token on the exception is what distinguishes
+                // this from the caller cancelling: no caller token was passed, so it must not be the
+                // default one.
+                var gracefulStopwatch = Stopwatch.StartNew();
+                OperationCanceledException ex =
+                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => gracefulCh.CloseAsync());
+                gracefulStopwatch.Stop();
+
+                Assert.True(gracefulStopwatch.Elapsed >= minimumWait,
+                    $"the graceful close threw after {gracefulStopwatch.Elapsed}, sooner than the " +
+                    $"{cf.ContinuationTimeout} budget, so it did not time out and this assertion is vacuous");
+                Assert.NotEqual(CancellationToken.None, ex.CancellationToken);
+
+                /*
+                 * An abort is best effort and never throws, so it swallows the same timeout: the call
+                 * returns successfully having waited out the budget, with no exception and, today, no
+                 * log line naming what happened. That silence is what this pins. Note it does not
+                 * force the socket closed on this path either, which is tracked separately as
+                 * rabbitmq/rabbitmq-dotnet-client#2022; if that is fixed, the observable change shows
+                 * up here.
+                 */
+                var abortStopwatch = Stopwatch.StartNew();
+                await abortCh.AbortAsync();
+                abortStopwatch.Stop();
+
+                Assert.True(abortStopwatch.Elapsed >= minimumWait,
+                    $"the abort returned in {abortStopwatch.Elapsed}, sooner than the " +
+                    $"{cf.ContinuationTimeout} budget, so it did not time out and this test is vacuous");
+                Assert.True(abortCh.IsClosed);
+            }
+            finally
+            {
+                await _toxiproxyManager.RemoveToxicAsync(toxicName);
+                await gracefulCh.DisposeAsync();
+                await abortCh.DisposeAsync();
+            }
         }
 
         // Regression test for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1930
