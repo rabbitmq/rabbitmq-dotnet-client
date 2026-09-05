@@ -106,27 +106,33 @@ namespace Test.Integration.ConnectionRecovery
 
             /*
              * HandleBasicConsumeOkAsync runs on the consumer dispatcher, so it has not necessarily
-             * happened by the time BasicConsumeAsync returns. Both the initial state and the state
-             * after recovery therefore have to be observed from the registration event rather than
-             * read straight after the call, otherwise this test races the dispatcher.
+             * happened by the time BasicConsumeAsync returns. The initial state therefore has to be
+             * observed from the registration event rather than read straight after the call.
              */
             var firstRegistrationTcs =
                 new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var registrationAfterRecoveryTcs =
-                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            int registrations = 0;
             consumer.RegisteredAsync += (sender, ea) =>
             {
-                // The first registration is the original BasicConsumeAsync below; the second is
-                // recovery re-registering the consumer.
-                if (Interlocked.Increment(ref registrations) == 1)
-                {
-                    firstRegistrationTcs.TrySetResult(true);
-                }
-                else
-                {
-                    registrationAfterRecoveryTcs.TrySetResult(true);
-                }
+                firstRegistrationTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            // Capture the reason the drop records, so this test asserts the transition rather than
+            // just "null before, null after". Without it, a future change that stopped delivering
+            // the shutdown notification would leave both assertions passing and silently retire the
+            // guard.
+            ShutdownEventArgs shutdownReasonSeen = null;
+            consumer.ShutdownAsync += (sender, ea) =>
+            {
+                shutdownReasonSeen = consumer.ShutdownReason;
+                return Task.CompletedTask;
+            };
+
+            var deliveredAfterRecoveryTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (sender, ea) =>
+            {
+                deliveredAfterRecoveryTcs.TrySetResult(true);
                 return Task.CompletedTask;
             };
 
@@ -137,7 +143,18 @@ namespace Test.Integration.ConnectionRecovery
             Assert.Null(consumer.ShutdownReason);
 
             await CloseAndWaitForRecoveryAsync();
-            await WaitAsync(registrationAfterRecoveryTcs, "consumer re-registered after recovery");
+
+            Assert.NotNull(shutdownReasonSeen);
+
+            /*
+             * A delivery is the barrier, not the registration event. At a dispatch concurrency of
+             * one the dispatcher is a single-reader FIFO queue, so receiving a message proves the
+             * consume-ok that precedes it was processed. Latching on the registration count instead
+             * could be satisfied by a recovery attempt that re-registered and then failed, leaving
+             * the assertions below to read state from an attempt still in flight.
+             */
+            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
+            await WaitAsync(deliveredAfterRecoveryTcs, "delivery after recovery");
 
             Assert.True(_channel.IsOpen);
             Assert.True(consumer.IsRunning);
