@@ -365,7 +365,29 @@ namespace RabbitMQ.Client.ConsumerDispatching
                     if (disposing)
                     {
                         Quiesce();
-                        _shutdownCts.Dispose();
+
+                        /*
+                         * Complete the writer, otherwise disposal does not release the worker at
+                         * all. ProcessChannelAsync awaits _reader.WaitToReadAsync() with no token,
+                         * so cancelling _shutdownCts cannot wake it; only completing the writer
+                         * does, and the shutdown path that normally does so is skipped whenever a
+                         * channel is disposed without its session having been shut down, for
+                         * instance when an abort swallows a close that never got a close-ok. The
+                         * worker then stays parked for the process lifetime, rooting this
+                         * dispatcher, its channel and its session. Completing rather than
+                         * cancelling also lets any queued work drain first.
+                         *
+                         * _shutdownCts is deliberately NOT disposed, for the same reason the
+                         * channel does not dispose its semaphores (see issue #1976). Quiesce()
+                         * takes an early return when another caller has already set the quiescing
+                         * flag, so a Quiesce racing a Dispose could dispose the source before
+                         * Cancel() ran, leaving it disposed and never cancelled: work items then
+                         * carry a token that can never fire, so a consumer awaiting it hangs
+                         * silently, and reading its WaitHandle throws. The source arms no timer and
+                         * holds no library registrations, so there is nothing to reclaim.
+                         * See issue #1988.
+                         */
+                        _writer.TryComplete();
                     }
                 }
                 catch

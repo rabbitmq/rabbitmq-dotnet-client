@@ -647,11 +647,13 @@ namespace RabbitMQ.Client.Impl
                     }
 
                     _serverOriginatedChannelCloseTcs?.Task.Wait(InternalConstants.DefaultChannelDisposeTimeout);
-
-                    ConsumerDispatcher.Dispose();
                 }
                 finally
                 {
+                    // In the finally for the same reason as the async path: Task.Wait throws an
+                    // AggregateException for a faulted close, which would otherwise skip this.
+                    ConsumerDispatcher.Dispose();
+
                     try
                     {
                         // Neither _rpcSemaphore / _confirmSemaphore nor the
@@ -706,11 +708,17 @@ namespace RabbitMQ.Client.Impl
                     await _serverOriginatedChannelCloseTcs.Task.WaitAsync(InternalConstants.DefaultChannelDisposeTimeout)
                         .ConfigureAwait(false);
                 }
-
-                ConsumerDispatcher.Dispose();
             }
             finally
             {
+                /*
+                 * In the finally, not at the end of the try: the abort above can throw, and the wait
+                 * for a server-originated close rethrows a faulted close or times out, and either
+                 * would otherwise skip this while the flag below still latches _disposed, so the
+                 * dispatcher this exists to release would leak with no way to retry. See issue #1988.
+                 */
+                ConsumerDispatcher.Dispose();
+
                 /*
                  * The publisher-confirmation rate limiter is deliberately NOT disposed.
                  * It belongs to the CreateChannelOptions instance it came from, not to any
