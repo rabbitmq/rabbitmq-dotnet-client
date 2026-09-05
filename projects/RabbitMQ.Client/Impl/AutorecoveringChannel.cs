@@ -166,22 +166,28 @@ namespace RabbitMQ.Client.Impl
 
             _connection = conn;
 
-            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(_createChannelOptions, cancellationToken)
-                .ConfigureAwait(false);
-
             /*
-             * newChannel owns a consumer dispatcher and a broker-side channel. Until it is
-             * installed as _innerChannel it belongs to this method: a path that leaves before
-             * installing it - a setup RPC that throws, or the disposed-during-recovery branch
-             * below - must release it, or each flaky recovery cycle abandons one. Track
-             * installation and dispose newChannel from the finally on every path that does not
-             * install it. Disposing the channel (rather than reaching into its dispatcher) also
-             * closes it on the broker, and is safe now that a channel no longer disposes the
-             * publisher-confirmation rate limiter it shares with its replacement. See issue #1988.
+             * A recovered channel owns a consumer dispatcher and a broker-side channel. Until it is
+             * installed as _innerChannel it belongs to this method, so every path that leaves before
+             * installing it must release it, or each flaky recovery cycle abandons one. Disposing the
+             * channel rather than reaching into its dispatcher also closes it on the broker, and is
+             * safe now that a channel no longer disposes the publisher-confirmation rate limiter it
+             * shares with its replacement.
+             *
+             * The creation is inside the try because that is where the most likely failure is: the
+             * dispatcher, with its worker tasks, is constructed by the Channel constructor before
+             * CreateAndOpenAsync awaits channel.open, and neither that RPC nor confirm.select cleans
+             * up after itself, so recovering against a node that has just restarted abandoned one
+             * dispatcher per attempt. newChannel stays null until it exists, which the finally
+             * accounts for. See issue #1988.
              */
+            RecoveryAwareChannel? newChannel = null;
             bool newChannelInstalled = false;
             try
             {
+                newChannel = await conn.CreateNonRecoveringChannelAsync(_createChannelOptions, cancellationToken)
+                    .ConfigureAwait(false);
+
                 newChannel.TakeOver(_innerChannel);
 
                 if (_prefetchCountConsumer != 0)
@@ -248,7 +254,7 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
-                if (false == newChannelInstalled)
+                if (newChannel is not null && false == newChannelInstalled)
                 {
                     await SafeDisposeAsync(newChannel, "unused recovered")
                         .ConfigureAwait(false);
@@ -341,6 +347,18 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
+            /*
+             * Snapshot the inner channel once, and latch _disposed before disposing it. AbortAsync
+             * below can park for a long time - its cleanup waits on the connection's recorded-entity
+             * semaphore with no token and no timeout, which a recovery holds for the whole of
+             * topology recovery - and a recovery that completes during that window installs a
+             * different channel. Re-reading the field afterwards would then dispose the channel the
+             * application is now using, mid-recovery, and leave the aborted one registered. This
+             * narrows that window rather than closing it: the remaining dispose-versus-recovery race
+             * needs shared synchronization and is tracked as #2020.
+             */
+            RecoveryAwareChannel channelToDispose = _innerChannel;
+
             try
             {
                 if (IsOpen)
@@ -351,6 +369,8 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
+                _disposed = true;
+
                 try
                 {
                     _recordedConsumerTags.Clear();
@@ -359,24 +379,16 @@ namespace RabbitMQ.Client.Impl
                 {
                 }
 
-                try
-                {
-                    /*
-                     * Dispose the inner channel. Nothing else reaches it when automatic recovery
-                     * is enabled, which is the default, so without this its consumer dispatcher
-                     * was abandoned. Disposing the channel rather than reaching into its
-                     * dispatcher is safe now that a channel no longer disposes the
-                     * publisher-confirmation rate limiter, which belongs to the
-                     * CreateChannelOptions it came from and is shared with sibling channels and
-                     * with every recovery. See issue #1988.
-                     */
-                    await SafeDisposeAsync(_innerChannel, "inner")
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    _disposed = true;
-                }
+                /*
+                 * Dispose the inner channel. Nothing else reaches it when automatic recovery is
+                 * enabled, which is the default, so without this its consumer dispatcher was
+                 * abandoned. Disposing the channel rather than reaching into its dispatcher is safe
+                 * now that a channel no longer disposes the publisher-confirmation rate limiter,
+                 * which belongs to the CreateChannelOptions it came from and is shared with sibling
+                 * channels and with every recovery. See issue #1988.
+                 */
+                await SafeDisposeAsync(channelToDispose, "inner")
+                    .ConfigureAwait(false);
             }
         }
 
