@@ -188,10 +188,23 @@ namespace RabbitMQ.Client
         /// An operation that reaches this limit completes as <b>cancelled</b>: the awaiter sees an
         /// <see cref="System.OperationCanceledException"/> (in practice a
         /// <see cref="System.Threading.Tasks.TaskCanceledException"/>), not a
-        /// <see cref="System.TimeoutException"/>. It is therefore indistinguishable by type from the
-        /// caller cancelling, so code that needs to tell the two apart has to check its own
-        /// cancellation token. Note that 6.x threw <see cref="System.TimeoutException"/> here. See
-        /// issue #1996.
+        /// <see cref="System.TimeoutException"/>. Note that 6.x threw
+        /// <see cref="System.TimeoutException"/> here.
+        /// <para>
+        /// Telling a timeout from the caller cancelling takes care. The
+        /// <see cref="System.OperationCanceledException.CancellationToken"/> on the exception is the
+        /// reliable discriminator: on a timeout it is an internal token, never the caller's.
+        /// Comparing against your own token instead is only sound where that token actually governs
+        /// the operation, which is not true of a close on an open channel or connection: those
+        /// deliberately ignore the caller's token so a close already under way is not truncated, so a
+        /// cancelled caller token there does not mean the request was never sent.
+        /// </para>
+        /// <para>
+        /// Two paths do not surface it as cancellation at all. Establishing a connection wraps it in
+        /// <see cref="Exceptions.BrokerUnreachableException"/>, and an abort swallows it, so
+        /// <c>AbortAsync</c> can return successfully after waiting this long. See
+        /// rabbitmq/rabbitmq-dotnet-client#1996.
+        /// </para>
         /// </remarks>
         TimeSpan ContinuationTimeout { get; set; }
 
