@@ -86,7 +86,16 @@ namespace RabbitMQ.Client
         {
             RateLimitLease lease = _concurrencyLimiter.AttemptAcquire(permitCount);
 
-            ThrottleIfNeeded();
+            // Same ownership hazard as the async path above, for a throttle that throws.
+            try
+            {
+                ThrottleIfNeeded();
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
+            }
 
             return lease;
         }
@@ -95,7 +104,23 @@ namespace RabbitMQ.Client
         {
             RateLimitLease lease = await _concurrencyLimiter.AcquireAsync(permitCount, cancellationToken).ConfigureAwait(false);
 
-            await ThrottleIfNeededAsync(cancellationToken).ConfigureAwait(false);
+            /*
+             * The throttle delay observes the caller's token, so a cancellation there would return
+             * the permit to no one: the lease is already held but has not been handed back to the
+             * caller, whose own cleanup therefore has nothing to dispose. Each such cancelled
+             * acquisition would permanently consume a permit, and since the limiter is shared across
+             * every channel built from one CreateChannelOptions and across every recovery, the
+             * exhaustion is process-lifetime rather than per-channel. See issue #1988.
+             */
+            try
+            {
+                await ThrottleIfNeededAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
+            }
 
             return lease;
         }
