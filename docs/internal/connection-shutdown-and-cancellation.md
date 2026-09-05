@@ -81,12 +81,17 @@ AssertResultIsTrue(await k);   // <-- waits here
 
 If the connection is already dead and channel 0 was never shut down, neither (1) nor (2) happens, so `await k` blocks for the **entire `ContinuationTimeout`** before failing. That is the observed "hang".
 
-The continuation timeout is a self-contained `CancellationTokenSource`; note that `k`'s cancellation token deliberately does **not** include the user's token when the channel `IsOpen` ("we should really try to close the channel"), which is why a cancelled user token does not shorten this wait:
+The continuation timeout is a self-contained `CancellationTokenSource`; note that `k`'s cancellation token deliberately does **not** include the user's token when the channel `IsOpen` ("we should really try to close the channel"), which is why a cancelled user token does not shorten this wait.
+
+The source is created **unarmed** and armed only by `StartTimeout()`, which runs after the channel's RPC semaphore has been acquired, so that queueing behind another RPC is not charged against this operation's budget (#1964):
 
 ```csharp
 // projects/RabbitMQ.Client/Impl/AsyncRpcContinuations.cs (AsyncRpcContinuation ctor)
-_continuationTimeoutCancellationTokenSource = new CancellationTokenSource(continuationTimeout);
+// Deliberately unarmed: StartTimeout() arms it once the operation can actually be issued.
+_continuationTimeoutCancellationTokenSource = new CancellationTokenSource();
 ```
+
+Measure an expected stall from `StartTimeout`, not from the continuation's construction. When the budget elapses the continuation completes as **cancelled**, so the awaiter sees an `OperationCanceledException` rather than a `TimeoutException`; the token on that exception is the internal timeout token, which is the only reliable way to tell it from the caller cancelling (#1996).
 
 ## Issue #1921: hang when a CancellationToken fires during connection open
 
@@ -309,7 +314,7 @@ These are easy to confuse; distinguishing which one a hang tracks is the key dia
 
 | Constant / setting                         | Default | Meaning                                             |
 | ------------------------------------------ | ------- | --------------------------------------------------- |
-| `ContinuationTimeout`                      | 20s     | Max wait for an RPC reply (e.g. `channel.close-ok`) |
+| `ContinuationTimeout`                      | 20s     | Max wait for an RPC reply (e.g. `channel.close-ok`), armed by `StartTimeout`; surfaces as cancellation, not `TimeoutException` |
 | `HandshakeContinuationTimeout`             | 10s     | Continuation timeout during the AMQP handshake      |
 | `InternalConstants.DefaultConnectionAbortTimeout` | 5s | Default abort budget, and the floor an abort is raised to |
 | `InternalConstants.MaxConnectionAbortTimeout` | 10s | Ceiling an abort is capped at, however much was asked for (#1973) |

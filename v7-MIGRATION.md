@@ -44,3 +44,26 @@ data for your use:
 ```
 byte[] myMessageBody = eventArgs.Body.ToArray();
 ```
+
+## Timed-out protocol operations
+
+In 6.x an operation that exceeded `ContinuationTimeout` threw `TimeoutException`. In 7.x it completes as **cancelled** instead, so the awaiter sees an `OperationCanceledException`, in practice a `TaskCanceledException`. Any `catch (TimeoutException)` around an operation such as `QueueDeclareAsync` or `BasicGetAsync` will no longer run.
+
+Telling a timeout from your own cancellation takes a little care:
+
+```csharp
+try
+{
+    await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false,
+        cancellationToken: myToken);
+}
+catch (OperationCanceledException ex) when (ex.CancellationToken != myToken)
+{
+    // The operation outran ContinuationTimeout. The request is already on the wire,
+    // so the broker may still act on it.
+}
+```
+
+Use the token carried by the exception rather than checking `myToken.IsCancellationRequested`. A close on an open channel or connection deliberately ignores the caller's token, so that a close already under way is not truncated, which means a cancelled token there does not tell you the request was never sent.
+
+Two paths do not surface it as cancellation at all. `CreateConnectionAsync` wraps it in `BrokerUnreachableException`, and an abort swallows it, so `AbortAsync` can return successfully after waiting out the timeout.
