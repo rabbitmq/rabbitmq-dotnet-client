@@ -108,6 +108,31 @@ namespace Test.Unit
         }
 
         [Fact]
+        public async Task TestTimeoutIdentifiesItselfByTheCompletingToken_GH1996()
+        {
+            /*
+             * A continuation that outruns ContinuationTimeout completes as cancelled, so callers
+             * cannot tell a timeout from their own cancellation by exception type. The documented
+             * discriminator is the completing token, so pin it: it must be a real token, and it must
+             * not be the caller's. Without this, dropping the token from either TrySetCanceled call
+             * leaves every test green while the discriminator silently degrades to
+             * CancellationToken.None, which is what a defaulted caller token also looks like.
+             */
+            using var callerCts = new CancellationTokenSource();
+            using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
+                s_continuationTimeout, callerCts.Token);
+
+            k.StartTimeout();
+
+            OperationCanceledException ex =
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await k);
+
+            Assert.NotEqual(CancellationToken.None, ex.CancellationToken);
+            Assert.NotEqual(callerCts.Token, ex.CancellationToken);
+            Assert.True(ex.CancellationToken.IsCancellationRequested);
+        }
+
+        [Fact]
         public void TestStartTimeoutAfterDisposeDoesNotThrow()
         {
             var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
