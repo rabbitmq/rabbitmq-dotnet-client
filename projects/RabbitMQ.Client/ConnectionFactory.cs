@@ -184,11 +184,17 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// Each connection captures these when it is created, so a connection is unaffected by later
-        /// changes to the factory. When left <see langword="null"/> (the default), a connection
-        /// instead captures the process-wide statics on <see cref="RabbitMQActivitySource"/>, which
-        /// is how the deprecated global configuration path continues to work. This is the preferred
-        /// replacement for those statics: the configuration is owned by the connection that performs
-        /// the traced operations rather than by process-wide state.
+        /// changes to the factory, and two factories can be configured differently. Setting this is
+        /// preferred over the deprecated statics on <see cref="RabbitMQActivitySource"/>, because the
+        /// configuration ends up owned by the connection that performs the traced operations rather
+        /// than shared by every connection in the process.
+        /// <para>
+        /// When left <see langword="null"/> (the default), a connection reads the process-wide default
+        /// held by <see cref="RabbitMQActivitySource"/> instead, and reads it live rather than
+        /// capturing it. To fill this in with OpenTelemetry's propagation, call
+        /// <c>UseOpenTelemetryTracing</c> on the factory from the <c>RabbitMQ.Client.OpenTelemetry</c>
+        /// package.
+        /// </para>
         /// </remarks>
         public RabbitMQTracingOptions? TracingOptions { get; set; }
 
