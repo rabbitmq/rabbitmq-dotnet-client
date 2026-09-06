@@ -89,7 +89,7 @@ namespace RabbitMQ.Client
         public CreateChannelOptions(bool publisherConfirmationsEnabled,
             bool publisherConfirmationTrackingEnabled,
             RateLimiter? outstandingPublisherConfirmationsRateLimiter = null,
-            ushort? consumerDispatchConcurrency = Constants.DefaultConsumerDispatchConcurrency)
+            ushort? consumerDispatchConcurrency = null)
         {
             PublisherConfirmationsEnabled = publisherConfirmationsEnabled;
             PublisherConfirmationTrackingEnabled = publisherConfirmationTrackingEnabled;
