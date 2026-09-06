@@ -250,6 +250,29 @@ Two further constraints for that work:
 - Resolving the configuration through `Session.Connection` from the channel put an unguarded dereference on the deliver path, load-bearing only because three separate `HasListeners()` gates happen to precede it, and opened a window in the `Channel` constructor where the consumer dispatcher's `Task.Run` starts before `Session` is assigned. `CreateChannelOptions.CreateOrUpdate` already copies `ConnectionConfig` values into the channel options, so a readonly field set in the constructor removes the walk, both gates and the hazard.
 - Resolve the options **once per operation**, into a local. The publish path resolved them twice - once for the span name and again for the injector - which breaks the "callers resolve once and read all options from the returned instance" rule that the resolver's own comment states, and lets a single span take its name from one configuration and its propagated context from another if the configuration changes in between. Passing the resolved instance into the header-population helper fixes the split read and removes a second `Session.Connection` walk per traced publish.
 
+### The two halves have to be separable (second review round)
+
+The first cut of the OpenTelemetry package put the whole fix in `AddRabbitMQInstrumentation(this TracerProviderBuilder, ConnectionFactory, ...)` and marked the builder-only overloads `[Obsolete]`. @danielmarbach pointed out that the new overload does not fit the generic-host pattern: the factory is registered with the container, so no factory instance exists at the point `WithTracing` configures the builder.
+
+Checking the blast radius made this stronger than a taste question. `AddRabbitMQInstrumentation()` is the *entire* shipped surface of `RabbitMQ.Client.OpenTelemetry` - `PublicAPI.Shipped.txt` holds exactly that one entry - and it is the only call either README example made. So the branch was deprecating the one method anybody could be calling, pointing them at a replacement that structurally cannot be used in the pattern our own README documented as primary, and not updating the README.
+
+The resolution splits the two concerns, which is what @paulomorgado had also asked for ("a process-wide static default, that could be overridden by each connection or connection factory"):
+
+- `ConnectionFactory.UseOpenTelemetryTracing(...)` installs propagation on the owner. It needs no `TracerProvider`, so it can be called wherever the factory is built, including inside a DI registration.
+- `AddRabbitMQInstrumentation()` and its `Action<RabbitMQTracingOptions>` overload are **not** deprecated. They subscribe the builder and set the process-wide *default*, documented as a default layer that a factory overrides rather than as a deprecated path.
+- `AddRabbitMQInstrumentation(builder, factory, ...)` stays as the shortcut for when both objects are on hand, and now just delegates to `UseOpenTelemetryTracing`.
+- Only the four `RabbitMQActivitySource` statics remain `[Obsolete]`: they are the unowned mutation surface #1981 reported, and the package writes them internally behind a suppression.
+
+Repurposing `AddRabbitMQInstrumentation()` into a subscribe-only call, as the review sketch suggested, was rejected. It currently installs OpenTelemetry's `Baggage` propagation and honours `Propagators.DefaultTextMapPropagator`, and the client's built-in fallback (`DistributedContextPropagator.Current`) does neither. Silently dropping baggage propagation is a behaviour break, not a bug fix, so it cannot ship in a minor release; a subscribe-only shape can be considered at the next major.
+
+Also rejected: a DI-resolving overload. `OpenTelemetry.Api.ProviderBuilderExtensions` (netstandard2.0 and net8.0, depending only on `OpenTelemetry.Api` plus `Microsoft.Extensions.DependencyInjection.Abstractions`) exposes `AddInstrumentation<T>(Func<IServiceProvider, T>)`, so resolving the factory from the container inside the builder callback is feasible. It costs a new package dependency and assumes the application registered `ConnectionFactory` itself rather than a wrapper, a pool, or `IConnection`.
+
+One trap was fixed while making the two paths consistent. Both now apply the OpenTelemetry delegates *before* invoking `configure`, so a caller can wrap or replace them; applied afterwards they would simply overwrite whatever `configure` had set. That was newly reachable on this branch, because before the delegates moved onto `RabbitMQTracingOptions` they could not be set through `configure` at all. Pinned by `TestProcessWideConfigureCanReplaceThePropagationDelegates`.
+
+The README rewrite that went with this split has been reverted for now: it documented the
+whole-object semantics as though they were intended, and it should be rewritten against whichever
+of the four shapes above is chosen rather than against the shape that was found broken.
+
 ## Exception events are on a deprecation path
 
 Raised by @tmasternak on #1978 and verified against the raw specification markdown, not the rendered site.

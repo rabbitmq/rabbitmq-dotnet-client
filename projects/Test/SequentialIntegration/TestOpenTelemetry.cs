@@ -44,10 +44,6 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-// This file deliberately exercises the deprecated process-wide tracing configuration on
-// RabbitMQActivitySource, which is retained for back-compat behind [Obsolete]. See issue #1981.
-#pragma warning disable CS0618
-
 namespace Test.SequentialIntegration
 {
     public class TestOpenTelemetry : SequentialIntegrationFixture
@@ -93,9 +89,13 @@ namespace Test.SequentialIntegration
                 .AddRabbitMQInstrumentation()
                 .Build();
 
+            // Reads the deprecated statics deliberately: this asserts the process-wide default
+            // AddRabbitMQInstrumentation installs, which is the only place it is observable.
+#pragma warning disable CS0618
             Assert.True(RabbitMQActivitySource.UseRoutingKeyAsOperationName);
             Assert.True(RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName);
             Assert.True(RabbitMQActivitySource.TracingOptions.UsePublisherAsParent);
+#pragma warning restore CS0618
         }
 
         [Fact]
@@ -117,7 +117,9 @@ namespace Test.SequentialIntegration
             // Use the opposite of whatever the process-wide default currently is, so the assertion
             // proves the connection used its factory's value rather than the global one, independent
             // of any global state a prior test left behind.
+#pragma warning disable CS0618 // reading the deprecated default is the point of the comparison
             bool globalBefore = RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName;
+#pragma warning restore CS0618
             bool factoryValue = !globalBefore;
 
             using TracerProvider tracer = Sdk.CreateTracerProviderBuilder()
@@ -141,7 +143,184 @@ namespace Test.SequentialIntegration
             Assert.Equal(expected, publish.OperationName);
 
             // The per-connection path must not touch the process-wide default.
+#pragma warning disable CS0618
             Assert.Equal(globalBefore, RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName);
+#pragma warning restore CS0618
+        }
+
+        [Fact]
+        public async Task TestUseOpenTelemetryTracingConfiguresAFactoryWithoutATracerProviderBuilder_GH1981()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1981
+             *
+             * The dependency-injection shape, raised in review of PR #2009: the factory is
+             * configured where it is built, with no TracerProviderBuilder in scope, and the
+             * builder separately subscribes to the sources. AddRabbitMQInstrumentation(builder,
+             * factory, ...) cannot serve this case, because the factory instance does not exist
+             * at the point WithTracing configures the builder.
+             *
+             * Three contracts, and each assertion is chosen so that only one of them can satisfy
+             * it. (1) The factory's span-shaping options beat the process-wide default: the
+             * default is asserted to be true immediately after the provider is built, and the
+             * factory is given false, so a span named plain "publish" can only have come from
+             * the factory. (2) The factory's delegates are the ones the publish path calls:
+             * `configure` wraps the injector it is handed with one that stamps a marker header,
+             * and that wrapper exists nowhere else, so the marker arriving proves the factory's
+             * injector ran - and, since `configure` could only wrap a delegate that was already
+             * installed, that the OpenTelemetry delegates are applied before `configure` runs.
+             * (3) The wrapped delegate really is OpenTelemetry's: baggage round-trips, which the
+             * client's built-in propagation does not do. Note that (3) alone would also pass on
+             * the process-wide default, since that has the same delegates; it is (2) that pins
+             * the ownership.
+             */
+            const string markerHeader = "x-gh1981-marker";
+            string marker = Guid.NewGuid().ToString();
+            string baggageGuid = Guid.NewGuid().ToString();
+
+            var exportedItems = new List<Activity>();
+            using TracerProvider tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+
+            // The overload with no configure action leaves the process-wide default at its own
+            // defaults. Asserted rather than assumed, because the span-name check below is only
+            // meaningful if the global value differs from the factory's.
+#pragma warning disable CS0618
+            Assert.True(RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName);
+#pragma warning restore CS0618
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            ConnectionFactory returned = cf.UseOpenTelemetryTracing(options =>
+            {
+                options.UseRoutingKeyAsOperationName = false;
+                var openTelemetryInjector = options.ContextInjector;
+                options.ContextInjector = (activity, headers) =>
+                {
+                    openTelemetryInjector(activity, headers);
+                    headers[markerHeader] = Encoding.UTF8.GetBytes(marker);
+                };
+            });
+            Assert.Same(cf, returned);
+
+            string receivedMarker = null;
+            string receivedBaggage = null;
+            var receivedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            Baggage.SetBaggage("TestItem", baggageGuid);
+            try
+            {
+                await using (IConnection conn = await cf.CreateConnectionAsync())
+                await using (IChannel ch = await conn.CreateChannelAsync(_createChannelOptions))
+                {
+                    string queueName = (await ch.QueueDeclareAsync()).QueueName;
+
+                    var consumer = new AsyncEventingBasicConsumer(ch);
+                    consumer.ReceivedAsync += (_, ea) =>
+                    {
+                        // Read what is needed here: the headers are only valid for the duration
+                        // of the callback.
+                        IDictionary<string, object> headers = ea.BasicProperties.Headers;
+                        if (headers != null && headers.TryGetValue(markerHeader, out object value) &&
+                            value is byte[] bytes)
+                        {
+                            receivedMarker = Encoding.UTF8.GetString(bytes);
+                        }
+
+                        receivedBaggage = Baggage.GetBaggage("TestItem");
+                        receivedTcs.TrySetResult(true);
+                        return Task.CompletedTask;
+                    };
+
+                    await ch.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+                    await ch.BasicPublishAsync(string.Empty, queueName, Encoding.UTF8.GetBytes("hi"));
+
+                    await receivedTcs.Task.WaitAsync(WaitSpan);
+                }
+            }
+            finally
+            {
+                Baggage.ClearBaggage();
+            }
+
+            tracer.ForceFlush(5000);
+
+            Assert.Equal(marker, receivedMarker);
+            Assert.Equal(baggageGuid, receivedBaggage);
+
+            Activity publish = Assert.Single(exportedItems,
+                a => a.OperationName == "publish" || a.OperationName.StartsWith("publish ", StringComparison.Ordinal));
+            Assert.Equal("publish", publish.OperationName);
+
+            // Configuring the factory must not disturb the process-wide default.
+#pragma warning disable CS0618
+            Assert.True(RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName);
+#pragma warning restore CS0618
+        }
+
+        [Fact]
+        public void TestProcessWideConfigureCanReplaceThePropagationDelegates()
+        {
+            /*
+             * The builder-only overload applies the OpenTelemetry delegates before running
+             * `configure`, so a caller can wrap or replace them - the same contract
+             * UseOpenTelemetryTracing offers. Applying them afterwards would silently discard
+             * whatever `configure` set, because assigning RabbitMQActivitySource.TracingOptions
+             * copies only the span-shaping flags out of the instance it is handed; the delegates
+             * live in separate slots. This contract is new in 7.3.0: before the propagation
+             * delegates moved onto RabbitMQTracingOptions they could not be reached through
+             * `configure` at all.
+             */
+            using var scope = new ProcessWideTracingScope();
+
+            var customInjector = new Action<Activity, IDictionary<string, object>>((_, _) => { });
+            var customExtractor = new Func<IReadOnlyBasicProperties, ActivityContext>(_ => default);
+
+            using TracerProvider tracer = Sdk.CreateTracerProviderBuilder()
+                .AddRabbitMQInstrumentation(options =>
+                {
+                    options.ContextInjector = customInjector;
+                    options.ContextExtractor = customExtractor;
+                })
+                .Build();
+
+#pragma warning disable CS0618
+            Assert.Same(customInjector, RabbitMQActivitySource.ContextInjector);
+            Assert.Same(customExtractor, RabbitMQActivitySource.ContextExtractor);
+#pragma warning restore CS0618
+        }
+
+        /*
+         * Saves and restores everything the deprecated statics hold. The flags alone are not
+         * enough here: a test that installs its own propagation delegates would otherwise leave
+         * them in place for the rest of the process, and this class and TestActivitySource both
+         * depend on the OpenTelemetry delegates being the process-wide default.
+         */
+        private sealed class ProcessWideTracingScope : IDisposable
+        {
+            private readonly bool _useRoutingKeyAsOperationName;
+            private readonly bool _usePublisherAsParent;
+            private readonly Action<Activity, IDictionary<string, object>> _contextInjector;
+            private readonly Func<IReadOnlyBasicProperties, ActivityContext> _contextExtractor;
+
+#pragma warning disable CS0618
+            public ProcessWideTracingScope()
+            {
+                _useRoutingKeyAsOperationName = RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName;
+                _usePublisherAsParent = RabbitMQActivitySource.TracingOptions.UsePublisherAsParent;
+                _contextInjector = RabbitMQActivitySource.ContextInjector;
+                _contextExtractor = RabbitMQActivitySource.ContextExtractor;
+            }
+
+            public void Dispose()
+            {
+                RabbitMQActivitySource.TracingOptions.UseRoutingKeyAsOperationName = _useRoutingKeyAsOperationName;
+                RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = _usePublisherAsParent;
+                RabbitMQActivitySource.ContextInjector = _contextInjector;
+                RabbitMQActivitySource.ContextExtractor = _contextExtractor;
+            }
+#pragma warning restore CS0618
         }
 
         [Fact]
@@ -177,7 +356,11 @@ namespace Test.SequentialIntegration
 
             try
             {
+                // The extractor under test is the one AddRabbitMQInstrumentation installed as the
+                // process-wide default, so the deprecated static is how the test reaches it.
+#pragma warning disable CS0618
                 ActivityContext extracted = RabbitMQActivitySource.ContextExtractor(propsWithNoHeaders);
+#pragma warning restore CS0618
 
                 Assert.Equal(default, extracted);
                 Assert.Null(Baggage.GetBaggage("TestItem"));
@@ -482,4 +665,3 @@ namespace Test.SequentialIntegration
         }
     }
 }
-#pragma warning restore CS0618

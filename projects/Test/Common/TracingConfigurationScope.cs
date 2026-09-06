@@ -53,6 +53,12 @@ namespace Test
     /// or did both.
     /// </para>
     /// </remarks>
+    /*
+     * Reads and writes the deprecated process-wide statics deliberately: saving and restoring them
+     * is the whole purpose of this type, and it is what lets the tests that exercise the deprecated
+     * path leave no trace. The suppression covers the class body rather than each site.
+     */
+#pragma warning disable CS0618
     public sealed class TracingConfigurationScope : IDisposable
     {
         private readonly RabbitMQTracingOptions _options;
@@ -90,4 +96,5 @@ namespace Test
             RabbitMQActivitySource.ContextExtractor = _contextExtractor;
         }
     }
+#pragma warning restore CS0618
 }
