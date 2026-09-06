@@ -256,30 +256,54 @@ namespace RabbitMQ.Client.Impl
             {
                 if (newChannel is not null && false == newChannelInstalled)
                 {
-                    await SafeDisposeAsync(newChannel, "unused recovered")
+                    await SafeDisposeAsync(newChannel, "unused recovered", dropHandlers: true)
                         .ConfigureAwait(false);
                 }
             }
         }
 
         /*
-         * Both call sites dispose from a finally, where a throw would either mask the exception
-         * that is already unwinding or fail an otherwise-successful recovery. Channel disposal can
-         * throw - the wait for a server-originated channel.close times out after
-         * DefaultChannelDisposeTimeout - so the failure is logged and swallowed instead. The
-         * previous code could not throw here because it reached past the channel into
-         * ConsumerDispatcher.Dispose, which swallows internally. See issue #1988.
+         * The call sites dispose from a finally, where a throw would either mask the exception that
+         * is already unwinding or fail an otherwise-successful recovery, so a failure is logged and
+         * swallowed. Channel disposal can throw: the wait for a server-originated channel.close
+         * times out after DefaultChannelDisposeTimeout.
+         *
+         * It is also time-bounded, because these run inside the recovery critical section that holds
+         * the connection's recorded-entity semaphore. Disposing a channel that is still open performs
+         * a real broker close whose reply wait is bounded only by ContinuationTimeout, 20 seconds by
+         * default, and every application call that records or deletes a channel or consumer waits on
+         * that same semaphore with no token and no timeout. Waiting no longer than the channel
+         * dispose timeout keeps a failed recovery attempt from stalling recovery and the application
+         * with it; the dispose itself continues in the background, which is acceptable for cleanup
+         * whose result nothing depends on.
+         *
+         * dropHandlers is for a channel that was never installed. See DropTakenOverHandlers.
+         * See issue #1988.
          */
-        private static async Task SafeDisposeAsync(RecoveryAwareChannel channel, string which)
+        private static async Task SafeDisposeAsync(RecoveryAwareChannel channel, string which,
+            bool dropHandlers = false)
         {
             try
             {
-                await channel.DisposeAsync()
+                if (dropHandlers)
+                {
+                    channel.DropTakenOverHandlers();
+                }
+
+                Task disposeTask = channel.DisposeAsync().AsTask();
+
+                // Never leave a faulted background dispose unobserved if the wait below gives up.
+                _ = disposeTask.ContinueWith(static t => _ = t.Exception,
+                    CancellationToken.None,
+                    TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
+
+                await disposeTask.WaitAsync(InternalConstants.DefaultChannelDisposeTimeout)
                     .ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                ESLog.Warn($"Caught an exception while disposing the {which} channel during recovery: {e}");
+                ESLog.Warn($"Caught an exception while disposing the {which} channel: {e}");
             }
         }
 

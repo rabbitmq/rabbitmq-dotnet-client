@@ -188,6 +188,25 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        /*
+         * Drops the event handlers this channel took over, so disposing it cannot invoke the
+         * application's callbacks. Takeover assigns the delegates rather than moving them, so a
+         * recovered channel that is abandoned before being installed still holds the application's
+         * ChannelShutdownAsync and CallbackExceptionAsync handlers; aborting it as part of releasing
+         * it would otherwise fire them for a channel the application never received, reporting a
+         * shutdown for a channel that is in fact alive and recovering. See issue #1988.
+         */
+        internal void DropTakenOverHandlers()
+        {
+            _basicAcksAsyncWrapper.ClearHandlers();
+            _basicNacksAsyncWrapper.ClearHandlers();
+            _basicReturnAsyncWrapper.ClearHandlers();
+            _callbackExceptionAsyncWrapper.ClearHandlers();
+            _flowControlAsyncWrapper.ClearHandlers();
+            _channelShutdownAsyncWrapper.ClearHandlers();
+            _recoveryAsyncWrapper.ClearHandlers();
+        }
+
         protected void TakeOver(Channel other)
         {
             _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
