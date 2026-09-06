@@ -69,14 +69,14 @@ namespace Test.Integration.ConnectionRecovery
             IChannel channel = await _conn.CreateChannelAsync(_createChannelOptions);
             IConsumerDispatcher dispatcher = ((AutorecoveringChannel)channel).InnerChannel.ConsumerDispatcher;
 
-            Assert.False(GetDispatcherDisposed(dispatcher));
+            Assert.False(await DispatcherWasReleasedAsync(dispatcher, TimeSpan.FromMilliseconds(200)));
 
             await channel.CloseAsync();
             await channel.DisposeAsync();
 
-            Assert.True(GetDispatcherDisposed(dispatcher),
-                "disposing the AutorecoveringChannel must dispose its inner channel, which releases " +
-                "the consumer dispatcher's CancellationTokenSource. See #1988.");
+            Assert.True(await DispatcherWasReleasedAsync(dispatcher, WaitSpan),
+                "disposing the AutorecoveringChannel must dispose its inner channel, which completes " +
+                "the consumer dispatcher's work channel and so releases its worker. See #1988.");
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace Test.Integration.ConnectionRecovery
                     RecoveryAwareChannel innerAfterRecovery = autorecoveringChannel.InnerChannel;
 
                     Assert.NotSame(innerBeforeRecovery, innerAfterRecovery);
-                    Assert.True(GetDispatcherDisposed(dispatcherBeforeRecovery),
+                    Assert.True(await DispatcherWasReleasedAsync(dispatcherBeforeRecovery, WaitSpan),
                         "recovery replaces the inner channel and must dispose the replaced one, " +
                         "otherwise each recovery cycle abandons a channel. See #1988.");
 
@@ -140,7 +140,9 @@ namespace Test.Integration.ConnectionRecovery
                      * pooled body leaked, on a channel that still reports IsOpen. Without this the
                      * suite stays green when the wrong channel is disposed. See #1988.
                      */
-                    Assert.False(GetDispatcherDisposed(innerAfterRecovery.ConsumerDispatcher),
+                    Assert.False(
+                        await DispatcherWasReleasedAsync(innerAfterRecovery.ConsumerDispatcher,
+                            TimeSpan.FromMilliseconds(200)),
                         "recovery must not dispose the channel it just installed. See #1988.");
 
                     /*
@@ -154,7 +156,7 @@ namespace Test.Integration.ConnectionRecovery
 
                     // The recovered consumer must actually receive it. This is what proves the
                     // surviving dispatcher still dispatches, rather than only that a flag is unset.
-                    await deliveredTcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                    await deliveredTcs.Task.WaitAsync(WaitSpan);
                     Assert.True(await deliveredTcs.Task);
 
                     // The shared limiter must still be usable directly: a disposed RateLimiter
@@ -166,26 +168,90 @@ namespace Test.Integration.ConnectionRecovery
                 }
                 finally
                 {
-                    // In a finally so a failed assertion does not leave the queue on the broker.
-                    await channel.QueueDeleteAsync(queueName);
-                    await channel.CloseAsync();
+                    /*
+                     * In a finally so a failed assertion does not leave the queue on the broker, and
+                     * each step guarded: when an assertion above fails the channel may already be
+                     * closed, and an AlreadyClosedException thrown from here would replace the
+                     * assertion failure and hide the diagnosis it carries.
+                     */
+                    try
+                    {
+                        await channel.QueueDeleteAsync(queueName);
+                    }
+                    catch (Exception e)
+                    {
+                        _output.WriteLine($"queue cleanup failed: {e.Message}");
+                    }
+
+                    try
+                    {
+                        await channel.CloseAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        _output.WriteLine($"channel close failed: {e.Message}");
+                    }
                 }
             }
         }
 
-        private static bool GetDispatcherDisposed(IConsumerDispatcher dispatcher)
+        /*
+         * Probe the dispatcher's observable state rather than its _disposed flag. That flag is set
+         * from a finally wrapped around a catch that swallows everything, so it proves only that
+         * Dispose was entered: empty the body of Dispose and a flag-based assertion still passes.
+         * What disposal actually has to achieve is completing the work channel, which is what
+         * releases the worker loop, and the reader's Completion task is the read-only way to see it.
+         *
+         * It must be read-only. An earlier version called TryComplete on the writer, which completes
+         * the channel as a side effect, so the assertion itself released the live dispatcher and
+         * every later delivery failed with ChannelClosedException.
+         *
+         * Completion finishes once the channel is completed and drained, so allow a bounded wait
+         * rather than reading it instantly.
+         */
+        private static async Task<bool> DispatcherWasReleasedAsync(IConsumerDispatcher dispatcher,
+            TimeSpan timeout)
         {
-            Type type = dispatcher.GetType();
-            FieldInfo field = null;
+            object readerObj = GetPrivateField(dispatcher, "_reader");
+            Assert.NotNull(readerObj);
 
-            while (type is not null && field is null)
+            var completion = (Task)readerObj.GetType()
+                .GetProperty("Completion", BindingFlags.Instance | BindingFlags.Public)
+                .GetValue(readerObj);
+            Assert.NotNull(completion);
+
+            try
             {
-                field = type.GetField("_disposed", BindingFlags.Instance | BindingFlags.NonPublic);
+                await completion.WaitAsync(timeout);
+                return true;
+            }
+            catch (TimeoutException)
+            {
+                return false;
+            }
+            catch
+            {
+                // A faulted completion still means the channel was completed.
+                return true;
+            }
+        }
+
+        private static object GetPrivateField(object target, string name)
+        {
+            Type type = target.GetType();
+
+            while (type is not null)
+            {
+                FieldInfo field = type.GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
+                if (field is not null)
+                {
+                    return field.GetValue(target);
+                }
+
                 type = type.BaseType;
             }
 
-            Assert.NotNull(field);
-            return Assert.IsType<bool>(field.GetValue(dispatcher));
+            return null;
         }
     }
 }
