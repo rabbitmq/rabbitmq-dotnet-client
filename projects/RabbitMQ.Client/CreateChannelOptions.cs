@@ -71,7 +71,24 @@ namespace RabbitMQ.Client
         ///
         /// Defaults to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling percentage of 50% with a delay during throttling.
         /// </summary>
-        /// <remarks>Setting the rate limiter to <c>null</c> disables the rate limiting entirely.</remarks>
+        /// <remarks>
+        /// Setting the rate limiter to <c>null</c> disables the rate limiting entirely.
+        /// <para>
+        /// <b>Its lifetime belongs to you.</b> Disposing an <see cref="IChannel"/> does not dispose
+        /// this limiter, because it is not the channel's to dispose: it is shared by every channel
+        /// created from this options instance, and a channel on a connection with automatic recovery
+        /// reuses these options for every recovery, so the replacement channel publishes through the
+        /// same limiter. A channel disposing it broke those survivors, and the next confirm-tracked
+        /// publish threw <see cref="ObjectDisposedException"/>.
+        /// </para>
+        /// <para>
+        /// This changed in 7.3.0. Earlier versions disposed it with the channel, so code that relied
+        /// on that must now dispose it itself. It matters most for a limiter that owns a timer, such
+        /// as <c>TokenBucketRateLimiter</c> or the window limiters, which otherwise keeps running for
+        /// the life of the process. The default above needs no disposal: it wraps a
+        /// <c>ConcurrencyLimiter</c>, which holds no timer and no unmanaged handle.
+        /// </para>
+        /// </remarks>
         public readonly RateLimiter? OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(128);
 
         /// <summary>
