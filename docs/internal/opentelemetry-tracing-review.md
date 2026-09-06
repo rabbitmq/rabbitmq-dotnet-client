@@ -209,7 +209,24 @@ Per-`TracerProvider` configuration is not achievable: one `ActivitySource` produ
 
 The statics stay functional as that fallback and are marked `[Obsolete]` (removal at a major). Crucially the fallback is read **live**, not snapshotted: a connection whose factory set no options reads the statics at each operation, exactly as before, so the deprecated global path's behaviour is unchanged. Only a factory that sets its own `TracingOptions` gets an immutable per-connection snapshot. The null-setter validation from the earlier iteration is retained on both the statics and `RabbitMQTracingOptions`.
 
-The OpenTelemetry package gains `AddRabbitMQInstrumentation(this TracerProviderBuilder, ConnectionFactory, ...)`, which sets the OTel delegates on the factory's `TracingOptions` and subscribes the builder; the builder-only overloads remain for the global path.
+### The two halves have to be separable (second review round)
+
+The first cut of the OpenTelemetry package put the whole fix in `AddRabbitMQInstrumentation(this TracerProviderBuilder, ConnectionFactory, ...)` and marked the builder-only overloads `[Obsolete]`. @danielmarbach pointed out that the new overload does not fit the generic-host pattern: the factory is registered with the container, so no factory instance exists at the point `WithTracing` configures the builder.
+
+Checking the blast radius made this stronger than a taste question. `AddRabbitMQInstrumentation()` is the *entire* shipped surface of `RabbitMQ.Client.OpenTelemetry` - `PublicAPI.Shipped.txt` holds exactly that one entry - and it is the only call either README example made. So the branch was deprecating the one method anybody could be calling, pointing them at a replacement that structurally cannot be used in the pattern our own README documented as primary, and not updating the README.
+
+The resolution splits the two concerns, which is what @paulomorgado had also asked for ("a process-wide static default, that could be overridden by each connection or connection factory"):
+
+- `ConnectionFactory.UseOpenTelemetryTracing(...)` installs propagation on the owner. It needs no `TracerProvider`, so it can be called wherever the factory is built, including inside a DI registration.
+- `AddRabbitMQInstrumentation()` and its `Action<RabbitMQTracingOptions>` overload are **not** deprecated. They subscribe the builder and set the process-wide *default*, documented as a default layer that a factory overrides rather than as a deprecated path.
+- `AddRabbitMQInstrumentation(builder, factory, ...)` stays as the shortcut for when both objects are on hand, and now just delegates to `UseOpenTelemetryTracing`.
+- Only the four `RabbitMQActivitySource` statics remain `[Obsolete]`: they are the unowned mutation surface #1981 reported, and the package writes them internally behind a suppression.
+
+Repurposing `AddRabbitMQInstrumentation()` into a subscribe-only call, as the review sketch suggested, was rejected. It currently installs OpenTelemetry's `Baggage` propagation and honours `Propagators.DefaultTextMapPropagator`, and the client's built-in fallback (`DistributedContextPropagator.Current`) does neither. Silently dropping baggage propagation is a behaviour break, not a bug fix, so it cannot ship in a minor release; a subscribe-only shape can be considered at the next major.
+
+Also rejected: a DI-resolving overload. `OpenTelemetry.Api.ProviderBuilderExtensions` (netstandard2.0 and net8.0, depending only on `OpenTelemetry.Api` plus `Microsoft.Extensions.DependencyInjection.Abstractions`) exposes `AddInstrumentation<T>(Func<IServiceProvider, T>)`, so resolving the factory from the container inside the builder callback is feasible. It costs a new package dependency and assumes the application registered `ConnectionFactory` itself rather than a wrapper, a pool, or `IConnection`.
+
+One trap was fixed while making the two paths consistent. Both now apply the OpenTelemetry delegates *before* invoking `configure`, so a caller can wrap or replace them. In the builder-only overload the delegates used to be applied afterwards, which would have silently discarded a `configure` action that set `ContextInjector` or `ContextExtractor`, because assigning `RabbitMQActivitySource.TracingOptions` copies only the span-shaping flags out of the instance. That was newly reachable on this branch: before the delegates moved onto `RabbitMQTracingOptions` they could not be set through `configure` at all. Pinned by `TestProcessWideConfigureCanReplaceThePropagationDelegates`.
 
 ## Exception events are on a deprecation path
 
@@ -358,7 +375,9 @@ The restore matters beyond politeness. The pre-existing parameterized tag tests 
 
 ## Documentation gap
 
-`messaging-spans.md` states that an instrumentation using the message creation context as the parent of `process` spans SHOULD document that it does so, and MAY offer a configuration option. This client does exactly that by default (`UsePublisherAsParent = true`) and the option exists, but the `RabbitMQ.Client.OpenTelemetry` README documents only SDK wiring - not the trace structure, the span names, the attributes emitted, or either option.
+`messaging-spans.md` states that an instrumentation using the message creation context as the parent of `process` spans SHOULD document that it does so, and MAY offer a configuration option. This client does exactly that by default (`UsePublisherAsParent = true`) and the option exists, but the `RabbitMQ.Client.OpenTelemetry` README documented only SDK wiring - not the trace structure, the span names, the attributes emitted, or either option.
+
+**Mostly closed by PR #2009**, which had to rewrite the README anyway for the API split above. It now documents the three activity sources and their span names, both options including the parenting behaviour the convention asks to be stated, and the scope of each configuration path. Still missing: the emitted attributes, which is Group B's territory since that is where the attribute set changes.
 
 ## What was checked and found clean
 

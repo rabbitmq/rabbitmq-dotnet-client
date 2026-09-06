@@ -64,16 +64,22 @@ namespace RabbitMQ.Client
         // below read and write those same slots, so there is a single source of the fallback.
         private static RabbitMQTracingOptions s_tracingOptions = new RabbitMQTracingOptions();
 
-        // Applied to the four members below. They are process-wide mutable state that is
-        // shared across every connection, which is the wrong owner for configuration that
-        // belongs to the connection performing the operation. A connection now captures
-        // ConnectionFactory.TracingOptions at creation; these remain as the default a
-        // connection captures when the factory set none, so existing code keeps working.
+        /*
+         * Applied to the four members below. What is deprecated is mutating the fallback
+         * through these unowned statics, not the existence of a process-wide default: the
+         * default is a legitimate layer, and RabbitMQ.Client.OpenTelemetry's
+         * AddRabbitMQInstrumentation still sets it. A caller writing these slots directly
+         * reconfigures every connection that did not opt out, with no owner and no way to
+         * undo it, which is what #1981 reported. Configuration that belongs to a
+         * connection now goes on ConnectionFactory.TracingOptions.
+         */
         private const string ObsoleteMessage =
-            "Process-wide tracing configuration is deprecated. Configure " +
-            "ConnectionFactory.TracingOptions instead, which is owned by the connection that " +
-            "performs the traced operations. These members will be removed in a future major " +
-            "version. See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981.";
+            "Setting tracing configuration directly on these process-wide statics is deprecated. " +
+            "Configure ConnectionFactory.TracingOptions instead, which is owned by the connection " +
+            "that performs the traced operations, or call AddRabbitMQInstrumentation from the " +
+            "RabbitMQ.Client.OpenTelemetry package to set the process-wide default. These members " +
+            "will be removed in a future major version. " +
+            "See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981.";
 
         /// <summary>
         /// Delegate that injects the current <see cref="Activity"/> context into a published
