@@ -15,10 +15,10 @@ namespace RabbitMQ.Client
         /// It waits 30 seconds for the in-progress close operation to complete and throws if that
         /// elapses: an <see cref="OperationCanceledException"/> rather than
         /// <see cref="IOException"/>, which signals a socket closed unexpectedly. Catch
-        /// <see cref="OperationCanceledException"/> rather than its
-        /// <see cref="System.Threading.Tasks.TaskCanceledException"/> subclass: which of the two is
-        /// thrown depends on the build of this library your application resolves, not on the runtime
-        /// it executes on, and only the net8.0 build throws the subclass. Note that a
+        /// <see cref="OperationCanceledException"/> and not its
+        /// <see cref="System.Threading.Tasks.TaskCanceledException"/> subclass. Which of the two you
+        /// get depends on which await inside the close observed the cancellation, so both are
+        /// reachable on every target framework and neither is guaranteed. Note that a
         /// connection returned by <see cref="ConnectionFactory"/> with automatic recovery enabled,
         /// the default, first stops its recovery loop on a separate budget of
         /// <see cref="ConnectionFactory.RequestedConnectionTimeout"/>, so the total time can
@@ -63,8 +63,8 @@ namespace RabbitMQ.Client
         /// does nothing when automatic recovery is enabled, the default, and throws
         /// <see cref="Exceptions.AlreadyClosedException"/> when it is not.
         /// It can also throw <see cref="IOException"/> when socket was closed unexpectedly.
-        /// If the timeout is reached the wait ends and the connection is torn down on a best-effort
-        /// basis. Note that a connection returned by <see cref="ConnectionFactory"/> with automatic
+        /// If the timeout is reached the wait ends and this task faults; the connection is left partly
+        /// shut down. Note that a connection returned by <see cref="ConnectionFactory"/> with automatic
         /// recovery enabled first stops its recovery loop on a budget of
         /// <see cref="ConnectionFactory.RequestedConnectionTimeout"/>, so the total time can exceed
         /// <paramref name="timeout"/>.
@@ -72,10 +72,12 @@ namespace RabbitMQ.Client
         /// To wait infinitely for the close operations to complete use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>.
         /// </para>
         /// <para>
-        /// The value is honoured as given, including <see cref="TimeSpan.Zero"/>, which means "do not
-        /// wait". Because the timeout also bounds the close handshake itself, a value too short to
-        /// complete it leaves the connection only partly shut down and this task faults with an
-        /// <see cref="OperationCanceledException"/> - the connection is still closed either way. Any
+        /// The value is honoured as given, down to a one second minimum. That minimum exists because
+        /// the timeout also bounds the close handshake itself, not only the wait for the peer's reply:
+        /// a smaller value cancels the close before it transmits anything, which leaves the connection
+        /// open on the broker even though this client reports it closed. A timeout that elapses while
+        /// waiting for the peer faults this task with an <see cref="OperationCanceledException"/>,
+        /// having left the connection only partly shut down. Any
         /// value too large for the timer to express, including <see cref="TimeSpan.MaxValue"/>, is
         /// clamped to the largest bound it accepts, roughly 24.86 days, rather than throwing. It is
         /// deliberately not treated as unbounded: only an explicit
@@ -142,9 +144,8 @@ namespace RabbitMQ.Client
         /// Note that all active channels and sessions will be closed if this method is called.
         /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection, CancellationToken)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
-        /// This method waits 5 seconds for the in-progress close operation to complete and then
-        /// attempts to close the socket, and unlike a graceful close it does not rethrow when that
-        /// wait elapses. Note that a connection returned by <see cref="ConnectionFactory"/> with
+        /// This method waits 5 seconds for the in-progress close operation to complete and, unlike a
+        /// graceful close, does not rethrow when that wait elapses. Note that a connection returned by <see cref="ConnectionFactory"/> with
         /// automatic recovery enabled, the default, first stops its recovery loop on a separate
         /// budget of <see cref="ConnectionFactory.RequestedConnectionTimeout"/>, so the total time
         /// can exceed 5 seconds.
@@ -162,9 +163,8 @@ namespace RabbitMQ.Client
         /// Note that all active channels and sessions will be closed if this method is called.
         /// In comparison to normal <see cref="CloseAsync(IConnection, CancellationToken)"/> method, <see cref="AbortAsync(IConnection, CancellationToken)"/> will not throw
         /// <see cref="IOException"/> during closing connection.
-        /// This method waits 5 seconds for the in-progress close operation to complete and then
-        /// attempts to close the socket, and unlike a graceful close it does not rethrow when that
-        /// wait elapses. Note that a connection returned by <see cref="ConnectionFactory"/> with
+        /// This method waits 5 seconds for the in-progress close operation to complete and, unlike a
+        /// graceful close, does not rethrow when that wait elapses. Note that a connection returned by <see cref="ConnectionFactory"/> with
         /// automatic recovery enabled, the default, first stops its recovery loop on a separate
         /// budget of <see cref="ConnectionFactory.RequestedConnectionTimeout"/>, so the total time
         /// can exceed 5 seconds.

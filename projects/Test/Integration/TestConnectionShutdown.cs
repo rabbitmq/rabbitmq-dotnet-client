@@ -48,6 +48,15 @@ namespace Test.Integration
         // default Connection.Abort() timeout and then some
         private readonly TimeSpan _waitSpan = TimeSpan.FromSeconds(6);
 
+        /*
+         * Used where a close must be given room to finish rather than have its budget asserted.
+         * Before #1973, CloseAsync raised anything below 30 seconds to 30, so passing _waitSpan
+         * silently bought 30 seconds; now 6 seconds means 6 seconds. Any test that relied on the
+         * old floor - in particular one racing concurrent closers on a loaded net472 runner - has
+         * to ask for the budget it actually wants.
+         */
+        private static readonly TimeSpan s_generousCloseSpan = TimeSpan.FromSeconds(30);
+
         public TestConnectionShutdown(ITestOutputHelper output) : base(output)
         {
         }
@@ -66,7 +75,7 @@ namespace Test.Integration
             ValueTask frameHandlerCloseTask = c.CloseFrameHandlerAsync();
             try
             {
-                await _conn.CloseAsync(_waitSpan);
+                await _conn.CloseAsync(s_generousCloseSpan);
             }
             catch (AlreadyClosedException ex)
             {
@@ -114,8 +123,11 @@ namespace Test.Integration
              * That is reachable in normal operation because MainLoop's FinishCloseAsync
              * is itself a closer. When it lost this race it never returned, so
              * _mainLoopTask never completed and Connection.CloseAsync waited out its
-             * full 30s DefaultConnectionCloseTimeout before throwing a bare
-             * OperationCanceledException -- the 30-second net472 CI failure in #1968.
+             * full close timeout before throwing a bare OperationCanceledException --
+             * the 30-second net472 CI failure in #1968. It was 30 seconds because every
+             * value below that was floored to it; since #1973 the caller's value is
+             * honoured, so the same failure would now last however long the caller asked
+             * for.
              *
              * Two direct closes are the minimal deterministic form of that race.
              */

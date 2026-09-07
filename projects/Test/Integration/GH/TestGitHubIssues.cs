@@ -138,68 +138,92 @@ namespace Test.Integration.GH
         [Fact]
         public async Task DisposeWhileCatchingTimeoutDeadlocksRepro_GH1759()
         {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1759, and the regression guard for #1973.
+             *
+             * The original form of this test closed with TimeSpan.Zero, caught everything, and
+             * asserted nothing. #1973 records why that was vacuous: CloseAsync raised any value below
+             * 30 seconds to 30, and a healthy connection closes in ~20ms, so the zero-timeout path
+             * was never taken.
+             *
+             * Asserting on the exception or on IsOpen does not fix that. IsOpen is
+             * `CloseReason is null`, and the close reason is set before the first cancellable await,
+             * so it reports false even when nothing was torn down.
+             *
+             * The shutdown events are the signal that separates a real close from a half-done one.
+             * A clean close raises exactly one, from Application. If the close instead cancels itself
+             * before transmitting connection.close, the teardown block never runs, channel 0 keeps a
+             * null CloseReason, and DisposeAsync then sends channel.close on channel number 0 - a
+             * connection-level violation the broker answers with a 504, which arrives as a second
+             * shutdown event. Measured on a deliberately broken build:
+             *
+             *   [Application/200/Goodbye | Peer/504/CHANNEL_ERROR - unexpected method in connection
+             *    state running]
+             *
+             * so this assertion fails on exactly the defect it guards.
+             */
             _connFactory = new ConnectionFactory();
             _conn = await _connFactory.CreateConnectionAsync();
-            /*
-             * The assertions matter as much as the absence of a deadlock. Until #1973 this test
-             * was vacuous with respect to its own scenario: CloseAsync raised TimeSpan.Zero to a
-             * 30 second floor, and a healthy connection closes in roughly 175ms, so the zero
-             * timeout was never reached and the deadlock this guards could not reproduce. Asserting
-             * that the close actually timed out is what keeps the zero path exercised.
-             */
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(
-                () => _conn.CloseAsync(TimeSpan.Zero));
 
-            Assert.False(_conn.IsOpen, "a close that timed out must still have closed the connection");
+            var shutdownEvents = new List<string>();
+            _conn.ConnectionShutdownAsync += (_, ea) =>
+            {
+                lock (shutdownEvents)
+                {
+                    shutdownEvents.Add($"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}");
+                }
+
+                return Task.CompletedTask;
+            };
+
+            await _conn.CloseAsync(TimeSpan.Zero);
 
             await _conn.DisposeAsync();
+            await Task.Delay(500);
+
+            lock (shutdownEvents)
+            {
+                string observed = string.Join(" | ", shutdownEvents);
+                Assert.Equal($"{ShutdownInitiator.Application}/{Constants.ReplySuccess}/Goodbye", observed);
+            }
         }
 
         [Fact]
         public async Task AbortWithZeroTimeoutDoesNotThrow_GH1973()
         {
             /*
-             * The companion to the case above, and the reason the two are worth having together:
-             * they are the only coverage of the single production line #2011 changes,
-             * `timeout = ResolveCloseTimeout(timeout, abort)` in Connection.CloseAsync. Every unit
-             * test in TestConnectionCloseTimeout calls that helper directly, so none of them notices
-             * if the call site passes the wrong flag.
+             * The abort counterpart. TimeSpan.Zero resolves to the 5 second abort floor, so this is
+             * a clean teardown, and the same single-shutdown-event assertion applies: an abort that
+             * cancelled itself would produce the channel-0 violation described above.
              *
-             * The pair pins the difference. TimeSpan.Zero resolves to zero for a graceful close, so
-             * DisposeWhileCatchingTimeoutDeadlocksRepro_GH1759 requires a throw; the same value
-             * resolves to the 5 second abort floor here, so an abort must not throw. Mutating the
-             * call site to `ResolveCloseTimeout(timeout, !abort)` makes the graceful case fail with
-             * "No exception was thrown", which is what closes that gap.
-             *
-             * This case does not detect that mutation, and the boundary is worth recording so nobody
-             * repeats the two attempts that failed. Both were measured, not assumed:
-             *
-             *   - Making abort rethrow unconditionally does NOT fail this test. On a healthy broker
-             *     the abort's wait succeeds in roughly 175ms, so the catch block that decides whether
-             *     to rethrow is never entered at all.
-             *   - Removing the `if (false == abort)` guard around ThrowAlreadyClosedException also
-             *     does NOT fail it. The default factory returns an AutorecoveringConnection, whose
-             *     CloseAsync returns early on `if (_innerConnection.IsOpen)`, so a second close never
-             *     reaches Connection.CloseAsync.
-             *
-             * So the abort half of the call-site flag, and abort's never-throw contract on a timeout,
-             * both need a connection whose main loop does not complete promptly - fault injection
-             * rather than a healthy broker. What this test does cover is that AbortAsync(TimeSpan.Zero)
-             * tears the connection down without throwing, on an input that was unreachable before
-             * #1973 because the floor turned it into 5 seconds, and that a redundant abort afterwards
-             * is silent.
+             * What this does not cover, measured rather than assumed: abort's never-throw contract on
+             * an expired timeout. On a healthy broker the abort's wait succeeds in ~20ms, so the catch
+             * that decides whether to rethrow is never entered - making abort rethrow unconditionally
+             * leaves this test green. That needs a main loop that does not complete promptly, which
+             * means fault injection.
              */
             _connFactory = new ConnectionFactory();
             _conn = await _connFactory.CreateConnectionAsync();
 
+            var shutdownEvents = new List<string>();
+            _conn.ConnectionShutdownAsync += (_, ea) =>
+            {
+                lock (shutdownEvents)
+                {
+                    shutdownEvents.Add($"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}");
+                }
+
+                return Task.CompletedTask;
+            };
+
             await _conn.AbortAsync(TimeSpan.Zero);
-
-            Assert.False(_conn.IsOpen, "an abort must close the connection whatever the timeout");
-
-            // Abort is best-effort and never throws, including on a connection already closed.
-            await _conn.AbortAsync(TimeSpan.Zero);
-
             await _conn.DisposeAsync();
+            await Task.Delay(500);
+
+            lock (shutdownEvents)
+            {
+                Assert.Single(shutdownEvents);
+            }
         }
 
         [Fact]

@@ -736,7 +736,7 @@ namespace RabbitMQ.Client.Impl
                  *
                  * Issue #1968 is the confirmed instance of this pattern: the same
                  * dispose-without-release on SocketFrameHandler's semaphore stranded
-                 * MainLoop and cost a full 30s connection-close timeout.
+                 * MainLoop and cost a full connection-close timeout.
                  *
                  * SemaphoreSlim only needs disposal once AvailableWaitHandle has been
                  * read, and neither of these ever exposes it, so there is nothing to

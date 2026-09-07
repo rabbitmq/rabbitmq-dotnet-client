@@ -510,7 +510,7 @@ namespace RabbitMQ.Client.Impl
         /// second floor this used to apply was not policy, it arrived as incidental scaffolding in
         /// PR #1809 while fixing an unrelated <see cref="ObjectDisposedException"/>, and it made
         /// <see cref="Timeout.InfiniteTimeSpan"/> - documented as the way to wait without a bound -
-        /// unreachable, because -1 ticks compares below any floor. It also silently defeated the
+        /// unreachable, because -1ms compares below any floor. It also silently defeated the
         /// regression test for #1759, which closes with <see cref="TimeSpan.Zero"/>.
         /// </para>
         /// <para>
@@ -529,10 +529,20 @@ namespace RabbitMQ.Client.Impl
         /// when heartbeats are disabled.
         /// </para>
         /// <para>
-        /// A negative value other than <see cref="Timeout.InfiniteTimeSpan"/> is not a duration, so
-        /// it resolves to <see cref="TimeSpan.Zero"/> rather than reaching the
-        /// <see cref="CancellationTokenSource"/> constructor, which rejects most of them and
-        /// silently treats the rest as unbounded (anything in (-2ms, -1ms] truncates to -1).
+        /// A graceful close is floored at <see cref="InternalConstants.MinConnectionCloseTimeout"/>.
+        /// That is not the old 30 second floor in miniature: this timeout is linked into the tokens
+        /// passed to <c>SetSessionClosingAsync</c> and the <c>connection.close</c> transmit, so a
+        /// value too small to reach them cancels the close before it sends anything - and because
+        /// that cancellation escapes this method before the teardown block runs, the main loop is
+        /// never awaited, the socket is never closed, and the broker keeps the connection while
+        /// <see cref="IConnection.IsOpen"/> already reports false. The floor exists only to prevent
+        /// that; any realistic caller value passes through untouched.
+        /// </para>
+        /// <para>
+        /// A negative value other than <see cref="Timeout.InfiniteTimeSpan"/> is not a duration and
+        /// takes the same floor, which also keeps it away from the
+        /// <see cref="CancellationTokenSource"/> constructor - that rejects most negatives and
+        /// silently treats the rest as unbounded, since anything in (-2ms, -1ms] truncates to -1.
         /// </para>
         /// <para>
         /// An abort is always bounded, between <see cref="InternalConstants.DefaultConnectionAbortTimeout"/>
@@ -565,14 +575,14 @@ namespace RabbitMQ.Client.Impl
                 return timeout;
             }
 
-            if (timeout < TimeSpan.Zero)
-            {
-                return TimeSpan.Zero;
-            }
-
             if (timeout > s_maxCancellationTokenSourceDelay)
             {
                 return s_maxCancellationTokenSourceDelay;
+            }
+
+            if (timeout < InternalConstants.MinConnectionCloseTimeout)
+            {
+                return InternalConstants.MinConnectionCloseTimeout;
             }
 
             return timeout;

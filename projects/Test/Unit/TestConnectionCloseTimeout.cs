@@ -43,19 +43,24 @@ namespace Test.Unit
     /// <see cref="Connection.ResolveCloseTimeout"/> honours what the caller asked for. The 30 second
     /// floor it used to apply to every graceful close was not policy: it arrived as incidental
     /// scaffolding in PR #1809 while fixing an unrelated <see cref="ObjectDisposedException"/>, and
-    /// it made <see cref="Timeout.InfiniteTimeSpan"/> unreachable (-1 ticks compares below any
+    /// it made <see cref="Timeout.InfiniteTimeSpan"/> unreachable (-1ms compares below any
     /// floor) while silently defeating the #1759 regression test, which closes with
     /// <see cref="TimeSpan.Zero"/>.
     ///
     /// An abort is the one path that is always bounded, between 5 and 10 seconds, because its wait
     /// uses the timeout alone with the caller's token neutralized.
     ///
+    /// A one second minimum survives, and it is not the old floor in miniature. The timeout is linked
+    /// into the tokens passed to the close handshake itself, so a value too small to reach them
+    /// cancels the close before it transmits anything - and that cancellation escapes before the
+    /// teardown block, leaving the socket open and the broker still holding the connection while
+    /// <c>IsOpen</c> reports false. Measured. See <see cref="InternalConstants.MinConnectionCloseTimeout"/>.
+    ///
     /// These cases assert against the resolution directly because the difference is otherwise
-    /// unobservable on a healthy connection, which closes in roughly 175ms so no close timeout is
-    /// ever reached. That is exactly why the floor went unnoticed for so long. The end-to-end
-    /// behaviour of a zero timeout is covered by
-    /// <c>TestGitHubIssues.DisposeWhileCatchingTimeoutDeadlocksRepro_GH1759</c>, which now asserts
-    /// that the close times out rather than merely not deadlocking.
+    /// unobservable on a healthy connection, which closes in roughly 20ms so no close timeout is ever
+    /// reached. That is exactly why the floor went unnoticed for so long. The end-to-end consequence
+    /// is covered by <c>TestGitHubIssues.DisposeWhileCatchingTimeoutDeadlocksRepro_GH1759</c>, which
+    /// fails on a build without the minimum.
     /// </summary>
     public class TestConnectionCloseTimeout
     {
@@ -67,7 +72,6 @@ namespace Test.Unit
         }
 
         [Theory]
-        [InlineData(0)]
         [InlineData(1)]
         [InlineData(6)]
         [InlineData(29)]
@@ -76,12 +80,32 @@ namespace Test.Unit
         public void GracefulCloseHonoursTheCallerSTimeout_GH1973(int seconds)
         {
             /*
-             * The headline of #1973: every one of these used to resolve to 30 seconds. The 0 and 6
-             * second cases are the two the issue calls out by name.
+             * The headline of #1973: every one of these used to resolve to 30 seconds. The 6 second
+             * case is the one the issue calls out by name. One second is included because it is the
+             * minimum, and must be honoured rather than raised.
              */
             TimeSpan timeout = TimeSpan.FromSeconds(seconds);
 
             Assert.Equal(timeout, Connection.ResolveCloseTimeout(timeout, abort: false));
+        }
+
+        [Fact]
+        public void ZeroResolvesToTheMinimumRatherThanCancellingTheClose_GH1973()
+        {
+            /*
+             * TimeSpan.Zero is the input #1759's regression test uses, and the one that made this
+             * minimum necessary. Resolved literally it produces a pre-cancelled CancellationTokenSource,
+             * so the close cancels itself before sending connection.close, escapes before the teardown
+             * block, and leaves the connection open on the broker - measured, with the client reporting
+             * IsOpen == false throughout. An abort is unaffected because its own floor is larger.
+             */
+            Assert.Equal(InternalConstants.MinConnectionCloseTimeout,
+                Connection.ResolveCloseTimeout(TimeSpan.Zero, abort: false));
+            Assert.Equal(InternalConstants.DefaultConnectionAbortTimeout,
+                Connection.ResolveCloseTimeout(TimeSpan.Zero, abort: true));
+
+            // The minimum has to be large enough to matter; zero would reintroduce the defect.
+            Assert.True(InternalConstants.MinConnectionCloseTimeout > TimeSpan.Zero);
         }
 
         [Theory]
@@ -89,11 +113,13 @@ namespace Test.Unit
         [InlineData(-20000)]    // -2ms:      rejected by CancellationTokenSource
         [InlineData(-10001)]    // -1.0001ms: ACCEPTED, and never cancels
         [InlineData(-9999)]     // -0.9999ms: ACCEPTED, and cancels immediately
-        public void NegativeTimeoutOtherThanInfiniteResolvesToZero_GH1973(long ticks)
+        public void NegativeTimeoutOtherThanInfiniteResolvesToTheMinimum_GH1973(long ticks)
         {
             /*
-             * A negative duration is not a wait, so it resolves to zero rather than reaching the
-             * CancellationTokenSource constructor. The exemption must match Timeout.InfiniteTimeSpan
+             * A negative duration is not a wait, and it must not reach the CancellationTokenSource
+             * constructor, so it resolves to the one second minimum - not to zero, which would cancel
+             * the close before it transmits anything and leak the connection. The exemption must match
+             * Timeout.InfiniteTimeSpan
              * exactly and no other negative value: loosening it to `timeout < TimeSpan.Zero`, or to
              * `(long)timeout.TotalMilliseconds == -1`, must fail here.
              *
@@ -112,7 +138,8 @@ namespace Test.Unit
             TimeSpan timeout = TimeSpan.FromTicks(ticks);
             Assert.NotEqual(Timeout.InfiniteTimeSpan, timeout);
 
-            Assert.Equal(TimeSpan.Zero, Connection.ResolveCloseTimeout(timeout, abort: false));
+            Assert.Equal(InternalConstants.MinConnectionCloseTimeout,
+                Connection.ResolveCloseTimeout(timeout, abort: false));
             Assert.Equal(InternalConstants.DefaultConnectionAbortTimeout,
                 Connection.ResolveCloseTimeout(timeout, abort: true));
         }
@@ -144,17 +171,20 @@ namespace Test.Unit
                 Connection.ResolveCloseTimeout(ceiling + TimeSpan.FromMilliseconds(1), abort: false));
 
             /*
-             * The ceiling must be a value every runtime this build can load on accepts, and one
-             * millisecond above it must be rejected somewhere. The second assertion is what fails if
-             * the ceiling is ever raised past .NET Framework's limit; without it, raising the ceiling
-             * to the modern .NET limit would leave this file green while breaking net472 callers.
+             * The ceiling must be accepted by every runtime this build can load on, which means the
+             * .NET Framework limit rather than the modern one. Raising it to uint.MaxValue - 1 ms
+             * would still be accepted here on net8.0, so asserting only "the ceiling constructs" is
+             * unfalsifiable on the default CI leg - as is comparing the constant to its own
+             * initializer. Pin the property that actually matters instead: the ceiling is exactly
+             * int.MaxValue milliseconds, the largest value .NET Framework accepts, and the net472 leg
+             * of this project proves the constructor agrees.
              */
+            Assert.Equal(int.MaxValue, (long)ceiling.TotalMilliseconds);
+
             using (var cts = new CancellationTokenSource(ceiling))
             {
-                Assert.NotEqual(default, cts.Token);
+                Assert.False(cts.IsCancellationRequested);
             }
-
-            Assert.Equal(TimeSpan.FromMilliseconds(int.MaxValue), ceiling);
         }
 
         [Fact]
@@ -209,11 +239,18 @@ namespace Test.Unit
              * while 50 days resolved to the 5 second floor, a five-order-of-magnitude reversal from
              * one extra day. Unbounded counts as the largest value, so it is compared separately.
              */
+            /*
+             * The last three elements are the point: without a value strictly above the ceiling,
+             * neither the clamp nor an accidental promote-to-unbounded is ever exercised, and
+             * reinstating the ordering this test guards leaves it green.
+             */
             TimeSpan[] ascending =
             {
                 TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(6),
                 TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5), TimeSpan.FromDays(1),
-                Connection.s_maxCancellationTokenSourceDelay
+                Connection.s_maxCancellationTokenSourceDelay,
+                Connection.s_maxCancellationTokenSourceDelay + TimeSpan.FromDays(1),
+                TimeSpan.FromDays(60), TimeSpan.MaxValue
             };
 
             foreach (bool abort in new[] { false, true })

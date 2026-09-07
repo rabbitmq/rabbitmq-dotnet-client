@@ -35,11 +35,13 @@ run against the netstandard2.0 client build.
   #1968 completely, because the run never reaches the close timeout; and a
   deterministic 100% rate is by definition not #1968, which is intermittent.
 - **slow** - the test passed, but its duration exceeded `-SlowSeconds`. Worth
-  counting separately because `Connection.CloseAsync` raises any non-abort timeout
-  below `InternalConstants.DefaultConnectionCloseTimeout` (30s) up to 30s, so the
-  test's own 6s `_waitSpan` is ignored. A run that waits out the full timeout is
-  approaching the failure however it ends. Healthy runs finish in well under a
-  second, so the 5s default is generous.
+  counting separately because a run that waits out the close timeout is approaching
+  the failure however it ends. This used to rest on `Connection.CloseAsync` raising
+  any non-abort timeout below `InternalConstants.DefaultConnectionCloseTimeout` (30s)
+  up to 30s, so the test's own 6s `_waitSpan` was ignored; since
+  [#1973](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1973) the caller's
+  value is honoured, so the budget is whatever the test asks for. Healthy runs finish
+  in well under a second, so the 5s default is generous.
 
 Outcome, duration and failure message all come from the trx (`--logger trx`), so
 nothing depends on console formatting. That matters because the console output is
@@ -97,7 +99,7 @@ Actual:   typeof(System.ObjectDisposedException)
 
 That is `TestConnectionShutdown.cs:73`, inside the `AlreadyClosedException` catch, so
 the close threw the expected exception type but with the wrong `InnerException`. It is
-deterministic and fast (~70-100ms, not the ~30s a close timeout would take), which
+deterministic and fast (~70-100ms, not the seconds a close timeout would take), which
 makes it a separate bug from the intermittent #1968.
 
 Until that is understood, #1968 cannot be measured here at all: the assertion fails
@@ -131,6 +133,6 @@ A rate does not settle these, but it informs them:
    parked on a `NetworkStream` on .NET Framework, which is issue
    [#1921](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1921).
 Whether the 30s floor overriding a caller-supplied 6s timeout is intended was the
-third question. It was answerable from history without a repro, and is now filed
-separately as
-[#1973](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1973).
+third question. It was answerable from history without a repro, was filed separately as
+[#1973](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1973), and is now
+answered: it was not intended, and the caller's value is honoured.

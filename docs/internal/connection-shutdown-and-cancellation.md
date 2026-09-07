@@ -313,11 +313,11 @@ These are easy to confuse; distinguishing which one a hang tracks is the key dia
 | `HandshakeContinuationTimeout`             | 10s     | Continuation timeout during the AMQP handshake      |
 | `InternalConstants.DefaultConnectionAbortTimeout` | 5s | Default abort budget, and the floor an abort is raised to |
 | `InternalConstants.MaxConnectionAbortTimeout` | 10s | Ceiling an abort is capped at, however much was asked for (#1973) |
-| `InternalConstants.DefaultConnectionCloseTimeout` | 30s | Default graceful close budget. Since #1973 it is only the default, **not** a floor: a caller's smaller value is honoured |
+| `InternalConstants.DefaultConnectionCloseTimeout` | 30s | Default graceful close budget. Since #1973 it is only the default, **not** a floor: a caller's smaller value is honoured down to `MinConnectionCloseTimeout` |
 | `InternalConstants.DefaultChannelDisposeTimeout`  | 5s  | Wait for server-originated channel close on dispose |
 | `Connection.s_maxCancellationTokenSourceDelay` | 24.86d | Largest bound the timer accepts on any runtime a build can load on; a larger graceful timeout is clamped to it, **not** treated as unbounded. Not consulted on the abort path |
 | `Timeout.InfiniteTimeSpan` as a graceful close timeout | none | **No budget at all.** A graceful close honours it (#1973), so a hang here matches no duration; an abort caps it at 10s |
-| `TimeSpan.Zero` as a graceful close timeout | none | Does not wait: the close faults with `OperationCanceledException` almost immediately, having still torn the connection down. Before #1973 this was silently raised to 30s |
+| `InternalConstants.MinConnectionCloseTimeout` | 1s | Floor for a graceful close, including `TimeSpan.Zero` and negatives. Small on purpose: below roughly this, the timeout cancels the close handshake before `connection.close` is transmitted, and that cancellation escapes before the teardown block, so the socket stays open and the broker keeps the connection while `IsOpen` reports false (measured) |
 
 A close that hangs with no duration matching any row is the `Timeout.InfiniteTimeSpan` case in the last row; do not rule out the close path just because no timeout value fits. A hang whose duration matches `ContinuationTimeout` (not the 5s abort timeout) points at an un-completed RPC continuation - the channel-0 abort described here. A stacked pair of 5s stalls (~10s) on .NET Framework points at cause 4: the abort-timeout wait plus a subsequent channel-0 dispose timeout.
 
