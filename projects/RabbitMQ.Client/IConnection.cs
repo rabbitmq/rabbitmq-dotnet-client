@@ -231,7 +231,32 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="reasonCode">The close code (See under "Reply Codes" in the AMQP 0-9-1 specification).</param>
         /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
-        /// <param name="timeout"></param>
+        /// <param name="timeout">
+        /// How long to wait for the in-progress close operations to complete, after which the
+        /// wait ends and this call fails rather than waiting further. The value is honoured
+        /// as given for a graceful close, down to a one second minimum. That minimum exists because
+        /// the timeout also bounds the close handshake itself, not only the wait for the peer's reply:
+        /// a smaller value cancels the close before it transmits anything, which leaves the connection
+        /// open on the broker even though this client reports it closed. A timeout that elapses while
+        /// waiting for the peer faults the returned task with an
+        /// <see cref="OperationCanceledException"/>, having left the connection only partly shut
+        /// down.
+        /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> waits without a bound; a value
+        /// merely too large for the timer to express is clamped to the largest bound it accepts
+        /// (roughly 24.86 days) rather than becoming unbounded. A negative value other than
+        /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> is treated as
+        /// <see cref="TimeSpan.Zero"/>. A <see cref="CancellationToken"/> passed alongside is
+        /// deliberately ignored while the underlying connection is open, so that a close already
+        /// under way is not truncated; on a connection with automatic recovery enabled the token is
+        /// still observed while its recovery loop is stopped, which happens first.
+        /// <para>
+        /// An abort is different: it is always bounded, between 5 and 10 seconds. It is best-effort
+        /// teardown that never throws, so its value to a caller is returning promptly, and its wait
+        /// is bounded by this timeout alone. A larger request, including
+        /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> and
+        /// <see cref="TimeSpan.MaxValue"/>, is capped at 10 seconds rather than honoured.
+        /// </para>
+        /// </param>
         /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>
         /// <param name="cancellationToken">Cancellation token</param>
         Task CloseAsync(ushort reasonCode, string reasonText, TimeSpan timeout, bool abort,

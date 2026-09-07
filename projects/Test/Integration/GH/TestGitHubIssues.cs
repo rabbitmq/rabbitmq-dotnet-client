@@ -138,17 +138,92 @@ namespace Test.Integration.GH
         [Fact]
         public async Task DisposeWhileCatchingTimeoutDeadlocksRepro_GH1759()
         {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#1759, and the regression guard for #1973.
+             *
+             * The original form of this test closed with TimeSpan.Zero, caught everything, and
+             * asserted nothing. #1973 records why that was vacuous: CloseAsync raised any value below
+             * 30 seconds to 30, and a healthy connection closes in ~20ms, so the zero-timeout path
+             * was never taken.
+             *
+             * Asserting on the exception or on IsOpen does not fix that. IsOpen is
+             * `CloseReason is null`, and the close reason is set before the first cancellable await,
+             * so it reports false even when nothing was torn down.
+             *
+             * The shutdown events are the signal that separates a real close from a half-done one.
+             * A clean close raises exactly one, from Application. If the close instead cancels itself
+             * before transmitting connection.close, the teardown block never runs, channel 0 keeps a
+             * null CloseReason, and DisposeAsync then sends channel.close on channel number 0 - a
+             * connection-level violation the broker answers with a 504, which arrives as a second
+             * shutdown event. Measured on a deliberately broken build:
+             *
+             *   [Application/200/Goodbye | Peer/504/CHANNEL_ERROR - unexpected method in connection
+             *    state running]
+             *
+             * so this assertion fails on exactly the defect it guards.
+             */
             _connFactory = new ConnectionFactory();
             _conn = await _connFactory.CreateConnectionAsync();
-            try
+
+            var shutdownEvents = new List<string>();
+            _conn.ConnectionShutdownAsync += (_, ea) =>
             {
-                await _conn.CloseAsync(TimeSpan.Zero);
-            }
-            catch (Exception)
-            {
-            }
+                lock (shutdownEvents)
+                {
+                    shutdownEvents.Add($"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}");
+                }
+
+                return Task.CompletedTask;
+            };
+
+            await _conn.CloseAsync(TimeSpan.Zero);
 
             await _conn.DisposeAsync();
+            await Task.Delay(500);
+
+            lock (shutdownEvents)
+            {
+                string observed = string.Join(" | ", shutdownEvents);
+                Assert.Equal($"{ShutdownInitiator.Application}/{Constants.ReplySuccess}/Goodbye", observed);
+            }
+        }
+
+        [Fact]
+        public async Task AbortWithZeroTimeoutDoesNotThrow_GH1973()
+        {
+            /*
+             * The abort counterpart. TimeSpan.Zero resolves to the 5 second abort floor, so this is
+             * a clean teardown, and the same single-shutdown-event assertion applies: an abort that
+             * cancelled itself would produce the channel-0 violation described above.
+             *
+             * What this does not cover, measured rather than assumed: abort's never-throw contract on
+             * an expired timeout. On a healthy broker the abort's wait succeeds in ~20ms, so the catch
+             * that decides whether to rethrow is never entered - making abort rethrow unconditionally
+             * leaves this test green. That needs a main loop that does not complete promptly, which
+             * means fault injection.
+             */
+            _connFactory = new ConnectionFactory();
+            _conn = await _connFactory.CreateConnectionAsync();
+
+            var shutdownEvents = new List<string>();
+            _conn.ConnectionShutdownAsync += (_, ea) =>
+            {
+                lock (shutdownEvents)
+                {
+                    shutdownEvents.Add($"{ea.Initiator}/{ea.ReplyCode}/{ea.ReplyText}");
+                }
+
+                return Task.CompletedTask;
+            };
+
+            await _conn.AbortAsync(TimeSpan.Zero);
+            await _conn.DisposeAsync();
+            await Task.Delay(500);
+
+            lock (shutdownEvents)
+            {
+                Assert.Single(shutdownEvents);
+            }
         }
 
         [Fact]

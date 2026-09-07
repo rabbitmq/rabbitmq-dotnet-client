@@ -359,15 +359,7 @@ namespace RabbitMQ.Client.Impl
         {
             CancellationToken cancellationToken = reason.CancellationToken;
 
-            if (abort && timeout < InternalConstants.DefaultConnectionAbortTimeout)
-            {
-                timeout = InternalConstants.DefaultConnectionAbortTimeout;
-            }
-
-            if (false == abort && timeout < InternalConstants.DefaultConnectionCloseTimeout)
-            {
-                timeout = InternalConstants.DefaultConnectionCloseTimeout;
-            }
+            timeout = ResolveCloseTimeout(timeout, abort);
 
             if (IsOpen)
             {
@@ -508,6 +500,109 @@ namespace RabbitMQ.Client.Impl
                 }
             }
         }
+
+        /// <summary>
+        /// Determines the timeout a close or abort operation actually gets.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A graceful close honours what the caller asked for. That is the point of #1973: the 30
+        /// second floor this used to apply was not policy, it arrived as incidental scaffolding in
+        /// PR #1809 while fixing an unrelated <see cref="ObjectDisposedException"/>, and it made
+        /// <see cref="Timeout.InfiniteTimeSpan"/> - documented as the way to wait without a bound -
+        /// unreachable, because -1ms compares below any floor. It also silently defeated the
+        /// regression test for #1759, which closes with <see cref="TimeSpan.Zero"/>.
+        /// </para>
+        /// <para>
+        /// A timeout larger than <see cref="CancellationTokenSource"/> can express is clamped to
+        /// <see cref="s_maxCancellationTokenSourceDelay"/>. Passing it through instead would throw
+        /// <see cref="ArgumentOutOfRangeException"/> from the <see cref="CancellationTokenSource"/>
+        /// constructor before the close reason is set, leaving the connection fully open with no
+        /// shutdown attempted. It is deliberately clamped rather than promoted to
+        /// <see cref="Timeout.InfiniteTimeSpan"/>: only an explicit
+        /// <see cref="Timeout.InfiniteTimeSpan"/> should ever produce a wait that nothing local can
+        /// end, because the escape hatches are thinner than they look. By the time the wait begins,
+        /// <c>CloseAsync</c>'s <c>finally</c> has already stopped the heartbeat timers, and
+        /// <see cref="System.Net.Sockets.NetworkStream"/> ignores its read timeout for the
+        /// asynchronous reads the main loop performs, so the only thing left that can end it is the
+        /// broker noticing our silence and closing the TCP connection - which does not happen at all
+        /// when heartbeats are disabled.
+        /// </para>
+        /// <para>
+        /// A graceful close is floored at <see cref="InternalConstants.MinConnectionCloseTimeout"/>.
+        /// That is not the old 30 second floor in miniature: this timeout is linked into the tokens
+        /// passed to <c>SetSessionClosingAsync</c> and the <c>connection.close</c> transmit, so a
+        /// value too small to reach them cancels the close before it sends anything - and because
+        /// that cancellation escapes this method before the teardown block runs, the main loop is
+        /// never awaited, the socket is never closed, and the broker keeps the connection while
+        /// <see cref="IConnection.IsOpen"/> already reports false. The floor exists only to prevent
+        /// that; any realistic caller value passes through untouched.
+        /// </para>
+        /// <para>
+        /// A negative value other than <see cref="Timeout.InfiniteTimeSpan"/> is not a duration and
+        /// takes the same floor, which also keeps it away from the
+        /// <see cref="CancellationTokenSource"/> constructor - that rejects most negatives and
+        /// silently treats the rest as unbounded, since anything in (-2ms, -1ms] truncates to -1.
+        /// </para>
+        /// <para>
+        /// An abort is always bounded, between <see cref="InternalConstants.DefaultConnectionAbortTimeout"/>
+        /// and <see cref="InternalConstants.MaxConnectionAbortTimeout"/>. Its wait uses this timeout
+        /// alone, with the caller's token deliberately neutralized, so an unbounded abort could never
+        /// return - and an abort that waits for days defeats the best-effort, never-throw contract
+        /// abort exists to provide just as thoroughly.
+        /// </para>
+        /// </remarks>
+        internal static TimeSpan ResolveCloseTimeout(TimeSpan timeout, bool abort)
+        {
+            if (abort)
+            {
+                if (timeout == Timeout.InfiniteTimeSpan
+                    || timeout > InternalConstants.MaxConnectionAbortTimeout)
+                {
+                    return InternalConstants.MaxConnectionAbortTimeout;
+                }
+
+                if (timeout < InternalConstants.DefaultConnectionAbortTimeout)
+                {
+                    return InternalConstants.DefaultConnectionAbortTimeout;
+                }
+
+                return timeout;
+            }
+
+            if (timeout == Timeout.InfiniteTimeSpan)
+            {
+                return timeout;
+            }
+
+            if (timeout > s_maxCancellationTokenSourceDelay)
+            {
+                return s_maxCancellationTokenSourceDelay;
+            }
+
+            if (timeout < InternalConstants.MinConnectionCloseTimeout)
+            {
+                return InternalConstants.MinConnectionCloseTimeout;
+            }
+
+            return timeout;
+        }
+
+        /// <summary>
+        /// The largest delay a <see cref="CancellationTokenSource"/> accepts on any runtime this
+        /// build can load on. A graceful timeout above it is clamped to it; nothing is compared
+        /// against it on the abort path, which has its own much smaller ceiling.
+        /// </summary>
+        /// <remarks>
+        /// The lower of the two runtime limits is used unconditionally rather than selected by target
+        /// framework. .NET Framework rejects any delay above <see cref="int.MaxValue"/> milliseconds
+        /// (roughly 24.86 days); modern .NET accepts up to <c>uint.MaxValue - 1</c> (roughly 49.7
+        /// days). Using the lower limit everywhere costs a caller asking for 30 days a bound of
+        /// roughly 24.86 days instead, which is indistinguishable in practice, and buys a value that
+        /// does not depend on which build the application happened to resolve.
+        /// </remarks>
+        internal static readonly TimeSpan s_maxCancellationTokenSourceDelay =
+            TimeSpan.FromMilliseconds(int.MaxValue);
 
         internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason)
         {

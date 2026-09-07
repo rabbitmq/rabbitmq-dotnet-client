@@ -257,8 +257,13 @@ Not even the waiter's own cancellation token releases it. `Dispose()` itself doe
 `MainLoop`'s `FinishCloseAsync` calls `_frameHandler.CloseAsync`, so it is itself one of the concurrent closers. When it lost this race it never returned, which means:
 
 1. `MainLoop` never completes, so `_mainLoopTask` never completes.
-2. `Connection.CloseAsync` waits on `_mainLoopTask` (`Connection.cs:464`) and burns its full timeout.
-3. That timeout is `InternalConstants.DefaultConnectionCloseTimeout` (30s), **not** the caller's 6s - a non-abort close floors the caller's value at 30s.
+2. `Connection.CloseAsync` waits on `_mainLoopTask` (in `Connection.CloseAsync`, near the end of its `try`) and burns its full timeout.
+3. That timeout was `InternalConstants.DefaultConnectionCloseTimeout` (30s), **not** the caller's 6s, because a non-abort close floored the caller's value at 30s. That floor is gone as of #1973 - it was never policy, only incidental scaffolding from PR #1809 - so a 6s close now takes 6s and this symptom no longer presents as a 30s stall. `Connection.ResolveCloseTimeout` is where the resolution happens. Note the mechanism the floor was masking, which still applies: the timeout feeds the same linked `CancellationTokenSource` as the caller's token, so a short value cancels the close handshake itself rather than only bounding the wait for it. A graceful close also honours `Timeout.InfiniteTimeSpan` (see #1973), and in exactly this stranded-`MainLoop` scenario that means there is no escape hatch at all: the wait never ends, no timer is armed, and the caller's token is neutralized while the connection is open. Nothing else can end it either. `FinishCloseAsync` runs `_mainLoopCts.Cancel(); _closed = true; MaybeStopHeartbeatTimers();` (`Connection.cs:636-638`) *before* it parks on the semaphore, so the heartbeat read timer is already stopped by the time the stall begins - and even left running it could not help, because `HeartbeatReadTimerCallback` counts missed beats only under `if (false == _closed)` (`Connection.Heartbeat.cs:97`). An abort deliberately does *not* take the exemption: it is always bounded, between 5 and 10 seconds.
+
+Two things about the "forced socket close" that the timeout is often assumed to trigger, both pre-existing and tracked separately:
+
+- **On a timeout it is a no-op on every target framework.** The fallback in the `catch` calls `_frameHandler.CloseAsync(cts.Token)` with the very token whose firing produced the `catch`; `SocketFrameHandler.CloseAsync` observes it on its first `await` and returns before reaching `_socket.Close()`. There is no `#if` around that behaviour, so it is not modern-.NET-specific.
+- **The netstandard2.0 `_frameHandler.CloseSocket()` is not a timeout path at all.** It sits *before* the `await _mainLoopTask.WaitAsync(...)` and is gated only on `abort`, so it runs whether or not the timeout ever fires. That is what unparks a stranded read on .NET Framework, and it is unrelated to the bound.
 4. On netstandard2.0 the throwing frame is `TaskExtensions.DoWaitAsync`, which is inside `#if !NET`, so it surfaces as a bare `OperationCanceledException`.
 
 Item 4 is the only platform-specific part, and it affects the *exception type*, not the hang. The 30-second duration was the tell that this tracked the close timeout rather than a merely-slow close.
@@ -306,11 +311,15 @@ These are easy to confuse; distinguishing which one a hang tracks is the key dia
 | ------------------------------------------ | ------- | --------------------------------------------------- |
 | `ContinuationTimeout`                      | 20s     | Max wait for an RPC reply (e.g. `channel.close-ok`) |
 | `HandshakeContinuationTimeout`             | 10s     | Continuation timeout during the AMQP handshake      |
-| `InternalConstants.DefaultConnectionAbortTimeout` | 5s | Time budget for an abort                       |
-| `InternalConstants.DefaultConnectionCloseTimeout` | 30s | Time budget for a graceful close               |
+| `InternalConstants.DefaultConnectionAbortTimeout` | 5s | Default abort budget, and the floor an abort is raised to |
+| `InternalConstants.MaxConnectionAbortTimeout` | 10s | Ceiling an abort is capped at, however much was asked for (#1973) |
+| `InternalConstants.DefaultConnectionCloseTimeout` | 30s | Default graceful close budget. Since #1973 it is only the default, **not** a floor: a caller's smaller value is honoured down to `MinConnectionCloseTimeout` |
 | `InternalConstants.DefaultChannelDisposeTimeout`  | 5s  | Wait for server-originated channel close on dispose |
+| `Connection.s_maxCancellationTokenSourceDelay` | 24.86d | Largest bound the timer accepts on any runtime a build can load on; a larger graceful timeout is clamped to it, **not** treated as unbounded. Not consulted on the abort path |
+| `Timeout.InfiniteTimeSpan` as a graceful close timeout | none | **No budget at all.** A graceful close honours it (#1973), so a hang here matches no duration; an abort caps it at 10s |
+| `InternalConstants.MinConnectionCloseTimeout` | 1s | Floor for a graceful close, including `TimeSpan.Zero` and negatives. Small on purpose: below roughly this, the timeout cancels the close handshake before `connection.close` is transmitted, and that cancellation escapes before the teardown block, so the socket stays open and the broker keeps the connection while `IsOpen` reports false (measured) |
 
-A hang whose duration matches `ContinuationTimeout` (not the 5s abort timeout) points at an un-completed RPC continuation - the channel-0 abort described here. A stacked pair of 5s stalls (~10s) on .NET Framework points at cause 4: the abort-timeout wait plus a subsequent channel-0 dispose timeout.
+A close that hangs with no duration matching any row is the `Timeout.InfiniteTimeSpan` case in the last row; do not rule out the close path just because no timeout value fits. A hang whose duration matches `ContinuationTimeout` (not the 5s abort timeout) points at an un-completed RPC continuation - the channel-0 abort described here. A stacked pair of 5s stalls (~10s) on .NET Framework points at cause 4: the abort-timeout wait plus a subsequent channel-0 dispose timeout.
 
 ## Diagnostic method
 

@@ -363,11 +363,15 @@ namespace RabbitMQ.Client.Impl
                      * To prevent connection leaks on the next recovery loop,
                      * we abort the delegated connection if it is still open.
                      * We do not want to block the abort forever (potentially deadlocking recovery),
-                     * so we specify the same configured timeout used for connection.
+                     * so we ask for the abort ceiling rather than the configured connection timeout.
+                     * This used to pass RequestedConnectionTimeout, which since #1973 an abort caps
+                     * at MaxConnectionAbortTimeout anyway - naming the ceiling makes the effective
+                     * budget visible instead of leaving a value here that is silently reduced.
                      */
                     if (_innerConnection?.IsOpen == true)
                     {
-                        await _innerConnection.AbortAsync(Constants.InternalError, "FailedAutoRecovery", _config.RequestedConnectionTimeout)
+                        await _innerConnection.AbortAsync(Constants.InternalError, "FailedAutoRecovery",
+                                InternalConstants.MaxConnectionAbortTimeout)
                             .ConfigureAwait(false);
                     }
                 }

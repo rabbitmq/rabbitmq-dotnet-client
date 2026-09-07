@@ -107,8 +107,13 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
+                    /*
+                     * abort: true, so this is bounded by the abort ceiling regardless of what is
+                     * passed. Name it, rather than the 30 second close default that #1973 now
+                     * silently reduces to it.
+                     */
                     await connection.CloseAsync(Constants.InternalError, "FailedOpen",
-                        InternalConstants.DefaultConnectionCloseTimeout, true,
+                        InternalConstants.MaxConnectionAbortTimeout, true,
                         cancellationToken).ConfigureAwait(false);
                     await connection.DisposeAsync()
                         .ConfigureAwait(false);

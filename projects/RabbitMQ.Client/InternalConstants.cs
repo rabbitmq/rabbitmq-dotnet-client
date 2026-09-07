@@ -40,6 +40,38 @@ namespace RabbitMQ.Client
         internal static readonly TimeSpan DefaultChannelDisposeTimeout = TimeSpan.FromSeconds(5);
 
         /// <summary>
+        /// The shortest graceful close budget that can actually complete a close.
+        /// </summary>
+        /// <remarks>
+        /// The timeout does not only bound the wait for the peer's reply: it is linked into the
+        /// tokens passed to <c>session.SetSessionClosingAsync</c> and the <c>connection.close</c>
+        /// transmit. A value too small to reach those cancels the close before it sends anything,
+        /// and because that cancellation escapes before the teardown block runs, the main loop is
+        /// never awaited, the socket is never closed and the broker keeps the connection until the
+        /// process exits - while <c>IsOpen</c> already reports false. Measured: with
+        /// <see cref="TimeSpan.Zero"/> the close faults in about 6ms and the connection is still
+        /// listed on the broker; with one second it closes cleanly in about 20ms.
+        /// <para>
+        /// This is deliberately far below the 30 second value it replaced. That floor was not policy
+        /// and hid a caller's intent entirely (see #1973); this one exists only to keep a close from
+        /// cancelling itself, so any realistic caller value passes through untouched.
+        /// </para>
+        /// </remarks>
+        internal static readonly TimeSpan MinConnectionCloseTimeout = TimeSpan.FromSeconds(1);
+
+        /// <summary>
+        /// The longest an abort will wait, whatever the caller asked for.
+        /// </summary>
+        /// <remarks>
+        /// An abort is best-effort teardown that never throws, so its value to a caller is that it
+        /// returns promptly. Honouring an arbitrarily large abort timeout defeats that: it turns
+        /// "tear this down and move on" into a wait that can outlast the process. The caller's value
+        /// is still honoured between <see cref="DefaultConnectionAbortTimeout"/> and this ceiling, so
+        /// asking for longer is not an error, just capped.
+        /// </remarks>
+        internal static readonly TimeSpan MaxConnectionAbortTimeout = TimeSpan.FromSeconds(10);
+
+        /// <summary>
         /// Largest message size, in bytes, allowed in RabbitMQ.        
         /// Note: <code>rabbit.max_message_size</code> setting (https://www.rabbitmq.com/configure.html)
         /// configures the largest message size which should be lower than this maximum of 128MiB.

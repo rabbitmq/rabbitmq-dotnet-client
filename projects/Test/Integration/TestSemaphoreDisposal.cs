@@ -49,7 +49,7 @@ namespace Test.Integration
     /// does not cancel, and neither the waiter's own cancellation token nor its
     /// wait timeout releases it. Issue #1968 is the confirmed instance - the same
     /// dispose-without-release on <c>SocketFrameHandler</c>'s semaphore stranded
-    /// MainLoop and cost a full 30s connection-close timeout on net472 CI.
+    /// MainLoop and cost a full connection-close timeout on net472 CI.
     ///
     /// The client's remaining semaphores all have waiters that can still be
     /// running when disposal begins, so none of them may be disposed. The race is

@@ -19,9 +19,10 @@
                 since #1968 is intermittent, and it masks #1968 entirely because the
                 run never reaches the timeout.
       * slow  - the test passed but its duration exceeded -SlowSeconds.
-                Connection.CloseAsync raises any non-abort timeout below 30s up to 30s,
-                so the test's own 6s _waitSpan is ignored and a run that waits out the
-                full timeout is approaching the failure regardless of how it ends.
+                A run that waits out the close timeout is approaching the failure
+                regardless of how it ends. Note this used to rest on CloseAsync raising
+                any non-abort timeout below 30s up to 30s; since #1973 the caller's value
+                is honoured, so the budget is whatever the test asks for.
                 This is the test's own duration from the trx, not process wall clock,
                 which is dominated by startup overhead.
 

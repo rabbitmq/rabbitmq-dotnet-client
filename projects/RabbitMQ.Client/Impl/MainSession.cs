@@ -152,7 +152,7 @@ namespace RabbitMQ.Client.Impl
              * SetSessionClosingAsync; if the latter is parked on the semaphore when
              * this runs, MainLoop never returns. That is exactly the mechanism that
              * stranded MainLoop in issue #1968, where Connection.CloseAsync then
-             * burned its full 30s timeout. The DefaultConnectionAbortTimeout on the
+             * burned its full close timeout. The DefaultConnectionAbortTimeout on the
              * wait does not mitigate it.
              *
              * SemaphoreSlim only needs disposal once AvailableWaitHandle has been

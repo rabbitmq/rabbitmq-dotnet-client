@@ -254,7 +254,7 @@ namespace RabbitMQ.Client.Impl
                  * it, which was verified directly. MainLoop's FinishCloseAsync is
                  * one such concurrent closer, so a frame-handler close racing it
                  * stranded MainLoop, _mainLoopTask never completed, and
-                 * Connection.CloseAsync burned its full 30s timeout before
+                 * Connection.CloseAsync burned its full close timeout before
                  * surfacing a bare OperationCanceledException. See issue #1968.
                  *
                  * SemaphoreSlim only needs disposal when AvailableWaitHandle has
