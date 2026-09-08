@@ -593,7 +593,9 @@ namespace RabbitMQ.Client
             }
         }
 
-        private ConnectionConfig CreateConfig(string? clientProvidedName)
+        // internal rather than private so tests can build a ConnectionConfig from a real
+        // ConnectionFactory instead of duplicating this 20-argument constructor call.
+        internal ConnectionConfig CreateConfig(string? clientProvidedName)
         {
             return new ConnectionConfig(
                 VirtualHost,

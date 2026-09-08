@@ -97,23 +97,47 @@ namespace RabbitMQ.Client
             ConsumerDispatchConcurrency = consumerDispatchConcurrency;
         }
 
+        /// <summary>
+        /// The dispatch concurrency a channel built from these options actually gets: the caller's own
+        /// value if set, otherwise the owning connection's, coerced so that it is never zero.
+        /// </summary>
+        /// <remarks>
+        /// Zero is a legal <see cref="ushort"/> and is unvalidated at every layer that can supply one,
+        /// but it produces a consumer dispatcher with no reader loops at all: the constructor's
+        /// concurrency loop runs zero times, so nothing ever drains the work channel. Consumers then
+        /// register successfully and never fire, deliveries queue forever, and because a delivery takes
+        /// ownership of a pooled buffer whose only disposal sites are inside that loop, message bodies
+        /// leak until the process dies. Close looks clean, because the dispatcher's worker task is an
+        /// already-completed <c>Task.WhenAll</c> over an empty array.
+        /// <para>
+        /// Coerced rather than rejected: throwing here would add a new exception to paths that accept
+        /// zero today, and this is the one place every channel-creation path passes through, so a
+        /// single guard covers the factory property, the options constructor, and the connection
+        /// config. See #2035.
+        /// </para>
+        /// </remarks>
         internal ushort InternalConsumerDispatchConcurrency
         {
             get
             {
                 if (ConsumerDispatchConcurrency is not null)
                 {
-                    return ConsumerDispatchConcurrency.Value;
+                    return NonZero(ConsumerDispatchConcurrency.Value);
                 }
 
                 if (_connectionConfigConsumerDispatchConcurrency is not null)
                 {
-                    return _connectionConfigConsumerDispatchConcurrency.Value;
+                    return NonZero(_connectionConfigConsumerDispatchConcurrency.Value);
                 }
 
                 return Constants.DefaultConsumerDispatchConcurrency;
             }
         }
+
+        private static ushort NonZero(ushort consumerDispatchConcurrency)
+            => consumerDispatchConcurrency == 0
+                ? Constants.DefaultConsumerDispatchConcurrency
+                : consumerDispatchConcurrency;
 
         internal TimeSpan ContinuationTimeout => _connectionConfigContinuationTimeout;
 
