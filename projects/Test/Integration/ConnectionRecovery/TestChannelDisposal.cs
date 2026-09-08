@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
@@ -54,8 +55,12 @@ namespace Test.Integration.ConnectionRecovery
     /// rate limiter is deliberately not disposed with it: it lives on the reused
     /// CreateChannelOptions and is shared across the original channel, every recovery,
     /// and any sibling channel, so disposing it per channel would break the survivors.
-    /// The dispatcher's private _disposed field is read by reflection because it is the
-    /// direct signal that the dispatcher was released.
+    /// Two private fields are read by reflection, and both are needed. The inner
+    /// Channel's _disposed says the wrapper reached the inner channel's dispose path at
+    /// all, which is the claim itself and the only signal here that discriminates. The
+    /// dispatcher's work-channel completion says its worker was released, which is the
+    /// consequence worth having, but session shutdown also completes that channel, so on
+    /// its own it passes even with the dispose deleted.
     /// </summary>
     public class TestChannelDisposal : TestConnectionRecoveryBase
     {
@@ -67,16 +72,21 @@ namespace Test.Integration.ConnectionRecovery
         public async Task TestDisposingChannelDisposesInnerConsumerDispatcher_GH1988()
         {
             IChannel channel = await _conn.CreateChannelAsync(_createChannelOptions);
-            IConsumerDispatcher dispatcher = ((AutorecoveringChannel)channel).InnerChannel.ConsumerDispatcher;
+            RecoveryAwareChannel innerChannel = ((AutorecoveringChannel)channel).InnerChannel;
+            IConsumerDispatcher dispatcher = innerChannel.ConsumerDispatcher;
 
             Assert.False(await DispatcherWasReleasedAsync(dispatcher, TimeSpan.FromMilliseconds(200)));
+            Assert.False(await InnerChannelWasDisposedAsync(innerChannel, TimeSpan.FromMilliseconds(200)));
 
             await channel.CloseAsync();
             await channel.DisposeAsync();
 
+            Assert.True(await InnerChannelWasDisposedAsync(innerChannel, WaitSpan),
+                "disposing the AutorecoveringChannel must dispose its inner channel. See #1988.");
+
             Assert.True(await DispatcherWasReleasedAsync(dispatcher, WaitSpan),
-                "disposing the AutorecoveringChannel must dispose its inner channel, which completes " +
-                "the consumer dispatcher's work channel and so releases its worker. See #1988.");
+                "disposing the inner channel must complete the consumer dispatcher's work channel " +
+                "and so release its worker. See #1988.");
         }
 
         [Fact]
@@ -130,9 +140,12 @@ namespace Test.Integration.ConnectionRecovery
                     RecoveryAwareChannel innerAfterRecovery = autorecoveringChannel.InnerChannel;
 
                     Assert.NotSame(innerBeforeRecovery, innerAfterRecovery);
-                    Assert.True(await DispatcherWasReleasedAsync(dispatcherBeforeRecovery, WaitSpan),
+                    Assert.True(await InnerChannelWasDisposedAsync(innerBeforeRecovery, WaitSpan),
                         "recovery replaces the inner channel and must dispose the replaced one, " +
                         "otherwise each recovery cycle abandons a channel. See #1988.");
+
+                    Assert.True(await DispatcherWasReleasedAsync(dispatcherBeforeRecovery, WaitSpan),
+                        "disposing the replaced channel must release its dispatcher's worker. See #1988.");
 
                     /*
                      * The live channel's dispatcher must NOT have been disposed. A disposed
@@ -234,6 +247,39 @@ namespace Test.Integration.ConnectionRecovery
                 // A faulted completion still means the channel was completed.
                 return true;
             }
+        }
+
+        /*
+         * Whether Dispose actually ran on the inner channel, which is the claim #1988 makes.
+         *
+         * This is the signal that discriminates, and DispatcherWasReleasedAsync is not: the
+         * dispatcher's work channel is also completed by session shutdown, which both
+         * channel.CloseAsync() and the AbortAsync inside DisposeAsync trigger, so a completed
+         * work channel is produced by the lines *around* the fix as well as by the fix. Channel
+         * sets _disposed only in Dispose(bool) and DisposeAsyncCoreAsync; OnSessionShutdownAsync
+         * quiesces and shuts down the dispatcher without touching it. Measured: with
+         * `await SafeDisposeAsync(channelToDispose, "inner")` deleted, the completion probe still
+         * passes and this one fails.
+         *
+         * Both are asserted rather than one replacing the other. This one proves the wrapper
+         * reached the inner channel's dispose path; the completion probe proves the consequence
+         * that #1988 is actually about, the dispatcher's worker being released.
+         */
+        private static async Task<bool> InnerChannelWasDisposedAsync(object innerChannel, TimeSpan timeout)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            do
+            {
+                if ((bool)GetPrivateField(innerChannel, "_disposed"))
+                {
+                    return true;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(25));
+            }
+            while (stopwatch.Elapsed < timeout);
+
+            return false;
         }
 
         private static object GetPrivateField(object target, string name)
