@@ -133,6 +133,13 @@ namespace Test.Unit
             }
         }
 
+#if NET
+        /*
+         * net8.0 only: DispatchProxy does not exist on net472, and the Unit project multi-targets
+         * both. The behaviour under test is framework-independent, so covering it on the modern
+         * target is enough; adding a net472-only DispatchProxy package to reach the other would put
+         * a new dependency in the repo for one test.
+         */
         [Fact]
         public async Task RecordedConsumerActuallyPassesTheTokenToBasicConsume_GH1997()
         {
@@ -190,5 +197,6 @@ namespace Test.Unit
                     "RecordedConsumer.RecoverAsync should only issue basic.consume.");
             }
         }
+#endif
     }
 }
