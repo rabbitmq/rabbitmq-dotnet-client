@@ -104,6 +104,21 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ushort Concurrency => _concurrency;
 
+        /*
+         * Each Handle*Async below checks _disposed/IsQuiescing and then writes, and the two are not
+         * atomic. Dispose() completes the work channel, so a caller can pass the check and be
+         * preempted across that completion; WriteAsync then raises ChannelClosedException. For a
+         * delivery that unwinds through Channel.HandleCommandAsync, which has no catch, into the
+         * connection's frame-receive loop - tearing down the whole connection rather than the one
+         * channel, and abandoning the delivery's pooled body. That is the same failure the captured
+         * _shutdownToken above was introduced to remove, reached by a different route, and this one
+         * is reachable from an application thread rather than only from the serialized main loop.
+         *
+         * So each site treats a completed channel the way it already treats a quiescing one: drop
+         * the work item. A completed channel is the only reason TryWrite/WriteAsync can fail here,
+         * because the channel is unbounded. The delivery path additionally returns its pooled body,
+         * which nothing else will now do.
+         */
         public async ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -116,6 +131,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
                     WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag, _shutdownToken);
                     await _writer.WriteAsync(work, cancellationToken)
                         .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // The dispatcher was disposed after the check above; drop the registration.
+                    _ = GetAndRemoveConsumer(consumerTag);
                 }
                 catch
                 {
@@ -135,8 +155,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
             {
                 IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
                 var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, _shutdownToken);
-                await _writer.WriteAsync(work, cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+                    await _writer.WriteAsync(work, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // Nothing will drain this item, so return its pooled body to the pool here.
+                    work.Dispose();
+                }
             }
         }
 
@@ -148,8 +176,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag, _shutdownToken);
-                await _writer.WriteAsync(work, cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+                    await _writer.WriteAsync(work, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // The dispatcher was disposed after the check above; the item has no body.
+                }
             }
         }
 
@@ -161,8 +196,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
                 WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag, _shutdownToken);
-                await _writer.WriteAsync(work, cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+                    await _writer.WriteAsync(work, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // The dispatcher was disposed after the check above; the item has no body.
+                }
             }
         }
 

@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -176,6 +177,47 @@ namespace Test.Unit
                 requestedConnectionTimeout: TimeSpan.FromSeconds(30),
                 consumerDispatchConcurrency: consumerDispatchConcurrency,
                 frameHandlerFactoryAsync: (_, __) => throw new NotSupportedException("not connected in this test"));
+
+        [Fact]
+        public async Task ADeliveryOnACompletedWorkChannelIsDroppedNotThrown_GH1988()
+        {
+            /*
+             * Dispose completes the work channel, and the `_disposed`/IsQuiescing check each
+             * Handle*Async makes is not atomic with the write that follows it, so a caller can pass
+             * the check and then find the channel completed. WriteAsync raises
+             * ChannelClosedException there, and for a delivery that unwinds through
+             * Channel.HandleCommandAsync - which has no catch - into the connection's frame-receive
+             * loop, tearing down the whole connection instead of the one channel and abandoning the
+             * delivery's pooled body.
+             *
+             * The race itself cannot be scheduled, but the state it produces can: complete the
+             * writer directly, leaving _disposed false so the guard is passed exactly as it would be
+             * mid-race. Without the catch this call throws.
+             */
+            var dispatcher = new AsyncConsumerDispatcher(null, 1);
+            try
+            {
+                object writer = typeof(ConsumerDispatcherChannelBase)
+                    .GetField("_writer", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(dispatcher);
+                Assert.NotNull(writer);
+                Assert.True((bool)writer.GetType().GetMethod("TryComplete").Invoke(writer, new object[] { null }),
+                    "could not complete the work channel, so this test never reaches the state it is about");
+
+                Assert.False((bool)typeof(ConsumerDispatcherChannelBase)
+                    .GetField("_disposed", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(dispatcher),
+                    "the dispatcher reports disposed, so the guard under test is short-circuited");
+
+                await dispatcher.HandleBasicDeliverAsync("tag", 1, false, "ex", "rk",
+                    new BasicProperties(), default, CancellationToken.None);
+            }
+            finally
+            {
+                await dispatcher.ShutdownAsync(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "test over"));
+                dispatcher.Dispose();
+            }
+        }
 
         private sealed class RecordingConsumer : IAsyncBasicConsumer
         {
