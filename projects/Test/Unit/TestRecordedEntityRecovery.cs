@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 
@@ -42,22 +43,26 @@ namespace Test.Unit
     /// <summary>
     /// rabbitmq/rabbitmq-dotnet-client#1997
     ///
-    /// Every recorded topology entity recovers itself by issuing a protocol operation on
-    /// the recovering channel, and each of those has to receive the recovery cancellation
-    /// token. Without it the operation falls back to <see cref="CancellationToken.None"/>,
-    /// so when recovery is being torn down the in-flight request is not cancelled promptly
-    /// and shutdown waits out the full <c>ContinuationTimeout</c> instead.
+    /// Every recorded topology entity recovers itself by issuing a protocol operation, and each
+    /// of those has to receive the recovery cancellation token. Consumers issue theirs on the
+    /// shared recovering channel; exchanges, queues and bindings each open a channel of their
+    /// own. Without the token the operation falls back to
+    /// <see cref="CancellationToken.None"/>, so nothing about the request observes that recovery
+    /// is being torn down. Note that cancelling an RPC's token does not shorten the wait for its
+    /// reply, before or after this fix - see
+    /// <c>docs/internal/connection-shutdown-and-cancellation.md</c>. What it governs is the
+    /// unbounded wait for the channel's RPC semaphore, which is where a torn-down recovery
+    /// actually stalls.
     ///
     /// <see cref="RabbitMQ.Client.Impl.RecordedConsumer"/> was the one entity missing it.
-    /// Note what this test does and does not protect. The consumer fix itself is enforced by
-    /// the compiler, because dropping the parameter again breaks its only call site in
-    /// <c>RecoverConsumersAsync</c>. What is not enforced anywhere is a *newly added* entity
-    /// repeating the mistake, which is what this guards, in the same
-    /// reflection-over-the-assembly style as
-    /// <c>TestNoSemaphoreSlimFieldIsDisposedAnywhere_GH1976</c> in the Integration project: the set of recovery methods
-    /// is pinned so that adding one is a deliberate act, and each is required to accept the
-    /// token. It cannot detect a method that accepts the token and then ignores it; that
-    /// remains a matter for review of the one-line body.
+    /// Two tests here, covering two different failures. The reflection test pins the *set* of
+    /// recovery methods and requires each to accept the token, so a newly added entity cannot
+    /// repeat the omission unnoticed; it is in the same reflection-over-the-assembly style as
+    /// <c>TestNoSemaphoreSlimFieldIsDisposedAnywhere_GH1976</c> in the Integration project. That
+    /// test cannot see a method that accepts the token and then ignores it, which is a one-word
+    /// change and the shape a refactor really takes, so the second test drives
+    /// <c>RecoverAsync</c> against a recording channel and asserts the token that
+    /// <c>basic.consume</c> was actually given.
     /// </summary>
     public class TestRecordedEntityRecovery
     {
@@ -105,8 +110,9 @@ namespace Test.Unit
             if (missingToken.Count > 0)
             {
                 Assert.Fail("every recorded entity's RecoverAsync must accept a CancellationToken so " +
-                    "the recovery token reaches the protocol operation; without it a torn-down recovery " +
-                    "waits out the full ContinuationTimeout. See #1997." + Environment.NewLine +
+                    "the recovery token reaches the protocol operation; without it nothing about the " +
+                    "request observes that recovery is being torn down, and the wait for the " +
+                    "channel's RPC semaphore is unbounded. See #1997." + Environment.NewLine +
                     $"missing the token: {string.Join(", ", missingToken)}");
             }
 
@@ -124,6 +130,64 @@ namespace Test.Unit
                     Environment.NewLine +
                     $"added: {string.Join(", ", added)}" + Environment.NewLine +
                     $"removed: {string.Join(", ", removed)}");
+            }
+        }
+
+        [Fact]
+        public async Task RecordedConsumerActuallyPassesTheTokenToBasicConsume_GH1997()
+        {
+            /*
+             * The reflection test above pins the signature; this pins the body. Accepting the token
+             * and then passing CancellationToken.None is a one-word change that no signature or
+             * call-site check can see, and it is the shape a refactor actually takes - it was
+             * measured to leave the whole suite green.
+             *
+             * RecoverAsync takes the channel as a parameter and never touches the recorded one, so
+             * default(RecordedConsumer) is enough and no AutorecoveringChannel is needed. The
+             * recording channel captures what basic.consume was really given.
+             */
+            using var cts = new CancellationTokenSource();
+            IChannel channel = RecordingChannel.Create(out RecordingChannel recorder);
+
+            await default(RabbitMQ.Client.Impl.RecordedConsumer).RecoverAsync(channel, cts.Token);
+
+            Assert.True(recorder.BasicConsumeWasCalled,
+                "basic.consume was never issued, so no token was captured and this test is vacuous");
+            Assert.Equal(cts.Token, recorder.CapturedToken);
+        }
+
+        /// <summary>
+        /// An <see cref="IChannel"/> that records the cancellation token handed to
+        /// <c>BasicConsumeAsync</c>. DispatchProxy rather than a hand-written stub because
+        /// <see cref="IChannel"/> is large and only this one member is of interest; any other
+        /// member being called is a signal the test has drifted, so it throws rather than
+        /// returning a default that would hide the drift.
+        /// </summary>
+        public class RecordingChannel : DispatchProxy
+        {
+            public bool BasicConsumeWasCalled { get; private set; }
+
+            public CancellationToken CapturedToken { get; private set; }
+
+            public static IChannel Create(out RecordingChannel recorder)
+            {
+                IChannel proxy = DispatchProxy.Create<IChannel, RecordingChannel>();
+                recorder = (RecordingChannel)(object)proxy;
+                return proxy;
+            }
+
+            protected override object Invoke(MethodInfo targetMethod, object[] args)
+            {
+                if (targetMethod.Name == nameof(IChannel.BasicConsumeAsync))
+                {
+                    BasicConsumeWasCalled = true;
+                    CapturedToken = args.OfType<CancellationToken>().Single();
+                    return Task.FromResult("recorded-tag");
+                }
+
+                throw new NotSupportedException(
+                    $"RecordingChannel was asked for {targetMethod.Name}, which it does not model. " +
+                    "RecordedConsumer.RecoverAsync should only issue basic.consume.");
             }
         }
     }
