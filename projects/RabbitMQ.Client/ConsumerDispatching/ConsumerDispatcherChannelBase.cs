@@ -51,7 +51,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
         internal ConsumerDispatcherChannelBase(Impl.Channel channel, ushort concurrency)
         {
             _channel = channel;
-            _concurrency = concurrency;
+
+            /*
+             * Zero would build no reader loops at all, so nothing would ever drain the work channel:
+             * consumers would register successfully and never fire. The guard is here rather than at
+             * the callers because this is the type whose invariant it is, and callers can bypass the
+             * options layer entirely - the benchmarks construct a dispatcher directly.
+             *
+             * See docs/internal/consumer-dispatch-concurrency.md and #2035.
+             */
+            _concurrency = concurrency == 0 ? InternalConstants.MinConsumerDispatchConcurrency : concurrency;
 
             var channelOpts = new System.Threading.Channels.UnboundedChannelOptions
             {

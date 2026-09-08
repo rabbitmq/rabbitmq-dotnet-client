@@ -59,6 +59,14 @@ namespace RabbitMQ.Client
         /// </remarks>
         internal static readonly TimeSpan MinConnectionCloseTimeout = TimeSpan.FromSeconds(1);
 
+        // The fewest consumer dispatch loops a channel may have. Distinct from
+        // Constants.DefaultConsumerDispatchConcurrency even though both are 1 today, because they
+        // answer different questions: one is what you get when you ask for nothing, the other is the
+        // floor below which the dispatcher cannot function. Deliberately `//` and not `///`: csc does
+        // not filter doc comments by accessibility, so `///` on an internal member is emitted into
+        // the shipped RabbitMQ.Client.xml and redistributed in the NuGet package.
+        internal const ushort MinConsumerDispatchConcurrency = 1;
+
         /// <summary>
         /// The longest an abort will wait, whatever the caller asked for.
         /// </summary>
