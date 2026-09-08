@@ -86,7 +86,9 @@ namespace RabbitMQ.Client
         {
             RateLimitLease lease = _concurrencyLimiter.AttemptAcquire(permitCount);
 
-            // Same ownership hazard as the async path above, for a throttle that throws.
+            // The same ownership hazard as AcquireAsyncCore below, for a throttle that throws rather
+            // than one that is cancelled. Defensive: ThrottleIfNeeded only computes a delay and
+            // sleeps, and nothing in this library calls AttemptAcquire.
             try
             {
                 ThrottleIfNeeded();

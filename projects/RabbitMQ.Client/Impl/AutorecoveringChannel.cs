@@ -174,12 +174,18 @@ namespace RabbitMQ.Client.Impl
              * safe now that a channel no longer disposes the publisher-confirmation rate limiter it
              * shares with its replacement.
              *
-             * The creation is inside the try because that is where the most likely failure is: the
-             * dispatcher, with its worker tasks, is constructed by the Channel constructor before
-             * CreateAndOpenAsync awaits channel.open, and neither that RPC nor confirm.select cleans
-             * up after itself, so recovering against a node that has just restarted abandoned one
-             * dispatcher per attempt. newChannel stays null until it exists, which the finally
-             * accounts for. See issue #1988.
+             * The creation is inside the try so that a failure in the setup that follows it - the
+             * TakeOver, the basic.qos, the tx.select, or the disposed check - still releases the
+             * channel it produced. newChannel stays null until it exists, which the finally accounts
+             * for. See issue #1988.
+             *
+             * This does not cover a failure inside CreateNonRecoveringChannelAsync itself. The
+             * dispatcher and its worker tasks are built by the Channel constructor before
+             * CreateAndOpenAsync awaits channel.open, and neither that RPC nor confirm.select
+             * disposes the half-built channel on the way out, so recovering against a node that has
+             * just restarted still abandons one dispatcher per attempt. The exception propagates
+             * with newChannel still null, so the finally cannot help; the fix belongs in OpenAsync
+             * or CreateAndOpenAsync, and is not attempted here.
              */
             RecoveryAwareChannel? newChannel = null;
             bool newChannelInstalled = false;
