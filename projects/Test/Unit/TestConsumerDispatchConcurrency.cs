@@ -30,66 +30,53 @@
 //---------------------------------------------------------------------------
 
 using RabbitMQ.Client;
+using RabbitMQ.Client.ConsumerDispatching;
 using Xunit;
 
 namespace Test.Unit
 {
     /// <summary>
-    /// rabbitmq/rabbitmq-dotnet-client#2035
+    /// rabbitmq/rabbitmq-dotnet-client#2035. A dispatch concurrency of zero built a consumer
+    /// dispatcher with no reader loops, so nothing drained the work channel. See
+    /// <c>docs/internal/consumer-dispatch-concurrency.md</c> for the mechanism.
     ///
-    /// A dispatch concurrency of zero is a legal <see cref="ushort"/> and was unvalidated at every
-    /// layer that can supply one, but it builds a consumer dispatcher whose concurrency loop runs zero
-    /// times, so nothing ever drains the work channel. Consumers register successfully and never fire,
-    /// deliveries queue forever, and because a queued delivery owns a pooled buffer whose only
-    /// disposal sites are inside that loop, message bodies leak until the process dies. Nothing
-    /// reports it: close even looks clean, because the dispatcher's worker is an already-completed
-    /// <c>Task.WhenAll</c> over an empty array.
-    ///
-    /// <see cref="CreateChannelOptions.InternalConsumerDispatchConcurrency"/> is the one place every
-    /// channel-creation path passes through, so it is where the value is coerced. These tests assert
-    /// against that resolution directly, because a dispatcher built with zero produces no observable
-    /// signal to assert on.
+    /// These assert on <see cref="IConsumerDispatcher.Concurrency"/>, which is the state the broken
+    /// loop count is derived from, rather than on the options resolution that feeds it. The dispatcher
+    /// is where the invariant lives and can be constructed directly, so no broker is needed.
     /// </summary>
     public class TestConsumerDispatchConcurrency
     {
         [Theory]
-        [InlineData((ushort)0)]
-        [InlineData((ushort)1)]
-        [InlineData((ushort)9)]
-        public void ExplicitConcurrencyIsNeverZero_GH2035(ushort requested)
+        [InlineData((ushort)0, (ushort)1)]  // the bug: zero would build no reader loops
+        [InlineData((ushort)1, (ushort)1)]
+        [InlineData((ushort)2, (ushort)2)]
+        [InlineData((ushort)9, (ushort)9)]
+        public void DispatcherNeverHasZeroReaderLoops_GH2035(ushort requested, ushort expected)
         {
-            var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,
-                publisherConfirmationTrackingEnabled: false, consumerDispatchConcurrency: requested);
+            /*
+             * Expectations are written out per row rather than computed, so the assertion cannot
+             * restate the implementation it is checking.
+             */
+            using var dispatcher = new AsyncConsumerDispatcher(null, requested);
 
-            ushort effective = options.InternalConsumerDispatchConcurrency;
-
-            Assert.True(effective > 0,
-                $"requested {requested} resolved to {effective}, which builds a dispatcher with no reader loops");
-            Assert.Equal(requested == 0 ? Constants.DefaultConsumerDispatchConcurrency : requested, effective);
+            Assert.Equal(expected, dispatcher.Concurrency);
         }
 
         [Theory]
-        [InlineData((ushort)0)]
-        [InlineData((ushort)1)]
-        [InlineData((ushort)9)]
-        public void ConcurrencyInheritedFromTheFactoryIsNeverZero_GH2035(ushort requested)
+        [InlineData((ushort)0, (ushort)0)]
+        [InlineData((ushort)4, (ushort)4)]
+        public void OptionsResolveTheCallersValueVerbatim_GH2035(ushort requested, ushort expected)
         {
             /*
-             * The other supplier of the value, and a different branch of the resolution: a factory
-             * set to zero, inherited by a channel created with no explicit concurrency. Built from a
-             * real ConnectionFactory rather than a hand-rolled ConnectionConfig so that the property
-             * this test names is the one actually exercised.
+             * The options layer deliberately does NOT correct zero: it reports what was asked for, so
+             * the public field and this resolution agree, and the dispatcher applies the floor. This
+             * pins that split so a future change does not quietly move the guard back up a layer and
+             * leave the dispatcher unprotected against its other callers.
              */
-            var factory = new ConnectionFactory { ConsumerDispatchConcurrency = requested };
+            var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,
+                publisherConfirmationTrackingEnabled: false, consumerDispatchConcurrency: requested);
 
-            CreateChannelOptions options =
-                CreateChannelOptions.CreateOrUpdate(null, factory.CreateConfig(null));
-
-            ushort effective = options.InternalConsumerDispatchConcurrency;
-
-            Assert.True(effective > 0,
-                $"factory concurrency {requested} resolved to {effective}, which builds a dispatcher with no reader loops");
-            Assert.Equal(requested == 0 ? Constants.DefaultConsumerDispatchConcurrency : requested, effective);
+            Assert.Equal(expected, options.InternalConsumerDispatchConcurrency);
         }
     }
 }

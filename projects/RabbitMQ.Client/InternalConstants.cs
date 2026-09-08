@@ -60,6 +60,18 @@ namespace RabbitMQ.Client
         internal static readonly TimeSpan MinConnectionCloseTimeout = TimeSpan.FromSeconds(1);
 
         /// <summary>
+        /// The fewest consumer dispatch loops a channel may have.
+        /// </summary>
+        /// <remarks>
+        /// Distinct from <see cref="Constants.DefaultConsumerDispatchConcurrency"/> even though both are
+        /// 1 today, because they answer different questions: one is what you get when you ask for
+        /// nothing, the other is the floor below which the dispatcher cannot function. Sharing a
+        /// constant would couple them, so raising the default would silently raise every
+        /// zero-configured deployment to the new value and cost it the in-order delivery guarantee.
+        /// </remarks>
+        internal const ushort MinConsumerDispatchConcurrency = 1;
+
+        /// <summary>
         /// The longest an abort will wait, whatever the caller asked for.
         /// </summary>
         /// <remarks>

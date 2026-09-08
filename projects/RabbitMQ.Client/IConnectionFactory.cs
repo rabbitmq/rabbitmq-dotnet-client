@@ -193,7 +193,11 @@ namespace RabbitMQ.Client
         /// Defaults to 1.
         /// </summary>
         /// <remarks>For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
-        /// In addition to that consumers need to be thread/concurrency safe.</remarks>
+        /// In addition to that consumers need to be thread/concurrency safe.
+        /// <para>
+        /// A value of 0 is treated as 1. Zero would leave a channel's consumer dispatcher with no
+        /// worker at all, so consumers would register successfully and never receive anything.
+        /// </para></remarks>
         ushort ConsumerDispatchConcurrency { get; set; }
     }
 }

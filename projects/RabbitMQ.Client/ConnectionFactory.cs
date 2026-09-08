@@ -175,7 +175,11 @@ namespace RabbitMQ.Client
         /// Defaults to 1.
         /// </summary>
         /// <remarks>For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
-        /// In addition to that consumers need to be thread/concurrency safe.</remarks>
+        /// In addition to that consumers need to be thread/concurrency safe.
+        /// <para>
+        /// A value of 0 is treated as 1. Zero would leave a channel's consumer dispatcher with no
+        /// worker at all, so consumers would register successfully and never receive anything.
+        /// </para></remarks>
         public ushort ConsumerDispatchConcurrency { get; set; } = Constants.DefaultConsumerDispatchConcurrency;
 
         /// <summary>The host to connect to.</summary>
@@ -593,9 +597,7 @@ namespace RabbitMQ.Client
             }
         }
 
-        // internal rather than private so tests can build a ConnectionConfig from a real
-        // ConnectionFactory instead of duplicating this 20-argument constructor call.
-        internal ConnectionConfig CreateConfig(string? clientProvidedName)
+        private ConnectionConfig CreateConfig(string? clientProvidedName)
         {
             return new ConnectionConfig(
                 VirtualHost,

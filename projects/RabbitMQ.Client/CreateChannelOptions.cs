@@ -83,6 +83,9 @@ namespace RabbitMQ.Client
         ///
         /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
         /// In addition to that consumers need to be thread/concurrency safe.
+        ///
+        /// A value of 0 is treated as 1. Zero would leave the channel's consumer dispatcher with no
+        /// worker at all, so consumers would register successfully and never receive anything.
         /// </summary>
         public readonly ushort? ConsumerDispatchConcurrency = null;
 
@@ -99,45 +102,14 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// The dispatch concurrency a channel built from these options actually gets: the caller's own
-        /// value if set, otherwise the owning connection's, coerced so that it is never zero.
+        /// value if set, otherwise the owning connection's, otherwise the library default. A zero
+        /// anywhere in that chain is corrected by the consumer dispatcher itself, which is the type
+        /// whose invariant it is; see #2035.
         /// </summary>
-        /// <remarks>
-        /// Zero is a legal <see cref="ushort"/> and is unvalidated at every layer that can supply one,
-        /// but it produces a consumer dispatcher with no reader loops at all: the constructor's
-        /// concurrency loop runs zero times, so nothing ever drains the work channel. Consumers then
-        /// register successfully and never fire, deliveries queue forever, and because a delivery takes
-        /// ownership of a pooled buffer whose only disposal sites are inside that loop, message bodies
-        /// leak until the process dies. Close looks clean, because the dispatcher's worker task is an
-        /// already-completed <c>Task.WhenAll</c> over an empty array.
-        /// <para>
-        /// Coerced rather than rejected: throwing here would add a new exception to paths that accept
-        /// zero today, and this is the one place every channel-creation path passes through, so a
-        /// single guard covers the factory property, the options constructor, and the connection
-        /// config. See #2035.
-        /// </para>
-        /// </remarks>
         internal ushort InternalConsumerDispatchConcurrency
-        {
-            get
-            {
-                if (ConsumerDispatchConcurrency is not null)
-                {
-                    return NonZero(ConsumerDispatchConcurrency.Value);
-                }
-
-                if (_connectionConfigConsumerDispatchConcurrency is not null)
-                {
-                    return NonZero(_connectionConfigConsumerDispatchConcurrency.Value);
-                }
-
-                return Constants.DefaultConsumerDispatchConcurrency;
-            }
-        }
-
-        private static ushort NonZero(ushort consumerDispatchConcurrency)
-            => consumerDispatchConcurrency == 0
-                ? Constants.DefaultConsumerDispatchConcurrency
-                : consumerDispatchConcurrency;
+            => ConsumerDispatchConcurrency
+               ?? _connectionConfigConsumerDispatchConcurrency
+               ?? Constants.DefaultConsumerDispatchConcurrency;
 
         internal TimeSpan ContinuationTimeout => _connectionConfigContinuationTimeout;
 
