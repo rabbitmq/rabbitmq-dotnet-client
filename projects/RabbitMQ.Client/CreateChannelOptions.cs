@@ -79,7 +79,12 @@ namespace RabbitMQ.Client
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
         ///
-        /// Defaults to <c>null</c>, which will use the value from <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>
+        /// The field's own default is <c>null</c>, which uses the value from
+        /// <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>. Note that the public constructor
+        /// defaults its parameter to 1 rather than <c>null</c> and assigns it unconditionally, so options
+        /// built through the constructor do NOT inherit the connection's value unless you pass
+        /// <c>null</c> explicitly. Only <see cref="IConnection.CreateChannelAsync"/> with no options
+        /// inherits it.
         ///
         /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
         /// In addition to that consumers need to be thread/concurrency safe.
@@ -100,12 +105,13 @@ namespace RabbitMQ.Client
             ConsumerDispatchConcurrency = consumerDispatchConcurrency;
         }
 
-        /// <summary>
-        /// The dispatch concurrency a channel built from these options actually gets: the caller's own
-        /// value if set, otherwise the owning connection's, otherwise the library default. A zero
-        /// anywhere in that chain is corrected by the consumer dispatcher itself, which is the type
-        /// whose invariant it is; see #2035.
-        /// </summary>
+        // The dispatch concurrency requested for a channel built from these options: the caller's own
+        // value if set, otherwise the connection's, otherwise the library default. This is what was
+        // ASKED FOR and may be zero; the consumer dispatcher applies the floor, because that is the
+        // type whose invariant it is. See docs/internal/consumer-dispatch-concurrency.md.
+        //
+        // Deliberately `//` and not `///`: csc does not filter doc comments by accessibility, so
+        // `///` on an internal member ships in RabbitMQ.Client.xml inside the NuGet package.
         internal ushort InternalConsumerDispatchConcurrency
             => ConsumerDispatchConcurrency
                ?? _connectionConfigConsumerDispatchConcurrency

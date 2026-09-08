@@ -10,7 +10,7 @@ Three suppliers, resolved in `CreateChannelOptions.InternalConsumerDispatchConcu
 2. The owning connection's `ConnectionConfig.ConsumerDispatchConcurrency`, copied in by `CreateOrUpdate` at channel creation.
 3. `Constants.DefaultConsumerDispatchConcurrency` otherwise.
 
-Note that the public `CreateChannelOptions` constructor defaults its parameter to 1 rather than `null`, so level 2 is unreachable for anyone constructing options explicitly. That is deliberate and documented on the member; see #2027 for why changing it was rejected.
+Note that the public `CreateChannelOptions` constructor defaults its parameter to 1 rather than `null`, so level 2 is unreachable for anyone constructing options explicitly. That is deliberate; see #2027 for why changing it was rejected. Note #2027 also rewrites the member's own documentation, so the two need reconciling whichever merges second.
 
 ## Why zero was a bug (#2035)
 
@@ -39,5 +39,5 @@ Coerced rather than rejected: throwing would add a new exception to public sette
 
 - No upper bound. `ConsumerDispatchConcurrency = 60000` allocates 60000 reader loops per channel. Unlike zero, that cannot be corrected later without a behaviour break.
 - Channel 0 inherits the factory value through the internal `CreateChannelOptions(ConnectionConfig)` constructor, so a factory set high gives channel 0 that many parked reader loops for a channel that can never carry a consumer. Measured as negligible per connection, but it is waste.
-- `ContinuationTimeout` on the same type has the mirror-image hole: no initializer and no fallback, so an options object that skipped `CreateOrUpdate` yields `TimeSpan.Zero`, which means *immediate* timeout rather than infinite. Latent today because all four in-library `Channel` construction sites populate it.
+- `ContinuationTimeout` on the same type has the mirror-image hole: no initializer and no fallback, so an options object that skipped `CreateOrUpdate` yields `TimeSpan.Zero`, which means *immediate* timeout rather than infinite. Latent today because all three in-library `Channel` construction sites populate it: `Impl/Channel.cs`, `Impl/Connection.cs` (channel 0) and `Impl/RecoveryAwareChannel.cs`. `AutorecoveringChannel` is not a `Channel` and forwards to its inner channel instead.
 - `AsyncDefaultBasicConsumer` is not thread-safe against its own callbacks at concurrency greater than one (#2033), and ordering is lost between work types, not only between deliveries.

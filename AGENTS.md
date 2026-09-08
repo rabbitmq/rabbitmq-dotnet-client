@@ -435,6 +435,11 @@ Deep-dive notes on subtle subsystems live in `docs/internal/`. When you learn
 something non-obvious about the client while debugging, add or update a doc
 there. Current docs:
 
+- `docs/internal/consumer-dispatch-concurrency.md` - how the dispatch concurrency value reaches the
+  consumer dispatcher, why zero broke it (#2035), where the floor lives and why it is not at the
+  callers, plus the open holes in that area (no ceiling, channel 0, the `ContinuationTimeout` mirror).
+- `docs/internal/opentelemetry-tracing-review.md` - the OpenTelemetry tracing audit; read it before
+  touching `RabbitMQActivitySource`, the OTel package, or the `Activity.Current` call sites.
 - `docs/internal/connection-shutdown-and-cancellation.md` - the connection /
   channel-0 shutdown model, why cancellation during connection open could hang
   (issue #1921), why shutdown handlers could deadlock on the main loop token
