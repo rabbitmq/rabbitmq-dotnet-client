@@ -745,8 +745,12 @@ namespace RabbitMQ.Client.Impl
                  * created from those options, and for a recovering channel the same options
                  * are reused for every recovery, so the replacement channel publishes
                  * through the very limiter its predecessor would have disposed. Disposing
-                 * it per channel therefore broke the survivors, and the next
-                 * confirm-tracked publish threw ObjectDisposedException.
+                 * it per channel therefore breaks the survivors, and their next
+                 * confirm-tracked publish throws ObjectDisposedException. Present tense
+                 * deliberately: for the default limiter the old code was mostly inert,
+                 * because the async path routed to a DisposeAsyncCore that
+                 * ThrottlingRateLimiter did not override. A caller-supplied limiter that
+                 * did override it, or the synchronous dispose path, is where it bit.
                  *
                  * The lifetime is the caller's. The library-created default (the
                  * ThrottlingRateLimiter on CreateChannelOptions, used when the caller

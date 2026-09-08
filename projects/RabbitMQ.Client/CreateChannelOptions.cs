@@ -78,12 +78,16 @@ namespace RabbitMQ.Client
         /// this limiter, because it is not the channel's to dispose: it is shared by every channel
         /// created from this options instance, and a channel on a connection with automatic recovery
         /// reuses these options for every recovery, so the replacement channel publishes through the
-        /// same limiter. A channel disposing it broke those survivors, and the next confirm-tracked
-        /// publish threw <see cref="ObjectDisposedException"/>.
+        /// same limiter. A channel disposing it would break those survivors, and their next
+        /// confirm-tracked publish would throw <see cref="ObjectDisposedException"/>.
         /// </para>
         /// <para>
-        /// This changed in 7.3.0. Earlier versions disposed it with the channel, so code that relied
-        /// on that must now dispose it itself. It matters most for a limiter that owns a timer, such
+        /// This changed in 7.3.0. Earlier versions asked the channel to dispose it, so code that
+        /// relied on that must now dispose it itself. Note that for the default limiter the old
+        /// behaviour was mostly inert: the async dispose path routed to a
+        /// <c>DisposeAsyncCore</c> that this type did not override, so the limiter survived anyway.
+        /// A caller-supplied limiter that did override it, or a synchronous dispose, is where the
+        /// old behaviour actually bit. It matters most for a limiter that owns a timer, such
         /// as <c>TokenBucketRateLimiter</c> or the window limiters, which otherwise keeps running for
         /// the life of the process. The default above needs no disposal: it wraps a
         /// <c>ConcurrencyLimiter</c>, which holds no timer and no unmanaged handle.
