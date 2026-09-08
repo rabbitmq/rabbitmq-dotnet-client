@@ -35,9 +35,16 @@ Coerced rather than rejected: throwing would add a new exception to public sette
 
 `InternalConsumerDispatchConcurrency` deliberately does **not** coerce. It reports what was asked for, so the public field and the internal resolution agree; only the dispatcher applies the floor.
 
+## Decided: no upper bound
+
+`ushort` is the ceiling. A caller asking for 60000 gets 60000 reader loops per channel, and that is
+their problem. The floor exists because zero is silently *broken* - it produces a dispatcher that
+cannot work at all, from an input a config binder can hand you by accident. A large value is merely
+expensive, does exactly what it says, and is not something an unset environment variable produces.
+Do not add a ceiling without a new reason.
+
 ## Still open in this area
 
-- No upper bound. `ConsumerDispatchConcurrency = 60000` allocates 60000 reader loops per channel. Unlike zero, that cannot be corrected later without a behaviour break.
 - Channel 0 inherits the factory value through the internal `CreateChannelOptions(ConnectionConfig)` constructor, so a factory set high gives channel 0 that many parked reader loops for a channel that can never carry a consumer. Measured as negligible per connection, but it is waste.
 - `ContinuationTimeout` on the same type has the mirror-image hole: no initializer and no fallback, so an options object that skipped `CreateOrUpdate` yields `TimeSpan.Zero`, which means *immediate* timeout rather than infinite. Latent today because all three in-library `Channel` construction sites populate it: `Impl/Channel.cs`, `Impl/Connection.cs` (channel 0) and `Impl/RecoveryAwareChannel.cs`. `AutorecoveringChannel` is not a `Channel` and forwards to its inner channel instead.
 - `AsyncDefaultBasicConsumer` is not thread-safe against its own callbacks at concurrency greater than one (#2033), and ordering is lost between work types, not only between deliveries.
