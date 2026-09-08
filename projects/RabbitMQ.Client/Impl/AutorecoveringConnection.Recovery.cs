@@ -490,7 +490,10 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
+                            // re-acquire here escapes without the semaphore and turns an orderly
+                            // shutdown into a 541 internal error.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -561,7 +564,8 @@ namespace RabbitMQ.Client.Impl
                             }
                             finally
                             {
-                                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                                // Not the recovery token: see RecoverConsumersAsync.
+                                await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                     .ConfigureAwait(false);
                             }
                         }
@@ -586,7 +590,10 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
+                            // re-acquire here escapes without the semaphore and turns an orderly
+                            // shutdown into a 541 internal error.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -666,7 +673,10 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
+                            // re-acquire here escapes without the semaphore and turns an orderly
+                            // shutdown into a 541 internal error.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -722,7 +732,18 @@ namespace RabbitMQ.Client.Impl
                     }
                     finally
                     {
-                        await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                        /*
+                         * Deliberately not the recovery token. This re-acquires a semaphore that the
+                         * try released, and the caller's finally releases it again unconditionally,
+                         * so a throw here escapes without holding it and the outer release then
+                         * raises SemaphoreFullException on a SemaphoreSlim(1, 1) - replacing the
+                         * real cancellation and turning an orderly shutdown into a 541 internal
+                         * error. WaitAsync throws on an already-cancelled token even when the
+                         * semaphore is free, so passing the recovery token here makes that certain
+                         * rather than unlikely once a close is in flight. The wait is bounded
+                         * regardless: the only other holder is this same recovery loop.
+                         */
+                        await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                             .ConfigureAwait(false);
                     }
                 }
@@ -745,7 +766,10 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
+                            // re-acquire here escapes without the semaphore and turns an orderly
+                            // shutdown into a 541 internal error.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -768,7 +792,10 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
+                            // re-acquire here escapes without the semaphore and turns an orderly
+                            // shutdown into a 541 internal error.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
