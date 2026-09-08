@@ -144,7 +144,9 @@ namespace Test.Integration.ConnectionRecovery
 
             await CloseAndWaitForRecoveryAsync();
 
-            Assert.NotNull(shutdownReasonSeen);
+            Assert.True(shutdownReasonSeen is not null,
+                "the consumer never observed a shutdown reason, so the connection drop did not " +
+                "reach this consumer and the clear-on-recovery assertions below prove nothing");
 
             /*
              * A delivery is the barrier, not the registration event. At a dispatch concurrency of
