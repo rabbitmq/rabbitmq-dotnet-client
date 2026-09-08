@@ -42,23 +42,54 @@ namespace Test.Unit
     public class TestCreateChannelOptions
     {
         [Fact]
-        public void DefaultConstructorLeavesConsumerDispatchConcurrencyNull()
+        public void ConstructorDefaultsConsumerDispatchConcurrencyToOne()
         {
+            /*
+             * Pins the constructor's default rather than the field initializer's. The field is
+             * declared `= null` and its documentation describes null as "inherit from the factory",
+             * but the public constructor defaults the parameter to 1 and assigns it unconditionally,
+             * so options built through the constructor are serialized whatever the factory says.
+             * That divergence is what #2027 set out to remove; it stays deliberately, because the
+             * fix would be a compile-time break rather than a runtime one (see the remarks on the
+             * member). This test exists so the two cannot drift apart silently again.
+             */
             var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,
                 publisherConfirmationTrackingEnabled: false);
 
-            Assert.Null(options.ConsumerDispatchConcurrency);
+            Assert.Equal(Constants.DefaultConsumerDispatchConcurrency, options.ConsumerDispatchConcurrency);
         }
 
         [Fact]
-        public void DefaultOptionsInheritConnectionFactoryConsumerDispatchConcurrency()
+        public void ConstructedOptionsDoNotInheritConnectionFactoryConsumerDispatchConcurrency()
         {
+            /*
+             * The counterpart: because the constructor supplied 1, CreateOrUpdate has nothing to
+             * inherit into, so the factory's value is deliberately ignored. Passing null explicitly
+             * is what opts in - see ExplicitNullInherits... below.
+             */
             var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,
                 publisherConfirmationTrackingEnabled: false);
             ConnectionConfig config = CreateConnectionConfig(consumerDispatchConcurrency: 4);
 
             options = CreateChannelOptions.CreateOrUpdate(options, config);
 
+            Assert.Equal(Constants.DefaultConsumerDispatchConcurrency,
+                options.InternalConsumerDispatchConcurrency);
+        }
+
+        [Fact]
+        public void NoOptionsInheritsConnectionFactoryConsumerDispatchConcurrency()
+        {
+            /*
+             * The path that does inherit, and the only one where the field initializers apply:
+             * CreateChannelAsync() with no options at all, which reaches the internal
+             * CreateChannelOptions(ConnectionConfig) constructor.
+             */
+            ConnectionConfig config = CreateConnectionConfig(consumerDispatchConcurrency: 4);
+
+            CreateChannelOptions options = CreateChannelOptions.CreateOrUpdate(null, config);
+
+            Assert.Null(options.ConsumerDispatchConcurrency);
             Assert.Equal((ushort)4, options.InternalConsumerDispatchConcurrency);
         }
 
