@@ -248,6 +248,15 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        /*
+         * Reached only when no handler is configured for this entity type, or its condition rejects
+         * this exception. A configured handler bypasses this classification entirely and the failure
+         * is swallowed, so recovery can report success for an entity that was never recovered: issue
+         * #1995, open. Applying this classification after the handler is not the fix - it was tried
+         * and measured to be a regression, because consumers share one recovery channel and because
+         * a handler has no way to say it handled the failure. See
+         * docs/internal/topology-recovery-exception-handling.md.
+         */
         private static void HandleTopologyRecoveryException(TopologyRecoveryException e,
             CancellationToken recoveryCancellationToken)
         {
@@ -458,6 +467,11 @@ namespace RabbitMQ.Client.Impl
                     if (_config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.ExchangeRecoveryExceptionCondition(recordedExchange, ex))
                     {
+                        // The handler runs and the exception is then swallowed: the retry
+                        // classification below is deliberately NOT consulted here. That is
+                        // issue #1995, still open. See
+                        // docs/internal/topology-recovery-exception-handling.md before
+                        // "fixing" it - the obvious fix was measured to be a regression.
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
@@ -549,6 +563,11 @@ namespace RabbitMQ.Client.Impl
                     if (_config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.QueueRecoveryExceptionCondition(recordedQueue, ex))
                     {
+                        // The handler runs and the exception is then swallowed: the retry
+                        // classification below is deliberately NOT consulted here. That is
+                        // issue #1995, still open. See
+                        // docs/internal/topology-recovery-exception-handling.md before
+                        // "fixing" it - the obvious fix was measured to be a regression.
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
@@ -624,6 +643,11 @@ namespace RabbitMQ.Client.Impl
                     if (_config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.BindingRecoveryExceptionCondition(binding, ex))
                     {
+                        // The handler runs and the exception is then swallowed: the retry
+                        // classification below is deliberately NOT consulted here. That is
+                        // issue #1995, still open. See
+                        // docs/internal/topology-recovery-exception-handling.md before
+                        // "fixing" it - the obvious fix was measured to be a regression.
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
@@ -705,6 +729,11 @@ namespace RabbitMQ.Client.Impl
                     if (_config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionHandlerAsync != null
                         && _config.TopologyRecoveryExceptionHandler.ConsumerRecoveryExceptionCondition(consumer, ex))
                     {
+                        // The handler runs and the exception is then swallowed: the retry
+                        // classification below is deliberately NOT consulted here. That is
+                        // issue #1995, still open. See
+                        // docs/internal/topology-recovery-exception-handling.md before
+                        // "fixing" it - the obvious fix was measured to be a regression.
                         try
                         {
                             _recordedEntitiesSemaphore.Release();
