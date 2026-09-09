@@ -446,6 +446,12 @@ there. Current docs:
   when MainLoop wins the close-reason race (issue #1960), which cancellation
   token a shutdown handler actually receives on each close path, and the
   memory-dump-based diagnostic workflow used to find these.
+- `docs/internal/topology-recovery-exception-handling.md` - which broker refusals
+  are actually final during topology recovery and which only look it, why a
+  configured `TopologyRecoveryExceptionHandler` still bypasses the retry
+  classification (issue #1995, open), and why the obvious fix is a regression:
+  read it before proposing one. Records that `basic.consume` *can* return 406,
+  contrary to the assumption the abandoned attempt rested on.
 
 ## Development Guidelines
 
