@@ -57,13 +57,15 @@ try
     await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false,
         cancellationToken: myToken);
 }
-catch (OperationCanceledException ex) when (ex.CancellationToken != myToken)
+catch (OperationCanceledException) when (false == myToken.IsCancellationRequested)
 {
-    // The operation outran ContinuationTimeout. The request is already on the wire,
-    // so the broker may still act on it.
+    // The operation outran ContinuationTimeout. The request was issued before the
+    // budget started, so the broker may still act on it.
 }
 ```
 
-Use the token carried by the exception rather than checking `myToken.IsCancellationRequested`. A close on an open channel or connection deliberately ignores the caller's token, so that a close already under way is not truncated, which means a cancelled token there does not tell you the request was never sent.
+Check your own token, and do not compare against the one carried by the exception. That token is internal in both cases - the timeout's own token on a timeout, a linked token on a caller cancel - so comparing it against yours reports a difference either way and cannot tell them apart. Your token, by contrast, is untouched by a timeout: the client never cancels a token it does not own.
 
-Two paths do not surface it as cancellation at all. `CreateConnectionAsync` wraps it in `BrokerUnreachableException`, and an abort swallows it, so `AbortAsync` can return successfully after waiting out the timeout.
+The one caveat is that this reads your token as a proxy for "did I cause this", which is sound only where your token governs the operation. A close on an open channel or connection deliberately ignores the caller's token, so that a close already under way is not truncated; a cancelled token of yours there does not tell you the request was never sent.
+
+Some paths do not surface a timeout as cancellation at all. `CreateConnectionAsync` wraps it in `BrokerUnreachableException`; an abort swallows it, so `AbortAsync` can return successfully after waiting out the timeout; and topology recovery wraps it in a `TopologyRecoveryException` delivered through `ConnectionRecoveryErrorAsync`. Waiting for a publisher confirmation is not bounded by `ContinuationTimeout` at all, so it is governed only by whatever token you pass.
